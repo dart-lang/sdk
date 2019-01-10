@@ -82,7 +82,7 @@ class Dart < Formula
   homepage "https://www.dartlang.org/"
 
   version "$stableVersion"
-  if MacOS.prefer_64_bit?
+  if Hardware::CPU.is_64_bit?
     url "$_urlBase/stable/release/${revisions['stable']}/$_x64File"
     sha256 "${hashes['stable'][_x64File]}"
   else
@@ -92,7 +92,7 @@ class Dart < Formula
 
   devel do
     version "$devVersion"
-    if MacOS.prefer_64_bit?
+    if Hardware::CPU.is_64_bit?
       url "$_urlBase/dev/release/${revisions['dev']}/$_x64File"
       sha256 "${hashes['dev'][_x64File]}"
     else
