@@ -17,6 +17,7 @@ import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
+import '../ir/impact.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
@@ -29,20 +30,20 @@ import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import 'element_map.dart';
 
-class KernelImpactBuilder extends StaticTypeVisitor {
+class KernelImpactBuilder extends ImpactBuilder {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
   final CompilerOptions _options;
   final MemberEntity currentMember;
-  final VariableScopeModel variableScopeModel;
   final Set<PragmaAnnotation> _annotations;
 
   KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
-      this._options, this.variableScopeModel, this._annotations)
+      this._options, VariableScopeModel variableScopeModel, this._annotations)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
-        super(elementMap.typeEnvironment, elementMap.classHierarchy);
+        super(elementMap.typeEnvironment, elementMap.classHierarchy,
+            variableScopeModel);
 
   CommonElements get commonElements => elementMap.commonElements;
 
@@ -126,44 +127,31 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     }
   }
 
-  void handleAsyncMarker(ir.FunctionNode function) {
-    ir.AsyncMarker asyncMarker = function.asyncMarker;
-    if (asyncMarker == ir.AsyncMarker.Sync) return;
+  @override
+  void registerSyncStar(ir.DartType elementType) {
+    impactBuilder.registerFeature(Feature.SYNC_STAR);
+    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        commonElements.syncStarIterableFactory,
+        const CallStructure.unnamed(1, 1),
+        <DartType>[elementMap.getDartType(elementType)]));
+  }
 
-    DartType elementType =
-        elementMap.getFunctionAsyncOrSyncStarElementType(function);
+  @override
+  void registerAsync(ir.DartType elementType) {
+    impactBuilder.registerFeature(Feature.ASYNC);
+    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        commonElements.asyncAwaitCompleterFactory,
+        const CallStructure.unnamed(0, 1),
+        <DartType>[elementMap.getDartType(elementType)]));
+  }
 
-    switch (asyncMarker) {
-      case ir.AsyncMarker.SyncStar:
-        impactBuilder.registerFeature(Feature.SYNC_STAR);
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.syncStarIterableFactory,
-            const CallStructure.unnamed(1, 1),
-            <DartType>[elementType]));
-        break;
-
-      case ir.AsyncMarker.Async:
-        impactBuilder.registerFeature(Feature.ASYNC);
-        var completerFactory = commonElements.asyncAwaitCompleterFactory;
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            completerFactory,
-            const CallStructure.unnamed(0, 1),
-            <DartType>[elementType]));
-        break;
-
-      case ir.AsyncMarker.AsyncStar:
-        impactBuilder.registerFeature(Feature.ASYNC_STAR);
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.asyncStarStreamControllerFactory,
-            const CallStructure.unnamed(1, 1),
-            <DartType>[elementType]));
-        break;
-
-      case ir.AsyncMarker.Sync:
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected async marker: ${asyncMarker}");
-    }
+  @override
+  void registerAsyncStar(ir.DartType elementType) {
+    impactBuilder.registerFeature(Feature.ASYNC_STAR);
+    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        commonElements.asyncStarStreamControllerFactory,
+        const CallStructure.unnamed(1, 1),
+        <DartType>[elementMap.getDartType(elementType)]));
   }
 
   @override
@@ -178,57 +166,53 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  void handleIntLiteral(ir.IntLiteral node) {
+  void registerIntLiteral(int value) {
     impactBuilder.registerConstantLiteral(
-        new IntConstantExpression(new BigInt.from(node.value).toUnsigned(64)));
+        new IntConstantExpression(new BigInt.from(value).toUnsigned(64)));
   }
 
   @override
-  void handleDoubleLiteral(ir.DoubleLiteral node) {
-    impactBuilder
-        .registerConstantLiteral(new DoubleConstantExpression(node.value));
+  void registerDoubleLiteral(double value) {
+    impactBuilder.registerConstantLiteral(new DoubleConstantExpression(value));
   }
 
   @override
-  void handleBoolLiteral(ir.BoolLiteral node) {
-    impactBuilder
-        .registerConstantLiteral(new BoolConstantExpression(node.value));
+  void registerBoolLiteral(bool value) {
+    impactBuilder.registerConstantLiteral(new BoolConstantExpression(value));
   }
 
   @override
-  void handleStringLiteral(ir.StringLiteral node) {
-    impactBuilder
-        .registerConstantLiteral(new StringConstantExpression(node.value));
+  void registerStringLiteral(String value) {
+    impactBuilder.registerConstantLiteral(new StringConstantExpression(value));
   }
 
   @override
-  void handleSymbolLiteral(ir.SymbolLiteral node) {
-    impactBuilder.registerConstSymbolName(node.value);
+  void registerSymbolLiteral(String value) {
+    impactBuilder.registerConstSymbolName(value);
   }
 
   @override
-  void handleNullLiteral(ir.NullLiteral node) {
+  void registerNullLiteral() {
     impactBuilder.registerConstantLiteral(new NullConstantExpression());
   }
 
   @override
-  void handleListLiteral(ir.ListLiteral node) {
-    DartType elementType = elementMap.getDartType(node.typeArgument);
-
+  void registerListLiteral(ir.DartType elementType,
+      {bool isConstant, bool isEmpty}) {
     impactBuilder.registerListLiteral(new ListLiteralUse(
-        commonElements.listType(elementType),
-        isConstant: node.isConst,
-        isEmpty: node.expressions.isEmpty));
+        commonElements.listType(elementMap.getDartType(elementType)),
+        isConstant: isConstant,
+        isEmpty: isEmpty));
   }
 
   @override
-  void handleMapLiteral(ir.MapLiteral node) {
-    DartType keyType = elementMap.getDartType(node.keyType);
-    DartType valueType = elementMap.getDartType(node.valueType);
+  void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
+      {bool isConstant, bool isEmpty}) {
     impactBuilder.registerMapLiteral(new MapLiteralUse(
-        commonElements.mapType(keyType, valueType),
-        isConstant: node.isConst,
-        isEmpty: node.entries.isEmpty));
+        commonElements.mapType(
+            elementMap.getDartType(keyType), elementMap.getDartType(valueType)),
+        isConstant: isConstant,
+        isEmpty: isEmpty));
   }
 
   @override
@@ -388,24 +372,22 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  void handleStaticGet(ir.StaticGet node, ir.DartType resultType) {
-    ir.Member target = node.target;
-    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      FunctionEntity method = elementMap.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(
-          method, elementMap.getImport(getDeferredImport(node))));
-    } else {
-      MemberEntity member = elementMap.getMember(target);
-      impactBuilder.registerStaticUse(new StaticUse.staticGet(
-          member, elementMap.getImport(getDeferredImport(node))));
-    }
+  void registerStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency import) {
+    impactBuilder.registerStaticUse(new StaticUse.staticTearOff(
+        elementMap.getMethod(procedure), elementMap.getImport(import)));
   }
 
   @override
-  void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
-    MemberEntity member = elementMap.getMember(node.target);
+  void registerStaticGet(ir.Member member, ir.LibraryDependency import) {
+    impactBuilder.registerStaticUse(new StaticUse.staticGet(
+        elementMap.getMember(member), elementMap.getImport(import)));
+  }
+
+  @override
+  void registerStaticSet(ir.Member member, ir.LibraryDependency import) {
     impactBuilder.registerStaticUse(new StaticUse.staticSet(
-        member, elementMap.getImport(getDeferredImport(node))));
+        elementMap.getMember(member), elementMap.getImport(import)));
   }
 
   void handleSuperInvocation(ir.Name name, ir.Node arguments) {
@@ -653,129 +635,121 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  void handleAssertStatement(ir.AssertStatement node) {
+  void registerAssert({bool withMessage}) {
     impactBuilder.registerFeature(
-        node.message != null ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
+        withMessage ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
   }
 
   @override
-  void handleInstantiation(ir.Instantiation node,
-      ir.FunctionType expressionType, ir.DartType resultType) {
+  void registerGenericInstantiation(
+      ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
     // TODO(johnniwinther): Track which arities are used in instantiation.
     impactBuilder.registerInstantiation(new GenericInstantiation(
         elementMap.getDartType(expressionType),
-        node.typeArguments.map(elementMap.getDartType).toList()));
+        typeArguments.map(elementMap.getDartType).toList()));
   }
 
   @override
-  void handleStringConcatenation(ir.StringConcatenation node) {
+  void registerStringConcatenation() {
     impactBuilder.registerFeature(Feature.STRING_INTERPOLATION);
     impactBuilder.registerFeature(Feature.STRING_JUXTAPOSITION);
   }
 
   @override
-  Null handleFunctionDeclaration(ir.FunctionDeclaration node) {
+  void registerLocalFunction(ir.TreeNode node) {
     Local function = elementMap.getLocalFunction(node);
     impactBuilder.registerStaticUse(new StaticUse.closure(function));
-    handleAsyncMarker(node.function);
   }
 
   @override
-  void handleFunctionExpression(ir.FunctionExpression node) {
-    Local function = elementMap.getLocalFunction(node);
-    impactBuilder.registerStaticUse(new StaticUse.closure(function));
-    handleAsyncMarker(node.function);
+  void registerLocalWithoutInitializer() {
+    impactBuilder.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
   }
 
   @override
-  void handleVariableDeclaration(ir.VariableDeclaration node) {
-    if (node.initializer == null) {
-      impactBuilder.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
-    }
+  void registerIsCheck(ir.DartType type) {
+    impactBuilder
+        .registerTypeUse(new TypeUse.isCheck(elementMap.getDartType(type)));
   }
 
   @override
-  void handleIsExpression(ir.IsExpression node) {
+  void registerImplicitCast(ir.DartType type) {
     impactBuilder.registerTypeUse(
-        new TypeUse.isCheck(elementMap.getDartType(node.type)));
+        new TypeUse.implicitCast(elementMap.getDartType(type)));
   }
 
   @override
-  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
-    if (typeEnvironment.isSubtypeOf(operandType, node.type)) {
-      // Skip unneeded casts.
-      return;
-    }
-    DartType type = elementMap.getDartType(node.type);
-    if (node.isTypeError) {
-      impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
-    } else {
-      impactBuilder.registerTypeUse(new TypeUse.asCast(type));
-    }
+  void registerAsCast(ir.DartType type) {
+    impactBuilder
+        .registerTypeUse(new TypeUse.asCast(elementMap.getDartType(type)));
   }
 
   @override
-  void handleThrow(ir.Throw node) {
+  @override
+  void registerThrow() {
     impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
   }
 
-  @override
-  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType) {
+  void registerSyncForIn(ir.DartType iterableType) {
     // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
     // strong mode.
-    if (node.isAsync) {
-      impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
-      impactBuilder.registerDynamicUse(new DynamicUse(Selectors.cancel));
-    } else {
-      impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
-      impactBuilder.registerDynamicUse(new DynamicUse(Selectors.iterator));
-    }
+    impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.iterator));
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current));
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
   }
 
-  @override
-  void handleCatch(ir.Catch node) {
+  void registerAsyncForIn(ir.DartType iterableType) {
+    // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
+    // strong mode.
+    impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.cancel));
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current));
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
+  }
+
+  void registerCatch() {
     impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
-    if (node.stackTrace != null) {
-      impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
-    }
-    if (node.guard is! ir.DynamicType) {
-      impactBuilder.registerTypeUse(
-          new TypeUse.catchType(elementMap.getDartType(node.guard)));
-    }
+  }
+
+  void registerStackTrace() {
+    impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
+  }
+
+  void registerCatchType(ir.DartType type) {
+    impactBuilder
+        .registerTypeUse(new TypeUse.catchType(elementMap.getDartType(type)));
   }
 
   @override
-  void handleTypeLiteral(ir.TypeLiteral node) {
-    ImportEntity deferredImport = elementMap.getImport(getDeferredImport(node));
-    impactBuilder.registerTypeUse(new TypeUse.typeLiteral(
-        elementMap.getDartType(node.type), deferredImport));
-    if (node.type is ir.FunctionType) {
-      ir.FunctionType functionType = node.type;
-      assert(functionType.typedef != null);
+  void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import) {
+    ImportEntity deferredImport = elementMap.getImport(import);
+    impactBuilder.registerTypeUse(
+        new TypeUse.typeLiteral(elementMap.getDartType(type), deferredImport));
+    if (type is ir.FunctionType) {
+      assert(type.typedef != null);
       // TODO(johnniwinther): Can we avoid the typedef type altogether?
       // We need to ensure that the typedef is live.
-      elementMap.getTypedefType(functionType.typedef);
+      elementMap.getTypedefType(type.typedef);
     }
   }
 
   @override
-  void handleFieldInitializer(ir.FieldInitializer node) {
-    impactBuilder.registerStaticUse(
-        new StaticUse.fieldInit(elementMap.getField(node.field)));
+  void registerFieldInitializer(ir.Field node) {
+    impactBuilder
+        .registerStaticUse(new StaticUse.fieldInit(elementMap.getField(node)));
   }
 
   @override
-  void handleRedirectingInitializer(
-      ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
-    ConstructorEntity target = elementMap.getConstructor(node.target);
+  void registerRedirectingInitializer(
+      ir.Constructor constructor, ir.Arguments arguments) {
+    ConstructorEntity target = elementMap.getConstructor(constructor);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
-        target, elementMap.getCallStructure(node.arguments)));
+        target, elementMap.getCallStructure(arguments)));
   }
 
   @override
-  void handleLoadLibrary(ir.LoadLibrary node) {
+  void registerLoadLibrary() {
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
     impactBuilder.registerFeature(Feature.LOAD_LIBRARY);

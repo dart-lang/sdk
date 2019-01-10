@@ -181,9 +181,6 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [member].
   ir.Member getMemberNode(covariant MemberEntity member);
-
-  /// Returns the element type of a async/sync*/async* function.
-  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode);
 }
 
 /// Kinds of foreign functions.

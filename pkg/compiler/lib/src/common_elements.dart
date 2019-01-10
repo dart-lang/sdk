@@ -1905,16 +1905,6 @@ abstract class ElementEnvironment {
   /// Returns the function type variables defined on [function].
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function);
 
-  /// Returns the 'element' type of a function with an async, async* or sync*
-  /// marker. The return type of the method is inspected to determine the type
-  /// parameter of the Future, Stream or Iterable.
-  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
-
-  /// Returns the 'element' type of a function with the async, async* or sync*
-  /// marker [marker]. [returnType] is the return type marked function.
-  DartType getAsyncOrSyncStarElementType(
-      AsyncMarker marker, DartType returnType);
-
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
 
@@ -1996,4 +1986,14 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// This is the type used as the default type argument when no explicit type
   /// argument is passed.
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
+
+  /// Returns the 'element' type of a function with the async, async* or sync*
+  /// marker [marker]. [returnType] is the return type marked function.
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker marker, DartType returnType);
+
+  /// Returns the 'element' type of a function with an async, async* or sync*
+  /// marker. The return type of the method is inspected to determine the type
+  /// parameter of the Future, Stream or Iterable.
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
 }

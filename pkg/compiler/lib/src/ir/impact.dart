@@ -1,0 +1,288 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
+
+import '../common.dart';
+import 'scope.dart';
+import 'static_type.dart';
+import 'util.dart';
+
+abstract class ImpactBuilder extends StaticTypeVisitor {
+  final VariableScopeModel variableScopeModel;
+
+  ImpactBuilder(ir.TypeEnvironment typeEnvironment,
+      ir.ClassHierarchy classHierarchy, this.variableScopeModel)
+      : super(typeEnvironment, classHierarchy);
+
+  void registerIntLiteral(int value);
+
+  @override
+  void handleIntLiteral(ir.IntLiteral node) {
+    registerIntLiteral(node.value);
+  }
+
+  void registerDoubleLiteral(double value);
+
+  @override
+  void handleDoubleLiteral(ir.DoubleLiteral node) {
+    registerDoubleLiteral(node.value);
+  }
+
+  void registerBoolLiteral(bool value);
+
+  @override
+  void handleBoolLiteral(ir.BoolLiteral node) {
+    registerBoolLiteral(node.value);
+  }
+
+  void registerStringLiteral(String value);
+
+  @override
+  void handleStringLiteral(ir.StringLiteral node) {
+    registerStringLiteral(node.value);
+  }
+
+  void registerSymbolLiteral(String value);
+
+  @override
+  void handleSymbolLiteral(ir.SymbolLiteral node) {
+    registerSymbolLiteral(node.value);
+  }
+
+  void registerNullLiteral();
+
+  @override
+  void handleNullLiteral(ir.NullLiteral node) {
+    registerNullLiteral();
+  }
+
+  void registerListLiteral(ir.DartType elementType,
+      {bool isConstant, bool isEmpty});
+
+  @override
+  void handleListLiteral(ir.ListLiteral node) {
+    registerListLiteral(node.typeArgument,
+        isConstant: node.isConst, isEmpty: node.expressions.isEmpty);
+  }
+
+  void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
+      {bool isConstant, bool isEmpty});
+
+  @override
+  void handleMapLiteral(ir.MapLiteral node) {
+    registerMapLiteral(node.keyType, node.valueType,
+        isConstant: node.isConst, isEmpty: node.entries.isEmpty);
+  }
+
+  void registerStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency import);
+
+  void registerStaticGet(ir.Member member, ir.LibraryDependency import);
+
+  @override
+  void handleStaticGet(ir.StaticGet node, ir.DartType resultType) {
+    ir.Member target = node.target;
+    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
+      registerStaticTearOff(target, getDeferredImport(node));
+    } else {
+      registerStaticGet(target, getDeferredImport(node));
+    }
+  }
+
+  void registerStaticSet(ir.Member member, ir.LibraryDependency import);
+
+  @override
+  void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
+    registerStaticSet(node.target, getDeferredImport(node));
+  }
+
+  void registerAssert({bool withMessage});
+
+  @override
+  void handleAssertStatement(ir.AssertStatement node) {
+    registerAssert(withMessage: node.message != null);
+  }
+
+  void registerGenericInstantiation(
+      ir.FunctionType expressionType, List<ir.DartType> typeArguments);
+
+  @override
+  void handleInstantiation(ir.Instantiation node,
+      ir.FunctionType expressionType, ir.DartType resultType) {
+    registerGenericInstantiation(expressionType, node.typeArguments);
+  }
+
+  void registerSyncStar(ir.DartType elementType);
+
+  void registerAsync(ir.DartType elementType);
+
+  void registerAsyncStar(ir.DartType elementType);
+
+  void handleAsyncMarker(ir.FunctionNode function) {
+    ir.AsyncMarker asyncMarker = function.asyncMarker;
+    ir.DartType returnType = function.returnType;
+
+    switch (asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        break;
+      case ir.AsyncMarker.SyncStar:
+        ir.DartType elementType = const ir.DynamicType();
+        if (returnType is ir.InterfaceType) {
+          if (returnType.classNode == typeEnvironment.coreTypes.iterableClass) {
+            elementType = returnType.typeArguments.first;
+          }
+        }
+        registerSyncStar(elementType);
+        break;
+
+      case ir.AsyncMarker.Async:
+        ir.DartType elementType = const ir.DynamicType();
+        if (returnType is ir.InterfaceType) {
+          if (returnType.classNode == typeEnvironment.coreTypes.futureOrClass) {
+            elementType = returnType.typeArguments.first;
+          } else if (returnType.classNode ==
+              typeEnvironment.coreTypes.futureClass) {
+            elementType = returnType.typeArguments.first;
+          }
+        }
+        registerAsync(elementType);
+        break;
+
+      case ir.AsyncMarker.AsyncStar:
+        ir.DartType elementType = const ir.DynamicType();
+        if (returnType is ir.InterfaceType) {
+          if (returnType.classNode == typeEnvironment.coreTypes.streamClass) {
+            elementType = returnType.typeArguments.first;
+          }
+        }
+        registerAsyncStar(elementType);
+        break;
+
+      case ir.AsyncMarker.SyncYielding:
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected async marker: ${asyncMarker}");
+    }
+  }
+
+  void registerStringConcatenation();
+
+  @override
+  void handleStringConcatenation(ir.StringConcatenation node) {
+    registerStringConcatenation();
+  }
+
+  void registerLocalFunction(ir.TreeNode node);
+
+  @override
+  Null handleFunctionDeclaration(ir.FunctionDeclaration node) {
+    registerLocalFunction(node);
+    handleAsyncMarker(node.function);
+  }
+
+  @override
+  void handleFunctionExpression(ir.FunctionExpression node) {
+    registerLocalFunction(node);
+    handleAsyncMarker(node.function);
+  }
+
+  void registerLocalWithoutInitializer();
+
+  @override
+  void handleVariableDeclaration(ir.VariableDeclaration node) {
+    if (node.initializer == null) {
+      registerLocalWithoutInitializer();
+    }
+  }
+
+  void registerIsCheck(ir.DartType type);
+
+  @override
+  void handleIsExpression(ir.IsExpression node) {
+    registerIsCheck(node.type);
+  }
+
+  void registerImplicitCast(ir.DartType type);
+
+  void registerAsCast(ir.DartType type);
+
+  @override
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
+    if (typeEnvironment.isSubtypeOf(operandType, node.type)) {
+      // Skip unneeded casts.
+      return;
+    }
+    if (node.isTypeError) {
+      registerImplicitCast(node.type);
+    } else {
+      registerAsCast(node.type);
+    }
+  }
+
+  void registerThrow();
+
+  @override
+  void handleThrow(ir.Throw node) {
+    registerThrow();
+  }
+
+  void registerSyncForIn(ir.DartType iterableType);
+
+  void registerAsyncForIn(ir.DartType iterableType);
+
+  @override
+  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType) {
+    if (node.isAsync) {
+      registerAsyncForIn(iterableType);
+    } else {
+      registerSyncForIn(iterableType);
+    }
+  }
+
+  void registerCatch();
+  void registerStackTrace();
+  void registerCatchType(ir.DartType type);
+
+  @override
+  void handleCatch(ir.Catch node) {
+    registerCatch();
+    if (node.stackTrace != null) {
+      registerStackTrace();
+    }
+    if (node.guard is! ir.DynamicType) {
+      registerCatchType(node.guard);
+    }
+  }
+
+  void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import);
+
+  @override
+  void handleTypeLiteral(ir.TypeLiteral node) {
+    registerTypeLiteral(node.type, getDeferredImport(node));
+  }
+
+  void registerFieldInitializer(ir.Field node);
+
+  @override
+  void handleFieldInitializer(ir.FieldInitializer node) {
+    registerFieldInitializer(node.field);
+  }
+
+  void registerLoadLibrary();
+
+  @override
+  void handleLoadLibrary(ir.LoadLibrary node) {
+    registerLoadLibrary();
+  }
+
+  void registerRedirectingInitializer(
+      ir.Constructor constructor, ir.Arguments arguments);
+
+  void handleRedirectingInitializer(
+      ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
+    registerRedirectingInitializer(node.target, node.arguments);
+  }
+}

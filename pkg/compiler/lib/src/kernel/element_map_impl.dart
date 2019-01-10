@@ -1461,27 +1461,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _getTypedefNode(typedef);
   }
 
-  /// Returns the element type of a async/sync*/async* function.
-  @override
-  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode) {
-    DartType returnType = getDartType(functionNode.returnType);
-    switch (functionNode.asyncMarker) {
-      case ir.AsyncMarker.SyncStar:
-        return elementEnvironment.getAsyncOrSyncStarElementType(
-            AsyncMarker.SYNC_STAR, returnType);
-      case ir.AsyncMarker.Async:
-        return elementEnvironment.getAsyncOrSyncStarElementType(
-            AsyncMarker.ASYNC, returnType);
-      case ir.AsyncMarker.AsyncStar:
-        return elementEnvironment.getAsyncOrSyncStarElementType(
-            AsyncMarker.ASYNC_STAR, returnType);
-      default:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected ir.AsyncMarker: ${functionNode.asyncMarker}");
-    }
-    return null;
-  }
-
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
   bool isNativeClass(ir.Class node) {
@@ -1702,46 +1681,6 @@ class KernelElementEnvironment extends ElementEnvironment
   @override
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
     return elementMap._getFunctionTypeVariables(function);
-  }
-
-  @override
-  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
-    // TODO(sra): Should be getting the DartType from the node.
-    DartType returnType = getFunctionType(function).returnType;
-    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
-  }
-
-  @override
-  DartType getAsyncOrSyncStarElementType(
-      AsyncMarker asyncMarker, DartType returnType) {
-    switch (asyncMarker) {
-      case AsyncMarker.SYNC:
-        return returnType;
-      case AsyncMarker.SYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.iterableClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-      case AsyncMarker.ASYNC:
-        if (returnType is FutureOrType) return returnType.typeArgument;
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.futureClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-      case AsyncMarker.ASYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.streamClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-    }
-    assert(false, 'Unexpected marker ${asyncMarker}');
-    return null;
   }
 
   @override

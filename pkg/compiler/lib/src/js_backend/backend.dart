@@ -9,7 +9,8 @@ import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart' show CompilerTask;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart'
+    show CommonElements, ElementEnvironment, JElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
@@ -811,7 +812,7 @@ class JavaScriptBackend {
 
   jsAst.Expression rewriteAsync(
       CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
+      JElementEnvironment elementEnvironment,
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
@@ -887,7 +888,7 @@ class JavaScriptBackend {
 
   AsyncRewriter _makeAsyncRewriter(
       CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
+      JElementEnvironment elementEnvironment,
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
