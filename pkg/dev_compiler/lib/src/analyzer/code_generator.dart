@@ -74,7 +74,7 @@ class CodeGenerator extends Object
   final Dart2TypeSystem rules;
 
   /// Errors that were produced during compilation, if any.
-  final List<AnalysisError> errors;
+  final ErrorCollector errors;
 
   JSTypeRep jsTypeRep;
 
@@ -5681,8 +5681,10 @@ class CodeGenerator extends Object
       var nearest = (lexeme.startsWith("0x") || lexeme.startsWith("0X"))
           ? '0x${valueInJS.toRadixString(16)}'
           : '$valueInJS';
-      errors.add(AnalysisError(_currentCompilationUnit.source, node.offset,
-          node.length, invalidJSInteger, [lexeme, nearest]));
+      errors.add(
+          _currentCompilationUnit.lineInfo,
+          AnalysisError(_currentCompilationUnit.source, node.offset,
+              node.length, invalidJSInteger, [lexeme, nearest]));
     }
     return JS.LiteralNumber('$valueInJS');
   }
