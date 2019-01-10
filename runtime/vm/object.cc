@@ -13037,6 +13037,11 @@ void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
 #if defined(DEBUG)
 // Used in asserts to verify that a check is not added twice.
 bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
+  return FindCheck(cids) != -1;
+}
+#endif  // DEBUG
+
+intptr_t ICData::FindCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
@@ -13050,12 +13055,11 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
       }
     }
     if (matches) {
-      return true;
+      return i;
     }
   }
-  return false;
+  return -1;
 }
-#endif  // DEBUG
 
 void ICData::WriteSentinelAt(intptr_t index) const {
   const intptr_t len = Length();

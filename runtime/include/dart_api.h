@@ -3152,6 +3152,12 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  */
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
 
+/*
+ * ====================
+ * Compilation Feedback
+ * ====================
+ */
+
 /**
  * Record all functions which have been compiled in the current isolate.
  *
@@ -3174,6 +3180,29 @@ Dart_SaveCompilationTrace(uint8_t** buffer, intptr_t* buffer_length);
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length);
+
+/**
+ * Record runtime feedback for the current isolate, including type feedback
+ * and usage counters.
+ *
+ * \param buffer Returns a pointer to a buffer containing the trace.
+ *   This buffer is scope allocated and is only valid  until the next call to
+ *   Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ * \return Returns an valid handle upon success.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_SaveTypeFeedback(uint8_t** buffer, intptr_t* buffer_length);
+
+/**
+ * Compile functions using data from Dart_SaveTypeFeedback. The data must from a
+ * VM with the same version and compiler flags.
+ *
+ * \return Returns an error handle if a compilation error was encountered or a
+ *   version mismatch is detected.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length);
 
 /*
  * ==============

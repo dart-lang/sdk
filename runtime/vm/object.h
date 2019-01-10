@@ -1969,6 +1969,8 @@ class ICData : public Object {
 
   bool is_static_call() const;
 
+  intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
+
  private:
   static RawICData* New();
 

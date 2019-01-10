@@ -124,6 +124,7 @@ static const char* kSnapshotKindNames[] = {
   V(assembly, assembly_filename)                                               \
   V(dependencies, dependencies_filename)                                       \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
+  V(load_type_feedback, load_type_feedback_filename)                           \
   V(package_root, commandline_package_root)                                    \
   V(packages, commandline_packages_file)                                       \
   V(save_obfuscation_map, obfuscation_map_filename)
@@ -561,6 +562,14 @@ static void LoadCompilationTrace() {
     intptr_t size = 0;
     ReadFile(load_compilation_trace_filename, &buffer, &size);
     Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
+    CHECK_RESULT(result);
+  }
+  if ((load_type_feedback_filename != NULL) &&
+      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+    uint8_t* buffer = NULL;
+    intptr_t size = 0;
+    ReadFile(load_type_feedback_filename, &buffer, &size);
+    Dart_Handle result = Dart_LoadTypeFeedback(buffer, size);
     CHECK_RESULT(result);
   }
 }
