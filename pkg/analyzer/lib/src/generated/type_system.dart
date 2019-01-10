@@ -2179,7 +2179,8 @@ class UnknownInferredType extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> types) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> types,
+      {bool withNullability = false}) {
     buffer.write('?');
   }
 

@@ -6862,6 +6862,8 @@ class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
   final DartType undefinedType;
+  final bool isNonNullableMigrated;
+  final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
   final Source source;
   final AnalysisErrorListener errorListener;
@@ -6875,11 +6877,17 @@ class TypeNameResolver {
 
   Scope nameScope;
 
-  TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.definingLibrary, this.source, this.errorListener,
+  TypeNameResolver(
+      this.typeSystem,
+      TypeProvider typeProvider,
+      this.isNonNullableMigrated,
+      this.definingLibrary,
+      this.source,
+      this.errorListener,
       {this.shouldUseWithClauseInferredTypes: true})
       : dynamicType = typeProvider.dynamicType,
-        undefinedType = typeProvider.undefinedType;
+        undefinedType = typeProvider.undefinedType,
+        analysisOptions = definingLibrary.context.analysisOptions;
 
   /// Report an error with the given error code and arguments.
   ///
@@ -7102,11 +7110,14 @@ class TypeNameResolver {
       node.type = undefinedType;
       return;
     }
-    DartType type = null;
+
     if (element is ClassElement) {
-      _setElement(typeName, element);
-      type = element.type;
-    } else if (element == DynamicElementImpl.instance) {
+      _resolveClassElement(node, typeName, argumentList, element);
+      return;
+    }
+
+    DartType type = null;
+    if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
@@ -7197,37 +7208,11 @@ class TypeNameResolver {
                 element, typeArguments) ??
             dynamicType;
       } else {
-        DartType redirectedType =
-            _inferTypeArgumentsForRedirectedConstructor(node, type);
-        if (redirectedType != null) {
-          type = redirectedType;
-        } else {
-          type = typeSystem.instantiateToBounds(type);
-        }
+        type = typeSystem.instantiateToBounds(type);
       }
     }
-    DartType refinedType;
-    if (shouldUseWithClauseInferredTypes) {
-      var parent = node.parent;
-      if (parent is WithClause &&
-          type is InterfaceType &&
-          type.element.typeParameters.isNotEmpty) {
-        // Get the (possibly inferred) mixin type from the element model.
-        var grandParent = parent.parent;
-        if (grandParent is ClassDeclaration) {
-          refinedType =
-              _getInferredMixinType(grandParent.declaredElement, type.element);
-        } else if (grandParent is ClassTypeAlias) {
-          refinedType =
-              _getInferredMixinType(grandParent.declaredElement, type.element);
-        } else {
-          assert(false, 'Unexpected context for "with" clause');
-        }
-      }
-    }
-    refinedType ??= type;
-    typeName.staticType = refinedType;
-    node.type = refinedType;
+    typeName.staticType = type;
+    node.type = type;
   }
 
   DartType _getInferredMixinType(
@@ -7329,7 +7314,7 @@ class TypeNameResolver {
   /// If the [node] is the type name in a redirected factory constructor,
   /// infer type arguments using the enclosing class declaration. Return `null`
   /// otherwise.
-  DartType _inferTypeArgumentsForRedirectedConstructor(
+  InterfaceTypeImpl _inferTypeArgumentsForRedirectedConstructor(
       TypeName node, DartType type) {
     AstNode constructorName = node.parent;
     AstNode enclosingConstructor = constructorName?.parent;
@@ -7394,6 +7379,78 @@ class TypeNameResolver {
   /// Checks if the given [typeName] used in a type argument list.
   bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
       typeName.parent is TypeArgumentList;
+
+  void _resolveClassElement(TypeName node, Identifier typeName,
+      TypeArgumentList argumentList, ClassElement element) {
+    _setElement(typeName, element);
+
+    var typeParameters = element.typeParameters;
+    var parameterCount = typeParameters.length;
+
+    List<DartType> typeArguments;
+    if (argumentList != null) {
+      var argumentNodes = argumentList.arguments;
+      var argumentCount = argumentNodes.length;
+
+      typeArguments = new List<DartType>(parameterCount);
+      if (argumentCount == parameterCount) {
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = _getType(argumentNodes[i]);
+        }
+      } else {
+        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
+            [typeName.name, parameterCount, argumentCount]);
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = dynamicType;
+        }
+      }
+    } else if (parameterCount == 0) {
+      typeArguments = const <DartType>[];
+    } else {
+      var redirectedType =
+          _inferTypeArgumentsForRedirectedConstructor(node, element.type);
+      if (redirectedType != null) {
+        typeArguments = redirectedType.typeArguments;
+      } else {
+        var typeFormals = typeParameters;
+        typeArguments = typeSystem.instantiateTypeFormalsToBounds(typeFormals);
+      }
+    }
+
+    Nullability nullability;
+    if (analysisOptions.experimentStatus.non_nullable) {
+      if (node.question != null) {
+        nullability = Nullability.nullable;
+      } else if (isNonNullableMigrated) {
+        nullability = Nullability.nonNullable;
+      } else {
+        nullability = Nullability.indeterminate;
+      }
+    } else {
+      nullability = Nullability.indeterminate;
+    }
+
+    var type = InterfaceTypeImpl.explicit(element, typeArguments,
+        nullability: nullability);
+
+    if (shouldUseWithClauseInferredTypes) {
+      var parent = node.parent;
+      if (parent is WithClause && parameterCount != 0) {
+        // Get the (possibly inferred) mixin type from the element model.
+        var grandParent = parent.parent;
+        if (grandParent is ClassDeclaration) {
+          type = _getInferredMixinType(grandParent.declaredElement, element);
+        } else if (grandParent is ClassTypeAlias) {
+          type = _getInferredMixinType(grandParent.declaredElement, element);
+        } else {
+          assert(false, 'Unexpected context for "with" clause');
+        }
+      }
+    }
+
+    typeName.staticType = type;
+    node.type = type;
+  }
 
   /// Records the new Element for a TypeName's Identifier.
   ///
@@ -7628,10 +7685,16 @@ class TypeParameterBoundsResolver {
   TypeNameResolver typeNameResolver = null;
 
   TypeParameterBoundsResolver(
-      this.typeSystem, this.library, this.source, this.errorListener)
+      this.typeSystem, this.library, this.source, this.errorListener,
+      {bool isNonNullableMigrated = false})
       : libraryScope = new LibraryScope(library),
-        typeNameResolver = new TypeNameResolver(typeSystem,
-            typeSystem.typeProvider, library, source, errorListener);
+        typeNameResolver = new TypeNameResolver(
+            typeSystem,
+            typeSystem.typeProvider,
+            isNonNullableMigrated,
+            library,
+            source,
+            errorListener);
 
   /// Resolve bounds of type parameters of classes, class and function type
   /// aliases.
@@ -8275,6 +8338,9 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// Type type system in use for this resolver pass.
   TypeSystem _typeSystem;
 
+  /// Whether the library migrated to non-nullable.
+  final bool isNonNullableMigrated;
+
   /// The helper to resolve types.
   TypeNameResolver _typeNameResolver;
 
@@ -8310,6 +8376,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
+      this.isNonNullableMigrated: false,
       this.mode: TypeResolverMode.everything,
       bool shouldUseWithClauseInferredTypes: true,
       this.shouldSetElementSupertypes: false})
@@ -8318,8 +8385,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
-    _typeNameResolver = new TypeNameResolver(
-        _typeSystem, typeProvider, definingLibrary, source, errorListener,
+    _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
+        isNonNullableMigrated, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 

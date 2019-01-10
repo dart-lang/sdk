@@ -1732,13 +1732,13 @@ A v = new A();
         null, "A", null, extendsClause, withClause, implementsClause);
     declaration.name.staticElement = elementA;
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
-    expect(elementA.supertype, same(elementB.type));
+    expect(elementA.supertype, elementB.type);
     List<InterfaceType> mixins = elementA.mixins;
     expect(mixins, hasLength(1));
-    expect(mixins[0], same(elementC.type));
+    expect(mixins[0], elementC.type);
     List<InterfaceType> interfaces = elementA.interfaces;
     expect(interfaces, hasLength(1));
-    expect(interfaces[0], same(elementD.type));
+    expect(interfaces[0], elementD.type);
     _listener.assertNoErrors();
   }
 
@@ -1759,7 +1759,7 @@ A v = new A();
         null, "B", null, extendsClause, null, null);
     declaration.name.staticElement = elementB;
     _resolveNode(declaration, [elementA, elementB]);
-    expect(elementB.supertype, same(elementA.type));
+    expect(elementB.supertype, elementA.type);
     _listener.assertNoErrors();
   }
 
@@ -1785,7 +1785,7 @@ A v = new A();
     pElement.type = pType;
 
     _resolveFormalParameter(pNode, [intType.element]);
-    expect(pType.returnType, same(intType));
+    expect(pType.returnType, intType);
     expect(pType.parameters, hasLength(1));
     _listener.assertNoErrors();
   }
@@ -1808,7 +1808,7 @@ A v = new A();
         AstTestFactory.fieldFormalParameter(null, intTypeName, parameterName);
     node.identifier.staticElement =
         ElementFactory.requiredParameter(parameterName);
-    expect(_resolveFormalParameter(node, [intType.element]), same(intType));
+    expect(_resolveFormalParameter(node, [intType.element]), intType);
     _listener.assertNoErrors();
   }
 
@@ -2017,7 +2017,7 @@ A v = new A();
     SimpleIdentifier identifier = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
     node.declaredElement = identifier.staticElement = element;
-    expect(_resolveFormalParameter(node, [intElement]), same(intType));
+    expect(_resolveFormalParameter(node, [intElement]), intType);
     _listener.assertNoErrors();
   }
 
@@ -2026,7 +2026,7 @@ A v = new A();
     TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
-    expect(typeName.type, same(classA.type));
+    expect(typeName.type, classA.type);
     _listener.assertNoErrors();
   }
 
@@ -2051,7 +2051,7 @@ A v = new A();
     expect(resultType.element, same(classA));
     List<DartType> resultArguments = resultType.typeArguments;
     expect(resultArguments, hasLength(1));
-    expect(resultArguments[0], same(classB.type));
+    expect(resultArguments[0], classB.type);
     _listener.assertNoErrors();
   }
 
@@ -2107,11 +2107,11 @@ A v = new A();
     _resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
-      expect(exceptionParameter.staticType, same(exceptionType));
+      expect(exceptionParameter.staticType, exceptionType);
     }
     SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
     if (stackTraceParameter != null) {
-      expect(stackTraceParameter.staticType, same(stackTraceType));
+      expect(stackTraceParameter.staticType, stackTraceType);
     }
   }
 

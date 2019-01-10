@@ -1698,9 +1698,8 @@ class _SimpleResolverTest_localVariable_types_invoked
         DartType staticType = node.staticType;
         expect(staticType is FunctionType, isTrue);
         FunctionType functionType = staticType;
-        expect(
-            functionType.parameters[0].type, same(test.typeProvider.intType));
-        expect(functionType.returnType, same(test.typeProvider.stringType));
+        expect(functionType.parameters[0].type, test.typeProvider.intType);
+        expect(functionType.returnType, test.typeProvider.stringType);
       } on AnalysisException catch (e, stackTrace) {
         thrownException[0] = new CaughtException(e, stackTrace);
       }

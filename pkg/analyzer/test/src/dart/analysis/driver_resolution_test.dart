@@ -4081,12 +4081,12 @@ void main() {
 
     VariableDeclarationStatement vStatement = mainStatements[1];
     VariableDeclaration vDeclaration = vStatement.variables.variables[0];
-    expect(vDeclaration.declaredElement.type, same(doubleType));
+    expect(vDeclaration.declaredElement.type, doubleType);
 
     MethodInvocation fInvocation = vDeclaration.initializer;
     expect(fInvocation.methodName.staticElement, same(fElement));
     expect(fInvocation.methodName.staticType.toString(), fTypeString);
-    expect(fInvocation.staticType, same(doubleType));
+    expect(fInvocation.staticType, doubleType);
     expect(fInvocation.staticInvokeType.toString(), fTypeString);
   }
 
@@ -4407,12 +4407,12 @@ void main() {
     {
       VariableDeclarationStatement statement = mainStatements[1];
       VariableDeclaration declaration = statement.variables.variables[0];
-      expect(declaration.declaredElement.type, same(doubleType));
+      expect(declaration.declaredElement.type, doubleType);
 
       MethodInvocation invocation = declaration.initializer;
       expect(invocation.methodName.staticElement, same(fElement));
       expect(invocation.methodName.staticType.toString(), fTypeString);
-      expect(invocation.staticType, same(doubleType));
+      expect(invocation.staticType, doubleType);
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
       List<Expression> arguments = invocation.argumentList.arguments;
@@ -5773,7 +5773,7 @@ double f(int a, String b) {}
 
     expect(invocation.methodName.staticElement, same(fElement));
     expect(invocation.methodName.staticType.toString(), fTypeString);
-    expect(invocation.staticType, same(doubleType));
+    expect(invocation.staticType, doubleType);
     expect(invocation.staticInvokeType.toString(), fTypeString);
 
     _assertArgumentToParameter(arguments[0], fElement.parameters[0]);
@@ -6868,21 +6868,20 @@ class B extends A {
       SimpleIdentifier identifier = statement.expression;
 
       expect(identifier.staticElement, same(getterElement));
-      expect(identifier.staticType, same(typeProvider.intType));
+      expect(identifier.staticType, typeProvider.intType);
     }
 
     // super.getter;
     {
       ExpressionStatement statement = testStatements[3];
       PropertyAccess propertyAccess = statement.expression;
-      expect(propertyAccess.staticType, same(typeProvider.intType));
+      expect(propertyAccess.staticType, typeProvider.intType);
 
       SuperExpression target = propertyAccess.target;
       expect(target.staticType, bNode.declaredElement.type); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(getterElement));
-      expect(
-          propertyAccess.propertyName.staticType, same(typeProvider.intType));
+      expect(propertyAccess.propertyName.staticType, typeProvider.intType);
     }
 
     // setter = 3;
@@ -6892,7 +6891,7 @@ class B extends A {
 
       SimpleIdentifier identifier = assignment.leftHandSide;
       expect(identifier.staticElement, same(setterElement));
-      expect(identifier.staticType, same(typeProvider.intType));
+      expect(identifier.staticType, typeProvider.intType);
     }
 
     // this.setter = 4;
@@ -6906,8 +6905,7 @@ class B extends A {
       expect(target.staticType, bNode.declaredElement.type); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(setterElement));
-      expect(
-          propertyAccess.propertyName.staticType, same(typeProvider.intType));
+      expect(propertyAccess.propertyName.staticType, typeProvider.intType);
     }
 
     // super + 5;
@@ -8816,7 +8814,7 @@ main() {
 
     TypeName typeName = node.type;
     if (typeName != null) {
-      expect(typeName.type, same(type));
+      expect(typeName.type, type);
       expect(typeName.name.staticElement, same(type.element));
     }
   }

@@ -55,6 +55,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
+  bool isNonNullableMigrated = false;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -101,6 +102,8 @@ class LibraryAnalyzer {
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
+    isNonNullableMigrated = (units.values.first as CompilationUnitImpl)
+        .hasPragmaAnalyzerNonNullable;
 
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
@@ -597,11 +600,13 @@ class LibraryAnalyzer {
     // TODO(scheglov) remove EnumMemberBuilder class
 
     new TypeParameterBoundsResolver(
-            _context.typeSystem, _libraryElement, source, errorListener)
+            _context.typeSystem, _libraryElement, source, errorListener,
+            isNonNullableMigrated: isNonNullableMigrated)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
-        _libraryElement, source, _typeProvider, errorListener));
+        _libraryElement, source, _typeProvider, errorListener,
+        isNonNullableMigrated: isNonNullableMigrated));
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,

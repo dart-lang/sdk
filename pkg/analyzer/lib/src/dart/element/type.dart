@@ -212,7 +212,8 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
   bool operator ==(Object object) => object is CircularFunctionTypeImpl;
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
+      {bool withNullability = false}) {
     buffer.write('...');
   }
 
@@ -268,7 +269,8 @@ class CircularTypeImpl extends DynamicTypeImpl {
   bool operator ==(Object object) => object is CircularTypeImpl;
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
+      {bool withNullability = false}) {
     buffer.write('...');
   }
 
@@ -647,7 +649,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
+      {bool withNullability = false}) {
     if (visitedTypes.add(this)) {
       if (typeFormals.isNotEmpty) {
         // To print a type with type variables, first make sure we have unique
@@ -725,7 +728,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (normalParameterTypes.isNotEmpty) {
         for (DartType type in normalParameterTypes) {
           writeSeparator();
-          (type as TypeImpl).appendTo(buffer, visitedTypes);
+          (type as TypeImpl)
+              .appendTo(buffer, visitedTypes, withNullability: withNullability);
         }
       }
       if (optionalParameterTypes.isNotEmpty) {
@@ -733,7 +737,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         buffer.write("[");
         for (DartType type in optionalParameterTypes) {
           writeSeparator();
-          (type as TypeImpl).appendTo(buffer, visitedTypes);
+          (type as TypeImpl)
+              .appendTo(buffer, visitedTypes, withNullability: withNullability);
         }
         buffer.write("]");
         needsComma = true;
@@ -745,7 +750,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           writeSeparator();
           buffer.write(name);
           buffer.write(": ");
-          (type as TypeImpl).appendTo(buffer, visitedTypes);
+          (type as TypeImpl)
+              .appendTo(buffer, visitedTypes, withNullability: withNullability);
         });
         buffer.write("}");
         needsComma = true;
@@ -755,7 +761,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (returnType == null) {
         buffer.write("null");
       } else {
-        (returnType as TypeImpl).appendTo(buffer, visitedTypes);
+        (returnType as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
       }
       visitedTypes.remove(this);
     } else {
@@ -1271,6 +1278,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     _typeArguments = null;
   }
 
+  InterfaceTypeImpl.explicit(ClassElement element, List<DartType> typeArguments,
+      {this.nullability = Nullability.nullable})
+      : prunedTypedefs = null,
+        _typeArguments = typeArguments,
+        super(element, element.displayName);
+
   /**
    * Initialize a newly created type to have the given [name]. This constructor
    * should only be used in cases where there is no declaration of the type.
@@ -1508,7 +1521,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
+      {bool withNullability = false}) {
     if (visitedTypes.add(this)) {
       buffer.write(name);
       int argumentCount = typeArguments.length;
@@ -1518,9 +1532,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           if (i > 0) {
             buffer.write(", ");
           }
-          (typeArguments[i] as TypeImpl).appendTo(buffer, visitedTypes);
+          (typeArguments[i] as TypeImpl)
+              .appendTo(buffer, visitedTypes, withNullability: withNullability);
         }
         buffer.write(">");
+      }
+      if (withNullability) {
+        _appendNullability(buffer);
       }
       visitedTypes.remove(this);
     } else {
@@ -2656,7 +2674,8 @@ abstract class TypeImpl implements DartType {
    * Append a textual representation of this type to the given [buffer]. The set
    * of [visitedTypes] is used to prevent infinite recursion.
    */
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
+      {bool withNullability = false}) {
     if (visitedTypes.add(this)) {
       if (name == null) {
         buffer.write("<unnamed type>");
@@ -2770,10 +2789,24 @@ abstract class TypeImpl implements DartType {
       [List<FunctionTypeAliasElement> prune]);
 
   @override
-  String toString() {
+  String toString({bool withNullability = false}) {
     StringBuffer buffer = new StringBuffer();
-    appendTo(buffer, new Set.identity());
+    appendTo(buffer, new Set.identity(), withNullability: withNullability);
     return buffer.toString();
+  }
+
+  void _appendNullability(StringBuffer buffer) {
+    switch (nullability) {
+      case Nullability.nullable:
+        buffer.write('?');
+        break;
+      case Nullability.indeterminate:
+        buffer.write('*');
+        break;
+      case Nullability.nonNullable:
+        buffer.write('!');
+        break;
+    }
   }
 
   /**
@@ -2902,8 +2935,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    * Append a textual representation of this type to the given [buffer]. The set
    * of [visitedTypes] is used to prevent infinite recursion.
    */
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
-    super.appendTo(buffer, visitedTypes);
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
+      {bool withNullability = false}) {
+    super.appendTo(buffer, visitedTypes, withNullability: withNullability);
     TypeParameterElement e = element;
     if (e is TypeParameterMember &&
         e.bound != e.baseElement.bound &&
@@ -2912,7 +2946,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       // If we're appending bounds already, we don't want to do it recursively.
       _appendingBounds = true;
       try {
-        (e.bound as TypeImpl).appendTo(buffer, visitedTypes);
+        (e.bound as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
       } finally {
         _appendingBounds = false;
       }

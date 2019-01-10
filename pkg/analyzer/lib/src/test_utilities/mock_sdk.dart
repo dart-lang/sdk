@@ -154,6 +154,12 @@ class Deprecated extends Object {
   const Deprecated(this.expires);
 }
 
+class pragma {
+  final String name;
+  final Object options;
+  const pragma(this.name, [this.options]);
+}
+
 abstract class double extends num {
   static const double NAN = 0.0 / 0.0;
   static const double INFINITY = 1.0 / 0.0;
