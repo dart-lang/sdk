@@ -89,6 +89,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _iterableDynamicType;
 
   /**
+   * The type representing 'Iterable<Object>'
+   */
+  InterfaceType _iterableObjectType;
+
+  /**
    * The type representing the built-in type 'Iterable'.
    */
   InterfaceType _iterableType;
@@ -109,9 +114,9 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _mapType;
 
   /**
-   * The type representing the built-in type 'Map'.
+   * The type representing the built-in type 'Map<Object, Object>'.
    */
-  InterfaceType _mapNullNullType;
+  InterfaceType _mapObjectObjectType;
 
   /**
    * An shared object representing the value 'null'.
@@ -137,11 +142,6 @@ class TestTypeProvider extends TypeProviderBase {
    * The type representing the built-in type 'Set'.
    */
   InterfaceType _setType;
-
-  /**
-   * The type representing the built-in type 'Set'.
-   */
-  InterfaceType _setNullType;
 
   /**
    * The type representing the built-in type 'StackTrace'.
@@ -334,6 +334,14 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get iterableObjectType {
+    if (_iterableObjectType == null) {
+      _iterableObjectType = iterableType.instantiate(<DartType>[objectType]);
+    }
+    return _iterableObjectType;
+  }
+
+  @override
   InterfaceType get iterableType {
     if (_iterableType == null) {
       ClassElementImpl iterableElement =
@@ -399,11 +407,12 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
-  InterfaceType get mapNullNullType {
-    if (_mapNullNullType == null) {
-      _mapNullNullType = mapType.instantiate(<DartType>[nullType, nullType]);
+  InterfaceType get mapObjectObjectType {
+    if (_mapObjectObjectType == null) {
+      _mapObjectObjectType =
+          mapType.instantiate(<DartType>[objectType, objectType]);
     }
-    return _mapNullNullType;
+    return _mapObjectObjectType;
   }
 
   @override
@@ -491,14 +500,6 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
     }
     return _objectType;
-  }
-
-  @override
-  InterfaceType get setNullType {
-    if (_setNullType == null) {
-      _setNullType = setType.instantiate(<DartType>[nullType]);
-    }
-    return _setNullType;
   }
 
   @override

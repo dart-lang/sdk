@@ -943,30 +943,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Check that the imported library does not define a loadLibrary function.
-  /// The import has already been determined to be deferred when this is called.
-  ///
-  /// @param node the import directive to evaluate
-  /// @param importElement the [ImportElement] retrieved from the node
-  /// @return `true` if and only if an error code is generated on the passed
-  ///         node
-  /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
-  bool _checkForLoadLibraryFunction(
-      ImportDirective node, ImportElement importElement) {
-    LibraryElement importedLibrary = importElement.importedLibrary;
-    if (importedLibrary == null) {
-      return false;
-    }
-    if (importedLibrary.hasLoadLibraryFunction) {
-      _errorReporter.reportErrorForNode(
-          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
-          node,
-          [importedLibrary.name]);
-      return true;
-    }
-    return false;
-  }
-
   /// Check that the instance creation node is const if the constructor is
   /// marked with [literal].
   _checkForLiteralConstructorUse(InstanceCreationExpression node) {
@@ -991,6 +967,30 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           : HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
       _errorReporter.reportErrorForNode(hint, node, [fullConstructorName]);
     }
+  }
+
+  /// Check that the imported library does not define a loadLibrary function.
+  /// The import has already been determined to be deferred when this is called.
+  ///
+  /// @param node the import directive to evaluate
+  /// @param importElement the [ImportElement] retrieved from the node
+  /// @return `true` if and only if an error code is generated on the passed
+  ///         node
+  /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
+  bool _checkForLoadLibraryFunction(
+      ImportDirective node, ImportElement importElement) {
+    LibraryElement importedLibrary = importElement.importedLibrary;
+    if (importedLibrary == null) {
+      return false;
+    }
+    if (importedLibrary.hasLoadLibraryFunction) {
+      _errorReporter.reportErrorForNode(
+          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+          node,
+          [importedLibrary.name]);
+      return true;
+    }
+    return false;
   }
 
   /// Generate a hint for functions or methods that have a return type, but do
@@ -1244,17 +1244,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 //    }
 //    return false;
 //  }
-
-  /// Return `true` if the given [type] represents `Future<void>`.
-  bool _isFutureVoid(DartType type) {
-    if (type.isDartAsyncFuture) {
-      List<DartType> typeArgs = (type as InterfaceType).typeArguments;
-      if (typeArgs.length == 1 && typeArgs[0].isVoid) {
-        return true;
-      }
-    }
-    return false;
-  }
+//
+//  /// Return `true` if the given [type] represents `Future<void>`.
+//  bool _isFutureVoid(DartType type) {
+//    if (type.isDartAsyncFuture) {
+//      List<DartType> typeArgs = (type as InterfaceType).typeArguments;
+//      if (typeArgs.length == 1 && typeArgs[0].isVoid) {
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
 
   static bool _hasDeprecatedAnnotation(List<Annotation> annotations) {
     for (var i = 0; i < annotations.length; i++) {
@@ -5210,8 +5210,8 @@ class ResolverVisitor extends ScopedVisitor {
       if (mapT != null &&
           node.typeArguments == null &&
           node.entries.isEmpty &&
-          typeSystem.isAssignableTo(typeProvider.setNullType, mapT) &&
-          !typeSystem.isAssignableTo(typeProvider.mapNullNullType, mapT)) {
+          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
+          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
         // The node is really an empty set literal with no type arguments, so
         // don't try to visit the replaced map literal.
         return;
@@ -7865,14 +7865,17 @@ abstract class TypeProvider {
   /// Return the type representing the type 'Iterable<dynamic>'.
   InterfaceType get iterableDynamicType;
 
+  /// Return the type representing the type 'Iterable<Object>'.
+  InterfaceType get iterableObjectType;
+
   /// Return the type representing the built-in type 'Iterable'.
   InterfaceType get iterableType;
 
   /// Return the type representing the built-in type 'List'.
   InterfaceType get listType;
 
-  /// Return the type representing 'Map<Null, Null>'.
-  InterfaceType get mapNullNullType;
+  /// Return the type representing 'Map<Object, Object>'.
+  InterfaceType get mapObjectObjectType;
 
   /// Return the type representing the built-in type 'Map'.
   InterfaceType get mapType;
@@ -7892,9 +7895,6 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type 'Object'.
   InterfaceType get objectType;
-
-  /// Return the type representing 'Set<Null>'.
-  InterfaceType get setNullType;
 
   /// Return the type representing the built-in type 'Set'.
   InterfaceType get setType;
@@ -8007,6 +8007,9 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing 'Iterable<dynamic>'.
   InterfaceType _iterableDynamicType;
 
+  /// The type representing 'Iterable<Object>'.
+  InterfaceType _iterableObjectType;
+
   /// The type representing the built-in type 'Iterable'.
   InterfaceType _iterableType;
 
@@ -8016,17 +8019,14 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'Map'.
   InterfaceType _mapType;
 
-  /// The type representing the built-in type 'Map<Null, Null>'.
-  InterfaceType _mapNullNullType;
+  /// The type representing the built-in type 'Map<Object, Object>'.
+  InterfaceType _mapObjectObjectType;
 
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
   /// The type representing the type 'Set'.
   InterfaceType _setType;
-
-  /// The type representing the type 'Set<Null>'.
-  InterfaceType _setNullType;
 
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
@@ -8115,13 +8115,16 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get iterableDynamicType => _iterableDynamicType;
 
   @override
+  InterfaceType get iterableObjectType => _iterableObjectType;
+
+  @override
   InterfaceType get iterableType => _iterableType;
 
   @override
   InterfaceType get listType => _listType;
 
   @override
-  InterfaceType get mapNullNullType => _mapNullNullType;
+  InterfaceType get mapObjectObjectType => _mapObjectObjectType;
 
   @override
   InterfaceType get mapType => _mapType;
@@ -8142,9 +8145,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get objectType => _objectType;
-
-  @override
-  InterfaceType get setNullType => _setNullType;
 
   @override
   InterfaceType get setType => _setType;
@@ -8214,8 +8214,9 @@ class TypeProviderImpl extends TypeProviderBase {
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
-    _mapNullNullType = _mapType.instantiate(<DartType>[_nullType, _nullType]);
-    _setNullType = _setType.instantiate(<DartType>[_nullType]);
+    _iterableObjectType = _iterableType.instantiate(<DartType>[_objectType]);
+    _mapObjectObjectType =
+        _mapType.instantiate(<DartType>[_objectType, _objectType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
     // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
     // doesn't have it yet, create an element for it.

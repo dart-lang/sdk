@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1669,6 +1670,16 @@ class StaticTypeAnalyzerWithSetLiteralsTest
   List<String> get enabledExperiments => [EnableString.set_literals];
 
   bool get enableNewAnalysisDriver => true;
+
+  test_emptySetLiteral_inferredFromLinkedHashSet() async {
+    String code = r'''
+import 'dart:collection';
+LinkedHashSet<int> test4() => {};
+''';
+    await resolveTestUnit(code, noErrors: false);
+    expectExpressionType('{}', 'Set<?>');
+    await assertErrorsInCode(code, [StrongModeCode.INVALID_CAST_LITERAL_SET]);
+  }
 
   test_emptySetLiteral_initializer_typed_nested() async {
     String code = r'''

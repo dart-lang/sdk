@@ -182,22 +182,33 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
-    if (contextType != null &&
-        node.typeArguments == null &&
-        node.entries.isEmpty &&
-        _enabledExperiments.set_literals &&
-        _typeSystem.isAssignableTo(_typeProvider.setNullType, contextType) &&
-        !_typeSystem.isAssignableTo(
-            _typeProvider.mapNullNullType, contextType)) {
-      // The node is really an empty set literal with no type arguments. Rewrite
-      // the AST and infer the type of the set as appropriate.
-      SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
-          node.constKeyword, null, node.leftBracket, null, node.rightBracket);
-      InferenceContext.setType(setLiteral, contextType);
-      NodeReplacer.replace(node, setLiteral);
-      DartType type = inferSetType(setLiteral, downwards: downwards);
-      setLiteral.staticType = type;
-      return type;
+    if (contextType != null && _enabledExperiments.set_literals) {
+      DartType unwrap(DartType type) {
+        if (type is InterfaceType &&
+            type.isDartAsyncFutureOr &&
+            type.typeArguments.length == 1) {
+          return unwrap(type.typeArguments[0]);
+        }
+        return type;
+      }
+
+      DartType unwrappedContextType = unwrap(contextType);
+      if (node.typeArguments == null &&
+          node.entries.isEmpty &&
+          _typeSystem.isAssignableTo(
+              _typeProvider.iterableObjectType, unwrappedContextType) &&
+          !_typeSystem.isAssignableTo(
+              _typeProvider.mapObjectObjectType, unwrappedContextType)) {
+        // The node is really an empty set literal with no type arguments.
+        // Rewrite the AST and infer the type of the set as appropriate.
+        SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
+            node.constKeyword, null, node.leftBracket, null, node.rightBracket);
+        InferenceContext.setType(setLiteral, contextType);
+        NodeReplacer.replace(node, setLiteral);
+        DartType type = inferSetType(setLiteral, downwards: downwards);
+        setLiteral.staticType = type;
+        return type;
+      }
     }
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
