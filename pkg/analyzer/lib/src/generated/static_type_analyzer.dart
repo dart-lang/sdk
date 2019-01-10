@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
@@ -56,7 +57,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The status of the active experiments of the current context.
    */
-  ExperimentStatus _enabledExperiments;
+  ExperimentStatus _experimentStatus;
 
   /**
    * The type representing the class containing the nodes being analyzed,
@@ -79,8 +80,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _promoteManager = _resolver.promoteManager;
-    _enabledExperiments = ExperimentStatus.fromStrings(
-        _resolver.definingLibrary.context.analysisOptions.enabledExperiments);
+    _experimentStatus = (_resolver.definingLibrary.context.analysisOptions
+            as AnalysisOptionsImpl)
+        .experimentStatus;
   }
 
   /**
@@ -182,7 +184,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
-    if (contextType != null && _enabledExperiments.set_literals) {
+    if (contextType != null && _experimentStatus.set_literals) {
       DartType unwrap(DartType type) {
         if (type is InterfaceType &&
             type.isDartAsyncFutureOr &&

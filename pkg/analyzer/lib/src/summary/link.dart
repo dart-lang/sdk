@@ -62,6 +62,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -434,7 +435,7 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   bool get strongModeHints => false;
 
   @override
-  List<String> get enabledExperiments => [];
+  ExperimentStatus get experimentStatus => new ExperimentStatus();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
