@@ -1607,6 +1607,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       library.checkBoundsInMethodInvocation(
           actualReceiverType,
           typeSchemaEnvironment,
+          classHierarchy,
           this,
           actualMethodName,
           interfaceTarget,

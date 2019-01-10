@@ -34,7 +34,7 @@ abstract class TypeChecker {
         });
       }
     }
-    var visitor = new TypeCheckingVisitor(this, environment);
+    var visitor = new TypeCheckingVisitor(this, environment, hierarchy);
     for (var library in component.libraries) {
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
@@ -116,12 +116,12 @@ class TypeCheckingVisitor
         InitializerVisitor<Null> {
   final TypeChecker checker;
   final TypeEnvironment environment;
+  final ClassHierarchy hierarchy;
 
   CoreTypes get coreTypes => environment.coreTypes;
-  ClassHierarchy get hierarchy => environment.hierarchy;
   Class get currentClass => environment.thisType.classNode;
 
-  TypeCheckingVisitor(this.checker, this.environment);
+  TypeCheckingVisitor(this.checker, this.environment, this.hierarchy);
 
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     checker.checkAssignable(where, from, to);

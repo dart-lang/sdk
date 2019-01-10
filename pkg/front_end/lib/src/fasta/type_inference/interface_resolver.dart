@@ -33,7 +33,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
 
 import '../../base/instrumentation.dart'
     show
@@ -675,7 +676,7 @@ class ForwardingNode extends Procedure {
 class InterfaceResolver {
   final TypeInferenceEngine _typeInferenceEngine;
 
-  final TypeEnvironment _typeEnvironment;
+  final HierarchyBasedTypeEnvironment _typeEnvironment;
 
   final Instrumentation _instrumentation;
 

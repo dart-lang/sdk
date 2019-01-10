@@ -8,11 +8,13 @@ import 'class_hierarchy.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
 
+import 'src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
+
 typedef void ErrorHandler(TreeNode node, String message);
 
-class TypeEnvironment extends SubtypeTester {
+abstract class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
-  final ClassHierarchy hierarchy;
 
   @override
   final bool legacyMode;
@@ -27,7 +29,13 @@ class TypeEnvironment extends SubtypeTester {
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
 
-  TypeEnvironment(this.coreTypes, this.hierarchy, {this.legacyMode: false});
+  TypeEnvironment.fromSubclass(this.coreTypes, {this.legacyMode: false});
+
+  factory TypeEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy,
+      {bool legacyMode: false}) {
+    return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy,
+        legacyMode: legacyMode);
+  }
 
   InterfaceType get objectType => coreTypes.objectClass.rawType;
   InterfaceType get nullType => coreTypes.nullClass.rawType;
@@ -141,11 +149,6 @@ class TypeEnvironment extends SubtypeTester {
     if (type1 == type2) return type1;
     if (type1 == doubleType || type2 == doubleType) return doubleType;
     return numType;
-  }
-
-  @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass);
   }
 }
 
