@@ -127,8 +127,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         int bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
         if (initializeFromDillUri != null) {
           try {
-            bytesLength +=
-                await initializeFromDill(summaryBytes, uriTranslator, c, data);
+            bytesLength += await initializeFromDill(uriTranslator, c, data);
           } catch (e) {
             // We might have loaded x out of y libraries into the component.
             // To avoid any unforeseen problems start over.
@@ -166,7 +165,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             }
           }
         } else if (componentToInitializeFrom != null) {
-          initializeFromComponent(summaryBytes, uriTranslator, c, data);
+          initializeFromComponent(uriTranslator, c, data);
         }
         appendLibraries(data, bytesLength);
 
@@ -275,10 +274,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<Library> outputLibraries;
       if (data.includeUserLoadedLibraries || fullComponent) {
         outputLibraries = computeTransitiveClosure(compiledLibraries,
-            mainMethod, entryPoint, reusedLibraries, data, hierarchy);
+            mainMethod, entryPoint, reusedLibraries, hierarchy);
       } else {
         computeTransitiveClosure(compiledLibraries, mainMethod, entryPoint,
-            reusedLibraries, data, hierarchy);
+            reusedLibraries, hierarchy);
         outputLibraries = compiledLibraries;
       }
 
@@ -300,7 +299,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Procedure mainMethod,
       Uri entry,
       List<LibraryBuilder> reusedLibraries,
-      IncrementalCompilerData data,
       ClassHierarchy hierarchy) {
     List<Library> result = new List<Library>.from(inputLibraries);
     Map<Uri, Library> libraryMap = <Uri, Library>{};
@@ -370,10 +368,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // This procedure will try to load the dill file and will crash if it cannot.
-  Future<int> initializeFromDill(
-      List<int> summaryBytes,
-      UriTranslator uriTranslator,
-      CompilerContext c,
+  Future<int> initializeFromDill(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) async {
     int bytesLength = 0;
     FileSystemEntity entity =
@@ -413,10 +408,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // This procedure will set up compiler from [componentToInitializeFrom].
-  void initializeFromComponent(
-      List<int> summaryBytes,
-      UriTranslator uriTranslator,
-      CompilerContext c,
+  void initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) {
     ticker.logMs("Read initializeFromComponent");
 
