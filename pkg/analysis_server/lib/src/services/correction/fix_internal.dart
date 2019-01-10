@@ -1334,14 +1334,19 @@ class FixProcessor {
     if (constructorElement.enclosingElement is! ClassElement) {
       return;
     }
-    ClassElement targetElement = constructorElement.enclosingElement;
-    // prepare location for a new constructor
-    var targetNode = await _getClassDeclaration(targetElement);
-    if (targetNode == null) {
+
+    // prepare target ClassDeclaration
+    var targetElement = constructorElement.enclosingElement;
+    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    if (targetResult.node is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassMemberLocation targetLocation =
-        utils.prepareNewConstructorLocation(targetNode);
+    ClassOrMixinDeclaration targetNode = targetResult.node;
+
+    // prepare location
+    var targetLocation = CorrectionUtils(targetResult.resolvedUnit)
+        .prepareNewConstructorLocation(targetNode);
+
     Source targetSource = targetElement.source;
     String targetFile = targetSource.fullName;
     var changeBuilder = _newDartChangeBuilder();
@@ -1390,17 +1395,22 @@ class FixProcessor {
     if (targetType is! InterfaceType) {
       return;
     }
-    // prepare location for a new constructor
-    ClassElement targetElement = targetType.element as ClassElement;
-    var targetNode = await _getClassDeclaration(targetElement);
-    if (targetNode == null) {
+
+    // prepare target ClassDeclaration
+    ClassElement targetElement = targetType.element;
+    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    if (targetResult.node is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassMemberLocation targetLocation =
-        utils.prepareNewConstructorLocation(targetNode);
+    ClassOrMixinDeclaration targetNode = targetResult.node;
+
+    // prepare location
+    var targetLocation = CorrectionUtils(targetResult.resolvedUnit)
+        .prepareNewConstructorLocation(targetNode);
+
     String targetFile = targetElement.source.fullName;
     var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(targetElement.name,

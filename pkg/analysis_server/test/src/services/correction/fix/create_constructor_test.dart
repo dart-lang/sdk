@@ -34,8 +34,50 @@ main() {
 
 @reflectiveTest
 class CreateConstructorTest extends FixProcessorTest {
+  static final _text200 = 'x' * 200;
+
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
+
+  test_inLibrary_insteadOfSyntheticDefault() async {
+    var a = newFile('/home/test/lib/a.dart', content: '''
+/// $_text200
+class A {}
+''').path;
+    await resolveTestUnit('''
+import 'a.dart';
+
+main() {
+  new A.named(1, 2.0);
+}
+''');
+    await assertHasFix('''
+/// $_text200
+class A {
+  A.named(int i, double d);
+}
+''', target: a);
+  }
+
+  test_inLibrary_named() async {
+    var a = newFile('/home/test/lib/a.dart', content: '''
+/// $_text200
+class A {}
+''').path;
+    await resolveTestUnit('''
+import 'a.dart';
+
+main() {
+  new A(1, 2.0);
+}
+''');
+    await assertHasFix('''
+/// $_text200
+class A {
+  A(int i, double d);
+}
+''', target: a);
+  }
 
   test_insteadOfSyntheticDefault() async {
     await resolveTestUnit('''
