@@ -146,7 +146,8 @@ class NullableInference extends ExpressionVisitor<bool> {
       // This allows us to find the `@notNull` annotation if it exists.
       var implClass = jsTypeRep.getImplementationClass(targetClass.rawType);
       if (implClass != null) {
-        var member = types.hierarchy.getDispatchTarget(implClass, target.name);
+        var member =
+            jsTypeRep.hierarchy.getDispatchTarget(implClass, target.name);
         if (member != null) target = member;
       }
     }
