@@ -199,9 +199,7 @@ class ClientCapabilities implements ToJsonable {
     if (textDocument != null) {
       __result['textDocument'] = textDocument;
     }
-    if (experimental != null) {
-      __result['experimental'] = experimental;
-    }
+    __result['experimental'] = experimental;
     return __result;
   }
 
@@ -699,9 +697,7 @@ class CodeLens implements ToJsonable {
     if (command != null) {
       __result['command'] = command;
     }
-    if (data != null) {
-      __result['data'] = data;
-    }
+    __result['data'] = data;
     return __result;
   }
 
@@ -1530,9 +1526,7 @@ class CompletionItem implements ToJsonable {
     if (command != null) {
       __result['command'] = command;
     }
-    if (data != null) {
-      __result['data'] = data;
-    }
+    __result['data'] = data;
     return __result;
   }
 
@@ -2548,11 +2542,7 @@ class DiagnosticSeverity {
 }
 
 class DidChangeConfigurationParams implements ToJsonable {
-  DidChangeConfigurationParams(this.settings) {
-    if (settings == null) {
-      throw 'settings is required but was not provided';
-    }
-  }
+  DidChangeConfigurationParams(this.settings);
   static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
     final settings = json['settings'];
     return new DidChangeConfigurationParams(settings);
@@ -2563,8 +2553,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['settings'] =
-        settings ?? (throw 'settings is required but was not set');
+    __result['settings'] = settings;
     return __result;
   }
 
@@ -3237,9 +3226,7 @@ class DocumentLink implements ToJsonable {
     if (target != null) {
       __result['target'] = target;
     }
-    if (data != null) {
-      __result['data'] = data;
-    }
+    __result['data'] = data;
     return __result;
   }
 
@@ -3932,6 +3919,7 @@ class ErrorCodes {
 
   /// Defined by the protocol.
   static const RequestCancelled = const ErrorCodes(-32800);
+  static const ContentModified = const ErrorCodes(-32801);
 
   Object toJson() => _value;
 
@@ -4682,12 +4670,7 @@ class InitializeParams implements ToJsonable {
   /// The capabilities provided by the client (editor or tool)
   final ClientCapabilities capabilities;
 
-  /// Client provided initialization options. Usually these are options that
-  /// could equally be command line options passed when starting the server.
-  /// This property shouldn't be used to pass any user configuration to the
-  /// server. If a user configuration is needed the server should use
-  /// `workspace/configuration` requests together with dynamic registration to
-  /// obtain them.
+  /// User provided initialization options.
   final dynamic initializationOptions;
 
   /// The process Id of the parent process that started the server. Is null if
@@ -4719,21 +4702,15 @@ class InitializeParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['processId'] = processId;
-    if (rootPath != null) {
-      __result['rootPath'] = rootPath;
-    }
+    __result['rootPath'] = rootPath;
     __result['rootUri'] = rootUri;
-    if (initializationOptions != null) {
-      __result['initializationOptions'] = initializationOptions;
-    }
+    __result['initializationOptions'] = initializationOptions;
     __result['capabilities'] =
         capabilities ?? (throw 'capabilities is required but was not set');
     if (trace != null) {
       __result['trace'] = trace;
     }
-    if (workspaceFolders != null) {
-      __result['workspaceFolders'] = workspaceFolders;
-    }
+    __result['workspaceFolders'] = workspaceFolders;
     return __result;
   }
 
@@ -5108,7 +5085,7 @@ class LogMessageParams implements ToJsonable {
 /// https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
 ///
 /// Here is an example how such a string can be constructed using JavaScript /
-/// TypeScript: ```ts let markdown: MarkdownContent = {
+/// TypeScript: ```typescript let markdown: MarkdownContent = {
 ///
 /// kind: MarkupKind.Markdown,
 /// 	value: [
@@ -5685,9 +5662,13 @@ class ParameterInformation implements ToJsonable {
   /// The label of this parameter information.
   ///
   /// Either a string or an inclusive start and exclusive end offsets within its
-  /// containing signature label. (see SignatureInformation.label). *Note*: A
-  /// label of type string must be a substring of its containing signature
-  /// label.
+  /// containing signature label. (see SignatureInformation.label). The offsets
+  /// are based on a UTF-16 string representation as `Position` and `Range`
+  /// does.
+  ///
+  /// *Note*: a label of type string should be a substring of its containing
+  /// signature label. Its intended use case is to highlight the parameter label
+  /// part in the `SignatureInformation.label`.
   final String label;
 
   Map<String, dynamic> toJson() {
@@ -6064,9 +6045,7 @@ class Registration implements ToJsonable {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
-    if (registerOptions != null) {
-      __result['registerOptions'] = registerOptions;
-    }
+    __result['registerOptions'] = registerOptions;
     return __result;
   }
 
@@ -6689,9 +6668,7 @@ class ResponseMessage implements Message, ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id;
-    if (result != null) {
-      __result['result'] = result;
-    }
+    __result['result'] = result;
     if (error != null) {
       __result['error'] = error;
     }
@@ -7021,12 +6998,8 @@ class ServerCapabilities implements ToJsonable {
     if (definitionProvider != null) {
       __result['definitionProvider'] = definitionProvider;
     }
-    if (typeDefinitionProvider != null) {
-      __result['typeDefinitionProvider'] = typeDefinitionProvider;
-    }
-    if (implementationProvider != null) {
-      __result['implementationProvider'] = implementationProvider;
-    }
+    __result['typeDefinitionProvider'] = typeDefinitionProvider;
+    __result['implementationProvider'] = implementationProvider;
     if (referencesProvider != null) {
       __result['referencesProvider'] = referencesProvider;
     }
@@ -7062,21 +7035,15 @@ class ServerCapabilities implements ToJsonable {
     if (documentLinkProvider != null) {
       __result['documentLinkProvider'] = documentLinkProvider;
     }
-    if (colorProvider != null) {
-      __result['colorProvider'] = colorProvider;
-    }
-    if (foldingRangeProvider != null) {
-      __result['foldingRangeProvider'] = foldingRangeProvider;
-    }
+    __result['colorProvider'] = colorProvider;
+    __result['foldingRangeProvider'] = foldingRangeProvider;
     if (executeCommandProvider != null) {
       __result['executeCommandProvider'] = executeCommandProvider;
     }
     if (workspace != null) {
       __result['workspace'] = workspace;
     }
-    if (experimental != null) {
-      __result['experimental'] = experimental;
-    }
+    __result['experimental'] = experimental;
     return __result;
   }
 
@@ -8100,7 +8067,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
   /// Capabilities specific to the `textDocument/declaration`
   final TextDocumentClientCapabilitiesDeclaration declaration;
 
-  /// Capabilities specific to the `textDocument/definition`
+  /// Capabilities specific to the `textDocument/definition`.
+  ///
+  /// Since 3.14.0
   final TextDocumentClientCapabilitiesDefinition definition;
 
   /// Capabilities specific to the `textDocument/documentHighlight`
@@ -8787,6 +8756,8 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of declaration links.
+  ///
+  /// Since 3.14.0
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
@@ -9224,6 +9195,8 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
+  ///
+  /// Since 3.14.0
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
@@ -9317,6 +9290,8 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 
   /// The client supports processing label offsets instead of a simple label
   /// string.
+  ///
+  /// Since 3.14.0
   final bool labelOffsetSupport;
 
   Map<String, dynamic> toJson() {
@@ -9797,6 +9772,8 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
+  ///
+  /// Since 3.14.0
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
@@ -10955,6 +10932,8 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   }
 
   /// Did change watched files notification supports dynamic registration.
+  /// Please note that the current protocol doesn't support static configuration
+  /// for file changes from the server side.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {

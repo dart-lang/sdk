@@ -471,9 +471,17 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
 
 void _writeJsonMapAssignment(
     IndentableStringBuffer buffer, Field field, String mapName) {
-  // If we are allowed to be undefined (which essentially means required to be
-  // undefined and never explicitly null), we'll only add the value if set.
-  if (field.allowsUndefined) {
+  // If we are allowed to be undefined but not allowed to be null, we must not
+  // emit the value if it's null. This isn't perfect because it means handlers
+  // we can't have a value that is sometimes omitted and sometimes null - for
+  // example ResponseMessage.result should be `null` for shutdown, yet omitted
+  // for errors. Since it's not  a *requirement* to omit `result` for an error
+  // we'll just let ot go as null. If this turns out to be a problem we will
+  // have to map it to a value that is able to represent both.
+  // TODO(dantup): Review this logic when there is a response to
+  // https://github.com/Microsoft/language-server-protocol/issues/657
+  final shouldBeOmittedIfNoValue = field.allowsUndefined && !field.allowsNull;
+  if (shouldBeOmittedIfNoValue) {
     buffer
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
@@ -483,7 +491,7 @@ void _writeJsonMapAssignment(
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
   buffer.writeln(';');
-  if (field.allowsUndefined) {
+  if (shouldBeOmittedIfNoValue) {
     buffer
       ..outdent()
       ..writeIndentedln('}');
