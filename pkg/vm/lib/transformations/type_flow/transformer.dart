@@ -46,7 +46,8 @@ Component transformComponent(
 
   if (kDumpAllSummaries) {
     Statistics.reset();
-    new CreateAllSummariesVisitor(target, types, genericInterfacesInfo)
+    new CreateAllSummariesVisitor(
+            target, types, hierarchy, genericInterfacesInfo)
         .visitComponent(component);
     Statistics.print("All summaries statistics");
   }
@@ -73,7 +74,7 @@ Component transformComponent(
 
   new TreeShaker(component, typeFlowAnalysis).transformComponent(component);
 
-  new TFADevirtualization(component, typeFlowAnalysis)
+  new TFADevirtualization(component, typeFlowAnalysis, hierarchy)
       .visitComponent(component);
 
   new AnnotateKernel(component, typeFlowAnalysis).visitComponent(component);
@@ -92,9 +93,9 @@ Component transformComponent(
 class TFADevirtualization extends Devirtualization {
   final TypeFlowAnalysis _typeFlowAnalysis;
 
-  TFADevirtualization(Component component, this._typeFlowAnalysis)
-      : super(_typeFlowAnalysis.environment.coreTypes, component,
-            _typeFlowAnalysis.environment.hierarchy);
+  TFADevirtualization(
+      Component component, this._typeFlowAnalysis, ClassHierarchy hierarchy)
+      : super(_typeFlowAnalysis.environment.coreTypes, component, hierarchy);
 
   @override
   DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,

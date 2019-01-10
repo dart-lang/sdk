@@ -1357,7 +1357,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache = new _ClassHierarchyCache(
         this, hierarchy, _genericInterfacesInfo, environment);
     summaryCollector = new SummaryCollector(
-        target, environment, this, nativeCodeOracle, hierarchyCache);
+        target, environment, hierarchy, this, nativeCodeOracle, hierarchyCache);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
