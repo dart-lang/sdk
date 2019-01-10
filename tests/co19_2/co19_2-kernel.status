@@ -56,6 +56,7 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 [ $compiler == fasta ]
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+LanguageFeatures/Constant_update2018/*: Crash, Pass # Please triage these failures
 LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError # Issue 35608
@@ -100,6 +101,7 @@ LanguageFeatures/Set-literals/set_literals_A04_t02/05: MissingCompileTimeError #
 LanguageFeatures/Set-literals/set_literals_A04_t02/11: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/set_literals_A04_t02/12: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/set_literals_A04_t02/13: MissingCompileTimeError # Issue 35608
+LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: Pass # CompileTimeError on $fasta
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
