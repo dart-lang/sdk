@@ -192,4 +192,7 @@ class CompilerOptions {
 
   /// Whether to generate bytecode.
   bool bytecode = false;
+
+  /// Whether to write a file (e.g. a dill file) when reporting a crash.
+  bool writeFileOnCrashReport = true;
 }

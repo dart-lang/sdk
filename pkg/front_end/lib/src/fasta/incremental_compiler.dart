@@ -52,10 +52,14 @@ import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
 
+import 'util/error_reporter_file_copier.dart' show saveAsGzip;
+
 import 'fasta_codes.dart'
     show
         templateInitializeFromDillNotSelfContained,
-        templateInitializeFromDillUnknownProblem;
+        templateInitializeFromDillNotSelfContainedNoDump,
+        templateInitializeFromDillUnknownProblem,
+        templateInitializeFromDillUnknownProblemNoDump;
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
@@ -66,6 +70,8 @@ import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
+
+import 'messages.dart' show Message;
 
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -130,21 +136,33 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             if (e is InvalidKernelVersionError || e is PackageChangedError) {
               // Don't report any warning.
-            } else if (e is CanonicalNameError) {
-              dillLoadedData.loader.addProblem(
-                  templateInitializeFromDillNotSelfContained
-                      .withArguments(initializeFromDillUri.toString()),
-                  TreeNode.noOffset,
-                  1,
-                  null);
             } else {
-              // Unknown error: Report problem as such.
-              dillLoadedData.loader.addProblem(
-                  templateInitializeFromDillUnknownProblem.withArguments(
-                      initializeFromDillUri.toString(), "$e"),
-                  TreeNode.noOffset,
-                  1,
-                  null);
+              Uri gzInitializedFrom;
+              if (c.options.writeFileOnCrashReport) {
+                gzInitializedFrom = saveAsGzip(
+                    data.initializationBytes, "initialize_from.dill");
+                recordTemporaryFileForTesting(gzInitializedFrom);
+              }
+              if (e is CanonicalNameError) {
+                Message message = gzInitializedFrom != null
+                    ? templateInitializeFromDillNotSelfContained.withArguments(
+                        initializeFromDillUri.toString(), gzInitializedFrom)
+                    : templateInitializeFromDillNotSelfContainedNoDump
+                        .withArguments(initializeFromDillUri.toString());
+                dillLoadedData.loader
+                    .addProblem(message, TreeNode.noOffset, 1, null);
+              } else {
+                // Unknown error: Report problem as such.
+                Message message = gzInitializedFrom != null
+                    ? templateInitializeFromDillUnknownProblem.withArguments(
+                        initializeFromDillUri.toString(),
+                        "$e",
+                        gzInitializedFrom)
+                    : templateInitializeFromDillUnknownProblemNoDump
+                        .withArguments(initializeFromDillUri.toString(), "$e");
+                dillLoadedData.loader
+                    .addProblem(message, TreeNode.noOffset, 1, null);
+              }
             }
           }
         } else if (componentToInitializeFrom != null) {
@@ -165,6 +183,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         });
         if (userBuilders.isEmpty) userBuilders = null;
       }
+      data.initializationBytes = null;
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
       if ((data.includeUserLoadedLibraries &&
@@ -363,6 +382,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<int> initializationBytes = await entity.readAsBytes();
       if (initializationBytes != null) {
         ticker.logMs("Read $initializeFromDillUri");
+        data.initializationBytes = initializationBytes;
 
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
@@ -671,6 +691,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}
+  void recordTemporaryFileForTesting(Uri uri) {}
 }
 
 class PackageChangedError {
@@ -681,4 +702,5 @@ class IncrementalCompilerData {
   bool includeUserLoadedLibraries = false;
   Procedure userLoadedUriMain = null;
   Component component = null;
+  List<int> initializationBytes = null;
 }

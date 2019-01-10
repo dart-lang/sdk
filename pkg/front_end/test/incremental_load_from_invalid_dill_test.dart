@@ -29,7 +29,9 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         Code,
         codeInitializeFromDillNotSelfContained,
-        codeInitializeFromDillUnknownProblem;
+        codeInitializeFromDillNotSelfContainedNoDump,
+        codeInitializeFromDillUnknownProblem,
+        codeInitializeFromDillUnknownProblemNoDump;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -63,13 +65,15 @@ class Tester {
   CompilerOptions options;
 
   compileExpectInitializeFailAndSpecificWarning(
-      Code expectedWarningCode) async {
+      Code expectedWarningCode, bool writeFileOnCrashReport) async {
     errorMessages.clear();
     warningMessages.clear();
-    IncrementalCompiler compiler = new IncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
-        initializeFrom);
+    options.writeFileOnCrashReport = writeFileOnCrashReport;
+    DeleteTempFilesIncrementalCompiler compiler =
+        new DeleteTempFilesIncrementalCompiler(
+            new CompilerContext(
+                new ProcessedOptions(options: options, inputs: [entryPoint])),
+            initializeFrom);
     await compiler.computeDelta();
     if (compiler.initializedFromDill) {
       Expect.fail("Expected to not be able to initialized from dill, but did.");
@@ -166,13 +170,28 @@ main() {
 
     // Initializing from partial dill should not be ok.
     await compileExpectInitializeFailAndSpecificWarning(
-        codeInitializeFromDillNotSelfContained);
+        codeInitializeFromDillNotSelfContained, true);
+    await compileExpectInitializeFailAndSpecificWarning(
+        codeInitializeFromDillNotSelfContainedNoDump, false);
 
     // Create a invalid dill file to load from: Should not be ok.
     data = new List<int>.filled(42, 42);
     fs.entityForUri(initializeFrom).writeAsBytesSync(data);
     await compileExpectInitializeFailAndSpecificWarning(
-        codeInitializeFromDillUnknownProblem);
+        codeInitializeFromDillUnknownProblem, true);
+    await compileExpectInitializeFailAndSpecificWarning(
+        codeInitializeFromDillUnknownProblemNoDump, false);
+  }
+}
+
+class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
+  DeleteTempFilesIncrementalCompiler(CompilerContext context,
+      [Uri initializeFromDillUri])
+      : super(context, initializeFromDillUri);
+
+  void recordTemporaryFileForTesting(Uri uri) {
+    File f = new File.fromUri(uri);
+    if (f.existsSync()) f.deleteSync();
   }
 }
 
