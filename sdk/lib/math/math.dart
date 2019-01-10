@@ -146,7 +146,10 @@ external double atan2(num a, num b);
  * This corresponds to the `pow` function defined in the IEEE Standard 754-2008.
  *
  * Notice that an [int] result cannot overflow, but a [double] result might
- * be [double.infinity].
+ * be [double.infinity]. However, since the default implementation of [int] is 
+ * 64-bit two's complement integers with operations that wrap to that range on 
+ * overflow, overflowing results may be truncated. This behavior sometimes
+ * differs between the Dart VM and Dart code compiled to JavaScript.
  */
 external num pow(num x, num exponent);
 
