@@ -300,24 +300,20 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   }
 }
 
-class CompletionPage extends DiagnosticPageWithNav {
-  CompletionPage(DiagnosticsSite site, this.server)
+abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
+  AbstractCompletionPage(DiagnosticsSite site)
       : super(site, 'completion', 'Code Completion',
             description: 'Latency statistics for code completion.');
 
-  @override
-  AnalysisServer server;
+  pathPackage.Context get pathContext;
+  List<CompletionPerformance> get performanceItems;
 
   @override
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
 
-    CompletionDomainHandler completionDomain = server.handlers
-        .firstWhere((handler) => handler is CompletionDomainHandler);
-
-    List<CompletionPerformance> completions =
-        completionDomain.performanceList.items.toList();
+    List<CompletionPerformance> completions = performanceItems;
 
     if (completions.isEmpty) {
       blankslate('No completions recorded.');
@@ -359,7 +355,6 @@ class CompletionPage extends DiagnosticPageWithNav {
     buf.writeln('<table>');
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
-    var pathContext = completionDomain.server.resourceProvider.pathContext;
     for (CompletionPerformance completion in completions) {
       String shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
@@ -371,6 +366,23 @@ class CompletionPage extends DiagnosticPageWithNav {
     }
     buf.writeln('</table>');
   }
+}
+
+class CompletionPage extends AbstractCompletionPage {
+  @override
+  AnalysisServer server;
+  CompletionPage(DiagnosticsSite site, this.server) : super(site);
+
+  CompletionDomainHandler get completionDomain => server.handlers
+      .firstWhere((handler) => handler is CompletionDomainHandler);
+
+  @override
+  pathPackage.Context get pathContext =>
+      completionDomain.server.resourceProvider.pathContext;
+
+  @override
+  List<CompletionPerformance> get performanceItems =>
+      completionDomain.performanceList.items.toList();
 }
 
 class ContextsPage extends DiagnosticPageWithNav {
@@ -731,10 +743,10 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     if (server is AnalysisServer) {
       pages.add(new CompletionPage(this, server));
       pages.add(new PluginsPage(this, server));
-      pages.add(new SubscriptionsPage(this, this.socketServer.analysisServer));
+      pages.add(new SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
-      // TODO(dantup): Implement an LSP version of the completion page
-      // pages.add(new LspCompletionPage(this, server));
+      pages.add(new LspCompletionPage(this, server));
+      pages.add(new LspCapabilitiesPage(this, server));
     }
 
     ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
@@ -957,6 +969,51 @@ class InstrumentationPage extends DiagnosticPageWithNav {
   }
 }
 
+class LspCapabilitiesPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspCapabilitiesPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp_capabilities', 'LSP Capabilities',
+            description: 'Client and Server LSP Capabilities.');
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    buf.writeln('<div class="columns">');
+
+    buf.writeln('<div class="column one-half">');
+    h3('Client Capabilities');
+    if (server.clientCapabilities == null) {
+      p('Client capabilities have not yet been received.');
+    } else {
+      prettyJson(server.clientCapabilities.toJson());
+    }
+    buf.writeln('</div>');
+
+    buf.writeln('<div class="column one-half">');
+    h3('Server Capabilities');
+    if (server.capabilities == null) {
+      p('Server capabilities have not yet been computed.');
+    } else {
+      prettyJson(server.capabilities.toJson());
+    }
+    buf.writeln('</div>');
+  }
+}
+
+class LspCompletionPage extends AbstractCompletionPage {
+  @override
+  LspAnalysisServer server;
+  LspCompletionPage(DiagnosticsSite site, this.server) : super(site);
+
+  @override
+  pathPackage.Context get pathContext => server.resourceProvider.pathContext;
+
+  @override
+  List<CompletionPerformance> get performanceItems =>
+      server.performanceStats.completion.items.toList();
+}
+
 class MemoryAndCpuPage extends DiagnosticPageWithNav {
   final ProcessProfiler profiler;
 
@@ -1036,14 +1093,15 @@ class NotFoundPage extends DiagnosticPage {
   }
 }
 
-// TODO(devoncarew): We're not currently tracking the time spent in specific
-// lints by default (analysisOptions / driverOptions enableTiming)
 class PluginsPage extends DiagnosticPageWithNav {
-  PluginsPage(DiagnosticsSite site, this.server)
-      : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
+  // TODO(devoncarew): We're not currently tracking the time spent in specific
+  // lints by default (analysisOptions / driverOptions enableTiming)
 
   @override
   AnalysisServer server;
+
+  PluginsPage(DiagnosticsSite site, this.server)
+      : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
 
   @override
   Future generateContent(Map<String, String> params) async {
@@ -1299,12 +1357,12 @@ class StatusPage extends DiagnosticPageWithNav {
 }
 
 class SubscriptionsPage extends DiagnosticPageWithNav {
+  @override
+  AnalysisServer server;
+
   SubscriptionsPage(DiagnosticsSite site, this.server)
       : super(site, 'subscriptions', 'Subscriptions',
             description: 'Registered subscriptions to analysis server events.');
-
-  @override
-  AnalysisServer server;
 
   @override
   Future generateContent(Map<String, String> params) async {

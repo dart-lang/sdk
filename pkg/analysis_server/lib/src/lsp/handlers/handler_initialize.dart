@@ -44,7 +44,7 @@ class InitializeMessageHandler
     final codeActionLiteralSupport =
         params.capabilities.textDocument?.codeAction?.codeActionLiteralSupport;
 
-    return success(new InitializeResult(new ServerCapabilities(
+    server.capabilities = new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,
           TextDocumentSyncKind.Incremental,
@@ -93,6 +93,8 @@ class InitializeMessageHandler
         new ExecuteCommandOptions(Commands.serverSupportedCommands),
         new ServerCapabilitiesWorkspace(
             new ServerCapabilitiesWorkspaceFolders(true, true)),
-        null)));
+        null);
+
+    return success(new InitializeResult(server.capabilities));
   }
 }

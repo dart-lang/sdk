@@ -122,6 +122,13 @@ abstract class Page {
     buf.writeln('</pre>');
   }
 
+  void prettyJson(Map<String, dynamic> data) {
+    const jsonEncoder = const JsonEncoder.withIndent('  ');
+    pre(() {
+      buf.write(jsonEncoder.convert(data));
+    });
+  }
+
   void ul<T>(Iterable<T> items, void gen(T item), {String classes}) {
     buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
     for (T item in items) {

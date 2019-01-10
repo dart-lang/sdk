@@ -11,7 +11,10 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domain_completion.dart'
+    show CompletionDomainHandler;
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -19,6 +22,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/completion/completion_performance.dart'
+    show CompletionPerformance;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -107,6 +112,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   int nextRequestId = 1;
 
   final Map<int, Completer<ResponseMessage>> completers = {};
+
+  /**
+   * Capabilities of the server. Will be null prior to initialization as
+   * the server capabilities depend on the client capabilities.
+   */
+  ServerCapabilities capabilities;
+
+  LspPerformance performanceStats = new LspPerformance();
 
   /**
    * Initialize a newly created server to send and receive messages to the given
@@ -293,6 +306,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  void publishDiagnostics(String path, List<Diagnostic> errors) {
+    final params =
+        new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final message = new NotificationMessage(
+      Method.textDocument_publishDiagnostics,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   removePriorityFile(String path) {
     final didRemove = priorityFiles.remove(path);
     assert(didRemove);
@@ -404,17 +428,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params =
-        new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
-    final message = new NotificationMessage(
-      Method.textDocument_publishDiagnostics,
-      params,
-      jsonRpcVersion,
-    );
-    sendNotification(message);
-  }
-
   void showError(String message) {
     channel.sendNotification(new NotificationMessage(
       Method.window_showMessage,
@@ -458,6 +471,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       driver.priorityFiles = priorityFiles.toList();
     });
   }
+}
+
+class LspPerformance {
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
+  final RecentBuffer<CompletionPerformance> completion =
+      new RecentBuffer<CompletionPerformance>(
+          CompletionDomainHandler.performanceListMaxLength);
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
