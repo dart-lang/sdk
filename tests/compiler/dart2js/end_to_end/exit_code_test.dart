@@ -103,7 +103,6 @@ class TestBackend extends JavaScriptBackend {
       : this.compiler = compiler,
         super(compiler,
             generateSourceMap: compiler.options.generateSourceMap,
-            useStartupEmitter: compiler.options.useStartupEmitter,
             useMultiSourceInfo: compiler.options.useMultiSourceInfo,
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 

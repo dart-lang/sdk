@@ -282,7 +282,7 @@ abstract class GraphBuilder {
   bool getFlagValue(String flagName) {
     switch (flagName) {
       case 'IS_FULL_EMITTER':
-        return !options.useStartupEmitter;
+        return false;
       case 'MINIFIED':
         return options.enableMinification;
       case 'MUST_RETAIN_METADATA':

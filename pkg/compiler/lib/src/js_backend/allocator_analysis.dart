@@ -31,12 +31,11 @@ abstract class AllocatorAnalysis {}
 //     this.x = this.z = null;
 //
 class KAllocatorAnalysis implements AllocatorAnalysis {
-  final CompilerOptions _options;
   final KernelToElementMap _elementMap;
 
   final Map<KField, ConstantValue> _fixedInitializers = {};
 
-  KAllocatorAnalysis(this._options, KernelFrontEndStrategy kernelStrategy)
+  KAllocatorAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
 
   // Register class during resolution. Use simple syntactic analysis to find
@@ -53,19 +52,13 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
       if (initializer == null || initializer is ir.NullLiteral) {
         inits[field] = const NullConstantValue();
       } else if (initializer is ir.IntLiteral) {
-        if (_options.useStartupEmitter) {
-          BigInt intValue = BigInt.from(initializer.value).toUnsigned(64);
-          inits[field] = IntConstantValue(intValue);
-        }
+        BigInt intValue = BigInt.from(initializer.value).toUnsigned(64);
+        inits[field] = IntConstantValue(intValue);
       } else if (initializer is ir.BoolLiteral) {
-        if (_options.useStartupEmitter) {
-          inits[field] = BoolConstantValue(initializer.value);
-        }
+        inits[field] = BoolConstantValue(initializer.value);
       } else if (initializer is ir.StringLiteral) {
-        if (_options.useStartupEmitter) {
-          if (initializer.value.length <= 20) {
-            inits[field] = StringConstantValue(initializer.value);
-          }
+        if (initializer.value.length <= 20) {
+          inits[field] = StringConstantValue(initializer.value);
         }
       }
     }
@@ -92,16 +85,15 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
   static const String tag = 'allocator-analysis';
 
   // --csp and --fast-startup have different constraints to the generated code.
-  final CompilerOptions _options;
   final Map<JField, ConstantValue> _fixedInitializers = {};
 
-  JAllocatorAnalysis._(this._options);
+  JAllocatorAnalysis._();
 
   /// Deserializes a [JAllocatorAnalysis] object from [source].
   factory JAllocatorAnalysis.readFromDataSource(
       DataSource source, CompilerOptions options) {
     source.begin(tag);
-    JAllocatorAnalysis analysis = new JAllocatorAnalysis._(options);
+    JAllocatorAnalysis analysis = new JAllocatorAnalysis._();
     int fieldCount = source.readInt();
     for (int i = 0; i < fieldCount; i++) {
       JField field = source.readMember();
@@ -125,7 +117,7 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
 
   static JAllocatorAnalysis from(KAllocatorAnalysis kAnalysis,
       JsToFrontendMap map, CompilerOptions options) {
-    var result = new JAllocatorAnalysis._(options);
+    var result = JAllocatorAnalysis._();
 
     kAnalysis._fixedInitializers.forEach((KField kField, ConstantValue value) {
       // TODO(sra): Translate constant, but Null and these primitives do not
@@ -142,11 +134,6 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
   }
 
   bool get _isEnabled {
-    if (_options.useContentSecurityPolicy && !_options.useStartupEmitter) {
-      // TODO(sra): Refactor csp 'precompiled' constructor generation to allow
-      // in-allocator initialization.
-      return false;
-    }
     return true;
   }
   // TODO(sra): Add way to let injected fields be initialized to a constant in

@@ -195,7 +195,6 @@ abstract class Compiler {
   JavaScriptBackend createBackend() {
     return new JavaScriptBackend(this,
         generateSourceMap: options.generateSourceMap,
-        useStartupEmitter: options.useStartupEmitter,
         useMultiSourceInfo: options.useMultiSourceInfo,
         useNewSourceInfo: options.useNewSourceInfo);
   }

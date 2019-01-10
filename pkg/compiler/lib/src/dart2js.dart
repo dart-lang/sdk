@@ -765,10 +765,6 @@ Supported options:
   --no-source-maps
     Do not generate a source map file.
 
-  --fast-startup
-    Produce JavaScript that can be parsed more quickly by VMs. This option
-    usually results in larger JavaScript files with faster startup.
-
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve
     performance of the generated code for deployment.

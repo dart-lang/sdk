@@ -244,10 +244,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// (experimental)
   bool useNewSourceInfo = false;
 
-  /// Whether the user requested to use the fast startup emitter. Always `true`.
-  // TODO(sra): Remove.
-  bool useStartupEmitter = true;
-
   /// Enable verbose printing during compilation. Includes a time-breakdown
   /// between phases at the end.
   bool verbose = false;
@@ -358,7 +354,6 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
-      ..useStartupEmitter = true
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
@@ -390,10 +385,7 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   void deriveOptions() {
-    useStartupEmitter = true;
-
     if (benchmarkingProduction) {
-      useStartupEmitter = true;
       trustPrimitives = true;
       omitImplicitChecks = true;
     }

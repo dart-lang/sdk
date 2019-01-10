@@ -388,19 +388,16 @@ class JavaScriptBackend {
 
   JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
-      bool useStartupEmitter: true,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler) {
-    useStartupEmitter = true;
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
     _checkedModeHelpers = new CheckedModeHelpers();
-    emitter =
-        new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
+    emitter = new CodeEmitterTask(compiler, generateSourceMap);
 
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
@@ -557,7 +554,7 @@ class JavaScriptBackend {
         nativeBasicData,
         _backendUsageBuilder);
     _allocatorResolutionAnalysis =
-        new KAllocatorAnalysis(compiler.options, compiler.frontendStrategy);
+        new KAllocatorAnalysis(compiler.frontendStrategy);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);
