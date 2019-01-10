@@ -237,10 +237,10 @@ class DateTime implements Comparable<DateTime> {
    *   The time part is a two digit hour,
    *   then optionally a two digit minutes value,
    *   then optionally a two digit seconds value, and
-   *   then optionally a '.' followed by a one-to-six digit second fraction.
+   *   then optionally a '.' or ',' followed by a one-to-six digit second fraction.
    *   The minutes and seconds may be separated from the previous parts by a
    *   ':'.
-   *   Examples: "12", "12:30:24.124", "123010.50".
+   *   Examples: "12", "12:30:24.124", "12:30:24,124", "123010.50".
    * * An optional time-zone offset part,
    *   possibly separated from the previous by a space.
    *   The time zone is either 'z' or 'Z', or it is a signed two digit hour
@@ -261,6 +261,7 @@ class DateTime implements Comparable<DateTime> {
    *
    * * `"2012-02-27 13:27:00"`
    * * `"2012-02-27 13:27:00.123456z"`
+   * * `"2012-02-27 13:27:00,123456z"`
    * * `"20120227 13:27:00"`
    * * `"20120227T132700"`
    * * `"20120227"`
@@ -852,7 +853,7 @@ class DateTime implements Comparable<DateTime> {
    * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
    * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
    * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
-   * micros_opt ::= <empty> | '.' digit{1,6}
+   * micros_opt ::= <empty> | ('.' | ',') digit{1,6}
    * timezone_opt ::= <empty> | space_opt timezone
    * space_opt :: ' ' | <empty>
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
@@ -860,6 +861,6 @@ class DateTime implements Comparable<DateTime> {
    */
   static final RegExp _parseFormat = new RegExp(
       r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
+      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d{1,6}))?)?)?' // Time part.
       r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }

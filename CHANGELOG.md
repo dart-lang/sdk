@@ -6,6 +6,13 @@
 
 ### Core library changes
 
+#### `dart:core`
+
+*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator 
+    when parsing from a string. (Issue [35576][])
+
+[35576]: https://github.com/dart-lang/sdk/issues/35576
+
 ### Dart VM
 
 ### Tool Changes
