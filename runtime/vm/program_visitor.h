@@ -30,6 +30,7 @@ class ProgramVisitor : public AllStatic {
   static void Dedup();
 
  private:
+  static void BindStaticCalls();
   static void ShareMegamorphicBuckets();
   static void DedupStackMaps();
   static void DedupPcDescriptors();

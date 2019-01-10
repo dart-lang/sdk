@@ -6,7 +6,6 @@
 #define RUNTIME_VM_OBJECT_H_
 
 #include <tuple>
-
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
