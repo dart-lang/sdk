@@ -1253,7 +1253,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           field, _globalInferenceResults);
     }
 
-    return new HFieldGet(field, receiver, type, isAssignable: isAssignable);
+    return new HFieldGet(field, receiver, type, isAssignable: isAssignable)
+      ..sourceInformation = node.sourceInformation;
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1289,7 +1290,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
     HFieldSet result =
-        new HFieldSet(_abstractValueDomain, field, receiver, value);
+        new HFieldSet(_abstractValueDomain, field, receiver, value)
+          ..sourceInformation = node.sourceInformation;
     _log?.registerFieldSet(node, result);
     return result;
   }

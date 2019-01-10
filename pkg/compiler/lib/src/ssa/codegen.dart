@@ -2194,7 +2194,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
-    push(new js.Assignment(new js.PropertyAccess(receiver, name), pop())
+    push(new js.Assignment(
+            new js.PropertyAccess(receiver, name)
+                .withSourceInformation(node.sourceInformation),
+            pop())
         .withSourceInformation(node.sourceInformation));
   }
 
