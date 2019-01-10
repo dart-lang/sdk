@@ -599,13 +599,14 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       int charOffset,
+      int charEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
     KernelFieldBuilder field = new KernelFieldBuilder(
-        metadata, type, name, modifiers, this, charOffset);
+        metadata, type, name, modifiers, this, charOffset, charEndOffset);
     addBuilder(name, field, charOffset);
     if (initializerTokenForInference != null) {
       assert(type == null);

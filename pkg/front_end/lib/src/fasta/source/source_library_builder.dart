@@ -389,6 +389,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       T type,
       String name,
       int charOffset,
+      int charEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer);
 
@@ -397,6 +398,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     for (FieldInfo info in fieldInfos) {
       String name = info.name;
       int charOffset = info.charOffset;
+      int charEndOffset = info.charEndOffset;
       bool hasInitializer = info.initializerTokenForInference != null;
       Token initializerTokenForInference =
           type != null || legacyMode ? null : info.initializerTokenForInference;
@@ -404,8 +406,16 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(documentationComment, metadata, modifiers, type, name,
-          charOffset, initializerTokenForInference, hasInitializer);
+      addField(
+          documentationComment,
+          metadata,
+          modifiers,
+          type,
+          name,
+          charOffset,
+          charEndOffset,
+          initializerTokenForInference,
+          hasInitializer);
     }
   }
 
@@ -1001,7 +1011,8 @@ class FieldInfo {
   final int charOffset;
   final Token initializerTokenForInference;
   final Token beforeLast;
+  final int charEndOffset;
 
   const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
-      this.beforeLast);
+      this.beforeLast, this.charEndOffset);
 }
