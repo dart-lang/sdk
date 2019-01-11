@@ -5471,7 +5471,7 @@ class EnvironmentIntConstant extends EnvironmentConstant {
     return v.visitEnvironmentIntConstantReference(this);
   }
 
-  DartType getType(TypeEnvironment types) => types.boolType;
+  DartType getType(TypeEnvironment types) => types.intType;
 }
 
 class EnvironmentStringConstant extends EnvironmentConstant {
@@ -5483,7 +5483,7 @@ class EnvironmentStringConstant extends EnvironmentConstant {
     return v.visitEnvironmentStringConstantReference(this);
   }
 
-  DartType getType(TypeEnvironment types) => types.boolType;
+  DartType getType(TypeEnvironment types) => types.stringType;
 }
 
 class UnevaluatedConstant extends Constant {
