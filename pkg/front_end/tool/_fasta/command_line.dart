@@ -12,10 +12,10 @@ import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, parseExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, parseExperimentalFlag;
+    show ExperimentalFlag;
 
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
@@ -268,6 +268,10 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "/h": "--help",
 };
 
+void throwCommandLineProblem(String message) {
+  throw new CommandLineProblem.deprecated(message);
+}
+
 ProcessedOptions analyzeCommandLine(
     String programName,
     ParsedArguments parsedArguments,
@@ -342,24 +346,8 @@ ProcessedOptions analyzeCommandLine(
     });
   }
 
-  Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
-  for (String experiment in options["--enable-experiment"] ?? <String>[]) {
-    bool value = true;
-    if (experiment.startsWith("no-")) {
-      value = false;
-      experiment = experiment.substring(3);
-    }
-    ExperimentalFlag flag = parseExperimentalFlag(experiment);
-    if (flag == null) {
-      throw new CommandLineProblem.deprecated(
-          "Unknown experiment: " + experiment);
-    }
-    if (experimentalFlags.containsKey(flag)) {
-      throw new CommandLineProblem.deprecated(
-          "Experiment mentioned more than once: " + experiment);
-    }
-    experimentalFlags[flag] = value;
-  }
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      options["--enable-experiment"], throwCommandLineProblem);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

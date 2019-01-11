@@ -8,7 +8,7 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
-import 'experimental_flags.dart' show ExperimentalFlag;
+import 'experimental_flags.dart' show ExperimentalFlag, parseExperimentalFlag;
 
 import 'file_system.dart' show FileSystem;
 
@@ -195,4 +195,32 @@ class CompilerOptions {
 
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
+}
+
+/// Parse experimental flags from a list of strings, each of which is either a
+/// flag name or a flag name prefixed by 'no-'. Return a map of flags to their
+/// values that can be passed to [experimentalFlags].
+///
+/// If an unknown flag is mentioned, or a flag is mentioned more than once,
+/// the supplied error handler is called with an error message.
+Map<ExperimentalFlag, bool> parseExperimentalFlags(
+    Iterable<String> experiments, void onError(String message)) {
+  Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
+  if (experiments == null) return flags;
+  for (String experiment in experiments) {
+    bool value = true;
+    if (experiment.startsWith("no-")) {
+      value = false;
+      experiment = experiment.substring(3);
+    }
+    ExperimentalFlag flag = parseExperimentalFlag(experiment);
+    if (flag == null) {
+      onError("Unknown experiment: " + experiment);
+    } else if (flags.containsKey(flag)) {
+      onError("Experiment mentioned more than once: " + experiment);
+    } else {
+      flags[flag] = value;
+    }
+  }
+  return flags;
 }
