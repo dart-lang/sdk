@@ -950,6 +950,7 @@ runtime_checks_new/stub_from_interface_covariantImpl_from_class: TextSerializati
 runtime_checks_new/stub_from_interface_covariantImpl_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantImpl_from_super: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerializationFailure # Was: Pass
+set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 statements: Crash
 static_setter: TextSerializationFailure # Was: Pass
 store_load: TextSerializationFailure # Was: Pass
