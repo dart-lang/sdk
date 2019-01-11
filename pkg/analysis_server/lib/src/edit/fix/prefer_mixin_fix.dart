@@ -50,8 +50,8 @@ class PreferMixinFix extends LinterFix {
             dartFix.locationFor(result, elem.nameOffset, elem.nameLength);
         if (assists.isNotEmpty) {
           for (Assist assist in assists) {
-            dartFix.addFix('Convert ${elem.displayName} to a mixin', location,
-                assist.change);
+            dartFix.addSourceChange('Convert ${elem.displayName} to a mixin',
+                location, assist.change);
           }
         } else {
           // TODO(danrubel): If assists is empty, then determine why

@@ -34,8 +34,10 @@ class PreferIntLiteralsFix extends LinterFix {
           dartFix.locationFor(result, literal.offset, literal.length);
       if (assists.isNotEmpty) {
         for (Assist assist in assists) {
-          dartFix.addFix('Replace a double literal with an int literal',
-              location, assist.change);
+          dartFix.addSourceChange(
+              'Replace a double literal with an int literal',
+              location,
+              assist.change);
         }
       } else {
         // TODO(danrubel): If assists is empty, then determine why

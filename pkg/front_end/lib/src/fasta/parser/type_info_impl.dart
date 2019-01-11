@@ -397,7 +397,9 @@ class ComplexTypeInfo implements TypeInfo {
   /// Type arguments were seen during analysis.
   final TypeParamOrArgInfo typeArguments;
 
-  /// The token before the trailing question mark or `null` if none.
+  /// The token before the trailing question mark or `null` if either
+  /// 1) there is no trailing question mark, or
+  /// 2) the trailing question mark is not part of the type reference.
   Token beforeQuestionMark;
 
   /// The last token in the type reference.
