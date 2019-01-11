@@ -139,6 +139,7 @@ class FlowGraphInliner : ValueObject {
                                         GraphEntryInstr* graph_entry,
                                         FunctionEntryInstr** entry,
                                         Instruction** last,
+                                        Definition** result,
                                         SpeculativeInliningPolicy* policy,
                                         ExactnessInfo* exactness = nullptr);
 
