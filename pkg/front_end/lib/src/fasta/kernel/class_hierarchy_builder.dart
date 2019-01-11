@@ -17,6 +17,8 @@ import '../messages.dart'
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
+        templateDuplicatedDeclaration,
+        templateDuplicatedDeclarationCause,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 
@@ -55,6 +57,10 @@ bool isInheritanceConflict(Declaration a, Declaration b) {
   if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
   if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
   return memberKind(a.target) != memberKind(b.target);
+}
+
+bool impliesSetter(Declaration declaration) {
+  return declaration.isField && !(declaration.isFinal || declaration.isConst);
 }
 
 class ClassHierarchyBuilder {
@@ -203,6 +209,7 @@ class ClassHierarchyBuilder {
     List<Declaration> localSetters =
         new List<Declaration>.from(scope.setters.values)
           ..sort(compareDeclarations);
+    localSetters = mergeAccessors(cls, localMembers, localSetters);
     List<Declaration> classMembers;
     List<Declaration> classSetters;
     List<Declaration> interfaceMembers;
@@ -236,7 +243,6 @@ class ClassHierarchyBuilder {
     }
     nodes[cls] = new ClassHierarchyNode(cls, scope, classMembers, classSetters,
         interfaceMembers, interfaceSetters);
-    mergeAccessors(cls, classMembers, classSetters);
 
     if (abstractMemberCount != 0 && !cls.isAbstract) {
       if (!hasNoSuchMethod) {
@@ -298,71 +304,66 @@ class ClassHierarchyBuilder {
     return input.single;
   }
 
-  /// Merge [and check] accessors. This entails removing setters corresponding
-  /// to fields, and checking that setters don't override regular methods.
-  void mergeAccessors(KernelClassBuilder cls, List<Declaration> members,
-      List<Declaration> setters) {
-    List<Declaration> overriddenSetters;
+  /// Merge [and check] accessors. This entails copying mutable fields to
+  /// setters to simulate implied setters, and checking that setters don't
+  /// override regular methods.
+  List<Declaration> mergeAccessors(KernelClassBuilder cls,
+      List<Declaration> members, List<Declaration> setters) {
+    final List<Declaration> mergedSetters = new List<Declaration>.filled(
+        members.length + setters.length, null,
+        growable: true);
+    int storeIndex = 0;
     int i = 0;
     int j = 0;
     while (i < members.length && j < setters.length) {
-      Declaration member = members[i];
-      Declaration setter = setters[j];
+      final Declaration member = members[i];
+      final Declaration setter = setters[j];
       final int compare = compareDeclarations(member, setter);
       if (compare == 0) {
-        if (member.isField) {
-          // TODO(ahe): What happens if we have both a field and a setter
-          // declared in the same class?
-          if (!member.isFinal && !member.isConst) {
-            // The field overrides the setter.
-            (overriddenSetters ??= <Declaration>[]).add(setter);
-            Member target = setter.target;
-            if (target.isAbstract) {
-              abstractMemberCount--;
-            }
-          }
-        } else if (!member.isGetter) {
-          String name = member.fullNameForErrors;
+        if (member.isField ? impliesSetter(member) : !member.isGetter) {
+          // [member] conflicts with [setter].
+          final String name = member.fullNameForErrors;
           cls.library.addProblem(
-              messageDeclaredMemberConflictsWithInheritedMember,
-              member.charOffset,
+              templateDuplicatedDeclaration.withArguments(name),
+              setter.charOffset,
               name.length,
-              member.fileUri,
+              setter.fileUri,
               context: <LocatedMessage>[
-                messageDeclaredMemberConflictsWithInheritedMemberCause
+                templateDuplicatedDeclarationCause
+                    .withArguments(name)
                     .withLocation(
-                        setter.fileUri, setter.charOffset, name.length)
+                        member.fileUri, member.charOffset, name.length)
               ]);
         }
+        mergedSetters[storeIndex++] = setter;
         i++;
         j++;
       } else if (compare < 0) {
+        if (impliesSetter(member)) {
+          mergedSetters[storeIndex++] = member;
+        }
         i++;
       } else {
+        mergedSetters[storeIndex++] = setters[j];
         j++;
       }
     }
-    // One of of the two lists is now exhausted. What remains in the other list
-    // cannot be a conflict.
+    while (i < members.length) {
+      final Declaration member = members[i];
+      if (impliesSetter(member)) {
+        mergedSetters[storeIndex++] = member;
+      }
+      i++;
+    }
+    while (j < setters.length) {
+      mergedSetters[storeIndex++] = setters[j];
+      j++;
+    }
 
-    if (overriddenSetters != null) {
-      // Remove [overriddenSetters] from [setters] by copying [setters]
-      // to itself.
-      int i = 0;
-      int j = 0;
-      int storeIndex = 0;
-      while (i < setters.length && j < overriddenSetters.length) {
-        if (setters[i] == overriddenSetters[j]) {
-          i++;
-          j++;
-        } else {
-          setters[storeIndex++] = setters[i++];
-        }
-      }
-      while (i < setters.length) {
-        setters[storeIndex++] = setters[i++];
-      }
-      setters.length = storeIndex;
+    if (storeIndex == j) {
+      return setters;
+    } else {
+      return mergedSetters..length = storeIndex;
     }
   }
 
