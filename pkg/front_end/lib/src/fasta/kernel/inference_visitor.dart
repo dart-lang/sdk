@@ -746,8 +746,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
                 .isSubclassOf(inferrer.coreTypes.mapClass, context.classNode)) {
           // Set literal
           SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
-              typeArgument: const ImplicitTypeArgument(),
-              isConst: node.isConst);
+              typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
           node.replaceWith(setLiteral);
           visitSetLiteralJudgment(setLiteral, typeContext);
           node.inferredType = setLiteral.inferredType;

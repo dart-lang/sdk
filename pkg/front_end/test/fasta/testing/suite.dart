@@ -36,6 +36,9 @@ import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 
@@ -118,6 +121,7 @@ class FastaContext extends ChainContext {
   final Uri vm;
   final bool legacyMode;
   final bool onlyCrashes;
+  final bool enableSetLiterals;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -135,6 +139,7 @@ class FastaContext extends ChainContext {
       this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
+      this.enableSetLiterals,
       bool ignoreExpectations,
       bool updateExpectations,
       bool updateComments,
@@ -211,13 +216,17 @@ class FastaContext extends ChainContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
+    bool enableSetLiterals = environment["enableSetLiterals"] != "false";
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
             throw message.plainTextFormatted.join("\n");
           }
           ..sdkRoot = sdk
-          ..packagesFileUri = packages);
+          ..packagesFileUri = packages
+          ..experimentalFlags = <ExperimentalFlag, bool>{
+            ExperimentalFlag.setLiterals: enableSetLiterals
+          });
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool legacyMode = environment.containsKey(LEGACY_MODE);
     bool onlyCrashes = environment["onlyCrashes"] == "true";
@@ -238,6 +247,7 @@ class FastaContext extends ChainContext {
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
+        enableSetLiterals,
         ignoreExpectations,
         updateExpectations,
         updateComments,
@@ -302,6 +312,9 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
               errors.write("\n\n");
             }
             errors.writeAll(message.plainTextFormatted, "\n");
+          }
+          ..experimentalFlags = <ExperimentalFlag, bool>{
+            ExperimentalFlag.setLiterals: context.enableSetLiterals
           },
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
