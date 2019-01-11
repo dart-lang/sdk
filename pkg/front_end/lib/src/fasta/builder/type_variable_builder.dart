@@ -14,7 +14,7 @@ abstract class TypeVariableBuilder<T extends TypeBuilder, R>
 
   TypeVariableBuilder(
       String name, this.bound, LibraryBuilder compilationUnit, int charOffset)
-      : super(null, null, name, compilationUnit, charOffset);
+      : super(null, 0, name, compilationUnit, charOffset);
 
   bool get isTypeVariable => true;
 
