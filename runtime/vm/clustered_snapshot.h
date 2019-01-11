@@ -128,7 +128,7 @@ class SmiObjectIdPairTrait {
 
 typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
 
-class Serializer : public StackResource {
+class Serializer : public ThreadStackResource {
  public:
   Serializer(Thread* thread,
              Snapshot::Kind kind,
@@ -431,7 +431,7 @@ struct SerializerWritingObjectScope {
   Serializer* serializer_;
 };
 
-class Deserializer : public StackResource {
+class Deserializer : public ThreadStackResource {
  public:
   Deserializer(Thread* thread,
                Snapshot::Kind kind,

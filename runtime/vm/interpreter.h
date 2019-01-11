@@ -24,6 +24,7 @@ class RawImmutableArray;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
+class RawString;
 class RawSubtypeTestCache;
 class ObjectPointerVisitor;
 

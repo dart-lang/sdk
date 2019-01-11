@@ -748,7 +748,7 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
 }
 
 TypeUsageInfo::TypeUsageInfo(Thread* thread)
-    : StackResource(thread),
+    : ThreadStackResource(thread),
       zone_(thread->zone()),
       finder_(zone_),
       assert_assignable_types_(),

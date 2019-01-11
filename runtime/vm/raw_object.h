@@ -10,6 +10,7 @@
 #include "vm/compiler/method_recognizer.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
+#include "vm/object_graph.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
 #include "vm/token_position.h"

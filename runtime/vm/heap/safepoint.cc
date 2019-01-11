@@ -11,7 +11,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_safepoint, false, "Trace Safepoint logic.");
 
-SafepointOperationScope::SafepointOperationScope(Thread* T) : StackResource(T) {
+SafepointOperationScope::SafepointOperationScope(Thread* T)
+    : ThreadStackResource(T) {
   ASSERT(T != NULL);
   Isolate* I = T->isolate();
   ASSERT(I != NULL);

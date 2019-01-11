@@ -77,7 +77,7 @@ VMTag::TagEntry VMTag::entries_[] = {
 };
 
 VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
-    : StackResource(thread) {
+    : ThreadStackResource(thread) {
   ASSERT(isolate() != NULL);
   previous_tag_ = thread->vm_tag();
   if (conditional_set) {

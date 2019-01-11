@@ -181,10 +181,10 @@ struct CidRange : public ZoneAllocated {
 
 typedef MallocGrowableArray<CidRange> CidRangeVector;
 
-class HierarchyInfo : public StackResource {
+class HierarchyInfo : public ThreadStackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
-      : StackResource(thread),
+      : ThreadStackResource(thread),
         cid_subtype_ranges_(NULL),
         cid_subtype_ranges_abstract_(NULL),
         cid_subclass_ranges_(NULL) {

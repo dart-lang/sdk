@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/token_position.h"
 
 namespace dart {
 

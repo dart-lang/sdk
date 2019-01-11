@@ -200,7 +200,7 @@ void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
 }
 
 HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
-    : StackResource(thread),
+    : ThreadStackResource(thread),
       heap_(isolate()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
@@ -955,7 +955,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 }
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
-    : StackResource(Thread::Current()) {
+    : ThreadStackResource(Thread::Current()) {
   Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
   current_growth_controller_state_ = heap->GrowthControlState();
   heap->DisableGrowthControl();
@@ -967,7 +967,7 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 }
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
-    : StackResource(thread) {
+    : ThreadStackResource(thread) {
   if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(false);
   }
@@ -990,7 +990,7 @@ WritableCodePages::~WritableCodePages() {
 }
 
 BumpAllocateScope::BumpAllocateScope(Thread* thread)
-    : StackResource(thread), no_reload_scope_(thread->isolate(), thread) {
+    : ThreadStackResource(thread), no_reload_scope_(thread->isolate(), thread) {
   ASSERT(!thread->bump_allocate());
   // If the background compiler thread is not disabled, there will be a cycle
   // between the symbol table lock and the old space data lock.

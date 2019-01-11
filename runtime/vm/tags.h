@@ -6,6 +6,7 @@
 #define RUNTIME_VM_TAGS_H_
 
 #include "vm/allocation.h"
+#include "vm/thread_stack_resource.h"
 
 namespace dart {
 
@@ -75,7 +76,7 @@ class VMTag : public AllStatic {
   static TagEntry entries_[];
 };
 
-class VMTagScope : StackResource {
+class VMTagScope : ThreadStackResource {
  public:
   VMTagScope(Thread* thread, uword tag, bool conditional_set = true);
   ~VMTagScope();

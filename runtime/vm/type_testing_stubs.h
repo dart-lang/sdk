@@ -317,7 +317,7 @@ class TypeArgumentInstantiator {
 };
 
 // Collects data on how [Type] objects are used in generated code.
-class TypeUsageInfo : public StackResource {
+class TypeUsageInfo : public ThreadStackResource {
  public:
   explicit TypeUsageInfo(Thread* thread);
   ~TypeUsageInfo();

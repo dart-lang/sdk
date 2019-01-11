@@ -79,7 +79,7 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
                                          : zone_information.StandardName;
   intptr_t utf8_len =
       WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, NULL, 0, NULL, NULL);
-  char* name = Thread::Current()->zone()->Alloc<char>(utf8_len + 1);
+  char* name = ThreadState::Current()->zone()->Alloc<char>(utf8_len + 1);
   WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, name, utf8_len, NULL, NULL);
   name[utf8_len] = '\0';
   return name;

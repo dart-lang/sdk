@@ -391,7 +391,7 @@ class Heap {
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
-class HeapIterationScope : public StackResource {
+class HeapIterationScope : public ThreadStackResource {
  public:
   explicit HeapIterationScope(Thread* thread, bool writable = false);
   ~HeapIterationScope();
@@ -416,7 +416,7 @@ class HeapIterationScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-class NoHeapGrowthControlScope : public StackResource {
+class NoHeapGrowthControlScope : public ThreadStackResource {
  public:
   NoHeapGrowthControlScope();
   ~NoHeapGrowthControlScope();
@@ -428,7 +428,7 @@ class NoHeapGrowthControlScope : public StackResource {
 
 // Note: During this scope all pages are writable and the code pages are
 // non-executable.
-class WritableVMIsolateScope : StackResource {
+class WritableVMIsolateScope : ThreadStackResource {
  public:
   explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
@@ -446,7 +446,7 @@ class WritableCodePages : StackResource {
 // This scope forces heap growth, forces use of the bump allocator, and
 // takes the page lock. It is useful e.g. at program startup when allocating
 // many objects into old gen (like libraries, classes, and functions).
-class BumpAllocateScope : StackResource {
+class BumpAllocateScope : ThreadStackResource {
  public:
   explicit BumpAllocateScope(Thread* thread);
   ~BumpAllocateScope();

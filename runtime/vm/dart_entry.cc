@@ -93,10 +93,11 @@ class ScopedIsolateStackLimits : public ValueObject {
 
 // Clears/restores Thread::long_jump_base on construction/destruction.
 // Ensures that we do not attempt to long jump across Dart frames.
-class SuspendLongJumpScope : public StackResource {
+class SuspendLongJumpScope : public ThreadStackResource {
  public:
   explicit SuspendLongJumpScope(Thread* thread)
-      : StackResource(thread), saved_long_jump_base_(thread->long_jump_base()) {
+      : ThreadStackResource(thread),
+        saved_long_jump_base_(thread->long_jump_base()) {
     thread->set_long_jump_base(NULL);
   }
 

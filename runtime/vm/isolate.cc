@@ -148,7 +148,8 @@ bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
   return Isolate::IsVMInternalIsolate(isolate);
 }
 
-NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
+NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
+    : ThreadStackResource(thread) {
   thread->DeferOOBMessageInterrupts();
 }
 
@@ -157,7 +158,7 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 }
 
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
-    : StackResource(thread), isolate_(isolate) {
+    : ThreadStackResource(thread), isolate_(isolate) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(isolate_ != NULL);
   AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
@@ -2865,7 +2866,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     }
   } else {
     ASSERT(thread->api_top_scope_ == NULL);
-    ASSERT(thread->zone_ == NULL);
+    ASSERT(thread->zone() == NULL);
     ASSERT(thread->sticky_error() == Error::null());
   }
   if (!bypass_safepoint) {

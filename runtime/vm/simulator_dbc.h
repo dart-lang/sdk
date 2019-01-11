@@ -14,18 +14,19 @@
 
 namespace dart {
 
-class Isolate;
-class RawObject;
-class SimulatorSetjmpBuffer;
-class Thread;
-class Code;
 class Array;
+class Code;
+class Isolate;
+class ObjectPointerVisitor;
+class RawArray;
+class RawCode;
+class RawFunction;
 class RawICData;
 class RawImmutableArray;
-class RawArray;
+class RawObject;
 class RawObjectPool;
-class RawFunction;
-class ObjectPointerVisitor;
+class SimulatorSetjmpBuffer;
+class Thread;
 
 // Simulator intrinsic handler. It is invoked on entry to the intrinsified
 // function via Intrinsic bytecode before the frame is setup.
