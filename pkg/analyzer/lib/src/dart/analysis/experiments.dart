@@ -40,11 +40,17 @@ class EnableString {
   /// String to enable the experiment "constant-update"
   static const String constant_update_2018 = 'constant-update-2018';
 
+  /// String to enable the experiment "control-flow-collections"
+  static const String control_flow_collections = 'control-flow-collections';
+
   /// String to enable the experiment "non-nullable"
   static const String non_nullable = 'non-nullable';
 
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
+
+  /// String to enable the experiment "spread-collections"
+  static const String spread_collections = 'spread-collections';
 
   /// String to enable the experiment "bogus-disabled"
   static const String bogus_disabled = 'bogus-disabled';
@@ -76,6 +82,18 @@ class ExperimentStatus {
         IsEnabledByDefault.non_nullable,
         IsExpired.non_nullable,
         'Non Nullable'),
+    EnableString.control_flow_collections: const ExperimentalFeature(
+        3,
+        EnableString.control_flow_collections,
+        IsEnabledByDefault.control_flow_collections,
+        IsExpired.control_flow_collections,
+        'Control Flow Collections'),
+    EnableString.spread_collections: const ExperimentalFeature(
+        4,
+        EnableString.spread_collections,
+        IsEnabledByDefault.spread_collections,
+        IsExpired.spread_collections,
+        'Spread Collections'),
     EnableString.bogus_disabled: const ExperimentalFeature(
         null,
         EnableString.bogus_disabled,
@@ -143,11 +161,17 @@ class IsEnabledByDefault {
   /// Default state of the experiment "constant-update"
   static const bool constant_update_2018 = false;
 
+  /// Default state of the experiment "control-flow-collections"
+  static const bool control_flow_collections = false;
+
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = false;
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = false;
+
+  /// Default state of the experiment "spread-collections"
+  static const bool spread_collections = false;
 
   /// Default state of the experiment "bogus-disabled"
   static const bool bogus_disabled = false;
@@ -163,11 +187,17 @@ class IsExpired {
   /// Expiration status of the experiment "constant-update"
   static const bool constant_update_2018 = false;
 
+  /// Expiration status of the experiment "control-flow-collections"
+  static const bool control_flow_collections = false;
+
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = false;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = false;
+
+  /// Expiration status of the experiment "spread-collections"
+  static const bool spread_collections = false;
 
   /// Expiration status of the experiment "bogus-disabled"
   static const bool bogus_disabled = true;
