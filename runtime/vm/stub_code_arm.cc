@@ -124,30 +124,17 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
                                   const RuntimeEntry* target,
                                   intptr_t self_code_stub_offset_from_thread,
                                   bool allow_return) {
-  __ Push(LR);
-
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   RegisterSet all_registers;
   all_registers.AddAllNonReservedRegisters(save_fpu_registers);
+
+  // To make the stack map calculation architecture independent we do the same
+  // as on intel.
+  __ Push(LR);
+
   __ PushRegisters(all_registers);
-
-  const intptr_t kSavedCpuRegisterSlots =
-      Utils::CountOneBitsWord(kDartAvailableCpuRegs);
-
-  const intptr_t kSavedFpuRegisterSlots =
-      save_fpu_registers ? kNumberOfFpuRegisters * kFpuRegisterSize / kWordSize
-                         : 0;
-
-  const intptr_t kAllSavedRegistersSlots =
-      kSavedCpuRegisterSlots + kSavedFpuRegisterSlots;
-
-  // Copy down the return address so the stack layout is correct.
-  __ ldr(TMP, Address(SPREG, kAllSavedRegistersSlots * kWordSize));
-  __ Push(TMP);
-
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
-
   __ EnterStubFrame();
   __ CallRuntime(*target, /*argument_count=*/0);
   if (!allow_return) {
@@ -155,13 +142,7 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
     return;
   }
   __ LeaveStubFrame();
-
-  // Drop "official" return address -- we can just use the one stored above the
-  // saved registers.
-  __ Drop(1);
-
   __ PopRegisters(all_registers);
-
   __ Pop(LR);
   __ bx(LR);
 }

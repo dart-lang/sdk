@@ -2988,8 +2988,12 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  const bool using_shared_stub = UseSharedSlowPathStub(opt);
+  ASSERT((kReservedCpuRegisters & (1 << LR)) != 0);
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      using_shared_stub ? LocationSummary::kCallOnSharedSlowPath
+                                        : LocationSummary::kCallOnSlowPath);
   summary->set_temp(0, Location::RequiresRegister());
   return summary;
 }
@@ -3030,7 +3034,6 @@ class CheckStackOverflowSlowPath
               ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
               : Thread::
                     stack_overflow_shared_without_fpu_regs_entry_point_offset();
-      ASSERT(kReservedCpuRegisters & (1 << LR));
       __ ldr(LR, Address(THR, entry_point_offset));
       __ blx(LR);
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
