@@ -3574,9 +3574,11 @@ static bool InlineMathIntPow(FlowGraph* flow_graph,
   if (IsSmiValue(y, &val)) {
     if (val == 0) {
       *last = flow_graph->GetConstant(Smi::ZoneHandle(Smi::New(1)));
+      *result = (*last)->AsDefinition();
       return true;
     } else if (val == 1) {
       *last = x->definition();
+      *result = (*last)->AsDefinition();
       return true;
     } else if (1 < val && val <= small_exponent) {
       // Lazily construct entry only in this case.
