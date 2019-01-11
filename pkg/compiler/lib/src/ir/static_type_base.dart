@@ -8,6 +8,13 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+/// Special bottom type used to signal that an expression or statement does
+/// not complete normally. This is the case for instance of throw expressions
+/// and return statements.
+class DoesNotCompleteType extends ir.BottomType {
+  const DoesNotCompleteType();
+}
+
 /// Base class for computing static types.
 ///
 /// This class uses the visitor pattern to compute the static type that are
@@ -73,7 +80,7 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitNullLiteral(ir.NullLiteral node) => const ir.BottomType();
+  ir.DartType visitNullLiteral(ir.NullLiteral node) => typeEnvironment.nullType;
 
   @override
   ir.DartType visitIntLiteral(ir.IntLiteral node) => typeEnvironment.intType;
@@ -129,10 +136,10 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitThrow(ir.Throw node) => const ir.BottomType();
+  ir.DartType visitThrow(ir.Throw node) => const DoesNotCompleteType();
 
   @override
-  ir.DartType visitRethrow(ir.Rethrow node) => const ir.BottomType();
+  ir.DartType visitRethrow(ir.Rethrow node) => const DoesNotCompleteType();
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) =>
@@ -168,7 +175,7 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitInvalidExpression(ir.InvalidExpression node) =>
-      const ir.BottomType();
+      const DoesNotCompleteType();
 
   @override
   ir.DartType visitLoadLibrary(ir.LoadLibrary node) {

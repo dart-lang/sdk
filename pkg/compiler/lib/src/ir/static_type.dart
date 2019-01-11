@@ -56,7 +56,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   VariableScopeModel get variableScopeModel;
 
-  bool completes(ir.DartType type) => type != const ir.BottomType();
+  bool completes(ir.DartType type) => type != const DoesNotCompleteType();
 
   Set<ir.VariableDeclaration> _currentVariables;
   Set<ir.VariableDeclaration> _invalidatedVariables =
@@ -461,7 +461,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (node.name.name == 'call') {
       if (receiverType is ir.FunctionType) {
         if (receiverType.typeParameters.length != node.arguments.types.length) {
-          return const ir.BottomType();
+          return const DoesNotCompleteType();
         }
         return ir.Substitution.fromPairs(
                 receiverType.typeParameters, node.arguments.types)
@@ -742,14 +742,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       return null;
     } else {
       typeMap = afterThen.join(afterOtherwise);
-      return const ir.BottomType();
+      return const DoesNotCompleteType();
     }
   }
 
   @override
   ir.DartType visitConditionalExpression(ir.ConditionalExpression node) {
-    // TODO(johnniwinther): Should we return `const ir.BottomType()` if both
-    // branches are failing?
+    // TODO(johnniwinther): Should we return `const DoesNotCompleteType()` if
+    // both branches are failing?
     _handleConditional(node.condition, node.then, node.otherwise);
     return super.visitConditionalExpression(node);
   }
@@ -803,7 +803,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType type;
     for (ir.Statement statement in node.statements) {
       if (!completes(visitNode(statement))) {
-        type = const ir.BottomType();
+        type = const DoesNotCompleteType();
       }
     }
     assert(_pendingRuntimeTypeUseData.isEmpty,
@@ -938,7 +938,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
-    return const ir.BottomType();
+    return const DoesNotCompleteType();
   }
 
   @override
@@ -948,7 +948,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitBreakStatement(ir.BreakStatement node) {
-    return const ir.BottomType();
+    return const DoesNotCompleteType();
   }
 
   @override
@@ -1064,7 +1064,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitReturnStatement(ir.ReturnStatement node) {
     visitNode(node.expression);
-    return const ir.BottomType();
+    return const DoesNotCompleteType();
   }
 
   @override
