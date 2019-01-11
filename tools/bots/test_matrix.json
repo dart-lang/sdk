@@ -297,9 +297,13 @@
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
-    "dartkp-bare-linux-(debug|release)-(x64|simarm|simarm64)": {
+    "dartkp-bare-linux-(debug|release)-x64": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions"]
+    }},
+    "dartkp-bare-linux-(debug|release)-(simarm|simarm64)": {
+      "options": {
+        "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions", "--use-blobs"]
     }},
     "dartk-(linux|mac)-(debug|release)-(ia32|x64)": { },
     "dartk-checked-linux-release-x64": {
