@@ -219,6 +219,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         return const ir.InvalidType();
       case DartTypeNodeKind.bottomType:
         return const ir.BottomType();
+      case DartTypeNodeKind.doesNotComplete:
+        return const DoesNotCompleteType();
       case DartTypeNodeKind.typeParameterType:
         ir.TypeParameter typeParameter = readTypeParameterNode();
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
@@ -270,6 +272,16 @@ abstract class AbstractDataSource extends DataSourceMixin
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
         return new ir.InterfaceType(cls, typeArguments);
+      case DartTypeNodeKind.thisInterfaceType:
+        ir.Class cls = readClassNode();
+        List<ir.DartType> typeArguments =
+            _readDartTypeNodes(functionTypeVariables);
+        return new ThisInterfaceType(cls, typeArguments);
+      case DartTypeNodeKind.exactInterfaceType:
+        ir.Class cls = readClassNode();
+        List<ir.DartType> typeArguments =
+            _readDartTypeNodes(functionTypeVariables);
+        return new ExactInterfaceType(cls, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         List<ir.DartType> typeArguments =

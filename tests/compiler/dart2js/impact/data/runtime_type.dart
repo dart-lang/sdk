@@ -379,7 +379,7 @@ notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
 
 /*element: main:
- dynamic=[Class1a.==],
+ dynamic=[exact:Class1a.==],
  static=[
   Class1a.(0),
   Class1b.(0),

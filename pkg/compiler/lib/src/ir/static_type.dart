@@ -41,6 +41,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   final ir.ClassHierarchy hierarchy;
 
+  ThisInterfaceType _thisType;
+
   StaticTypeVisitor(ir.TypeEnvironment typeEnvironment, this.hierarchy)
       : super(typeEnvironment);
 
@@ -55,6 +57,16 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   bool get inferEffectivelyFinalVariableTypes;
 
   VariableScopeModel get variableScopeModel;
+
+  ThisInterfaceType get thisType {
+    assert(_thisType != null);
+    return _thisType;
+  }
+
+  void set thisType(ThisInterfaceType value) {
+    assert(value == null || _thisType == null);
+    _thisType = value;
+  }
 
   bool completes(ir.DartType type) => type != const DoesNotCompleteType();
 
@@ -615,8 +627,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitConstructorInvocation(ir.ConstructorInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType resultType = node.arguments.types.isEmpty
-        ? node.target.enclosingClass.rawType
-        : new ir.InterfaceType(
+        ? new ExactInterfaceType.from(node.target.enclosingClass.rawType)
+        : new ExactInterfaceType(
             node.target.enclosingClass, node.arguments.types);
     _cache[node] = resultType;
     handleConstructorInvocation(node, argumentTypes, resultType);
@@ -637,8 +649,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (declaringClass.typeParameters.isEmpty) {
         resultType = node.interfaceTarget.getterType;
       } else {
-        ir.DartType receiver = typeEnvironment.getTypeAsInstanceOf(
-            typeEnvironment.thisType, declaringClass);
+        ir.DartType receiver =
+            typeEnvironment.getTypeAsInstanceOf(thisType, declaringClass);
         resultType = ir.Substitution.fromInterfaceType(receiver)
             .substituteType(node.interfaceTarget.getterType);
       }
@@ -670,8 +682,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       returnType = const ir.DynamicType();
     } else {
       ir.Class superclass = node.interfaceTarget.enclosingClass;
-      ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
-          typeEnvironment.thisType, superclass);
+      ir.InterfaceType receiverType =
+          typeEnvironment.getTypeAsInstanceOf(thisType, superclass);
       returnType = ir.Substitution.fromInterfaceType(receiverType)
           .substituteType(node.interfaceTarget.function.returnType);
       returnType = ir.Substitution.fromPairs(
@@ -1158,22 +1170,21 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitProcedure(ir.Procedure node) {
-    typeEnvironment.thisType =
-        node.enclosingClass != null ? node.enclosingClass.thisType : null;
+    thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
     _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
     visitNode(node.function.body);
     handleProcedure(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
-    typeEnvironment.thisType = null;
+    thisType = null;
   }
 
   void handleConstructor(ir.Constructor node) {}
 
   @override
   Null visitConstructor(ir.Constructor node) {
-    typeEnvironment.thisType = node.enclosingClass.thisType;
+    thisType = new ThisInterfaceType.from(node.enclosingClass.thisType);
     _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
     visitNodes(node.initializers);
@@ -1181,18 +1192,17 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     handleConstructor(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
-    typeEnvironment.thisType = null;
+    thisType = null;
   }
 
   void handleField(ir.Field node) {}
 
   @override
   Null visitField(ir.Field node) {
-    typeEnvironment.thisType =
-        node.enclosingClass != null ? node.enclosingClass.thisType : null;
+    thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
     visitNode(node.initializer);
     handleField(node);
-    typeEnvironment.thisType = null;
+    thisType = null;
   }
 
   void handleVariableDeclaration(ir.VariableDeclaration node) {}

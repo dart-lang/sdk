@@ -33,6 +33,7 @@ import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
+import '../ir/static_type_base.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
@@ -1102,12 +1103,8 @@ class JsKernelToElementMap
     }
 
     assert(cachedStaticTypes != null, "No static types cached for $member.");
-    return new CachedStaticType(
-        // We need a copy of the type environment since the `thisType` field
-        // is holds state, making the environment contextually bound.
-        new ir.TypeEnvironment(typeEnvironment.coreTypes, classHierarchy)
-          ..thisType = thisType,
-        cachedStaticTypes);
+    return new CachedStaticType(typeEnvironment, cachedStaticTypes,
+        new ThisInterfaceType.from(thisType));
   }
 
   Name getName(ir.Name name) {

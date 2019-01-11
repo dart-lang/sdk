@@ -13,6 +13,34 @@ import 'package:kernel/type_environment.dart' as ir;
 /// and return statements.
 class DoesNotCompleteType extends ir.BottomType {
   const DoesNotCompleteType();
+
+  String toString() => 'DoesNotCompleteType()';
+}
+
+/// Special interface type used to signal that the static type of an expression
+/// has precision of a this-expression.
+class ThisInterfaceType extends ir.InterfaceType {
+  ThisInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
+      : super(classNode, typeArguments);
+
+  factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
+      ? new ThisInterfaceType(type.classNode, type.typeArguments)
+      : null;
+
+  String toString() => 'this:${super.toString()}';
+}
+
+/// Special interface type used to signal that the static type of an expression
+/// is exact, i.e. the runtime type is not a subtype or subclass of the type.
+class ExactInterfaceType extends ir.InterfaceType {
+  ExactInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
+      : super(classNode, typeArguments);
+
+  factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
+      ? new ExactInterfaceType(type.classNode, type.typeArguments)
+      : null;
+
+  String toString() => 'exact:${super.toString()}';
 }
 
 /// Base class for computing static types.
@@ -25,7 +53,7 @@ class DoesNotCompleteType extends ir.BottomType {
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-class StaticTypeBase extends ir.Visitor<ir.DartType> {
+abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
   StaticTypeBase(this._typeEnvironment);
@@ -33,6 +61,8 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   fail(String message) => message;
 
   ir.TypeEnvironment get typeEnvironment => _typeEnvironment;
+
+  ThisInterfaceType get thisType;
 
   @override
   ir.DartType defaultNode(ir.Node node) {
@@ -119,8 +149,7 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitThisExpression(ir.ThisExpression node) =>
-      typeEnvironment.thisType;
+  ThisInterfaceType visitThisExpression(ir.ThisExpression node) => thisType;
 
   @override
   ir.DartType visitStaticGet(ir.StaticGet node) => node.target.getterType;

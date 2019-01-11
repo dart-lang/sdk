@@ -8,6 +8,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/cached_static_type.dart';
+import 'package:compiler/src/ir/static_type_base.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -55,7 +56,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
             compiler.reporter,
             actualMap,
             new CachedStaticType(
-                getTypeEnvironment(elementMap), staticTypeCache))
+                getTypeEnvironment(elementMap),
+                staticTypeCache,
+                new ThisInterfaceType.from(node.enclosingClass?.thisType)))
         .run(node);
   }
 

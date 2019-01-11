@@ -12,6 +12,7 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import 'scope.dart';
 import 'static_type.dart';
+import 'static_type_base.dart';
 import 'util.dart';
 
 abstract class ImpactBuilder extends StaticTypeVisitor {
@@ -20,6 +21,16 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
   ImpactBuilder(ir.TypeEnvironment typeEnvironment,
       ir.ClassHierarchy classHierarchy, this.variableScopeModel)
       : super(typeEnvironment, classHierarchy);
+
+  ClassRelation _computeClassRelationFromType(ir.DartType type) {
+    if (type is ThisInterfaceType) {
+      return ClassRelation.thisExpression;
+    } else if (type is ExactInterfaceType) {
+      return ClassRelation.exact;
+    } else {
+      return ClassRelation.subtype;
+    }
+  }
 
   void registerIntLiteral(int value);
 
@@ -402,9 +413,7 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
         receiver.variable.parent is ir.FunctionDeclaration) {
       registerLocalFunctionInvocation(receiver.variable.parent, node.arguments);
     } else {
-      ClassRelation relation = receiver is ir.ThisExpression
-          ? ClassRelation.thisExpression
-          : ClassRelation.subtype;
+      ClassRelation relation = _computeClassRelationFromType(receiverType);
 
       ir.Member interfaceTarget = node.interfaceTarget;
       if (interfaceTarget == null) {
@@ -452,9 +461,7 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
   @override
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
-    ClassRelation relation = node.receiver is ir.ThisExpression
-        ? ClassRelation.thisExpression
-        : ClassRelation.subtype;
+    ClassRelation relation = _computeClassRelationFromType(receiverType);
     if (node.interfaceTarget != null) {
       registerInstanceGet(receiverType, relation, node.interfaceTarget);
     } else {
@@ -477,9 +484,7 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
   @override
   void handlePropertySet(
       ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
-    ClassRelation relation = node.receiver is ir.ThisExpression
-        ? ClassRelation.thisExpression
-        : ClassRelation.subtype;
+    ClassRelation relation = _computeClassRelationFromType(receiverType);
     if (node.interfaceTarget != null) {
       registerInstanceSet(receiverType, relation, node.interfaceTarget);
     } else {
