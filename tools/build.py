@@ -301,10 +301,9 @@ def Main():
   if not ProcessOptions(options, args):
     parser.print_help()
     return 1
-  # Determine which targets to build. The default is the "create_sdk" target,
-  # as the "all" target is unsupported and not built on any of the bots.
+  # Determine which targets to build. By default we build the "all" target.
   if len(args) == 0:
-    targets = ['create_sdk']
+    targets = ['all']
   else:
     targets = args
 
