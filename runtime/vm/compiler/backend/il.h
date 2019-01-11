@@ -7276,6 +7276,8 @@ class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
   // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
+  bool IsRedundant(const RangeBoundary& length);
+
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
 
