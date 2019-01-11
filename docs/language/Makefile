@@ -39,7 +39,7 @@ help:
 	@echo "  clean: remove all generated files"
 
 cleanish:
-	rm -f *.aux *.log *.toc *.out *.idx *.ilg
+	rm -f *.aux *.log *.toc *.out
 
 clean: cleanish
-	rm -f *.dvi *.pdf *.ind $(HASH) $(LIST)
+	rm -f *.dvi *.pdf $(HASH) $(LIST)
