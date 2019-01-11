@@ -72,7 +72,8 @@ class KernelLoaderTask extends CompilerTask {
             new Dart2jsTarget(targetName, new TargetFlags()),
             _options.librariesSpecificationUri,
             _options.platformBinaries.resolve(platform),
-            _options.packageConfig);
+            _options.packageConfig,
+            experimentalFlags: _options.languageExperiments);
         component = await fe.compile(
             initializedCompilerState,
             false,

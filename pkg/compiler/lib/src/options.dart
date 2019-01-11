@@ -70,6 +70,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// flags.
   Map<String, String> environment = const <String, String>{};
 
+  /// Flags enabling language experiments.
+  Map<fe.ExperimentalFlag, bool> languageExperiments = {};
+
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -313,6 +316,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
+      ..languageExperiments = _extractExperiments(options)
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -507,6 +511,13 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
     }
   }
   return null;
+}
+
+Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
+  List<String> experiments =
+      _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
+  return fe.parseExperimentalFlags(
+      experiments, (String error) => throw new ArgumentError(error));
 }
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";
