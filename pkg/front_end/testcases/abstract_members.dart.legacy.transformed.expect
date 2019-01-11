@@ -6,8 +6,12 @@
 //
 // pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
 //  - A.abstractMethod
-//  - A.property3=
 //  - A.property1=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,

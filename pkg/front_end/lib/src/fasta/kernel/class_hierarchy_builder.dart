@@ -71,7 +71,7 @@ class ClassHierarchyBuilder {
 
   bool hasNoSuchMethod = false;
 
-  int abstractMemberCount = 0;
+  List<Declaration> abstractMembers = null;
 
   ClassHierarchyBuilder(this.objectClass);
 
@@ -131,7 +131,7 @@ class ClassHierarchyBuilder {
         // superclass.
         result = b;
       } else {
-        abstractMemberCount++;
+        (abstractMembers ??= <Declaration>[]).add(a);
       }
     }
     return result;
@@ -146,9 +146,8 @@ class ClassHierarchyBuilder {
   /// implementing/overriding anything.
   void handleOnlyA(Declaration member, MergeKind mergeKind) {
     Member target = member.target;
-    if (mergeKind == MergeKind.supertypes ||
-        (mergeKind == MergeKind.superclass && target.isAbstract)) {
-      abstractMemberCount++;
+    if (mergeKind == MergeKind.superclass && target.isAbstract) {
+      (abstractMembers ??= <Declaration>[]).add(member);
     }
   }
 
@@ -165,7 +164,7 @@ class ClassHierarchyBuilder {
     if (mergeKind == MergeKind.supertypes ||
         (mergeKind == MergeKind.superclass && target.isAbstract)) {
       if (isNameVisibleIn(target.name, cls.library)) {
-        abstractMemberCount++;
+        (abstractMembers ??= <Declaration>[]).add(member);
       }
     }
     if (member.parent != objectClass &&
@@ -177,7 +176,7 @@ class ClassHierarchyBuilder {
 
   void add(KernelClassBuilder cls) {
     assert(!hasNoSuchMethod);
-    assert(abstractMemberCount == 0);
+    assert(abstractMembers == null);
     if (cls.isPatch) {
       // TODO(ahe): What about patch classes. Have we injected patched members
       // into the class-builder's scope?
@@ -203,6 +202,10 @@ class ClassHierarchyBuilder {
         scope = mixin.scope;
       }
     }
+    // TODO(ahe): Consider if removing static members from [localMembers] and
+    // [localSetters] makes sense. It depends on what semantic checks we need
+    // to perform with respect to static members and inherited members with the
+    // same name.
     List<Declaration> localMembers =
         new List<Declaration>.from(scope.local.values)
           ..sort(compareDeclarations);
@@ -244,14 +247,15 @@ class ClassHierarchyBuilder {
     nodes[cls] = new ClassHierarchyNode(cls, scope, classMembers, classSetters,
         interfaceMembers, interfaceSetters);
 
-    if (abstractMemberCount != 0 && !cls.isAbstract) {
+    if (abstractMembers != null && !cls.isAbstract) {
       if (!hasNoSuchMethod) {
-        reportMissingMembers(cls, classMembers, classSetters);
+        reportMissingMembers(cls);
+      } else {
+        installNsmHandlers(cls);
       }
-      installNsmHandlers(cls);
     }
     hasNoSuchMethod = false;
-    abstractMemberCount = 0;
+    abstractMembers = null;
   }
 
   MergeResult mergeInterfaces(KernelClassBuilder cls,
@@ -367,32 +371,31 @@ class ClassHierarchyBuilder {
     }
   }
 
-  void reportMissingMembers(KernelClassBuilder cls, List<Declaration> members,
-      List<Declaration> setters) {
-    List<LocatedMessage> context = <LocatedMessage>[];
-    List<String> missingNames = <String>[];
-    for (int j = 0; j < 2; j++) {
-      List<Declaration> declarations = j == 0 ? members : setters;
-      for (int i = 0; i < declarations.length; i++) {
-        Declaration declaration = declarations[i];
-        Member target = declaration.target;
-        if (target.isAbstract && isNameVisibleIn(target.name, cls.library)) {
-          String name = declaration.fullNameForErrors;
-          String parentName = declaration.parent.fullNameForErrors;
-          String displayName =
-              declaration.isSetter ? "$parentName.$name=" : "$parentName.$name";
-          missingNames.add(displayName);
-          context.add(templateMissingImplementationCause
-              .withArguments(displayName)
-              .withLocation(
-                  declaration.fileUri, declaration.charOffset, name.length));
-        }
+  void reportMissingMembers(KernelClassBuilder cls) {
+    Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
+    for (int i = 0; i < abstractMembers.length; i++) {
+      Declaration declaration = abstractMembers[i];
+      Member target = declaration.target;
+      if (isNameVisibleIn(target.name, cls.library)) {
+        String name = declaration.fullNameForErrors;
+        String parentName = declaration.parent.fullNameForErrors;
+        String displayName =
+            declaration.isSetter ? "$parentName.$name=" : "$parentName.$name";
+        contextMap[displayName] = templateMissingImplementationCause
+            .withArguments(displayName)
+            .withLocation(
+                declaration.fileUri, declaration.charOffset, name.length);
       }
     }
-    if (missingNames.isEmpty) return;
+    if (contextMap.isEmpty) return;
+    List<String> names = new List<String>.from(contextMap.keys)..sort();
+    List<LocatedMessage> context = <LocatedMessage>[];
+    for (int i = 0; i < names.length; i++) {
+      context.add(contextMap[names[i]]);
+    }
     cls.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
-            cls.fullNameForErrors, missingNames),
+            cls.fullNameForErrors, names),
         cls.charOffset,
         cls.fullNameForErrors.length,
         context: context);
@@ -409,11 +412,11 @@ class ClassHierarchyBuilder {
       if (node == null) {
         bool savedHasNoSuchMethod = hasNoSuchMethod;
         hasNoSuchMethod = false;
-        int savedAbstractMemberCount = abstractMemberCount;
-        abstractMemberCount = 0;
+        List<Declaration> savedAbstractMembers = abstractMembers;
+        abstractMembers = null;
         add(declaration);
         hasNoSuchMethod = savedHasNoSuchMethod;
-        abstractMemberCount = savedAbstractMemberCount;
+        abstractMembers = savedAbstractMembers;
         node = nodes[declaration];
       }
       return node;
@@ -430,14 +433,20 @@ class ClassHierarchyBuilder {
     final List<Declaration> result = new List<Declaration>.filled(
         aList.length + bList.length, null,
         growable: true);
-
     int storeIndex = 0;
-
     int i = 0;
     int j = 0;
     while (i < aList.length && j < bList.length) {
       final Declaration a = aList[i];
       final Declaration b = bList[j];
+      if (a.isStatic) {
+        i++;
+        continue;
+      }
+      if (b.isStatic) {
+        j++;
+        continue;
+      }
       final int compare = compareDeclarations(a, b);
       if (compare == 0) {
         result[storeIndex++] = handleMergeConflict(cls, a, b, mergeKind);
@@ -455,14 +464,18 @@ class ClassHierarchyBuilder {
     }
     while (i < aList.length) {
       final Declaration a = aList[i];
-      handleOnlyA(a, mergeKind);
-      result[storeIndex++] = a;
+      if (!a.isStatic) {
+        handleOnlyA(a, mergeKind);
+        result[storeIndex++] = a;
+      }
       i++;
     }
     while (j < bList.length) {
       final Declaration b = bList[j];
-      handleOnlyB(cls, b, mergeKind);
-      result[storeIndex++] = b;
+      if (!b.isStatic) {
+        handleOnlyB(cls, b, mergeKind);
+        result[storeIndex++] = b;
+      }
       j++;
     }
     return result..length = storeIndex;
