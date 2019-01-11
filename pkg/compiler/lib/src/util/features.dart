@@ -25,9 +25,13 @@ class Features {
     _features[key] = value;
   }
 
-  String operator [](String key) => _features[key];
+  Object operator [](String key) => _features[key];
 
-  String remove(String key) => _features.remove(key);
+  Object remove(String key) => _features.remove(key);
+
+  bool get isEmpty => _features.isEmpty;
+
+  bool get isNotEmpty => _features.isNotEmpty;
 
   void forEach(void Function(String, Object) f) {
     _features.forEach(f);

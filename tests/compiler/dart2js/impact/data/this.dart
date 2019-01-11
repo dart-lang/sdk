@@ -10,12 +10,12 @@ class Class {
   /*element: Class.field2:type=[inst:JSNull]*/
   var field2;
 
-  /*element: Class.method1:dynamic=[<Class.method2(0)]*/
+  /*element: Class.method1:dynamic=[this:Class.method2(0)]*/
   method1() {
     method2();
   }
 
-  /*element: Class.method2:dynamic=[<Class.field1=,<Class.field2]*/
+  /*element: Class.method2:dynamic=[this:Class.field1=,this:Class.field2]*/
   method2() {
     field1 = field2;
   }
@@ -31,7 +31,7 @@ class Subclass extends Class {
   /*element: Subclass.method1:*/
   method1() {}
 
-  /*element: Subclass.method2:dynamic=[<Subclass.method3(0)]*/
+  /*element: Subclass.method2:dynamic=[this:Subclass.method3(0)]*/
   method2() {
     method3();
   }

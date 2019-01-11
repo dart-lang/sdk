@@ -5,7 +5,7 @@
 /*element: Class1a.:static=[Object.(0)]*/
 class Class1a<T> {
   /*element: Class1a.==:
-   dynamic=[<Class1a.runtimeType,Object.runtimeType,Type.==],
+   dynamic=[this:Class1a.runtimeType,Object.runtimeType,Type.==],
    runtimeType=[equals:Class1a<Class1a.T>/dynamic]
   */
   bool operator ==(other) {
@@ -16,7 +16,7 @@ class Class1a<T> {
 /*element: Class1b.:static=[Class1a.(0)]*/
 class Class1b<T> extends Class1a<T> {
   /*element: Class1b.==:
-   dynamic=[<Class1b.runtimeType,Object.runtimeType,Type.==],
+   dynamic=[this:Class1b.runtimeType,Object.runtimeType,Type.==],
    runtimeType=[equals:dynamic/Class1b<Class1b.T>]
   */
   bool operator ==(other) {
@@ -27,7 +27,7 @@ class Class1b<T> extends Class1a<T> {
 /*element: Class1c.:static=[Object.(0)]*/
 class Class1c<T> implements Class1a<T> {
   /*element: Class1c.==:
-   dynamic=[<Class1c.runtimeType,Object.==,Object.runtimeType,Type.==],
+   dynamic=[this:Class1c.runtimeType,Object.==,Object.runtimeType,Type.==],
    runtimeType=[equals:Class1c<Class1c.T>/dynamic],
    type=[inst:JSNull]
   */
@@ -39,7 +39,7 @@ class Class1c<T> implements Class1a<T> {
 /*element: Class1d.:static=[Object.(0)]*/
 class Class1d<T> implements Class1a<T> {
   /*element: Class1d.==:
-   dynamic=[<Class1d.runtimeType,Object.==,Object.runtimeType,Type.==],
+   dynamic=[this:Class1d.runtimeType,Object.==,Object.runtimeType,Type.==],
    runtimeType=[equals:dynamic/Class1d<Class1d.T>],
    type=[inst:JSNull]
   */
