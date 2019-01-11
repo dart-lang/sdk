@@ -344,6 +344,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
+    new OptionHandler(Flags.noMinify, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {

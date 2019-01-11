@@ -170,6 +170,11 @@ class CompilerOptions implements DiagnosticOptions {
   // TODO(sigmund): rename to minify
   bool enableMinification = false;
 
+  /// Flag to turn off minification even if enabled elsewhere, e.g. via
+  /// -O2. Both [enableMinification] and [_disableMinification] can be true, in
+  /// which case [_disableMinification] wins.
+  bool _disableMinification = false;
+
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
@@ -319,6 +324,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableExperimentalMirrors =
           _hasOption(options, Flags.enableExperimentalMirrors)
       ..enableMinification = _hasOption(options, Flags.minify)
+      .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
@@ -420,6 +426,10 @@ class CompilerOptions implements DiagnosticOptions {
     } else {
       parameterCheckPolicy = CheckPolicy.checked;
       implicitDowncastCheckPolicy = CheckPolicy.checked;
+    }
+
+    if (_disableMinification) {
+      enableMinification = false;
     }
   }
 

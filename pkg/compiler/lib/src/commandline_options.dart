@@ -59,6 +59,8 @@ class Flags {
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
+  // Disables minification even if enabled by other options, e.g. '-O2'.
+  static const String noMinify = '--no-minify';
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
   static const String showPackageWarnings = '--show-package-warnings';
