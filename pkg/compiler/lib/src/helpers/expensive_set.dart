@@ -4,11 +4,9 @@
 
 import 'dart:collection';
 
-/**
- * The expensive set is a data structure useful for tracking down
- * excessive memory usage due to large sets. It acts as an ordinary
- * hash set, but it uses 10 times more memory (by default).
- */
+/// The expensive set is a data structure useful for tracking down
+/// excessive memory usage due to large sets. It acts as an ordinary
+/// hash set, but it uses 10 times more memory (by default).
 class ExpensiveSet<E> extends SetBase<E> {
   final List _sets;
 

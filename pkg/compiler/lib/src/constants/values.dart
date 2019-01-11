@@ -71,9 +71,11 @@ abstract class ConstantValue {
   bool get isMap => false;
   bool get isConstructedObject => false;
   bool get isFunction => false;
-  /** Returns true if the constant is null, a bool, a number or a string. */
+
+  /// Returns true if the constant is null, a bool, a number or a string.
   bool get isPrimitive => false;
-  /** Returns true if the constant is a list, a map or a constructed object. */
+
+  /// Returns true if the constant is a list, a map or a constructed object.
   bool get isObject => false;
   bool get isType => false;
   bool get isInterceptor => false;
@@ -170,7 +172,7 @@ abstract class PrimitiveConstantValue extends ConstantValue {
 }
 
 class NullConstantValue extends PrimitiveConstantValue {
-  /** The value a Dart null is compiled to in JavaScript. */
+  /// The value a Dart null is compiled to in JavaScript.
   static const String JsNull = "null";
 
   const factory NullConstantValue() = NullConstantValue._internal;

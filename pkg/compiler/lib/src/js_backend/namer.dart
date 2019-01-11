@@ -40,103 +40,101 @@ part 'frequency_namer.dart';
 part 'minify_namer.dart';
 part 'namer_names.dart';
 
-/**
- * Assigns JavaScript identifiers to Dart variables, class-names and members.
- *
- * Names are generated through three stages:
- *
- * 1. Original names and proposed names
- * 2. Disambiguated names (also known as "mangled names")
- * 3. Annotated names
- *
- * Original names are names taken directly from the input.
- *
- * Proposed names are either original names or synthesized names for input
- * elements that do not have original names.
- *
- * Disambiguated names are derived from the above, but are mangled to ensure
- * uniqueness within some namespace (e.g. as fields on the same JS object).
- * In [MinifyNamer], disambiguated names are also minified.
- *
- * Annotated names are names generated from a disambiguated name. Annotated
- * names must be computable at runtime by prefixing/suffixing constant strings
- * onto the disambiguated name.
- *
- * For example, some entity called `x` might be associated with these names:
- *
- *     Original name: `x`
- *
- *     Disambiguated name: `x1` (if something else was called `x`)
- *
- *     Annotated names: `x1`     (field name)
- *                      `get$x1` (getter name)
- *                      `set$x1` (setter name)
- *
- * The [Namer] can choose the disambiguated names, and to some degree the
- * prefix/suffix constants used to construct annotated names. It cannot choose
- * annotated names with total freedom, for example, it cannot choose that the
- * getter for `x1` should be called `getX` -- the annotated names are always
- * built by concatenation.
- *
- * Disambiguated names must be chosen such that none of the annotated names can
- * clash with each other. This may happen even if the disambiguated names are
- * distinct, for example, suppose a field `x` and `get$x` exists in the input:
- *
- *     Original names: `x` and `get$x`
- *
- *     Disambiguated names: `x` and `get$x` (the two names a different)
- *
- *     Annotated names: `x` (field for `x`)
- *                      `get$x` (getter for `x`)
- *                      `get$x` (field for `get$x`)
- *                      `get$get$x` (getter for `get$x`)
- *
- * The getter for `x` clashes with the field name for `get$x`, so the
- * disambiguated names are invalid.
- *
- * Additionally, disambiguated names must be chosen such that all annotated
- * names are valid JavaScript identifiers and do not coincide with a native
- * JavaScript property such as `__proto__`.
- *
- * The following annotated names are generated for instance members, where
- * <NAME> denotes the disambiguated name.
- *
- * 0. The disambiguated name can itself be seen as an annotated name.
- *
- * 1. Multiple annotated names exist for the `call` method, encoding arity and
- *    named parameters with the pattern:
- *
- *       call$<N>$namedParam1...$namedParam<M>
- *
- *    where <N> is the number of parameters (required and optional) and <M> is
- *    the number of named parameters, and namedParam<n> are the names of the
- *    named parameters in alphabetical order.
- *
- *    Note that the same convention is used for the *proposed name* of other
- *    methods. Thus, for ordinary methods, the suffix becomes embedded in the
- *    disambiguated name (and can be minified), whereas for the 'call' method,
- *    the suffix is an annotation that must be computable at runtime
- *    (and thus cannot be minified).
- *
- *    Note that the ordering of named parameters is not encapsulated in the
- *    [Namer], and is hardcoded into other components, such as [Element] and
- *    [Selector].
- *
- * 2. The getter/setter for a field:
- *
- *        get$<NAME>
- *        set$<NAME>
- *
- *    (The [getterPrefix] and [setterPrefix] are different in [MinifyNamer]).
- *
- * 3. The `is` and operator uses the following names:
- *
- *        $is<NAME>
- *        $as<NAME>
- *
- * For local variables, the [Namer] only provides *proposed names*. These names
- * must be disambiguated elsewhere.
- */
+/// Assigns JavaScript identifiers to Dart variables, class-names and members.
+///
+/// Names are generated through three stages:
+///
+/// 1. Original names and proposed names
+/// 2. Disambiguated names (also known as "mangled names")
+/// 3. Annotated names
+///
+/// Original names are names taken directly from the input.
+///
+/// Proposed names are either original names or synthesized names for input
+/// elements that do not have original names.
+///
+/// Disambiguated names are derived from the above, but are mangled to ensure
+/// uniqueness within some namespace (e.g. as fields on the same JS object).
+/// In [MinifyNamer], disambiguated names are also minified.
+///
+/// Annotated names are names generated from a disambiguated name. Annotated
+/// names must be computable at runtime by prefixing/suffixing constant strings
+/// onto the disambiguated name.
+///
+/// For example, some entity called `x` might be associated with these names:
+///
+///     Original name: `x`
+///
+///     Disambiguated name: `x1` (if something else was called `x`)
+///
+///     Annotated names: `x1`     (field name)
+///                      `get$x1` (getter name)
+///                      `set$x1` (setter name)
+///
+/// The [Namer] can choose the disambiguated names, and to some degree the
+/// prefix/suffix constants used to construct annotated names. It cannot choose
+/// annotated names with total freedom, for example, it cannot choose that the
+/// getter for `x1` should be called `getX` -- the annotated names are always
+/// built by concatenation.
+///
+/// Disambiguated names must be chosen such that none of the annotated names can
+/// clash with each other. This may happen even if the disambiguated names are
+/// distinct, for example, suppose a field `x` and `get$x` exists in the input:
+///
+///     Original names: `x` and `get$x`
+///
+///     Disambiguated names: `x` and `get$x` (the two names a different)
+///
+///     Annotated names: `x` (field for `x`)
+///                      `get$x` (getter for `x`)
+///                      `get$x` (field for `get$x`)
+///                      `get$get$x` (getter for `get$x`)
+///
+/// The getter for `x` clashes with the field name for `get$x`, so the
+/// disambiguated names are invalid.
+///
+/// Additionally, disambiguated names must be chosen such that all annotated
+/// names are valid JavaScript identifiers and do not coincide with a native
+/// JavaScript property such as `__proto__`.
+///
+/// The following annotated names are generated for instance members, where
+/// <NAME> denotes the disambiguated name.
+///
+/// 0. The disambiguated name can itself be seen as an annotated name.
+///
+/// 1. Multiple annotated names exist for the `call` method, encoding arity and
+///    named parameters with the pattern:
+///
+///       call$<N>$namedParam1...$namedParam<M>
+///
+///    where <N> is the number of parameters (required and optional) and <M> is
+///    the number of named parameters, and namedParam<n> are the names of the
+///    named parameters in alphabetical order.
+///
+///    Note that the same convention is used for the *proposed name* of other
+///    methods. Thus, for ordinary methods, the suffix becomes embedded in the
+///    disambiguated name (and can be minified), whereas for the 'call' method,
+///    the suffix is an annotation that must be computable at runtime
+///    (and thus cannot be minified).
+///
+///    Note that the ordering of named parameters is not encapsulated in the
+///    [Namer], and is hardcoded into other components, such as [Element] and
+///    [Selector].
+///
+/// 2. The getter/setter for a field:
+///
+///        get$<NAME>
+///        set$<NAME>
+///
+///    (The [getterPrefix] and [setterPrefix] are different in [MinifyNamer]).
+///
+/// 3. The `is` and operator uses the following names:
+///
+///        $is<NAME>
+///        $as<NAME>
+///
+/// For local variables, the [Namer] only provides *proposed names*. These names
+/// must be disambiguated elsewhere.
 class Namer {
   static const List<String> javaScriptKeywords = const <String>[
     // ES5 7.6.1.1 Keywords.
@@ -616,10 +614,8 @@ class Namer {
   String get isolatePropertiesName => r'$isolateProperties';
   jsAst.Name get noSuchMethodName => invocationName(Selectors.noSuchMethod_);
 
-  /**
-   * Some closures must contain their name. The name is stored in
-   * [STATIC_CLOSURE_NAME_NAME].
-   */
+  /// Some closures must contain their name. The name is stored in
+  /// [STATIC_CLOSURE_NAME_NAME].
   String get STATIC_CLOSURE_NAME_NAME => r'$name';
   String get closureInvocationSelectorName => Identifiers.call;
   bool get shouldMinify => false;
@@ -763,17 +759,15 @@ class Namer {
     return 'c\$${target.nestingLevel}';
   }
 
-  /**
-   * If the [originalName] is not private returns [originalName]. Otherwise
-   * mangles the [originalName] so that each library has its own distinguished
-   * version of the name.
-   *
-   * Although the name is not guaranteed to be unique within any namespace,
-   * clashes are very unlikely in practice. Therefore, it can be used in cases
-   * where uniqueness is nice but not a strict requirement.
-   *
-   * The resulting name is a *proposed name* and is never minified.
-   */
+  /// If the [originalName] is not private returns [originalName]. Otherwise
+  /// mangles the [originalName] so that each library has its own distinguished
+  /// version of the name.
+  ///
+  /// Although the name is not guaranteed to be unique within any namespace,
+  /// clashes are very unlikely in practice. Therefore, it can be used in cases
+  /// where uniqueness is nice but not a strict requirement.
+  ///
+  /// The resulting name is a *proposed name* and is never minified.
   String privateName(Name originalName) {
     String text = originalName.text;
 
@@ -933,26 +927,20 @@ class Namer {
         CURRENT_ELEMENT_SPANNABLE, 'Unexpected special selector: $selector');
   }
 
-  /**
-   * Returns the internal name used for an invocation mirror of this selector.
-   */
+  /// Returns the internal name used for an invocation mirror of this selector.
   jsAst.Name invocationMirrorInternalName(Selector selector) =>
       invocationName(selector);
 
-  /**
-   * Returns the disambiguated name for the given field, used for constructing
-   * the getter and setter names.
-   */
+  /// Returns the disambiguated name for the given field, used for constructing
+  /// the getter and setter names.
   jsAst.Name fieldAccessorName(FieldEntity element) {
     return element.isInstanceMember
         ? _disambiguateMember(element.memberName)
         : _disambiguateGlobalMember(element);
   }
 
-  /**
-   * Returns name of the JavaScript property used to store a static or instance
-   * field.
-   */
+  /// Returns name of the JavaScript property used to store a static or instance
+  /// field.
   jsAst.Name fieldPropertyName(FieldEntity element) {
     return element.isInstanceMember
         ? instanceFieldPropertyName(element)
@@ -983,9 +971,7 @@ class Namer {
   jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
-  /**
-   * Returns the JavaScript property name used to store an instance field.
-   */
+  /// Returns the JavaScript property name used to store an instance field.
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
     ClassEntity enclosingClass = element.enclosingClass;
 
@@ -1410,10 +1396,8 @@ class Namer {
     }
   }
 
-  /**
-   * Returns a proposed name for the given [LibraryElement].
-   * The returned id is guaranteed to be a valid JavaScript identifier.
-   */
+  /// Returns a proposed name for the given [LibraryElement].
+  /// The returned id is guaranteed to be a valid JavaScript identifier.
   // TODO(sra): Pre-process libraries to assign [libraryLongNames] in a way that
   // is independent of the order of calls to namer.
   String _proposeNameForLibrary(LibraryEntity library) {
@@ -1837,21 +1821,19 @@ class Namer {
   }
 }
 
-/**
- * Generator of names for [ConstantValue] values.
- *
- * The names are stable under perturbations of the source.  The name is either a
- * short sequence of words, if this can be found from the constant, or a type
- * followed by a hash tag.
- *
- *     List_imX                // A List, with hash tag.
- *     C_Sentinel              // const Sentinel(),  "C_" added to avoid clash
- *                             //   with class name.
- *     JSInt_methods           // an interceptor.
- *     Duration_16000          // const Duration(milliseconds: 16)
- *     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
- *
- */
+/// Generator of names for [ConstantValue] values.
+///
+/// The names are stable under perturbations of the source.  The name is either
+/// a short sequence of words, if this can be found from the constant, or a type
+/// followed by a hash tag.
+///
+///     List_imX                // A List, with hash tag.
+///     C_Sentinel              // const Sentinel(),  "C_" added to avoid clash
+///                             //   with class name.
+///     JSInt_methods           // an interceptor.
+///     Duration_16000          // const Duration(milliseconds: 16)
+///     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
+///
 class ConstantNamingVisitor implements ConstantValueVisitor {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static const MAX_FRAGMENTS = 5;
@@ -2083,14 +2065,12 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 }
 
-/**
- * Generates canonical hash values for [ConstantValue]s.
- *
- * Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
- * so it can't be used for generating names.  This hasher keeps consistency
- * between runs by basing hash values of the names of elements, rather than
- * their hashCodes.
- */
+/// Generates canonical hash values for [ConstantValue]s.
+///
+/// Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
+/// so it can't be used for generating names.  This hasher keeps consistency
+/// between runs by basing hash values of the names of elements, rather than
+/// their hashCodes.
 class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
@@ -2260,12 +2240,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     }
   }
 
-  /**
-   * [_combine] and [_finish] are parts of the [Jenkins hash function][1],
-   * modified by using masking to keep values in SMI range.
-   *
-   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
-   */
+  /// [_combine] and [_finish] are parts of the [Jenkins hash function][1],
+  /// modified by using masking to keep values in SMI range.
+  ///
+  /// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
   static int _combine(int hash, int value) {
     hash = _MASK & (hash + value);
     hash = _MASK & (hash + (((_MASK >> 10) & hash) << 10));

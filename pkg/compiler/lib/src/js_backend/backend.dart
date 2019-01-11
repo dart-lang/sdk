@@ -313,9 +313,7 @@ class JavaScriptBackend {
 
   CodeEmitterTask emitter;
 
-  /**
-   * The generated code as a js AST for compiled methods.
-   */
+  /// The generated code as a js AST for compiled methods.
   final Map<MemberEntity, jsAst.Expression> generatedCode =
       <MemberEntity, jsAst.Expression>{};
 
@@ -327,9 +325,7 @@ class JavaScriptBackend {
     return _namer;
   }
 
-  /**
-   * Set of classes whose `operator ==` methods handle `null` themselves.
-   */
+  /// Set of classes whose `operator ==` methods handle `null` themselves.
   final Set<ClassEntity> specialOperatorEqClasses = new Set<ClassEntity>();
 
   List<CompilerTask> get tasks {
@@ -700,11 +696,9 @@ class JavaScriptBackend {
 
   NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
-  /**
-   * Unit test hook that returns code of an element as a String.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
+  /// Unit test hook that returns code of an element as a String.
+  ///
+  /// Invariant: [element] must be a declaration element.
   String getGeneratedCode(MemberEntity element) {
     return jsAst.prettyPrint(generatedCode[element],
         enableMinification: compiler.options.enableMinification);
@@ -717,10 +711,8 @@ class JavaScriptBackend {
     return programSize;
   }
 
-  /**
-   * Returns [:true:] if the checking of [type] is performed directly on the
-   * object and not on an interceptor.
-   */
+  /// Returns [:true:] if the checking of [type] is performed directly on the
+  /// object and not on an interceptor.
   bool hasDirectCheckFor(CommonElements commonElements, DartType type) {
     if (!type.isInterfaceType) return false;
     InterfaceType interfaceType = type;

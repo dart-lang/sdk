@@ -12,11 +12,9 @@ import '../tracer.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
-/**
- * Outputs SSA code in a format readable by Hydra IR.
- * Tracing is disabled by default, see ../tracer.dart for how
- * to enable it.
- */
+/// Outputs SSA code in a format readable by Hydra IR.
+/// Tracing is disabled by default, see ../tracer.dart for how
+/// to enable it.
 class HTracer extends HGraphVisitor with TracerUtil {
   final JClosedWorld closedWorld;
   final Namer namer;

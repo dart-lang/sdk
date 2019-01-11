@@ -13,13 +13,11 @@ import '../util/util.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
-/**
- * A variable scope holds types for variables. It has a link to a
- * parent scope, but never changes the types in that parent. Instead,
- * updates to locals of a parent scope are put in the current scope.
- * The inferrer makes sure updates get merged into the parent scope,
- * once the control flow block has been visited.
- */
+/// A variable scope holds types for variables. It has a link to a
+/// parent scope, but never changes the types in that parent. Instead,
+/// updates to locals of a parent scope are put in the current scope.
+/// The inferrer makes sure updates get merged into the parent scope,
+/// once the control flow block has been visited.
 class VariableScope {
   /// The number of parent scopes of this scope.
   ///
@@ -241,9 +239,7 @@ class FieldInitializationScope {
   }
 }
 
-/**
- * Placeholder for inferred arguments types on sends.
- */
+/// Placeholder for inferred arguments types on sends.
 class ArgumentsTypes extends IterableMixin<TypeInformation> {
   final List<TypeInformation> positional;
   final Map<String, TypeInformation> named;
@@ -317,9 +313,7 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
   }
 }
 
-/**
- * Placeholder for inferred types of local variables.
- */
+/// Placeholder for inferred types of local variables.
 class LocalsHandler {
   final VariableScope _locals;
 
@@ -439,36 +433,34 @@ class LocalsHandler {
     return this;
   }
 
-  /**
-   * Merge all [LocalsHandler] in [handlers] into [:this:].
-   *
-   * If [keepOwnLocals] is true, the types of locals in this
-   * [LocalsHandler] are being used in the merge. [keepOwnLocals]
-   * should be true if this [LocalsHandler], the dominator of
-   * all [handlers], also directly flows into the join point,
-   * that is the code after all [handlers]. For example, consider:
-   *
-   * [: switch (...) {
-   *      case 1: ...; break;
-   *    }
-   * :]
-   *
-   * The [LocalsHandler] at entry of the switch also flows into the
-   * exit of the switch, because there is no default case. So the
-   * types of locals at entry of the switch have to take part to the
-   * merge.
-   *
-   * The above situation is also true for labeled statements like
-   *
-   * [: L: {
-   *      if (...) break;
-   *      ...
-   *    }
-   * :]
-   *
-   * where [:this:] is the [LocalsHandler] for the paths through the
-   * labeled statement that do not break out.
-   */
+  /// Merge all [LocalsHandler] in [handlers] into [:this:].
+  ///
+  /// If [keepOwnLocals] is true, the types of locals in this
+  /// [LocalsHandler] are being used in the merge. [keepOwnLocals]
+  /// should be true if this [LocalsHandler], the dominator of
+  /// all [handlers], also directly flows into the join point,
+  /// that is the code after all [handlers]. For example, consider:
+  ///
+  /// [: switch (...) {
+  ///      case 1: ...; break;
+  ///    }
+  /// :]
+  ///
+  /// The [LocalsHandler] at entry of the switch also flows into the
+  /// exit of the switch, because there is no default case. So the
+  /// types of locals at entry of the switch have to take part to the
+  /// merge.
+  ///
+  /// The above situation is also true for labeled statements like
+  ///
+  /// [: L: {
+  ///      if (...) break;
+  ///      ...
+  ///    }
+  /// :]
+  ///
+  /// where [:this:] is the [LocalsHandler] for the paths through the
+  /// labeled statement that do not break out.
   LocalsHandler mergeAfterBreaks(
       InferrerEngine inferrer, Iterable<LocalsHandler> handlers,
       {bool keepOwnLocals: true}) {

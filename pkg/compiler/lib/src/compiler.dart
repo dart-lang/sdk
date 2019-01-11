@@ -443,9 +443,7 @@ abstract class Compiler {
     return jClosedWorld;
   }
 
-  /**
-   * Empty the [enqueuer] queue.
-   */
+  /// Empty the [enqueuer] queue.
   void emptyQueue(Enqueuer enqueuer, {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("emptyQueue", () {
       enqueuer.forEach((WorkItem work) {
@@ -774,11 +772,9 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   @override
   bool get hasReportedError => compiler.compilationFailed;
 
-  /**
-   * Perform an operation, [f], returning the return value from [f].  If an
-   * error occurs then report it as having occurred during compilation of
-   * [element].  Can be nested.
-   */
+  /// Perform an operation, [f], returning the return value from [f].  If an
+  /// error occurs then report it as having occurred during compilation of
+  /// [element].  Can be nested.
   withCurrentElement(Entity element, f()) {
     Entity old = currentElement;
     _currentElement = element;

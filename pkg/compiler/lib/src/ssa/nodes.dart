@@ -510,7 +510,7 @@ class SubGraph {
 class SubExpression extends SubGraph {
   const SubExpression(HBasicBlock start, HBasicBlock end) : super(start, end);
 
-  /** Find the condition expression if this sub-expression is a condition. */
+  /// Find the condition expression if this sub-expression is a condition.
   HInstruction get conditionExpression {
     HInstruction last = end.last;
     if (last is HConditionalBranch || last is HSwitch) return last.inputs[0];
@@ -580,7 +580,7 @@ class HInstructionList {
     detach(instruction);
   }
 
-  /** Linear search for [instruction]. */
+  /// Linear search for [instruction].
   bool contains(HInstruction instruction) {
     HInstruction cursor = first;
     while (cursor != null) {
@@ -760,10 +760,8 @@ class HBasicBlock extends HInstructionList {
     }
   }
 
-  /**
-   * Rewrites all uses of the [from] instruction to using the [to]
-   * instruction instead.
-   */
+  /// Rewrites all uses of the [from] instruction to using the [to]
+  /// instruction instead.
   void rewrite(HInstruction from, HInstruction to) {
     for (HInstruction use in from.usedBy) {
       use.rewriteInput(from, to);
@@ -772,11 +770,9 @@ class HBasicBlock extends HInstructionList {
     from.usedBy.clear();
   }
 
-  /**
-   * Rewrites all uses of the [from] instruction to using either the
-   * [to] instruction, or a [HCheck] instruction that has better type
-   * information on [to], and that dominates the user.
-   */
+  /// Rewrites all uses of the [from] instruction to using either the
+  /// [to] instruction, or a [HCheck] instruction that has better type
+  /// information on [to], and that dominates the user.
   void rewriteWithBetterUser(HInstruction from, HInstruction to) {
     // BUG(11841): Turn this method into a phase to be run after GVN phases.
     Link<HCheck> better = const Link<HCheck>();
@@ -992,11 +988,9 @@ abstract class HInstruction implements Spannable {
 
   bool get isMovable => useGvn();
 
-  /**
-   * A pure instruction is an instruction that does not have any side
-   * effect, nor any dependency. They can be moved anywhere in the
-   * graph.
-   */
+  /// A pure instruction is an instruction that does not have any side
+  /// effect, nor any dependency. They can be moved anywhere in the
+  /// graph.
   bool isPure(AbstractValueDomain domain) {
     return !sideEffects.hasSideEffects() &&
         !sideEffects.dependsOnSomething() &&
@@ -1105,9 +1099,7 @@ abstract class HInstruction implements Spannable {
   AbstractBool isPrimitiveOrNull(AbstractValueDomain domain) =>
       domain.isPrimitiveOrNull(instructionType);
 
-  /**
-   * Type of the instruction.
-   */
+  /// Type of the instruction.
   AbstractValue instructionType;
 
   Selector get selector => null;
@@ -1185,7 +1177,7 @@ abstract class HInstruction implements Spannable {
     }
   }
 
-  /** Removes all occurrences of [instruction] from [list]. */
+  /// Removes all occurrences of [instruction] from [list].
   void removeFromList(List<HInstruction> list, HInstruction instruction) {
     int length = list.length;
     int i = 0;
@@ -1200,7 +1192,7 @@ abstract class HInstruction implements Spannable {
     list.length = length;
   }
 
-  /** Removes all occurrences of [user] from [usedBy]. */
+  /// Removes all occurrences of [user] from [usedBy].
   void removeUser(HInstruction user) {
     removeFromList(usedBy, user);
   }
@@ -1299,10 +1291,8 @@ abstract class HInstruction implements Spannable {
     }
   }
 
-  /**
-   * Return whether the instructions do not belong to a loop or
-   * belong to the same loop.
-   */
+  /// Return whether the instructions do not belong to a loop or
+  /// belong to the same loop.
   bool hasSameLoopHeaderAs(HInstruction other) {
     return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
   }
@@ -1466,10 +1456,8 @@ class HRef extends HInstruction {
   String toString() => 'HRef(${value})';
 }
 
-/**
- * Late instructions are used after the main optimization phases.  They capture
- * codegen decisions just prior to generating JavaScript.
- */
+/// Late instructions are used after the main optimization phases.  They capture
+/// codegen decisions just prior to generating JavaScript.
 abstract class HLateInstruction extends HInstruction {
   HLateInstruction(List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
@@ -1488,13 +1476,11 @@ class HBoolify extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-/**
- * A [HCheck] instruction is an instruction that might do a dynamic
- * check at runtime on another instruction. To have proper instruction
- * dependencies in the graph, instructions that depend on the check
- * being done reference the [HCheck] instruction instead of the
- * instruction itself.
- */
+/// A [HCheck] instruction is an instruction that might do a dynamic
+/// check at runtime on another instruction. To have proper instruction
+/// dependencies in the graph, instructions that depend on the check
+/// being done reference the [HCheck] instruction instead of the
+/// instruction itself.
 abstract class HCheck extends HInstruction {
   HCheck(inputs, type) : super(inputs, type) {
     setUseGvn();
@@ -1512,10 +1498,9 @@ class HBoundsCheck extends HCheck {
   static const int ALWAYS_ABOVE_ZERO = 2;
   static const int ALWAYS_BELOW_LENGTH = 3;
   static const int ALWAYS_TRUE = 4;
-  /**
-   * Details which tests have been done statically during compilation.
-   * Default is that all checks must be performed dynamically.
-   */
+
+  /// Details which tests have been done statically during compilation.
+  /// Default is that all checks must be performed dynamically.
   int staticChecks = FULL_CHECK;
 
   HBoundsCheck(length, index, array, type)
@@ -1644,9 +1629,7 @@ abstract class HInvokeDynamic extends HInvoke {
   /// The type arguments passed in this dynamic invocation.
   List<DartType> get typeArguments;
 
-  /**
-   * Returns whether this call is on an interceptor object.
-   */
+  /// Returns whether this call is on an interceptor object.
   bool isCallOnInterceptor(JClosedWorld closedWorld) {
     return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
@@ -1776,7 +1759,7 @@ class HInvokeStatic extends HInvoke {
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<InterfaceType> instantiatedTypes;
 
-  /** The first input must be the target. */
+  /// The first input must be the target.
   HInvokeStatic(this.element, inputs, AbstractValue type, this.typeArguments,
       {this.targetCanThrow: true, bool isIntercepted: false})
       : super(inputs, type) {
@@ -1791,7 +1774,7 @@ class HInvokeStatic extends HInvoke {
 }
 
 class HInvokeSuper extends HInvokeStatic {
-  /** The class where the call to super is being done. */
+  /// The class where the call to super is being done.
   final ClassEntity caller;
   final bool isSetter;
   final Selector selector;
@@ -1816,9 +1799,7 @@ class HInvokeSuper extends HInvokeStatic {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
-  /**
-   * Returns whether this call is on an interceptor object.
-   */
+  /// Returns whether this call is on an interceptor object.
   bool isCallOnInterceptor(JClosedWorld closedWorld) {
     return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
@@ -1974,10 +1955,8 @@ class HGetLength extends HInstruction {
   String toString() => "GetLength()";
 }
 
-/**
- * HReadModifyWrite is a late stage instruction for a field (property) update
- * via an assignment operation or pre- or post-increment.
- */
+/// HReadModifyWrite is a late stage instruction for a field (property) update
+/// via an assignment operation or pre- or post-increment.
 class HReadModifyWrite extends HLateInstruction {
   static const ASSIGN_OP = 0;
   static const PRE_OP = 1;
@@ -2242,11 +2221,9 @@ class HRemainder extends HBinaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-/**
- * An [HSwitch] instruction has one input for the incoming
- * value, and one input per constant that it can switch on.
- * Its block has one successor per constant, and one for the default.
- */
+/// An [HSwitch] instruction has one input for the incoming
+/// value, and one input per constant that it can switch on.
+/// Its block has one successor per constant, and one for the default.
 class HSwitch extends HControlFlow {
   HSwitch(AbstractValueDomain domain, List<HInstruction> inputs)
       : super(domain, inputs);
@@ -2254,11 +2231,9 @@ class HSwitch extends HControlFlow {
   HConstant constant(int index) => inputs[index + 1];
   HInstruction get expression => inputs[0];
 
-  /**
-   * Provides the target to jump to if none of the constants match
-   * the expression. If the switch had no default case, this is the
-   * following join-block.
-   */
+  /// Provides the target to jump to if none of the constants match
+  /// the expression. If the switch had no default case, this is the
+  /// following join-block.
   HBasicBlock get defaultTarget => block.successors.last;
 
   accept(HVisitor visitor) => visitor.visitSwitch(this);
@@ -2551,11 +2526,9 @@ class HNot extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-/**
-  * An [HLocalValue] represents a local. Unlike [HParameterValue]s its
-  * first use must be in an HLocalSet. That is, [HParameterValue]s have a
-  * value from the start, whereas [HLocalValue]s need to be initialized first.
-  */
+/// An [HLocalValue] represents a local. Unlike [HParameterValue]s its
+/// first use must be in an HLocalSet. That is, [HParameterValue]s have a
+/// value from the start, whereas [HLocalValue]s need to be initialized first.
 class HLocalValue extends HInstruction {
   HLocalValue(Entity variable, AbstractValue type)
       : super(<HInstruction>[], type) {
@@ -2823,15 +2796,13 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/**
- * A "one-shot" interceptor is a call to a synthetized method that
- * will fetch the interceptor of its first parameter, and make a call
- * on a given selector with the remaining parameters.
- *
- * In order to share the same optimizations with regular interceptor
- * calls, this class extends [HInvokeDynamic] and also has the null
- * constant as the first input.
- */
+/// A "one-shot" interceptor is a call to a synthetized method that
+/// will fetch the interceptor of its first parameter, and make a call
+/// on a given selector with the remaining parameters.
+///
+/// In order to share the same optimizations with regular interceptor
+/// calls, this class extends [HInvokeDynamic] and also has the null
+/// constant as the first input.
 class HOneShotInterceptor extends HInvokeDynamic {
   List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
@@ -2855,7 +2826,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
 
-/** An [HLazyStatic] is a static that is initialized lazily at first read. */
+/// An [HLazyStatic] is a static that is initialized lazily at first read.
 class HLazyStatic extends HInstruction {
   final FieldEntity element;
 
@@ -2904,10 +2875,8 @@ class HLiteralList extends HInstruction {
   bool isAllocation(AbstractValueDomain domain) => true;
 }
 
-/**
- * The primitive array indexing operation. Note that this instruction
- * does not throw because we generate the checks explicitly.
- */
+/// The primitive array indexing operation. Note that this instruction
+/// does not throw because we generate the checks explicitly.
 class HIndex extends HInstruction {
   final Selector selector;
   HIndex(HInstruction receiver, HInstruction index, this.selector,
@@ -2939,10 +2908,8 @@ class HIndex extends HInstruction {
   bool dataEquals(HIndex other) => true;
 }
 
-/**
- * The primitive array assignment operation. Note that this instruction
- * does not throw because we generate the checks explicitly.
- */
+/// The primitive array assignment operation. Note that this instruction
+/// does not throw because we generate the checks explicitly.
 class HIndexAssign extends HInstruction {
   final Selector selector;
   HIndexAssign(AbstractValueDomain domain, HInstruction receiver,
@@ -3065,11 +3032,9 @@ class HIs extends HInstruction {
   }
 }
 
-/**
- * HIsViaInterceptor is a late-stage instruction for a type test that can be
- * done entirely on an interceptor.  It is not a HCheck because the checked
- * input is not one of the inputs.
- */
+/// HIsViaInterceptor is a late-stage instruction for a type test that can be
+/// done entirely on an interceptor.  It is not a HCheck because the checked
+/// input is not one of the inputs.
 class HIsViaInterceptor extends HLateInstruction {
   final DartType typeExpression;
   HIsViaInterceptor(
@@ -3323,10 +3288,8 @@ class HStringConcat extends HInstruction {
   toString() => "string concat";
 }
 
-/**
- * The part of string interpolation which converts and interpolated expression
- * into a String value.
- */
+/// The part of string interpolation which converts and interpolated expression
+/// into a String value.
 class HStringify extends HInstruction {
   HStringify(HInstruction input, AbstractValue type)
       : super(<HInstruction>[input], type) {
@@ -3338,7 +3301,7 @@ class HStringify extends HInstruction {
   toString() => "stringify";
 }
 
-/** Non-block-based (aka. traditional) loop information. */
+/// Non-block-based (aka. traditional) loop information.
 class HLoopInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
@@ -3346,7 +3309,7 @@ class HLoopInformation {
   final List<LabelDefinition> labels;
   final JumpTarget target;
 
-  /** Corresponding block information for the loop. */
+  /// Corresponding block information for the loop.
   HLoopBlockInformation loopBlockInformation;
 
   HLoopInformation(this.header, this.target, this.labels)
@@ -3379,37 +3342,29 @@ class HLoopInformation {
   }
 }
 
-/**
- * Embedding of a [HBlockInformation] for block-structure based traversal
- * in a dominator based flow traversal by attaching it to a basic block.
- * To go back to dominator-based traversal, a [HSubGraphBlockInformation]
- * structure can be added in the block structure.
- */
+/// Embedding of a [HBlockInformation] for block-structure based traversal
+/// in a dominator based flow traversal by attaching it to a basic block.
+/// To go back to dominator-based traversal, a [HSubGraphBlockInformation]
+/// structure can be added in the block structure.
 class HBlockFlow {
   final HBlockInformation body;
   final HBasicBlock continuation;
   HBlockFlow(this.body, this.continuation);
 }
 
-/**
- * Information about a syntactic-like structure.
- */
+/// Information about a syntactic-like structure.
 abstract class HBlockInformation {
   HBasicBlock get start;
   HBasicBlock get end;
   bool accept(HBlockInformationVisitor visitor);
 }
 
-/**
- * Information about a statement-like structure.
- */
+/// Information about a statement-like structure.
 abstract class HStatementInformation extends HBlockInformation {
   bool accept(HStatementInformationVisitor visitor);
 }
 
-/**
- * Information about an expression-like structure.
- */
+/// Information about an expression-like structure.
 abstract class HExpressionInformation extends HBlockInformation {
   bool accept(HExpressionInformationVisitor visitor);
   HInstruction get conditionExpression;
@@ -3435,10 +3390,8 @@ abstract class HExpressionInformationVisitor {
 abstract class HBlockInformationVisitor
     implements HStatementInformationVisitor, HExpressionInformationVisitor {}
 
-/**
- * Generic class wrapping a [SubGraph] as a block-information until
- * all structures are handled properly.
- */
+/// Generic class wrapping a [SubGraph] as a block-information until
+/// all structures are handled properly.
 class HSubGraphBlockInformation implements HStatementInformation {
   final SubGraph subGraph;
   HSubGraphBlockInformation(this.subGraph);
@@ -3450,10 +3403,8 @@ class HSubGraphBlockInformation implements HStatementInformation {
       visitor.visitSubGraphInfo(this);
 }
 
-/**
- * Generic class wrapping a [SubExpression] as a block-information until
- * expressions structures are handled properly.
- */
+/// Generic class wrapping a [SubExpression] as a block-information until
+/// expressions structures are handled properly.
 class HSubExpressionBlockInformation implements HExpressionInformation {
   final SubExpression subExpression;
   HSubExpressionBlockInformation(this.subExpression);
@@ -3467,7 +3418,7 @@ class HSubExpressionBlockInformation implements HExpressionInformation {
       visitor.visitSubExpressionInfo(this);
 }
 
-/** A sequence of separate statements. */
+/// A sequence of separate statements.
 class HStatementSequenceInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
   HStatementSequenceInformation(this.statements);

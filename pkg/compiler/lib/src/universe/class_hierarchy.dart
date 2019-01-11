@@ -150,8 +150,8 @@ abstract class ClassHierarchy {
 }
 
 class ClassHierarchyImpl implements ClassHierarchy {
-  /// Tag used for identifying serialized [ClassHierarchy] objects in a debugging
-  /// data stream.
+  /// Tag used for identifying serialized [ClassHierarchy] objects in a
+  /// debugging data stream.
   static const String tag = 'class-hierarchy';
 
   final CommonElements _commonElements;

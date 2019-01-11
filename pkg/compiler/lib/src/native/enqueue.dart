@@ -14,9 +14,8 @@ import '../universe/world_impact.dart'
 import 'behavior.dart';
 import 'resolver.dart' show NativeClassFinder;
 
-/**
- * This could be an abstract class but we use it as a stub for the dart_backend.
- */
+/// This could be an abstract class but we use it as a stub for the
+/// dart_backend.
 class NativeEnqueuer {
   /// Called when a [type] has been instantiated natively.
   void onInstantiatedType(InterfaceType type) {}

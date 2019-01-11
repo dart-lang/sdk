@@ -12,10 +12,8 @@ import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
-/**
- * Replaces some instructions with specialized versions to make codegen easier.
- * Caches codegen information on nodes.
- */
+/// Replaces some instructions with specialized versions to make codegen easier.
+/// Caches codegen information on nodes.
 class SsaInstructionSelection extends HBaseVisitor {
   final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
@@ -341,10 +339,8 @@ class SsaInstructionSelection extends HBaseVisitor {
   }
 }
 
-/**
- * Remove [HTypeKnown] instructions from the graph, to make codegen
- * analysis easier.
- */
+/// Remove [HTypeKnown] instructions from the graph, to make codegen
+/// analysis easier.
 class SsaTypeKnownRemover extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -370,10 +366,8 @@ class SsaTypeKnownRemover extends HBaseVisitor {
   }
 }
 
-/**
- * Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
- * mode.
- */
+/// Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
+/// mode.
 class SsaTrustedCheckRemover extends HBaseVisitor {
   final CompilerOptions _options;
 
@@ -401,29 +395,25 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
   }
 }
 
-/**
- * Instead of emitting each SSA instruction with a temporary variable
- * mark instructions that can be emitted at their use-site.
- * For example, in:
- *   t0 = 4;
- *   t1 = 3;
- *   t2 = add(t0, t1);
- * t0 and t1 would be marked and the resulting code would then be:
- *   t2 = add(4, 3);
- */
+/// Instead of emitting each SSA instruction with a temporary variable
+/// mark instructions that can be emitted at their use-site.
+/// For example, in:
+///   t0 = 4;
+///   t1 = 3;
+///   t2 = add(t0, t1);
+/// t0 and t1 would be marked and the resulting code would then be:
+///   t2 = add(4, 3);
 class SsaInstructionMerger extends HBaseVisitor {
   final AbstractValueDomain _abstractValueDomain;
   final SuperMemberData _superMemberData;
-  /**
-   * List of [HInstruction] that the instruction merger expects in
-   * order when visiting the inputs of an instruction.
-   */
+
+  /// List of [HInstruction] that the instruction merger expects in
+  /// order when visiting the inputs of an instruction.
   List<HInstruction> expectedInputs;
-  /**
-   * Set of pure [HInstruction] that the instruction merger expects to
-   * find. The order of pure instructions do not matter, as they will
-   * not be affected by side effects.
-   */
+
+  /// Set of pure [HInstruction] that the instruction merger expects to
+  /// find. The order of pure instructions do not matter, as they will
+  /// not be affected by side effects.
   Set<HInstruction> pureInputs;
   Set<HInstruction> generateAtUseSite;
 
@@ -710,11 +700,9 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 }
 
-/**
- *  Detect control flow arising from short-circuit logical and
- *  conditional operators, and prepare the program to be generated
- *  using these operators instead of nested ifs and boolean variables.
- */
+///  Detect control flow arising from short-circuit logical and
+///  conditional operators, and prepare the program to be generated
+///  using these operators instead of nested ifs and boolean variables.
 class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> generateAtUseSite;
   Set<HInstruction> controlFlowOperators;
@@ -730,10 +718,8 @@ class SsaConditionMerger extends HGraphVisitor {
     visitPostDominatorTree(graph);
   }
 
-  /**
-   * Check if a block has at least one statement other than
-   * [instruction].
-   */
+  /// Check if a block has at least one statement other than
+  /// [instruction].
   bool hasAnyStatement(HBasicBlock block, HInstruction instruction) {
     // If [instruction] is not in [block], then if the block is not
     // empty, we know there will be a statement to emit.

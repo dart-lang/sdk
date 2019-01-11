@@ -26,12 +26,10 @@ import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
 import 'sorter.dart';
 
-/**
- * Generates the code for all used classes in the program. Static fields (even
- * in classes) are ignored, since they can be treated as non-class elements.
- *
- * The code for the containing (used) methods must exist in the `universe`.
- */
+/// Generates the code for all used classes in the program. Static fields (even
+/// in classes) are ignored, since they can be treated as non-class elements.
+///
+/// The code for the containing (used) methods must exist in the `universe`.
 class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
   NativeEmitter _nativeEmitter;

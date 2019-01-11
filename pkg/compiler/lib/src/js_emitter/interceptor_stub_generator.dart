@@ -58,10 +58,8 @@ class InterceptorStubGenerator {
       return _emitterTask.interceptorPrototypeAccess(cls);
     }
 
-    /**
-     * Build a JavaScript AST node for doing a type check on
-     * [cls]. [cls] must be a non-native interceptor class.
-     */
+    /// Build a JavaScript AST node for doing a type check on
+    /// [cls]. [cls] must be a non-native interceptor class.
     jsAst.Statement buildInterceptorCheck(ClassEntity cls) {
       jsAst.Expression condition;
       assert(_interceptorData.isInterceptedClass(cls));

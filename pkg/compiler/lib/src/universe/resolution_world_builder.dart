@@ -311,11 +311,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   /// Invariant: Elements are declaration elements.
   final Set<FieldEntity> allReferencedStaticFields = new Set<FieldEntity>();
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Elements are declaration elements.
-   */
+  /// Documentation wanted -- johnniwinther
+  ///
+  /// Invariant: Elements are declaration elements.
   final Set<FunctionEntity> methodsNeedingSuperGetter =
       new Set<FunctionEntity>();
   final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =

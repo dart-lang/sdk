@@ -72,10 +72,8 @@ class Program {
   Fragment get mainFragment => fragments.first;
 }
 
-/**
- * This class represents a JavaScript object that contains static state, like
- * classes or functions.
- */
+/// This class represents a JavaScript object that contains static state, like
+/// classes or functions.
 class Holder {
   final String name;
   final int index;
@@ -90,12 +88,10 @@ class Holder {
   }
 }
 
-/**
- * This class represents one output file.
- *
- * If no library is deferred, there is only one [Fragment] of type
- * [MainFragment].
- */
+/// This class represents one output file.
+///
+/// If no library is deferred, there is only one [Fragment] of type
+/// [MainFragment].
 abstract class Fragment {
   /// The outputUnit should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
@@ -122,12 +118,10 @@ abstract class Fragment {
   bool get isMainFragment;
 }
 
-/**
- * The main output file.
- *
- * This code emitted from this [Fragment] must be loaded first. It can then load
- * other [DeferredFragment]s.
- */
+/// The main output file.
+///
+/// This code emitted from this [Fragment] must be loaded first. It can then load
+/// other [DeferredFragment]s.
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
 
@@ -149,9 +143,7 @@ class MainFragment extends Fragment {
   }
 }
 
-/**
- * An output (file) for deferred code.
- */
+/// An output (file) for deferred code.
 class DeferredFragment extends Fragment {
   final String name;
 

@@ -85,11 +85,9 @@ class ClassStubGenerator {
         'function(#, v) { return #.# = v; }', [args, receiver, fieldName]);
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [member] must be a declaration element.
-   */
+  /// Documentation wanted -- johnniwinther
+  ///
+  /// Invariant: [member] must be a declaration element.
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
@@ -245,12 +243,13 @@ class ClassStubGenerator {
 ///
 /// `tearOff` takes the following arguments:
 ///   * `funcs`: a list of functions. These are the functions representing the
-///    member that is torn off. There can be more than one, since a member
-///    can have several stubs.
-///    Each function must have the `$callName` property set.
-///   * `applyTrampolineIndex` is the index of the stub to be used for Function.apply
+///     member that is torn off. There can be more than one, since a member
+///     can have several stubs.
+///     Each function must have the `$callName` property set.
+///   * `applyTrampolineIndex` is the index of the stub to be used for
+///     Function.apply
 ///   * `reflectionInfo`: contains reflective information, and the function
-///    type. TODO(floitsch): point to where this is specified.
+///     type. TODO(floitsch): point to where this is specified.
 ///   * `isStatic`.
 ///   * `name`.
 ///   * `isIntercepted.

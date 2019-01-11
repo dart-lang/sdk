@@ -18,12 +18,10 @@ import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'types.dart';
 
-/**
- * A work queue for the inferrer. It filters out nodes that are tagged as
- * [TypeInformation.doNotEnqueue], as well as ensures through
- * [TypeInformation.inQueue] that a node is in the queue only once at
- * a time.
- */
+/// A work queue for the inferrer. It filters out nodes that are tagged as
+/// [TypeInformation.doNotEnqueue], as well as ensures through
+/// [TypeInformation.inQueue] that a node is in the queue only once at
+/// a time.
 class WorkQueue {
   final Queue<TypeInformation> queue = new Queue<TypeInformation>();
 

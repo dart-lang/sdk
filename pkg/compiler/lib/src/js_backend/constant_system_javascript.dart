@@ -28,10 +28,8 @@ class JavaScriptBitNotOperation extends BitNotOperation {
   }
 }
 
-/**
- * In JavaScript we truncate the result to an unsigned 32 bit integer. Also, -0
- * is treated as if it was the integer 0.
- */
+/// In JavaScript we truncate the result to an unsigned 32 bit integer. Also, -0
+/// is treated as if it was the integer 0.
 class JavaScriptBinaryBitOperation implements BinaryOperation {
   final BinaryBitOperation dartBitOperation;
 
@@ -223,10 +221,8 @@ class JavaScriptRoundOperation implements UnaryOperation {
   }
 }
 
-/**
- * Constant system following the semantics for Dart code that has been
- * compiled to JavaScript.
- */
+/// Constant system following the semantics for Dart code that has been
+/// compiled to JavaScript.
 class JavaScriptConstantSystem extends ConstantSystem {
   final BITS32 = new BigInt.from(0xFFFFFFFF);
 
@@ -269,10 +265,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
 
   JavaScriptConstantSystem._internal();
 
-  /**
-   * Returns true if [value] will turn into NaN or infinity
-   * at runtime.
-   */
+  /// Returns true if [value] will turn into NaN or infinity
+  /// at runtime.
   bool integerBecomesNanOrInfinity(BigInt value) {
     double doubleValue = value.toDouble();
     return doubleValue.isNaN || doubleValue.isInfinite;
@@ -411,13 +405,11 @@ class JavaScriptConstantSystem extends ConstantSystem {
 }
 
 class JavaScriptMapConstant extends MapConstantValue {
-  /**
-   * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
-   * object. It would change the prototype chain.
-   */
+  /// The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
+  /// object. It would change the prototype chain.
   static const String PROTO_PROPERTY = "__proto__";
 
-  /** The dart class implementing constant map literals. */
+  /// The dart class implementing constant map literals.
   static const String DART_CLASS = "ConstantMap";
   static const String DART_STRING_CLASS = "ConstantStringMap";
   static const String DART_PROTO_CLASS = "ConstantProtoMap";

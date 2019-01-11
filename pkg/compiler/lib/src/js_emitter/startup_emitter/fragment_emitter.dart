@@ -560,14 +560,12 @@ const String softDeferredBoilerplate = '''
 #inheritance;
 }''';
 
-/**
- * This class builds a JavaScript tree for a given fragment.
- *
- * A fragment is generally written into a separate file so that it can be
- * loaded dynamically when a deferred library is loaded.
- *
- * This class is stateless and can be reused for different fragments.
- */
+/// This class builds a JavaScript tree for a given fragment.
+///
+/// A fragment is generally written into a separate file so that it can be
+/// loaded dynamically when a deferred library is loaded.
+///
+/// This class is stateless and can be reused for different fragments.
 class FragmentEmitter {
   final Compiler compiler;
   final Namer namer;

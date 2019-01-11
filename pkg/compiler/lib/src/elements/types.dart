@@ -103,7 +103,8 @@ abstract class DartType {
   bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
-/// Pairs of [FunctionTypeVariable]s that are currently assumed to be equivalent.
+/// Pairs of [FunctionTypeVariable]s that are currently assumed to be
+/// equivalent.
 ///
 /// This is used to compute the equivalence relation on types coinductively.
 class _Assumptions {

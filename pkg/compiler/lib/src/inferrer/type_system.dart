@@ -43,9 +43,7 @@ abstract class TypeSystemStrategy {
   bool checkClassEntity(ClassEntity cls);
 }
 
-/**
- * The class [SimpleInferrerVisitor] will use when working on types.
- */
+/// The class [SimpleInferrerVisitor] will use when working on types.
 class TypeSystem {
   final JClosedWorld _closedWorld;
   final TypeSystemStrategy strategy;
@@ -274,10 +272,8 @@ class TypeSystem {
         _abstractValueDomain, value, _abstractValueDomain.boolType);
   }
 
-  /**
-   * Returns the least upper bound between [firstType] and
-   * [secondType].
-   */
+  /// Returns the least upper bound between [firstType] and
+  /// [secondType].
   TypeInformation computeLUB(
       TypeInformation firstType, TypeInformation secondType) {
     if (firstType == null) return secondType;
@@ -291,22 +287,18 @@ class TypeSystem {
         _abstractValueDomain.union(firstType.type, secondType.type));
   }
 
-  /**
-   * Returns `true` if `selector` should be updated to reflect the new
-   * `receiverType`.
-   */
+  /// Returns `true` if `selector` should be updated to reflect the new
+  /// `receiverType`.
   bool selectorNeedsUpdate(TypeInformation info, AbstractValue mask) {
     return info.type != mask;
   }
 
-  /**
-   * Returns a new receiver type for this [selector] applied to
-   * [receiverType].
-   *
-   * The option [isConditional] is true when [selector] was seen in a
-   * conditional send (e.g.  `a?.selector`), in which case the returned type may
-   * be null.
-   */
+  /// Returns a new receiver type for this [selector] applied to
+  /// [receiverType].
+  ///
+  /// The option [isConditional] is true when [selector] was seen in a
+  /// conditional send (e.g.  `a?.selector`), in which case the returned type
+  /// may be null.
   TypeInformation refineReceiver(
       Selector selector, AbstractValue mask, TypeInformation receiver,
       {bool isConditional}) {
@@ -333,11 +325,9 @@ class TypeSystem {
     return newType;
   }
 
-  /**
-   * Returns the intersection between [type] and [annotation].
-   * [isNullable] indicates whether the annotation implies a null
-   * type.
-   */
+  /// Returns the intersection between [type] and [annotation].
+  /// [isNullable] indicates whether the annotation implies a null
+  /// type.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
@@ -377,9 +367,7 @@ class TypeSystem {
     }
   }
 
-  /**
-   * Returns the non-nullable type of [type].
-   */
+  /// Returns the non-nullable type of [type].
   TypeInformation narrowNotNull(TypeInformation type) {
     if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) {
       return type;
@@ -423,9 +411,7 @@ class TypeSystem {
     return typeInformation;
   }
 
-  /**
-   * Returns the internal inferrer representation for [mask].
-   */
+  /// Returns the internal inferrer representation for [mask].
   ConcreteTypeInformation getConcreteTypeFor(AbstractValue mask) {
     assert(mask != null);
     return concreteTypes.putIfAbsent(mask, () {
@@ -558,9 +544,7 @@ class TypeSystem {
     return info.isConcrete ? info.type : mask;
   }
 
-  /**
-   * Returns a new type that unions [firstInput] and [secondInput].
-   */
+  /// Returns a new type that unions [firstInput] and [secondInput].
   TypeInformation allocateDiamondPhi(
       TypeInformation firstInput, TypeInformation secondInput) {
     PhiElementTypeInformation result = new PhiElementTypeInformation(
@@ -582,10 +566,8 @@ class TypeSystem {
     return result;
   }
 
-  /**
-   * Returns a new type for holding the potential types of [element].
-   * [inputType] is the first incoming type of the phi.
-   */
+  /// Returns a new type for holding the potential types of [element].
+  /// [inputType] is the first incoming type of the phi.
   PhiElementTypeInformation allocatePhi(
       ir.Node node, Local variable, TypeInformation inputType,
       {bool isTry}) {
@@ -601,13 +583,11 @@ class TypeSystem {
     return _addPhi(node, variable, inputType, isTry);
   }
 
-  /**
-   * Returns a new type for holding the potential types of [element].
-   * [inputType] is the first incoming type of the phi. [allocateLoopPhi]
-   * only differs from [allocatePhi] in that it allows the underlying
-   * implementation of [TypeSystem] to differentiate Phi nodes due to loops
-   * from other merging uses.
-   */
+  /// Returns a new type for holding the potential types of [element].
+  /// [inputType] is the first incoming type of the phi. [allocateLoopPhi]
+  /// only differs from [allocatePhi] in that it allows the underlying
+  /// implementation of [TypeSystem] to differentiate Phi nodes due to loops
+  /// from other merging uses.
   PhiElementTypeInformation allocateLoopPhi(
       ir.Node node, Local variable, TypeInformation inputType,
       {bool isTry}) {
@@ -615,12 +595,10 @@ class TypeSystem {
     return _addPhi(node, variable, inputType, isTry);
   }
 
-  /**
-   * Simplies the phi representing [element] and of the type
-   * [phiType]. For example, if this phi has one incoming input, an
-   * implementation of this method could just return that incoming
-   * input type.
-   */
+  /// Simplies the phi representing [element] and of the type
+  /// [phiType]. For example, if this phi has one incoming input, an
+  /// implementation of this method could just return that incoming
+  /// input type.
   TypeInformation simplifyPhi(
       ir.Node node, Local variable, PhiElementTypeInformation phiType) {
     assert(phiType.branchNode == node);
@@ -628,9 +606,7 @@ class TypeSystem {
     return phiType;
   }
 
-  /**
-   * Adds [newType] as an input of [phiType].
-   */
+  /// Adds [newType] as an input of [phiType].
   PhiElementTypeInformation addPhiInput(Local variable,
       PhiElementTypeInformation phiType, TypeInformation newType) {
     phiType.addAssignment(newType);

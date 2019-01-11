@@ -58,10 +58,8 @@ class SsaBranchBuilder {
         new SubExpression(conditionBranch.block, conditionExitBlock);
   }
 
-  /**
-   * Returns true if the locals of the [fromBranch] may be reused. A [:true:]
-   * return value implies that [mayReuseFromLocals] was set to [:true:].
-   */
+  /// Returns true if the locals of the [fromBranch] may be reused. A [:true:]
+  /// return value implies that [mayReuseFromLocals] was set to [:true:].
   bool mergeLocals(SsaBranch fromBranch, SsaBranch toBranch,
       {bool mayReuseFromLocals}) {
     LocalsHandler fromLocals = fromBranch.exitLocals;

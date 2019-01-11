@@ -4,9 +4,7 @@
 
 part of js_backend.namer;
 
-/**
- * Assigns JavaScript identifiers to Dart variables, class-names and members.
- */
+/// Assigns JavaScript identifiers to Dart variables, class-names and members.
 class MinifyNamer extends Namer
     with
         _MinifiedFieldNamer,

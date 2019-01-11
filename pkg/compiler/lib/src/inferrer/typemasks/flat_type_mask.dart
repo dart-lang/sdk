@@ -4,10 +4,8 @@
 
 part of masks;
 
-/**
- * A flat type mask is a type mask that has been flattened to contain a
- * base type.
- */
+/// A flat type mask is a type mask that has been flattened to contain a
+/// base type.
 class FlatTypeMask implements TypeMask {
   /// Tag used for identifying serialized [FlatTypeMask] objects in a
   /// debugging data stream.
@@ -45,10 +43,8 @@ class FlatTypeMask implements TypeMask {
 
   FlatTypeMask.internal(this.base, this.flags);
 
-  /**
-   * Ensures that the generated mask is normalized, i.e., a call to
-   * [TypeMask.assertIsNormalized] with the factory's result returns `true`.
-   */
+  /// Ensures that the generated mask is normalized, i.e., a call to
+  /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
   factory FlatTypeMask.normalized(
       ClassEntity base, int flags, JClosedWorld world) {
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
@@ -260,9 +256,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  /**
-   * Returns whether or not this type mask contains all types.
-   */
+  /// Returns whether or not this type mask contains all types.
   bool containsAll(JClosedWorld closedWorld) {
     if (isEmptyOrNull || isExact) return false;
     return identical(base, closedWorld.commonElements.objectClass);
@@ -519,11 +513,9 @@ class FlatTypeMask implements TypeMask {
         : new TypeMask.nonNullEmpty();
   }
 
-  /**
-   * Returns whether [element] is a potential target when being
-   * invoked on this type mask. [selector] is used to ensure library
-   * privacy is taken into account.
-   */
+  /// Returns whether [element] is a potential target when being
+  /// invoked on this type mask. [selector] is used to ensure library
+  /// privacy is taken into account.
   bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;
     assert(element.name == name.text);

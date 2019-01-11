@@ -1273,7 +1273,8 @@ class TypeHolder {
           // We cannot promote. No single type is most specific.
           // TODO(johnniwinther): Compute implied types? For instance when the
           // declared type is `Iterable<String>` and tested type is
-          // `List<dynamic>` we could promote to the implied type `List<String>`.
+          // `List<dynamic>` we could promote to the implied type
+          // `List<String>`.
           return null;
         }
       }

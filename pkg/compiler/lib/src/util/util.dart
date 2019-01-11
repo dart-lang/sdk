@@ -114,10 +114,8 @@ bool equalSets<E>(Set<E> a, Set<E> b) {
   return a.length == b.length && a.containsAll(b) && b.containsAll(a);
 }
 
-/**
- * File name prefix used to shorten the file name in stack traces printed by
- * [trace].
- */
+/// File name prefix used to shorten the file name in stack traces printed by
+/// [trace].
 String stackTraceFilePrefix = null;
 
 /// Writes the characters of [string] on [buffer].  The characters

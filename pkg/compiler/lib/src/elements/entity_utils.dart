@@ -101,15 +101,13 @@ String reconstructConstructorNameSourceString(FunctionEntity element) {
   }
 }
 
-/**
- * Map an operator-name to a valid JavaScript identifier.
- *
- * For non-operator names, this method just returns its input.
- *
- * The results returned from this method are guaranteed to be valid
- * JavaScript identifiers, except it may include reserved words for
- * non-operator names.
- */
+/// Map an operator-name to a valid JavaScript identifier.
+///
+/// For non-operator names, this method just returns its input.
+///
+/// The results returned from this method are guaranteed to be valid
+/// JavaScript identifiers, except it may include reserved words for
+/// non-operator names.
 String operatorNameToIdentifier(String name) {
   if (name == null) {
     return name;
