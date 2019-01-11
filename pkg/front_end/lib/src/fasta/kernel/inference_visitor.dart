@@ -740,15 +740,15 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       DartType context =
           inferrer.typeSchemaEnvironment.unfutureType(typeContext);
       if (context is InterfaceType) {
-        if (inferrer.classHierarchy
-                .isSubclassOf(inferrer.coreTypes.setClass, context.classNode) &&
+        if (inferrer.classHierarchy.isSubtypeOf(
+                context.classNode, inferrer.coreTypes.iterableClass) &&
             !inferrer.classHierarchy
-                .isSubclassOf(inferrer.coreTypes.mapClass, context.classNode)) {
+                .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass)) {
           // Set literal
           SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
               typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
             ..fileOffset = node.fileOffset;
-          node.replaceWith(setLiteral);
+          node.parent.replaceChild(node, setLiteral);
           visitSetLiteralJudgment(setLiteral, typeContext);
           node.inferredType = setLiteral.inferredType;
           return;

@@ -90,7 +90,10 @@ LanguageFeatures/Set-literals/semantics_A01_t01/01: MissingCompileTimeError # Is
 LanguageFeatures/Set-literals/semantics_A01_t01/02: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/semantics_A01_t01/09: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/semantics_A01_t01/10: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError # Issue 35608
+LanguageFeatures/Set-literals/semantics_A05_t01: Pass
+LanguageFeatures/Set-literals/semantics_A05_t05/01: MissingCompileTimeError # Exact types
+LanguageFeatures/Set-literals/semantics_A05_t05/02: MissingCompileTimeError # Exact types
+LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError # Exact types
 LanguageFeatures/Set-literals/set_literals_A01_t01: Pass # CompileTimeError on $fasta
 LanguageFeatures/Set-literals/set_literals_A02_t01: Pass # CompileTimeError on $fasta
 LanguageFeatures/Set-literals/set_literals_A04_t02/01: MissingCompileTimeError # Issue 35608
