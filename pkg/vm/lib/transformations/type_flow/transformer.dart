@@ -367,6 +367,8 @@ class TreeShaker {
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
   bool isMemberBodyReachable(Member m) => typeFlowAnalysis.isMemberUsed(m);
+  bool isFieldInitializerReachable(Field f) =>
+      typeFlowAnalysis.isFieldInitializerUsed(f);
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
@@ -592,6 +594,30 @@ class _TreeShakerPass1 extends Transformer {
       }
       shaker.addUsedMember(node);
       node.transformChildren(this);
+    } else if (shaker.isMemberReferencedFromNativeCode(node)) {
+      // Preserve members referenced from native code to satisfy lookups, even
+      // if they are not reachable. An instance member could be added via
+      // native code entry point but still unreachable if no instances of
+      // its enclosing class are allocated.
+      shaker.addUsedMember(node);
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitField(Field node) {
+    if (shaker.isMemberBodyReachable(node)) {
+      if (kPrintTrace) {
+        tracePrint("Visiting $node");
+      }
+      shaker.addUsedMember(node);
+      if (node.initializer != null) {
+        if (shaker.isFieldInitializerReachable(node)) {
+          node.transformChildren(this);
+        } else {
+          node.initializer = _makeUnreachableCall([]);
+        }
+      }
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
       // if they are not reachable. An instance member could be added via
