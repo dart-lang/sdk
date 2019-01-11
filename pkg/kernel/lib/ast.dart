@@ -83,7 +83,7 @@ abstract class Node {
   const Node();
 
   accept(Visitor v);
-  visitChildren(Visitor v);
+  void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
   ///
@@ -5438,6 +5438,67 @@ class TypeLiteralConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) => types.typeType;
+}
+
+abstract class EnvironmentConstant extends Constant {
+  final String name;
+  final Constant defaultValue;
+
+  EnvironmentConstant(this.name, this.defaultValue);
+  visitChildren(Visitor v) {
+    defaultValue.acceptReference(v);
+  }
+}
+
+class EnvironmentBoolConstant extends EnvironmentConstant {
+  EnvironmentBoolConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentBoolConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentBoolConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.boolType;
+}
+
+class EnvironmentIntConstant extends EnvironmentConstant {
+  EnvironmentIntConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentIntConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentIntConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.boolType;
+}
+
+class EnvironmentStringConstant extends EnvironmentConstant {
+  EnvironmentStringConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentStringConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentStringConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.boolType;
+}
+
+class UnevaluatedConstant extends Constant {
+  final Expression expression;
+
+  UnevaluatedConstant(this.expression);
+
+  visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitUnevaluatedConstant(this);
+  acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => expression.getStaticType(types);
 }
 
 // ------------------------------------------------------------------------

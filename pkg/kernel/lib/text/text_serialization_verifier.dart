@@ -217,28 +217,16 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
+      RedirectingFactoryConstructor node) {}
 
   @override
-  void visitProcedureReference(Procedure node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
+  void visitProcedureReference(Procedure node) {}
 
   @override
-  void visitConstructorReference(Constructor node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
+  void visitConstructorReference(Constructor node) {}
 
   @override
-  void visitFieldReference(Field node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
+  void visitFieldReference(Field node) {}
 
   @override
   void visitTypeLiteralConstantReference(TypeLiteralConstant node) {
@@ -314,16 +302,34 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
-  void visitTypedefReference(Typedef node) {
+  void visitEnvironmentBoolConstantReference(EnvironmentBoolConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
   }
 
   @override
-  void visitClassReference(Class node) {
+  void visitEnvironmentIntConstantReference(EnvironmentIntConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
   }
+
+  @override
+  void visitEnvironmentStringConstantReference(EnvironmentStringConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypedefReference(Typedef node) {}
+
+  @override
+  void visitClassReference(Class node) {}
 
   @override
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
@@ -393,6 +399,30 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitNullConstant(NullConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitUnevaluatedConstant(UnevaluatedConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
   }

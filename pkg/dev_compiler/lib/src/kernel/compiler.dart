@@ -5119,6 +5119,14 @@ class ProgramCompiler extends Object
   visitTypeLiteralConstant(node) => defaultConstant(node);
   @override
   visitPartialInstantiationConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentBoolConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentIntConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentStringConstant(node) => defaultConstant(node);
+  @override
+  visitUnevaluatedConstant(node) => defaultConstant(node);
 }
 
 bool isSdkInternalRuntime(Library l) =>

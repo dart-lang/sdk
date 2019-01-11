@@ -14,6 +14,9 @@ import 'package:kernel/ast.dart'
         DartType,
         DoubleConstant,
         DynamicType,
+        EnvironmentBoolConstant,
+        EnvironmentIntConstant,
+        EnvironmentStringConstant,
         Field,
         FunctionType,
         InvalidType,
@@ -32,6 +35,7 @@ import 'package:kernel/ast.dart'
         TypeLiteralConstant,
         TypeParameter,
         TypeParameterType,
+        UnevaluatedConstant,
         VoidType;
 
 import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
@@ -40,6 +44,8 @@ import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
 import '../fasta_codes.dart'
     show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
+
+import '../problems.dart' show unsupported;
 
 /// A pretty-printer for Kernel types and constants with the ability to label
 /// raw types with numeric markers in Dart comments (e.g. `/*1*/`) to
@@ -305,6 +311,22 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
     node.type.accept(this);
+  }
+
+  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
+    unsupported('printing unevaluated constants', -1, null);
+  }
+
+  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
+    unsupported('printing unevaluated constants', -1, null);
+  }
+
+  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
+    unsupported('printing unevaluated constants', -1, null);
+  }
+
+  void visitUnevaluatedConstant(UnevaluatedConstant node) {
+    unsupported('printing unevaluated constants', -1, null);
   }
 }
 
