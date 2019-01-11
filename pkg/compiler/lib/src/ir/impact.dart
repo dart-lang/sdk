@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show operatorFromString;
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -373,5 +376,120 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
       registerStaticInvocation(
           node.target, node.arguments, getDeferredImport(node));
     }
+  }
+
+  void registerLocalFunctionInvocation(
+      ir.FunctionDeclaration localFunction, ir.Arguments arguments);
+
+  void registerDynamicInvocation(ir.DartType receiverType,
+      ClassRelation relation, ir.Name name, ir.Arguments arguments);
+
+  void registerInstanceInvocation(ir.DartType receiverType,
+      ClassRelation relation, ir.Member target, ir.Arguments arguments);
+
+  void registerFunctionInvocation(
+      ir.DartType receiverType, ir.Arguments arguments);
+
+  @override
+  void handleMethodInvocation(
+      ir.MethodInvocation node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    ir.Expression receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.isFinal &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      registerLocalFunctionInvocation(receiver.variable.parent, node.arguments);
+    } else {
+      ClassRelation relation = receiver is ir.ThisExpression
+          ? ClassRelation.thisExpression
+          : ClassRelation.subtype;
+
+      ir.Member interfaceTarget = node.interfaceTarget;
+      if (interfaceTarget == null) {
+        registerDynamicInvocation(
+            receiverType, relation, node.name, node.arguments);
+        // TODO(johnniwinther): Avoid treating a known function call as a
+        // dynamic call when CFE provides a way to distinguish the two.
+        if (operatorFromString(node.name.name) == null &&
+            receiverType is ir.DynamicType) {
+          // We might implicitly call a getter that returns a function.
+          registerFunctionInvocation(const ir.DynamicType(), node.arguments);
+        }
+      } else {
+        if (interfaceTarget is ir.Field ||
+            interfaceTarget is ir.Procedure &&
+                interfaceTarget.kind == ir.ProcedureKind.Getter) {
+          registerInstanceInvocation(
+              receiverType, relation, interfaceTarget, node.arguments);
+          registerFunctionInvocation(
+              interfaceTarget.getterType, node.arguments);
+        } else {
+          registerInstanceInvocation(
+              receiverType, relation, interfaceTarget, node.arguments);
+        }
+      }
+    }
+  }
+
+  @override
+  void handleDirectMethodInvocation(
+      ir.DirectMethodInvocation node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    registerInstanceInvocation(
+        receiverType, ClassRelation.exact, node.target, node.arguments);
+  }
+
+  void registerDynamicGet(
+      ir.DartType receiverType, ClassRelation relation, ir.Name name);
+
+  void registerInstanceGet(
+      ir.DartType receiverType, ClassRelation relation, ir.Member target);
+
+  @override
+  void handlePropertyGet(
+      ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
+    ClassRelation relation = node.receiver is ir.ThisExpression
+        ? ClassRelation.thisExpression
+        : ClassRelation.subtype;
+    if (node.interfaceTarget != null) {
+      registerInstanceGet(receiverType, relation, node.interfaceTarget);
+    } else {
+      registerDynamicGet(receiverType, relation, node.name);
+    }
+  }
+
+  @override
+  void handleDirectPropertyGet(ir.DirectPropertyGet node,
+      ir.DartType receiverType, ir.DartType resultType) {
+    registerInstanceGet(receiverType, ClassRelation.exact, node.target);
+  }
+
+  void registerDynamicSet(
+      ir.DartType receiverType, ClassRelation relation, ir.Name name);
+
+  void registerInstanceSet(
+      ir.DartType receiverType, ClassRelation relation, ir.Member target);
+
+  @override
+  void handlePropertySet(
+      ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
+    ClassRelation relation = node.receiver is ir.ThisExpression
+        ? ClassRelation.thisExpression
+        : ClassRelation.subtype;
+    if (node.interfaceTarget != null) {
+      registerInstanceSet(receiverType, relation, node.interfaceTarget);
+    } else {
+      registerDynamicSet(receiverType, relation, node.name);
+    }
+  }
+
+  @override
+  void handleDirectPropertySet(ir.DirectPropertySet node,
+      ir.DartType receiverType, ir.DartType valueType) {
+    registerInstanceSet(receiverType, ClassRelation.exact, node.target);
   }
 }

@@ -8,7 +8,6 @@ import "dart:async";
 
 @pragma('dart2js:disableFinal')
 void main() {
-  FutureOr<int> i = 0;
-  i = new Future<int>.value(0);
+  FutureOr<int> i = new Future<int>.value(0);
   print(i.runtimeType);
 }

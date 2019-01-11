@@ -774,7 +774,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       return getSetterSelector(node.name);
     }
     if (node is ir.InvocationExpression) {
-      return getInvocationSelector(node);
+      return getInvocationSelector(node.name, node.arguments);
     }
     throw failedAt(
         CURRENT_ELEMENT_SPANNABLE,
@@ -782,8 +782,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         "${node}");
   }
 
-  Selector getInvocationSelector(ir.InvocationExpression invocation) {
-    Name name = getName(invocation.name);
+  Selector getInvocationSelector(ir.Name irName, ir.Arguments arguments) {
+    Name name = getName(irName);
     SelectorKind kind;
     if (Selector.isOperatorName(name.text)) {
       if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
@@ -795,7 +795,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       kind = SelectorKind.CALL;
     }
 
-    CallStructure callStructure = getCallStructure(invocation.arguments);
+    CallStructure callStructure = getCallStructure(arguments);
     return new Selector(kind, name, callStructure);
   }
 

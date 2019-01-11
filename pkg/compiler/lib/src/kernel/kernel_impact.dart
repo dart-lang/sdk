@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show operatorFromString;
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -53,6 +50,19 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   bool get inferEffectivelyFinalVariableTypes =>
       !_annotations.contains(PragmaAnnotation.disableFinal);
+
+  Object _computeReceiverConstraint(
+      ir.DartType receiverType, ClassRelation relation) {
+    if (receiverType is ir.InterfaceType) {
+      if (receiverType.classNode == typeEnvironment.futureOrClass) {
+        // CFE encodes FutureOr as an interface type!
+        return null;
+      }
+      return new StrongModeConstraint(commonElements, _nativeBasicData,
+          elementMap.getClass(receiverType.classNode), relation);
+    }
+    return null;
+  }
 
   @override
   void registerParameterCheck(ir.DartType irType) {
@@ -351,26 +361,6 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
-    List<DartType> typeArguments = _getTypeArguments(node.arguments);
-    MemberEntity member = elementMap.getMember(node.target);
-    // TODO(johnniwinther): Restrict the dynamic use to only match the known
-    // target.
-    // TODO(johnniwinther): Restrict this to subclasses?
-    Object constraint = new StrongModeConstraint(
-        commonElements, _nativeBasicData, member.enclosingClass);
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        new Selector.call(
-            member.memberName, elementMap.getCallStructure(node.arguments)),
-        constraint,
-        typeArguments));
-  }
-
-  @override
   void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {
     // TODO(johnniwinther): Should we support this or always use the
@@ -393,15 +383,6 @@ class KernelImpactBuilder extends ImpactBuilder {
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
-  }
-
-  @override
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {
-    // TODO(johnniwinther): Restrict the dynamic use to only match the known
-    // target.
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.getter(elementMap.getMember(node.target).memberName)));
   }
 
   @override
@@ -428,107 +409,92 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {
-    // TODO(johnniwinther): Restrict the dynamic use to only match the known
-    // target.
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.setter(elementMap.getMember(node.target).memberName)));
-  }
-
-  @override
   void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
     handleSuperSet(node.name, node.interfaceTarget, node.value);
   }
 
   @override
-  void handleMethodInvocation(
-      ir.MethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
-    Selector selector = elementMap.getSelector(node);
-    List<DartType> typeArguments = _getTypeArguments(node.arguments);
-    ir.Expression receiver = node.receiver;
-    if (receiver is ir.VariableGet &&
-        receiver.variable.isFinal &&
-        receiver.variable.parent is ir.FunctionDeclaration) {
-      Local localFunction =
-          elementMap.getLocalFunction(receiver.variable.parent);
-      // Invocation of a local function. No need for dynamic use, but
-      // we need to track the type arguments.
-      impactBuilder.registerStaticUse(new StaticUse.closureCall(
-          localFunction, selector.callStructure, typeArguments));
-      // TODO(johnniwinther): Yet, alas, we need the dynamic use for now. Remove
-      // this when kernel adds an `isFunctionCall` flag to
-      // [ir.MethodInvocation].
-      impactBuilder.registerDynamicUse(
-          new ConstrainedDynamicUse(selector, null, typeArguments));
-    } else {
-      ClassRelation relation = receiver is ir.ThisExpression
-          ? ClassRelation.thisExpression
-          : ClassRelation.subtype;
-      DartType receiverDartType = elementMap.getDartType(receiverType);
-      Object constraint;
-      if (receiverDartType is InterfaceType) {
-        constraint = new StrongModeConstraint(commonElements, _nativeBasicData,
-            receiverDartType.element, relation);
-      }
-      ir.Member interfaceTarget = node.interfaceTarget;
-      if (interfaceTarget == null) {
-        // TODO(johnniwinther): Avoid treating a known function call as a
-        // dynamic call when CFE provides a way to distinguish the two.
-        impactBuilder.registerDynamicUse(
-            new ConstrainedDynamicUse(selector, constraint, typeArguments));
-        if (operatorFromString(node.name.name) == null &&
-            receiverDartType.isDynamic) {
-          // We might implicitly call a getter that returns a function.
-          impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-              selector.toCallSelector(), null, typeArguments));
-        }
-      } else {
-        if (interfaceTarget is ir.Field ||
-            interfaceTarget is ir.Procedure &&
-                interfaceTarget.kind == ir.ProcedureKind.Getter) {
-          impactBuilder.registerDynamicUse(
-              new ConstrainedDynamicUse(selector, constraint, typeArguments));
-          // An `o.foo()` invocation is (potentially) an `o.foo.call()`
-          // invocation.
-          Object getterConstraint;
-          if (interfaceTarget != null) {
-            DartType receiverType =
-                elementMap.getDartType(interfaceTarget.getterType);
-            if (receiverType is InterfaceType) {
-              getterConstraint = new StrongModeConstraint(
-                  commonElements, _nativeBasicData, receiverType.element);
-            }
-          }
-
-          impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-              selector.toCallSelector(), getterConstraint, typeArguments));
-        } else {
-          impactBuilder.registerDynamicUse(
-              new ConstrainedDynamicUse(selector, constraint, typeArguments));
-        }
-      }
-    }
+  void registerLocalFunctionInvocation(
+      ir.FunctionDeclaration localFunction, ir.Arguments arguments) {
+    CallStructure callStructure = elementMap.getCallStructure(arguments);
+    List<DartType> typeArguments = _getTypeArguments(arguments);
+    // Invocation of a local function. No need for dynamic use, but
+    // we need to track the type arguments.
+    impactBuilder.registerStaticUse(new StaticUse.closureCall(
+        elementMap.getLocalFunction(localFunction),
+        callStructure,
+        typeArguments));
+    // TODO(johnniwinther): Yet, alas, we need the dynamic use for now. Remove
+    // this when kernel adds an `isFunctionCall` flag to
+    // [ir.MethodInvocation].
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        callStructure.callSelector, null, typeArguments));
   }
 
   @override
-  void handlePropertyGet(
-      ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
-    Object constraint;
-    DartType receiverDartType = elementMap.getDartType(receiverType);
-    if (receiverDartType is InterfaceType) {
-      ClassRelation relation = node.receiver is ir.ThisExpression
-          ? ClassRelation.thisExpression
-          : ClassRelation.subtype;
-      constraint = new StrongModeConstraint(
-          commonElements, _nativeBasicData, receiverDartType.element, relation);
-    }
+  void registerDynamicInvocation(ir.DartType receiverType,
+      ClassRelation relation, ir.Name name, ir.Arguments arguments) {
+    Selector selector = elementMap.getInvocationSelector(name, arguments);
+    List<DartType> typeArguments = _getTypeArguments(arguments);
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(selector,
+        _computeReceiverConstraint(receiverType, relation), typeArguments));
+  }
+
+  @override
+  void registerFunctionInvocation(
+      ir.DartType receiverType, ir.Arguments arguments) {
+    CallStructure callStructure = elementMap.getCallStructure(arguments);
+    List<DartType> typeArguments = _getTypeArguments(arguments);
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        new Selector.getter(elementMap.getName(node.name)),
-        constraint, const <DartType>[]));
+        callStructure.callSelector,
+        _computeReceiverConstraint(receiverType, ClassRelation.subtype),
+        typeArguments));
+  }
+
+  @override
+  void registerInstanceInvocation(ir.DartType receiverType,
+      ClassRelation relation, ir.Member target, ir.Arguments arguments) {
+    List<DartType> typeArguments = _getTypeArguments(arguments);
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        elementMap.getInvocationSelector(target.name, arguments),
+        _computeReceiverConstraint(receiverType, relation),
+        typeArguments));
+  }
+
+  @override
+  void registerDynamicGet(
+      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.getter(elementMap.getName(name)),
+        _computeReceiverConstraint(receiverType, relation),
+        const <DartType>[]));
+  }
+
+  @override
+  void registerInstanceGet(
+      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.getter(elementMap.getName(target.name)),
+        _computeReceiverConstraint(receiverType, relation),
+        const <DartType>[]));
+  }
+
+  @override
+  void registerDynamicSet(
+      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.setter(elementMap.getName(name)),
+        _computeReceiverConstraint(receiverType, relation),
+        const <DartType>[]));
+  }
+
+  @override
+  void registerInstanceSet(
+      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.setter(elementMap.getName(target.name)),
+        _computeReceiverConstraint(receiverType, relation),
+        const <DartType>[]));
   }
 
   void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
@@ -559,23 +525,6 @@ class KernelImpactBuilder extends ImpactBuilder {
     }
     impactBuilder.registerRuntimeTypeUse(
         new RuntimeTypeUse(kind, receiverDartType, argumentDartType));
-  }
-
-  @override
-  void handlePropertySet(
-      ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
-    Object constraint;
-    DartType receiverDartType = elementMap.getDartType(receiverType);
-    if (receiverDartType is InterfaceType) {
-      ClassRelation relation = node.receiver is ir.ThisExpression
-          ? ClassRelation.thisExpression
-          : ClassRelation.subtype;
-      constraint = new StrongModeConstraint(
-          commonElements, _nativeBasicData, receiverDartType.element, relation);
-    }
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        new Selector.setter(elementMap.getName(node.name)),
-        constraint, const <DartType>[]));
   }
 
   @override

@@ -60,6 +60,10 @@ abstract class KernelToElementMap {
   /// access of [node].
   Selector getSelector(ir.Expression node);
 
+  /// Returns the [Selector] corresponding to the invocation of [name] with
+  /// [arguments].
+  Selector getInvocationSelector(ir.Name name, ir.Arguments arguments);
+
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
 
