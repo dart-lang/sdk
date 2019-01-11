@@ -19,6 +19,7 @@ import 'package:kernel/ast.dart'
         InvalidType,
         Library,
         Source,
+        TypeParameter,
         TypeParameterType,
         TypedefType,
         VoidType;
@@ -29,7 +30,13 @@ import '../fasta_codes.dart'
 import '../compiler_context.dart' show CompilerContext;
 
 import '../kernel/kernel_builder.dart'
-    show KernelNamedTypeBuilder, KernelTypeBuilder, LibraryBuilder;
+    show
+        DynamicTypeBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder,
+        KernelTypeVariableBuilder,
+        LibraryBuilder,
+        VoidTypeBuilder;
 
 import '../loader.dart' show Loader;
 
@@ -113,11 +120,15 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
   }
 
   KernelTypeBuilder visitDynamicType(DynamicType node) {
-    throw "Not implemented";
+    return new KernelNamedTypeBuilder("dynamic", null)
+      ..bind(new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+          const DynamicType(), loader.coreLibrary, -1));
   }
 
   KernelTypeBuilder visitVoidType(VoidType node) {
-    throw "Not implemented";
+    return new KernelNamedTypeBuilder("dynamic", null)
+      ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
+          const VoidType(), loader.coreLibrary, -1));
   }
 
   KernelTypeBuilder visitBottomType(BottomType node) {
@@ -130,8 +141,15 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
     DillLibraryBuilder library = loader.builders[kernelLibrary.importUri];
     String name = kernelClass.name;
     DillClassBuilder cls = library[name];
-    // TODO(ahe): Also compute type arguments.
-    return new KernelNamedTypeBuilder(name, null)..bind(cls);
+    List<KernelTypeBuilder> arguments;
+    List<DartType> kernelArguments = node.typeArguments;
+    if (kernelArguments.isNotEmpty) {
+      arguments = new List<KernelTypeBuilder>(kernelArguments.length);
+      for (int i = 0; i < kernelArguments.length; i++) {
+        arguments[i] = kernelArguments[i].accept(this);
+      }
+    }
+    return new KernelNamedTypeBuilder(name, arguments)..bind(cls);
   }
 
   KernelTypeBuilder visitFunctionType(FunctionType node) {
@@ -139,7 +157,12 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
   }
 
   KernelTypeBuilder visitTypeParameterType(TypeParameterType node) {
-    throw "Not implemented";
+    TypeParameter parameter = node.parameter;
+    Class kernelClass = parameter.parent;
+    Library kernelLibrary = kernelClass.enclosingLibrary;
+    DillLibraryBuilder library = loader.builders[kernelLibrary.importUri];
+    return new KernelNamedTypeBuilder(parameter.name, null)
+      ..bind(new KernelTypeVariableBuilder.fromKernel(parameter, library));
   }
 
   KernelTypeBuilder visitTypedefType(TypedefType node) {
