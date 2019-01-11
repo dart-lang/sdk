@@ -285,4 +285,93 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
       ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
     registerRedirectingInitializer(node.target, node.arguments);
   }
+
+  void registerParameterCheck(ir.DartType type);
+
+  @override
+  void handleParameter(ir.VariableDeclaration parameter) {
+    registerParameterCheck(parameter.type);
+  }
+
+  @override
+  void handleSignature(ir.FunctionNode node) {
+    for (ir.TypeParameter parameter in node.typeParameters) {
+      registerParameterCheck(parameter.bound);
+    }
+  }
+
+  void registerLazyField();
+
+  @override
+  void handleField(ir.Field field) {
+    registerParameterCheck(field.type);
+    if (field.initializer != null) {
+      if (!field.isInstanceMember &&
+          !field.isConst &&
+          field.initializer is! ir.NullLiteral) {
+        registerLazyField();
+      }
+    } else {
+      registerNullLiteral();
+    }
+  }
+
+  @override
+  void handleProcedure(ir.Procedure procedure) {
+    handleAsyncMarker(procedure.function);
+  }
+
+  void registerNew(ir.Member constructor, ir.InterfaceType type,
+      ir.Arguments arguments, ir.LibraryDependency import,
+      {bool isConst});
+
+  @override
+  void handleConstructorInvocation(ir.ConstructorInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType resultType) {
+    registerNew(node.target, node.constructedType, node.arguments,
+        getDeferredImport(node),
+        isConst: node.isConst);
+  }
+
+  void registerStaticInvocation(
+      ir.Procedure target, ir.Arguments arguments, ir.LibraryDependency import);
+
+  @override
+  void handleStaticInvocation(ir.StaticInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType returnType) {
+    if (node.target.kind == ir.ProcedureKind.Factory) {
+      // TODO(johnniwinther): We should not mark the type as instantiated but
+      // rather follow the type arguments directly.
+      //
+      // Consider this:
+      //
+      //    abstract class A<T> {
+      //      factory A.regular() => new B<T>();
+      //      factory A.redirect() = B<T>;
+      //    }
+      //
+      //    class B<T> implements A<T> {}
+      //
+      //    main() {
+      //      print(new A<int>.regular() is B<int>);
+      //      print(new A<String>.redirect() is B<String>);
+      //    }
+      //
+      // To track that B is actually instantiated as B<int> and B<String> we
+      // need to follow the type arguments passed to A.regular and A.redirect
+      // to B. Currently, we only do this soundly if we register A<int> and
+      // A<String> as instantiated. We should instead register that A.T is
+      // instantiated as int and String.
+      registerNew(
+          node.target,
+          new ir.InterfaceType(
+              node.target.enclosingClass, node.arguments.types),
+          node.arguments,
+          getDeferredImport(node),
+          isConst: node.isConst);
+    } else {
+      registerStaticInvocation(
+          node.target, node.arguments, getDeferredImport(node));
+    }
+  }
 }

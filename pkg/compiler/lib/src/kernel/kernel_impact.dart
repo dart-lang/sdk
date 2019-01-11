@@ -54,22 +54,12 @@ class KernelImpactBuilder extends ImpactBuilder {
   bool get inferEffectivelyFinalVariableTypes =>
       !_annotations.contains(PragmaAnnotation.disableFinal);
 
-  /// Add a checked-mode type use of [type] if it is not `dynamic`.
-  DartType checkType(ir.DartType irType, TypeUseKind kind) {
+  @override
+  void registerParameterCheck(ir.DartType irType) {
     DartType type = elementMap.getDartType(irType);
-    if (kind != null && !type.isDynamic) {
-      switch (kind) {
-        case TypeUseKind.PARAMETER_CHECK:
-          impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
-          break;
-        case TypeUseKind.IMPLICIT_CAST:
-          impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
-          break;
-        default:
-          throw new UnsupportedError("Unexpected type check kind: $kind");
-      }
+    if (!type.isDynamic) {
+      impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
     }
-    return type;
   }
 
   List<DartType> _getTypeArguments(ir.Arguments arguments) {
@@ -77,34 +67,14 @@ class KernelImpactBuilder extends ImpactBuilder {
     return arguments.types.map(elementMap.getDartType).toList();
   }
 
-  /// Add checked-mode type use for the parameter type and constant for the
-  /// default value of [parameter].
   @override
-  void handleParameter(ir.VariableDeclaration parameter) {
-    checkType(parameter.type, TypeUseKind.PARAMETER_CHECK);
-  }
-
-  /// Add checked-mode type use for parameter and return types, and add
-  /// constants for default values.
-  @override
-  void handleSignature(ir.FunctionNode node) {
-    for (ir.TypeParameter parameter in node.typeParameters) {
-      checkType(parameter.bound, TypeUseKind.PARAMETER_CHECK);
-    }
+  void registerLazyField() {
+    impactBuilder.registerFeature(Feature.LAZY_FIELD);
   }
 
   @override
   void handleField(ir.Field field) {
-    checkType(field.type, TypeUseKind.PARAMETER_CHECK);
-    if (field.initializer != null) {
-      if (!field.isInstanceMember &&
-          !field.isConst &&
-          field.initializer is! ir.NullLiteral) {
-        impactBuilder.registerFeature(Feature.LAZY_FIELD);
-      }
-    } else {
-      impactBuilder.registerConstantLiteral(new NullConstantExpression());
-    }
+    super.handleField(field);
 
     if (field.isInstanceMember &&
         elementMap.isNativeClass(field.enclosingClass)) {
@@ -156,7 +126,8 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   @override
   void handleProcedure(ir.Procedure procedure) {
-    handleAsyncMarker(procedure.function);
+    super.handleProcedure(procedure);
+
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
@@ -216,14 +187,21 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleConstructorInvocation(ir.ConstructorInvocation node,
-      ArgumentTypes argumentTypes, ir.DartType resultType) {
-    handleNew(node, node.target, isConst: node.isConst);
-  }
-
-  void handleNew(ir.InvocationExpression node, ir.Member target,
-      {bool isConst: false}) {
+  void registerNew(ir.Member target, ir.InterfaceType type,
+      ir.Arguments arguments, ir.LibraryDependency import,
+      {bool isConst}) {
     ConstructorEntity constructor = elementMap.getConstructor(target);
+    CallStructure callStructure = elementMap.getCallStructure(arguments);
+    ImportEntity deferredImport = elementMap.getImport(import);
+    impactBuilder.registerStaticUse(isConst
+        ? new StaticUse.constConstructorInvoke(constructor, callStructure,
+            elementMap.getDartType(type), deferredImport)
+        : new StaticUse.typedConstructorInvoke(constructor, callStructure,
+            elementMap.getDartType(type), deferredImport));
+    if (type.typeArguments.any((ir.DartType type) => type is! ir.DynamicType)) {
+      impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
+
     if (commonElements.isSymbolConstructor(constructor)) {
       impactBuilder.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
@@ -236,21 +214,9 @@ class KernelImpactBuilder extends ImpactBuilder {
       // return here.
     }
 
-    InterfaceType type = elementMap.createInterfaceType(
-        target.enclosingClass, node.arguments.types);
-    CallStructure callStructure = elementMap.getCallStructure(node.arguments);
-    ImportEntity deferredImport = elementMap.getImport(getDeferredImport(node));
-    impactBuilder.registerStaticUse(isConst
-        ? new StaticUse.constConstructorInvoke(
-            constructor, callStructure, type, deferredImport)
-        : new StaticUse.typedConstructorInvoke(
-            constructor, callStructure, type, deferredImport));
-    if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
-      impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
-    }
     if (isConst && commonElements.isSymbolConstructor(constructor)) {
       ConstantValue value =
-          elementMap.getConstantValue(node.arguments.positional.first);
+          elementMap.getConstantValue(arguments.positional.first);
       if (!value.isString) {
         // TODO(het): Get the actual span for the Symbol constructor argument
         reporter.reportErrorMessage(
@@ -277,47 +243,26 @@ class KernelImpactBuilder extends ImpactBuilder {
         target, elementMap.getCallStructure(node.arguments)));
   }
 
+  @override
+  void registerStaticInvocation(ir.Procedure procedure, ir.Arguments arguments,
+      ir.LibraryDependency import) {
+    FunctionEntity target = elementMap.getMethod(procedure);
+    CallStructure callStructure = elementMap.getCallStructure(arguments);
+    List<DartType> typeArguments = _getTypeArguments(arguments);
+    if (commonElements.isExtractTypeArguments(target)) {
+      _handleExtractTypeArguments(target, typeArguments, callStructure);
+      return;
+    } else {
+      ImportEntity deferredImport = elementMap.getImport(import);
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          target, callStructure, typeArguments, deferredImport));
+    }
+  }
+
   void handleStaticInvocation(ir.StaticInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {
-    if (node.target.kind == ir.ProcedureKind.Factory) {
-      // TODO(johnniwinther): We should not mark the type as instantiated but
-      // rather follow the type arguments directly.
-      //
-      // Consider this:
-      //
-      //    abstract class A<T> {
-      //      factory A.regular() => new B<T>();
-      //      factory A.redirect() = B<T>;
-      //    }
-      //
-      //    class B<T> implements A<T> {}
-      //
-      //    main() {
-      //      print(new A<int>.regular() is B<int>);
-      //      print(new A<String>.redirect() is B<String>);
-      //    }
-      //
-      // To track that B is actually instantiated as B<int> and B<String> we
-      // need to follow the type arguments passed to A.regular and A.redirect
-      // to B. Currently, we only do this soundly if we register A<int> and
-      // A<String> as instantiated. We should instead register that A.T is
-      // instantiated as int and String.
-      handleNew(node, node.target, isConst: node.isConst);
-    } else {
-      FunctionEntity target = elementMap.getMethod(node.target);
-      List<DartType> typeArguments = _getTypeArguments(node.arguments);
-      if (commonElements.isExtractTypeArguments(target)) {
-        _handleExtractTypeArguments(node, target, typeArguments);
-        return;
-      }
-      ImportEntity deferredImport =
-          elementMap.getImport(getDeferredImport(node));
-      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target,
-          elementMap.getCallStructure(node.arguments),
-          typeArguments,
-          deferredImport));
-    }
+    super.handleStaticInvocation(node, argumentTypes, returnType);
+
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
         impactBuilder
@@ -343,8 +288,8 @@ class KernelImpactBuilder extends ImpactBuilder {
     }
   }
 
-  void _handleExtractTypeArguments(ir.StaticInvocation node,
-      FunctionEntity target, List<DartType> typeArguments) {
+  void _handleExtractTypeArguments(FunctionEntity target,
+      List<DartType> typeArguments, CallStructure callStructure) {
     // extractTypeArguments<Map>(obj, fn) has additional impacts:
     //
     //   1. All classes implementing Map need to carry type arguments (similar
@@ -352,8 +297,8 @@ class KernelImpactBuilder extends ImpactBuilder {
     //
     //   2. There is an invocation of fn with some number of type arguments.
     //
-    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-        target, elementMap.getCallStructure(node.arguments), typeArguments));
+    impactBuilder.registerStaticUse(
+        new StaticUse.staticInvoke(target, callStructure, typeArguments));
 
     if (typeArguments.length != 1) return;
     DartType matchedType = typeArguments.first;
