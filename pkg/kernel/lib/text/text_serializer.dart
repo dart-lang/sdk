@@ -97,6 +97,7 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitSuperMethodInvocation(SuperMethodInvocation _) => "invoke-super";
 
   String visitVariableGet(VariableGet _) => "get-var";
+  String visitVariableSet(VariableSet _) => "set-var";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -496,6 +497,20 @@ VariableGet wrapVariableGet(Tuple2<VariableDeclaration, DartType> tuple) {
   return new VariableGet(tuple.first, tuple.second);
 }
 
+TextSerializer<VariableSet> variableSetSerializer = new Wrapped(
+    unwrapVariableSet,
+    wrapVariableSet,
+    new Tuple2Serializer(
+        const ScopedReference<VariableDeclaration>(), expressionSerializer));
+
+Tuple2<VariableDeclaration, Expression> unwrapVariableSet(VariableSet node) {
+  return new Tuple2<VariableDeclaration, Expression>(node.variable, node.value);
+}
+
+VariableSet wrapVariableSet(Tuple2<VariableDeclaration, Expression> tuple) {
+  return new VariableSet(tuple.first, tuple.second);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -701,6 +716,7 @@ void initializeSerializers() {
     "invoke-method",
     "invoke-super",
     "get-var",
+    "set-var",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -736,6 +752,7 @@ void initializeSerializers() {
     methodInvocationSerializer,
     superMethodInvocationSerializer,
     variableGetSerializer,
+    variableSetSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
