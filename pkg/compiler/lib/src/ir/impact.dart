@@ -257,7 +257,9 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
   }
 
   void registerCatch();
+
   void registerStackTrace();
+
   void registerCatchType(ir.DartType type);
 
   @override
@@ -496,5 +498,37 @@ abstract class ImpactBuilder extends StaticTypeVisitor {
   void handleDirectPropertySet(ir.DirectPropertySet node,
       ir.DartType receiverType, ir.DartType valueType) {
     registerInstanceSet(receiverType, ClassRelation.exact, node.target);
+  }
+
+  void registerSuperInvocation(ir.Name name, ir.Arguments arguments);
+
+  @override
+  void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType returnType) {
+    registerSuperInvocation(node.name, node.arguments);
+  }
+
+  void registerSuperGet(ir.Name name);
+
+  @override
+  void handleSuperPropertyGet(
+      ir.SuperPropertyGet node, ir.DartType resultType) {
+    registerSuperGet(node.name);
+  }
+
+  void registerSuperSet(ir.Name name);
+
+  @override
+  void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
+    registerSuperSet(node.name);
+  }
+
+  void registerSuperInitializer(
+      ir.Constructor source, ir.Constructor target, ir.Arguments arguments);
+
+  @override
+  void handleSuperInitializer(
+      ir.SuperInitializer node, ArgumentTypes argumentTypes) {
+    registerSuperInitializer(node.parent, node.target, node.arguments);
   }
 }

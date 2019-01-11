@@ -241,16 +241,16 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  Null handleSuperInitializer(
-      ir.SuperInitializer node, ArgumentTypes argumentTypes) {
+  void registerSuperInitializer(
+      ir.Constructor source, ir.Constructor target, ir.Arguments arguments) {
     // TODO(johnniwinther): Maybe rewrite `node.target` to point to a
     // synthesized unnamed mixin constructor when needed. This would require us
     // to consider impact building a required pre-step for inference and
     // ssa-building.
-    ConstructorEntity target =
-        elementMap.getSuperConstructor(node.parent, node.target);
+    ConstructorEntity constructor =
+        elementMap.getSuperConstructor(source, target);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
-        target, elementMap.getCallStructure(node.arguments)));
+        constructor, elementMap.getCallStructure(arguments)));
   }
 
   @override
@@ -345,7 +345,8 @@ class KernelImpactBuilder extends ImpactBuilder {
         elementMap.getMember(member), elementMap.getImport(import)));
   }
 
-  void handleSuperInvocation(ir.Name name, ir.Node arguments) {
+  @override
+  void registerSuperInvocation(ir.Name name, ir.Arguments arguments) {
     FunctionEntity method =
         elementMap.getSuperMember(currentMember, name, setter: false);
     List<DartType> typeArguments = _getTypeArguments(arguments);
@@ -361,14 +362,7 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
-      ArgumentTypes argumentTypes, ir.DartType returnType) {
-    // TODO(johnniwinther): Should we support this or always use the
-    // [MixinFullResolution] transformer?
-    handleSuperInvocation(node.name, node.arguments);
-  }
-
-  void handleSuperGet(ir.Name name, ir.Member target) {
+  void registerSuperGet(ir.Name name) {
     MemberEntity member =
         elementMap.getSuperMember(currentMember, name, setter: false);
     if (member != null) {
@@ -386,12 +380,7 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleSuperPropertyGet(
-      ir.SuperPropertyGet node, ir.DartType resultType) {
-    handleSuperGet(node.name, node.interfaceTarget);
-  }
-
-  void handleSuperSet(ir.Name name, ir.Node target, ir.Node value) {
+  void registerSuperSet(ir.Name name) {
     MemberEntity member =
         elementMap.getSuperMember(currentMember, name, setter: true);
     if (member != null) {
@@ -406,11 +395,6 @@ class KernelImpactBuilder extends ImpactBuilder {
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
-  }
-
-  @override
-  void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
-    handleSuperSet(node.name, node.interfaceTarget, node.value);
   }
 
   @override
