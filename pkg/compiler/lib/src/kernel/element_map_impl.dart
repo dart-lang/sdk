@@ -731,22 +731,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _classHierarchy;
   }
 
-  DartType getStaticType(ir.Expression node) {
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
-    }
-    try {
-      typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return getDartType(node.getStaticType(typeEnvironment));
-    } catch (e) {
-      // The static type computation crashes on type errors. Use `dynamic`
-      // as static type.
-      return commonElements.dynamicType;
-    }
-  }
-
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getLibrary(name.library) : null);

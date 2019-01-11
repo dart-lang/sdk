@@ -22,21 +22,65 @@ enum RuntimeTypeUseKind {
   string,
 }
 
+/// Data object use for computing static type information on uses of
+/// `Object.runtimeType`.
 class RuntimeTypeUseData {
   /// The use kind of `Object.runtimeType`.
   final RuntimeTypeUseKind kind;
 
+  /// The property get for the left (or single) occurrence of `.runtimeType`.
+  final ir.PropertyGet leftRuntimeTypeExpression;
+
   /// The receiver expression.
   final ir.Expression receiver;
+
+  /// The static type of the receiver expression. This is set in the static type
+  /// visitor.
+  ir.DartType receiverType;
+
+  /// The property get for the right occurrence of `.runtimeType` when [kind]
+  /// is `RuntimeTypeUseKind.equals`.
+  final ir.PropertyGet rightRuntimeTypeExpression;
 
   /// The argument expression if [kind] is `RuntimeTypeUseKind.equals`.
   final ir.Expression argument;
 
-  RuntimeTypeUseData(this.kind, this.receiver, this.argument);
+  /// The static type of the argument expression. This is set in the static type
+  /// visitor.
+  ir.DartType argumentType;
+
+  RuntimeTypeUseData(this.kind, this.leftRuntimeTypeExpression, this.receiver,
+      this.rightRuntimeTypeExpression, this.argument);
+
+  bool get isComplete {
+    switch (kind) {
+      case RuntimeTypeUseKind.unknown:
+      case RuntimeTypeUseKind.string:
+        return receiverType != null;
+      case RuntimeTypeUseKind.equals:
+        return receiverType != null && argumentType != null;
+    }
+    throw new UnsupportedError("Unexpected RuntimeTypeUseKind $kind.");
+  }
+
+  String toString() {
+    return "RuntimeTypeUseData(kind=$kind,"
+        "receiverGet=$leftRuntimeTypeExpression,receiver=$receiver,"
+        "receiverType=$receiverType,argumentGet=$rightRuntimeTypeExpression,"
+        "argument=$argument,argumentType=$argumentType)";
+  }
 }
 
-/// Computes the [RuntimeTypeUse] corresponding to the `e.runtimeType` [node].
-RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
+/// Computes the [RuntimeTypeUseData] corresponding to the `e.runtimeType`
+/// [node].
+///
+/// [cache] is used to ensure that only one [RuntimeTypeUseData] object is
+/// created per case, even for the `==` case.
+RuntimeTypeUseData computeRuntimeTypeUse(
+    Map<ir.PropertyGet, RuntimeTypeUseData> cache, ir.PropertyGet node) {
+  RuntimeTypeUseData receiverData = cache[node];
+  if (receiverData != null) return receiverData;
+
   /// Returns `true` if [node] is of the form `e.runtimeType`.
   bool isGetRuntimeType(ir.TreeNode node) {
     return node is ir.PropertyGet && node.name.name == Identifiers.runtimeType_;
@@ -56,7 +100,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
   assert(isGetRuntimeType(node));
 
   // TODO(johnniwinther): Special-case `this.runtimeType`.
+  ir.PropertyGet receiverGet;
   ir.Expression receiver;
+  ir.PropertyGet argumentGet;
   ir.Expression argument;
   RuntimeTypeUseKind kind;
 
@@ -89,6 +135,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
           //
           kind = RuntimeTypeUseKind.string;
           receiver = nullAware.receiver;
+          receiverGet = node;
         }
       } else if (nullAware.parent is ir.MethodInvocation) {
         ir.MethodInvocation methodInvocation = nullAware.parent;
@@ -111,7 +158,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
             //        .==(e1.runtimeType)
             kind = RuntimeTypeUseKind.equals;
             receiver = nullAware.receiver;
+            receiverGet = node;
             argument = otherGetRuntimeType.receiver;
+            argumentGet = methodInvocation.arguments.positional.first;
           }
 
           NullAwareExpression otherNullAware = getNullAwareExpression(
@@ -130,7 +179,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
             //
             kind = RuntimeTypeUseKind.equals;
             receiver = nullAware.receiver;
+            receiverGet = node;
             argument = otherNullAware.receiver;
+            argumentGet = otherNullAware.expression;
           }
         } else if (isInvokeToString(nullAware.parent)) {
           // Detected
@@ -145,6 +196,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
           //
           kind = RuntimeTypeUseKind.string;
           receiver = nullAware.receiver;
+          receiverGet = node;
         }
       } else if (nullAware.parent is ir.Arguments &&
           nullAware.parent.parent is ir.MethodInvocation) {
@@ -170,7 +222,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
             //                                                  ^
             kind = RuntimeTypeUseKind.equals;
             receiver = otherGetRuntimeType.receiver;
+            receiverGet = otherGetRuntimeType;
             argument = nullAware.receiver;
+            argumentGet = node;
           }
 
           if (otherNullAware != null &&
@@ -186,7 +240,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
             //                                                      ^
             kind = RuntimeTypeUseKind.equals;
             receiver = otherNullAware.receiver;
+            receiverGet = otherNullAware.expression;
             argument = nullAware.receiver;
+            argumentGet = node;
           }
         }
       } else if (nullAware.parent is ir.StringConcatenation) {
@@ -200,6 +256,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
         //                                                ^
         kind = RuntimeTypeUseKind.string;
         receiver = nullAware.receiver;
+        receiverGet = node;
       } else {
         // Default to unknown
         //
@@ -211,6 +268,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
         //                                         ^
         kind = RuntimeTypeUseKind.unknown;
         receiver = nullAware.receiver;
+        receiverGet = node;
       }
     }
   } else if (node.parent is ir.VariableDeclaration &&
@@ -227,6 +285,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
       //                 ^
       kind = RuntimeTypeUseKind.string;
       receiver = node.receiver;
+      receiverGet = node;
     }
   } else if (node.parent is ir.MethodInvocation) {
     ir.MethodInvocation methodInvocation = node.parent;
@@ -249,7 +308,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
         //        ^
         kind = RuntimeTypeUseKind.equals;
         receiver = node.receiver;
+        receiverGet = node;
         argument = otherGetRuntimeType.receiver;
+        argumentGet = otherGetRuntimeType;
       } else if (nullAware != null && isGetRuntimeType(nullAware.expression)) {
         // Detected
         //
@@ -262,7 +323,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
         //         let #t1 = e1 in #t1 == null ? null : #t1.runtimeType)
         kind = RuntimeTypeUseKind.equals;
         receiver = node.receiver;
+        receiverGet = node;
         argument = nullAware.receiver;
+        argumentGet = nullAware.expression;
       }
     } else if (isInvokeToString(node.parent)) {
       // Detected
@@ -271,6 +334,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
       //       ^
       kind = RuntimeTypeUseKind.string;
       receiver = node.receiver;
+      receiverGet = node;
     }
   } else if (node.parent is ir.Arguments &&
       node.parent.parent is ir.MethodInvocation) {
@@ -294,7 +358,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
         //                          ^
         kind = RuntimeTypeUseKind.equals;
         receiver = otherGetRuntimeType.receiver;
+        receiverGet = otherGetRuntimeType;
         argument = node.receiver;
+        argumentGet = node;
       } else if (nullAware != null && isGetRuntimeType(nullAware.expression)) {
         // Detected
         //
@@ -307,7 +373,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
         //                ^
         kind = RuntimeTypeUseKind.equals;
         receiver = nullAware.receiver;
+        receiverGet = nullAware.expression;
         argument = node.receiver;
+        argumentGet = node;
       }
     }
   } else if (node.parent is ir.StringConcatenation) {
@@ -317,6 +385,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
     //          ^
     kind = RuntimeTypeUseKind.string;
     receiver = node.receiver;
+    receiverGet = node;
   }
 
   if (kind == null) {
@@ -326,7 +395,20 @@ RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
     //       ^
     kind = RuntimeTypeUseKind.unknown;
     receiver = node.receiver;
+    receiverGet = node;
   }
 
-  return new RuntimeTypeUseData(kind, receiver, argument);
+  RuntimeTypeUseData data = new RuntimeTypeUseData(
+      kind, receiverGet, receiver, argumentGet, argument);
+  cache[receiverGet] = data;
+  if (argumentGet != null) {
+    cache[argumentGet] = data;
+  }
+
+  assert(receiverGet != null, "Missing receiverGet in $data for $node.");
+  assert(!(argument != null && argumentGet == null),
+      "Missing argumentGet in $data for $node.");
+  assert(
+      receiverGet != argumentGet, "Duplicate property get in $data for $node.");
+  return data;
 }

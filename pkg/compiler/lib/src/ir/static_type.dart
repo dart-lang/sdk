@@ -7,9 +7,11 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+import '../common/names.dart';
+import '../util/util.dart';
+import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
-import '../util/util.dart';
 
 /// Enum values for how the target of a static type should be interpreted.
 enum ClassRelation {
@@ -35,6 +37,7 @@ enum ClassRelation {
 abstract class StaticTypeVisitor extends StaticTypeBase {
   Map<ir.Expression, ir.DartType> _cache = {};
   Map<ir.Expression, TypeMap> typeMapsForTesting;
+  Map<ir.PropertyGet, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
 
   final ir.ClassHierarchy hierarchy;
 
@@ -189,6 +192,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {}
 
+  void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+      ir.DartType receiverType, ir.DartType argumentType) {}
+
   @override
   ir.DartType visitPropertyGet(ir.PropertyGet node) {
     ir.DartType receiverType = visitNode(node.receiver);
@@ -196,6 +202,31 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         _cache[node] = _computePropertyGetType(node, receiverType);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
     handlePropertyGet(node, receiverType, resultType);
+    if (node.name.name == Identifiers.runtimeType_) {
+      RuntimeTypeUseData data =
+          computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
+      if (data.leftRuntimeTypeExpression == node) {
+        // [node] is the left (or single) occurrence of `.runtimeType` so we
+        // can set the static type of the receiver expression.
+        data.receiverType = receiverType;
+      } else {
+        // [node] is the right occurrence of `.runtimeType` so we
+        // can set the static type of the argument expression.
+        assert(data.rightRuntimeTypeExpression == node,
+            "Unexpected RuntimeTypeUseData for $node: $data");
+        data.argumentType = receiverType;
+      }
+      if (data.isComplete) {
+        /// We now have all need static types so we can remove the data from
+        /// the cache and handle the runtime type use.
+        _pendingRuntimeTypeUseData.remove(data.leftRuntimeTypeExpression);
+        if (data.rightRuntimeTypeExpression != null) {
+          _pendingRuntimeTypeUseData.remove(data.rightRuntimeTypeExpression);
+        }
+        handleRuntimeTypeUse(
+            node, data.kind, data.receiverType, data.argumentType);
+      }
+    }
     return resultType;
   }
 
@@ -768,12 +799,15 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitBlock(ir.Block node) {
+    assert(_pendingRuntimeTypeUseData.isEmpty);
     ir.DartType type;
     for (ir.Statement statement in node.statements) {
       if (!completes(visitNode(statement))) {
         type = const ir.BottomType();
       }
     }
+    assert(_pendingRuntimeTypeUseData.isEmpty,
+        "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData");
     return type;
   }
 

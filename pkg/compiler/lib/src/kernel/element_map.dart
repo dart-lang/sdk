@@ -118,10 +118,6 @@ abstract class KernelToElementMap {
   /// Returns the defining node for [cls].
   ir.Class getClassNode(covariant ClassEntity cls);
 
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
-
   /// Adds libraries in [component] to the set of libraries.
   ///
   /// The main method of the first component is used as the main method for the

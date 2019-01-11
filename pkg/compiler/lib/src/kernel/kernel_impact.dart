@@ -584,37 +584,36 @@ class KernelImpactBuilder extends ImpactBuilder {
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.getter(elementMap.getName(node.name)),
         constraint, const <DartType>[]));
+  }
 
-    if (node.name.name == Identifiers.runtimeType_) {
-      RuntimeTypeUseData data = computeRuntimeTypeUse(node);
-      DartType receiverType = elementMap.getStaticType(data.receiver);
-      DartType argumentType = data.argument == null
-          ? null
-          : elementMap.getStaticType(data.argument);
+  void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+      ir.DartType receiverType, ir.DartType argumentType) {
+    DartType receiverDartType = elementMap.getDartType(receiverType);
+    DartType argumentDartType =
+        argumentType == null ? null : elementMap.getDartType(argumentType);
 
-      if (_options.omitImplicitChecks) {
-        switch (data.kind) {
-          case RuntimeTypeUseKind.string:
-            if (!_options.laxRuntimeTypeToString) {
-              if (receiverType == commonElements.objectType) {
-                reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
-                    MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
-              } else {
-                reporter.reportHintMessage(
-                    computeSourceSpanFromTreeNode(node),
-                    MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
-                    {'receiverType': '${receiverType}.'});
-              }
+    if (_options.omitImplicitChecks) {
+      switch (kind) {
+        case RuntimeTypeUseKind.string:
+          if (!_options.laxRuntimeTypeToString) {
+            if (receiverDartType == commonElements.objectType) {
+              reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
+                  MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
+            } else {
+              reporter.reportHintMessage(
+                  computeSourceSpanFromTreeNode(node),
+                  MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
+                  {'receiverType': '${receiverDartType}.'});
             }
-            break;
-          case RuntimeTypeUseKind.equals:
-          case RuntimeTypeUseKind.unknown:
-            break;
-        }
+          }
+          break;
+        case RuntimeTypeUseKind.equals:
+        case RuntimeTypeUseKind.unknown:
+          break;
       }
-      impactBuilder.registerRuntimeTypeUse(
-          new RuntimeTypeUse(data.kind, receiverType, argumentType));
     }
+    impactBuilder.registerRuntimeTypeUse(
+        new RuntimeTypeUse(kind, receiverDartType, argumentDartType));
   }
 
   @override
