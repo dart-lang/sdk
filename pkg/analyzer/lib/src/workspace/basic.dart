@@ -13,6 +13,8 @@ import 'package:package_config/packages.dart';
 
 /**
  * Information about a default Dart workspace.
+ *
+ * A BasicWorkspace should only be used when no other workspace type is valid.
  */
 class BasicWorkspace extends Workspace {
   /**
@@ -83,6 +85,10 @@ class BasicWorkspace extends Workspace {
 
   /**
    * Find the basic workspace that contains the given [path].
+   *
+   * As a [BasicWorkspace] is not defined by any marker files or build
+   * artifacts, this simply creates a BasicWorkspace with [path] as the [root]
+   * (or [path]'s parent if [path] points to a file).
    */
   static BasicWorkspace find(
       ResourceProvider provider, String path, ContextBuilder builder) {
@@ -95,11 +101,11 @@ class BasicWorkspace extends Workspace {
 }
 
 /**
- * Information about a package defined in a _BasicWorkspace.
+ * Information about a package defined in a [BasicWorkspace].
  *
  * Separate from [Packages] or package maps, this class is designed to simply
  * understand whether arbitrary file paths represent libraries declared within
- * a given package in a _BasicWorkspace.
+ * a given package in a [BasicWorkspace].
  */
 class BasicWorkspacePackage extends WorkspacePackage {
   final String root;
@@ -110,9 +116,9 @@ class BasicWorkspacePackage extends WorkspacePackage {
 
   @override
   bool contains(String path) {
-    // There is a 1-1 relationship between _BasicWorkspaces and
-    // _BasicWorkspacePackages. If a file is in a package's workspace,
-    // then it is in the package as well.
+    // There is a 1-1 relationship between [BasicWorkspace]s and
+    // [BasicWorkspacePackage]s. If a file is in a package's workspace, then it
+    // is in the package as well.
     return workspace.provider.pathContext.isWithin(root, path);
   }
 }

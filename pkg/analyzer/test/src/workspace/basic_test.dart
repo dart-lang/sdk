@@ -30,10 +30,37 @@ class MockPackages implements Packages {
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Write a BasicWorkspaceTest akin to
-    // PackageBuildWorkspaceTest.
+    defineReflectiveTests(BasicWorkspaceTest);
     defineReflectiveTests(BasicWorkspacePackageTest);
   });
+}
+
+@reflectiveTest
+class BasicWorkspaceTest with ResourceProviderMixin {
+  setUp() {
+    newFolder('/workspace');
+  }
+
+  void test_find_fail_notAbsolute() {
+    expect(
+        () => BasicWorkspace.find(resourceProvider, convertPath('not_absolute'),
+            new MockContextBuilder()),
+        throwsA(TypeMatcher<ArgumentError>()));
+  }
+
+  void test_find_directory() {
+    BasicWorkspace workspace = BasicWorkspace.find(
+        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
+    expect(workspace.root, convertPath('/workspace'));
+  }
+
+  void test_find_file() {
+    BasicWorkspace workspace = BasicWorkspace.find(
+        resourceProvider,
+        convertPath('/workspace/project/lib/lib1.dart'),
+        new MockContextBuilder());
+    expect(workspace.root, convertPath('/workspace/project/lib'));
+  }
 }
 
 @reflectiveTest
@@ -47,7 +74,7 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
     contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
     contextBuilder.packagesToMapMap[packages] = packageMap;
 
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFolder('/workspace');
     workspace = BasicWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
   }
