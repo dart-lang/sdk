@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class CanBeNullAfterNullAwareTest extends ResolverTestCase {
   test_afterCascade() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x..a?.b.c;
 }
@@ -25,7 +25,7 @@ m(x) {
   }
 
   test_beforeCascade() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a..m();
 }
@@ -33,7 +33,7 @@ m(x) {
   }
 
   test_cascadeWithParenthesis() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   (x?.a)..m();
 }
@@ -41,7 +41,7 @@ m(x) {
   }
 
   test_definedForNull() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 m(x) {
   x?.a.hashCode;
   x?.a.runtimeType;
@@ -54,7 +54,7 @@ m(x) {
   }
 
   test_guarded_methodInvocation() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 m(x) {
   x?.a()?.b();
 }
@@ -62,7 +62,7 @@ m(x) {
   }
 
   test_guarded_propertyAccess() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 m(x) {
   x?.a?.b;
 }
@@ -70,7 +70,7 @@ m(x) {
   }
 
   test_methodInvocation() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a.b();
 }
@@ -78,7 +78,7 @@ m(x) {
   }
 
   test_multipleInvocations() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a
     ..m()
@@ -88,7 +88,7 @@ m(x) {
   }
 
   test_parenthesized() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   (x?.a).b;
 }
@@ -96,7 +96,7 @@ m(x) {
   }
 
   test_propertyAccess() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a.b;
 }

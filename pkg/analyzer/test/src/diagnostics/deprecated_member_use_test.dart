@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUseTest extends ResolverTestCase {
   test__methodInvocation_contructor() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @Deprecated('0.9')
   m() {}
@@ -27,7 +27,7 @@ class A {
   }
 
   test_call() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   call() {}
@@ -40,7 +40,7 @@ class A {
   }
 
   test_compoundAssignment() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   A operator+(A a) { return a; }
@@ -58,13 +58,13 @@ f(A a) {
 library deprecated_library;
 class A {}
 ''');
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 export 'deprecated_library.dart';
 ''', [HintCode.DEPRECATED_MEMBER_USE]);
   }
 
   test_field() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   int x = 1;
@@ -76,7 +76,7 @@ f(A a) {
   }
 
   test_getter() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   get m => 1;
@@ -93,14 +93,14 @@ f(A a) {
 library deprecated_library;
 class A {}
 ''');
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'deprecated_library.dart';
 f(A a) {}
 ''', [HintCode.DEPRECATED_MEMBER_USE]);
   }
 
   test_inDeprecatedClass() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 f() {}
 
@@ -114,7 +114,7 @@ class C {
   }
 
   test_inDeprecatedField() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 class C {}
 
@@ -126,7 +126,7 @@ class X {
   }
 
   test_inDeprecatedFunction() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 f() {}
 
@@ -138,7 +138,7 @@ g() {
   }
 
   test_inDeprecatedLibrary() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 library lib;
 
@@ -154,7 +154,7 @@ class C {
   }
 
   test_inDeprecatedMethod() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 f() {}
 
@@ -168,7 +168,7 @@ class C {
   }
 
   test_inDeprecatedMethod_inDeprecatedClass() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 f() {}
 
@@ -183,7 +183,7 @@ class C {
   }
 
   test_inDeprecatedMixin() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 f() {}
 
@@ -197,7 +197,7 @@ mixin M {
   }
 
   test_inDeprecatedTopLevelVariable() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 @deprecated
 class C {}
 
@@ -207,7 +207,7 @@ C v;
   }
 
   test_indexExpression() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   operator[](int i) {}
@@ -219,7 +219,7 @@ f(A a) {
   }
 
   test_instanceCreation_defaultConstructor() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   A(int i) {}
@@ -231,7 +231,7 @@ f() {
   }
 
   test_instanceCreation_namedConstructor() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   A.named(int i) {}
@@ -243,7 +243,7 @@ f() {
   }
 
   test_methodInvocation_constant() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   m() {}
@@ -253,7 +253,7 @@ class A {
   }
 
   test_operator() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   operator+(A a) {}
@@ -266,7 +266,7 @@ f(A a) {
   }
 
   test_parameter_named() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   m({@deprecated int x}) {}
   n() {m(x: 1);}
@@ -275,13 +275,13 @@ class A {
   }
 
   test_parameter_named_inDefiningFunction() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f({@deprecated int x}) => x;
 ''');
   }
 
   test_parameter_named_inDefiningLocalFunction() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   m() {
     f({@deprecated int x}) {
@@ -294,7 +294,7 @@ class C {
   }
 
   test_parameter_named_inDefiningMethod() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   m({@deprecated int x}) {
     return x;
@@ -304,7 +304,7 @@ class C {
   }
 
   test_parameter_named_inNestedLocalFunction() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   m({@deprecated int x}) {
     f() {
@@ -317,7 +317,7 @@ class C {
   }
 
   test_parameter_positional() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   m([@deprecated int x]) {}
   n() {m(1);}
@@ -326,7 +326,7 @@ class A {
   }
 
   test_setter() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   set s(v) {}
@@ -338,7 +338,7 @@ f(A a) {
   }
 
   test_superConstructor_defaultConstructor() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   A() {}
@@ -350,7 +350,7 @@ class B extends A {
   }
 
   test_superConstructor_namedConstructor() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @deprecated
   A.named() {}
