@@ -20,8 +20,6 @@ import '../modifier.dart' show abstractMask;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
-import 'dill_loader.dart' show DillLoader;
-
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
 class DillClassBuilder extends KernelClassBuilder {
@@ -48,9 +46,8 @@ class DillClassBuilder extends KernelClassBuilder {
     if (supertype == null) {
       Supertype targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
-      DillLoader loader = library.loader;
-      super.supertype = supertype =
-          loader.computeTypeBuilder(targetSupertype.asInterfaceType);
+      super.supertype =
+          supertype = computeTypeBuilder(library, targetSupertype);
     }
     return supertype;
   }
@@ -102,7 +99,9 @@ class DillClassBuilder extends KernelClassBuilder {
   /// superclass.
   bool get isMixinApplication => cls.isMixinApplication;
 
-  KernelTypeBuilder get mixedInType => unimplemented("mixedInType", -1, null);
+  KernelTypeBuilder get mixedInType {
+    return computeTypeBuilder(library, cls.mixedInType);
+  }
 
   void set mixedInType(KernelTypeBuilder mixin) {
     unimplemented("mixedInType=", -1, null);
@@ -111,4 +110,11 @@ class DillClassBuilder extends KernelClassBuilder {
 
 int computeModifiers(Class cls) {
   return cls.isAbstract ? abstractMask : 0;
+}
+
+KernelTypeBuilder computeTypeBuilder(
+    DillLibraryBuilder library, Supertype supertype) {
+  return supertype == null
+      ? null
+      : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
