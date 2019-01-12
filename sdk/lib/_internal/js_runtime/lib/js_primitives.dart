@@ -8,15 +8,13 @@ library dart2js._js_primitives;
 
 import 'dart:_foreign_helper' show JS;
 
-/**
- * This is the low-level method that is used to implement [print].  It is
- * possible to override this function from JavaScript by defining a function in
- * JavaScript called "dartPrint".
- *
- * Notice that it is also possible to intercept calls to [print] from within a
- * Dart program using zones. This means that there is no guarantee that a call
- * to print ends in this method.
- */
+/// This is the low-level method that is used to implement [print].  It is
+/// possible to override this function from JavaScript by defining a function in
+/// JavaScript called "dartPrint".
+///
+/// Notice that it is also possible to intercept calls to [print] from within a
+/// Dart program using zones. This means that there is no guarantee that a call
+/// to print ends in this method.
 void printString(String string) {
   if (JS('bool', r'typeof dartPrint == "function"')) {
     // Support overriding print from JavaScript.

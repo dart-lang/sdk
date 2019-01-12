@@ -4,15 +4,13 @@
 
 part of _interceptors;
 
-/**
- * The super interceptor class for [JSInt] and [JSDouble]. The compiler
- * recognizes this class as an interceptor, and changes references to
- * [:this:] to actually use the receiver of the method, which is
- * generated as an extra argument added to each member.
- *
- * Note that none of the methods here delegate to a method defined on JSInt or
- * JSDouble.  This is exploited in [tryComputeConstantInterceptor].
- */
+/// The super interceptor class for [JSInt] and [JSDouble]. The compiler
+/// recognizes this class as an interceptor, and changes references to
+/// [:this:] to actually use the receiver of the method, which is
+/// generated as an extra argument added to each member.
+///
+/// Note that none of the methods here delegate to a method defined on JSInt or
+/// JSDouble.  This is exploited in [tryComputeConstantInterceptor].
 class JSNumber extends Interceptor implements double {
   const JSNumber();
 
@@ -444,14 +442,12 @@ class JSNumber extends Interceptor implements double {
   Type get runtimeType => num;
 }
 
-/**
- * The interceptor class for [int]s.
- *
- * This class implements double (indirectly through JSNumber) since in
- * JavaScript all numbers are doubles, so while we want to treat `2.0` as an
- * integer for some operations, its interceptor should answer `true` to `is
- * double`.
- */
+/// The interceptor class for [int]s.
+///
+/// This class implements double (indirectly through JSNumber) since in
+/// JavaScript all numbers are doubles, so while we want to treat `2.0` as an
+/// integer for some operations, its interceptor should answer `true` to `is
+/// double`.
 class JSInt extends JSNumber implements int {
   const JSInt();
 

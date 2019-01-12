@@ -646,7 +646,7 @@ class Primitives {
     return result;
   }
 
-  /** [: r"$".codeUnitAt(0) :] */
+  /// [: r"$".codeUnitAt(0) :]
   static const int DOLLAR_CHAR_VALUE = 36;
 
   /// Creates a string containing the complete type for the class [className]
@@ -1099,39 +1099,37 @@ class Primitives {
         0));
   }
 
-  /**
-   * Implements [Function.apply] for the lazy and startup emitters.
-   *
-   * There are two types of closures that can reach this function:
-   *
-   * 1. tear-offs (including tear-offs of static functions).
-   * 2. anonymous closures.
-   *
-   * They are treated differently (although there are lots of similarities).
-   * Both have in common that they have
-   * a [JsGetName.CALL_CATCH_ALL] and
-   * a [JsGetName.REQUIRED_PARAMETER_PROPERTY] property.
-   *
-   * If the closure supports optional parameters, then they also feature
-   * a [JsGetName.DEFAULT_VALUES_PROPERTY] property.
-   *
-   * The catch-all property is a method that takes all arguments (including
-   * all optional positional or named arguments). If the function accepts
-   * optional arguments, then the default-values property stores (potentially
-   * wrapped in a function) the default values for the optional arguments. If
-   * the function accepts optional positional arguments, then the value is a
-   * JavaScript array with the default values. Otherwise, when the function
-   * accepts optional named arguments, it is a JavaScript object.
-   *
-   * The default-values property may either contain the value directly, or
-   * it can be a function that returns the default-values when invoked.
-   *
-   * If the function is an anonymous closure, then the catch-all property
-   * only contains a string pointing to the property that should be used
-   * instead. For example, if the catch-all property contains the string
-   * "call$4", then the object's "call$4" property should be used as if it was
-   * the value of the catch-all property.
-   */
+  /// Implements [Function.apply] for the lazy and startup emitters.
+  ///
+  /// There are two types of closures that can reach this function:
+  ///
+  /// 1. tear-offs (including tear-offs of static functions).
+  /// 2. anonymous closures.
+  ///
+  /// They are treated differently (although there are lots of similarities).
+  /// Both have in common that they have
+  /// a [JsGetName.CALL_CATCH_ALL] and
+  /// a [JsGetName.REQUIRED_PARAMETER_PROPERTY] property.
+  ///
+  /// If the closure supports optional parameters, then they also feature
+  /// a [JsGetName.DEFAULT_VALUES_PROPERTY] property.
+  ///
+  /// The catch-all property is a method that takes all arguments (including
+  /// all optional positional or named arguments). If the function accepts
+  /// optional arguments, then the default-values property stores (potentially
+  /// wrapped in a function) the default values for the optional arguments. If
+  /// the function accepts optional positional arguments, then the value is a
+  /// JavaScript array with the default values. Otherwise, when the function
+  /// accepts optional named arguments, it is a JavaScript object.
+  ///
+  /// The default-values property may either contain the value directly, or
+  /// it can be a function that returns the default-values when invoked.
+  ///
+  /// If the function is an anonymous closure, then the catch-all property
+  /// only contains a string pointing to the property that should be used
+  /// instead. For example, if the catch-all property contains the string
+  /// "call$4", then the object's "call$4" property should be used as if it was
+  /// the value of the catch-all property.
   static applyFunction(Function function, List positionalArguments,
       Map<String, dynamic> namedArguments) {
     // Fast shortcut for the common case.
@@ -1328,32 +1326,27 @@ class JsCache {
   }
 }
 
-/**
- * Called by generated code to throw an illegal-argument exception,
- * for example, if a non-integer index is given to an optimized
- * indexed access.
- */
+/// Called by generated code to throw an illegal-argument exception,
+/// for example, if a non-integer index is given to an optimized
+/// indexed access.
 @NoInline()
 iae(argument) {
   throw argumentErrorValue(argument);
 }
 
-/**
- * Called by generated code to throw an index-out-of-range exception, for
- * example, if a bounds check fails in an optimized indexed access.  This may
- * also be called when the index is not an integer, in which case it throws an
- * illegal-argument exception instead, like [iae], or when the receiver is null.
- */
+/// Called by generated code to throw an index-out-of-range exception, for
+/// example, if a bounds check fails in an optimized indexed access.  This may
+/// also be called when the index is not an integer, in which case it throws an
+/// illegal-argument exception instead, like [iae], or when the receiver is
+/// null.
 @NoInline()
 ioore(receiver, index) {
   if (receiver == null) receiver.length; // Force a NoSuchMethodError.
   throw diagnoseIndexError(receiver, index);
 }
 
-/**
- * Diagnoses an indexing error. Returns the ArgumentError or RangeError that
- * describes the problem.
- */
+/// Diagnoses an indexing error. Returns the ArgumentError or RangeError that
+/// describes the problem.
 @NoInline()
 Error diagnoseIndexError(indexable, index) {
   if (index is! int) return new ArgumentError.value(index, 'index');
@@ -1367,10 +1360,8 @@ Error diagnoseIndexError(indexable, index) {
   return new RangeError.value(index, 'index');
 }
 
-/**
- * Diagnoses a range error. Returns the ArgumentError or RangeError that
- * describes the problem.
- */
+/// Diagnoses a range error. Returns the ArgumentError or RangeError that
+/// describes the problem.
 @NoInline()
 Error diagnoseRangeError(start, end, length) {
   if (start is! int) {
@@ -1426,12 +1417,10 @@ checkString(value) {
   return value;
 }
 
-/**
- * Wrap the given Dart object and record a stack trace.
- *
- * The code in [unwrapException] deals with getting the original Dart
- * object out of the wrapper again.
- */
+/// Wrap the given Dart object and record a stack trace.
+///
+/// The code in [unwrapException] deals with getting the original Dart
+/// object out of the wrapper again.
 @NoInline()
 wrapException(ex) {
   if (ex == null) ex = new NullThrownError();
@@ -1463,12 +1452,10 @@ toStringWrapper() {
   return JS('', r'this.dartException').toString();
 }
 
-/**
- * This wraps the exception and does the throw.  It is possible to call this in
- * a JS expression context, where the throw statement is not allowed.  Helpers
- * are never inlined, so we don't risk inlining the throw statement into an
- * expression context.
- */
+/// This wraps the exception and does the throw.  It is possible to call this in
+/// a JS expression context, where the throw statement is not allowed.  Helpers
+/// are never inlined, so we don't risk inlining the throw statement into an
+/// expression context.
 throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));
 }
@@ -1510,9 +1497,7 @@ throwConcurrentModificationError(collection) {
   throw new ConcurrentModificationError(collection);
 }
 
-/**
- * Helper class for building patterns recognizing native type errors.
- */
+/// Helper class for building patterns recognizing native type errors.
 class TypeErrorDecoder {
   // Field names are private to help tree-shaking.
 
@@ -1891,14 +1876,12 @@ class ExceptionAndStackTrace {
   ExceptionAndStackTrace(this.dartException, this.stackTrace);
 }
 
-/**
- * Called from catch blocks in generated code to extract the Dart
- * exception from the thrown value. The thrown value may have been
- * created by [wrapException] or it may be a 'native' JS exception.
- *
- * Some native exceptions are mapped to new Dart instances, others are
- * returned unmodified.
- */
+/// Called from catch blocks in generated code to extract the Dart
+/// exception from the thrown value. The thrown value may have been
+/// created by [wrapException] or it may be a 'native' JS exception.
+///
+/// Some native exceptions are mapped to new Dart instances, others are
+/// returned unmodified.
 unwrapException(ex) {
   /// If error implements Error, save [ex] in [error.$thrownJsError].
   /// Otherwise, do nothing. Later, the stack trace can then be extracted from
@@ -2048,10 +2031,8 @@ String tryStringifyException(ex) {
       ex);
 }
 
-/**
- * Called by generated code to fetch the stack trace from an
- * exception. Should never return null.
- */
+/// Called by generated code to fetch the stack trace from an
+/// exception. Should never return null.
 StackTrace getTraceFromException(exception) {
   if (exception is ExceptionAndStackTrace) {
     return exception.stackTrace;
@@ -2088,10 +2069,8 @@ int objectHashCode(var object) {
   }
 }
 
-/**
- * Called by generated code to build a map literal. [keyValuePairs] is
- * a list of key, value, key, value, ..., etc.
- */
+/// Called by generated code to build a map literal. [keyValuePairs] is
+/// a list of key, value, key, value, ..., etc.
 fillLiteralMap(keyValuePairs, Map result) {
   // TODO(johnniwinther): Use JSArray to optimize this code instead of calling
   // [getLength] and [getIndex].
@@ -2122,10 +2101,8 @@ invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
   throw new Exception('Unsupported number of arguments for wrapped closure');
 }
 
-/**
- * Called by generated code to convert a Dart closure to a JS
- * closure when the Dart closure is passed to the DOM.
- */
+/// Called by generated code to convert a Dart closure to a JS
+/// closure when the Dart closure is passed to the DOM.
 convertDartClosureToJS(closure, int arity) {
   if (closure == null) return null;
   var function = JS('var', r'#.$identity', closure);
@@ -2162,40 +2139,36 @@ abstract class Closure implements Function {
   static const OPTIONAL_PARAMETER_INDEX = 4;
   static const DEFAULT_ARGUMENTS_INDEX = 5;
 
-  /**
-   * Global counter to prevent reusing function code objects.
-   *
-   * V8 will share the underlying function code objects when the same string is
-   * passed to "new Function".  Shared function code objects can lead to
-   * sub-optimal performance due to polymorphism, and can be prevented by
-   * ensuring the strings are different, for example, by generating a local
-   * variable with a name dependent on [functionCounter].
-   */
+  /// Global counter to prevent reusing function code objects.
+  ///
+  /// V8 will share the underlying function code objects when the same string is
+  /// passed to "new Function".  Shared function code objects can lead to
+  /// sub-optimal performance due to polymorphism, and can be prevented by
+  /// ensuring the strings are different, for example, by generating a local
+  /// variable with a name dependent on [functionCounter].
   static int functionCounter = 0;
 
   Closure();
 
-  /**
-   * Creates a new closure class for use by implicit getters associated with a
-   * method.
-   *
-   * In other words, creates a tear-off closure.
-   *
-   * Called from [closureFromTearOff] as well as from reflection when tearing
-   * of a method via `getField`.
-   *
-   * This method assumes that [functions] was created by the JavaScript function
-   * `addStubs` in `reflection_data_parser.dart`. That is, a list of JavaScript
-   * function objects with properties `$stubName` and `$callName`.
-   *
-   * Further assumes that [reflectionInfo] is the end of the array created by
-   * [dart2js.js_emitter.ContainerBuilder.addMemberMethod] starting with
-   * required parameter count or, in case of the new emitter, the runtime
-   * representation of the function's type.
-   *
-   * Caution: this function may be called when building constants.
-   * TODO(ahe): Don't call this function when building constants.
-   */
+  /// Creates a new closure class for use by implicit getters associated with a
+  /// method.
+  ///
+  /// In other words, creates a tear-off closure.
+  ///
+  /// Called from [closureFromTearOff] as well as from reflection when tearing
+  /// of a method via `getField`.
+  ///
+  /// This method assumes that [functions] was created by the JavaScript
+  /// function `addStubs` in `reflection_data_parser.dart`. That is, a list of
+  /// JavaScript function objects with properties `$stubName` and `$callName`.
+  ///
+  /// Further assumes that [reflectionInfo] is the end of the array created by
+  /// [dart2js.js_emitter.ContainerBuilder.addMemberMethod] starting with
+  /// required parameter count or, in case of the new emitter, the runtime
+  /// representation of the function's type.
+  ///
+  /// Caution: this function may be called when building constants.
+  /// TODO(ahe): Don't call this function when building constants.
   static fromTearOff(
     receiver,
     List functions,
@@ -2757,101 +2730,91 @@ jsPropertyAccess(var jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
 
-/**
- * Called at the end of unaborted switch cases to get the singleton
- * FallThroughError exception that will be thrown.
- */
+/// Called at the end of unaborted switch cases to get the singleton
+/// FallThroughError exception that will be thrown.
 getFallThroughError() => new FallThroughErrorImplementation();
 
-/**
- * A metadata annotation describing the types instantiated by a native element.
- *
- * The annotation is valid on a native method and a field of a native class.
- *
- * By default, a field of a native class is seen as an instantiation point for
- * all native classes that are a subtype of the field's type, and a native
- * method is seen as an instantiation point fo all native classes that are a
- * subtype of the method's return type, or the argument types of the declared
- * type of the method's callback parameter.
- *
- * An @[Creates] annotation overrides the default set of instantiated types.  If
- * one or more @[Creates] annotations are present, the type of the native
- * element is ignored, and the union of @[Creates] annotations is used instead.
- * The names in the strings are resolved and the program will fail to compile
- * with dart2js if they do not name types.
- *
- * The argument to [Creates] is a string.  The string is parsed as the names of
- * one or more types, separated by vertical bars `|`.  There are some special
- * names:
- *
- * * `=Object`. This means 'exactly Object', which is a plain JavaScript object
- *   with properties and none of the subtypes of Object.
- *
- * Example: we may know that a method always returns a specific implementation:
- *
- *     @Creates('_NodeList')
- *     List<Node> getElementsByTagName(String tag) native;
- *
- * Useful trick: A method can be marked as not instantiating any native classes
- * with the annotation `@Creates('Null')`.  This is useful for fields on native
- * classes that are used only in Dart code.
- *
- *     @Creates('Null')
- *     var _cachedFoo;
- */
+/// A metadata annotation describing the types instantiated by a native element.
+///
+/// The annotation is valid on a native method and a field of a native class.
+///
+/// By default, a field of a native class is seen as an instantiation point for
+/// all native classes that are a subtype of the field's type, and a native
+/// method is seen as an instantiation point fo all native classes that are a
+/// subtype of the method's return type, or the argument types of the declared
+/// type of the method's callback parameter.
+///
+/// An @[Creates] annotation overrides the default set of instantiated types.
+/// If one or more @[Creates] annotations are present, the type of the native
+/// element is ignored, and the union of @[Creates] annotations is used instead.
+/// The names in the strings are resolved and the program will fail to compile
+/// with dart2js if they do not name types.
+///
+/// The argument to [Creates] is a string.  The string is parsed as the names of
+/// one or more types, separated by vertical bars `|`.  There are some special
+/// names:
+///
+/// * `=Object`. This means 'exactly Object', which is a plain JavaScript object
+///   with properties and none of the subtypes of Object.
+///
+/// Example: we may know that a method always returns a specific implementation:
+///
+///     @Creates('_NodeList')
+///     List<Node> getElementsByTagName(String tag) native;
+///
+/// Useful trick: A method can be marked as not instantiating any native classes
+/// with the annotation `@Creates('Null')`.  This is useful for fields on native
+/// classes that are used only in Dart code.
+///
+///     @Creates('Null')
+///     var _cachedFoo;
 class Creates {
   final String types;
   const Creates(this.types);
 }
 
-/**
- * A metadata annotation describing the types returned or yielded by a native
- * element.
- *
- * The annotation is valid on a native method and a field of a native class.
- *
- * By default, a native method or field is seen as returning or yielding all
- * subtypes if the method return type or field type.  This annotation allows a
- * more precise set of types to be specified.
- *
- * See [Creates] for the syntax of the argument.
- *
- * Example: IndexedDB keys are numbers, strings and JavaScript Arrays of keys.
- *
- *     @Returns('String|num|JSExtendableArray')
- *     dynamic key;
- *
- *     // Equivalent:
- *     @Returns('String') @Returns('num') @Returns('JSExtendableArray')
- *     dynamic key;
- */
+/// A metadata annotation describing the types returned or yielded by a native
+/// element.
+///
+/// The annotation is valid on a native method and a field of a native class.
+///
+/// By default, a native method or field is seen as returning or yielding all
+/// subtypes if the method return type or field type.  This annotation allows a
+/// more precise set of types to be specified.
+///
+/// See [Creates] for the syntax of the argument.
+///
+/// Example: IndexedDB keys are numbers, strings and JavaScript Arrays of keys.
+///
+///     @Returns('String|num|JSExtendableArray')
+///     dynamic key;
+///
+///     // Equivalent:
+///     @Returns('String') @Returns('num') @Returns('JSExtendableArray')
+///     dynamic key;
 class Returns {
   final String types;
   const Returns(this.types);
 }
 
-/**
- * A metadata annotation placed on native methods and fields of native classes
- * to specify the JavaScript name.
- *
- * This example declares a Dart field + getter + setter called `$dom_title` that
- * corresponds to the JavaScript property `title`.
- *
- *     class Document native "*Foo" {
- *       @JSName('title')
- *       String $dom_title;
- *     }
- */
+/// A metadata annotation placed on native methods and fields of native classes
+/// to specify the JavaScript name.
+///
+/// This example declares a Dart field + getter + setter called `$dom_title`
+/// that corresponds to the JavaScript property `title`.
+///
+///     class Document native "*Foo" {
+///       @JSName('title')
+///       String $dom_title;
+///     }
 class JSName {
   final String name;
   const JSName(this.name);
 }
 
-/**
- * The following methods are called by the runtime to implement
- * checked mode and casts. We specialize each primitive type (eg int, bool), and
- * use the compiler's convention to do is-checks on regular objects.
- */
+/// The following methods are called by the runtime to implement checked mode
+/// and casts. We specialize each primitive type (eg int, bool), and use the
+/// compiler's convention to do is-checks on regular objects.
 boolConversionCheck(value) {
   if (value is bool) return value;
   // One of the following checks will always fail.
@@ -2926,32 +2889,26 @@ void propertyTypeCastError(value, property) {
   throw new CastErrorImplementation(value, unminifyOrTag(name));
 }
 
-/**
- * For types that are not supertypes of native (eg DOM) types,
- * we emit a simple property check to check that an object implements
- * that type.
- */
+/// For types that are not supertypes of native (eg DOM) types,
+/// we emit a simple property check to check that an object implements
+/// that type.
 propertyTypeCheck(value, property) {
   if (value == null) return value;
   if (JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeError(value, property);
 }
 
-/**
- * For types that are not supertypes of native (eg DOM) types,
- * we emit a simple property check to check that an object implements
- * that type.
- */
+/// For types that are not supertypes of native (eg DOM) types,
+/// we emit a simple property check to check that an object implements
+/// that type.
 propertyTypeCast(value, property) {
   if (value == null || JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeCastError(value, property);
 }
 
-/**
- * For types that are supertypes of native (eg DOM) types, we use the
- * interceptor for the class because we cannot add a JS property to the
- * prototype at load time.
- */
+/// For types that are supertypes of native (eg DOM) types, we use the
+/// interceptor for the class because we cannot add a JS property to the
+/// prototype at load time.
 interceptedTypeCheck(value, property) {
   if (value == null) return value;
   if ((JS('bool', 'typeof # === "object"', value) ||
@@ -2962,11 +2919,9 @@ interceptedTypeCheck(value, property) {
   propertyTypeError(value, property);
 }
 
-/**
- * For types that are supertypes of native (eg DOM) types, we use the
- * interceptor for the class because we cannot add a JS property to the
- * prototype at load time.
- */
+/// For types that are supertypes of native (eg DOM) types, we use the
+/// interceptor for the class because we cannot add a JS property to the
+/// prototype at load time.
 interceptedTypeCast(value, property) {
   if (value == null ||
       ((JS('bool', 'typeof # === "object"', value) ||
@@ -2977,10 +2932,8 @@ interceptedTypeCast(value, property) {
   propertyTypeCastError(value, property);
 }
 
-/**
- * Specialization of the type check for num and String and their
- * supertype since [value] can be a JS primitive.
- */
+/// Specialization of the type check for num and String and their
+/// supertype since [value] can be a JS primitive.
 numberOrStringSuperTypeCheck(value, property) {
   if (value == null) return value;
   if (value is String) return value;
@@ -3011,10 +2964,8 @@ numberOrStringSuperNativeTypeCast(value, property) {
   propertyTypeCastError(value, property);
 }
 
-/**
- * Specialization of the type check for String and its supertype
- * since [value] can be a JS primitive.
- */
+/// Specialization of the type check for String and its supertype
+/// since [value] can be a JS primitive.
 stringSuperTypeCheck(value, property) {
   if (value == null) return value;
   if (value is String) return value;
@@ -3040,10 +2991,8 @@ stringSuperNativeTypeCast(value, property) {
   propertyTypeCastError(value, property);
 }
 
-/**
- * Specialization of the type check for List and its supertypes,
- * since [value] can be a JS array.
- */
+/// Specialization of the type check for List and its supertypes,
+/// since [value] can be a JS array.
 listTypeCheck(value) {
   if (value == null) return value;
   if (value is List) return value;
@@ -3158,17 +3107,15 @@ void checkDeferredIsLoaded(String loadId, String uri) {
   }
 }
 
-/**
- * Special interface recognized by the compiler and implemented by DOM
- * objects that support integer indexing. This interface is not
- * visible to anyone, and is only injected into special libraries.
- */
+/// Special interface recognized by the compiler and implemented by DOM
+/// objects that support integer indexing. This interface is not
+/// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 // TODO(lrn): These exceptions should be implemented in core.
 // When they are, remove the 'Implementation' here.
 
-/** Thrown by type assertions that fail. */
+/// Thrown by type assertions that fail.
 class TypeErrorImplementation extends Error implements TypeError {
   final String message;
 
@@ -3182,7 +3129,7 @@ class TypeErrorImplementation extends Error implements TypeError {
   String toString() => message;
 }
 
-/** Thrown by the 'as' operator if the cast isn't valid. */
+/// Thrown by the 'as' operator if the cast isn't valid.
 class CastErrorImplementation extends Error implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   final String message;
@@ -3211,12 +3158,11 @@ class FallThroughErrorImplementation extends FallThroughError {
   String toString() => 'Switch case fall-through.';
 }
 
-/**
- * Helper function for implementing asserts. The compiler treats this specially.
- *
- * Returns the negation of the condition. That is: `true` if the assert should
- * fail.
- */
+/// Helper function for implementing asserts. The compiler treats this
+/// specially.
+///
+/// Returns the negation of the condition. That is: `true` if the assert should
+/// fail.
 bool assertTest(condition) {
   // Do bool success check first, it is common and faster than 'is Function'.
   if (true == condition) return false;
@@ -3224,44 +3170,34 @@ bool assertTest(condition) {
   throw new TypeErrorImplementation(condition, 'bool');
 }
 
-/**
- * Helper function for implementing asserts with messages.
- * The compiler treats this specially.
- */
+/// Helper function for implementing asserts with messages.
+/// The compiler treats this specially.
 void assertThrow(Object message) {
   throw new _AssertionError(message);
 }
 
-/**
- * Helper function for implementing asserts without messages.
- * The compiler treats this specially.
- */
+/// Helper function for implementing asserts without messages.
+/// The compiler treats this specially.
 @NoInline()
 void assertHelper(condition) {
   if (assertTest(condition)) throw new AssertionError();
 }
 
-/**
- * Called by generated code when a method that must be statically
- * resolved cannot be found.
- */
+/// Called by generated code when a method that must be statically
+/// resolved cannot be found.
 void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
   Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
   throw new NoSuchMethodError(obj, memberName, arguments,
       new Map<Symbol, dynamic>(), expectedArgumentNames);
 }
 
-/**
- * Called by generated code when a static field's initializer references the
- * field that is currently being initialized.
- */
+/// Called by generated code when a static field's initializer references the
+/// field that is currently being initialized.
 void throwCyclicInit(String staticName) {
   throw new CyclicInitializationError(staticName);
 }
 
-/**
- * Error thrown when a runtime error occurs.
- */
+/// Error thrown when a runtime error occurs.
 class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
@@ -3288,11 +3224,9 @@ class UnimplementedNoSuchMethodError extends Error
   String toString() => 'Unsupported operation: $_message';
 }
 
-/**
- * Creates a random number with 64 bits of randomness.
- *
- * This will be truncated to the 53 bits available in a double.
- */
+/// Creates a random number with 64 bits of randomness.
+///
+/// This will be truncated to the 53 bits available in a double.
 int random64() {
   // TODO(lrn): Use a secure random source.
   int int32a = JS('int', '(Math.random() * 0x100000000) >>> 0');
@@ -3304,14 +3238,12 @@ String jsonEncodeNative(String string) {
   return JS('String', 'JSON.stringify(#)', string);
 }
 
-/**
- * Returns a property name for placing data on JavaScript objects shared between
- * DOM isolates.  This happens when multiple programs are loaded in the same
- * JavaScript context (i.e. page).  The name is based on [name] but with an
- * additional part that is unique for each isolate.
- *
- * The form of the name is '___dart_$name_$id'.
- */
+/// Returns a property name for placing data on JavaScript objects shared
+/// between DOM isolates.  This happens when multiple programs are loaded in the
+/// same JavaScript context (i.e. page).  The name is based on [name] but with
+/// an additional part that is unique for each isolate.
+///
+/// The form of the name is '___dart_$name_$id'.
 String getIsolateAffinityTag(String name) {
   var isolateTagGetter = JS_EMBEDDED_GLOBAL('', GET_ISOLATE_TAG);
   return JS('String', '#(#)', isolateTagGetter, name);

@@ -10,12 +10,10 @@ class _Growable {
 
 const _ListConstructorSentinel = const _Growable();
 
-/**
- * The interceptor class for [List]. The compiler recognizes this
- * class as an interceptor, and changes references to [:this:] to
- * actually use the receiver of the method, which is generated as an extra
- * argument added to each member.
- */
+/// The interceptor class for [List]. The compiler recognizes this
+/// class as an interceptor, and changes references to [:this:] to
+/// actually use the receiver of the method, which is generated as an extra
+/// argument added to each member.
 class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   const JSArray();
 
@@ -28,11 +26,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return new JSArray<E>.fixed(length);
   }
 
-  /**
-   * Returns a fresh JavaScript Array, marked as fixed-length.
-   *
-   * [length] must be a non-negative integer.
-   */
+  /// Returns a fresh JavaScript Array, marked as fixed-length.
+  ///
+  /// [length] must be a non-negative integer.
   factory JSArray.fixed(int length) {
     // Explicit type test is necessary to guard against JavaScript conversions
     // in unchecked mode, and against `new Array(null)` which creates a single
@@ -49,16 +45,12 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return new JSArray<E>.markFixed(JS('', 'new Array(#)', length));
   }
 
-  /**
-   * Returns a fresh growable JavaScript Array of zero length length.
-   */
+  /// Returns a fresh growable JavaScript Array of zero length length.
   factory JSArray.emptyGrowable() => new JSArray<E>.markGrowable(JS('', '[]'));
 
-  /**
-   * Returns a fresh growable JavaScript Array with initial length.
-   *
-   * [validatedLength] must be a non-negative integer.
-   */
+  /// Returns a fresh growable JavaScript Array with initial length.
+  ///
+  /// [validatedLength] must be a non-negative integer.
   factory JSArray.growable(int length) {
     // Explicit type test is necessary to guard against JavaScript conversions
     // in unchecked mode.
@@ -68,20 +60,18 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return new JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
   }
 
-  /**
-   * Constructor for adding type parameters to an existing JavaScript Array.
-   * The compiler specially recognizes this constructor.
-   *
-   *     var a = new JSArray<int>.typed(JS('JSExtendableArray', '[]'));
-   *     a is List<int>    --> true
-   *     a is List<String> --> false
-   *
-   * Usually either the [JSArray.markFixed] or [JSArray.markGrowable]
-   * constructors is used instead.
-   *
-   * The input must be a JavaScript Array.  The JS form is just a re-assertion
-   * to help type analysis when the input type is sloppy.
-   */
+  /// Constructor for adding type parameters to an existing JavaScript Array.
+  /// The compiler specially recognizes this constructor.
+  ///
+  ///     var a = new JSArray<int>.typed(JS('JSExtendableArray', '[]'));
+  ///     a is List<int>    --> true
+  ///     a is List<String> --> false
+  ///
+  /// Usually either the [JSArray.markFixed] or [JSArray.markGrowable]
+  /// constructors is used instead.
+  ///
+  /// The input must be a JavaScript Array.  The JS form is just a re-assertion
+  /// to help type analysis when the input type is sloppy.
   factory JSArray.typed(allocation) => JS('JSArray', '#', allocation);
 
   factory JSArray.markFixed(allocation) =>
@@ -181,9 +171,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return false;
   }
 
-  /**
-   * Removes elements matching [test] from [this] List.
-   */
+  /// Removes elements matching [test] from [this] List.
   void removeWhere(bool test(E element)) {
     checkGrowable('removeWhere');
     _removeWhere(test, true);
@@ -677,17 +665,15 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 }
 
-/**
- * Dummy subclasses that allow the backend to track more precise
- * information about arrays through their type. The CPA type inference
- * relies on the fact that these classes do not override [] nor []=.
- *
- * These classes are really a fiction, and can have no methods, since
- * getInterceptor always returns JSArray.  We should consider pushing the
- * 'isGrowable' and 'isMutable' checks into the getInterceptor implementation so
- * these classes can have specialized implementations. Doing so will challenge
- * many assumptions in the JS backend.
- */
+/// Dummy subclasses that allow the backend to track more precise
+/// information about arrays through their type. The CPA type inference
+/// relies on the fact that these classes do not override [] nor []=.
+///
+/// These classes are really a fiction, and can have no methods, since
+/// getInterceptor always returns JSArray.  We should consider pushing the
+/// 'isGrowable' and 'isMutable' checks into the getInterceptor implementation
+/// so these classes can have specialized implementations. Doing so will
+/// challenge many assumptions in the JS backend.
 class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
 
 class JSFixedArray<E> extends JSMutableArray<E> {}

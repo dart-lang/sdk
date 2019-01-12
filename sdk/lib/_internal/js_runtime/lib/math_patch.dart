@@ -84,15 +84,11 @@ class _JSRandom implements Random {
     return JS('int', '(Math.random() * #) >>> 0', max);
   }
 
-  /**
-   * Generates a positive random floating point value uniformly distributed on
-   * the range from 0.0, inclusive, to 1.0, exclusive.
-   */
+  /// Generates a positive random floating point value uniformly distributed on
+  /// the range from 0.0, inclusive, to 1.0, exclusive.
   double nextDouble() => JS('double', 'Math.random()');
 
-  /**
-   * Generates a random boolean value.
-   */
+  /// Generates a random boolean value.
   bool nextBool() => JS('bool', 'Math.random() < 0.5');
 }
 
