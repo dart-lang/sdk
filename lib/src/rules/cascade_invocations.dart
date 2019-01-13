@@ -267,7 +267,7 @@ class _CascadableExpression {
       this.canBeCascaded,
       this.isCritical = false});
 
-  /// Whether [this] is compatible to be joined with [expressionBox] with a
+  /// Whether `this` is compatible to be joined with [expressionBox] with a
   /// cascade operation.
   bool compatibleWith(_CascadableExpression expressionBox) =>
       element != null &&
