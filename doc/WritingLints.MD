@@ -77,6 +77,10 @@ The linter has a close relationship with the `analyzer` package and at times rea
   
 Thanks!
 
+### Writing Tests that Depend on Dart SDK Details
+
+**Important:** when writing tests that use standard `dart:` libraries, it's important to keep in mind that linter tests use a mocked SDK that has only a small subset of the real one.  We do this for performance reasons as it's FAR faster to load a mock SDK into memory than read the real one from disk.  If you are writing tests that depend on something in the Dart SDK (for example, an interface such as `Iterable`), you may need to update our [mock content](https://github.com/dart-lang/linter/blob/master/test/mock_sdk.dart).
+
 ### Running Tests
 
 The test suite run during the linter's CI, can be run locally like so:
