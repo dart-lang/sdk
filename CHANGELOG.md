@@ -1,4 +1,4 @@
-## 2.2.0-dev.XX.0
+## 2.1.1-dev.XX.0
 (Add new changes here, and they will be copied to the change section for the
   next dev version)
 
@@ -8,12 +8,37 @@
 
 #### `dart:core`
 
-*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator 
+*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator
     when parsing from a string. (Issue [35576][])
 
 [35576]: https://github.com/dart-lang/sdk/issues/35576
 
 ### Dart VM
+
+### Tool Changes
+
+#### Analyzer
+
+*   New hints added:
+
+    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
+        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
+        const constructor is called in a non-const context (or with `new`).
+
+#### dart2js
+
+* `--fast-startup` is forced on.  The flag is silently ignored and will be
+  deprecated and then removed at a later date.
+
+  The alternative 'full emitter' is no longer available. The generated code for
+  `--fast-startup` is optimized to load faster, even though it can be slightly
+  larger.
+
+#### Pub
+
+#### Other Tools
+
+## 2.1.1-dev.1.0
 
 ### Tool Changes
 
@@ -28,9 +53,6 @@
 
     *   `INVALID_LITERAL_ANNOTATION` when something other than a const
         constructor is annotated with `@literal`.
-    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
-        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
-        const constructor is called in a non-const context (or with `new`).
     *   `SUBTYPE_OF_SEALED_CLASS` when any class or mixin subclasses (extends,
         implements, mixes in, or constrains to) a `@sealed` class, and the two
         are declared in different packages.
@@ -38,13 +60,6 @@
         constraint of a mixin.
 
 #### dart2js
-
-* `--fast-startup` is forced on.  The flag is silently ignored and will be
-  deprecated and then removed at a later date.
-
-  The alternative 'full emitter' is no longer available. The generated code for
-  `--fast-startup` is optimized to load faster, even though it can be slightly
-  larger.
 
 * We fixed a bug in how deferred constructor calls were incorrectly not
   marked as deferred. The old behavior didn't cause breakages, but was imprecise
@@ -106,8 +121,6 @@
 * dartdoc default styles now work much better on mobile.  Simple browsing
   and searching of API docs now work in many cases.
 
-#### Pub
-
 #### Linter
 
 The linter was bumped to `0.1.78` which introduces the following linter fixes to the SDK:
@@ -126,7 +139,31 @@ and adds:
 
 * a new `prefer_final_in_for_each` lint rule to flag loop variables that could be declared final
 
-#### Other Tools
+## 2.1.1-dev.0.1
+
+* Cherry-pick 4914fe57ea9e034b948ef3ab5a4e7e511991f845 to dev
+* Cherry-pick 5a8ec419829337b60d705cabe0b3b1ab5d0d0883 to dev
+
+## 2.1.1-dev.0.0
+
+* Cherry-pick f8a680e5116493f8795c148a52dbecf8a84e4536 to dev
+* Cherry-pick b1c963c84b20e715bc5c1f7d443168071c2b971d to dev
+
+## 2.2.0-dev.1.1
+
+### Tool Changes
+
+#### Linter
+
+The linter was bumped to `0.1.73` which introduces the following new lints to the SDK:
+
+* `unnecessary_await_in_return`
+* `use_function_type_syntax_for_parameters`
+* `avoid_returning_null_for_future`
+* `avoid_shadowing_type_parameters`
+
+In addition, `prefer_bool_in_asserts` has been deprecated as its semantics are
+redundant with Dart 2 checks.
 
 ## 2.2.0-dev.0.0
 
