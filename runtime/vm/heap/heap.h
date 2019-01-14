@@ -281,6 +281,10 @@ class Heap {
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
+  intptr_t CalculateTLABSize();
+  void MakeTLABIterable(Thread* thread);
+  void AbandonRemainingTLAB(Thread* thread);
+
  private:
   class GCStats : public ValueObject {
    public:
