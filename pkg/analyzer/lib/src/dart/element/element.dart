@@ -4206,7 +4206,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   DartType get type {
-    if (unlinkedParam != null && unlinkedParam.type == null && field != null) {
+    if (unlinkedParam != null &&
+        unlinkedParam.type == null &&
+        !unlinkedParam.isFunctionTyped &&
+        field != null) {
       _type ??= field?.type ?? DynamicTypeImpl.instance;
     }
     return super.type;
