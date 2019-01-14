@@ -1458,6 +1458,19 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
 
   @override
   _ReferenceInfo getReferenceInfo(int index) {
+    // We don't know how to reproduce this.
+    // https://github.com/dart-lang/sdk/issues/35551
+    // https://github.com/dart-lang/sdk/issues/34534
+    // So, adding logging to gather more information.
+    if (index >= referenceInfos.length) {
+      var buffer = StringBuffer();
+      buffer.writeln('librarySource: ${unit.librarySource}');
+      buffer.writeln('unitSource: ${unit.source}');
+      buffer.writeln('unlinkedUnit: ${unlinkedUnit.toJson()}');
+      buffer.writeln('linkedUnit: ${linkedUnit.toJson()}');
+      throw StateError(buffer.toString());
+    }
+
     _ReferenceInfo result = referenceInfos[index];
     if (result == null) {
       LinkedReference linkedReference = linkedUnit.references[index];
