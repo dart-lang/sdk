@@ -235,32 +235,32 @@ class ConstantsTransformer extends Transformer {
   visitVariableDeclaration(VariableDeclaration node) {
     transformAnnotations(node.annotations, node);
 
-    if (node.isConst) {
-      final Constant constant = tryEvaluateWithContext(node, node.initializer);
-
-      // If there was a constant evaluation error we will not continue and
-      // simply keep the old [node].
-      if (constant == null) {
-        return node;
-      }
-
-      constantEvaluator.env.addVariableValue(node, constant);
-
-      if (keepVariables) {
-        // So the value of the variable is still available for debugging
-        // purposes we convert the constant variable to be a final variable
-        // initialized to the evaluated constant expression.
-        node.initializer = new ConstantExpression(constant)..parent = node;
-        node.isFinal = true;
-        node.isConst = false;
-      } else {
-        // Since we convert all use-sites of constants, the constant
-        // [VariableDeclaration] is unused and we'll therefore remove it.
-        return null;
-      }
-    }
     if (node.initializer != null) {
-      node.initializer = node.initializer.accept(this)..parent = node;
+      if (node.isConst) {
+        final Constant constant =
+            tryEvaluateWithContext(node, node.initializer);
+
+        // If there was a constant evaluation error we will not continue and
+        // simply keep the old [node].
+        if (constant != null) {
+          constantEvaluator.env.addVariableValue(node, constant);
+
+          if (keepVariables) {
+            // So the value of the variable is still available for debugging
+            // purposes we convert the constant variable to be a final variable
+            // initialized to the evaluated constant expression.
+            node.initializer = new ConstantExpression(constant)..parent = node;
+            node.isFinal = true;
+            node.isConst = false;
+          } else {
+            // Since we convert all use-sites of constants, the constant
+            // [VariableDeclaration] is unused and we'll therefore remove it.
+            return null;
+          }
+        }
+      } else {
+        node.initializer = node.initializer.accept(this)..parent = node;
+      }
     }
     return node;
   }
