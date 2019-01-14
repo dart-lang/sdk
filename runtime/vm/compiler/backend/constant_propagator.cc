@@ -272,6 +272,14 @@ void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {}
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
+void ConstantPropagator::VisitStoreIndexedUnsafe(
+    StoreIndexedUnsafeInstr* instr) {}
+
+void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
+
+void ConstantPropagator::VisitStoreInstanceField(
+    StoreInstanceFieldInstr* instr) {}
+
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
@@ -682,20 +690,6 @@ void ConstantPropagator::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 
 void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitStoreIndexedUnsafe(
-    StoreIndexedUnsafeInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
-}
-
-void ConstantPropagator::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
 }
 
 void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
