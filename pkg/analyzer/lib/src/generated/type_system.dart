@@ -2234,6 +2234,9 @@ class UnknownInferredType extends TypeImpl {
     return this;
   }
 
+  @override
+  TypeImpl withNullability(Nullability nullability) => this;
+
   /// Given a [type] T, return true if it does not have an unknown type `?`.
   static bool isKnown(DartType type) => !isUnknown(type);
 
