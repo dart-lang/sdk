@@ -1807,7 +1807,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     try {
       List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
-          .libraryFiles
+          .transitiveFiles
           .map((file) => new AnalysisDriverExceptionFileBuilder(
               path: file.path, content: file.content))
           .toList();
