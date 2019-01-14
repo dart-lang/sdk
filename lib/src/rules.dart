@@ -262,7 +262,7 @@ void registerLintRules() {
     ..register(new UnnecessaryNew())
     ..registerDefault(new UnnecessaryNullAwareAssignments())
     ..registerDefault(new UnnecessaryNullInIfNullOperators())
-    // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
+    // Disabled pending fix: https://github.com/dart-lang/linter/issues/23
     //..register(new UnnecessaryGetters())
     ..register(new UnnecessaryGettersSetters())
     ..register(new UnnecessaryLambdas())
