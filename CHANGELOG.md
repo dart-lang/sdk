@@ -40,6 +40,31 @@
 
 ## 2.1.1-dev.1.0
 
+### Dart VM
+
+In previous releases it was possible to violate static types using dart:mirrors but this bug is fixed now. Meaning that the code below would run without any TypeErrors and print "impossible" output.
+
+```dart
+import 'dart:mirrors';
+
+class A {
+  void method(int v) {
+    if (v != null && v is! int) {
+      print("This should be impossible: expected null or int got ${v}");
+    }
+  }
+}
+
+void main() {
+  final obj = A();
+  reflect(obj).invoke(#method, ['not-an-number']);
+}
+```
+
+Only code that already violates static typing will break.
+
+See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more details.
+
 ### Tool Changes
 
 #### Analyzer
