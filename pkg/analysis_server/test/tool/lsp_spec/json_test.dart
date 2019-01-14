@@ -157,6 +157,18 @@ main() {
       final message = NotificationMessage.fromJson(jsonDecode(input));
       expect(message.params, isNull);
     });
+
+    test('deserialises subtypes into the correct class', () {
+      // Create some JSON that includes a VersionedTextDocumentIdenfitier but
+      // where the class definition only references a TextDocumentIdemntifier.
+      final input = jsonEncode(new TextDocumentPositionParams(
+        new VersionedTextDocumentIdentifier(111, 'file:///foo/bar.dart'),
+        new Position(1, 1),
+      ).toJson());
+      final params = TextDocumentPositionParams.fromJson(jsonDecode(input));
+      expect(params.textDocument,
+          const TypeMatcher<VersionedTextDocumentIdentifier>());
+    });
   });
 
   test('objects with lists can round-trip through to json and back', () {

@@ -474,6 +474,9 @@ class CodeActionKind {
 class CodeActionOptions implements ToJsonable {
   CodeActionOptions(this.codeActionKinds);
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
+    if (CodeActionRegistrationOptions.canParse(json)) {
+      return CodeActionRegistrationOptions.fromJson(json);
+    }
     final codeActionKinds = json['codeActionKinds']
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
@@ -4952,6 +4955,9 @@ class LocationLink implements ToJsonable {
     if (targetRange == null) {
       throw 'targetRange is required but was not provided';
     }
+    if (targetSelectionRange == null) {
+      throw 'targetSelectionRange is required but was not provided';
+    }
   }
   static LocationLink fromJson(Map<String, dynamic> json) {
     final originSelectionRange = json['originSelectionRange'] != null
@@ -5213,6 +5219,15 @@ class Message implements ToJsonable {
     }
   }
   static Message fromJson(Map<String, dynamic> json) {
+    if (RequestMessage.canParse(json)) {
+      return RequestMessage.fromJson(json);
+    }
+    if (ResponseMessage.canParse(json)) {
+      return ResponseMessage.fromJson(json);
+    }
+    if (NotificationMessage.canParse(json)) {
+      return NotificationMessage.fromJson(json);
+    }
     final jsonrpc = json['jsonrpc'];
     return new Message(jsonrpc);
   }
@@ -10035,6 +10050,9 @@ class TextDocumentIdentifier implements ToJsonable {
     }
   }
   static TextDocumentIdentifier fromJson(Map<String, dynamic> json) {
+    if (VersionedTextDocumentIdentifier.canParse(json)) {
+      return VersionedTextDocumentIdentifier.fromJson(json);
+    }
     final uri = json['uri'];
     return new TextDocumentIdentifier(uri);
   }
@@ -10168,6 +10186,12 @@ class TextDocumentPositionParams implements ToJsonable {
     }
   }
   static TextDocumentPositionParams fromJson(Map<String, dynamic> json) {
+    if (CompletionParams.canParse(json)) {
+      return CompletionParams.fromJson(json);
+    }
+    if (ReferenceParams.canParse(json)) {
+      return ReferenceParams.fromJson(json);
+    }
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
@@ -10224,6 +10248,33 @@ class TextDocumentPositionParams implements ToJsonable {
 class TextDocumentRegistrationOptions implements ToJsonable {
   TextDocumentRegistrationOptions(this.documentSelector);
   static TextDocumentRegistrationOptions fromJson(Map<String, dynamic> json) {
+    if (TextDocumentChangeRegistrationOptions.canParse(json)) {
+      return TextDocumentChangeRegistrationOptions.fromJson(json);
+    }
+    if (TextDocumentSaveRegistrationOptions.canParse(json)) {
+      return TextDocumentSaveRegistrationOptions.fromJson(json);
+    }
+    if (CompletionRegistrationOptions.canParse(json)) {
+      return CompletionRegistrationOptions.fromJson(json);
+    }
+    if (SignatureHelpRegistrationOptions.canParse(json)) {
+      return SignatureHelpRegistrationOptions.fromJson(json);
+    }
+    if (CodeActionRegistrationOptions.canParse(json)) {
+      return CodeActionRegistrationOptions.fromJson(json);
+    }
+    if (CodeLensRegistrationOptions.canParse(json)) {
+      return CodeLensRegistrationOptions.fromJson(json);
+    }
+    if (DocumentLinkRegistrationOptions.canParse(json)) {
+      return DocumentLinkRegistrationOptions.fromJson(json);
+    }
+    if (DocumentOnTypeFormattingRegistrationOptions.canParse(json)) {
+      return DocumentOnTypeFormattingRegistrationOptions.fromJson(json);
+    }
+    if (RenameRegistrationOptions.canParse(json)) {
+      return RenameRegistrationOptions.fromJson(json);
+    }
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()

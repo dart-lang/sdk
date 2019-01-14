@@ -9,6 +9,7 @@ import 'typescript_parser.dart';
 
 final formatter = new DartFormatter();
 Map<String, Interface> _interfaces = {};
+Map<String, List<String>> _subtypes = {};
 // TODO(dantup): Rename namespaces -> enums since they're always that now.
 Map<String, Namespace> _namespaces = {};
 Map<String, TypeAlias> _typeAliases = {};
@@ -31,9 +32,15 @@ String generateDartForTypes(List<AstNode> types) {
   types
       .whereType<TypeAlias>()
       .forEach((alias) => _typeAliases[alias.name] = alias);
-  types
-      .whereType<Interface>()
-      .forEach((interface) => _interfaces[interface.name] = interface);
+  types.whereType<Interface>().forEach((interface) {
+    _interfaces[interface.name] = interface;
+    // Keep track of our base classes so they can look up their super classes
+    // later in their fromJson() to deserialise into the most specific type.
+    interface.baseTypes.forEach((base) {
+      final subTypes = _subtypes[base.dartType] ??= new List<String>();
+      subTypes.add(interface.name);
+    });
+  });
   types
       .whereType<Namespace>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
@@ -403,6 +410,16 @@ void _writeFromJsonConstructor(
     ..writeIndentedln('static ${interface.nameWithTypeArgs} '
         'fromJson${interface.typeArgsString}(Map<String, dynamic> json) {')
     ..indent();
+  // First check whether any of our subclasses can deserialise this.
+  for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
+    final subclass = _interfaces[subclassName];
+    buffer
+      ..writeIndentedln('if (${subclass.nameWithTypeArgs}.canParse(json)) {')
+      ..indent()
+      ..writeln('return ${subclass.nameWithTypeArgs}.fromJson(json);')
+      ..outdent()
+      ..writeIndentedln('}');
+  }
   for (final field in allFields) {
     buffer.writeIndented('final ${field.name} = ');
     _writeFromJsonCode(buffer, field.type, "json['${field.name}']",
