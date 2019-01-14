@@ -93,24 +93,7 @@ class ClassHierarchyBuilder {
       return a;
     }
     if (isInheritanceConflict(a, b)) {
-      String name = a.fullNameForErrors;
-      if (mergeKind == MergeKind.interfaces) {
-        cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
-            cls.fullNameForErrors.length,
-            context: <LocatedMessage>[
-              messageInheritedMembersConflictCause1.withLocation(
-                  a.fileUri, a.charOffset, name.length),
-              messageInheritedMembersConflictCause2.withLocation(
-                  b.fileUri, b.charOffset, name.length),
-            ]);
-      } else {
-        cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
-            a.charOffset, name.length,
-            context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation(b.fileUri, b.charOffset, name.length)
-            ]);
-      }
+      reportInheritanceConflict(cls, a, b, mergeKind);
     }
     Declaration result = a;
     if (mergeKind == MergeKind.interfaces) {
@@ -135,6 +118,28 @@ class ClassHierarchyBuilder {
     }
 
     return result;
+  }
+
+  void reportInheritanceConflict(KernelClassBuilder cls, Declaration a,
+      Declaration b, MergeKind mergeKind) {
+    String name = a.fullNameForErrors;
+    if (mergeKind == MergeKind.interfaces) {
+      cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
+          cls.fullNameForErrors.length,
+          context: <LocatedMessage>[
+            messageInheritedMembersConflictCause1.withLocation(
+                a.fileUri, a.charOffset, name.length),
+            messageInheritedMembersConflictCause2.withLocation(
+                b.fileUri, b.charOffset, name.length),
+          ]);
+    } else {
+      cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
+          a.charOffset, name.length,
+          context: <LocatedMessage>[
+            messageDeclaredMemberConflictsWithInheritedMemberCause.withLocation(
+                b.fileUri, b.charOffset, name.length)
+          ]);
+    }
   }
 
   /// If [mergeKind] is `MergeKind.superclass` [member] is declared in current
