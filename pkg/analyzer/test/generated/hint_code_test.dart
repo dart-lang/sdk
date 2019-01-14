@@ -68,11 +68,8 @@ class _VisibleForTesting {
 
 @reflectiveTest
 class CrossPackageHintCodeTest extends ResolverTestCase {
-  /// Write a pubspec file at [root], so that BestPracticesVerifier can see that
-  /// [root] is the root of a BasicWorkspace, and a BasicWorkspacePackage.
-  void newBasicPackage(String root) {
-    newFile('$root/pubspec.yaml');
-  }
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_subtypeOfSealedClass_extending() async {
     super.resetWith(packages: [
@@ -86,7 +83,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar extends Foo {}
@@ -108,7 +105,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar implements Foo {}
@@ -130,7 +127,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar1 {}
@@ -153,7 +150,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     mixin Bar implements Foo {}
@@ -175,7 +172,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     mixin Bar on Foo {}
@@ -197,7 +194,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar extends Object with Foo {}
@@ -212,7 +209,7 @@ import 'package:meta/meta.dart';
       ['meta', metaLibraryStub],
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:meta/meta.dart';
                     @sealed class Foo {}
@@ -233,12 +230,13 @@ import 'package:meta/meta.dart';
       ['meta', metaLibraryStub],
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
                      import 'package:meta/meta.dart';
                      @sealed class Foo {}
                      ''');
-    addNamedSource('/pkg1/lib/src/lib2.dart', r'''
+    Source source2 = addNamedSource('/pkg1/lib/src/lib2.dart', r'''
+                     import '../lib1.dart';
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
                      class Bar4 = Bar1 with Foo;
@@ -246,8 +244,10 @@ import 'package:meta/meta.dart';
                      mixin Bar6 implements Foo {}
                      ''');
     await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
     assertNoErrors(source1);
-    verify([source1]);
+    assertNoErrors(source2);
+    verify([source1, source2]);
   }
 
   test_subtypeOfSealedClass_withinPackageTestDirectory_OK() async {
@@ -255,12 +255,15 @@ import 'package:meta/meta.dart';
       ['meta', metaLibraryStub],
     ]);
 
-    newBasicPackage('/pkg1');
+    newFolder('/pkg1');
+    _newPubPackageRoot('/pkg1');
+
     Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
                      import 'package:meta/meta.dart';
                      @sealed class Foo {}
                      ''');
-    addNamedSource('/pkg1/test/test.dart', r'''
+    Source source2 = addNamedSource('/pkg1/test/test.dart', r'''
+                     import '../lib/lib1.dart';
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
                      class Bar4 = Bar1 with Foo;
@@ -268,8 +271,10 @@ import 'package:meta/meta.dart';
                      mixin Bar6 implements Foo {}
                      ''');
     await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
     assertNoErrors(source1);
-    verify([source1]);
+    assertNoErrors(source2);
+    verify([source1, source2]);
   }
 
   test_subtypeOfSealedClass_withinPart_OK() async {
@@ -277,7 +282,7 @@ import 'package:meta/meta.dart';
       ['meta', metaLibraryStub],
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
                      import 'package:meta/meta.dart';
                      part 'part1.dart';
@@ -308,7 +313,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar1 {}
@@ -331,7 +336,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar extends Object with Foo {}
@@ -339,6 +344,12 @@ import 'package:meta/meta.dart';
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
     verify([source]);
+  }
+
+  /// Write a pubspec file at [root], so that BestPracticesVerifier can see
+  /// that [root] is the root of a PubWorkspace, and a PubWorkspacePackage.
+  void _newPubPackageRoot(String root) {
+    newFile('$root/pubspec.yaml');
   }
 }
 

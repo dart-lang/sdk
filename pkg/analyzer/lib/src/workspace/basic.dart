@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:package_config/packages.dart';
 
@@ -16,23 +17,7 @@ import 'package:package_config/packages.dart';
  *
  * A BasicWorkspace should only be used when no other workspace type is valid.
  */
-class BasicWorkspace extends Workspace {
-  /**
-   * The [ResourceProvider] by which paths are converted into [Resource]s.
-   */
-  final ResourceProvider provider;
-
-  /**
-   * The absolute workspace root path.
-   */
-  final String root;
-
-  final ContextBuilder _builder;
-
-  Map<String, List<Folder>> _packageMap;
-
-  Packages _packages;
-
+class BasicWorkspace extends SimpleWorkspace {
   /**
    * The singular package in this workspace.
    *
@@ -40,37 +25,9 @@ class BasicWorkspace extends Workspace {
    */
   BasicWorkspacePackage _theOnlyPackage;
 
-  BasicWorkspace._(this.provider, this.root, this._builder);
-
-  @override
-  Map<String, List<Folder>> get packageMap {
-    _packageMap ??= _builder.convertPackagesToMap(packages);
-    return _packageMap;
-  }
-
-  Packages get packages {
-    _packages ??= _builder.createPackageMap(root);
-    return _packages;
-  }
-
-  @override
-  UriResolver get packageUriResolver =>
-      new PackageMapUriResolver(provider, packageMap);
-
-  @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
-    if (summaryData != null) {
-      throw new UnsupportedError(
-          'Summary files are not supported in a basic workspace.');
-    }
-    List<UriResolver> resolvers = <UriResolver>[];
-    if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
-    }
-    resolvers.add(packageUriResolver);
-    resolvers.add(new ResourceUriResolver(provider));
-    return new SourceFactory(resolvers, packages, provider);
-  }
+  BasicWorkspace._(
+      ResourceProvider provider, String root, ContextBuilder builder)
+      : super(provider, root, builder);
 
   @override
   WorkspacePackage findPackageFor(String filePath) {

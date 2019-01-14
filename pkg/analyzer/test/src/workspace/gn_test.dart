@@ -182,6 +182,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/.config',
         content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
     newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
+    newFolder('/ws/some/code');
     return GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
   }
 

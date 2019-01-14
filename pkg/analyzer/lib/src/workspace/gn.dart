@@ -198,6 +198,10 @@ class GnWorkspace extends Workspace {
    * file must be found in [filePath]'s output directory.
    */
   static GnWorkspace find(ResourceProvider provider, String filePath) {
+    Resource resource = provider.getResource(filePath);
+    if (resource is File) {
+      filePath = resource.parent.path;
+    }
     Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
