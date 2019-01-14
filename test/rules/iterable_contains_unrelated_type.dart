@@ -146,7 +146,6 @@ bool takesB3(B3 b) => b.contains('a'); // OK
 
 abstract class A2 implements Iterable<String> {}
 abstract class B2 extends A2 {}
-abstract class A2 extends B2 {}
 bool takesB2(B2 b) => b.contains('a'); // OK
 
 abstract class SomeIterable<E> implements Iterable<E> {}

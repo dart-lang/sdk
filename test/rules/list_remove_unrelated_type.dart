@@ -146,7 +146,6 @@ bool takesB3(B3 b) => b.remove('a'); // OK
 
 abstract class A2 implements List<String> {}
 abstract class B2 extends A2 {}
-abstract class A2 extends B2 {}
 bool takesB2(B2 b) => b.remove('a'); // OK
 
 abstract class SomeList<E> implements List<E> {}

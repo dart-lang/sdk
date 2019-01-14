@@ -82,7 +82,7 @@ class H extends E {
   void bad([bool value]) {} // OK because it has inherited method.
 }
 
-class I implements E {
+abstract class I implements E {
   @override
   void bad([bool value]) {} // OK because it has inherited method.
 }
