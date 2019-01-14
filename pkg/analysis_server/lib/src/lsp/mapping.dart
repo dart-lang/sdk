@@ -1,9 +1,11 @@
 import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
+    show ResponseError;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart'
+    show ErrorOr, Either2, Either4;
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
@@ -28,6 +30,21 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
       ? new lsp.Either2<String, lsp.MarkupContent>.t1(content)
       : new lsp.Either2<String, lsp.MarkupContent>.t2(
           _asMarkup(preferredFormats, content));
+}
+
+/// Note: This code will fetch the version of each document being modified so
+/// it's important to call this immediately after computing edits to ensure
+/// the document is not modified before the version number is read.
+lsp.WorkspaceEdit createWorkspaceEdit(
+    lsp.LspAnalysisServer server, server.SourceChange change) {
+  return toWorkspaceEdit(
+      server.clientCapabilities?.workspace,
+      change.edits
+          .map((e) => new FileEditInformation(
+              server.getVersionedDocumentIdentifier(e.file),
+              server.getLineInfo(e.file),
+              e.edits))
+          .toList());
 }
 
 lsp.CompletionItemKind elementKindToCompletionItemKind(
@@ -212,7 +229,7 @@ lsp.Location navigationTargetToLocation(String targetFilePath,
     return null;
   }
 
-  return new Location(
+  return new lsp.Location(
     Uri.file(targetFilePath).toString(),
     toRange(lineInfo, target.offset, target.length),
   );
@@ -261,7 +278,7 @@ lsp.Location searchResultToLocation(
     return null;
   }
 
-  return new Location(
+  return new lsp.Location(
     Uri.file(result.location.file).toString(),
     toRange(lineInfo, location.offset, location.length),
   );
@@ -513,41 +530,41 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
 }
 
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
-  return new TextDocumentEdit(
+  return new lsp.TextDocumentEdit(
     edit.doc,
     edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
   );
 }
 
 lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
-  return new TextEdit(
+  return new lsp.TextEdit(
     toRange(lineInfo, edit.offset, edit.length),
     edit.replacement,
   );
 }
 
 lsp.WorkspaceEdit toWorkspaceEdit(
-  WorkspaceClientCapabilities capabilities,
+  lsp.WorkspaceClientCapabilities capabilities,
   List<FileEditInformation> edits,
 ) {
   final clientSupportsTextDocumentEdits =
       capabilities?.workspaceEdit?.documentChanges == true;
   if (clientSupportsTextDocumentEdits) {
-    return new WorkspaceEdit(
+    return new lsp.WorkspaceEdit(
         null,
         Either2<
-            List<TextDocumentEdit>,
+            List<lsp.TextDocumentEdit>,
             List<
-                Either4<TextDocumentEdit, CreateFile, RenameFile,
-                    DeleteFile>>>.t1(
+                Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
+                    lsp.DeleteFile>>>.t1(
           edits.map(toTextDocumentEdit).toList(),
         ));
   } else {
-    return new WorkspaceEdit(toWorkspaceEditChanges(edits), null);
+    return new lsp.WorkspaceEdit(toWorkspaceEditChanges(edits), null);
   }
 }
 
-Map<String, List<TextEdit>> toWorkspaceEditChanges(
+Map<String, List<lsp.TextEdit>> toWorkspaceEditChanges(
     List<FileEditInformation> edits) {
   createEdit(FileEditInformation file) {
     final edits =
@@ -555,7 +572,7 @@ Map<String, List<TextEdit>> toWorkspaceEditChanges(
     return new MapEntry(file.doc.uri, edits);
   }
 
-  return Map<String, List<TextEdit>>.fromEntries(edits.map(createEdit));
+  return Map<String, List<lsp.TextEdit>>.fromEntries(edits.map(createEdit));
 }
 
 lsp.MarkupContent _asMarkup(

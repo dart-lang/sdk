@@ -112,11 +112,29 @@ abstract class AbstractLspAnalysisServerTest
     // number of inserts followed by a single remove or replace edit. If multiple
     // inserts have the same position, the order in the array defines the order in
     // which the inserted strings appear in the resulting text.
-    if (changes.length > 1) {
-      // TODO(dantup): Implement multi-edit edits.
-      throw 'Test helper applyTextEdits does not support applying multiple edits';
-    } else if (changes.length == 1) {
-      newContent = applyTextEdit(newContent, changes.single);
+
+    /// Ensures changes are simple enough to apply easily without any complicated
+    /// logic.
+    void validateChangesCanBeApplied() {
+      bool intersectsWithOrComesAfter(Position pos, Position other) =>
+          pos.line > other.line ||
+          (pos.line == other.line || pos.character >= other.character);
+
+      Position earliestPositionChanged;
+      for (final change in changes) {
+        if (earliestPositionChanged != null &&
+            intersectsWithOrComesAfter(
+                change.range.end, earliestPositionChanged)) {
+          throw 'Test helper applyTextEdits does not support applying multiple edits '
+              'where the edits are not in reverse order.';
+        }
+        earliestPositionChanged = change.range.start;
+      }
+    }
+
+    validateChangesCanBeApplied();
+    for (final change in changes) {
+      newContent = applyTextEdit(newContent, change);
     }
 
     return newContent;
@@ -213,7 +231,7 @@ abstract class AbstractLspAnalysisServerTest
     }
   }
 
-  Future<List<TextEdit>> formatDocument(String fileUri) async {
+  Future<List<TextEdit>> formatDocument(String fileUri) {
     final request = makeRequest(
       Method.textDocument_formatting,
       new DocumentFormattingParams(
@@ -225,7 +243,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Future<List<TextEdit>> formatOnType(
-      String fileUri, Position pos, String character) async {
+      String fileUri, Position pos, String character) {
     final request = makeRequest(
       Method.textDocument_onTypeFormatting,
       new DocumentOnTypeFormattingParams(
@@ -242,7 +260,7 @@ abstract class AbstractLspAnalysisServerTest
     String fileUri, {
     Range range,
     List<CodeActionKind> kinds,
-  }) async {
+  }) {
     final request = makeRequest(
       Method.textDocument_codeAction,
       new CodeActionParams(
@@ -257,7 +275,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
-      {CompletionContext context}) async {
+      {CompletionContext context}) {
     final request = makeRequest(
       Method.textDocument_completion,
       new CompletionParams(
@@ -269,7 +287,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
-  Future<List<Location>> getDefinition(Uri uri, Position pos) async {
+  Future<List<Location>> getDefinition(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
       new TextDocumentPositionParams(
@@ -280,8 +298,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
-  Future<List<DocumentHighlight>> getDocumentHighlights(
-      Uri uri, Position pos) async {
+  Future<List<DocumentHighlight>> getDocumentHighlights(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_documentHighlight,
       new TextDocumentPositionParams(
@@ -293,7 +310,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(String fileUri) async {
+      getDocumentSymbols(String fileUri) {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       new DocumentSymbolParams(
@@ -303,7 +320,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo(request);
   }
 
-  Future<Hover> getHover(Uri uri, Position pos) async {
+  Future<Hover> getHover(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_hover,
       new TextDocumentPositionParams(
@@ -316,7 +333,7 @@ abstract class AbstractLspAnalysisServerTest
     Uri uri,
     Position pos, {
     includeDeclarations = false,
-  }) async {
+  }) {
     final request = makeRequest(
       Method.textDocument_references,
       new ReferenceParams(
@@ -328,7 +345,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
-  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) async {
+  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_signatureHelp,
       new TextDocumentPositionParams(
@@ -503,8 +520,8 @@ abstract class AbstractLspAnalysisServerTest
     return rangesFromMarkersImpl(content).toList();
   }
 
-  Future replaceFile(int newVersion, Uri uri, String content) async {
-    await changeFile(
+  Future replaceFile(int newVersion, Uri uri, String content) {
+    return changeFile(
       newVersion,
       uri,
       [new TextDocumentContentChangeEvent(null, null, content)],
@@ -513,7 +530,7 @@ abstract class AbstractLspAnalysisServerTest
 
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
-  void respondTo<T>(RequestMessage request, T responseParams) async {
+  void respondTo<T>(RequestMessage request, T responseParams) {
     channel.sendResponseToServer(
         new ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
   }
