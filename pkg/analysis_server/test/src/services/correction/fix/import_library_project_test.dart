@@ -362,6 +362,53 @@ main() {
 ''');
   }
 
+  test_withFunction_functionTopLevelVariable() async {
+    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+    await resolveTestUnit('''
+main() {
+  myFunction();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+main() {
+  myFunction();
+}
+''');
+  }
+
+  test_withFunction_preferFunctionOverTopLevelVariable() async {
+    _configureMyPkg({
+      'b.dart': 'var myFunction = () {};',
+      'a.dart': 'myFunction() {}',
+    });
+    await resolveTestUnit('''
+main() {
+  myFunction();
+}
+''');
+    await assertHasFix('''
+import 'package:my_pkg/a.dart';
+
+main() {
+  myFunction();
+}
+''');
+  }
+
+  @failingTest
+  test_withFunction_nonFunctionType() async {
+    // TODO Remove preferFunctionOverTopLevelVariable test once this is passing
+    addSource('/home/test/lib/lib.dart', 'int zero = 0;');
+    await resolveTestUnit('''
+main() {
+  zero();
+}
+''');
+    await assertNoFix();
+  }
+
   test_withTopLevelVariable() async {
     addSource('/home/test/lib/lib.dart', '''
 library lib;
