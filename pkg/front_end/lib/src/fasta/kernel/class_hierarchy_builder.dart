@@ -112,21 +112,14 @@ class ClassHierarchyBuilder {
             ]);
       }
     }
-    Member aTarget = a.target;
-    Member bTarget = b.target;
-    if (mergeKind == MergeKind.superclass &&
-        aTarget.name == noSuchMethodName &&
-        !aTarget.isAbstract) {
-      hasNoSuchMethod = true;
-    }
     Declaration result = a;
     if (mergeKind == MergeKind.interfaces) {
       // TODO(ahe): Combine the signatures of a and b.  See the section named
       // "Combined Member Signatures" in [Dart Programming Language
       // Specification](
       // ../../../../../../docs/language/dartLangSpec.tex#combinedMemberSignatures).
-    } else if (aTarget.isAbstract) {
-      if (mergeKind == MergeKind.superclass && !bTarget.isAbstract) {
+    } else if (a.target.isAbstract) {
+      if (mergeKind == MergeKind.superclass && !b.target.isAbstract) {
         // An abstract method doesn't override an implemention inherited from a
         // superclass.
         result = b;
@@ -134,6 +127,13 @@ class ClassHierarchyBuilder {
         (abstractMembers ??= <Declaration>[]).add(a);
       }
     }
+
+    if (mergeKind == MergeKind.superclass &&
+        result.fullNameForErrors == noSuchMethodName.name &&
+        result.parent != objectClass) {
+      hasNoSuchMethod = true;
+    }
+
     return result;
   }
 

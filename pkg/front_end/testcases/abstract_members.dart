@@ -38,4 +38,21 @@ class MyClass extends B {
   cMethod() {}
 }
 
+// This class should have no errors, as it has a non-trivial noSuchMethod.
+class MyMock1 extends B {
+  noSuchMethod(_) => null;
+}
+
+// This class should have no errors, as the abstract method doesn't override
+// the non-trivial noSuchMethod inherited from MyMock1.
+class MyMock2 extends MyMock1 {
+  noSuchMethod(_);
+}
+
+// This class should have an error, the abstract method isn't considered
+// non-trivial.
+class MyMock3 extends B {
+  noSuchMethod(_);
+}
+
 main() {}
