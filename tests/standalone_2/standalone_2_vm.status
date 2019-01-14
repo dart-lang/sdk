@@ -79,6 +79,9 @@ io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 [ $compiler != dart2analyzer && $system == windows ]
 io/platform_resolved_executable_test/06: RuntimeError # Issue 23641
 
+[ $mode == release && $runtime == vm && $system == linux && ($arch == simdbc64 || $arch == x64) ]
+io/http_bind_test: Pass, Timeout # Issue 35192
+
 [ $mode == release && $runtime == vm && $system == macos ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
