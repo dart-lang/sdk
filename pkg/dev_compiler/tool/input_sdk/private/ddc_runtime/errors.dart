@@ -156,8 +156,11 @@ void rethrow_(Object error) {
 /// Subclass of JS `Error` that wraps a thrown Dart object, and evaluates the
 /// message lazily by calling `toString()` on the wrapped Dart object.
 ///
-/// Also creates a pointer from the Dart [Error] to the JS Error
-/// (via [_jsError]). This is used to implement [Error.stackTrace].
+/// Also creates a pointer from the thrown Dart object to the JS Error
+/// (via [_jsError]). This is used to implement [Error.stackTrace], but also
+/// provides a way to recover the stack trace if we lose track of it.
+/// [Error] requires preserving the original stack trace if an error is
+/// rethrown, so we only update the pointer if it wasn't already set.
 ///
 /// TODO(jmesserly): Dart Errors should simply be JS Errors.
 final Object DartError = JS(
@@ -166,14 +169,15 @@ final Object DartError = JS(
       constructor(error) {
         super();
         this[#] = error;
-        if (error instanceof # && error[#] == null) error[#] = this;
+        if (error != null && typeof error == "object" && error[#] == null) {
+          error[#] = this;
+        }
       }
       get message() {
         return #(this[#]);
       }
     }''',
     _thrownValue,
-    Error,
     _jsError,
     _jsError,
     _toString,
@@ -222,7 +226,15 @@ void throw_(Object exception) {
 /// the correct JS stack trace (visible if JavaScript ends up handling it). To
 /// fix that, we use [RethrownDartError] to preserve the Dart trace and make
 /// sure it gets displayed in the JS error message.
+///
+/// If the stack trace is null, this will preserve the original stack trace
+/// on the exception, if available, otherwise it will capture the current stack
+/// trace.
 Object createErrorWithStack(Object exception, StackTrace trace) {
+  if (trace == null) {
+    var error = JS('', '#[#]', exception, _jsError);
+    return error != null ? error : JS('', 'new #(#)', DartError, exception);
+  }
   if (trace is _StackTrace) {
     /// Optimization: if this stack trace and exception already have a matching
     /// Error, we can just rethrow it.
@@ -231,9 +243,7 @@ Object createErrorWithStack(Object exception, StackTrace trace) {
       return originalError;
     }
   }
-  var error = JS('', 'new #(#)', RethrownDartError, exception);
-  JS('', '#[#] = #', error, _stackTrace, trace);
-  return error;
+  return JS('', 'new #(#, #)', RethrownDartError, exception, trace);
 }
 
 // This is a utility function: it is only intended to be called from dev
