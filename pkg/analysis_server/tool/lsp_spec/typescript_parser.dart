@@ -22,7 +22,7 @@ bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
 /// of type names for inline types.
 const fieldNameForIndexer = 'indexer';
 
-List<AstNode> parseFile(String input) {
+List<AstNode> parseString(String input) {
   final scanner = new Scanner(input);
   final tokens = scanner.scan();
   final parser = new Parser(tokens);

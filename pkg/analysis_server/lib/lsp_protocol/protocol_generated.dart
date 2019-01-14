@@ -5905,6 +5905,60 @@ class Range implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class RangeAndPlaceholder implements ToJsonable {
+  RangeAndPlaceholder(this.range, this.placeholder) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (placeholder == null) {
+      throw 'placeholder is required but was not provided';
+    }
+  }
+  static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final placeholder = json['placeholder'];
+    return new RangeAndPlaceholder(range, placeholder);
+  }
+
+  final String placeholder;
+  final Range range;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['placeholder'] =
+        placeholder ?? (throw 'placeholder is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('placeholder') &&
+        obj['placeholder'] is String;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is RangeAndPlaceholder) {
+      return range == other.range && placeholder == other.placeholder && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, placeholder.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class ReferenceContext implements ToJsonable {
   ReferenceContext(this.includeDeclaration) {
     if (includeDeclaration == null) {
