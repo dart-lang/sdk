@@ -2337,19 +2337,11 @@ import 'package:test/b.dart';
   }
 
   test_hasFilesToAnalyze() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    var c = convertPath('/test/lib/c.dart');
-
     // No files yet, nothing to analyze.
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Add a new file, it should be analyzed.
-    newFile(a, content: r'''
-import 'b.dart';
-main() {}
-''');
-    driver.addFile(a);
+    addTestFile('main() {}', priority: false);
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Wait for idle, nothing to do.
@@ -2357,22 +2349,16 @@ main() {}
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Ask to analyze the file, so there is a file to analyze.
-    Future<ResolvedUnitResult> future = driver.getResult(a);
+    Future<ResolvedUnitResult> future = driver.getResult(testFile);
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Once analysis is done, there is nothing to analyze.
     await future;
     expect(driver.hasFilesToAnalyze, isFalse);
 
-    // Change a file that is not added, but referenced, so known.
-    driver.changeFile(b);
+    // Change a file, even if not added, it still might affect analysis.
+    driver.changeFile(convertPath('/not/added.dart'));
     expect(driver.hasFilesToAnalyze, isTrue);
-    await waitForIdleWithoutExceptions();
-    expect(driver.hasFilesToAnalyze, isFalse);
-
-    // Change a file that is not known - neither added, nor referenced.
-    driver.changeFile(c);
-    expect(driver.hasFilesToAnalyze, isFalse);
     await waitForIdleWithoutExceptions();
     expect(driver.hasFilesToAnalyze, isFalse);
 
@@ -3374,6 +3360,28 @@ class F extends X {}
     expect(result.content, isNull);
     expect(result.unit, isNull);
     expect(result.errors, hasLength(0));
+  }
+
+  test_results_removeFile_changeFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: r'''
+var v = 0;
+''');
+    driver.addFile(a);
+
+    await waitForIdleWithoutExceptions();
+    expect(allResults.singleWhere((r) => r.path == a).errors, hasLength(0));
+    allResults.clear();
+
+    newFile(a, content: r'''
+var v = 0
+''');
+    driver.removeFile(b);
+    driver.changeFile(a);
+    await waitForIdleWithoutExceptions();
+    expect(allResults.singleWhere((r) => r.path == a).errors, hasLength(1));
   }
 
   test_results_skipNotAffected() async {
