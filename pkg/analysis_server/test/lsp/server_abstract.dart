@@ -469,6 +469,17 @@ abstract class AbstractLspAnalysisServerTest
     return toPosition(lineInfo.getLocation(offset));
   }
 
+  Future<RangeAndPlaceholder> prepareRename(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_prepareRename,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<RangeAndPlaceholder>(request);
+  }
+
   /// Returns the range surrounded by `[[markers]]` in the provided string,
   /// excluding the markers themselves (as well as position markers `^` from
   /// the offsets).
@@ -518,6 +529,22 @@ abstract class AbstractLspAnalysisServerTest
     }
 
     return rangesFromMarkersImpl(content).toList();
+  }
+
+  Future<WorkspaceEdit> rename(
+    Uri uri,
+    int version,
+    Position pos,
+    String newName,
+  ) {
+    final docIdentifier = version != null
+        ? new VersionedTextDocumentIdentifier(version, uri.toString())
+        : new TextDocumentIdentifier(uri.toString());
+    final request = makeRequest(
+      Method.textDocument_rename,
+      new RenameParams(docIdentifier, pos, newName),
+    );
+    return expectSuccessfulResponseTo<WorkspaceEdit>(request);
   }
 
   Future replaceFile(int newVersion, Uri uri, String content) {

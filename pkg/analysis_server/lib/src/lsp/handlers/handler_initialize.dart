@@ -44,6 +44,9 @@ class InitializeMessageHandler
     final codeActionLiteralSupport =
         params.capabilities.textDocument?.codeAction?.codeActionLiteralSupport;
 
+    final renameOptionsSupport =
+        params.capabilities.textDocument?.rename?.prepareSupport ?? false;
+
     server.capabilities = new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,
@@ -86,7 +89,9 @@ class InitializeMessageHandler
         true, // documentFormattingProvider
         false, // documentRangeFormattingProvider
         new DocumentOnTypeFormattingOptions('}', [';']),
-        null,
+        renameOptionsSupport
+            ? Either2<bool, RenameOptions>.t2(new RenameOptions(true))
+            : Either2<bool, RenameOptions>.t1(true),
         null,
         null,
         null,

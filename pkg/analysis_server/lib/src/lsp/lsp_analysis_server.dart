@@ -24,6 +24,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -77,6 +78,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * also referenced by the ContextManager.
    */
   final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+
+  /**
+   * The workspace for rename refactorings. Should be accessed through the
+   * refactoringWorkspace getter to be automatically created (lazily).
+   */
+  RefactoringWorkspace _refactoringWorkspace;
+
+  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
+      new RefactoringWorkspace(driverMap.values, searchEngine);
 
   /**
    * The versions of each document known to the server (keyed by path), used to

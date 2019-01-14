@@ -19,6 +19,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
@@ -61,6 +62,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new CodeActionHandler(server));
     registerHandler(new ExecuteCommandHandler(server));
     registerHandler(new WorkspaceFoldersHandler(server));
+    registerHandler(new PrepareRenameHandler(server));
+    registerHandler(new RenameHandler(server));
   }
 }
 
