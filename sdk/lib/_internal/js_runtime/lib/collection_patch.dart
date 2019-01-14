@@ -1673,3 +1673,30 @@ class _LinkedHashSetIterator<E> implements Iterator<E> {
     }
   }
 }
+
+@patch
+abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
+  @patch
+  Node _splayMin(Node node) {
+    Node current = node;
+    while (current.left != null) {
+      Node left = current.left;
+      current.left = left.right;
+      left.right = current;
+      current = left;
+    }
+    return current;
+  }
+
+  @patch
+  Node _splayMax(Node node) {
+    Node current = node;
+    while (current.right != null) {
+      Node right = current.right;
+      current.right = right.left;
+      right.left = current;
+      current = right;
+    }
+    return current;
+  }
+}

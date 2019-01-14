@@ -147,32 +147,14 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
   // anchored at [node].
   // and that node is returned. It should replace the reference to [node]
   // in any parent tree or root pointer.
-  Node _splayMin(Node node) {
-    Node current = node;
-    while (current.left != null) {
-      Node left = current.left;
-      current.left = left.right;
-      left.right = current;
-      current = left;
-    }
-    return current;
-  }
+  external Node _splayMin(Node node);
 
   // Emulates splaying with a key that is greater than any in the subtree
   // anchored at [node].
   // After this, the largest element in the tree is the root of the subtree,
   // and that node is returned. It should replace the reference to [node]
   // in any parent tree or root pointer.
-  Node _splayMax(Node node) {
-    Node current = node;
-    while (current.right != null) {
-      Node right = current.right;
-      current.right = right.left;
-      right.left = current;
-      current = right;
-    }
-    return current;
-  }
+  external Node _splayMax(Node node);
 
   Node _remove(K key) {
     if (_root == null) return null;

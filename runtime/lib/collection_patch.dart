@@ -908,3 +908,31 @@ class LinkedHashSet<E> {
   @patch
   factory LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
 }
+
+@patch
+abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
+  // We override _splayMin and _splayMax to optimize type-checks.
+  @patch
+  Node _splayMin(Node node) {
+    Node current = node;
+    while (current.left != null) {
+      Node left = internal.unsafeCast<Node>(current.left);
+      current.left = left.right;
+      left.right = current;
+      current = left;
+    }
+    return current;
+  }
+
+  @patch
+  Node _splayMax(Node node) {
+    Node current = node;
+    while (current.right != null) {
+      Node right = internal.unsafeCast<Node>(current.right);
+      current.right = right.left;
+      right.left = current;
+      current = right;
+    }
+    return current;
+  }
+}
