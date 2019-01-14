@@ -1085,6 +1085,7 @@ EMIT_NATIVE_CODE(AllocateObject,
 }
 
 EMIT_NATIVE_CODE(StoreInstanceField, 2) {
+  ASSERT(!HasTemp());
   ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();

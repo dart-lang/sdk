@@ -244,7 +244,7 @@ void JitCallSpecializer::LowerContextAllocation(
                                             context_variables.length());
   alloc->ReplaceWith(replacement, current_iterator());
 
-  Instruction* cursor = replacement;
+  Definition* cursor = replacement;
 
   Value* initial_value;
   if (context_value != NULL) {

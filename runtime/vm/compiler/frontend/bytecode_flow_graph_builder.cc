@@ -994,6 +994,7 @@ void BytecodeFlowGraphBuilder::BuildPushStatic() {
 void BytecodeFlowGraphBuilder::BuildStoreIndexedTOS() {
   LoadStackSlots(3);
   code_ += B->StoreIndexed(kArrayCid);
+  code_ += B->Drop();
 }
 
 void BytecodeFlowGraphBuilder::BuildBooleanNegateTOS() {

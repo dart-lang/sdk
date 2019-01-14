@@ -451,6 +451,7 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
       Pop(),  // Array.
       index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
       class_id, kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
+  Push(store);
   return Fragment(store);
 }
 
@@ -630,6 +631,7 @@ Fragment BaseFlowGraphBuilder::StoreFpRelativeSlot(intptr_t offset) {
   Value* index = Pop();
   StoreIndexedUnsafeInstr* instr =
       new (Z) StoreIndexedUnsafeInstr(index, value, offset);
+  Push(instr);
   return Fragment(instr);
 }
 
