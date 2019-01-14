@@ -817,6 +817,11 @@ class ConstantEvaluator extends RecursiveVisitor {
     });
   }
 
+  visitInvalidExpression(InvalidExpression node) {
+    // Invalid expressions are always distinct, we do not canonicalize them.
+    return new UnevaluatedConstant(node);
+  }
+
   visitMethodInvocation(MethodInvocation node) {
     // We have no support for generic method invocation atm.
     assert(node.arguments.named.isEmpty);
