@@ -70,7 +70,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/formatting | ✅ | ✅ | ✅ | ✅ |
 | textDocument/rangeFormatting | | | | | requires support from dart_style?
 | textDocument/onTypeFormatting | ✅ | ✅ | ✅ | ✅ |
-| textDocument/rename | ✅ | ✅ | Incomplete! | |
+| textDocument/rename | ✅ | ✅ | ✅ | ✅ |
 | textDocument/prepareRename | | | | |
 | textDocument/foldingRange | | | | |
 
