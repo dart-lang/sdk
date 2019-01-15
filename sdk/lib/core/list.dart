@@ -636,7 +636,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     list1.setRange(1, 3, list2, 3);
    *     list1.join(', '); // '1, 8, 9, 4'
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
