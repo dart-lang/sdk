@@ -675,6 +675,7 @@ micro: TextSerializationFailure # Was: RuntimeError
 minimum_int: TextSerializationFailure # Was: Pass
 missing_constructor: TextSerializationFailure # Was: Pass
 mixin_application_override: TypeCheckError
+mixin_conflicts: TextSerializationFailure
 mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
 mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
 mixin_super_repeated: TextSerializationFailure # Was: Pass

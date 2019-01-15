@@ -230,6 +230,10 @@ class ClassHierarchyBuilder {
     Scope scope = cls.scope;
     if (cls.isMixinApplication) {
       Declaration mixin = getDeclaration(cls.mixedInType);
+      while (mixin.isNamedMixinApplication) {
+        KernelClassBuilder named = mixin;
+        mixin = getDeclaration(named.mixedInType);
+      }
       if (mixin is KernelClassBuilder) {
         scope = mixin.scope;
       }
@@ -290,6 +294,13 @@ class ClassHierarchyBuilder {
       merge(cls, localSetters, classMembers, MergeKind.accessors);
 
       List<KernelTypeBuilder> interfaces = cls.interfaces;
+      if (cls.isMixinApplication) {
+        if (interfaces == null) {
+          interfaces = <KernelTypeBuilder>[cls.mixedInType];
+        } else {
+          interfaces = <KernelTypeBuilder>[cls.mixedInType]..addAll(interfaces);
+        }
+      }
       if (interfaces != null) {
         MergeResult result = mergeInterfaces(cls, supernode, interfaces);
         interfaceMembers = result.mergedMembers;

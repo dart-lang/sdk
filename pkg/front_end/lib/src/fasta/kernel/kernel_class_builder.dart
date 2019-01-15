@@ -1362,7 +1362,7 @@ abstract class KernelClassBuilder
   }
 
   String get fullNameForErrors {
-    return isMixinApplication
+    return isMixinApplication && !isNamedMixinApplication
         ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
         : name;
   }
