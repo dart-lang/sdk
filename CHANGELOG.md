@@ -13,6 +13,21 @@
 
 [35576]: https://github.com/dart-lang/sdk/issues/35576
 
+*   Fixed a number of 'dart:html' P1 bugs:
+
+    *   Fixed HTML API's with callback typedef to correctly convert Dart function to JS function.
+    *   HttpStatus constants exposed in dart:html
+    *   Expose DomName ondblclick and dblclickEvent for Angular analyzer.
+    *   Fixed removeAll on classes Set should be Iterable<Object> to match Set's removeAll not Iterable<E>.
+    *   Fixed a number of DataTransferItem, Entry, FileEntry and DiretoryEntry returning NativeJavaScriptObject needed type registered in DDC.
+        This fixes handling drag/drop of files/directories.
+    *   Added ability to allow local file access from Chrome browser in ddb.
+
+[30278]: https://github.com/dart-lang/sdk/issues/30278
+[34318]: https://github.com/dart-lang/sdk/issues/34318
+[35484]: https://github.com/dart-lang/sdk/issues/35484
+[35510]: https://github.com/dart-lang/sdk/issues/35510
+
 ### Dart VM
 
 ### Tool Changes

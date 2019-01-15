@@ -82,4 +82,15 @@ $!MEMBERS
    */
   String toDataUrl([String type = 'image/png', num quality]) =>
       _toDataUrl(type, quality);
+
+  @JSName('toBlob')
+  void _toBlob(BlobCallback callback, String type, [Object arguments]) native;
+
+  Future<Blob> toBlob(String type, [Object arguments]) {
+    var completer = new Completer<Blob>();
+      _toBlob((value) {
+        completer.complete(value);
+      }, type, arguments);
+    return completer.future;
+  }
 }

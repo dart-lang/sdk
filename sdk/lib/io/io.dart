@@ -196,6 +196,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 export 'dart:_http';
+export 'dart:_internal' show HttpStatus;
 
 part 'bytes_builder.dart';
 part 'common.dart';

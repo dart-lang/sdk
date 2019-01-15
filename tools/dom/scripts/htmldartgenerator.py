@@ -323,7 +323,6 @@ class HtmlDartGenerator(object):
                                              info.operations[0],
                                              info.name,
                                              'call:')
-
     if not method_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -905,24 +904,37 @@ class HtmlDartGenerator(object):
   def _TypeInfo(self, type_name):
     return self._type_registry.TypeInfo(type_name)
 
+  def _CallbackConvert(self, argType, info):
+    if self._database.HasInterface(argType):
+      interface = self._database.GetInterface(argType)
+      if "Callback" in interface.ext_attrs:
+          return interface.ext_attrs['Callback']
+    return None
+
   def _ConvertArgumentTypes(self, stmts_emitter, arguments, argument_count, info):
     temp_version = [0]
     converted_arguments = []
     target_parameters = []
     calling_parameters = []
     for position, arg in enumerate(arguments[:argument_count]):
-      conversion = self._InputConversion(arg.type.id, info.declared_name)
+      callBackInfo = self._CallbackConvert(arg.type.id, info)   # Returns callback arity (# of parameters)
+      if callBackInfo is None:
+        conversion = self._InputConversion(arg.type.id, info.declared_name)
+      else:
+        conversion = self._InputConversion('Callback', info.declared_name)
+
       param_name = arguments[position].id
       if conversion:
         temp_version[0] += 1
         temp_name = '%s_%s' % (param_name, temp_version[0])
         temp_type = conversion.output_type
         stmts_emitter.Emit(
-            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
+            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n' if callBackInfo is None else '$(INDENT)$TYPE $NAME = $CONVERT($ARG, $ARITY);\n',
             TYPE=TypeOrVar(temp_type),
             NAME=temp_name,
             CONVERT=conversion.function_name,
-            ARG=info.param_infos[position].name)
+            ARG=info.param_infos[position].name,
+            ARITY=callBackInfo)
         converted_arguments.append(temp_name)
         param_type = temp_type
         verified_type = temp_type  # verified by assignment in checked mode.

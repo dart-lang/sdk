@@ -404,7 +404,7 @@ class IDLFile(IDLNode):
         for annotation in callback_function.annotations:
           callback = callback_function.annotations[annotation]
           cb_interface = IDLInterface(None, callback.name)
-          cb_interface.ext_attrs['Callback'] = None
+          cb_interface.ext_attrs['Callback'] = len(callback.arguments)
           op = IDLOperation(None, cb_interface.id, "handleEvent")
           op.type = IDLType(callback.idl_type)
           op.type = resolveTypedef(op.type)

@@ -193,9 +193,9 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<String> iterable) {
+  static void _removeAll(Element _element, Iterable<Object> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (var value in iterable) {
+    for (String value in iterable) {
       _classListRemove(list, value);
     }
   }

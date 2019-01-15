@@ -741,14 +741,15 @@ class DartMetadata(object):
 
   def _GetCommonAnnotations(self, interface, member_name=None,
       source_member_name=None):
+    annotations = []
     if member_name:
       key = '%s.%s' % (interface.id, member_name)
       dom_name = '%s.%s' % (interface.javascript_binding_name, member_name)
+      # DomName annotation is needed for dblclick ACX plugin analyzer.
+      if member_name == 'dblclickEvent' or member_name == 'ondblclick':
+        annotations.append("@DomName('" + dom_name + "')")
     else:
       key = interface.id
-      dom_name = interface.javascript_binding_name
-
-    annotations = []
 
     if key in _annotations:
       annotations.extend(_annotations[key])

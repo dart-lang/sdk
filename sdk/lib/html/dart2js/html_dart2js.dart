@@ -67,6 +67,7 @@ import 'dart:_interceptors'
         setDispatchProperty;
 
 export 'dart:math' show Rectangle, Point;
+export 'dart:_internal' show HttpStatus;
 
 /**
  * Top-level container for a web page, which is usually a browser tab or window.
@@ -1967,8 +1968,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
   Object _getContext_2(contextId) native;
 
-  void toBlob(BlobCallback callback, String type, [Object arguments]) native;
-
   @JSName('toDataURL')
   String _toDataUrl(String type, [arguments_OR_quality]) native;
 
@@ -2062,6 +2061,17 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   String toDataUrl([String type = 'image/png', num quality]) =>
       _toDataUrl(type, quality);
+
+  @JSName('toBlob')
+  void _toBlob(BlobCallback callback, String type, [Object arguments]) native;
+
+  Future<Blob> toBlob(String type, [Object arguments]) {
+    var completer = new Completer<Blob>();
+    _toBlob((value) {
+      completer.complete(value);
+    }, type, arguments);
+    return completer.future;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8553,12 +8563,25 @@ class DataTransfer extends Interceptor {
 
   void setDragImage(Element image, int x, int y) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DataTransferItem")
 class DataTransferItem extends Interceptor {
+  Entry getAsEntry() {
+    Entry entry = _webkitGetAsEntry();
+
+    if (entry.isFile)
+      applyExtension('FileEntry', entry);
+    else if (entry.isDirectory)
+      applyExtension('DirectoryEntry', entry);
+    else
+      applyExtension('Entry', entry);
+
+    return entry;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() {
     throw new UnsupportedError("Not supported");
@@ -8573,7 +8596,7 @@ class DataTransferItem extends Interceptor {
   @JSName('webkitGetAsEntry')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Entry getAsEntry() native;
+  Entry _webkitGetAsEntry() native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9155,8 +9178,15 @@ class DirectoryReader extends Interceptor {
 
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
-    _readEntries((value) {
-      completer.complete(new List<Entry>.from(value));
+    _readEntries((values) {
+      values.forEach((value) {
+        applyExtension('Entry', value);
+        Entry entry = value as Entry;
+        if (entry.isFile)
+          applyExtension('FileEntry', entry);
+        else if (entry.isDirectory) applyExtension('DirectoryEntry', entry);
+      });
+      completer.complete(new List<Entry>.from(values));
     }, (error) {
       completer.completeError(error);
     });
@@ -9573,6 +9603,7 @@ class Document extends Node {
   Stream<ClipboardEvent> get onCut => Element.cutEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Document].
+  @DomName('Document.ondblclick')
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   /// Stream of `drag` events handled by this [Document].
@@ -11357,6 +11388,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   ElementStream<ClipboardEvent> get onCut;
 
   /// Stream of `doubleclick` events handled by this [Element].
+  @DomName('Element.ondblclick')
   ElementStream<Event> get onDoubleClick;
 
   /**
@@ -11721,6 +11753,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
       Element.cutEvent._forElementList(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
+  @DomName('Element.ondblclick')
   ElementStream<Event> get onDoubleClick =>
       Element.doubleClickEvent._forElementList(this);
 
@@ -12309,6 +12342,30 @@ class Element extends Node
    */
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+  @JSName('setApplyScroll')
+  void _setApplyScroll(ScrollStateCallback scrollStateCallback,
+      String nativeScrollBehavior) native;
+
+  Future<ScrollState> setApplyScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+    _setApplyScroll((value) {
+      completer.complete(value);
+    }, nativeScrollBehavior);
+    return completer.future;
+  }
+
+  @JSName('setDistributeScroll')
+  void _setDistributeScroll(ScrollStateCallback scrollStateCallback,
+      String nativeScrollBehavior) native;
+
+  Future<ScrollState> setDistributeScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+    _setDistributeScroll((value) {
+      completer.complete(value);
+    }, nativeScrollBehavior);
+    return completer.future;
+  }
 
   /**
    * The set of CSS classes applied to this element.
@@ -13275,6 +13332,7 @@ class Element extends Node
    *
    * See [EventStreamProvider] for usage information.
    */
+  @DomName('Element.dblclickEvent')
   static const EventStreamProvider<Event> doubleClickEvent =
       const EventStreamProvider<Event>('dblclick');
 
@@ -14025,15 +14083,9 @@ class Element extends Node
   @JSName('scrollTo')
   void _scrollTo_3(num x, y) native;
 
-  void setApplyScroll(ScrollStateCallback scrollStateCallback,
-      String nativeScrollBehavior) native;
-
   void setAttribute(String name, String value) native;
 
   void setAttributeNS(String namespaceURI, String name, String value) native;
-
-  void setDistributeScroll(ScrollStateCallback scrollStateCallback,
-      String nativeScrollBehavior) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -14140,6 +14192,7 @@ class Element extends Node
   ElementStream<ClipboardEvent> get onCut => cutEvent.forElement(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
+  @DomName('Element.ondblclick')
   ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
 
   /**
@@ -14549,6 +14602,7 @@ class Entry extends Interceptor {
   Future<Entry> getParent() {
     var completer = new Completer<Entry>();
     _getParent((value) {
+      applyExtension('Entry', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -16090,47 +16144,53 @@ class Geolocation extends Interceptor {
   void _getCurrentPosition(_PositionCallback successCallback,
       [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      _getCurrentPosition_1(successCallback, errorCallback, options_1);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      var options_2 = convertDartToNative_Dictionary(options);
+      _getCurrentPosition_1(successCallback_1, errorCallback, options_2);
       return;
     }
     if (errorCallback != null) {
-      _getCurrentPosition_2(successCallback, errorCallback);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      _getCurrentPosition_2(successCallback_1, errorCallback);
       return;
     }
-    _getCurrentPosition_3(successCallback);
+    var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+    _getCurrentPosition_3(successCallback_1);
     return;
   }
 
   @JSName('getCurrentPosition')
-  void _getCurrentPosition_1(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback, options) native;
+  void _getCurrentPosition_1(
+      successCallback, _PositionErrorCallback errorCallback, options) native;
   @JSName('getCurrentPosition')
-  void _getCurrentPosition_2(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback) native;
+  void _getCurrentPosition_2(
+      successCallback, _PositionErrorCallback errorCallback) native;
   @JSName('getCurrentPosition')
-  void _getCurrentPosition_3(_PositionCallback successCallback) native;
+  void _getCurrentPosition_3(successCallback) native;
 
   int _watchPosition(_PositionCallback successCallback,
       [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _watchPosition_1(successCallback, errorCallback, options_1);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _watchPosition_1(successCallback_1, errorCallback, options_2);
     }
     if (errorCallback != null) {
-      return _watchPosition_2(successCallback, errorCallback);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      return _watchPosition_2(successCallback_1, errorCallback);
     }
-    return _watchPosition_3(successCallback);
+    var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+    return _watchPosition_3(successCallback_1);
   }
 
   @JSName('watchPosition')
-  int _watchPosition_1(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback, options) native;
+  int _watchPosition_1(
+      successCallback, _PositionErrorCallback errorCallback, options) native;
   @JSName('watchPosition')
-  int _watchPosition_2(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback) native;
+  int _watchPosition_2(successCallback, _PositionErrorCallback errorCallback)
+      native;
   @JSName('watchPosition')
-  int _watchPosition_3(_PositionCallback successCallback) native;
+  int _watchPosition_3(successCallback) native;
 }
 
 /**
@@ -16201,6 +16261,7 @@ abstract class GlobalEventHandlers implements EventTarget {
   static const EventStreamProvider<MouseEvent> contextMenuEvent =
       const EventStreamProvider<MouseEvent>('contextmenu');
 
+  @DomName('GlobalEventHandlers.dblclickEvent')
   static const EventStreamProvider<Event> doubleClickEvent =
       const EventStreamProvider<Event>('dblclick');
 
@@ -16365,6 +16426,7 @@ abstract class GlobalEventHandlers implements EventTarget {
 
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
+  @DomName('GlobalEventHandlers.ondblclick')
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
@@ -18781,10 +18843,12 @@ class IntersectionObserver extends Interceptor {
   factory IntersectionObserver(IntersectionObserverCallback callback,
       [Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return IntersectionObserver._create_1(callback, options_1);
+      var callback_1 = convertDartClosureToJS(callback, 2);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return IntersectionObserver._create_1(callback_1, options_2);
     }
-    return IntersectionObserver._create_2(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return IntersectionObserver._create_2(callback_1);
   }
   static IntersectionObserver _create_1(callback, options) => JS(
       'IntersectionObserver',
@@ -23883,7 +23947,8 @@ class PerformanceObserver extends Interceptor {
   }
 
   factory PerformanceObserver(PerformanceObserverCallback callback) {
-    return PerformanceObserver._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return PerformanceObserver._create_1(callback_1);
   }
   static PerformanceObserver _create_1(callback) =>
       JS('PerformanceObserver', 'new PerformanceObserver(#)', callback);
@@ -25024,7 +25089,8 @@ class ReportingObserver extends Interceptor {
   }
 
   factory ReportingObserver(ReportingObserverCallback callback) {
-    return ReportingObserver._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return ReportingObserver._create_1(callback_1);
   }
   static ReportingObserver _create_1(callback) =>
       JS('ReportingObserver', 'new ReportingObserver(#)', callback);
@@ -25060,7 +25126,8 @@ class ResizeObserver extends Interceptor {
   }
 
   factory ResizeObserver(ResizeObserverCallback callback) {
-    return ResizeObserver._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return ResizeObserver._create_1(callback_1);
   }
   static ResizeObserver _create_1(callback) =>
       JS('ResizeObserver', 'new ResizeObserver(#)', callback);
@@ -31257,16 +31324,18 @@ class Window extends EventTarget
 
   int requestIdleCallback(IdleRequestCallback callback, [Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestIdleCallback_1(callback, options_1);
+      var callback_1 = convertDartClosureToJS(callback, 1);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _requestIdleCallback_1(callback_1, options_2);
     }
-    return _requestIdleCallback_2(callback);
+    var callback_1 = convertDartClosureToJS(callback, 1);
+    return _requestIdleCallback_2(callback_1);
   }
 
   @JSName('requestIdleCallback')
-  int _requestIdleCallback_1(IdleRequestCallback callback, options) native;
+  int _requestIdleCallback_1(callback, options) native;
   @JSName('requestIdleCallback')
-  int _requestIdleCallback_2(IdleRequestCallback callback) native;
+  int _requestIdleCallback_2(callback) native;
 
   /**
    * Resizes this window by an offset.
@@ -31295,7 +31364,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
   void scroll([options_OR_x, y, Map scrollOptions]) {
@@ -31332,7 +31401,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
   void _scroll_1() native;
@@ -31344,7 +31413,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
   void _scroll_2(options) native;
@@ -31356,7 +31425,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
   void _scroll_3(num x, num y) native;
@@ -31368,7 +31437,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
   void _scroll_4(int x, int y) native;
@@ -31380,7 +31449,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
   void _scroll_5(int x, int y, scrollOptions) native;
@@ -31390,7 +31459,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
   void scrollBy([options_OR_x, y, Map scrollOptions]) {
@@ -31425,7 +31494,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
   void _scrollBy_1() native;
@@ -31435,7 +31504,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
   void _scrollBy_2(options) native;
@@ -31445,7 +31514,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
   void _scrollBy_3(num x, num y) native;
@@ -31455,7 +31524,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
   void _scrollBy_4(int x, int y) native;
@@ -31465,7 +31534,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
   void _scrollBy_5(int x, int y, scrollOptions) native;
@@ -31477,7 +31546,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
   void scrollTo([options_OR_x, y, Map scrollOptions]) {
@@ -31514,7 +31583,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
   void _scrollTo_1() native;
@@ -31526,7 +31595,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
   void _scrollTo_2(options) native;
@@ -31538,7 +31607,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
   void _scrollTo_3(num x, num y) native;
@@ -31550,7 +31619,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
   void _scrollTo_4(int x, int y) native;
@@ -31562,7 +31631,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
   void _scrollTo_5(int x, int y, scrollOptions) native;
@@ -31686,6 +31755,7 @@ class Window extends EventTarget
       Element.contextMenuEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Window].
+  @DomName('Window.ondblclick')
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   /// Stream of `devicemotion` events handled by this [Window].
@@ -35076,9 +35146,9 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<String> iterable) {
+  static void _removeAll(Element _element, Iterable<Object> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (var value in iterable) {
+    for (String value in iterable) {
       _classListRemove(list, value);
     }
   }

@@ -8033,6 +8033,9 @@
       },
       "createWriter": {},
       "file": {},
+      "fileBlob": {
+        "support_level": "untriaged"
+      },
       "filesystem": {
         "support_level": "untriaged"
       },
