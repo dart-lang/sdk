@@ -4980,10 +4980,15 @@ class LocationLink implements ToJsonable {
   /// range at the mouse position.
   final Range originSelectionRange;
 
-  /// The full target range of this link.
+  /// The full target range of this link. If the target for example is a symbol
+  /// then target range is the range enclosing this symbol not including
+  /// leading/trailing whitespace but everything else like comments. This
+  /// information is typically used to highlight the range in the editor.
   final Range targetRange;
 
-  /// The span of this link.
+  /// The range that should be selected and revealed when this link is being
+  /// followed, e.g the name of a function. Must be contained by the the
+  /// `targetRange`. See also `DocumentSymbol#range`
   final Range targetSelectionRange;
 
   /// The target resource identifier of this link.
@@ -4998,9 +5003,8 @@ class LocationLink implements ToJsonable {
         targetUri ?? (throw 'targetUri is required but was not set');
     __result['targetRange'] =
         targetRange ?? (throw 'targetRange is required but was not set');
-    if (targetSelectionRange != null) {
-      __result['targetSelectionRange'] = targetSelectionRange;
-    }
+    __result['targetSelectionRange'] = targetSelectionRange ??
+        (throw 'targetSelectionRange is required but was not set');
     return __result;
   }
 
@@ -5009,7 +5013,9 @@ class LocationLink implements ToJsonable {
         obj.containsKey('targetUri') &&
         obj['targetUri'] is String &&
         obj.containsKey('targetRange') &&
-        Range.canParse(obj['targetRange']);
+        Range.canParse(obj['targetRange']) &&
+        obj.containsKey('targetSelectionRange') &&
+        Range.canParse(obj['targetSelectionRange']);
   }
 
   @override
