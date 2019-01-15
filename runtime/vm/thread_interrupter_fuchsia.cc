@@ -159,7 +159,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     // Currently we sample only threads that are associated
     // with an isolate. It is safe to call 'os_thread->thread()'
     // here as the thread which is being queried is suspended.
-    Thread* thread = os_thread->thread();
+    Thread* thread = static_cast<Thread*>(os_thread->thread());
     if (thread != NULL) {
       Profiler::SampleThread(thread, its);
     }
