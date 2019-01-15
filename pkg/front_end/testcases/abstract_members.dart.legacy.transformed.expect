@@ -43,6 +43,14 @@
 // abstract class D extends C implements Interface2 {}
 //                ^
 //
+// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// abstract class F extends E implements Interface1 {}
+//                ^
+//
+// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// abstract class H extends G implements Foo {}
+//                ^
+//
 // pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
 // abstract class J extends I implements Bar {}
 //                ^

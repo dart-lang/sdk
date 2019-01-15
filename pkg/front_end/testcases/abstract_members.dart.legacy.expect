@@ -100,6 +100,26 @@
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// abstract class F extends E implements Interface1 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:67:12: Context: This is one inherited member.
+//   void set interfaceMethod1(_) {}
+//            ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is the other inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// abstract class H extends G implements Foo {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:79:12: Context: This is one inherited member.
+//   void set foo(_) {}
+//            ^^^
+// pkg/front_end/testcases/abstract_members.dart:75:8: Context: This is the other inherited member.
+//   void foo() {}
+//        ^^^
+//
 // pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
 // abstract class J extends I implements Bar {}
 //                ^
@@ -153,6 +173,14 @@
 //
 // pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
 // abstract class D extends C implements Interface2 {}
+//                ^
+//
+// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// abstract class F extends E implements Interface1 {}
+//                ^
+//
+// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// abstract class H extends G implements Foo {}
 //                ^
 //
 // pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.

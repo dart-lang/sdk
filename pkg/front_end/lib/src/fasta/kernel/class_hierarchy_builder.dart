@@ -54,9 +54,12 @@ bool isNameVisibleIn(
 /// Language Specification](
 /// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
 bool isInheritanceConflict(Declaration a, Declaration b) {
+  if (memberKind(a.target) == memberKind(b.target)) return false;
   if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
   if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
-  return memberKind(a.target) != memberKind(b.target);
+  if (a.isSetter) return !(b.isGetter || b.isSetter);
+  if (b.isSetter) return !(a.isGetter || a.isSetter);
+  return true;
 }
 
 bool impliesSetter(Declaration declaration) {
@@ -96,7 +99,8 @@ class ClassHierarchyBuilder {
       reportInheritanceConflict(cls, a, b);
     }
     Declaration result = a;
-    if (mergeKind == MergeKind.interfaces) {
+    if (mergeKind == MergeKind.accessors) {
+    } else if (mergeKind == MergeKind.interfaces) {
       // TODO(ahe): Combine the signatures of a and b.  See the section named
       // "Combined Member Signatures" in [Dart Programming Language
       // Specification](
@@ -211,17 +215,38 @@ class ClassHierarchyBuilder {
     // [localSetters] makes sense. It depends on what semantic checks we need
     // to perform with respect to static members and inherited members with the
     // same name.
+
+    /// Members (excluding setters) declared in [cls].
     List<Declaration> localMembers =
         new List<Declaration>.from(scope.local.values)
           ..sort(compareDeclarations);
+
+    /// Setters declared in [cls].
     List<Declaration> localSetters =
         new List<Declaration>.from(scope.setters.values)
           ..sort(compareDeclarations);
+
+    // Add implied setters from fields in [localMembers].
     localSetters = mergeAccessors(cls, localMembers, localSetters);
+
+    /// Members (excluding setters) declared in [cls] or its superclasses. This
+    /// includes static methods of [cls], but not its superclasses.
     List<Declaration> classMembers;
+
+    /// Setters declared in [cls] or its superclasses. This includes static
+    /// setters of [cls], but not its superclasses.
     List<Declaration> classSetters;
+
+    /// Members (excluding setters) inherited from interfaces. This contains no static
+    /// members. Is null if no interfaces are implemented by this class or its
+    /// superclasses.
     List<Declaration> interfaceMembers;
+
+    /// Setters inherited from interfaces. This contains no static setters. Is
+    /// null if no interfaces are implemented by this class or its
+    /// superclasses.
     List<Declaration> interfaceSetters;
+
     if (supernode == null) {
       // This should be Object.
       classMembers = localMembers;
@@ -231,6 +256,16 @@ class ClassHierarchyBuilder {
           cls, localMembers, supernode.classMembers, MergeKind.superclass);
       classSetters = merge(
           cls, localSetters, supernode.classSetters, MergeKind.superclass);
+
+      // Check if local members conflict with inherited setters. This check has
+      // already been performed in the superclass, so we only need to check the
+      // local members.
+      merge(cls, localMembers, classSetters, MergeKind.accessors);
+
+      // Check if local setters conflict with inherited members. As above, we
+      // only need to check the local setters.
+      merge(cls, localSetters, classMembers, MergeKind.accessors);
+
       List<KernelTypeBuilder> interfaces = cls.interfaces;
       if (interfaces != null) {
         MergeResult result = mergeInterfaces(cls, supernode, interfaces);
@@ -243,10 +278,18 @@ class ClassHierarchyBuilder {
       if (interfaceMembers != null) {
         interfaceMembers =
             merge(cls, classMembers, interfaceMembers, MergeKind.supertypes);
+
+        // Check if class setters conflict with members inherited from
+        // interfaces.
+        merge(cls, classSetters, interfaceMembers, MergeKind.accessors);
       }
-      if (interfaceMembers != null) {
+      if (interfaceSetters != null) {
         interfaceSetters =
             merge(cls, classSetters, interfaceSetters, MergeKind.supertypes);
+
+        // Check if class members conflict with setters inherited from
+        // interfaces.
+        merge(cls, classMembers, interfaceSetters, MergeKind.accessors);
       }
     }
     nodes[cls] = new ClassHierarchyNode(cls, scope, classMembers, classSetters,
@@ -483,6 +526,8 @@ class ClassHierarchyBuilder {
       }
       j++;
     }
+    if (aList.isEmpty && storeIndex == bList.length) return bList;
+    if (bList.isEmpty && storeIndex == aList.length) return aList;
     return result..length = storeIndex;
   }
 }
@@ -536,4 +581,8 @@ enum MergeKind {
 
   /// Merging class members with interface members.
   supertypes,
+
+  /// Merging members with inherited setters, or setters with inherited
+  /// members.
+  accessors,
 }
