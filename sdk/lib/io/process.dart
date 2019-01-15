@@ -21,6 +21,13 @@ class _ProcessUtils {
  * This does not wait for any asynchronous operations to terminate. Using
  * [exit] is therefore very likely to lose data.
  *
+ * While debugging, the VM will not respect the `--pause-isolates-on-exit`
+ * flag if [exit] is called as invoking this method causes the Dart VM
+ * process to shutdown immediately. To properly break on exit, consider
+ * calling [debugger] from `dart:developer` or [Isolate.pause] from
+ * `dart:isolate` on [Isolate.current] to pause the isolate before
+ * invoking [exit].
+ *
  * The handling of exit codes is platform specific.
  *
  * On Linux and OS X an exit code for normal termination will always
