@@ -1214,14 +1214,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     body += IntConstant(0);
     body += LoadLocal(type_args);
     body += StoreIndexed(kArrayCid);
-    body += Drop();
   }
   for (intptr_t i = 0; i < descriptor.PositionalCount(); ++i) {
     body += LoadLocal(array);
     body += IntConstant(receiver_index + i);
     body += LoadLocal(scope->VariableAt(i));
     body += StoreIndexed(kArrayCid);
-    body += Drop();
   }
   String& name = String::Handle(Z);
   for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
@@ -1232,7 +1230,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     body += IntConstant(receiver_index + descriptor.PositionAt(i));
     body += LoadLocal(scope->VariableAt(parameter_index));
     body += StoreIndexed(kArrayCid);
-    body += Drop();
   }
   body += PushArgument();
 

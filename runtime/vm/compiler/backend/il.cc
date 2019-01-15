@@ -1316,38 +1316,44 @@ bool Instruction::CanTriggerGC() const {
   return (kInstructionAttrs[tag()] & InstrAttrs::kNoGC) == 0;
 }
 
-void Definition::ReplaceWith(Definition* other,
-                             ForwardInstructionIterator* iterator) {
-  // Record other's input uses.
-  for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
-    Value* input = other->InputAt(i);
+void Definition::ReplaceWithResult(Instruction* replacement,
+                                   Definition* replacement_for_uses,
+                                   ForwardInstructionIterator* iterator) {
+  // Record replacement's input uses.
+  for (intptr_t i = replacement->InputCount() - 1; i >= 0; --i) {
+    Value* input = replacement->InputAt(i);
     input->definition()->AddInputUse(input);
   }
-  // Take other's environment from this definition.
-  ASSERT(other->env() == NULL);
-  other->SetEnvironment(env());
+  // Take replacement's environment from this definition.
+  ASSERT(replacement->env() == NULL);
+  replacement->SetEnvironment(env());
   ClearEnv();
-  // Replace all uses of this definition with other.
-  ReplaceUsesWith(other);
-  // Reuse this instruction's SSA name for other.
-  ASSERT(!other->HasSSATemp());
-  if (HasSSATemp()) {
-    other->set_ssa_temp_index(ssa_temp_index());
-  }
+  // Replace all uses of this definition with replacement_for_uses.
+  ReplaceUsesWith(replacement_for_uses);
 
-  // Finally insert the other definition in place of this one in the graph.
-  previous()->LinkTo(other);
+  // Finally replace this one with the replacement instruction in the graph.
+  previous()->LinkTo(replacement);
   if ((iterator != NULL) && (this == iterator->Current())) {
     // Remove through the iterator.
-    other->LinkTo(this);
+    replacement->LinkTo(this);
     iterator->RemoveCurrentFromGraph();
   } else {
-    other->LinkTo(next());
+    replacement->LinkTo(next());
     // Remove this definition's input uses.
     UnuseAllInputs();
   }
   set_previous(NULL);
   set_next(NULL);
+}
+
+void Definition::ReplaceWith(Definition* other,
+                             ForwardInstructionIterator* iterator) {
+  // Reuse this instruction's SSA name for other.
+  ASSERT(!other->HasSSATemp());
+  if (HasSSATemp()) {
+    other->set_ssa_temp_index(ssa_temp_index());
+  }
+  ReplaceWithResult(other, other, iterator);
 }
 
 void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
@@ -4992,7 +4998,7 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      AlignmentType alignment,
                                      intptr_t deopt_id,
                                      TokenPosition token_pos)
-    : TemplateDefinition(deopt_id),
+    : TemplateInstruction(deopt_id),
       emit_store_barrier_(emit_store_barrier),
       index_scale_(index_scale),
       class_id_(class_id),
