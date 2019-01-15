@@ -114,9 +114,7 @@ CompilerImpl compilerFor(
   Uri platformBinaries = computePlatformBinariesLocation();
 
   if (packageRoot == null && packageConfig == null) {
-    if (Platform.packageRoot != null) {
-      packageRoot = Uri.base.resolve(Platform.packageRoot);
-    } else if (Platform.packageConfig != null) {
+    if (Platform.packageConfig != null) {
       packageConfig = Uri.base.resolve(Platform.packageConfig);
     } else {
       // The tests are run with the base directory as the SDK root

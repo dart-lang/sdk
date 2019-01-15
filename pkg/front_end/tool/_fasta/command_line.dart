@@ -182,10 +182,11 @@ class ParsedArguments {
             }
             var parsedValue;
             if (valueSpecification == int) {
-              parsedValue = int.parse(value, onError: (_) {
+              parsedValue = int.tryParse(value);
+              if (parsedValue == null) {
                 return throw new CommandLineProblem.deprecated(
                     "Value for '$argument', '$value', isn't an int.");
-              });
+              }
             } else if (valueSpecification == bool) {
               if (value == null || value == "true" || value == "yes") {
                 parsedValue = true;

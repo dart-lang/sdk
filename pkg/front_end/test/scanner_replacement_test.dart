@@ -242,7 +242,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
         token = token.next;
       }
     }
-    var isNotErrorToken = isNot(new isInstanceOf<fasta.ErrorToken>());
+    var isNotErrorToken = isNot(const TypeMatcher<fasta.ErrorToken>());
     while (!token.isEof) {
       if (errorsFirst) expect(token, isNotErrorToken);
       previous = token;

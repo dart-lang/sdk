@@ -113,7 +113,7 @@ abstract class ScannerTestBase {
     if (lessThan is BeginToken) {
       expect(lessThan.endToken, greaterThan);
     }
-    expect(greaterThan, isNot(new isInstanceOf<BeginToken>()));
+    expect(greaterThan, isNot(const TypeMatcher<BeginToken>()));
   }
 
   void test_async_star() {

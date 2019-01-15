@@ -140,7 +140,7 @@ class NoTypeInfoTest {
     final TypeInfoListener listener = new TypeInfoListener();
 
     expect(noType.ensureTypeNotVoid(start, new Parser(listener)),
-        new isInstanceOf<SyntheticStringToken>());
+        const TypeMatcher<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
       'handleNoTypeArguments ;',
@@ -154,7 +154,7 @@ class NoTypeInfoTest {
     final TypeInfoListener listener = new TypeInfoListener();
 
     expect(noType.ensureTypeOrVoid(start, new Parser(listener)),
-        new isInstanceOf<SyntheticStringToken>());
+        const TypeMatcher<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
       'handleNoTypeArguments ;',
@@ -2478,7 +2478,7 @@ void expectNestedInfo(expectedInfo, String source) {
 }
 
 void expectNestedComplexInfo(String source) {
-  expectNestedInfo(const isInstanceOf<ComplexTypeInfo>(), source);
+  expectNestedInfo(const TypeMatcher<ComplexTypeInfo>(), source);
 }
 
 TypeInfo compute(expectedInfo, String source, Token start, bool required,
@@ -2502,7 +2502,7 @@ ComplexTypeInfo computeComplex(
     List<ExpectedError> expectedErrors) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   ComplexTypeInfo typeInfo = compute(
-      const isInstanceOf<ComplexTypeInfo>(), source, start, required,
+      const TypeMatcher<ComplexTypeInfo>(), source, start, required,
       inDeclaration: inDeclaration);
   expect(typeInfo.start, start.next, reason: source);
   expect(typeInfo.couldBeExpression, couldBeExpression);
@@ -2530,7 +2530,7 @@ void expectComplexTypeArg(String source,
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
-      const isInstanceOf<ComplexTypeParamOrArgInfo>(),
+      const TypeMatcher<ComplexTypeParamOrArgInfo>(),
       source,
       start,
       inDeclaration);
@@ -2564,7 +2564,7 @@ void expectComplexTypeParam(String source,
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
-      const isInstanceOf<ComplexTypeParamOrArgInfo>(),
+      const TypeMatcher<ComplexTypeParamOrArgInfo>(),
       source,
       start,
       inDeclaration);
