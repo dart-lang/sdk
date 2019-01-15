@@ -1074,6 +1074,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstExpression");
   }
 
+  /// Called after the parser has parsed an expression that starts with
+  /// one of the spread collection tokens `...` or `...?`.  Substructures:
+  /// - expression
+  void handleSpreadExpression(Token spreadToken) {
+    logEvent("SpreadExpression");
+  }
+
   /// Handle the start of a function typed formal parameter.  Substructures:
   /// - type variables
   void beginFunctionTypedFormalParameter(Token token) {}

@@ -4186,7 +4186,12 @@ class Parser {
         token = next;
         break;
       }
-      token = parseExpression(token);
+      if (optional('...', next) || optional('...?', next)) {
+        token = parseExpression(token.next);
+        listener.handleSpreadExpression(next);
+      } else {
+        token = parseExpression(token);
+      }
       next = token.next;
       ++count;
       if (!optional(',', next)) {

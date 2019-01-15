@@ -260,6 +260,30 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
 
+  void test_listLiteral_spread() {
+    // TODO(danrubel): Revise this test once AST supports new syntax
+    ListLiteral list = parseExpression('[1, ...[2]]', errors: [
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3),
+    ]);
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+    ListLiteral second = list.elements[1];
+    expect(second.elements, hasLength(1));
+  }
+
+  void test_listLiteral_spreadQ() {
+    // TODO(danrubel): Revise this test once AST supports new syntax
+    ListLiteral list = parseExpression('[1, ...?[2]]', errors: [
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 4),
+    ]);
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+    ListLiteral second = list.elements[1];
+    expect(second.elements, hasLength(1));
+  }
+
   void test_mapLiteral() {
     MapLiteral map = parseExpression('{3: 6}', parseSetLiterals: true);
     expect(map.constKeyword, isNull);

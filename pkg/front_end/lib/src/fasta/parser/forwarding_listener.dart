@@ -1308,6 +1308,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleSpreadExpression(Token spreadToken) {
+    listener?.handleSpreadExpression(spreadToken);
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     listener?.handleStringJuxtaposition(literalCount);
   }

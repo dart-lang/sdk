@@ -376,6 +376,12 @@ class TypePromotionLookAheadListener extends Listener {
     doConstuctorInvocation(token, true);
   }
 
+  @override
+  void handleSpreadExpression(Token spreadToken) {
+    // TODO(danrubel) add support for spread collections
+    // but for now this is ignored and an error reported in the body builder
+  }
+
   void doConstuctorInvocation(Token token, bool isConst) {
     state.pop(); // Arguments.
     state.popPushNull(token.lexeme, token); // Constructor reference.

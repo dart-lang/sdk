@@ -3519,6 +3519,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleSpreadExpression(Token spreadToken) {
+    debugEvent("SpreadExpression");
+    // TODO(danrubel) implement spread expression support
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(spreadToken),
+        spreadToken,
+        spreadToken);
+  }
+
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     push(const FixedNullableList<UnresolvedType<KernelTypeBuilder>>()

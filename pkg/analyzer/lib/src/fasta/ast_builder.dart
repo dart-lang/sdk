@@ -46,7 +46,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier;
+        templateExpectedIdentifier,
+        templateUnexpectedToken;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
@@ -268,6 +269,13 @@ class AstBuilder extends StackListener {
     debugEvent("Script");
 
     scriptTag = ast.scriptTag(token);
+  }
+
+  @override
+  void handleSpreadExpression(Token spreadToken) {
+    // TODO(danrubel): generate new AST structure
+    handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
+        spreadToken, spreadToken);
   }
 
   void handleStringJuxtaposition(int literalCount) {
