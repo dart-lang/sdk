@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_KERNEL_ISOLATE_H_
 #define RUNTIME_VM_KERNEL_ISOLATE_H_
 
+#include <vector>
+
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
@@ -65,6 +67,8 @@ class KernelIsolate : public AllStatic {
 
   static void NotifyAboutIsolateShutdown(const Isolate* isolate);
 
+  static void AddExperimentalFlag(const char* value);
+
  protected:
   static Monitor* monitor_;
   static Dart_IsolateCreateCallback create_callback_;
@@ -81,6 +85,8 @@ class KernelIsolate : public AllStatic {
   static Dart_IsolateCreateCallback create_callback() {
     return create_callback_;
   }
+
+  static MallocGrowableArray<char*>* experimental_flags_;
 
   friend class Dart;
   friend class Isolate;

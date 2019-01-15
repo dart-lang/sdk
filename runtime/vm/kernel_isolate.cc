@@ -9,6 +9,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -343,6 +344,17 @@ static void PassThroughFinalizer(void* isolate_callback_data,
                                  Dart_WeakPersistentHandle handle,
                                  void* peer) {}
 
+MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
+    new MallocGrowableArray<char*>();
+
+void KernelIsolate::AddExperimentalFlag(const char* value) {
+  experimental_flags_->Add(strdup(value));
+}
+
+DEFINE_OPTION_HANDLER(KernelIsolate::AddExperimentalFlag,
+                      enable_experiment,
+                      "Comma separated list of experimental features.");
+
 class KernelCompilationRequest : public ValueObject {
  public:
   KernelCompilationRequest()
@@ -373,7 +385,8 @@ class KernelCompilationRequest : public ValueObject {
       const Array& type_definitions,
       char const* library_uri,
       char const* klass,
-      bool is_static) {
+      bool is_static,
+      const MallocGrowableArray<char*>* experimental_flags) {
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     Dart_CObject tag;
@@ -443,12 +456,25 @@ class KernelCompilationRequest : public ValueObject {
     isolate_id.value.as_int64 =
         isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
 
-    Dart_CObject message;
-    message.type = Dart_CObject_kArray;
     Dart_CObject suppress_warnings;
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
 
+    intptr_t num_experimental_flags = experimental_flags->length();
+    Dart_CObject** experimental_flags_array =
+        new Dart_CObject*[num_experimental_flags];
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      experimental_flags_array[i] = new Dart_CObject;
+      experimental_flags_array[i]->type = Dart_CObject_kString;
+      experimental_flags_array[i]->value.as_string = (*experimental_flags)[i];
+    }
+    Dart_CObject experimental_flags_object;
+    experimental_flags_object.type = Dart_CObject_kArray;
+    experimental_flags_object.value.as_array.values = experimental_flags_array;
+    experimental_flags_object.value.as_array.length = num_experimental_flags;
+
+    Dart_CObject message;
+    message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &isolate_id,
@@ -458,7 +484,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &library_uri_object,
                                    &class_object,
                                    &is_static_object,
-                                   &suppress_warnings};
+                                   &suppress_warnings,
+                                   &experimental_flags_object};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -486,6 +513,11 @@ class KernelCompilationRequest : public ValueObject {
     }
     delete[] type_definitions_array;
 
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      delete experimental_flags_array[i];
+    }
+    delete[] experimental_flags_array;
+
     return result_;
   }
 
@@ -500,7 +532,8 @@ class KernelCompilationRequest : public ValueObject {
       bool incremental_compile,
       const char* package_config,
       const char* multiroot_filepaths,
-      const char* multiroot_scheme) {
+      const char* multiroot_scheme,
+      const MallocGrowableArray<char*>* experimental_flags) {
     // Build the [null, send_port, script_uri, platform_kernel,
     // incremental_compile, isolate_id, [files]] message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
@@ -570,6 +603,19 @@ class KernelCompilationRequest : public ValueObject {
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
 
+    intptr_t num_experimental_flags = experimental_flags->length();
+    Dart_CObject** experimental_flags_array =
+        new Dart_CObject*[num_experimental_flags];
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      experimental_flags_array[i] = new Dart_CObject;
+      experimental_flags_array[i]->type = Dart_CObject_kString;
+      experimental_flags_array[i]->value.as_string = (*experimental_flags)[i];
+    }
+    Dart_CObject experimental_flags_object;
+    experimental_flags_object.type = Dart_CObject_kArray;
+    experimental_flags_object.value.as_array.values = experimental_flags_array;
+    experimental_flags_object.value.as_array.length = num_experimental_flags;
+
     Dart_CObject bytecode;
     bytecode.type = Dart_CObject_kBool;
     // Interpreter is supported only on x64 and arm64.
@@ -625,6 +671,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,
+                                   &experimental_flags_object,
                                    &bytecode,
                                    &package_config_uri,
                                    &multiroot_filepaths_object,
@@ -642,6 +689,11 @@ class KernelCompilationRequest : public ValueObject {
     while (result_.status == Dart_KernelCompilationStatus_Unknown) {
       ml.Wait();
     }
+
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      delete experimental_flags_array[i];
+    }
+    delete[] experimental_flags_array;
 
     return result_;
   }
@@ -774,11 +826,11 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   }
 
   KernelCompilationRequest request;
-  return request.SendAndWaitForResponse(kCompileTag, kernel_port, script_uri,
-                                        platform_kernel, platform_kernel_size,
-                                        source_file_count, source_files,
-                                        incremental_compile, package_config,
-                                        multiroot_filepaths, multiroot_scheme);
+  return request.SendAndWaitForResponse(
+      kCompileTag, kernel_port, script_uri, platform_kernel,
+      platform_kernel_size, source_file_count, source_files,
+      incremental_compile, package_config, multiroot_filepaths,
+      multiroot_scheme, experimental_flags_);
 }
 
 Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
@@ -793,7 +845,7 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kListDependenciesTag, kernel_port, NULL,
                                         NULL, 0, 0, NULL, false, NULL, NULL,
-                                        NULL);
+                                        NULL, experimental_flags_);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -809,7 +861,8 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kAcceptTag, kernel_port, NULL, NULL, 0,
-                                        0, NULL, true, NULL, NULL, NULL);
+                                        0, NULL, true, NULL, NULL, NULL,
+                                        experimental_flags_);
 }
 
 Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
@@ -831,7 +884,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kernel_port, expression, definitions,
                                         type_definitions, library_url, klass,
-                                        is_static);
+                                        is_static, experimental_flags_);
 }
 
 Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
@@ -848,9 +901,9 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   }
 
   KernelCompilationRequest request;
-  return request.SendAndWaitForResponse(kUpdateSourcesTag, kernel_port, NULL,
-                                        NULL, 0, source_files_count,
-                                        source_files, true, NULL, NULL, NULL);
+  return request.SendAndWaitForResponse(
+      kUpdateSourcesTag, kernel_port, NULL, NULL, 0, source_files_count,
+      source_files, true, NULL, NULL, NULL, experimental_flags_);
 }
 
 void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
