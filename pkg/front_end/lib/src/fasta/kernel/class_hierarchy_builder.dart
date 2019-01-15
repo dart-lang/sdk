@@ -127,21 +127,45 @@ class ClassHierarchyBuilder {
   void reportInheritanceConflict(
       KernelClassBuilder cls, Declaration a, Declaration b) {
     String name = a.fullNameForErrors;
-    if (a.parent != cls) {
-      cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
-          cls.fullNameForErrors.length,
-          context: <LocatedMessage>[
-            messageInheritedMembersConflictCause1.withLocation(
-                a.fileUri, a.charOffset, name.length),
-            messageInheritedMembersConflictCause2.withLocation(
-                b.fileUri, b.charOffset, name.length),
-          ]);
+    if (a.parent != b.parent) {
+      if (a.parent == cls) {
+        cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
+            a.charOffset, name.length,
+            context: <LocatedMessage>[
+              messageDeclaredMemberConflictsWithInheritedMemberCause
+                  .withLocation(b.fileUri, b.charOffset, name.length)
+            ]);
+      } else {
+        cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
+            cls.fullNameForErrors.length,
+            context: <LocatedMessage>[
+              messageInheritedMembersConflictCause1.withLocation(
+                  a.fileUri, a.charOffset, name.length),
+              messageInheritedMembersConflictCause2.withLocation(
+                  b.fileUri, b.charOffset, name.length),
+            ]);
+      }
     } else {
-      cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
-          a.charOffset, name.length,
+      // This message can be reported twice (when merging localMembers with
+      // classSetters, or localSetters with classMembers). By ensuring that
+      // we always report the one with higher charOffset as the duplicate,
+      // the message duplication logic ensures that we only report this
+      // problem once.
+      Declaration existing;
+      Declaration duplicate;
+      assert(a.fileUri == b.fileUri);
+      if (a.charOffset < b.charOffset) {
+        existing = a;
+        duplicate = b;
+      } else {
+        existing = b;
+        duplicate = a;
+      }
+      cls.library.addProblem(templateDuplicatedDeclaration.withArguments(name),
+          duplicate.charOffset, name.length, duplicate.fileUri,
           context: <LocatedMessage>[
-            messageDeclaredMemberConflictsWithInheritedMemberCause.withLocation(
-                b.fileUri, b.charOffset, name.length)
+            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
+                existing.fileUri, existing.charOffset, name.length)
           ]);
     }
   }
@@ -154,8 +178,7 @@ class ClassHierarchyBuilder {
   /// If [mergeKind] is `MergeKind.supertypes`, [member] isn't
   /// implementing/overriding anything.
   void handleOnlyA(Declaration member, MergeKind mergeKind) {
-    Member target = member.target;
-    if (mergeKind == MergeKind.superclass && target.isAbstract) {
+    if (mergeKind == MergeKind.superclass && member.target.isAbstract) {
       (abstractMembers ??= <Declaration>[]).add(member);
     }
   }
@@ -372,21 +395,6 @@ class ClassHierarchyBuilder {
       final Declaration setter = setters[j];
       final int compare = compareDeclarations(member, setter);
       if (compare == 0) {
-        if (member.isField ? impliesSetter(member) : !member.isGetter) {
-          // [member] conflicts with [setter].
-          final String name = member.fullNameForErrors;
-          cls.library.addProblem(
-              templateDuplicatedDeclaration.withArguments(name),
-              setter.charOffset,
-              name.length,
-              setter.fileUri,
-              context: <LocatedMessage>[
-                templateDuplicatedDeclarationCause
-                    .withArguments(name)
-                    .withLocation(
-                        member.fileUri, member.charOffset, name.length)
-              ]);
-        }
         mergedSetters[storeIndex++] = setter;
         i++;
         j++;

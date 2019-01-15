@@ -7,20 +7,6 @@
 //   void n() {}
 //        ^
 //
-// pkg/front_end/testcases/rasta/super.dart:26:8: Error: Can't declare a member that conflicts with an inherited one.
-//   void n() {}
-//        ^
-// pkg/front_end/testcases/rasta/super.dart:27:7: Context: This is the inherited member.
-//   set n(_) {}
-//       ^
-//
-// pkg/front_end/testcases/rasta/super.dart:27:7: Error: Can't declare a member that conflicts with an inherited one.
-//   set n(_) {}
-//       ^
-// pkg/front_end/testcases/rasta/super.dart:26:8: Context: This is the inherited member.
-//   void n() {}
-//        ^
-//
 // pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.
 // Try removing '+'.
 //     +super;
@@ -254,14 +240,6 @@
 // Unhandled errors:
 //
 // pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
-//   set n(_) {}
-//       ^
-//
-// pkg/front_end/testcases/rasta/super.dart:26:8: Error: Can't declare a member that conflicts with an inherited one.
-//   void n() {}
-//        ^
-//
-// pkg/front_end/testcases/rasta/super.dart:27:7: Error: Can't declare a member that conflicts with an inherited one.
 //   set n(_) {}
 //       ^
 //
