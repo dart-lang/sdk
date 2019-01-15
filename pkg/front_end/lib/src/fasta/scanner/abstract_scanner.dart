@@ -736,8 +736,20 @@ abstract class AbstractScanner implements Scanner {
     if (($0 <= next && next <= $9)) {
       return tokenizeFractionPart(next, start);
     } else if (identical($PERIOD, next)) {
-      return select(
-          $PERIOD, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
+      next = advance();
+      if (identical(next, $PERIOD)) {
+        next = advance();
+        if (identical(next, $QUESTION)) {
+          appendPrecedenceToken(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
+          return advance();
+        } else {
+          appendPrecedenceToken(TokenType.PERIOD_PERIOD_PERIOD);
+          return next;
+        }
+      } else {
+        appendPrecedenceToken(TokenType.PERIOD_PERIOD);
+        return next;
+      }
     } else {
       appendPrecedenceToken(TokenType.PERIOD);
       return next;

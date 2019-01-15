@@ -357,6 +357,7 @@ class PrecedenceInfoTest {
     assertName('`', 'BACKPING');
     assertName('\\', 'BACKSLASH');
     assertName('...', 'PERIOD_PERIOD_PERIOD');
+    assertName('...?', 'PERIOD_PERIOD_PERIOD_QUESTION');
   }
 
   /// Assert precedence as per the Dart language spec
