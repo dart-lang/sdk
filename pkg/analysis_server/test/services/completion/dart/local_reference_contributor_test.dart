@@ -68,10 +68,11 @@ bool hasLength(int a, bool b) => false;
 void main() {h^}''');
     await computeSuggestions();
 
-    assertSuggestFunction('hasLength', 'bool',
+    CompletionSuggestion cs = assertSuggestFunction('hasLength', 'bool',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION,
         defaultArgListString: 'a, b',
         defaultArgumentListTextRanges: [0, 1, 3, 1]);
+    expect(cs.elementUri, equals('/home/test/lib/test.dart'));
   }
 
   test_ArgDefaults_function_none() async {

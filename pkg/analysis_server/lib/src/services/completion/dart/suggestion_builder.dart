@@ -51,6 +51,7 @@ CompletionSuggestion createSuggestion(Element element,
   suggestion.docSummary = getDartDocSummary(doc);
 
   suggestion.element = protocol.convertElement(element);
+  suggestion.elementUri = element.source.uri.toString();
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
     suggestion.declaringType = enclosingElement.displayName;
@@ -165,6 +166,7 @@ mixin ElementSuggestionBuilder {
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
+      suggestion.elementUri = element.source.uri.toString();
       if (element.isSynthetic && element is PropertyAccessorElement) {
         String cacheKey;
         if (element.isGetter) {
