@@ -17,9 +17,6 @@ main() {
 
 @reflectiveTest
 class RenameTest extends AbstractLspAnalysisServerTest {
-  // TODO(dantup): send a rename without a version
-  // TODO(dantup): send an old version of the doc?
-  // TODO(dantup): check the version returned matches?
   // TODO(dantup): renames across multiple files
 
   test_prepare_class() {
@@ -120,6 +117,23 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     ''';
     return _test_rename_withDocumentChanges(
         content, 'MyNewClass', expectedContent);
+  }
+
+  test_rename_withoutVersionedIdentifier() {
+    // Without sending a document version, the rename should still work because
+    // the server should use the version it had at the start of the rename
+    // operation.
+    const content = '''
+    class MyClass {}
+    final a = new [[My^Class]]();
+    ''';
+    const expectedContent = '''
+    class MyNewClass {}
+    final a = new MyNewClass();
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewClass', expectedContent,
+        sendRenameVersion: false);
   }
 
   test_rename_classNewKeyword() async {
@@ -321,16 +335,25 @@ class RenameTest extends AbstractLspAnalysisServerTest {
   }
 
   _test_rename_withDocumentChanges(
-      String content, String newName, String expectedContent) async {
+    String content,
+    String newName,
+    String expectedContent, {
+    sendDocumentVersion = true,
+    sendRenameVersion = true,
+  }) async {
+    // The specific number doesn't matter here, it's just a placeholder to confirm
+    // the values match.
+    final documentVersion = 222;
     await initialize(
       workspaceCapabilities:
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
-    await openFile(mainFileUri, withoutMarkers(content), version: 222);
+    await openFile(mainFileUri, withoutMarkers(content),
+        version: sendDocumentVersion ? documentVersion : null);
 
     final result = await rename(
       mainFileUri,
-      222,
+      sendRenameVersion ? documentVersion : null,
       positionFromMarker(content),
       newName,
     );
@@ -341,7 +364,14 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       final contents = {
         mainFilePath: withoutMarkers(content),
       };
-      applyDocumentChanges(contents, result.documentChanges);
+      final documentVersions = {
+        mainFilePath: documentVersion,
+      };
+      applyDocumentChanges(
+        contents,
+        result.documentChanges,
+        expectedVersions: documentVersions,
+      );
       expect(contents[mainFilePath], equals(expectedContent));
     }
   }
