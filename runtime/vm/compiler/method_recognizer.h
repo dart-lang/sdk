@@ -373,10 +373,28 @@ namespace dart {
   V(_List, _slice, ObjectArraySlice, 0x4c865d1d)                               \
   V(_ImmutableList, get:iterator, ImmutableArrayIterator, 0x6c851c55)          \
   V(_ImmutableList, forEach, ImmutableArrayForEach, 0x11406b13)                \
-  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 0x7d308247)                 \
-  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 0x65ba546e)                \
   V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 0x7e5a8458)                   \
   V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 0x62f615e4)                  \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 0x7d308247)                 \
+  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 0x65ba546e)                \
+  V(_Uint8ClampedArrayView, [], Uint8ClampedArrayViewGetIndexed, 0x7d308247)   \
+  V(_Uint8ClampedArrayView, []=, Uint8ClampedArrayViewSetIndexed, 0x65ba546e)  \
+  V(_Uint16ArrayView, [], Uint16ArrayViewGetIndexed, 0xe96836dd)               \
+  V(_Uint16ArrayView, []=, Uint16ArrayViewSetIndexed, 0x15b02947)              \
+  V(_Int16ArrayView, [], Int16ArrayViewGetIndexed, 0x1b24a48b)                 \
+  V(_Int16ArrayView, []=, Int16ArrayViewSetIndexed, 0xb91ec2e6)                \
+  V(_Uint32ArrayView, [], Uint32ArrayViewGetIndexed, 0x8a4f93b3)               \
+  V(_Uint32ArrayView, []=, Uint32ArrayViewSetIndexed, 0xf54918b5)              \
+  V(_Int32ArrayView, [], Int32ArrayViewGetIndexed, 0x85040819)                 \
+  V(_Int32ArrayView, []=, Int32ArrayViewSetIndexed, 0xaec8c6f5)                \
+  V(_Uint64ArrayView, [], Uint64ArrayViewGetIndexed, 0xd0c44fe7)               \
+  V(_Uint64ArrayView, []=, Uint64ArrayViewSetIndexed, 0x402712b7)              \
+  V(_Int64ArrayView, [], Int64ArrayViewGetIndexed, 0xf3090b95)                 \
+  V(_Int64ArrayView, []=, Int64ArrayViewSetIndexed, 0xca07e497)                \
+  V(_Float32ArrayView, [], Float32ArrayViewGetIndexed, 0xef967533)             \
+  V(_Float32ArrayView, []=, Float32ArrayViewSetIndexed, 0xc9b691bd)            \
+  V(_Float64ArrayView, [], Float64ArrayViewGetIndexed, 0x9d83f585)             \
+  V(_Float64ArrayView, []=, Float64ArrayViewSetIndexed, 0x3c1adabd)            \
   V(_ByteDataView, setInt8, ByteDataViewSetInt8, 0x6395293e)                   \
   V(_ByteDataView, setUint8, ByteDataViewSetUint8, 0x79979d1f)                 \
   V(_ByteDataView, setInt16, ByteDataViewSetInt16, 0x525ec534)                 \
