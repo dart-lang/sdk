@@ -445,6 +445,13 @@ class Printer extends Visitor<Null> {
       --inner.indentation;
       endLine('}');
     }
+    writeConstantTable(component);
+  }
+
+  void writeConstantTable(Component component) {
+    if (syntheticNames.constants.map.isEmpty) return;
+    ImportTable imports = new ComponentImportTable(component);
+    var inner = createInner(imports, component.metadata);
     writeWord('constants ');
     endLine(' {');
     ++inner.indentation;

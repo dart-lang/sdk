@@ -60,13 +60,14 @@ class Print extends Step<Component, Component, ChainContext> {
     await CompilerContext.runWithDefaultOptions((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
 
+      Printer printer = new Printer(sb);
       for (Library library in component.libraries) {
-        Printer printer = new Printer(sb);
         if (library.importUri.scheme != "dart" &&
             library.importUri.scheme != "package") {
           printer.writeLibraryFile(library);
         }
       }
+      printer.writeConstantTable(component);
     });
     print("$sb");
     return pass(component);
@@ -172,7 +173,9 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
       }
       buffer.write("\n\n");
     }
-    new ErrorPrinter(buffer).writeLibraryFile(library);
+    ErrorPrinter printer = new ErrorPrinter(buffer);
+    printer.writeLibraryFile(library);
+    printer.writeConstantTable(component);
     String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
