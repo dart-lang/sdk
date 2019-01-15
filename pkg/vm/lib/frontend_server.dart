@@ -349,8 +349,10 @@ class FrontendCompiler implements CompilerInterface {
         transformer.transform(component);
       }
 
-      await writeDillFile(component, _kernelBinaryFilename,
-          filterExternal: importDill != null);
+      if (errors.isEmpty) {
+        await writeDillFile(component, _kernelBinaryFilename,
+            filterExternal: importDill != null);
+      }
 
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
@@ -456,7 +458,9 @@ class FrontendCompiler implements CompilerInterface {
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
-    await writeDillFile(deltaProgram, _kernelBinaryFilename);
+    if (errors.isEmpty) {
+      await writeDillFile(deltaProgram, _kernelBinaryFilename);
+    }
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
