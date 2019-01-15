@@ -7934,6 +7934,26 @@ const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
     tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAndInstanceConflict =
+    messageStaticAndInstanceConflict;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAndInstanceConflict = const MessageCode(
+    "StaticAndInstanceConflict",
+    analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"],
+    message: r"""This static member conflicts with an instance member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAndInstanceConflictCause =
+    messageStaticAndInstanceConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAndInstanceConflictCause = const MessageCode(
+    "StaticAndInstanceConflictCause",
+    severity: Severity.context,
+    message: r"""This is the instance member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticConstructor = messageStaticConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -3386,3 +3386,22 @@ ObjectMixesIn:
   template: "The class 'Object' can't use mixins."
   frontendInternal: true
   external: test/fasta/object_supertype_test.dart
+
+StaticAndInstanceConflict:
+  template: "This static member conflicts with an instance member."
+  script:
+    - |
+      class C {
+        set foo(value) {}
+        static get foo => 42;
+      }
+    - |
+      class C {
+        static set foo(value) {}
+        get foo => 42;
+      }
+  analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
+
+StaticAndInstanceConflictCause:
+  template: "This is the instance member."
+  severity: CONTEXT

@@ -17,6 +17,8 @@ import '../messages.dart'
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
+        messageStaticAndInstanceConflict,
+        messageStaticAndInstanceConflictCause,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
         templateMissingImplementationCause,
@@ -54,6 +56,7 @@ bool isNameVisibleIn(
 /// Language Specification](
 /// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
 bool isInheritanceConflict(Declaration a, Declaration b) {
+  if (a.isStatic) return true;
   if (memberKind(a.target) == memberKind(b.target)) return false;
   if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
   if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
@@ -145,6 +148,22 @@ class ClassHierarchyBuilder {
                   b.fileUri, b.charOffset, name.length),
             ]);
       }
+    } else if (a.isStatic != b.isStatic) {
+      Declaration staticMember;
+      Declaration instanceMember;
+      if (a.isStatic) {
+        staticMember = a;
+        instanceMember = b;
+      } else {
+        staticMember = b;
+        instanceMember = a;
+      }
+      cls.library.addProblem(messageStaticAndInstanceConflict,
+          staticMember.charOffset, name.length, staticMember.fileUri,
+          context: <LocatedMessage>[
+            messageStaticAndInstanceConflictCause.withLocation(
+                instanceMember.fileUri, instanceMember.charOffset, name.length)
+          ]);
     } else {
       // This message can be reported twice (when merging localMembers with
       // classSetters, or localSetters with classMembers). By ensuring that
@@ -238,10 +257,6 @@ class ClassHierarchyBuilder {
         scope = mixin.scope;
       }
     }
-    // TODO(ahe): Consider if removing static members from [localMembers] and
-    // [localSetters] makes sense. It depends on what semantic checks we need
-    // to perform with respect to static members and inherited members with the
-    // same name.
 
     /// Members (excluding setters) declared in [cls].
     List<Declaration> localMembers =
@@ -506,7 +521,7 @@ class ClassHierarchyBuilder {
     while (i < aList.length && j < bList.length) {
       final Declaration a = aList[i];
       final Declaration b = bList[j];
-      if (a.isStatic) {
+      if (mergeKind == MergeKind.interfaces && a.isStatic) {
         i++;
         continue;
       }
@@ -531,7 +546,7 @@ class ClassHierarchyBuilder {
     }
     while (i < aList.length) {
       final Declaration a = aList[i];
-      if (!a.isStatic) {
+      if (mergeKind != MergeKind.interfaces || !a.isStatic) {
         handleOnlyA(a, mergeKind);
         result[storeIndex++] = a;
       }
