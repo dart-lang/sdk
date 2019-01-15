@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -6,6 +10,9 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
+/// [NonNullableFix] visits each named type in a resolved compilation unit
+/// and determines whether the associated variable or parameter can be null
+/// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
   final EditDartFix dartFix;
 
@@ -62,6 +69,28 @@ class _NonNullableTypeVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtendsClause(ExtendsClause node) {
+    // skip the type name associated with the extends clause
+    node.superclass?.typeArguments?.accept(this);
+  }
+
+  @override
+  void visitImplementsClause(ImplementsClause node) {
+    // skip the type names in the implements clause
+    for (TypeName typeName in node.interfaces) {
+      typeName.typeArguments?.accept(this);
+    }
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    // skip the type name in the clause
+    for (TypeName typeName in node.superclassConstraints) {
+      typeName.typeArguments?.accept(this);
+    }
+  }
+
+  @override
   void visitTypeName(TypeName node) {
     // TODO(danrubel): Replace this braindead implementation
     // with something that determines whether or not the type should be nullable
@@ -78,5 +107,13 @@ class _NonNullableTypeVisitor extends RecursiveAstVisitor<void> {
       fix.firstLength ??= node.length;
     }
     super.visitTypeName(node);
+  }
+
+  @override
+  void visitWithClause(WithClause node) {
+    // skip the type names associated with this clause
+    for (TypeName typeName in node.mixinTypes) {
+      typeName.typeArguments?.accept(this);
+    }
   }
 }
