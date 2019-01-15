@@ -716,11 +716,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
-        displayName =
-            "${resolutionMap.staticInvokeTypeForInvocationExpression(node).displayName}.${element.displayName}";
+        DartType staticInvokeType =
+            resolutionMap.staticInvokeTypeForInvocationExpression(node);
+        displayName = "${staticInvokeType.displayName}.${element.displayName}";
       }
-      _errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
+      LibraryElement library =
+          element is LibraryElement ? element : element.library;
+      HintCode hintCode = _workspacePackage.contains(library.source.fullName)
+          ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
+          : HintCode.DEPRECATED_MEMBER_USE;
+      _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
     }
   }
 

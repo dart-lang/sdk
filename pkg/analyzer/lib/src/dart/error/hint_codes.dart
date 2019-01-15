@@ -68,6 +68,23 @@ class HintCode extends ErrorCode {
           "Try replacing the use of the deprecated member with the replacement.");
 
   /**
+   * Deprecated members should not be invoked or used from within the package
+   * where they are declared.
+   *
+   * Intentionally separate from DEPRECATED_MEMBER_USE, so that package owners
+   * can ignore same-package deprecate member use Hints if they like, and
+   * continue to see cross-package deprecated member use Hints.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = const HintCode(
+      'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
+      "'{0}' is deprecated and shouldn't be used.",
+      correction:
+          "Try replacing the use of the deprecated member with the replacement.");
+
+  /**
    * Users should not create a class named `Function` anymore.
    */
   static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = const HintCode(

@@ -35,6 +35,8 @@ import 'package:test/test.dart';
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
 
+const String _defaultSourceName = "/test.dart";
+
 /**
  * An AST visitor used to verify that all of the nodes in an AST structure that
  * should have been resolved were resolved.
@@ -407,7 +409,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    * file will have the given [contents] set in the content provider. Return the
    * source representing the added file.
    */
-  Source addSource(String contents) => addNamedSource("/test.dart", contents);
+  Source addSource(String contents) =>
+      addNamedSource(_defaultSourceName, contents);
 
   /**
    * The [code] that assigns the value to the variable "v", no matter how. We
@@ -457,8 +460,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<void> assertErrorsInCode(String code, List<ErrorCode> errors,
-      {bool verify: true}) async {
-    Source source = addSource(code);
+      {bool verify: true, String sourceName: _defaultSourceName}) async {
+    Source source = addNamedSource(sourceName, code);
     await computeAnalysisResult(source);
     assertErrors(source, errors);
     if (verify) {

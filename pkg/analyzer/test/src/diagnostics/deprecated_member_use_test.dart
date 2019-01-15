@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(DeprecatedMemberUseFromSamePackageTest);
+    defineReflectiveTests(DeprecatedMemberUseFromSamePackageTest_Driver);
     defineReflectiveTests(DeprecatedMemberUseTest);
     defineReflectiveTests(DeprecatedMemberUseTest_Driver);
   });
@@ -16,14 +19,92 @@ main() {
 
 @reflectiveTest
 class DeprecatedMemberUseTest extends ResolverTestCase {
-  test__methodInvocation_contructor() async {
-    await assertErrorsInCode(r'''
+  /// Write a pubspec file at [root], so that BestPracticesVerifier can see that
+  /// [root] is the root of a BasicWorkspace, and a BasicWorkspacePackage.
+  void newBasicPackage(String root) {
+    newFile('$root/pubspec.yaml');
+  }
+
+  test_methodInvocation_contructor() async {
+    resetWithFooLibrary(r'''
+class A {
+  @Deprecated('0.9')
+  m() {}
+}
+''');
+
+    newBasicPackage('/pkg1');
+    assertErrorsInCode(r'''
+import 'package:foo/foo.dart';
+void main() => A().m();
+''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
+  }
+
+  test_methodInvocation_constant() async {
+    resetWithFooLibrary(r'''
+class A {
+  @deprecated
+  m() {}
+}
+''');
+
+    newBasicPackage('/pkg1');
+    assertErrorsInCode(r'''
+import 'package:foo/foo.dart';
+void main() => A().m();
+''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
+  }
+
+  void resetWithFooLibrary(String source) {
+    super.resetWith(packages: [
+      ['foo', source]
+    ]);
+  }
+
+  test_export() async {
+    resetWithFooLibrary(r'''
+@deprecated
+library deprecated_library;
+class A {}
+''');
+
+    newBasicPackage('/pkg1');
+    assertErrorsInCode('''
+export 'package:foo/foo.dart';
+''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
+  }
+
+  test_import() async {
+    resetWithFooLibrary(r'''
+@deprecated
+library deprecated_library;
+class A {}
+''');
+
+    newBasicPackage('/pkg1');
+    assertErrorsInCode(r'''
+import 'package:foo/foo.dart';
+f(A a) {}
+''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
+  }
+}
+
+@reflectiveTest
+class DeprecatedMemberUseTest_Driver extends DeprecatedMemberUseTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+}
+
+@reflectiveTest
+class DeprecatedMemberUseFromSamePackageTest extends ResolverTestCase {
+  test_methodInvocation_contructor() async {
+    assertErrorsInCode(r'''
 class A {
   @Deprecated('0.9')
   m() {}
   n() {m();}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_call() async {
@@ -36,7 +117,7 @@ class A {
     a();
   }
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_compoundAssignment() async {
@@ -49,7 +130,7 @@ f(A a) {
   A b;
   a += b;
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_export() async {
@@ -60,7 +141,7 @@ class A {}
 ''');
     await assertErrorsInCode('''
 export 'deprecated_library.dart';
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_field() async {
@@ -72,7 +153,7 @@ class A {
 f(A a) {
   return a.x;
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_getter() async {
@@ -84,7 +165,7 @@ class A {
 f(A a) {
   return a.m;
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_import() async {
@@ -96,7 +177,7 @@ class A {}
     await assertErrorsInCode(r'''
 import 'deprecated_library.dart';
 f(A a) {}
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_inDeprecatedClass() async {
@@ -215,7 +296,7 @@ class A {
 f(A a) {
   return a[1];
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_instanceCreation_defaultConstructor() async {
@@ -227,7 +308,7 @@ class A {
 f() {
   A a = new A(1);
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_instanceCreation_namedConstructor() async {
@@ -239,7 +320,7 @@ class A {
 f() {
   A a = new A.named(1);
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_methodInvocation_constant() async {
@@ -249,7 +330,7 @@ class A {
   m() {}
   n() {m();}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_operator() async {
@@ -262,7 +343,7 @@ f(A a) {
   A b;
   return a + b;
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_parameter_named() async {
@@ -271,7 +352,7 @@ class A {
   m({@deprecated int x}) {}
   n() {m(x: 1);}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_parameter_named_inDefiningFunction() async {
@@ -322,7 +403,7 @@ class A {
   m([@deprecated int x]) {}
   n() {m(1);}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_setter() async {
@@ -334,7 +415,7 @@ class A {
 f(A a) {
   return a.s = 1;
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_superConstructor_defaultConstructor() async {
@@ -346,7 +427,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 
   test_superConstructor_namedConstructor() async {
@@ -358,12 +439,13 @@ class A {
 class B extends A {
   B() : super.named() {}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
   }
 }
 
 @reflectiveTest
-class DeprecatedMemberUseTest_Driver extends DeprecatedMemberUseTest {
+class DeprecatedMemberUseFromSamePackageTest_Driver
+    extends DeprecatedMemberUseFromSamePackageTest {
   @override
   bool get enableNewAnalysisDriver => true;
 }
