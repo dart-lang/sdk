@@ -17,8 +17,6 @@ main() {
 
 @reflectiveTest
 class RenameTest extends AbstractLspAnalysisServerTest {
-  // TODO(dantup): renames across multiple files
-
   test_prepare_class() {
     const content = '''
     class MyClass {}
@@ -374,5 +372,60 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       );
       expect(contents[mainFilePath], equals(expectedContent));
     }
+  }
+
+  test_rename_multipleFiles() async {
+    final referencedFilePath =
+        join(projectFolderPath, 'lib', 'referenced.dart');
+    final referencedFileUri = Uri.file(referencedFilePath);
+    const mainContent = '''
+    import 'referenced.dart';
+    final a = new My^Class();
+    ''';
+    const referencedContent = '''
+    class MyClass {}
+    ''';
+    const expectedMainContent = '''
+    import 'referenced.dart';
+    final a = new MyNewClass();
+    ''';
+    const expectedReferencedContent = '''
+    class MyNewClass {}
+    ''';
+    const mainVersion = 111;
+    const referencedVersion = 222;
+
+    await initialize(
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(mainContent),
+        version: mainVersion);
+    await openFile(referencedFileUri, withoutMarkers(referencedContent),
+        version: referencedVersion);
+
+    final result = await rename(
+      mainFileUri,
+      mainVersion,
+      positionFromMarker(mainContent),
+      'MyNewClass',
+    );
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(mainContent),
+      referencedFilePath: withoutMarkers(referencedContent),
+    };
+    final documentVersions = {
+      mainFilePath: mainVersion,
+      referencedFilePath: referencedVersion,
+    };
+    applyDocumentChanges(
+      contents,
+      result.documentChanges,
+      expectedVersions: documentVersions,
+    );
+    expect(contents[mainFilePath], equals(expectedMainContent));
+    expect(contents[referencedFilePath], equals(expectedReferencedContent));
   }
 }
