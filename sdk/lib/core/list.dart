@@ -607,7 +607,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Returns an [Iterable] that iterates over the objects in the range
    * [start] inclusive to [end] exclusive.
    *
-   * The provide range, given by [start] and [end], must be valid at the time
+   * The provided range, given by [start] and [end], must be valid at the time
    * of the call.
    *
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
@@ -656,7 +656,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive.
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
@@ -670,7 +670,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Sets the objects in the range [start] inclusive to [end] exclusive
    * to the given [fillValue].
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
@@ -685,7 +685,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     list.replaceRange(1, 4, [6, 7]);
    *     list.join(', '); // '1, 6, 7, 5'
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
