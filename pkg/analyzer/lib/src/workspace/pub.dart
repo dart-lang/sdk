@@ -4,10 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:package_config/packages.dart';
