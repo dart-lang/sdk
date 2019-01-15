@@ -25,6 +25,38 @@ class NonNullableTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_class_hierarchy() async {
+    addTestFile('''
+class A {}
+
+class X1 extends A {} // 1
+class X2 implements A {} // 2
+class X3 with A {} // 3
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('A {} // 1'), 'A!');
+    assertType(findNode.typeName('A {} // 2'), 'A!');
+    assertType(findNode.typeName('A {} // 3'), 'A!');
+  }
+
+  test_classTypeAlias_hierarchy() async {
+    addTestFile('''
+class A {}
+class B {}
+class C {}
+
+class X = A with B implements C;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('A with'), 'A!');
+    assertType(findNode.typeName('B implements'), 'B!');
+    assertType(findNode.typeName('C;'), 'C!');
+  }
+
   test_local_parameter_interfaceType() async {
     addTestFile('''
 $_migrated
@@ -52,6 +84,23 @@ main() {
 
     assertType(findNode.typeName('int? f'), 'int?');
     assertType(findNode.typeName('int g'), 'int!');
+  }
+
+  @failingTest
+  test_local_variable_genericFunctionType() async {
+    addTestFile('''
+$_migrated
+main() {
+  int? Function(bool, String?)? a;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(
+      findNode.genericFunctionType('Function('),
+      '(bool!, String?) → int??',
+    );
   }
 
   test_local_variable_interfaceType() async {
@@ -100,5 +149,72 @@ main() {
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int*');
+  }
+
+  test_local_variable_typeParameter() async {
+    addTestFile('''
+$_migrated
+
+class A<T> {
+  main(T a) {
+    T? b;
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('T a'), 'T!');
+    assertType(findNode.typeName('T? b'), 'T?');
+  }
+
+  test_mixin_hierarchy() async {
+    addTestFile('''
+class A {}
+
+mixin X1 on A {} // 1
+mixin X2 implements A {} // 2
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('A {} // 1'), 'A!');
+    assertType(findNode.typeName('A {} // 2'), 'A!');
+  }
+
+  test_typedef_classic() async {
+    addTestFile('''
+$_migrated
+
+typedef int? F(bool a, String? b);
+
+main() {
+  F? a;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('F? a'), '(bool!, String?) → int??');
+  }
+
+  @failingTest
+  test_typedef_function() async {
+    addTestFile('''
+$_migrated
+
+typedef F<T> = int? Function(bool, T, T?);
+
+main() {
+  F<String>? a;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(
+      findNode.typeName('F<String>'),
+      '(bool!, String!, String?) → int??',
+    );
   }
 }

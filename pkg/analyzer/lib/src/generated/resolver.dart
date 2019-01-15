@@ -7116,19 +7116,19 @@ class TypeNameResolver {
       return;
     }
 
-    DartType type = null;
+    TypeImpl type = null;
     if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
-      type = element.type;
+      type = element.type as TypeImpl;
     } else if (element is TypeParameterElement) {
       _setElement(typeName, element);
-      type = element.type;
+      type = element.type as TypeImpl;
     } else if (element is MultiplyDefinedElement) {
       List<Element> elements = element.conflictingElements;
-      type = _getTypeWhenMultiplyDefined(elements);
+      type = _getTypeWhenMultiplyDefined(elements) as TypeImpl;
     } else {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;
@@ -7211,6 +7211,10 @@ class TypeNameResolver {
         type = typeSystem.instantiateToBounds(type);
       }
     }
+
+    var nullability = _getNullability(node.question != null);
+    type = type.withNullability(nullability);
+
     typeName.staticType = type;
     node.type = type;
   }
@@ -7239,6 +7243,22 @@ class TypeNameResolver {
       }
     }
     return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+  }
+
+  Nullability _getNullability(bool hasQuestion) {
+    Nullability nullability;
+    if (analysisOptions.experimentStatus.non_nullable) {
+      if (hasQuestion) {
+        nullability = Nullability.nullable;
+      } else if (isNonNullableMigrated) {
+        nullability = Nullability.nonNullable;
+      } else {
+        nullability = Nullability.indeterminate;
+      }
+    } else {
+      nullability = Nullability.indeterminate;
+    }
+    return nullability;
   }
 
   /// Checks if the given [typeName] is the target in a redirected constructor.
@@ -7417,24 +7437,23 @@ class TypeNameResolver {
       }
     }
 
+    var parent = node.parent;
+
     Nullability nullability;
-    if (analysisOptions.experimentStatus.non_nullable) {
-      if (node.question != null) {
-        nullability = Nullability.nullable;
-      } else if (isNonNullableMigrated) {
-        nullability = Nullability.nonNullable;
-      } else {
-        nullability = Nullability.indeterminate;
-      }
+    if (parent is ClassTypeAlias ||
+        parent is ExtendsClause ||
+        parent is ImplementsClause ||
+        parent is OnClause ||
+        parent is WithClause) {
+      nullability = Nullability.nonNullable;
     } else {
-      nullability = Nullability.indeterminate;
+      nullability = _getNullability(node.question != null);
     }
 
     var type = InterfaceTypeImpl.explicit(element, typeArguments,
         nullability: nullability);
 
     if (shouldUseWithClauseInferredTypes) {
-      var parent = node.parent;
       if (parent is WithClause && parameterCount != 0) {
         // Get the (possibly inferred) mixin type from the element model.
         var grandParent = parent.parent;

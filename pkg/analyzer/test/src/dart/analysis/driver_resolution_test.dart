@@ -7509,7 +7509,7 @@ class C<T> {
       TypeName typeName = bDeclaration.fields.type;
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, same(tElement));
-      expect(typeIdentifier.staticType, same(tElement.type));
+      expect(typeIdentifier.staticType, tElement.type);
 
       VariableDeclaration bNode = bDeclaration.fields.variables[0];
       expect(bNode.declaredElement, same(bElement));
