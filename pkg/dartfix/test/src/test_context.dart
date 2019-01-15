@@ -26,6 +26,9 @@ class TestExit {
   final int code;
 
   TestExit(this.code);
+
+  @override
+  String toString() => 'TestExit($code)';
 }
 
 class TestLogger implements Logger {
