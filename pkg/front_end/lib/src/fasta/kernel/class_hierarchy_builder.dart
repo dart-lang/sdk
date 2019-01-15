@@ -93,7 +93,7 @@ class ClassHierarchyBuilder {
       return a;
     }
     if (isInheritanceConflict(a, b)) {
-      reportInheritanceConflict(cls, a, b, mergeKind);
+      reportInheritanceConflict(cls, a, b);
     }
     Declaration result = a;
     if (mergeKind == MergeKind.interfaces) {
@@ -120,10 +120,10 @@ class ClassHierarchyBuilder {
     return result;
   }
 
-  void reportInheritanceConflict(KernelClassBuilder cls, Declaration a,
-      Declaration b, MergeKind mergeKind) {
+  void reportInheritanceConflict(
+      KernelClassBuilder cls, Declaration a, Declaration b) {
     String name = a.fullNameForErrors;
-    if (mergeKind == MergeKind.interfaces) {
+    if (a.parent != cls) {
       cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
           cls.fullNameForErrors.length,
           context: <LocatedMessage>[
