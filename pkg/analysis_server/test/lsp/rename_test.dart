@@ -18,11 +18,8 @@ main() {
 @reflectiveTest
 class RenameTest extends AbstractLspAnalysisServerTest {
   // TODO(dantup): send a rename without a version
-  // TODO(dantup): file changes during computation?
   // TODO(dantup): send an old version of the doc?
-  // TODO(dantup): check the version return matches?
-  // TODO(dantup): a rename that fails on options step
-  // TODO(dantup): a rename that fails on final step
+  // TODO(dantup): check the version returned matches?
   // TODO(dantup): renames across multiple files
 
   test_prepare_class() {
@@ -97,7 +94,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error.code, ServerErrorCodes.FatalRefactoringProblem);
+    expect(response.error.code, ServerErrorCodes.RenameNotValid);
     expect(response.error.message, contains('is defined in the SDK'));
   }
 
@@ -180,6 +177,38 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_rename_withDocumentChanges(content, 'MyNewClass', null);
   }
 
+  test_rename_rejectedForBadName() async {
+    const content = '''
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    final error = await _test_rename_failure(content, 'not a valid class name');
+    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.message, contains('name must not contain'));
+  }
+
+  test_rename_rejectedForDuplicateName() async {
+    const content = '''
+    class MyOtherClass {}
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    final error = await _test_rename_failure(content, 'MyOtherClass');
+    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.message, contains('already declares class with name'));
+  }
+
+  test_rename_rejectedForStaleDocument() async {
+    const content = '''
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    final error =
+        await _test_rename_failure(content, 'MyNewClass', openFileVersion: 111);
+    expect(error.code, equals(ErrorCodes.ContentModified));
+    expect(error.message, contains('Document was modified'));
+  }
+
   test_rename_sdkClass() async {
     const content = '''
     final a = new [[Ob^ject]]();
@@ -201,7 +230,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error.code, ServerErrorCodes.FatalRefactoringProblem);
+    expect(response.error.code, ServerErrorCodes.RenameNotValid);
     expect(response.error.message, contains('is defined in the SDK'));
   }
 
@@ -266,6 +295,31 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     }
   }
 
+  Future<ResponseError> _test_rename_failure(
+    String content,
+    String newName, {
+    int openFileVersion = 222,
+    int renameRequestFileVersion = 222,
+  }) async {
+    await initialize(
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content),
+        version: openFileVersion);
+
+    final result = await renameRaw(
+      mainFileUri,
+      renameRequestFileVersion,
+      positionFromMarker(content),
+      newName,
+    );
+
+    expect(result.result, isNull);
+    expect(result.error, isNotNull);
+    return result.error;
+  }
+
   _test_rename_withDocumentChanges(
       String content, String newName, String expectedContent) async {
     await initialize(
@@ -280,7 +334,6 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       positionFromMarker(content),
       newName,
     );
-
     if (expectedContent == null) {
       expect(result, isNull);
     } else {

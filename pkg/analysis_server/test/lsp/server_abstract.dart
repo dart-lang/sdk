@@ -446,6 +446,18 @@ abstract class AbstractLspAnalysisServerTest
     return new NotificationMessage(method, params, jsonRpcVersion);
   }
 
+  RequestMessage makeRenameRequest(
+      int version, Uri uri, Position pos, String newName) {
+    final docIdentifier = version != null
+        ? new VersionedTextDocumentIdentifier(version, uri.toString())
+        : new TextDocumentIdentifier(uri.toString());
+    final request = makeRequest(
+      Method.textDocument_rename,
+      new RenameParams(docIdentifier, pos, newName),
+    );
+    return request;
+  }
+
   RequestMessage makeRequest(Method method, ToJsonable params) {
     final id = Either2<num, String>.t1(_id++);
     return new RequestMessage(id, method, params, jsonRpcVersion);
@@ -537,14 +549,18 @@ abstract class AbstractLspAnalysisServerTest
     Position pos,
     String newName,
   ) {
-    final docIdentifier = version != null
-        ? new VersionedTextDocumentIdentifier(version, uri.toString())
-        : new TextDocumentIdentifier(uri.toString());
-    final request = makeRequest(
-      Method.textDocument_rename,
-      new RenameParams(docIdentifier, pos, newName),
-    );
+    final request = makeRenameRequest(version, uri, pos, newName);
     return expectSuccessfulResponseTo<WorkspaceEdit>(request);
+  }
+
+  Future<ResponseMessage> renameRaw(
+    Uri uri,
+    int version,
+    Position pos,
+    String newName,
+  ) {
+    final request = makeRenameRequest(version, uri, pos, newName);
+    return channel.sendRequestToServer(request);
   }
 
   Future replaceFile(int newVersion, Uri uri, String content) {

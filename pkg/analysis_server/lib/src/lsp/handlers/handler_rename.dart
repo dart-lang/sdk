@@ -42,8 +42,8 @@ class PrepareRenameHandler
       // Check the rename is valid here.
       final initStatus = await refactoring.checkInitialConditions();
       if (initStatus.hasFatalError) {
-        return error(ServerErrorCodes.FatalRefactoringProblem,
-            initStatus.problem.message, null);
+        return error(
+            ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
       }
 
       return success(new RangeAndPlaceholder(
@@ -99,26 +99,32 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
       final refactoring = new RenameRefactoring(server.refactoringWorkspace,
           unit.result.session, refactorDetails.element);
 
+      // TODO(dantup): Consider using window/showMessageRequest to prompt
+      // the user to see if they'd like to proceed with a rename if there
+      // are non-fatal errors or warnings. For now we will reject all errors
+      // (fatal and not) as this seems like the most logical behaviour when
+      // without a prompt.
+
       // Check the rename is valid here.
       final initStatus = await refactoring.checkInitialConditions();
-      if (initStatus.hasFatalError) {
-        return error(ServerErrorCodes.FatalRefactoringProblem,
-            initStatus.problem.message, null);
+      if (initStatus.hasError) {
+        return error(
+            ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
       }
 
       // Check the name is valid.
       refactoring.newName = params.newName;
       final optionsStatus = refactoring.checkNewName();
-      if (optionsStatus.hasFatalError) {
-        return error(ServerErrorCodes.FatalRefactoringProblem,
+      if (optionsStatus.hasError) {
+        return error(ServerErrorCodes.RenameNotValid,
             optionsStatus.problem.message, null);
       }
 
       // Final validation.
       final finalStatus = await refactoring.checkFinalConditions();
-      if (finalStatus.hasFatalError) {
-        return error(ServerErrorCodes.FatalRefactoringProblem,
-            finalStatus.problem.message, null);
+      if (finalStatus.hasError) {
+        return error(
+            ServerErrorCodes.RenameNotValid, finalStatus.problem.message, null);
       }
 
       // Compute the actual change.
