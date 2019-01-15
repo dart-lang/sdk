@@ -830,8 +830,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
     constantEvaluator = new ConstantEvaluator(constantsBackend, typeEnvironment,
-        coreTypes, /* enableAsserts = */ true,
-        errorReporter: errorReporter)
+        coreTypes, /* enableAsserts = */ true, errorReporter)
       ..env = new EvaluationEnvironment();
     labeledStatements = <LabeledStatement, Label>{};
     switchCases = <SwitchCase, Label>{};

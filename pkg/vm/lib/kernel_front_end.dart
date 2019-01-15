@@ -385,10 +385,10 @@ Future _performConstantEvaluation(
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants,
+        new ForwardConstantEvaluationErrors(typeEnvironment),
         keepFields: true,
         evaluateAnnotations: true,
-        enableAsserts: enableAsserts,
-        errorReporter: new ForwardConstantEvaluationErrors(typeEnvironment));
+        enableAsserts: enableAsserts);
   });
 }
 

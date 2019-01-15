@@ -28,37 +28,40 @@ import '../kernel.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
 
-Component transformComponent(Component component, ConstantsBackend backend,
+Component transformComponent(
+    Component component, ConstantsBackend backend, ErrorReporter errorReporter,
     {bool keepFields: false,
     bool legacyMode: false,
     bool enableAsserts: false,
     bool evaluateAnnotations: true,
     CoreTypes coreTypes,
-    ClassHierarchy hierarchy,
-    ErrorReporter errorReporter: const _SimpleErrorReporter()}) {
+    ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component);
 
   final typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
-  transformLibraries(component.libraries, backend, coreTypes, typeEnvironment,
+  transformLibraries(
+      component.libraries, backend, coreTypes, typeEnvironment, errorReporter,
       keepFields: keepFields,
       legacyMode: legacyMode,
       enableAsserts: enableAsserts,
-      evaluateAnnotations: evaluateAnnotations,
-      errorReporter: errorReporter);
+      evaluateAnnotations: evaluateAnnotations);
   return component;
 }
 
-void transformLibraries(List<Library> libraries, ConstantsBackend backend,
-    CoreTypes coreTypes, TypeEnvironment typeEnvironment,
+void transformLibraries(
+    List<Library> libraries,
+    ConstantsBackend backend,
+    CoreTypes coreTypes,
+    TypeEnvironment typeEnvironment,
+    ErrorReporter errorReporter,
     {bool keepFields: false,
     bool legacyMode: false,
     bool keepVariables: false,
     bool evaluateAnnotations: true,
-    bool enableAsserts: false,
-    ErrorReporter errorReporter: const _SimpleErrorReporter()}) {
+    bool enableAsserts: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       keepFields,
@@ -95,8 +98,8 @@ class ConstantsTransformer extends Transformer {
       ErrorReporter errorReporter,
       {bool legacyMode: false})
       : constantEvaluator = new ConstantEvaluator(
-            backend, typeEnvironment, coreTypes, enableAsserts,
-            legacyMode: legacyMode, errorReporter: errorReporter);
+            backend, typeEnvironment, coreTypes, enableAsserts, errorReporter,
+            legacyMode: legacyMode);
 
   // Transform the library/class members:
 
@@ -388,10 +391,9 @@ class ConstantEvaluator extends RecursiveVisitor {
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
 
-  ConstantEvaluator(
-      this.backend, this.typeEnvironment, this.coreTypes, this.enableAsserts,
-      {this.legacyMode: false,
-      this.errorReporter = const _SimpleErrorReporter()})
+  ConstantEvaluator(this.backend, this.typeEnvironment, this.coreTypes,
+      this.enableAsserts, this.errorReporter,
+      {this.legacyMode: false})
       : canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{};
 
@@ -1477,54 +1479,64 @@ class _AbortCurrentEvaluation {
 abstract class ErrorReporter {
   const ErrorReporter();
 
-  freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type);
-  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
-      DartType expectedType);
-  invalidBinaryOperandType(List<TreeNode> context, TreeNode node,
-      Constant receiver, String op, DartType expectedType, DartType actualType);
-  invalidMethodInvocation(
-      List<TreeNode> context, TreeNode node, Constant receiver, String op);
-  invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target);
-  invalidStringInterpolationOperand(
-      List<TreeNode> context, TreeNode node, Constant constant);
-  invalidSymbolName(List<TreeNode> context, TreeNode node, Constant constant);
-  zeroDivisor(
-      List<TreeNode> context, TreeNode node, IntConstant receiver, String op);
-  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
-      String op, IntConstant argument);
-  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass);
-  duplicateKey(List<TreeNode> context, TreeNode node, Constant key);
-  failedAssertion(List<TreeNode> context, TreeNode node, String message);
-  nonConstantVariableGet(
-      List<TreeNode> context, TreeNode node, String variableName);
-  deferredLibrary(List<TreeNode> context, TreeNode node, String importName);
-}
-
-abstract class ErrorReporterBase implements ErrorReporter {
-  const ErrorReporterBase();
-
-  report(List<TreeNode> context, String message, TreeNode node);
-
-  getFileUri(TreeNode node) {
+  Uri getFileUri(TreeNode node) {
     while (node is! FileUriNode) {
       node = node.parent;
     }
     return (node as FileUriNode).fileUri;
   }
 
-  getFileOffset(TreeNode node) {
+  int getFileOffset(TreeNode node) {
     while (node.fileOffset == TreeNode.noOffset) {
       node = node.parent;
     }
     return node == null ? TreeNode.noOffset : node.fileOffset;
   }
 
-  freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
+  void freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type);
+  void invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
+      DartType expectedType);
+  void invalidBinaryOperandType(List<TreeNode> context, TreeNode node,
+      Constant receiver, String op, DartType expectedType, DartType actualType);
+  void invalidMethodInvocation(
+      List<TreeNode> context, TreeNode node, Constant receiver, String op);
+  void invalidStaticInvocation(
+      List<TreeNode> context, TreeNode node, Procedure target);
+  void invalidStringInterpolationOperand(
+      List<TreeNode> context, TreeNode node, Constant constant);
+  void invalidSymbolName(
+      List<TreeNode> context, TreeNode node, Constant constant);
+  void zeroDivisor(
+      List<TreeNode> context, TreeNode node, IntConstant receiver, String op);
+  void negativeShift(List<TreeNode> context, TreeNode node,
+      IntConstant receiver, String op, IntConstant argument);
+  void nonConstLiteral(List<TreeNode> context, TreeNode node, String klass);
+  void duplicateKey(List<TreeNode> context, TreeNode node, Constant key);
+  void failedAssertion(List<TreeNode> context, TreeNode node, String message);
+  void nonConstantVariableGet(
+      List<TreeNode> context, TreeNode node, String variableName);
+  void deferredLibrary(
+      List<TreeNode> context, TreeNode node, String importName);
+}
+
+class SimpleErrorReporter extends ErrorReporter {
+  const SimpleErrorReporter();
+
+  void report(List<TreeNode> context, String message, TreeNode node) {
+    io.exitCode = 42;
+    final Uri uri = getFileUri(node);
+    final int fileOffset = getFileOffset(node);
+
+    io.stderr.writeln('$uri:$fileOffset Constant evaluation error: $message');
+  }
+
+  @override
+  void freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
     report(context, 'Expected type to be instantiated but was ${type}', node);
   }
 
-  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
+  @override
+  void invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
       DartType expectedType) {
     report(
         context,
@@ -1532,7 +1544,8 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  invalidBinaryOperandType(
+  @override
+  void invalidBinaryOperandType(
       List<TreeNode> context,
       TreeNode node,
       Constant receiver,
@@ -1546,19 +1559,22 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  invalidMethodInvocation(
+  @override
+  void invalidMethodInvocation(
       List<TreeNode> context, TreeNode node, Constant receiver, String op) {
     report(context, 'Cannot call "$op" on "$receiver" in constant expression',
         node);
   }
 
-  invalidStaticInvocation(
+  @override
+  void invalidStaticInvocation(
       List<TreeNode> context, TreeNode node, Procedure target) {
     report(
         context, 'Cannot invoke "$target" inside a constant expression', node);
   }
 
-  invalidStringInterpolationOperand(
+  @override
+  void invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant) {
     report(
         context,
@@ -1567,7 +1583,9 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  invalidSymbolName(List<TreeNode> context, TreeNode node, Constant constant) {
+  @override
+  void invalidSymbolName(
+      List<TreeNode> context, TreeNode node, Constant constant) {
     report(
         context,
         'The symbol name must be a valid public Dart member name, public '
@@ -1575,7 +1593,8 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  zeroDivisor(
+  @override
+  void zeroDivisor(
       List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
     report(
         context,
@@ -1584,8 +1603,9 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
-      String op, IntConstant argument) {
+  @override
+  void negativeShift(List<TreeNode> context, TreeNode node,
+      IntConstant receiver, String op, IntConstant argument) {
     report(
         context,
         "Binary operator '$op' on '${receiver.value}' requires non-negative "
@@ -1593,28 +1613,32 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
+  @override
+  void nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
     report(
         context,
         'Cannot have a non-constant $klass literal within a const context.',
         node);
   }
 
-  duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
+  @override
+  void duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
     report(
         context,
         'Duplicate keys are not allowed in constant maps (found duplicate key "$key")',
         node);
   }
 
-  failedAssertion(List<TreeNode> context, TreeNode node, String message) {
+  @override
+  void failedAssertion(List<TreeNode> context, TreeNode node, String message) {
     report(
         context,
         'The assertion condition evaluated to "false" with message "$message"',
         node);
   }
 
-  nonConstantVariableGet(
+  @override
+  void nonConstantVariableGet(
       List<TreeNode> context, TreeNode node, String variableName) {
     report(
         context,
@@ -1623,24 +1647,14 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  deferredLibrary(List<TreeNode> context, TreeNode node, String importName) {
+  @override
+  void deferredLibrary(
+      List<TreeNode> context, TreeNode node, String importName) {
     report(
         context,
         'Deferred "$importName" cannot be used inside a constant '
         'expression',
         node);
-  }
-}
-
-class _SimpleErrorReporter extends ErrorReporterBase {
-  const _SimpleErrorReporter();
-
-  report(List<TreeNode> context, String message, TreeNode node) {
-    io.exitCode = 42;
-    final Uri uri = getFileUri(node);
-    final int fileOffset = getFileOffset(node);
-
-    io.stderr.writeln('$uri:$fileOffset Constant evaluation error: $message');
   }
 }
 
