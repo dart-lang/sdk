@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import 'codegen_dart.dart';
@@ -14,14 +16,35 @@ import 'markdown.dart';
 import 'typescript.dart';
 import 'typescript_parser.dart';
 
-main() async {
+const argHelp = 'help';
+const argDownload = 'download';
+
+final argParser = new ArgParser()
+  ..addFlag(argHelp, hide: true)
+  ..addFlag(argDownload,
+      negatable: false,
+      abbr: 'd',
+      help:
+          'Download the latest version of the LSP spec before generating types');
+
+main(List<String> arguments) async {
+  final args = argParser.parse(arguments);
+  if (args[argHelp]) {
+    print(argParser.usage);
+    return;
+  }
+
   final String script = Platform.script.toFilePath();
   // 3x parent = file -> lsp_spec -> tool -> analysis_server.
   final String packageFolder = new File(script).parent.parent.parent.path;
   final String outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
   new Directory(outFolder).createSync();
 
-  final String spec = await fetchSpec();
+  if (args[argDownload]) {
+    await downloadSpec();
+  }
+  final String spec = await readSpec();
+
   final List<AstNode> types = extractTypeScriptBlocks(spec)
       .where(shouldIncludeScriptBlock)
       .map(parseString)
@@ -94,6 +117,10 @@ const jsonEncoder = const JsonEncoder.withIndent('    ');
 
 final Uri specUri = Uri.parse(
     'https://raw.githubusercontent.com/Microsoft/language-server-protocol/gh-pages/specification.md');
+final Uri specLicenseUri = Uri.parse(
+    'https://raw.githubusercontent.com/Microsoft/language-server-protocol/gh-pages/License.txt');
+final String localSpecPath = path.join(
+    path.dirname(Platform.script.toFilePath()), 'lsp_specification.md');
 
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
@@ -131,10 +158,26 @@ List<AstNode> extractResultsInlineTypes(String spec) {
       .toList();
 }
 
-Future<String> fetchSpec() async {
-  final resp = await http.get(specUri);
-  return resp.body;
+Future<void> downloadSpec() async {
+  final specResp = await http.get(specUri);
+  final licenseResp = await http.get(specLicenseUri);
+  final text = [
+    '''
+This is an unmodified copy of the Language Server Protocol Specification,
+downloaded from $specUri. It is the version of the specification that was
+used to generate a portion of the Dart code used to support the protocol.
+
+To regenerate the generated code, run the script in
+"analysis_server/tool/lsp_spec/generate_all.dart" with no arguments. To
+download the latest version of the specification before regenerating the
+code, run the same script with an argument of "--download".''',
+    licenseResp.body,
+    specResp.body
+  ];
+  return new File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
 }
+
+Future<String> readSpec() => new File(localSpecPath).readAsString();
 
 /// Returns whether a script block should be parsed or not.
 bool shouldIncludeScriptBlock(String input) {
