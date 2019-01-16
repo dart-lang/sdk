@@ -130,7 +130,8 @@ Future<String> findSinceLinter(String lint) async {
 Future<int> _readLatestMinorVersion() async {
   var contents = await new File('pubspec.yaml').readAsString();
   YamlMap pubspec = loadYamlNode(contents);
-  return int.parse(pubspec['version'].split('.').last);
+  // 0.1.79 or 0.1.79-dev
+  return int.parse(pubspec['version'].split('.').last.split('-').first);
 }
 
 Future<String> _crawlForVersion(String lint) async {
