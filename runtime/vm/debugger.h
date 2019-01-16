@@ -720,7 +720,8 @@ class Debugger {
   bool SteppedForSyntheticAsyncBreakpoint() const;
   void CleanupSyntheticAsyncBreakpoint();
   void RememberTopFrameAwaiter();
-  void SetAsyncSteppingFramePointer();
+  void SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
+  void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
 
   Isolate* isolate_;
 
