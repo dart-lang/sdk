@@ -27,14 +27,15 @@ It is not practical to offer compatability to programs that do not follow
 best practices. Thus, the breaking change process assumes that programs
 abide by the following basic conditions:
 
-* Must contain no static analysis **errors**
+* Must contain no static analysis **errors**.
 
-* Must not catch a runtime **error**
+* Must not rely on certain runtime **error** being thrown (in other words, 
+  a new SDK might throw fewer errors than an old SDK).
 
-* Must access libraries via the public API (for example, must not reach into the
-internals of a package).
+* Must access libraries via the public API (for example, must not reach into
+  the internals of a package located in the `/src/` directory).
 
-* Must not rely on an [experiment flag](flags.md)
+* Must not rely on an [experiment flag](flags.md).
 
 * Must not circumvent clear restrictions documented in the public API
   documentation (for example, must not mixin a class clearly documented as
