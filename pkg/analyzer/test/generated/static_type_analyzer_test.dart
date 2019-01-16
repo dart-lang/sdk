@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -32,6 +33,7 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
     defineReflectiveTests(StaticTypeAnalyzer3Test);
@@ -46,6 +48,27 @@ main() {
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
+}
+
+@reflectiveTest
+class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
+  @override
+  List<String> get enabledExperiments => [EnableString.set_literals];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_emptySetLiteral_parameter_typed() async {
+    String code = r'''
+main() {
+  useSet({});
+}
+void useSet(Set<int> s) {
+}
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Set<int>');
+  }
 }
 
 /**
@@ -209,18 +232,6 @@ void useMap(Map<int, int> m) {
 ''';
     await resolveTestUnit(code);
     expectExpressionType('{}', 'Map<int, int>');
-  }
-
-  test_emptySetLiteral_parameter_typed() async {
-    String code = r'''
-main() {
-  useSet({});
-}
-void useSet(Set<int> s) {
-}
-''';
-    await resolveTestUnit(code);
-    expectExpressionType('{}', 'Set<int>');
   }
 }
 
@@ -1659,6 +1670,16 @@ class StaticTypeAnalyzerWithSetLiteralsTest
   List<String> get enabledExperiments => [EnableString.set_literals];
 
   bool get enableNewAnalysisDriver => true;
+
+  test_emptySetLiteral_inferredFromLinkedHashSet() async {
+    String code = r'''
+import 'dart:collection';
+LinkedHashSet<int> test4() => {};
+''';
+    await resolveTestUnit(code, noErrors: false);
+    expectExpressionType('{}', 'Set<?>');
+    await assertErrorsInCode(code, [StrongModeCode.INVALID_CAST_LITERAL_SET]);
+  }
 
   test_emptySetLiteral_initializer_typed_nested() async {
     String code = r'''

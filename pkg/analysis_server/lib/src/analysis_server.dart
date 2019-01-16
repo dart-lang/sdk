@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,7 +16,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -50,6 +49,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -76,9 +76,6 @@ typedef void OptionUpdater(AnalysisOptionsImpl options);
 /// Instances of the class [AnalysisServer] implement a server that listens on a
 /// [CommunicationChannel] for analysis requests and process them.
 class AnalysisServer extends AbstractAnalysisServer {
-  /// The options of this server instance.
-  AnalysisServerOptions options;
-
   /// The channel from which requests are received and to which responses should
   /// be sent.
   final ServerCommunicationChannel channel;
@@ -123,22 +120,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
   Map<FlutterService, Set<String>> flutterServices = {};
-
-  /// Performance information before initial analysis is complete.
-  final ServerPerformance performanceDuringStartup = new ServerPerformance();
-
-  /// Performance information after initial analysis is complete
-  /// or `null` if the initial analysis is not yet complete
-  ServerPerformance performanceAfterStartup;
-
-  /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
-  /// server.
-  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
-
-  /// The class into which performance information is currently being recorded.
-  /// During startup, this will be the same as [performanceDuringStartup]
-  /// and after startup is complete, this switches to [performanceAfterStartup].
-  ServerPerformance _performance;
 
   /// The [Completer] that completes when analysis is complete.
   Completer _onAnalysisCompleteCompleter;
@@ -191,17 +172,15 @@ class AnalysisServer extends AbstractAnalysisServer {
   AnalysisServer(
     this.channel,
     ResourceProvider baseResourceProvider,
-    this.options,
+    AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
     this.diagnosticServer,
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  }) : super(baseResourceProvider) {
+  }) : super(options, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
-
-    _performance = performanceDuringStartup;
 
     pluginManager = new PluginManager(
         resourceProvider,
@@ -252,7 +231,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
         performanceAfterStartup = new ServerPerformance();
-        _performance = performanceAfterStartup;
+        performance = performanceAfterStartup;
       });
     });
     searchEngine = new SearchEngineImpl(driverMap.values);
@@ -302,13 +281,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     return _onAnalysisStartedController.stream;
   }
 
-  /// Return the total time the server's been alive.
-  Duration get uptime {
-    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
-        performanceDuringStartup.startTime);
-    return new DateTime.now().difference(start);
-  }
-
   /// The socket from which requests are being read has been closed.
   void done() {}
 
@@ -340,7 +312,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
-    _performance.logRequest(request);
+    performance.logRequestTiming(request.clientRequestTime);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
         int count = handlers.length;
@@ -686,9 +658,12 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.
   String _getByteStorePath() {
-    if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
+    ResourceProvider provider = resourceProvider;
+    if (provider is OverlayResourceProvider) {
+      provider = (provider as OverlayResourceProvider).baseProvider;
+    }
+    if (provider is PhysicalResourceProvider) {
+      Folder stateLocation = provider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return stateLocation.path;
       }
@@ -1071,6 +1046,9 @@ class ServerPerformance {
   /// The number of requests.
   int requestCount = 0;
 
+  /// The number of requests that recorded latency information.
+  int latencyCount = 0;
+
   /// The total latency (milliseconds) for all recorded requests.
   int requestLatency = 0;
 
@@ -1080,12 +1058,13 @@ class ServerPerformance {
   /// The number of requests with latency > 150 milliseconds.
   int slowRequestCount = 0;
 
-  /// Log performance information about the given request.
-  void logRequest(Request request) {
+  /// Log timing information for a request.
+  void logRequestTiming(int clientRequestTime) {
     ++requestCount;
-    if (request.clientRequestTime != null) {
+    if (clientRequestTime != null) {
       int latency =
-          new DateTime.now().millisecondsSinceEpoch - request.clientRequestTime;
+          new DateTime.now().millisecondsSinceEpoch - clientRequestTime;
+      ++latencyCount;
       requestLatency += latency;
       maxLatency = max(maxLatency, latency);
       if (latency > 150) {

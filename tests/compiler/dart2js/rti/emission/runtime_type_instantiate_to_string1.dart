@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*strong.checks=[],functionType,instance*/
+  /*strong.checks=[$signature],instance*/
   /*omit.checks=[],instance*/
   T id<T>(T t) => t;
   int Function(int) x = id;

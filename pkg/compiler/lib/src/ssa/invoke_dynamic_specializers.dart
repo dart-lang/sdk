@@ -16,12 +16,10 @@ import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'types.dart';
 
-/**
- * [InvokeDynamicSpecializer] and its subclasses are helpers to
- * optimize intercepted dynamic calls. It knows what input types
- * would be beneficial for performance, and how to change a invoke
- * dynamic to a builtin instruction (e.g. HIndex, HBitNot).
- */
+/// [InvokeDynamicSpecializer] and its subclasses are helpers to
+/// optimize intercepted dynamic calls. It knows what input types
+/// would be beneficial for performance, and how to change a invoke
+/// dynamic to a builtin instruction (e.g. HIndex, HBitNot).
 class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 

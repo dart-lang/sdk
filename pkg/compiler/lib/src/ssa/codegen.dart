@@ -134,26 +134,22 @@ class SsaCodeGeneratorTask extends CompilerTask {
 }
 
 class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
-  /**
-   * Returned by [expressionType] to tell how code can be generated for
-   * a subgraph.
-   * - [TYPE_STATEMENT] means that the graph must be generated as a statement,
-   * which is always possible.
-   * - [TYPE_EXPRESSION] means that the graph can be generated as an expression,
-   * or possibly several comma-separated expressions.
-   * - [TYPE_DECLARATION] means that the graph can be generated as an
-   * expression, and that it only generates expressions of the form
-   *   variable = expression
-   * which are also valid as parts of a "var" declaration.
-   */
+  /// Returned by [expressionType] to tell how code can be generated for
+  /// a subgraph.
+  /// - [TYPE_STATEMENT] means that the graph must be generated as a statement,
+  /// which is always possible.
+  /// - [TYPE_EXPRESSION] means that the graph can be generated as an expression,
+  /// or possibly several comma-separated expressions.
+  /// - [TYPE_DECLARATION] means that the graph can be generated as an
+  /// expression, and that it only generates expressions of the form
+  ///   variable = expression
+  /// which are also valid as parts of a "var" declaration.
   static const int TYPE_STATEMENT = 0;
   static const int TYPE_EXPRESSION = 1;
   static const int TYPE_DECLARATION = 2;
 
-  /**
-   * Whether we are currently generating expressions instead of statements.
-   * This includes declarations, which are generated as expressions.
-   */
+  /// Whether we are currently generating expressions instead of statements.
+  /// This includes declarations, which are generated as expressions.
   bool isGeneratingExpression = false;
 
   final CompilerOptions _options;
@@ -180,10 +176,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   List<js.Expression> expressionStack;
   List<js.Block> oldContainerStack;
 
-  /**
-   * Contains the names of the instructions, as well as the parallel
-   * copies to perform on block transitioning.
-   */
+  /// Contains the names of the instructions, as well as the parallel
+  /// copies to perform on block transitioning.
   VariableNames variableNames;
 
   /// `true` when we need to generate a `var` declaration at function entry,
@@ -191,17 +185,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /// middle of the function.
   bool shouldGroupVarDeclarations = false;
 
-  /**
-   * While generating expressions, we can't insert variable declarations.
-   * Instead we declare them at the start of the function.  When minifying
-   * we do this most of the time, because it reduces the size unless there
-   * is only one variable.
-   */
+  /// While generating expressions, we can't insert variable declarations.
+  /// Instead we declare them at the start of the function.  When minifying
+  /// we do this most of the time, because it reduces the size unless there
+  /// is only one variable.
   final Set<String> collectedVariableDeclarations;
 
-  /**
-   * Set of variables and parameters that have already been declared.
-   */
+  /// Set of variables and parameters that have already been declared.
   final Set<String> declaredLocals;
 
   HGraph currentGraph;
@@ -332,10 +322,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
 
-  /**
-   * If the [instruction] is not `null` it will be used to attach the position
-   * to the [statement].
-   */
+  /// If the [instruction] is not `null` it will be used to attach the position
+  /// to the [statement].
   void pushStatement(js.Statement statement) {
     assert(expressionStack.isEmpty);
     currentContainer.statements.add(statement);
@@ -345,20 +333,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentContainer.statements.insert(0, statement);
   }
 
-  /**
-   * If the [instruction] is not `null` it will be used to attach the position
-   * to the [expression].
-   */
+  /// If the [instruction] is not `null` it will be used to attach the position
+  /// to the [expression].
   pushExpressionAsStatement(
       js.Expression expression, SourceInformation sourceInformation) {
     pushStatement(new js.ExpressionStatement(expression)
         .withSourceInformation(sourceInformation));
   }
 
-  /**
-   * If the [instruction] is not `null` it will be used to attach the position
-   * to the [expression].
-   */
+  /// If the [instruction] is not `null` it will be used to attach the position
+  /// to the [expression].
   push(js.Expression expression) {
     expressionStack.add(expression);
   }
@@ -507,15 +491,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = oldSubGraph;
   }
 
-  /**
-   * Check whether a sub-graph can be generated as an expression, or even
-   * as a declaration, or if it has to fall back to being generated as
-   * a statement.
-   * Expressions are anything that doesn't generate control flow constructs.
-   * Declarations must only generate assignments on the form "id = expression",
-   * and not, e.g., expressions where the value isn't assigned, or where it's
-   * assigned to something that's not a simple variable.
-   */
+  /// Check whether a sub-graph can be generated as an expression, or even
+  /// as a declaration, or if it has to fall back to being generated as
+  /// a statement.
+  /// Expressions are anything that doesn't generate control flow constructs.
+  /// Declarations must only generate assignments on the form "id = expression",
+  /// and not, e.g., expressions where the value isn't assigned, or where it's
+  /// assigned to something that's not a simple variable.
   int expressionType(HExpressionInformation info) {
     // The only HExpressionInformation used as part of a HBlockInformation is
     // current HSubExpressionBlockInformation, so it's the only one reaching
@@ -580,12 +562,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         (limits.end.last is HConditionalBranch);
   }
 
-  /**
-   * Generate statements from block information.
-   * If the block information contains expressions, generate only
-   * assignments, and if it ends in a conditional branch, don't generate
-   * the condition.
-   */
+  /// Generate statements from block information.
+  /// If the block information contains expressions, generate only
+  /// assignments, and if it ends in a conditional branch, don't generate
+  /// the condition.
   void generateStatements(HBlockInformation block) {
     if (block is HStatementInformation) {
       block.accept(this);
@@ -604,12 +584,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return result;
   }
 
-  /**
-   * If the [block] only contains one statement returns that statement. If the
-   * that statement itself is a block, recursively calls this method.
-   *
-   * If the block is empty, returns a new instance of [js.NOP].
-   */
+  /// If the [block] only contains one statement returns that statement. If the
+  /// that statement itself is a block, recursively calls this method.
+  ///
+  /// If the block is empty, returns a new instance of [js.NOP].
   js.Statement unwrapStatement(js.Block block) {
     int len = block.statements.length;
     if (len == 0) return new js.EmptyStatement();
@@ -621,9 +599,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return block;
   }
 
-  /**
-   * Generate expressions from block information.
-   */
+  /// Generate expressions from block information.
   js.Expression generateExpression(HExpressionInformation expression) {
     // Currently we only handle sub-expression graphs.
     assert(expression is HSubExpressionBlockInformation);
@@ -651,9 +627,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  /**
-    * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
-    */
+  /// Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
   List<js.Expression> visitArguments(List<HInstruction> inputs,
       {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
@@ -1331,10 +1305,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(destination, new js.VariableUse(source), sourceInformation);
   }
 
-  /**
-   * Sequentialize a list of conceptually parallel copies. Parallel
-   * copies may contain cycles, that this method breaks.
-   */
+  /// Sequentialize a list of conceptually parallel copies. Parallel
+  /// copies may contain cycles, that this method breaks.
   void sequentializeCopies(
       Iterable<Copy<HInstruction>> instructionCopies,
       String tempName,
@@ -2194,7 +2166,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
-    push(new js.Assignment(new js.PropertyAccess(receiver, name), pop())
+    push(new js.Assignment(
+            new js.PropertyAccess(receiver, name)
+                .withSourceInformation(node.sourceInformation),
+            pop())
         .withSourceInformation(node.sourceInformation));
   }
 

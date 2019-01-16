@@ -23,21 +23,17 @@ import 'util/util.dart' show stackTraceFilePrefix;
 const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
-/**
- * A string to identify the revision or build.
- *
- * This ID is displayed if the compiler crashes and in verbose mode, and is
- * an aid in reproducing bug reports.
- *
- * The actual string is rewritten by a wrapper script when included in the sdk.
- */
+/// A string to identify the revision or build.
+///
+/// This ID is displayed if the compiler crashes and in verbose mode, and is
+/// an aid in reproducing bug reports.
+///
+/// The actual string is rewritten by a wrapper script when included in the sdk.
 String BUILD_ID = null;
 
-/**
- * The data passed to the [HandleOption] callback is either a single
- * string argument, or the arguments iterator for multiple arguments
- * handlers.
- */
+/// The data passed to the [HandleOption] callback is either a single
+/// string argument, or the arguments iterator for multiple arguments
+/// handlers.
 typedef void HandleOption(Null data);
 
 class OptionHandler {
@@ -52,12 +48,10 @@ class OptionHandler {
   OptionHandler(this.pattern, this._handle, {this.multipleArguments: false});
 }
 
-/**
- * Extract the parameter of an option.
- *
- * For example, in ['--out=fisk.js'] and ['-ohest.js'], the parameters
- * are ['fisk.js'] and ['hest.js'], respectively.
- */
+/// Extract the parameter of an option.
+///
+/// For example, in ['--out=fisk.js'] and ['-ohest.js'], the parameters
+/// are ['fisk.js'] and ['hest.js'], respectively.
 String extractParameter(String argument, {bool isOptionalArgument: false}) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
@@ -340,10 +334,11 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
-    new OptionHandler(Flags.fastStartup, passThrough),
+    new OptionHandler(Flags.fastStartup, ignoreOption),
     new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
+    new OptionHandler(Flags.noMinify, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {
@@ -380,6 +375,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.dumpInfo, passThrough),
     new OptionHandler('--disallow-unsafe-eval', ignoreOption),
     new OptionHandler(Option.showPackageWarnings, passThrough),
+    new OptionHandler(Option.enableLanguageExperiments, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
@@ -764,10 +760,6 @@ Supported options:
 
   --no-source-maps
     Do not generate a source map file.
-
-  --fast-startup
-    Produce JavaScript that can be parsed more quickly by VMs. This option
-    usually results in larger JavaScript files with faster startup.
 
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve

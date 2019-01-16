@@ -61,6 +61,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// superclass.
   bool get isMixinApplication => mixedInType != null;
 
+  @override
   bool get isNamedMixinApplication {
     return isMixinApplication && super.isNamedMixinApplication;
   }

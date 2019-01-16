@@ -817,9 +817,7 @@ class ConstantVisitorTestSupport extends ResolverTestCase {
 
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
-            experimentStatus:
-                ExperimentStatus.fromStrings(options.enabledExperiments),
-            typeSystem: typeSystem),
+            experimentStatus: options.experimentStatus, typeSystem: typeSystem),
         errorReporter,
         lexicalEnvironment: lexicalEnvironment));
     if (errorCodes == null) {

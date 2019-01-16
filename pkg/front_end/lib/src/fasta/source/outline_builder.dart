@@ -1305,6 +1305,7 @@ class OutlineBuilder extends StackListener {
     List<FieldInfo> fieldInfos = new List<FieldInfo>(count);
     bool isParserRecovery = false;
     for (int i = count - 1; i != -1; i--) {
+      int charEndOffset = pop();
       Token beforeLast = pop();
       Token initializerTokenForInference = pop();
       int charOffset = pop();
@@ -1312,8 +1313,8 @@ class OutlineBuilder extends StackListener {
       if (name is ParserRecovery) {
         isParserRecovery = true;
       } else {
-        fieldInfos[i] = new FieldInfo(
-            name, charOffset, initializerTokenForInference, beforeLast);
+        fieldInfos[i] = new FieldInfo(name, charOffset,
+            initializerTokenForInference, beforeLast, charEndOffset);
       }
     }
     return isParserRecovery ? null : fieldInfos;
@@ -1515,6 +1516,7 @@ class OutlineBuilder extends StackListener {
     }
     push(assignmentOperator.next);
     push(beforeLast);
+    push(token.charOffset);
   }
 
   @override
@@ -1522,6 +1524,7 @@ class OutlineBuilder extends StackListener {
     debugEvent("NoFieldInitializer");
     push(NullValue.FieldInitializer);
     push(NullValue.FieldInitializer);
+    push(token.charOffset);
   }
 
   @override

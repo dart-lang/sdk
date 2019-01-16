@@ -8,16 +8,20 @@ import 'package:kernel/ast.dart'
     show
         Constant,
         DartType,
+        EnvironmentBoolConstant,
+        EnvironmentIntConstant,
+        EnvironmentStringConstant,
         ListConstant,
         MapConstant,
         NullConstant,
         StaticInvocation,
+        StringConstant,
         TreeNode;
 
 import 'package:kernel/transformations/constants.dart'
     show ConstantsBackend, ErrorReporter;
 
-import '../problems.dart' show unimplemented;
+import '../problems.dart' show unexpected, unimplemented;
 
 class KernelConstantsBackend extends ConstantsBackend {
   @override
@@ -40,7 +44,24 @@ class KernelConstantsBackend extends ConstantsBackend {
     if (nativeName == 'Bool_fromEnvironment' ||
         nativeName == 'Integer_fromEnvironment' ||
         nativeName == 'String_fromEnvironment') {
-      return namedArguments['defaultValue'] ?? new NullConstant();
+      if (positionalArguments.length == 1 &&
+          positionalArguments.first is StringConstant &&
+          (namedArguments.length == 0 ||
+              (namedArguments.length == 1 &&
+                  namedArguments.containsKey('defaultValue')))) {
+        StringConstant name = positionalArguments.first;
+        Constant defaultValue =
+            namedArguments['defaultValue'] ?? new NullConstant();
+        if (nativeName == 'Bool_fromEnvironment') {
+          return new EnvironmentBoolConstant(name.value, defaultValue);
+        }
+        if (nativeName == 'Integer_fromEnvironment') {
+          return new EnvironmentIntConstant(name.value, defaultValue);
+        }
+        return new EnvironmentStringConstant(name.value, defaultValue);
+      }
+      return unexpected('valid constructor invocation', node.toString(),
+          node.fileOffset, node.location.file);
     }
     return unimplemented('constant evaluation of ${nativeName}',
         node.fileOffset, node.location.file);

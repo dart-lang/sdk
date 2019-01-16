@@ -58,7 +58,7 @@ Thread::~Thread() {
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(NULL),
 
 Thread::Thread(Isolate* isolate)
-    : BaseThread(false),
+    : ThreadState(false),
       stack_limit_(0),
       stack_overflow_flags_(0),
       write_barrier_mask_(RawObject::kGenerationalBarrierMask),
@@ -77,15 +77,9 @@ Thread::Thread(Isolate* isolate)
       resume_pc_(0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
-      os_thread_(NULL),
       thread_lock_(new Monitor()),
-      zone_(NULL),
-      current_zone_capacity_(0),
-      zone_high_watermark_(0),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
-      top_resource_(NULL),
-      long_jump_base_(NULL),
       no_callback_scope_depth_(0),
 #if defined(DEBUG)
       top_handle_scope_(NULL),
@@ -140,20 +134,6 @@ Thread::Thread(Isolate* isolate)
   // due to boot strapping issues.
   if ((Dart::vm_isolate() != NULL) && (isolate != Dart::vm_isolate())) {
     InitVMConstants();
-  }
-
-  // This thread should not yet own any zones. If it does, we need to make sure
-  // we've accounted for any memory it has already allocated.
-  if (zone_ == NULL) {
-    ASSERT(current_zone_capacity_ == 0);
-  } else {
-    Zone* current = zone_;
-    uintptr_t total_zone_capacity = 0;
-    while (current != NULL) {
-      total_zone_capacity += current->CapacityInBytes();
-      current = current->previous();
-    }
-    ASSERT(current_zone_capacity_ == total_zone_capacity);
   }
 }
 
@@ -245,8 +225,8 @@ void Thread::PrintJSON(JSONStream* stream) const {
   jsobj.AddPropertyF("id", "threads/%" Pd "",
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
   jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
-  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark_);
-  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity_);
+  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark());
+  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity());
 }
 #endif
 
@@ -471,18 +451,6 @@ uword Thread::GetAndClearInterrupts() {
   return interrupt_bits;
 }
 
-bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
-  ASSERT(zone != NULL);
-  Zone* current = zone_;
-  while (current != NULL) {
-    if (current == zone) {
-      return true;
-    }
-    current = current->previous();
-  }
-  return false;
-}
-
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
   defer_oob_messages_count_++;
@@ -687,8 +655,8 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                  ValidationPolicy validation_policy) {
   ASSERT(visitor != NULL);
 
-  if (zone_ != NULL) {
-    zone_->VisitObjectPointers(visitor);
+  if (zone() != NULL) {
+    zone()->VisitObjectPointers(visitor);
   }
 
   // Visit objects in thread specific handles area.
@@ -832,7 +800,7 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 
 #if defined(DEBUG)
 bool Thread::TopErrorHandlerIsSetJump() const {
-  if (long_jump_base_ == nullptr) return false;
+  if (long_jump_base() == nullptr) return false;
   if (top_exit_frame_info_ == 0) return true;
 #if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
   // False positives: simulator stack and native stack are unordered.
@@ -843,13 +811,13 @@ bool Thread::TopErrorHandlerIsSetJump() const {
   if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
     return true;
 #endif
-  return reinterpret_cast<uword>(long_jump_base_) < top_exit_frame_info_;
+  return reinterpret_cast<uword>(long_jump_base()) < top_exit_frame_info_;
 #endif
 }
 
 bool Thread::TopErrorHandlerIsExitFrame() const {
   if (top_exit_frame_info_ == 0) return false;
-  if (long_jump_base_ == nullptr) return true;
+  if (long_jump_base() == nullptr) return true;
 #if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
   // False positives: simulator stack and native stack are unordered.
   return true;
@@ -859,7 +827,7 @@ bool Thread::TopErrorHandlerIsExitFrame() const {
   if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
     return true;
 #endif
-  return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base_);
+  return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base());
 #endif
 }
 #endif  // defined(DEBUG)
@@ -891,7 +859,7 @@ intptr_t Thread::CountLocalHandles() const {
 }
 
 bool Thread::IsValidZoneHandle(Dart_Handle object) const {
-  Zone* zone = zone_;
+  Zone* zone = this->zone();
   while (zone != NULL) {
     if (zone->handles()->IsValidZoneHandle(reinterpret_cast<uword>(object))) {
       return true;
@@ -903,7 +871,7 @@ bool Thread::IsValidZoneHandle(Dart_Handle object) const {
 
 intptr_t Thread::CountZoneHandles() const {
   intptr_t count = 0;
-  Zone* zone = zone_;
+  Zone* zone = this->zone();
   while (zone != NULL) {
     count += zone->handles()->CountZoneHandles();
     zone = zone->previous();
@@ -913,7 +881,7 @@ intptr_t Thread::CountZoneHandles() const {
 }
 
 bool Thread::IsValidScopedHandle(Dart_Handle object) const {
-  Zone* zone = zone_;
+  Zone* zone = this->zone();
   while (zone != NULL) {
     if (zone->handles()->IsValidScopedHandle(reinterpret_cast<uword>(object))) {
       return true;
@@ -925,7 +893,7 @@ bool Thread::IsValidScopedHandle(Dart_Handle object) const {
 
 intptr_t Thread::CountScopedHandles() const {
   intptr_t count = 0;
-  Zone* zone = zone_;
+  Zone* zone = this->zone();
   while (zone != NULL) {
     count += zone->handles()->CountScopedHandles();
     zone = zone->previous();

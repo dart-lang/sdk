@@ -4,11 +4,9 @@
 
 part of masks;
 
-/**
- * A [MapTypeMask] is a [TypeMask] for a specific allocation
- * site of a map (currently only internal Map class) that will get specialized
- * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
- */
+/// A [MapTypeMask] is a [TypeMask] for a specific allocation
+/// site of a map (currently only internal Map class) that will get specialized
+/// once the [TypeGraphInferrer] phase finds a key and/or value type for it.
 class MapTypeMask extends AllocationTypeMask {
   /// Tag used for identifying serialized [MapTypeMask] objects in a
   /// debugging data stream.

@@ -71,9 +71,11 @@ run(Uri entryPoint, String allowedListPath,
 class StaticTypeVisitorBase extends StaticTypeVisitor {
   VariableScopeModel variableScopeModel;
 
-  StaticTypeVisitorBase(ir.Component component)
-      : super(new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
+  StaticTypeVisitorBase(
+      ir.Component component, ir.ClassHierarchy classHierarchy)
+      : super(
+            new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
+            classHierarchy);
 
   @override
   bool get useAsserts => false;
@@ -132,7 +134,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
 
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)
-      : super(component);
+      : super(component, new ir.ClassHierarchy(component));
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {

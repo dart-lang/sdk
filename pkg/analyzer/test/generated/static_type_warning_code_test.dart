@@ -193,6 +193,13 @@ void main() {
     ]);
   }
 
+  test_defaultSetLiteralNotEnabled() async {
+    await assertErrorsInCode(r'''
+void main() {
+  Set _ = {};
+}''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
   test_expectedOneListTypeArgument() async {
     await assertErrorsInCode(r'''
 main() {
@@ -547,6 +554,70 @@ f() {
   int x;
   x = '0';
 }''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_postfixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  a++;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_postfixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  c.a++;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_prefixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  ++a;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_prefixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  ++c.a;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_invalidAssignment_regressionInIssue18468Fix() async {

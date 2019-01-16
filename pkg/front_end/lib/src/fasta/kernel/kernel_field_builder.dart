@@ -33,10 +33,11 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final KernelTypeBuilder type;
 
   KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
-      Declaration compilationUnit, int charOffset)
+      Declaration compilationUnit, int charOffset, int charEndOffset)
       : field = new ShadowField(null, type == null,
             fileUri: compilationUnit?.fileUri)
-          ..fileOffset = charOffset,
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {

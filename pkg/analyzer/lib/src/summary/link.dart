@@ -62,6 +62,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -432,6 +433,9 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
 
   @override
   bool get strongModeHints => false;
+
+  @override
+  ExperimentStatus get experimentStatus => new ExperimentStatus();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -1008,13 +1012,13 @@ class ClassElementForLink_Enum extends ClassElementForLink
   List<InterfaceType> get interfaces => const [];
 
   @override
+  bool get isAbstract => false;
+
+  @override
   bool get isEnum => true;
 
   @override
   bool get isMixin => false;
-
-  @override
-  bool get isAbstract => false;
 
   @override
   bool get isObject => false;
@@ -5318,15 +5322,15 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _futureType;
   InterfaceType _intType;
   InterfaceType _iterableDynamicType;
+  InterfaceType _iterableObjectType;
   InterfaceType _iterableType;
   InterfaceType _listType;
   InterfaceType _mapType;
-  InterfaceType _mapNullNullType;
+  InterfaceType _mapObjectObjectType;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
   InterfaceType _setType;
-  InterfaceType _setNullType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -5387,6 +5391,10 @@ class TypeProviderForLink extends TypeProviderBase {
       iterableType.instantiate(<DartType>[dynamicType]);
 
   @override
+  InterfaceType get iterableObjectType =>
+      _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
+
+  @override
   InterfaceType get iterableType =>
       _iterableType ??= _buildInterfaceType(_linker.coreLibrary, 'Iterable');
 
@@ -5395,8 +5403,8 @@ class TypeProviderForLink extends TypeProviderBase {
       _listType ??= _buildInterfaceType(_linker.coreLibrary, 'List');
 
   @override
-  InterfaceType get mapNullNullType =>
-      _mapNullNullType ??= mapType.instantiate(<DartType>[nullType, nullType]);
+  InterfaceType get mapObjectObjectType => _mapObjectObjectType ??=
+      mapType.instantiate(<DartType>[objectType, objectType]);
 
   @override
   InterfaceType get mapType =>
@@ -5419,10 +5427,6 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get objectType =>
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
-
-  @override
-  InterfaceType get setNullType =>
-      _setNullType ??= setType.instantiate(<DartType>[nullType]);
 
   @override
   InterfaceType get setType =>

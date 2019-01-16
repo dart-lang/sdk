@@ -106,6 +106,8 @@ library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
 abstract class LinkedHashMap<K, V> implements Map<K, V> {}
+abstract class HashSet<E> implements Set<E> {}
+abstract class LinkedHashSet<E> implements Set<E> {}
 ''');
 
 const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
@@ -150,6 +152,12 @@ class DateTime extends Object {}
 class Deprecated extends Object {
   final String expires;
   const Deprecated(this.expires);
+}
+
+class pragma {
+  final String name;
+  final Object options;
+  const pragma(this.name, [this.options]);
 }
 
 abstract class double extends num {

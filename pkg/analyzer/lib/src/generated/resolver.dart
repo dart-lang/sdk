@@ -29,11 +29,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
@@ -286,6 +286,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   WorkspacePackage _workspacePackage;
 
+  /// The [LinterContext] used for possible const calculations.
+  LinterContext _linterContext;
+
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
@@ -295,6 +298,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary, {
     TypeSystem typeSystem,
     ResourceProvider resourceProvider,
+    DeclaredVariables declaredVariables,
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
@@ -305,6 +309,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     Workspace workspace = ContextBuilder.createWorkspace(
         resourceProvider, libraryPath, null /* ContextBuilder */);
     _workspacePackage = workspace.findPackageFor(libraryPath);
+    _linterContext = LinterContextImpl(null /* allUnits */,
+        null /* currentUnit */, declaredVariables, typeProvider, _typeSystem);
   }
 
   @override
@@ -359,9 +365,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
-    if (operatorType == TokenType.EQ) {
-      _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
-    } else {
+    if (operatorType != TokenType.EQ) {
       _checkForDeprecatedMemberUse(node.staticElement, node);
     }
     super.visitAssignmentExpression(node);
@@ -480,6 +484,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
+    _checkForLiteralConstructorUse(node);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -590,12 +595,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _checkForInvalidAssignment(node.name, node.initializer);
-    super.visitVariableDeclaration(node);
   }
 
   /// Check for the passed is expression for the unnecessary type check hint
@@ -717,11 +716,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
-        displayName =
-            "${resolutionMap.staticInvokeTypeForInvocationExpression(node).displayName}.${element.displayName}";
+        DartType staticInvokeType =
+            resolutionMap.staticInvokeTypeForInvocationExpression(node);
+        displayName = "${staticInvokeType.displayName}.${element.displayName}";
       }
-      _errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
+      LibraryElement library =
+          element is LibraryElement ? element : element.library;
+      HintCode hintCode = _workspacePackage.contains(library.source.fullName)
+          ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
+          : HintCode.DEPRECATED_MEMBER_USE;
+      _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
     }
   }
 
@@ -874,41 +878,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// This verifies that the passed left hand side and right hand side represent
-  /// a valid assignment.
-  ///
-  /// This method corresponds to ErrorVerifier.checkForInvalidAssignment.
-  ///
-  /// @param lhs the left hand side expression
-  /// @param rhs the right hand side expression
-  /// @return `true` if and only if an error code is generated on the passed
-  ///         node
-  /// See [HintCode.INVALID_ASSIGNMENT].
-  bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
-    if (lhs == null || rhs == null) {
-      return false;
-    }
-    VariableElement leftVariableElement = ErrorVerifier.getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? ErrorVerifier.getStaticType(lhs)
-        : leftVariableElement.type;
-    DartType staticRightType = ErrorVerifier.getStaticType(rhs);
-    if (!_typeSystem.isAssignableTo(staticRightType, leftType)) {
-      // The warning was generated on this rhs
-      return false;
-    }
-    // Test for, and then generate the hint
-    DartType bestRightType = rhs.staticType;
-    if (leftType != null && bestRightType != null) {
-      if (!_typeSystem.isAssignableTo(bestRightType, leftType)) {
-        _errorReporter.reportTypeErrorForNode(
-            HintCode.INVALID_ASSIGNMENT, rhs, [bestRightType, leftType]);
-        return true;
-      }
-    }
-    return false;
-  }
-
   void _checkForInvalidFactory(MethodDeclaration decl) {
     // Check declaration.
     // Note that null return types are expected to be flagged by other analyses.
@@ -976,6 +945,32 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
+    }
+  }
+
+  /// Check that the instance creation node is const if the constructor is
+  /// marked with [literal].
+  _checkForLiteralConstructorUse(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.constructorName;
+    ConstructorElement constructor = constructorName.staticElement;
+    if (constructor == null) {
+      return;
+    }
+    if (!node.isConst &&
+        constructor.hasLiteral &&
+        _linterContext.canBeConst(node)) {
+      // Echoing jwren's TODO from _checkForDeprecatedMemberUse:
+      // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
+      // have the logic centralized elsewhere, instead of doing this logic
+      // here.
+      String fullConstructorName = constructorName.type.name.name;
+      if (constructorName.name != null) {
+        fullConstructorName = '$fullConstructorName.${constructorName.name}';
+      }
+      HintCode hint = node.keyword?.keyword == Keyword.NEW
+          ? HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
+          : HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+      _errorReporter.reportErrorForNode(hint, node, [fullConstructorName]);
     }
   }
 
@@ -1254,17 +1249,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 //    }
 //    return false;
 //  }
-
-  /// Return `true` if the given [type] represents `Future<void>`.
-  bool _isFutureVoid(DartType type) {
-    if (type.isDartAsyncFuture) {
-      List<DartType> typeArgs = (type as InterfaceType).typeArguments;
-      if (typeArgs.length == 1 && typeArgs[0].isVoid) {
-        return true;
-      }
-    }
-    return false;
-  }
+//
+//  /// Return `true` if the given [type] represents `Future<void>`.
+//  bool _isFutureVoid(DartType type) {
+//    if (type.isDartAsyncFuture) {
+//      List<DartType> typeArgs = (type as InterfaceType).typeArguments;
+//      if (typeArgs.length == 1 && typeArgs[0].isVoid) {
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
 
   static bool _hasDeprecatedAnnotation(List<Annotation> annotations) {
     for (var i = 0; i < annotations.length; i++) {
@@ -5220,8 +5215,8 @@ class ResolverVisitor extends ScopedVisitor {
       if (mapT != null &&
           node.typeArguments == null &&
           node.entries.isEmpty &&
-          typeSystem.isAssignableTo(typeProvider.setNullType, mapT) &&
-          !typeSystem.isAssignableTo(typeProvider.mapNullNullType, mapT)) {
+          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
+          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
         // The node is really an empty set literal with no type arguments, so
         // don't try to visit the replaced map literal.
         return;
@@ -6872,6 +6867,8 @@ class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
   final DartType undefinedType;
+  final bool isNonNullableMigrated;
+  final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
   final Source source;
   final AnalysisErrorListener errorListener;
@@ -6885,11 +6882,17 @@ class TypeNameResolver {
 
   Scope nameScope;
 
-  TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.definingLibrary, this.source, this.errorListener,
+  TypeNameResolver(
+      this.typeSystem,
+      TypeProvider typeProvider,
+      this.isNonNullableMigrated,
+      this.definingLibrary,
+      this.source,
+      this.errorListener,
       {this.shouldUseWithClauseInferredTypes: true})
       : dynamicType = typeProvider.dynamicType,
-        undefinedType = typeProvider.undefinedType;
+        undefinedType = typeProvider.undefinedType,
+        analysisOptions = definingLibrary.context.analysisOptions;
 
   /// Report an error with the given error code and arguments.
   ///
@@ -7112,22 +7115,25 @@ class TypeNameResolver {
       node.type = undefinedType;
       return;
     }
-    DartType type = null;
+
     if (element is ClassElement) {
-      _setElement(typeName, element);
-      type = element.type;
-    } else if (element == DynamicElementImpl.instance) {
+      _resolveClassElement(node, typeName, argumentList, element);
+      return;
+    }
+
+    TypeImpl type = null;
+    if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
-      type = element.type;
+      type = element.type as TypeImpl;
     } else if (element is TypeParameterElement) {
       _setElement(typeName, element);
-      type = element.type;
+      type = element.type as TypeImpl;
     } else if (element is MultiplyDefinedElement) {
       List<Element> elements = element.conflictingElements;
-      type = _getTypeWhenMultiplyDefined(elements);
+      type = _getTypeWhenMultiplyDefined(elements) as TypeImpl;
     } else {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;
@@ -7207,37 +7213,15 @@ class TypeNameResolver {
                 element, typeArguments) ??
             dynamicType;
       } else {
-        DartType redirectedType =
-            _inferTypeArgumentsForRedirectedConstructor(node, type);
-        if (redirectedType != null) {
-          type = redirectedType;
-        } else {
-          type = typeSystem.instantiateToBounds(type);
-        }
+        type = typeSystem.instantiateToBounds(type);
       }
     }
-    DartType refinedType;
-    if (shouldUseWithClauseInferredTypes) {
-      var parent = node.parent;
-      if (parent is WithClause &&
-          type is InterfaceType &&
-          type.element.typeParameters.isNotEmpty) {
-        // Get the (possibly inferred) mixin type from the element model.
-        var grandParent = parent.parent;
-        if (grandParent is ClassDeclaration) {
-          refinedType =
-              _getInferredMixinType(grandParent.declaredElement, type.element);
-        } else if (grandParent is ClassTypeAlias) {
-          refinedType =
-              _getInferredMixinType(grandParent.declaredElement, type.element);
-        } else {
-          assert(false, 'Unexpected context for "with" clause');
-        }
-      }
-    }
-    refinedType ??= type;
-    typeName.staticType = refinedType;
-    node.type = refinedType;
+
+    var nullability = _getNullability(node.question != null);
+    type = type.withNullability(nullability);
+
+    typeName.staticType = type;
+    node.type = type;
   }
 
   DartType _getInferredMixinType(
@@ -7264,6 +7248,22 @@ class TypeNameResolver {
       }
     }
     return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+  }
+
+  Nullability _getNullability(bool hasQuestion) {
+    Nullability nullability;
+    if (analysisOptions.experimentStatus.non_nullable) {
+      if (hasQuestion) {
+        nullability = Nullability.nullable;
+      } else if (isNonNullableMigrated) {
+        nullability = Nullability.nonNullable;
+      } else {
+        nullability = Nullability.indeterminate;
+      }
+    } else {
+      nullability = Nullability.indeterminate;
+    }
+    return nullability;
   }
 
   /// Checks if the given [typeName] is the target in a redirected constructor.
@@ -7339,7 +7339,7 @@ class TypeNameResolver {
   /// If the [node] is the type name in a redirected factory constructor,
   /// infer type arguments using the enclosing class declaration. Return `null`
   /// otherwise.
-  DartType _inferTypeArgumentsForRedirectedConstructor(
+  InterfaceTypeImpl _inferTypeArgumentsForRedirectedConstructor(
       TypeName node, DartType type) {
     AstNode constructorName = node.parent;
     AstNode enclosingConstructor = constructorName?.parent;
@@ -7404,6 +7404,77 @@ class TypeNameResolver {
   /// Checks if the given [typeName] used in a type argument list.
   bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
       typeName.parent is TypeArgumentList;
+
+  void _resolveClassElement(TypeName node, Identifier typeName,
+      TypeArgumentList argumentList, ClassElement element) {
+    _setElement(typeName, element);
+
+    var typeParameters = element.typeParameters;
+    var parameterCount = typeParameters.length;
+
+    List<DartType> typeArguments;
+    if (argumentList != null) {
+      var argumentNodes = argumentList.arguments;
+      var argumentCount = argumentNodes.length;
+
+      typeArguments = new List<DartType>(parameterCount);
+      if (argumentCount == parameterCount) {
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = _getType(argumentNodes[i]);
+        }
+      } else {
+        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
+            [typeName.name, parameterCount, argumentCount]);
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = dynamicType;
+        }
+      }
+    } else if (parameterCount == 0) {
+      typeArguments = const <DartType>[];
+    } else {
+      var redirectedType =
+          _inferTypeArgumentsForRedirectedConstructor(node, element.type);
+      if (redirectedType != null) {
+        typeArguments = redirectedType.typeArguments;
+      } else {
+        var typeFormals = typeParameters;
+        typeArguments = typeSystem.instantiateTypeFormalsToBounds(typeFormals);
+      }
+    }
+
+    var parent = node.parent;
+
+    Nullability nullability;
+    if (parent is ClassTypeAlias ||
+        parent is ExtendsClause ||
+        parent is ImplementsClause ||
+        parent is OnClause ||
+        parent is WithClause) {
+      nullability = Nullability.nonNullable;
+    } else {
+      nullability = _getNullability(node.question != null);
+    }
+
+    var type = InterfaceTypeImpl.explicit(element, typeArguments,
+        nullability: nullability);
+
+    if (shouldUseWithClauseInferredTypes) {
+      if (parent is WithClause && parameterCount != 0) {
+        // Get the (possibly inferred) mixin type from the element model.
+        var grandParent = parent.parent;
+        if (grandParent is ClassDeclaration) {
+          type = _getInferredMixinType(grandParent.declaredElement, element);
+        } else if (grandParent is ClassTypeAlias) {
+          type = _getInferredMixinType(grandParent.declaredElement, element);
+        } else {
+          assert(false, 'Unexpected context for "with" clause');
+        }
+      }
+    }
+
+    typeName.staticType = type;
+    node.type = type;
+  }
 
   /// Records the new Element for a TypeName's Identifier.
   ///
@@ -7638,10 +7709,16 @@ class TypeParameterBoundsResolver {
   TypeNameResolver typeNameResolver = null;
 
   TypeParameterBoundsResolver(
-      this.typeSystem, this.library, this.source, this.errorListener)
+      this.typeSystem, this.library, this.source, this.errorListener,
+      {bool isNonNullableMigrated = false})
       : libraryScope = new LibraryScope(library),
-        typeNameResolver = new TypeNameResolver(typeSystem,
-            typeSystem.typeProvider, library, source, errorListener);
+        typeNameResolver = new TypeNameResolver(
+            typeSystem,
+            typeSystem.typeProvider,
+            isNonNullableMigrated,
+            library,
+            source,
+            errorListener);
 
   /// Resolve bounds of type parameters of classes, class and function type
   /// aliases.
@@ -7875,14 +7952,17 @@ abstract class TypeProvider {
   /// Return the type representing the type 'Iterable<dynamic>'.
   InterfaceType get iterableDynamicType;
 
+  /// Return the type representing the type 'Iterable<Object>'.
+  InterfaceType get iterableObjectType;
+
   /// Return the type representing the built-in type 'Iterable'.
   InterfaceType get iterableType;
 
   /// Return the type representing the built-in type 'List'.
   InterfaceType get listType;
 
-  /// Return the type representing 'Map<Null, Null>'.
-  InterfaceType get mapNullNullType;
+  /// Return the type representing 'Map<Object, Object>'.
+  InterfaceType get mapObjectObjectType;
 
   /// Return the type representing the built-in type 'Map'.
   InterfaceType get mapType;
@@ -7902,9 +7982,6 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type 'Object'.
   InterfaceType get objectType;
-
-  /// Return the type representing 'Set<Null>'.
-  InterfaceType get setNullType;
 
   /// Return the type representing the built-in type 'Set'.
   InterfaceType get setType;
@@ -8017,6 +8094,9 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing 'Iterable<dynamic>'.
   InterfaceType _iterableDynamicType;
 
+  /// The type representing 'Iterable<Object>'.
+  InterfaceType _iterableObjectType;
+
   /// The type representing the built-in type 'Iterable'.
   InterfaceType _iterableType;
 
@@ -8026,17 +8106,14 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'Map'.
   InterfaceType _mapType;
 
-  /// The type representing the built-in type 'Map<Null, Null>'.
-  InterfaceType _mapNullNullType;
+  /// The type representing the built-in type 'Map<Object, Object>'.
+  InterfaceType _mapObjectObjectType;
 
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
   /// The type representing the type 'Set'.
   InterfaceType _setType;
-
-  /// The type representing the type 'Set<Null>'.
-  InterfaceType _setNullType;
 
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
@@ -8125,13 +8202,16 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get iterableDynamicType => _iterableDynamicType;
 
   @override
+  InterfaceType get iterableObjectType => _iterableObjectType;
+
+  @override
   InterfaceType get iterableType => _iterableType;
 
   @override
   InterfaceType get listType => _listType;
 
   @override
-  InterfaceType get mapNullNullType => _mapNullNullType;
+  InterfaceType get mapObjectObjectType => _mapObjectObjectType;
 
   @override
   InterfaceType get mapType => _mapType;
@@ -8152,9 +8232,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get objectType => _objectType;
-
-  @override
-  InterfaceType get setNullType => _setNullType;
 
   @override
   InterfaceType get setType => _setType;
@@ -8224,8 +8301,9 @@ class TypeProviderImpl extends TypeProviderBase {
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
-    _mapNullNullType = _mapType.instantiate(<DartType>[_nullType, _nullType]);
-    _setNullType = _setType.instantiate(<DartType>[_nullType]);
+    _iterableObjectType = _iterableType.instantiate(<DartType>[_objectType]);
+    _mapObjectObjectType =
+        _mapType.instantiate(<DartType>[_objectType, _objectType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
     // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
     // doesn't have it yet, create an element for it.
@@ -8284,6 +8362,9 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// Type type system in use for this resolver pass.
   TypeSystem _typeSystem;
 
+  /// Whether the library migrated to non-nullable.
+  final bool isNonNullableMigrated;
+
   /// The helper to resolve types.
   TypeNameResolver _typeNameResolver;
 
@@ -8319,6 +8400,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
+      this.isNonNullableMigrated: false,
       this.mode: TypeResolverMode.everything,
       bool shouldUseWithClauseInferredTypes: true,
       this.shouldSetElementSupertypes: false})
@@ -8327,8 +8409,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
-    _typeNameResolver = new TypeNameResolver(
-        _typeSystem, typeProvider, definingLibrary, source, errorListener,
+    _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
+        isNonNullableMigrated, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 

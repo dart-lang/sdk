@@ -31,14 +31,23 @@ class InitializeMessageHandler
       openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
       // ignore: deprecated_member_use
     } else if (params.rootPath != null) {
-      openWorkspacePaths.add(params.rootUri);
+      // This is deprecated according to LSP spec, but we still want to support
+      // it in case older clients send us it.
+      // ignore: deprecated_member_use
+      openWorkspacePaths.add(params.rootPath);
     }
 
-    server.setClientCapabilities(params.capabilities);
+    server.handleClientConnection(params.capabilities);
     server.messageHandler =
         new InitializingStateMessageHandler(server, openWorkspacePaths);
 
-    return success(new InitializeResult(new ServerCapabilities(
+    final codeActionLiteralSupport =
+        params.capabilities.textDocument?.codeAction?.codeActionLiteralSupport;
+
+    final renameOptionsSupport =
+        params.capabilities.textDocument?.rename?.prepareSupport ?? false;
+
+    server.capabilities = new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,
           TextDocumentSyncKind.Incremental,
@@ -66,21 +75,31 @@ class InitializeMessageHandler
         null,
         null,
         true, // referencesProvider
-        null,
+        true, // documentHighlightProvider
         true, // documentSymbolProvider
         null,
-        Either2<bool, CodeActionOptions>.t2(
-            new CodeActionOptions(DartCodeActionKind.serverSupportedKinds)),
+        // "The `CodeActionOptions` return type is only valid if the client
+        // signals code action literal support via the property
+        // `textDocument.codeAction.codeActionLiteralSupport`."
+        codeActionLiteralSupport != null
+            ? Either2<bool, CodeActionOptions>.t2(
+                new CodeActionOptions(DartCodeActionKind.serverSupportedKinds))
+            : Either2<bool, CodeActionOptions>.t1(true),
         null,
         true, // documentFormattingProvider
         false, // documentRangeFormattingProvider
         new DocumentOnTypeFormattingOptions('}', [';']),
-        null,
+        renameOptionsSupport
+            ? Either2<bool, RenameOptions>.t2(new RenameOptions(true))
+            : Either2<bool, RenameOptions>.t1(true),
         null,
         null,
         null,
         new ExecuteCommandOptions(Commands.serverSupportedCommands),
-        null,
-        null)));
+        new ServerCapabilitiesWorkspace(
+            new ServerCapabilitiesWorkspaceFolders(true, true)),
+        null);
+
+    return success(new InitializeResult(server.capabilities));
   }
 }

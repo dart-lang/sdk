@@ -40,6 +40,7 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
@@ -672,16 +673,19 @@ class ContextBuilder {
   static Workspace createWorkspace(ResourceProvider resourceProvider,
       String rootPath, ContextBuilder contextBuilder) {
     if (_hasPackageFileInPath(resourceProvider, rootPath)) {
-      // Bazel workspaces that include package files are treated like normal
-      // (non-Bazel) directories. But may still use package:build.
+      // A Bazel or Gn workspace that includes a '.packages' file is treated
+      // like a normal (non-Bazel/Gn) directory. But may still use
+      // package:build or Pub.
       return PackageBuildWorkspace.find(
               resourceProvider, rootPath, contextBuilder) ??
+          PubWorkspace.find(resourceProvider, rootPath, contextBuilder) ??
           BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
         PackageBuildWorkspace.find(resourceProvider, rootPath, contextBuilder);
+    workspace ??= PubWorkspace.find(resourceProvider, rootPath, contextBuilder);
     return workspace ??
         BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
   }

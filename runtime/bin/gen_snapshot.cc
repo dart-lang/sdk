@@ -72,6 +72,7 @@ enum SnapshotKind {
   kCore,
   kCoreJIT,
   kCoreJITAll,
+  kApp,
   kAppJIT,
   kAppAOTBlobs,
   kAppAOTAssembly,
@@ -99,6 +100,7 @@ static const char* kSnapshotKindNames[] = {
     "core",
     "core-jit",
     "core-jit-all",
+    "app",
     "app-jit",
     "app-aot-blobs",
     "app-aot-assembly",
@@ -124,6 +126,7 @@ static const char* kSnapshotKindNames[] = {
   V(assembly, assembly_filename)                                               \
   V(dependencies, dependencies_filename)                                       \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
+  V(load_type_feedback, load_type_feedback_filename)                           \
   V(package_root, commandline_package_root)                                    \
   V(packages, commandline_packages_file)                                       \
   V(save_obfuscation_map, obfuscation_map_filename)
@@ -297,6 +300,7 @@ static int ParseArguments(int argc,
       }
       break;
     }
+    case kApp:
     case kAppJIT: {
       if ((load_vm_snapshot_data_filename == NULL) ||
           (isolate_snapshot_data_filename == NULL) ||
@@ -452,6 +456,7 @@ class DependenciesFileWriter : public ValueObject {
       case kAppAOTAssembly:
         WriteDependenciesWithTarget(assembly_filename);
         break;
+      case kApp:
       case kAppJIT:
         WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
@@ -563,6 +568,14 @@ static void LoadCompilationTrace() {
     Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
     CHECK_RESULT(result);
   }
+  if ((load_type_feedback_filename != NULL) &&
+      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+    uint8_t* buffer = NULL;
+    intptr_t size = 0;
+    ReadFile(load_type_feedback_filename, &buffer, &size);
+    Dart_Handle result = Dart_LoadTypeFeedback(buffer, size);
+    CHECK_RESULT(result);
+  }
 }
 
 static void CompileAll() {
@@ -594,11 +607,15 @@ static void CreateAndWriteCoreSnapshot() {
   WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
             vm_snapshot_data_size);
   if (vm_snapshot_instructions_filename != NULL) {
+    // Create empty file for the convenience of build systems. Makes things
+    // polymorphic with generating core-jit snapshots.
     WriteFile(vm_snapshot_instructions_filename, NULL, 0);
   }
   WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
             isolate_snapshot_data_size);
   if (isolate_snapshot_instructions_filename != NULL) {
+    // Create empty file for the convenience of build systems. Makes things
+    // polymorphic with generating core-jit snapshots.
     WriteFile(isolate_snapshot_instructions_filename, NULL, 0);
   }
 }
@@ -664,6 +681,27 @@ static void CreateAndWriteCoreJITSnapshot() {
   WriteFile(isolate_snapshot_instructions_filename,
             isolate_snapshot_instructions_buffer,
             isolate_snapshot_instructions_size);
+}
+
+static void CreateAndWriteAppSnapshot() {
+  ASSERT(snapshot_kind == kApp);
+  ASSERT(isolate_snapshot_data_filename != NULL);
+
+  Dart_Handle result;
+  uint8_t* isolate_snapshot_data_buffer = NULL;
+  intptr_t isolate_snapshot_data_size = 0;
+
+  result = Dart_CreateSnapshot(NULL, NULL, &isolate_snapshot_data_buffer,
+                               &isolate_snapshot_data_size);
+  CHECK_RESULT(result);
+
+  WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+            isolate_snapshot_data_size);
+  if (isolate_snapshot_instructions_filename != NULL) {
+    // Create empty file for the convenience of build systems. Makes things
+    // polymorphic with generating core-jit snapshots.
+    WriteFile(isolate_snapshot_instructions_filename, NULL, 0);
+  }
 }
 
 static void CreateAndWriteAppJITSnapshot() {
@@ -898,6 +936,9 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
       LoadCompilationTrace();
       CreateAndWriteCoreJITSnapshot();
       break;
+    case kApp:
+      CreateAndWriteAppSnapshot();
+      break;
     case kAppJIT:
       LoadBytecode();
       LoadCompilationTrace();
@@ -981,7 +1022,9 @@ int main(int argc, char** argv) {
   } else if ((snapshot_kind == kCoreJITAll) || (snapshot_kind == kCoreJIT) ||
              (snapshot_kind == kAppJIT)) {
     vm_options.AddArgument("--fields_may_be_reset");
+#if !defined(TARGET_ARCH_IA32)
     vm_options.AddArgument("--link_natives_lazily");
+#endif
 #if !defined(PRODUCT)
     vm_options.AddArgument("--collect_code=false");
 #endif

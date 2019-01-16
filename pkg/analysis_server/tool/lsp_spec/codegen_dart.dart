@@ -9,6 +9,7 @@ import 'typescript_parser.dart';
 
 final formatter = new DartFormatter();
 Map<String, Interface> _interfaces = {};
+Map<String, List<String>> _subtypes = {};
 // TODO(dantup): Rename namespaces -> enums since they're always that now.
 Map<String, Namespace> _namespaces = {};
 Map<String, TypeAlias> _typeAliases = {};
@@ -31,9 +32,15 @@ String generateDartForTypes(List<AstNode> types) {
   types
       .whereType<TypeAlias>()
       .forEach((alias) => _typeAliases[alias.name] = alias);
-  types
-      .whereType<Interface>()
-      .forEach((interface) => _interfaces[interface.name] = interface);
+  types.whereType<Interface>().forEach((interface) {
+    _interfaces[interface.name] = interface;
+    // Keep track of our base classes so they can look up their super classes
+    // later in their fromJson() to deserialise into the most specific type.
+    interface.baseTypes.forEach((base) {
+      final subTypes = _subtypes[base.dartType] ??= new List<String>();
+      subTypes.add(interface.name);
+    });
+  });
   types
       .whereType<Namespace>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
@@ -403,6 +410,16 @@ void _writeFromJsonConstructor(
     ..writeIndentedln('static ${interface.nameWithTypeArgs} '
         'fromJson${interface.typeArgsString}(Map<String, dynamic> json) {')
     ..indent();
+  // First check whether any of our subclasses can deserialise this.
+  for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
+    final subclass = _interfaces[subclassName];
+    buffer
+      ..writeIndentedln('if (${subclass.nameWithTypeArgs}.canParse(json)) {')
+      ..indent()
+      ..writeln('return ${subclass.nameWithTypeArgs}.fromJson(json);')
+      ..outdent()
+      ..writeIndentedln('}');
+  }
   for (final field in allFields) {
     buffer.writeIndented('final ${field.name} = ');
     _writeFromJsonCode(buffer, field.type, "json['${field.name}']",
@@ -471,9 +488,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
 
 void _writeJsonMapAssignment(
     IndentableStringBuffer buffer, Field field, String mapName) {
-  // If we are allowed to be undefined (which essentially means required to be
-  // undefined and never explicitly null), we'll only add the value if set.
-  if (field.allowsUndefined) {
+  // If we are allowed to be undefined, we'll only add the value if set.
+  final shouldBeOmittedIfNoValue = field.allowsUndefined;
+  if (shouldBeOmittedIfNoValue) {
     buffer
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
@@ -483,7 +500,7 @@ void _writeJsonMapAssignment(
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
   buffer.writeln(';');
-  if (field.allowsUndefined) {
+  if (shouldBeOmittedIfNoValue) {
     buffer
       ..outdent()
       ..writeIndentedln('}');
@@ -511,11 +528,47 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('Map<String, dynamic> toJson() {')
     ..indent()
     ..writeIndentedln('Map<String, dynamic> __result = {};');
-  for (var field in _getAllFields(interface)) {
-    _writeJsonMapAssignment(buffer, field, '__result');
+  // ResponseMessage must confirm to JSON-RPC which says only one of
+  // result/error can be included. Since this isn't encoded in the types we
+  // need to special-case it's toJson generation.
+  if (interface.name == "ResponseMessage") {
+    _writeToJsonFieldsForResponseMessage(buffer, interface);
+  } else {
+    for (var field in _getAllFields(interface)) {
+      _writeJsonMapAssignment(buffer, field, '__result');
+    }
   }
   buffer
     ..writeIndentedln('return __result;')
+    ..outdent()
+    ..writeIndentedln('}');
+}
+
+void _writeToJsonFieldsForResponseMessage(
+    IndentableStringBuffer buffer, Interface interface) {
+  const mapName = '__result';
+
+  final allFields = _getAllFields(interface);
+  final standardFields =
+      allFields.where((f) => f.name != 'error' && f.name != 'result');
+
+  for (var field in standardFields) {
+    _writeJsonMapAssignment(buffer, field, mapName);
+  }
+
+  // Write special code for result/error so that only one is populated.
+  buffer
+    ..writeIndentedln('if (error != null && result != null) {')
+    ..indent()
+    ..writeIndentedln('''throw 'result and error cannot both be set';''')
+    ..outdent()
+    ..writeIndentedln('} else if (error != null) {')
+    ..indent()
+    ..writeIndentedln('''$mapName['error'] = error;''')
+    ..outdent()
+    ..writeIndentedln('} else {')
+    ..indent()
+    ..writeIndentedln('''$mapName['result'] = result;''')
     ..outdent()
     ..writeIndentedln('}');
 }

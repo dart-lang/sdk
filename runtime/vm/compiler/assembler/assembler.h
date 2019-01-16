@@ -11,6 +11,7 @@
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
+#include "vm/thread.h"
 
 namespace dart {
 

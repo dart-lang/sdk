@@ -50,7 +50,7 @@ def GenerateCompileCommands(options):
   if gn_result != 0:
     return gn_result
 
-  out_folder = utils.GetBuildRoot(HOST_OS, mode="debug", arch="x64")
+  out_folder = utils.GetBuildRoot(HOST_OS, mode="debug", arch=options.arch)
 
   if not os.path.isdir(out_folder):
     return 1
@@ -135,6 +135,10 @@ def main(argv):
   parser.add_argument("-d", "--dir",
                       help="Target directory.",
                       default=utils.DART_DIR)
+
+  parser.add_argument("-a", "--arch",
+                      help="Target architecture for runtime sources.",
+                      default="x64")
 
   options = parser.parse_args(argv[1:])
 

@@ -3943,15 +3943,6 @@ void Class::set_is_prefinalized() const {
                                             raw_ptr()->state_bits_));
 }
 
-void Class::set_is_marked_for_lazy_loading() const {
-  set_state_bits(MarkedForLazyLoadingBit::update(true, raw_ptr()->state_bits_));
-}
-
-void Class::reset_is_marked_for_lazy_loading() const {
-  set_state_bits(
-      MarkedForLazyLoadingBit::update(false, raw_ptr()->state_bits_));
-}
-
 void Class::set_interfaces(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->interfaces_, value.raw());
@@ -13046,6 +13037,11 @@ void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
 #if defined(DEBUG)
 // Used in asserts to verify that a check is not added twice.
 bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
+  return FindCheck(cids) != -1;
+}
+#endif  // DEBUG
+
+intptr_t ICData::FindCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
@@ -13059,12 +13055,11 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
       }
     }
     if (matches) {
-      return true;
+      return i;
     }
   }
-  return false;
+  return -1;
 }
-#endif  // DEBUG
 
 void ICData::WriteSentinelAt(intptr_t index) const {
   const intptr_t len = Length();

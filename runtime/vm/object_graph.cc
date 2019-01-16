@@ -199,7 +199,7 @@ static void IterateUserFields(ObjectPointerVisitor* visitor) {
   }
 }
 
-ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
+ObjectGraph::ObjectGraph(Thread* thread) : ThreadStackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
   ASSERT(thread->isolate() != Dart::vm_isolate());

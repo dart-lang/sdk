@@ -1587,9 +1587,9 @@ FastaUsageLong:
         commas, for example, --fatal=errors,warnings.
 
       --enable-experiment=<flag>
-      --disable-experiment=<flag>
         Enable or disable an experimental flag, used to guard features currently
-        in development. Multiple experiments can be separated by commas.
+        in development. Prefix an experiment name with 'no-' to disable it.
+        Multiple experiments can be separated by commas.
 
 FastaCLIArgumentRequired:
   template: "Expected value after '#name'."
@@ -2978,13 +2978,47 @@ UseOfDeprecatedIdentifier:
   severity: IGNORED
 
 InitializeFromDillNotSelfContained:
-  template: "Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new."
+  template: |
+    Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
+
+    The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+    If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
+    Either way, you should probably delete the file so it doesn't use unnecessary disk space.
+
+  severity: WARNING
+  frontendInternal: true
+  external: test/incremental_load_from_invalid_dill_test.dart
+
+InitializeFromDillNotSelfContainedNoDump:
+  template: |
+    Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
+
+    The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+
   severity: WARNING
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillUnknownProblem:
-  template: "Tried to initialize from a previous compilation (#string), but couldn't. Error message was '#string2'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new."
+  template: |
+    Tried to initialize from a previous compilation (#string), but couldn't.
+    Error message was '#string2'. This might be a bug.
+
+    The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+    If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
+    Either way, you should probably delete the file so it doesn't use unnecessary disk space.
+
+  severity: WARNING
+  frontendInternal: true
+  external: test/incremental_load_from_invalid_dill_test.dart
+
+InitializeFromDillUnknownProblemNoDump:
+  template: |
+    Tried to initialize from a previous compilation (#string), but couldn't.
+    Error message was '#string2'. This might be a bug.
+
+    The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+
   severity: WARNING
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart

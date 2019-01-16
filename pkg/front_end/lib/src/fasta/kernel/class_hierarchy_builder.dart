@@ -17,6 +17,8 @@ import '../messages.dart'
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
+        templateDuplicatedDeclaration,
+        templateDuplicatedDeclarationCause,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 
@@ -45,6 +47,22 @@ bool isNameVisibleIn(
   return !name.isPrivate || name.library == library.target;
 }
 
+/// Returns true if [a] is a class member conflict with [b].  [a] is assumed to
+/// be declared in the class, [b] is assumed to be inherited.
+///
+/// See the section named "Class Member Conflicts" in [Dart Programming
+/// Language Specification](
+/// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
+bool isInheritanceConflict(Declaration a, Declaration b) {
+  if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
+  if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
+  return memberKind(a.target) != memberKind(b.target);
+}
+
+bool impliesSetter(Declaration declaration) {
+  return declaration.isField && !(declaration.isFinal || declaration.isConst);
+}
+
 class ClassHierarchyBuilder {
   final Map<KernelClassBuilder, ClassHierarchyNode> nodes =
       <KernelClassBuilder, ClassHierarchyNode>{};
@@ -53,71 +71,105 @@ class ClassHierarchyBuilder {
 
   bool hasNoSuchMethod = false;
 
-  int abstractMemberCount = 0;
+  List<Declaration> abstractMembers = null;
 
   ClassHierarchyBuilder(this.objectClass);
 
-  Declaration handleOverride(KernelClassBuilder cls, Declaration member,
-      Declaration superMember, MergeKind mergeKind) {
-    if (member.next != null || superMember.next != null) {
+  /// A merge conflict arises when merging two lists that each have an element
+  /// with the same name.
+  ///
+  /// If [mergeKind] is `MergeKind.superclass`, [a] should override [b].
+  ///
+  /// If [mergeKind] is `MergeKind.interfaces`, we need to record them and
+  /// solve the conflict later.
+  ///
+  /// If [mergeKind] is `MergeKind.supertypes`, [a] should implement [b], and
+  /// [b] is implicitly abstract.
+  Declaration handleMergeConflict(KernelClassBuilder cls, Declaration a,
+      Declaration b, MergeKind mergeKind) {
+    if (a == b) return a;
+    if (a.next != null || b.next != null) {
       // Don't check overrides involving duplicated members.
-      return member;
+      return a;
     }
-    Member target = member.target;
-    Member superTarget = superMember.target;
-    if ((memberKind(target) ?? ProcedureKind.Getter) !=
-        (memberKind(superTarget) ?? ProcedureKind.Getter)) {
-      String name = member.fullNameForErrors;
-      if (mergeKind == MergeKind.interfaces) {
-        cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
-            cls.fullNameForErrors.length,
-            context: <LocatedMessage>[
-              messageInheritedMembersConflictCause1.withLocation(
-                  member.fileUri, member.charOffset, name.length),
-              messageInheritedMembersConflictCause2.withLocation(
-                  superMember.fileUri, superMember.charOffset, name.length),
-            ]);
-      } else {
-        cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
-            member.charOffset, name.length,
-            context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation(
-                      superMember.fileUri, superMember.charOffset, name.length)
-            ]);
-      }
+    if (isInheritanceConflict(a, b)) {
+      reportInheritanceConflict(cls, a, b, mergeKind);
     }
-    if (target.name == noSuchMethodName && !target.isAbstract) {
-      hasNoSuchMethod = true;
-    }
-    Declaration result = member;
+    Declaration result = a;
     if (mergeKind == MergeKind.interfaces) {
-      // TODO(ahe): Combine the signatures of member and superMember.
-    } else if (target.isAbstract) {
-      if (!superTarget.isAbstract) {
+      // TODO(ahe): Combine the signatures of a and b.  See the section named
+      // "Combined Member Signatures" in [Dart Programming Language
+      // Specification](
+      // ../../../../../../docs/language/dartLangSpec.tex#combinedMemberSignatures).
+    } else if (a.target.isAbstract) {
+      if (mergeKind == MergeKind.superclass && !b.target.isAbstract) {
         // An abstract method doesn't override an implemention inherited from a
         // superclass.
-        result = superMember;
+        result = b;
       } else {
-        abstractMemberCount++;
+        (abstractMembers ??= <Declaration>[]).add(a);
       }
     }
+
+    if (mergeKind == MergeKind.superclass &&
+        result.fullNameForErrors == noSuchMethodName.name &&
+        result.parent != objectClass) {
+      hasNoSuchMethod = true;
+    }
+
     return result;
   }
 
-  void handleNewMember(Declaration member, MergeKind mergeKind) {
-    Member target = member.target;
-    if (mergeKind == MergeKind.superclass && target.isAbstract) {
-      abstractMemberCount++;
+  void reportInheritanceConflict(KernelClassBuilder cls, Declaration a,
+      Declaration b, MergeKind mergeKind) {
+    String name = a.fullNameForErrors;
+    if (mergeKind == MergeKind.interfaces) {
+      cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
+          cls.fullNameForErrors.length,
+          context: <LocatedMessage>[
+            messageInheritedMembersConflictCause1.withLocation(
+                a.fileUri, a.charOffset, name.length),
+            messageInheritedMembersConflictCause2.withLocation(
+                b.fileUri, b.charOffset, name.length),
+          ]);
+    } else {
+      cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
+          a.charOffset, name.length,
+          context: <LocatedMessage>[
+            messageDeclaredMemberConflictsWithInheritedMemberCause.withLocation(
+                b.fileUri, b.charOffset, name.length)
+          ]);
     }
   }
 
-  void handleInheritance(
-      KernelClassBuilder cls, Declaration member, MergeKind mergeKind) {
+  /// If [mergeKind] is `MergeKind.superclass` [member] is declared in current
+  /// class, and isn't overriding a method from the superclass.
+  ///
+  /// If [mergeKind] is `MergeKind.interfaces`, [member] is ignored for now.
+  ///
+  /// If [mergeKind] is `MergeKind.supertypes`, [member] isn't
+  /// implementing/overriding anything.
+  void handleOnlyA(Declaration member, MergeKind mergeKind) {
     Member target = member.target;
     if (mergeKind == MergeKind.superclass && target.isAbstract) {
+      (abstractMembers ??= <Declaration>[]).add(member);
+    }
+  }
+
+  /// If [mergeKind] is `MergeKind.superclass` [member] is being inherited from
+  /// a superclass.
+  ///
+  /// If [mergeKind] is `MergeKind.interfaces`, [member] is ignored for now.
+  ///
+  /// If [mergeKind] is `MergeKind.supertypes`, [member] is implicitly
+  /// abstract, and not implemented.
+  void handleOnlyB(
+      KernelClassBuilder cls, Declaration member, MergeKind mergeKind) {
+    Member target = member.target;
+    if (mergeKind == MergeKind.supertypes ||
+        (mergeKind == MergeKind.superclass && target.isAbstract)) {
       if (isNameVisibleIn(target.name, cls.library)) {
-        abstractMemberCount++;
+        (abstractMembers ??= <Declaration>[]).add(member);
       }
     }
     if (member.parent != objectClass &&
@@ -128,6 +180,8 @@ class ClassHierarchyBuilder {
   }
 
   void add(KernelClassBuilder cls) {
+    assert(!hasNoSuchMethod);
+    assert(abstractMembers == null);
     if (cls.isPatch) {
       // TODO(ahe): What about patch classes. Have we injected patched members
       // into the class-builder's scope?
@@ -153,65 +207,80 @@ class ClassHierarchyBuilder {
         scope = mixin.scope;
       }
     }
-    List<Declaration> sortedLocals =
+    // TODO(ahe): Consider if removing static members from [localMembers] and
+    // [localSetters] makes sense. It depends on what semantic checks we need
+    // to perform with respect to static members and inherited members with the
+    // same name.
+    List<Declaration> localMembers =
         new List<Declaration>.from(scope.local.values)
           ..sort(compareDeclarations);
-    List<Declaration> sortedSetters =
+    List<Declaration> localSetters =
         new List<Declaration>.from(scope.setters.values)
           ..sort(compareDeclarations);
-    List<Declaration> allMembers;
-    List<Declaration> allSetters;
+    localSetters = mergeAccessors(cls, localMembers, localSetters);
+    List<Declaration> classMembers;
+    List<Declaration> classSetters;
     List<Declaration> interfaceMembers;
     List<Declaration> interfaceSetters;
     if (supernode == null) {
       // This should be Object.
-      interfaceMembers = allMembers = sortedLocals;
-      interfaceSetters = allSetters = sortedSetters;
+      classMembers = localMembers;
+      classSetters = localSetters;
     } else {
-      allMembers = merge(
-          cls, sortedLocals, supernode.classMembers, MergeKind.superclass);
-      allSetters = merge(
-          cls, sortedSetters, supernode.classSetters, MergeKind.superclass);
+      classMembers = merge(
+          cls, localMembers, supernode.classMembers, MergeKind.superclass);
+      classSetters = merge(
+          cls, localSetters, supernode.classSetters, MergeKind.superclass);
       List<KernelTypeBuilder> interfaces = cls.interfaces;
       if (interfaces != null) {
         MergeResult result = mergeInterfaces(cls, supernode, interfaces);
         interfaceMembers = result.mergedMembers;
         interfaceSetters = result.mergedSetters;
       } else {
-        interfaceMembers = allMembers;
-        interfaceSetters = allSetters;
+        interfaceMembers = supernode.interfaceMembers;
+        interfaceSetters = supernode.interfaceSetters;
+      }
+      if (interfaceMembers != null) {
+        interfaceMembers =
+            merge(cls, classMembers, interfaceMembers, MergeKind.supertypes);
+      }
+      if (interfaceMembers != null) {
+        interfaceSetters =
+            merge(cls, classSetters, interfaceSetters, MergeKind.supertypes);
       }
     }
-    nodes[cls] = new ClassHierarchyNode(
-        cls, scope, allMembers, allSetters, interfaceMembers, interfaceSetters);
-    mergeAccessors(cls, allMembers, allSetters);
+    nodes[cls] = new ClassHierarchyNode(cls, scope, classMembers, classSetters,
+        interfaceMembers, interfaceSetters);
 
-    if (abstractMemberCount != 0 && !cls.isAbstract) {
+    if (abstractMembers != null && !cls.isAbstract) {
       if (!hasNoSuchMethod) {
-        reportMissingMembers(cls, allMembers, allSetters);
+        reportMissingMembers(cls);
+      } else {
+        installNsmHandlers(cls);
       }
-      installNsmHandlers(cls);
     }
     hasNoSuchMethod = false;
-    abstractMemberCount = 0;
+    abstractMembers = null;
   }
 
   MergeResult mergeInterfaces(KernelClassBuilder cls,
       ClassHierarchyNode supernode, List<KernelTypeBuilder> interfaces) {
     List<List<Declaration>> memberLists =
-        List<List<Declaration>>(interfaces.length + 1);
+        new List<List<Declaration>>(interfaces.length + 1);
     List<List<Declaration>> setterLists =
-        List<List<Declaration>>(interfaces.length + 1);
+        new List<List<Declaration>>(interfaces.length + 1);
     memberLists[0] = supernode.interfaceMembers;
     setterLists[0] = supernode.interfaceSetters;
     for (int i = 0; i < interfaces.length; i++) {
       ClassHierarchyNode interfaceNode = getNode(interfaces[i]);
       if (interfaceNode == null) {
-        memberLists[i + 1] = <Declaration>[];
-        setterLists[i + 1] = <Declaration>[];
+        memberLists[i + 1] = null;
+        setterLists[i + 1] = null;
       } else {
-        memberLists[i + 1] = interfaceNode.interfaceMembers;
-        setterLists[i + 1] = interfaceNode.interfaceSetters;
+        memberLists[i + 1] =
+            interfaceNode.interfaceMembers ?? interfaceNode.classMembers;
+        setterLists[i + 1] =
+            interfaceNode.interfaceSetters ?? interfaceNode.classSetters;
       }
     }
     return new MergeResult(
@@ -226,7 +295,15 @@ class ClassHierarchyBuilder {
     while (input.length > 1) {
       List<List<Declaration>> output = <List<Declaration>>[];
       for (int i = 0; i < input.length - 1; i += 2) {
-        output.add(merge(cls, input[i], input[i + 1], MergeKind.interfaces));
+        List<Declaration> first = input[i];
+        List<Declaration> second = input[i + 1];
+        if (first == null) {
+          output.add(second);
+        } else if (second == null) {
+          output.add(first);
+        } else {
+          output.add(merge(cls, first, second, MergeKind.interfaces));
+        }
       }
       if (input.length.isOdd) {
         output.add(input.last);
@@ -236,99 +313,94 @@ class ClassHierarchyBuilder {
     return input.single;
   }
 
-  /// Merge [and check] accessors. This entails removing setters corresponding
-  /// to fields, and checking that setters don't override regular methods.
-  void mergeAccessors(KernelClassBuilder cls, List<Declaration> allMembers,
-      List<Declaration> allSetters) {
-    List<Declaration> overriddenSetters;
+  /// Merge [and check] accessors. This entails copying mutable fields to
+  /// setters to simulate implied setters, and checking that setters don't
+  /// override regular methods.
+  List<Declaration> mergeAccessors(KernelClassBuilder cls,
+      List<Declaration> members, List<Declaration> setters) {
+    final List<Declaration> mergedSetters = new List<Declaration>.filled(
+        members.length + setters.length, null,
+        growable: true);
+    int storeIndex = 0;
     int i = 0;
     int j = 0;
-    while (i < allMembers.length && j < allSetters.length) {
-      Declaration member = allMembers[i];
-      Declaration setter = allSetters[j];
+    while (i < members.length && j < setters.length) {
+      final Declaration member = members[i];
+      final Declaration setter = setters[j];
       final int compare = compareDeclarations(member, setter);
       if (compare == 0) {
-        if (member.isField) {
-          // TODO(ahe): What happens if we have both a field and a setter
-          // declared in the same class?
-          if (!member.isFinal && !member.isConst) {
-            // The field overrides the setter.
-            (overriddenSetters ??= <Declaration>[]).add(setter);
-            Member target = setter.target;
-            if (target.isAbstract) {
-              abstractMemberCount--;
-            }
-          }
-        } else if (!member.isGetter) {
-          String name = member.fullNameForErrors;
+        if (member.isField ? impliesSetter(member) : !member.isGetter) {
+          // [member] conflicts with [setter].
+          final String name = member.fullNameForErrors;
           cls.library.addProblem(
-              messageDeclaredMemberConflictsWithInheritedMember,
-              member.charOffset,
+              templateDuplicatedDeclaration.withArguments(name),
+              setter.charOffset,
               name.length,
-              member.fileUri,
+              setter.fileUri,
               context: <LocatedMessage>[
-                messageDeclaredMemberConflictsWithInheritedMemberCause
+                templateDuplicatedDeclarationCause
+                    .withArguments(name)
                     .withLocation(
-                        setter.fileUri, setter.charOffset, name.length)
+                        member.fileUri, member.charOffset, name.length)
               ]);
         }
+        mergedSetters[storeIndex++] = setter;
         i++;
         j++;
       } else if (compare < 0) {
+        if (impliesSetter(member)) {
+          mergedSetters[storeIndex++] = member;
+        }
         i++;
       } else {
+        mergedSetters[storeIndex++] = setters[j];
         j++;
       }
     }
-    // One of of the two lists is now exhausted. What remains in the other list
-    // cannot be a conflict.
+    while (i < members.length) {
+      final Declaration member = members[i];
+      if (impliesSetter(member)) {
+        mergedSetters[storeIndex++] = member;
+      }
+      i++;
+    }
+    while (j < setters.length) {
+      mergedSetters[storeIndex++] = setters[j];
+      j++;
+    }
 
-    if (overriddenSetters != null) {
-      // Remove [overriddenSetters] from [allSetters] by copying [allSetters]
-      // to itself.
-      int i = 0;
-      int j = 0;
-      int storeIndex = 0;
-      while (i < allSetters.length && j < overriddenSetters.length) {
-        if (allSetters[i] == overriddenSetters[j]) {
-          i++;
-          j++;
-        } else {
-          allSetters[storeIndex++] = allSetters[i++];
-        }
-      }
-      while (i < allSetters.length) {
-        allSetters[storeIndex++] = allSetters[i++];
-      }
-      allSetters.length = storeIndex;
+    if (storeIndex == j) {
+      return setters;
+    } else {
+      return mergedSetters..length = storeIndex;
     }
   }
 
-  void reportMissingMembers(KernelClassBuilder cls,
-      List<Declaration> allMembers, List<Declaration> allSetters) {
-    List<LocatedMessage> context = <LocatedMessage>[];
-    List<String> missingNames = <String>[];
-    for (int j = 0; j < 2; j++) {
-      List<Declaration> members = j == 0 ? allMembers : allSetters;
-      for (int i = 0; i < members.length; i++) {
-        Declaration declaration = members[i];
-        Member target = declaration.target;
-        if (target.isAbstract && isNameVisibleIn(target.name, cls.library)) {
-          String name = declaration.fullNameForErrors;
-          String parentName = declaration.parent.fullNameForErrors;
-          String displayName =
-              declaration.isSetter ? "$parentName.$name=" : "$parentName.$name";
-          missingNames.add(displayName);
-          context.add(templateMissingImplementationCause
-              .withArguments(displayName)
-              .withLocation(
-                  declaration.fileUri, declaration.charOffset, name.length));
-        }
+  void reportMissingMembers(KernelClassBuilder cls) {
+    Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
+    for (int i = 0; i < abstractMembers.length; i++) {
+      Declaration declaration = abstractMembers[i];
+      Member target = declaration.target;
+      if (isNameVisibleIn(target.name, cls.library)) {
+        String name = declaration.fullNameForErrors;
+        String parentName = declaration.parent.fullNameForErrors;
+        String displayName =
+            declaration.isSetter ? "$parentName.$name=" : "$parentName.$name";
+        contextMap[displayName] = templateMissingImplementationCause
+            .withArguments(displayName)
+            .withLocation(
+                declaration.fileUri, declaration.charOffset, name.length);
       }
+    }
+    if (contextMap.isEmpty) return;
+    List<String> names = new List<String>.from(contextMap.keys)..sort();
+    List<LocatedMessage> context = <LocatedMessage>[];
+    for (int i = 0; i < names.length; i++) {
+      context.add(contextMap[names[i]]);
     }
     cls.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
-            cls.fullNameForErrors, missingNames),
+            cls.fullNameForErrors, names),
         cls.charOffset,
         cls.fullNameForErrors.length,
         context: context);
@@ -339,16 +411,20 @@ class ClassHierarchyBuilder {
   }
 
   ClassHierarchyNode getNode(KernelTypeBuilder type) {
-    if (type is KernelNamedTypeBuilder) {
-      Declaration declaration = type.declaration;
-      if (declaration is KernelClassBuilder) {
-        ClassHierarchyNode node = nodes[declaration];
-        if (node == null && declaration is KernelClassBuilder) {
-          add(declaration);
-          node = nodes[declaration];
-        }
-        return node;
+    Declaration declaration = getDeclaration(type);
+    if (declaration is KernelClassBuilder) {
+      ClassHierarchyNode node = nodes[declaration];
+      if (node == null) {
+        bool savedHasNoSuchMethod = hasNoSuchMethod;
+        hasNoSuchMethod = false;
+        List<Declaration> savedAbstractMembers = abstractMembers;
+        abstractMembers = null;
+        add(declaration);
+        hasNoSuchMethod = savedHasNoSuchMethod;
+        abstractMembers = savedAbstractMembers;
+        node = nodes[declaration];
       }
+      return node;
     }
     return null;
   }
@@ -357,51 +433,57 @@ class ClassHierarchyBuilder {
     return type is KernelNamedTypeBuilder ? type.declaration : null;
   }
 
-  List<Declaration> merge(
-      KernelClassBuilder cls,
-      List<Declaration> localMembers,
-      List<Declaration> superMembers,
-      MergeKind mergeKind) {
-    final List<Declaration> mergedMembers = new List<Declaration>.filled(
-        localMembers.length + superMembers.length, null,
+  List<Declaration> merge(KernelClassBuilder cls, List<Declaration> aList,
+      List<Declaration> bList, MergeKind mergeKind) {
+    final List<Declaration> result = new List<Declaration>.filled(
+        aList.length + bList.length, null,
         growable: true);
-
-    int mergedMemberCount = 0;
-
+    int storeIndex = 0;
     int i = 0;
     int j = 0;
-    while (i < localMembers.length && j < superMembers.length) {
-      final Declaration localMember = localMembers[i];
-      final Declaration superMember = superMembers[j];
-      final int compare = compareDeclarations(localMember, superMember);
+    while (i < aList.length && j < bList.length) {
+      final Declaration a = aList[i];
+      final Declaration b = bList[j];
+      if (a.isStatic) {
+        i++;
+        continue;
+      }
+      if (b.isStatic) {
+        j++;
+        continue;
+      }
+      final int compare = compareDeclarations(a, b);
       if (compare == 0) {
-        mergedMembers[mergedMemberCount++] =
-            handleOverride(cls, localMember, superMember, mergeKind);
+        result[storeIndex++] = handleMergeConflict(cls, a, b, mergeKind);
         i++;
         j++;
       } else if (compare < 0) {
-        handleNewMember(localMember, mergeKind);
-        mergedMembers[mergedMemberCount++] = localMember;
+        handleOnlyA(a, mergeKind);
+        result[storeIndex++] = a;
         i++;
       } else {
-        handleInheritance(cls, superMember, mergeKind);
-        mergedMembers[mergedMemberCount++] = superMember;
+        handleOnlyB(cls, b, mergeKind);
+        result[storeIndex++] = b;
         j++;
       }
     }
-    while (i < localMembers.length) {
-      final Declaration localMember = localMembers[i];
-      handleNewMember(localMember, mergeKind);
-      mergedMembers[mergedMemberCount++] = localMember;
+    while (i < aList.length) {
+      final Declaration a = aList[i];
+      if (!a.isStatic) {
+        handleOnlyA(a, mergeKind);
+        result[storeIndex++] = a;
+      }
       i++;
     }
-    while (j < superMembers.length) {
-      final Declaration superMember = superMembers[j];
-      handleInheritance(cls, superMember, mergeKind);
-      mergedMembers[mergedMemberCount++] = superMember;
+    while (j < bList.length) {
+      final Declaration b = bList[j];
+      if (!b.isStatic) {
+        handleOnlyB(cls, b, mergeKind);
+        result[storeIndex++] = b;
+      }
       j++;
     }
-    return mergedMembers..length = mergedMemberCount;
+    return result..length = storeIndex;
   }
 }
 

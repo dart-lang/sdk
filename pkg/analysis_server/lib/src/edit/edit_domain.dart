@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -938,38 +938,14 @@ class _RefactoringManager {
         var node = new NodeLocator(offset).searchWithin(resolvedUnit.unit);
         var element = server.getElementOfNode(node);
         if (node != null && element != null) {
-          int feedbackOffset = node.offset;
-          int feedbackLength = node.length;
-
-          if (element is FieldFormalParameterElement) {
-            element = (element as FieldFormalParameterElement).field;
-          }
-
-          // Use the prefix offset/length when renaming an import directive.
-          if (node is ImportDirective && element is ImportElement) {
-            if (node.prefix != null) {
-              feedbackOffset = node.prefix.offset;
-              feedbackLength = node.prefix.length;
-            } else {
-              feedbackOffset = -1;
-              feedbackLength = 0;
-            }
-          }
-
-          // Rename the class when on `new` in an instance creation.
-          if (node is InstanceCreationExpression) {
-            InstanceCreationExpression creation = node;
-            var typeIdentifier = creation.constructorName.type.name;
-            element = typeIdentifier.staticElement;
-            feedbackOffset = typeIdentifier.offset;
-            feedbackLength = typeIdentifier.length;
-          }
+          final renameElement =
+              RenameRefactoring.getElementToRename(node, element);
 
           // do create the refactoring
-          refactoring = new RenameRefactoring(
-              refactoringWorkspace, resolvedUnit.session, element);
+          refactoring = new RenameRefactoring(refactoringWorkspace,
+              resolvedUnit.session, renameElement.element);
           feedback = new RenameFeedback(
-              feedbackOffset, feedbackLength, 'kind', 'oldName');
+              renameElement.offset, renameElement.length, 'kind', 'oldName');
         }
       }
     }

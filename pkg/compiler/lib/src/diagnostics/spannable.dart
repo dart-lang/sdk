@@ -4,9 +4,7 @@
 
 library dart2js.diagnostics.spannable;
 
-/**
- * Tagging interface for classes from which source spans can be generated.
- */
+/// Tagging interface for classes from which source spans can be generated.
 // TODO(johnniwinther): Find a better name.
 // TODO(ahe): How about "Bolt"?
 abstract class Spannable {}

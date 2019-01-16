@@ -4,11 +4,9 @@
 
 import "dart:collection";
 
-/**
- * The expensive map is a data structure useful for tracking down
- * excessive memory usage due to large maps. It acts as an ordinary
- * hash map, but it uses 10 times more memory (by default).
- */
+/// The expensive map is a data structure useful for tracking down
+/// excessive memory usage due to large maps. It acts as an ordinary
+/// hash map, but it uses 10 times more memory (by default).
 class ExpensiveMap<K, V> extends MapBase<K, V> {
   final List _maps;
 

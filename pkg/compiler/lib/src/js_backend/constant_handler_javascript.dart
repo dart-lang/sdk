@@ -31,14 +31,12 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   ConstantSystem get constantSystem => dartConstantSystem;
 }
 
-/**
- * The [JavaScriptConstantCompiler] is used to keep track of compile-time
- * constants, initializations of global and static fields, and default values of
- * optional parameters for the JavaScript interpretation of constants.
- */
+/// The [JavaScriptConstantCompiler] is used to keep track of compile-time
+/// constants, initializations of global and static fields, and default values
+/// of optional parameters for the JavaScript interpretation of constants.
 class JavaScriptConstantCompiler implements BackendConstantEnvironment {
   // TODO(johnniwinther): Move this to the backend constant handler.
-  /** Caches the statics where the initial value cannot be eagerly compiled. */
+  /// Caches the statics where the initial value cannot be eagerly compiled.
   final Set<FieldEntity> lazyStatics = new Set<FieldEntity>();
 
   JavaScriptConstantCompiler();

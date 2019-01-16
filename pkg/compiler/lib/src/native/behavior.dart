@@ -94,36 +94,34 @@ class NativeThrowBehavior {
   int get index => values.indexOf(this);
 }
 
-/**
- * A summary of the behavior of a native element.
- *
- * Native code can return values of one type and cause native subtypes of
- * another type to be instantiated.  By default, we compute both from the
- * declared type.
- *
- * A field might yield any native type that 'is' the field type.
- *
- * A method might create and return instances of native subclasses of its
- * declared return type, and a callback argument may be called with instances of
- * the callback parameter type (e.g. Event).
- *
- * If there is one or more `@Creates` annotations, the union of the named types
- * replaces the inferred instantiated type, and the return type is ignored for
- * the purpose of inferring instantiated types.
- *
- *     @Creates('IDBCursor')    // Created asynchronously.
- *     @Creates('IDBRequest')   // Created synchronously (for return value).
- *     IDBRequest openCursor();
- *
- * If there is one or more `@Returns` annotations, the union of the named types
- * replaces the declared return type.
- *
- *     @Returns('IDBRequest')
- *     IDBRequest openCursor();
- *
- * Types in annotations are non-nullable, so include `@Returns('Null')` if
- * `null` may be returned.
- */
+/// A summary of the behavior of a native element.
+///
+/// Native code can return values of one type and cause native subtypes of
+/// another type to be instantiated.  By default, we compute both from the
+/// declared type.
+///
+/// A field might yield any native type that 'is' the field type.
+///
+/// A method might create and return instances of native subclasses of its
+/// declared return type, and a callback argument may be called with instances
+/// of the callback parameter type (e.g. Event).
+///
+/// If there is one or more `@Creates` annotations, the union of the named types
+/// replaces the inferred instantiated type, and the return type is ignored for
+/// the purpose of inferring instantiated types.
+///
+///     @Creates('IDBCursor')    // Created asynchronously.
+///     @Creates('IDBRequest')   // Created synchronously (for return value).
+///     IDBRequest openCursor();
+///
+/// If there is one or more `@Returns` annotations, the union of the named types
+/// replaces the declared return type.
+///
+///     @Returns('IDBRequest')
+///     IDBRequest openCursor();
+///
+/// Types in annotations are non-nullable, so include `@Returns('Null')` if
+/// `null` may be returned.
 class NativeBehavior {
   /// Tag used for identifying serialized [NativeBehavior] objects in a
   /// debugging data stream.
@@ -742,11 +740,9 @@ abstract class BehaviorBuilder {
     }
   }
 
-  /**
-   * Returns a list of type constraints from the annotations of
-   * [annotationClass].
-   * Returns `null` if no constraints.
-   */
+  /// Returns a list of type constraints from the annotations of
+  /// [annotationClass].
+  /// Returns `null` if no constraints.
   List _collect(Iterable<ConstantValue> metadata, ClassEntity annotationClass,
       TypeLookup lookupType) {
     var types = null;

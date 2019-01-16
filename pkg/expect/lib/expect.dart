@@ -8,6 +8,8 @@
  */
 library expect;
 
+import 'package:meta/meta.dart';
+
 /**
  * Expect is used for tests that do not want to make use of the
  * Dart unit test library - for example, the core language tests.
@@ -265,6 +267,7 @@ class Expect {
   }
 
   // Unconditional failure.
+  @alwaysThrows
   static void fail(String msg) {
     _fail("Expect.fail('$msg')");
   }
@@ -647,6 +650,7 @@ class Expect {
   static String _getMessage(String reason) =>
       (reason == null) ? "" : ", '$reason'";
 
+  @alwaysThrows
   static void _fail(String message) {
     throw new ExpectException(message);
   }

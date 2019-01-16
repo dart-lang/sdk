@@ -107,8 +107,8 @@ void RangeAnalysis::CollectValues() {
           }
         }
       }
-      if (current->IsCheckArrayBound()) {
-        bounds_checks_.Add(current->AsCheckArrayBound());
+      if (current->IsCheckArrayBound() || current->IsGenericCheckBound()) {
+        bounds_checks_.Add(current);
       }
     }
   }
@@ -1017,8 +1017,8 @@ class BoundsCheckGeneralizer {
       return phi;
     }
     // Decide between direct or indirect bound.
-    Definition* bounded_phi = UnwrapConstraint(limit->value()->definition());
-    if (bounded_phi == phi) {
+    Definition* bounded_def = UnwrapConstraint(limit->value()->definition());
+    if (bounded_def == phi) {
       // Given a smi bounded loop with smi induction variable
       //
       //          x <- phi(x0, x + 1)
@@ -1037,7 +1037,7 @@ class BoundsCheckGeneralizer {
       //
       //          y <= y0 + (M - x0)
       //
-      InductionVar* bounded_induc = GetSmiInduction(loop, bounded_phi);
+      InductionVar* bounded_induc = GetSmiInduction(loop, bounded_def);
       Definition* x0 = GenerateInvariant(bounded_induc->initial());
       Definition* y0 = GenerateInvariant(induc->initial());
       Definition* m = RangeBoundaryToDefinition(limit->constraint()->max());
@@ -1321,7 +1321,21 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
 
     for (intptr_t i = 0; i < bounds_checks_.length(); i++) {
-      CheckArrayBoundInstr* check = bounds_checks_[i];
+      // Is this a non-speculative check bound?
+      GenericCheckBoundInstr* aot_check =
+          bounds_checks_[i]->AsGenericCheckBound();
+      if (aot_check != nullptr) {
+        RangeBoundary array_length =
+            RangeBoundary::FromDefinition(aot_check->length()->definition());
+        if (aot_check->IsRedundant(array_length)) {
+          aot_check->ReplaceUsesWith(aot_check->index()->definition());
+          aot_check->RemoveFromGraph();
+        }
+        continue;
+      }
+      // Must be a speculative check bound.
+      CheckArrayBoundInstr* check = bounds_checks_[i]->AsCheckArrayBound();
+      ASSERT(check != nullptr);
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) {
@@ -2925,6 +2939,52 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
            CanonicalizeMinBoundary(&canonical_length));
 
   // Failed to prove that maximum is bounded with array length.
+  return false;
+}
+
+// Check if range boundary and invariant limit are the same boundary.
+static bool IsSameBound(const RangeBoundary& a, InductionVar* b) {
+  ASSERT(InductionVar::IsInvariant(b));
+  if (a.IsSymbol()) {
+    // Check for exactly the same symbol as length.
+    return a.symbol() == b->def() && b->mult() == 1 &&
+           a.offset() == b->offset();
+  } else if (a.IsConstant()) {
+    // Check for constant in right range 0 < c <= length.
+    int64_t c = 0;
+    return InductionVar::IsConstant(b, &c) && 0 < c && c <= a.ConstantValue();
+  }
+  return false;
+}
+
+bool GenericCheckBoundInstr::IsRedundant(const RangeBoundary& length) {
+  // In loop, with index as induction?
+  LoopInfo* loop = GetBlock()->loop_info();
+  if (loop == nullptr) {
+    return false;
+  }
+  InductionVar* induc = loop->LookupInduction(index()->definition());
+  if (induc == nullptr) {
+    return false;
+  }
+  // Under 64-bit wrap-around arithmetic, it is always safe to remove the
+  // bounds check from the following, if initial >= 0 and the corresponding
+  // exit branch dominates the bounds check:
+  //   for (int i = initial; i < length; i++)
+  //     .... a[i] ....
+  int64_t stride = 0;
+  int64_t initial = 0;
+  if (InductionVar::IsLinear(induc, &stride) &&
+      InductionVar::IsConstant(induc->initial(), &initial)) {
+    if (stride == 1 && initial >= 0) {
+      for (auto bound : induc->bounds()) {
+        if (IsSameBound(length, bound.limit_) &&
+            this->IsDominatedBy(bound.branch_)) {
+          return true;
+        }
+      }
+    }
+  }
   return false;
 }
 

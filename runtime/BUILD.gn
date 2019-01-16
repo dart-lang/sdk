@@ -191,6 +191,11 @@ config("dart_config") {
     if (defined(is_tsan) && is_tsan) {
       ldflags += [ "-fsanitize=thread" ]
     }
+
+    if (is_fuchsia) {
+      # safe-stack does not work with the interpreter.
+      cflags += [ "-fno-sanitize=safe-stack" ]
+    }
   }
 }
 

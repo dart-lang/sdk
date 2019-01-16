@@ -9,14 +9,14 @@ import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:update_homebrew/update_homebrew.dart';
 
-main(List<String> args) async {
-  final parser = new ArgParser()
+void main(List<String> args) async {
+  final parser = ArgParser()
     ..addOption('revision', abbr: 'r')
-    ..addOption('channel', abbr: 'c', allowed: ['dev', 'stable']);
+    ..addOption('channel', abbr: 'c', allowed: supportedChannels);
 
   final options = parser.parse(args);
-  final revision = options['revision'];
-  final channel = options['channel'];
+  final revision = options['revision'] as String;
+  final channel = options['channel'] as String;
   if ([revision, channel].contains(null)) {
     print(
         "Usage: generate.dart -r revision -c channel <path_to_existing_dart.rb>");
@@ -31,7 +31,7 @@ main(List<String> args) async {
   }
   final existingDartRb = options.rest.single;
 
-  var file = new File(existingDartRb);
+  var file = File(existingDartRb);
 
   if (!file.existsSync()) {
     print("Expected '$existingDartRb' to exist.");

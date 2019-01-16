@@ -372,7 +372,7 @@ class WriteStream : public ValueObject {
     WriteByte(static_cast<uint8_t>(value + kEndUnsignedByteMarker));
   }
 
-  void WriteBytes(const uint8_t* addr, intptr_t len) {
+  void WriteBytes(const void* addr, intptr_t len) {
     if ((end_ - current_) < len) {
       Resize(len);
     }

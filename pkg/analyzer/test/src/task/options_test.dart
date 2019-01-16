@@ -69,8 +69,8 @@ analyzer:
         new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment =
-        new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+    var invalid_assignment = new AnalysisError(
+        new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);

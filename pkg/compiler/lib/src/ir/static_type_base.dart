@@ -8,6 +8,41 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+/// Special bottom type used to signal that an expression or statement does
+/// not complete normally. This is the case for instance of throw expressions
+/// and return statements.
+class DoesNotCompleteType extends ir.BottomType {
+  const DoesNotCompleteType();
+
+  String toString() => 'DoesNotCompleteType()';
+}
+
+/// Special interface type used to signal that the static type of an expression
+/// has precision of a this-expression.
+class ThisInterfaceType extends ir.InterfaceType {
+  ThisInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
+      : super(classNode, typeArguments);
+
+  factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
+      ? new ThisInterfaceType(type.classNode, type.typeArguments)
+      : null;
+
+  String toString() => 'this:${super.toString()}';
+}
+
+/// Special interface type used to signal that the static type of an expression
+/// is exact, i.e. the runtime type is not a subtype or subclass of the type.
+class ExactInterfaceType extends ir.InterfaceType {
+  ExactInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
+      : super(classNode, typeArguments);
+
+  factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
+      ? new ExactInterfaceType(type.classNode, type.typeArguments)
+      : null;
+
+  String toString() => 'exact:${super.toString()}';
+}
+
 /// Base class for computing static types.
 ///
 /// This class uses the visitor pattern to compute the static type that are
@@ -18,7 +53,7 @@ import 'package:kernel/type_environment.dart' as ir;
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-class StaticTypeBase extends ir.Visitor<ir.DartType> {
+abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
   StaticTypeBase(this._typeEnvironment);
@@ -26,6 +61,8 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   fail(String message) => message;
 
   ir.TypeEnvironment get typeEnvironment => _typeEnvironment;
+
+  ThisInterfaceType get thisType;
 
   @override
   ir.DartType defaultNode(ir.Node node) {
@@ -73,7 +110,7 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitNullLiteral(ir.NullLiteral node) => const ir.BottomType();
+  ir.DartType visitNullLiteral(ir.NullLiteral node) => typeEnvironment.nullType;
 
   @override
   ir.DartType visitIntLiteral(ir.IntLiteral node) => typeEnvironment.intType;
@@ -112,8 +149,7 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitThisExpression(ir.ThisExpression node) =>
-      typeEnvironment.thisType;
+  ThisInterfaceType visitThisExpression(ir.ThisExpression node) => thisType;
 
   @override
   ir.DartType visitStaticGet(ir.StaticGet node) => node.target.getterType;
@@ -129,10 +165,10 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitThrow(ir.Throw node) => const ir.BottomType();
+  ir.DartType visitThrow(ir.Throw node) => const DoesNotCompleteType();
 
   @override
-  ir.DartType visitRethrow(ir.Rethrow node) => const ir.BottomType();
+  ir.DartType visitRethrow(ir.Rethrow node) => const DoesNotCompleteType();
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) =>
@@ -168,7 +204,7 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitInvalidExpression(ir.InvalidExpression node) =>
-      const ir.BottomType();
+      const DoesNotCompleteType();
 
   @override
   ir.DartType visitLoadLibrary(ir.LoadLibrary node) {

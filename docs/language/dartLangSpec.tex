@@ -32,6 +32,10 @@
 % - Specify that a getter/setter and a method with the same basename is
 %   an error, also in the case where a class obtains both from its
 %   superinterfaces.
+% - Specify the Dart 2.0 rule that you cannot implement, extend or mix-in
+%   Function.
+% - Generalize specification of type aliases such that they can denote any
+%   type, not just function types.
 %
 % 2.1
 % - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
@@ -3440,12 +3444,20 @@ The scope of the \EXTENDS{} and \WITH{} clauses of a class $C$ is the type-param
 
 \LMHash{}%
 It is a compile-time error if the type in the \EXTENDS{} clause of a class $C$ is
-a type variable (\ref{generics}), a type alias (\ref{typedef}),
+a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
 an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
 a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
-\commentary{
+\commentary{%
+Note that \VOID{} is a reserved word,
+which implies that the same restrictions apply for the type \VOID,
+and similar restrictions are specified for other types like
+\code{Null} (\ref{null}) and
+\code{String} (\ref{strings}).%
+}
+
+\commentary{%
 The type parameters of a generic class are available in the lexical scope of the superclass clause, potentially shadowing classes in the surrounding scope.
 The following code is therefore illegal and should cause a compile-time error:
 }
@@ -3622,7 +3634,7 @@ The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope
 
 \LMHash{}%
 It is a compile-time error if an element in the type list of the \IMPLEMENTS{} clause of a class $C$ is
-a type variable (\ref{generics}), a type alias (\ref{typedef}),
+a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
 an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
 a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
@@ -4194,7 +4206,7 @@ if{}f the following criteria are all satisfied:
   $p'$ is the parameter of $m'$ corresponding to $p$,
   $p$ has default value $d$ and $p'$ has default value $d'$,
   then $d$ and $d'$ must be identical,
-  or a compile-time warning occurs.
+  or a static warning occurs.
 \item
   If $m$ and $m'$ are both getters:
   The return type of $m$ must be a subtype of the return type of $m'$.
@@ -4229,7 +4241,7 @@ Mixin application occurs when one or more mixins are mixed into a class declarat
 The mixin application may be used to extend a class per section \ref{classes};
 alternatively, a class may be defined as a mixin application as described in this section.
 It is a compile-time error if an element in the type list of the \WITH{} clause of a mixin application is
-a type variable (\ref{generics}), a type alias (\ref{typedef}),
+a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
 an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
 a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
@@ -4318,6 +4330,14 @@ If the mixin application class declares interfaces, the resulting class also imp
 It is a compile-time error if $S$ is an enumerated type (\ref{enums}) or a malformed type.
 It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is an enumerated type (\ref{enums}) or a malformed type.
 It is a compile-time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$).
+
+\commentary{%
+Note that \VOID{} is a reserved word,
+which implies that the same restrictions apply for the type \VOID,
+and similar restrictions are specified for other types like
+\code{Null} (\ref{null}) and
+\code{String} (\ref{strings}).%
+}
 
 \LMHash{}%
 Let $K$ be a class declaration with the same constructors, superclass and interfaces as $C$, and the instance members declared by $M$ (respectively $M_1, \ldots, M_k$).
@@ -4457,9 +4477,9 @@ A \IndexCustom{generic class declaration}{class declaration!generic}
 introduces a generic class into the enclosing library scope.
 A \IndexCustom{generic class}{class!generic}
 is a mapping that accepts a list of actual type arguments and maps them to a class.
-Consider a generic class declaration $G$ named \code{C} with formal type parameter declarations
+Consider a generic class declaration $G$ named $C$ with formal type parameter declarations
 $X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
-and a parameterized type $T$ of the form \code{C<$T_1, \ldots,\ T_l$>}.
+and a parameterized type $T$ of the form \code{$C$<$T_1, \ldots,\ T_l$>}.
 
 \LMHash{}%
 It is a compile-time error if $m \not= l$.
@@ -4467,8 +4487,8 @@ It is a compile-time error if $T$ is not well-bounded
 (\ref{superBoundedTypes}).
 
 \LMHash{}%
-Otherwise, said parameterized type \code{C<$T_1, \ldots,\ T_m$>} denotes an application of the generic class declared by $G$ to the type arguments $T_1, \ldots, T_m$.
-This yields a class $C'$ whose members are equivalent to those of a class declaration which is obtained from the declaration of $G$ by replacing each occurrence of $X_j$ by $T_j$.
+Otherwise, said parameterized type \code{$C$<$T_1, \ldots,\ T_m$>} denotes an application of the generic class declared by $G$ to the type arguments $T_1, \ldots, T_m$.
+This yields a class $C'$ whose members are equivalent to those of a class declaration which is obtained from the declaration $G$ by replacing each occurrence of $X_j$ by $T_j$.
 \commentary{
 
 % TODO(eernst): make sure this list of properties is complete.
@@ -4478,47 +4498,76 @@ Other properties of $C'$ such as the subtype relationships are specified elsewhe
 
 \LMHash{}%
 A \IndexCustom{generic type alias}{type alias!generic}
-introduces a mapping from actual type argument lists to types.
-Consider a generic type alias declaration $G$ named \code{F}
-with formal type parameter declarations
-$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
-%% TODO(eernst): 'right hand side' works only for a type alias using `=`.
-%% Explain what "the right hand side" means for an old-style declaration.
-and right hand side $T$.
+is a declaration $D$ of one of the following forms:
+
+\begin{itemize}
+\item \code{$m$ \TYPEDEF{} \id<\TypeParametersStd> = $T$;}
+\item \code{$m$ \TYPEDEF{} $S$?\ \id<\TypeParametersStd>(\\
+  \mbox\quad\PairList{T}{p}{1}{n},\ [\PairList{T}{p}{n+1}{n+k}]);}
+\item \code{$m$ \TYPEDEF{} $S$?\ \id<\TypeParametersStd>(\\
+  \mbox\quad\PairList{T}{p}{1}{n},\ \{\PairList{T}{p}{n+1}{n+k}\});}
+\end{itemize}
+
+\noindent
+where $m$ is derived from \synt{metadata},
+$T$ is a type,
+and \code{$S$?} is a type or the empty string.
+Let $S'$ be \code{$S$?} if it is a type, otherwise let $S'$ be \DYNAMIC.
+The associated function type of $D$, call it $F$, is, respectively:
+
+\begin{itemize}
+\item $T$
+\item \FunctionTypeSimple{S'}{\FunctionTypePositionalArgumentsStd}
+\item \FunctionTypeSimple{S'}{\FunctionTypeNamedArgumentsStd}
+\end{itemize}
 
 \LMHash{}%
-Under the assumption that $X_1,\ \ldots,\ X_m$ are types such that
-$X_j <: B_j$, for all $j \in 1 .. m$,
-it is a compile-time error if any type in $T$ is not regular-bounded.
+$D$ introduces a mapping from actual type argument lists to types.
+Under the assumption that \List{X}{1}{s} are types such that
+$X_j <: B_j$, for all $j \in 1 .. s$,
+it is a compile-time error if $T$ is not regular-bounded,
+and it is a compile-time error if any type occurring in $T$ is not well-bounded.
 
 \commentary{
 This means that the bounds declared for
 the formal type parameters of a generic type alias
 must be such that when they are satisfied,
-the bounds that pertain to any type in the body must also be satisfied.
+the bounds that pertain to the body are also satisfied,
+and a type occurring as a subterm of the body can violate its bounds,
+but only if it is a correct super-bounded type.
 }
 
 \LMHash{}%
-Let $G$, \code{F}, and $X_1,\ \ldots,\ X_m$ be as defined above,
-let $T_1,\ \ldots,\ T_l$ be types,
-and let $S$ be the parameterized type \code{F<$T_1, \ldots,\ T_l$>}.
-It is a compile-time error if $m \not= l$.
-It is a compile-time error if $S$ is not well-bounded
+Moreover,
+let $T_1,\ \ldots,\ T_l$ be types
+and let $U$ be the parameterized type \code{\id<$T_1, \ldots,\ T_l$>}
+in a location where \id{} denotes $D$.
+It is a compile-time error if $l \not= s$.
+It is a compile-time error if $U$ is not well-bounded
 (\ref{superBoundedTypes}).
 
 \LMHash{}%
-Otherwise, said parameterized type
-\code{F<$T_1, \ldots,\ T_m$>}
-denotes an application of the mapping denoted by $G$ to the type arguments
-$T_1, \ldots, T_m$.
-This yields the type
-$[T_1/X_1, \ldots, T_m/X_m]T$.
+Otherwise,
+$U$ denotes an application of the mapping denoted by $D$ to the type arguments
+$T_1, \ldots, T_s$,
+yielding the type
+$[T_1/X_1, \ldots, T_s/X_s]F$.
+
+\commentary{%
+Note that the type alias syntax without \syntax{`='}
+can only express function types,
+and it cannot express the type of a generic function.
+When such a type alias is generic,
+it always expresses a family of non-generic function types.
+These restrictions exist because that syntax was defined
+before generic functions were added to Dart.%
+}
 
 \rationale{
 The requirement that satisfaction of the bounds on
-the formal type parameters of a generic type alias $G$
+the formal type parameters of a generic type alias $D$
 must imply satisfaction of all bounds pertaining to
-every type that occurs in the body of $G$
+every type that occurs in the body of $D$
 limits the expressive power of generic type aliases.
 However, it would require the constraints on formal type parameters
 to be expressed in a much more powerful language
@@ -7170,7 +7219,8 @@ It is a compile-time error if $T$ is not
 a class or a parameterized type accessible in the current scope,
 or if $T$ is a parameterized type which is not a class.
 \commentary{
-For instance, \code{\NEW{} F<int>()} is an error if \code{F} is a type alias.
+For instance, \code{\NEW{} F<int>()} is an error if \code{F} is a type alias
+that does not denote a class.
 }
 
 \LMHash{}%
@@ -8799,7 +8849,7 @@ of a static method on the denoted class.
 Let $T$ be the static type of $e$.
 It is a compile-time error if $T$ does not have a method or getter named \id{}
 unless $T$ is \DYNAMIC{},
-or $T$ is \FUNCTION{} and \id{} is \code{call}.
+or $T$ is \FUNCTION{} and \id{} is \CALL{}.
 The static type of $i$ is:
 
 \begin{itemize}
@@ -11427,7 +11477,7 @@ It is a static warning if all of the following conditions hold:
 \end{itemize}
 
 \commentary{
-In other words, a warning will be emitted if a switch statement over an enum is not exhaustive.
+In other words, a static warning will be emitted if a switch statement over an enum is not exhaustive.
 }
 
 
@@ -12773,29 +12823,94 @@ It is easy for tools to provide a sound type analysis if they choose, which may 
 \LMLabel{staticTypes}
 
 \LMHash{}%
-Type annotations are used in variable declarations (\ref{variables}) (including formal parameters (\ref{formalParameters})), in the return types of functions (\ref{functions}) and in the bounds of type variables.
+Type annotations can occur in variable declarations (\ref{variables}),
+including formal parameters (\ref{formalParameters}),
+in the return types of functions (\ref{functions}),
+and in the bounds of type variables (\ref{generics}).
 Type annotations are used during static checking and when running programs.
+Types are specified using the following grammar rules.
+
+%% TODO(eernst): The following non-terminal is currently undefined (it will
+%% be defined when more rules are transferred from Dart.g): <typeIdentifier>.
+%% The precise rules are slightly different than the following sentence, but
+%% we should be able to make do with that for now.
+\LMHash{}%
+In the grammar rules below, \synt{typeIdentifier} denotes an identifier which can be
+the name of a type, that is, it denotes an \synt{IDENTIFIER} which is not a
+\synt{BUILT\_IN\_IDENTIFIER}.
+
+%% TODO(eernst): The following non-terminals are currently unused (they will
+%% be used when we transfer more grammar rules from Dart.g): <typeNotVoid>
+%% and <typeNotVoidNotFunctionList>. They are used in the syntax for
+%% \EXTENDS{}, \WITH{}, \IMPLEMENTS{} syntax and for mixin applications
+%% in Dart.g, and it seems likely that we will use them here as well.
+
+\commentary{
+Non-terminals with names of the form \synt{\ldots{}NotFunction}
+derive terms which are types that are not function types.
+Note that it \emph{does} derive the type \FUNCTION{},
+which is not itself a function type,
+but it is the least upper bound of all function types.
+}
 
 \begin{grammar}
-<type> ::= <typeNotVoid> | \VOID{}
+<type> ::= <functionTypeTails>
+  \alt <typeNotFunction> <functionTypeTails>
+  \alt <typeNotFunction>
 
-<typeNotVoid> ::= <typeName> <typeArguments>?
+<typeNotFunction> ::= <typeNotVoidNotFunction>
+  \alt \VOID{}
 
-<typeName> ::= <qualified>
+<typeNotVoidNotFunction> ::= <typeName> <typeArguments>?
+  \alt \FUNCTION{}
+
+<typeName> ::= <typeIdentifier> (`.' <typeIdentifier>)?
 
 <typeArguments> ::= `<' <typeList> `>'
 
 <typeList> ::= <type> (`,' <type>)*
+
+<typeNotVoidNotFunctionList> ::=
+  <typeNotVoidNotFunction> (`,' <typeNotVoidNotFunction>)*
+
+<typeNotVoid> ::= <functionType>
+  \alt <typeNotVoidNotFunction>
+
+<functionType> ::= <functionTypeTails>
+  \alt <typeNotFunction> <functionTypeTails>
+
+<functionTypeTails> ::= <functionTypeTail> <functionTypeTails>
+  \alt <functionTypeTail>
+
+<functionTypeTail> ::= \FUNCTION{} <typeParameters>? <parameterTypeList>
+
+<parameterTypeList> ::= `(' `)'
+  \alt `(' <normalParameterTypes> `,' <optionalParameterTypes> `)'
+  \alt `(' <normalParameterTypes> `,'? `)'
+  \alt `(' <optionalParameterTypes> `)'
+
+<normalParameterTypes> ::= <normalParameterType> (`,' <normalParameterType>)*
+
+<normalParameterType> ::= <typedIdentifier>
+  \alt <type>
+
+<optionalParameterTypes> ::= <optionalPositionalParameterTypes>
+  \alt <namedParameterTypes>
+
+<optionalPositionalParameterTypes> ::= `[' <normalParameterTypes> `,'? `]'
+
+<namedParameterTypes> ::=
+  `\{' <typedIdentifier> (`,' <typedIdentifier>)* `,'? `\}'
+
+<typedIdentifier> ::= <type> <identifier>
 \end{grammar}
 
 \LMHash{}%
-A Dart implementation must provide a static checker that detects and reports exactly those situations this specification identifies as compile-time errors,
+A Dart implementation must provide a static checker that detects and reports
+exactly those situations this specification identifies as compile-time errors,
 and only those situations.
-However:
-\begin{itemize}
-\item Running the static checker on a program $P$ is not required for compiling and running $P$.
-\item Running the static checker on a program $P$ must not prevent successful compilation of $P$ nor may it prevent the execution of $P$, regardless of whether any compile-time errors occur.
-\end{itemize}
+Similarly, the static checker must emit static warnings
+for at least the situations specified as such in this specification.
 
 \commentary{
 Nothing precludes additional tools that implement alternative static analyses (e.g., interpreting the existing type annotations in a sound manner such as either non-variant generics, or inferring declaration based variance from the actual declarations).
@@ -12956,7 +13071,7 @@ declaring a name for the same function type are equal:
 \}
 \end{dartCode}
 
-\LMHash{}
+\LMHash{}%
 \commentary{
 Instances of \code{Type} can be obtained in various ways,
 for example by using reflection,
@@ -12964,7 +13079,7 @@ by reading the \code{runtimeType} of an object,
 or by evaluating a \emph{type literal} expression.
 }
 
-\LMHash{}
+\LMHash{}%
 An expression is a \emph{type literal} if it is an identifier,
 or a qualified identifier,
 which denotes a class, mixin or type alias declaration, or it is
@@ -12975,53 +13090,126 @@ and it is not qualified by a deferred prefix.
 A constant type literal is a constant expression (\ref{constants}).
 }
 
-\subsection{Type Declarations}
-\LMLabel{typeDeclarations}
-
-
-\subsubsection{Typedef}
+\subsection{Type Aliases}
 \LMLabel{typedef}
 
 \LMHash{}%
 A \Index{type alias} declares a name for a type expression.
 
+\commentary{
+It is common to use the phrase ``a typedef'' for such a declaration,
+because of the prominent occurrence of the token \TYPEDEF.
+}
+
+% TODO(eernst): We include <metadata> in <typeAlias> even though it is not
+% there in Dart.g, because <libraryDefinition> in Dart.g allows metadata
+% before every <topLevelDefinition>, but that's not yet been transferred to
+% this document. So we'll need to remove the <metadata> below _when_ it is
+% made redundant by changing <libraryDefinition> to be like in Dart.g.
+
 \begin{grammar}
-<typeAlias> ::= <metadata> \TYPEDEF{} <typeAliasBody>
+<typeAlias> ::=
+  <metadata> \TYPEDEF{} <typeIdentifier> <typeParameters>? `=' <type> `;'
+  \alt <metadata> \TYPEDEF{} <functionTypeAlias>
 
-<typeAliasBody> ::= <functionTypeAlias>
-
-<functionTypeAlias> ::= \gnewline{}
-  <functionPrefix> <typeParameters>? <formalParameterList> `;'
+<functionTypeAlias> ::= <functionPrefix> <formalParameterPart> `;'
 
 <functionPrefix> ::= <type>? <identifier>
 \end{grammar}
 
-% TODO(eernst): Introduce new type aliases and new function type syntax, then
-% include support for generic functions here.
+\LMHash{}%
+The effect of a type alias of the form
+\code{\TYPEDEF{} \id{} = $T$;}
+declared in a library $L$ is to introduce the name \id{} into the scope of $L$,
+bound to the type $T$.
 
 \LMHash{}%
 The effect of a type alias of the form
 
-\code{\TYPEDEF{} $T$ \id($T_1\ p_1, \ldots,\ T_n\ p_n,\ [T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}]$)}
+\noindent
+\code{\TYPEDEF{} $T$ \id($T_1\ p_1, \ldots,\ T_n\ p_n,\ [T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}]$);}
 
 \noindent
 declared in a library $L$ is to introduce the name \id{} into the scope of $L$, bound to the function type
-$(T_1, \ldots,\ T_n, [T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k} p_{n+k}]) \rightarrow T$.
+\FunctionTypeSimple{T}{\List{T}{1}{n},\ [\List{T}{n+1}{n+k}]}.
+
+\LMHash{}%
 The effect of a type alias of the form
 
-\code{\TYPEDEF{} $T$ \id($T_1\ p_1, \ldots,\ T_n\ p_n,\ \{T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}\}$)}
+\noindent
+\code{\TYPEDEF{} $T$ \id($T_1\ p_1, \ldots,\ T_n\ p_n,\ \{T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}\}$);}
 
 \noindent
 declared in a library $L$ is to introduce the name \id{} into the scope of $L$, bound to the function type
-$(T_1, \ldots,\ T_n, \{T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}\}) \rightarrow T$.
+\FunctionTypeSimple{T}{\List{T}{1}{n},\ \{\PairList{T}{p}{n+1}{n+k}\}}.
+
+\LMHash{}%
 In either case, if{}f no return type is specified, it is taken to be \DYNAMIC{}.
 Likewise, if a type annotation is omitted on a formal parameter, it is taken to be \DYNAMIC{}.
 
 \LMHash{}%
-It is a compile-time error if any default values are specified in the signature of a function type alias.
+It is a compile-time error if any default values are specified
+in the signature of a function type in a type alias.
 %A typedef may only refer to itself via the bounds of its generic parameters.
-Any self reference in a typedef, either directly, or recursively via another typedef, is a compile-time error.
-%via a chain of references that does not include a class declaration.
+Any self reference in a type alias,
+either directly or recursively via another type declaration,
+is a compile-time error.
+
+\commentary{
+This kind of error may also arise when type arguments have been
+omitted in the program, but are added during static analysis
+via instantiation to bound
+(\ref{instantiationToBound})
+or via type inference
+(\commentary{which will be specified later (\ref{overview})}).
+}
+
+\commentary{%
+A type alias can be used as a type annotation,
+as a return type or parameter type in a function declaration,
+in a function type,
+as a type argument,
+in a type test,
+in a type cast,
+and in an \ON{} clause of a \TRY{} statement.
+
+Consider the case where the body of a given type alias $F$
+is a \synt{typeName} that denotes a non-generic class,
+or it is a parameterized type that starts with
+a \synt{typeName} that denotes a generic class,
+or one of these cases occur indirectly via another type alias.
+In this case $F$ or a parameterized type that starts with $F$,
+whichever is not an error,
+can also be used to name a constructor in an instance creation expression
+(\ref{instanceCreation}),
+and it can be used as a superclass, mixin, or superinterface
+(\ref{superclasses}, \ref{superinterfaces}, \ref{mixinApplication}).
+Moreover, $F$ or a parameterized type that starts with $F$,
+whichever is not an error,
+can be used to invoke static methods of the denoted class.
+}
+
+\rationale{%
+This indirectly allows an invocation of a static method to pass
+a list of actual type arguments to the class.
+This is currently an error when it occurs directly
+(e.g., \code{List<int>.castFrom(xs)}).
+But it may be part of a future language extension to allow
+static methods to use the type parameters declared by the enclosing class,
+in which case both the direct and indirect approach will be allowed.
+At that time,
+existing invocations where type arguments are passed indirectly will not break,
+because it is currently an error for a static method to depend on the value
+of a formal type parameter of the enclosing class.
+}
+
+%% TODO(eernst): Move specification of generic type aliases to this
+%% section, change the non-generic case to a special case.
+\commentary{
+The generic variants of type alias declarations are specified
+in the section about generics
+(\ref{generics}).
+}
 
 
 \subsection{Subtypes}
@@ -13680,33 +13868,26 @@ may support more strict static checks as an option.
 \subsection{Function Types}
 \LMLabel{functionTypes}
 
-%% TODO(eernst): This section is heavily updated in CL 81263 as well as
-%% in this CL 84027. Double-check the merge when 81263 has been landed.
-%% In particular, we do _not_ change the notation in this CL to use the
-%% function types that we use in section 'Subtypes', that's done in 81263.
-
 \LMHash{}%
 Function types come in two variants:
 \begin{enumerate}
 \item
-The types of functions that only have positional parameters.
-These have the general form
-
-\code{<$X_1\ \EXTENDS\ B_1, \ldots,\ X_s\ \EXTENDS\ B_s$>}
-
-\code{($T_1, \ldots,\ T_n,\ $[$T_{n+1}, \ldots,\ T_{n+k}$]) $ \rightarrow T$}.
+  The types of functions that only have positional parameters.
+  These have the general form
+  \FunctionTypePositionalStd{T}.
 \item
-The types of functions with named parameters.
-These have the general form
-
-\code{<$X_1\ \EXTENDS\ B_1, \ldots,\ X_s\ \EXTENDS\ B_s$>}
-
-\code{($T_1, \ldots,\ T_n,\ $\{$T_{x_1}\ x_1, \ldots,\ T_{x_k}\ x_k$\}) $ \rightarrow T$}.
+  The types of functions with named parameters.
+  These have the general form
+  \FunctionTypeNamedStd{T}.
 \end{enumerate}
 
 \commentary{
-Note that the non-generic case is covered by using $s = 0$,
-in which case the type parameter declarations are omitted (\ref{generics}).
+Note that the non-generic case is covered by having $s = 0$,
+in which case the type parameter declarations are omitted
+(\ref{generics}).
+The case with no optional parameters is covered by having $k = 0$;
+note that all rules involving function types of the two kinds
+coincide in this case.
 }
 
 \LMHash{}%
@@ -13722,11 +13903,47 @@ no subtype relationship exists.
 }
 
 \LMHash{}%
-A function object is always an instance of some class that implements the class \FUNCTION{}.
+A function object is always an instance of some class that implements the class \FUNCTION{} (\ref{functionType}).
 \commentary{%
 Consequently, all function types are subtypes of \FUNCTION{}
 (\ref{subtypes}).
 }
+
+
+\subsection{Type \FUNCTION{}}
+\LMLabel{functionType}
+
+\LMHash{}%
+The built-in class \FUNCTION{} is a supertype of all function types
+(\ref{functionTypes}).
+It is impossible to extend, implement, or mix in the class \FUNCTION{}.
+
+\LMHash{}%
+If a class declaration or mixin application has \FUNCTION{} as superclass,
+it instead uses \code{Object} as superclass.
+
+\LMHash{}%
+If a class or mixin declaration implements \FUNCTION{}, it has no effect.
+It is as if the \FUNCTION was removed from the \code{implements} clause
+(and if it's the only implemented interface, the entire clause is removed).
+The resulting class or mixin interface
+does not have \FUNCTION{} as a superinterface.
+
+\LMHash{}%
+If a mixin application mixes \FUNCTION{} onto a superclass, it follows the
+normal rules for mixin-application, but since the result of that mixin
+application is equivalent to a class with \code{implements Function}, and
+that clause has no effect, the resulting class also does not
+implement \FUNCTION{}. \commentary{The \FUNCTION{} class declares no
+concrete instance members, so the mixin application creates a sub-class
+of the superclass with no new members and no new interfaces.}
+
+\rationale{Since using \FUNCTION{} in these ways has no effect, it would be
+reasonable to disallow it completely, like we do extending, implementing or
+mixing in types like \code{int} or \code{String}.
+For backwards compatibility with Dart 1 programs,
+the syntax is allowed to remain, even if it has no effect.
+Tools may choose to warn users that their code has no effect.}
 
 
 \subsection{Type \DYNAMIC{}}
@@ -13826,7 +14043,7 @@ whenever doing so is sound.
   function expression invocation where an entity of static type \code{Type} is
   invoked. Note that it could actually succeed: An overriding implementation
   of \code{runtimeType} could return an instance whose dynamic type is a subtype
-  of \code{Type} that has a \code{call} method.
+  of \code{Type} that has a \CALL{} method.
   We decided to make it an error because it is likely to be a mistake,
   especially in cases like \code{$d$.hashCode()}
   where a developer might have forgotten that \code{hashCode} is a getter.
@@ -14441,6 +14658,9 @@ The least upper bound operation is commutative and idempotent,
 but it is not associative.
 
 % Function types
+
+%% TODO(eernst): This section should use the new syntax for function types
+%% (\FunctionTypePositionalStd{} etc.); these updates are made by CL 84908.
 
 \LMHash{}%
 The least upper bound of a function type and an interface type $T$ is the least upper bound of \FUNCTION{} and $T$.

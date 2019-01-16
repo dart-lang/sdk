@@ -11,6 +11,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/util/features.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
@@ -687,6 +688,87 @@ class StringDataInterpreter implements DataInterpreter<String> {
   }
 }
 
+class FeaturesDataInterpreter implements DataInterpreter<Features> {
+  const FeaturesDataInterpreter();
+
+  @override
+  String isAsExpected(Features actualFeatures, String expectedData) {
+    if (expectedData == '*') {
+      return null;
+    } else if (expectedData == '') {
+      return actualFeatures.isNotEmpty ? "Expected empty data." : null;
+    } else {
+      List<String> errorsFound = [];
+      Features expectedFeatures = Features.fromText(expectedData);
+      expectedFeatures.forEach((String key, Object expectedValue) {
+        Object actualValue = actualFeatures[key] ?? '';
+        if (expectedValue == '') {
+          if (actualValue != '') {
+            errorsFound.add('Non-empty data found for $key');
+          }
+        } else if (expectedValue == '*') {
+          return;
+        } else if (expectedValue is List) {
+          if (actualValue is List) {
+            List actualList = actualValue.toList();
+            for (Object expectedObject in expectedValue) {
+              String expectedText = '$expectedObject';
+              bool matchFound = false;
+              if (expectedText.endsWith('*')) {
+                // Wildcard matcher.
+                String prefix =
+                    expectedText.substring(0, expectedText.indexOf('*'));
+                List matches = [];
+                for (Object actualObject in actualList) {
+                  if ('$actualObject'.startsWith(prefix)) {
+                    matches.add(actualObject);
+                    matchFound = true;
+                  }
+                }
+                for (Object match in matches) {
+                  actualList.remove(match);
+                }
+              } else {
+                for (Object actualObject in actualList) {
+                  if (expectedText == '$actualObject') {
+                    actualList.remove(actualObject);
+                    matchFound = true;
+                    break;
+                  }
+                }
+              }
+              if (!matchFound) {
+                errorsFound.add("No match found for $key=[$expectedText]");
+              }
+            }
+            if (actualList.isNotEmpty) {
+              errorsFound
+                  .add("Extra data found $key=[${actualList.join(',')}]");
+            }
+          } else {
+            errorsFound.add("List data expected for $key: "
+                "expected '$expectedValue', found '${actualValue}'");
+          }
+        } else if (expectedValue != actualValue) {
+          errorsFound.add(
+              "Mismatch for $key: expected '$expectedValue', found '${actualValue}");
+        }
+      });
+      return errorsFound.isNotEmpty ? errorsFound.join(', ') : null;
+    }
+  }
+
+  @override
+  String getText(Features actualData) {
+    return actualData.getText();
+  }
+
+  @override
+  bool isEmpty(Features actualData) {
+    return actualData == null || actualData.isEmpty;
+  }
+}
+
 /// Checks [compiledData] against the expected data in [expectedMap] derived
 /// from [code].
 Future<bool> checkCode<T>(
@@ -715,8 +797,9 @@ Future<bool> checkCode<T>(
           reportError(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'EXTRA $mode DATA for ${id.descriptor} = '
-              '${colorizeActual('${IdValue.idToString(id, actualText)}')} for ${actualData.objectText}. '
+              'EXTRA $mode DATA for ${id.descriptor}:\n '
+              'object   : ${actualData.objectText}\n '
+              'actual   : ${colorizeActual('${IdValue.idToString(id, actualText)}')}\n '
               'Data was expected for these ids: ${expectedMap.keys}');
           if (filterActualData == null || filterActualData(null, actualData)) {
             hasLocalFailure = true;
@@ -730,7 +813,7 @@ Future<bool> checkCode<T>(
           reportError(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'UNEXPECTED $mode DATA for ${id.descriptor}: \n '
+              'UNEXPECTED $mode DATA for ${id.descriptor}:\n '
               'detail  : ${colorizeMessage(unexpectedMessage)}\n '
               'object  : ${actualData.objectText}\n '
               'expected: ${colorizeExpected('$expected')}\n '

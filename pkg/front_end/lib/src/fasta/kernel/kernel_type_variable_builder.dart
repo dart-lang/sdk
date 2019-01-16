@@ -36,7 +36,7 @@ class KernelTypeVariableBuilder
         super(name, bound, compilationUnit, charOffset);
 
   KernelTypeVariableBuilder.fromKernel(
-      TypeParameter parameter, KernelLibraryBuilder compilationUnit)
+      TypeParameter parameter, LibraryBuilder compilationUnit)
       : actualParameter = parameter,
         super(parameter.name, null, compilationUnit, parameter.fileOffset);
 

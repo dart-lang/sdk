@@ -6,6 +6,7 @@
 #define RUNTIME_VM_OBJECT_GRAPH_H_
 
 #include "vm/allocation.h"
+#include "vm/thread_stack_resource.h"
 
 namespace dart {
 
@@ -19,7 +20,7 @@ class WriteStream;
 // Example uses:
 // - find a retaining path from the isolate roots to a particular object, or
 // - determine how much memory is retained by some particular object(s).
-class ObjectGraph : public StackResource {
+class ObjectGraph : public ThreadStackResource {
  public:
   class Stack;
 

@@ -1,6 +1,6 @@
 # Feature: Generic Function Type Alias
 
-**Status**: Implemented.
+**Status**: Background material. Normative text is now in dartLangSpec.tex.
 
 **This document** is an informal specification of a feature supporting the
 definition of function type aliases using a more expressive syntax than the

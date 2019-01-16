@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 15;
+  UInt32 formatVersion = 16;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -924,6 +924,29 @@ type TearOffConstant extends Constant {
 type TypeLiteralConstant extends Constant {
   Byte tag = 11;
   DartType type;
+}
+
+type EnvironmentBoolConstant extends Constant {
+  Byte tag = 12;
+  StringReference name;
+  ConstantReference defaultValue;
+}
+
+type EnvironmentIntConstant extends Constant {
+  Byte tag = 13;
+  StringReference name;
+  ConstantReference defaultValue;
+}
+
+type EnvironmentStringConstant extends Constant {
+  Byte tag = 14;
+  StringReference name;
+  ConstantReference defaultValue;
+}
+
+type UnevaluatedConstant extends Constant {
+  Byte tag = 15;
+  Expression expression;
 }
 
 abstract type Statement extends Node {}

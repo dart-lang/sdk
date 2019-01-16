@@ -9,7 +9,8 @@ import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart' show CompilerTask;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart'
+    show CommonElements, ElementEnvironment, JElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
@@ -312,9 +313,7 @@ class JavaScriptBackend {
 
   CodeEmitterTask emitter;
 
-  /**
-   * The generated code as a js AST for compiled methods.
-   */
+  /// The generated code as a js AST for compiled methods.
   final Map<MemberEntity, jsAst.Expression> generatedCode =
       <MemberEntity, jsAst.Expression>{};
 
@@ -326,9 +325,7 @@ class JavaScriptBackend {
     return _namer;
   }
 
-  /**
-   * Set of classes whose `operator ==` methods handle `null` themselves.
-   */
+  /// Set of classes whose `operator ==` methods handle `null` themselves.
   final Set<ClassEntity> specialOperatorEqClasses = new Set<ClassEntity>();
 
   List<CompilerTask> get tasks {
@@ -387,7 +384,6 @@ class JavaScriptBackend {
 
   JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
-      bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
@@ -397,9 +393,7 @@ class JavaScriptBackend {
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
     _checkedModeHelpers = new CheckedModeHelpers();
-    emitter =
-        new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-
+    emitter = new CodeEmitterTask(compiler, generateSourceMap);
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     functionCompiler = new SsaFunctionCompiler(
@@ -555,7 +549,7 @@ class JavaScriptBackend {
         nativeBasicData,
         _backendUsageBuilder);
     _allocatorResolutionAnalysis =
-        new KAllocatorAnalysis(compiler.options, compiler.frontendStrategy);
+        new KAllocatorAnalysis(compiler.frontendStrategy);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);
@@ -702,11 +696,9 @@ class JavaScriptBackend {
 
   NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
-  /**
-   * Unit test hook that returns code of an element as a String.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
+  /// Unit test hook that returns code of an element as a String.
+  ///
+  /// Invariant: [element] must be a declaration element.
   String getGeneratedCode(MemberEntity element) {
     return jsAst.prettyPrint(generatedCode[element],
         enableMinification: compiler.options.enableMinification);
@@ -719,10 +711,8 @@ class JavaScriptBackend {
     return programSize;
   }
 
-  /**
-   * Returns [:true:] if the checking of [type] is performed directly on the
-   * object and not on an interceptor.
-   */
+  /// Returns [:true:] if the checking of [type] is performed directly on the
+  /// object and not on an interceptor.
   bool hasDirectCheckFor(CommonElements commonElements, DartType type) {
     if (!type.isInterfaceType) return false;
     InterfaceType interfaceType = type;
@@ -810,7 +800,7 @@ class JavaScriptBackend {
 
   jsAst.Expression rewriteAsync(
       CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
+      JElementEnvironment elementEnvironment,
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
@@ -886,7 +876,7 @@ class JavaScriptBackend {
 
   AsyncRewriter _makeAsyncRewriter(
       CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
+      JElementEnvironment elementEnvironment,
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,

@@ -58,11 +58,9 @@ class ValueRangeInfo {
   }
 }
 
-/**
- * A [Value] represents both symbolic values like the value of a
- * parameter, or the length of an array, and concrete values, like
- * constants.
- */
+/// A [Value] represents both symbolic values like the value of a
+/// parameter, or the length of an array, and concrete values, like
+/// constants.
 abstract class Value {
   final ValueRangeInfo info;
   const Value(this.info);
@@ -97,10 +95,8 @@ abstract class Value {
   bool get isZero => false;
 }
 
-/**
- * The [MarkerValue] class is used to recognize ranges of loop
- * updates.
- */
+/// The [MarkerValue] class is used to recognize ranges of loop
+/// updates.
 class MarkerValue extends Value {
   /// If [positive] is true (respectively false), the marker goes
   /// to [MaxIntValue] (respectively [MinIntValue]) when being added
@@ -124,9 +120,7 @@ class MarkerValue extends Value {
   }
 }
 
-/**
- * An [IntValue] contains a constant integer value.
- */
+/// An [IntValue] contains a constant integer value.
 class IntValue extends Value {
   final BigInt value;
 
@@ -192,10 +186,8 @@ class IntValue extends Value {
   bool get isZero => value == BigInt.zero;
 }
 
-/**
- * The [MaxIntValue] represents the maximum value an integer can have,
- * which is currently +infinity.
- */
+/// The [MaxIntValue] represents the maximum value an integer can have,
+/// which is currently +infinity.
 class MaxIntValue extends Value {
   const MaxIntValue() : super(null);
   Value operator +(Value other) => this;
@@ -208,10 +200,8 @@ class MaxIntValue extends Value {
   bool get isPositive => true;
 }
 
-/**
- * The [MinIntValue] represents the minimum value an integer can have,
- * which is currently -infinity.
- */
+/// The [MinIntValue] represents the minimum value an integer can have,
+/// which is currently -infinity.
 class MinIntValue extends Value {
   const MinIntValue() : super(null);
   Value operator +(Value other) => this;
@@ -224,10 +214,8 @@ class MinIntValue extends Value {
   bool get isPositive => false;
 }
 
-/**
- * The [UnknownValue] is the sentinel in our analysis to mark an
- * operation that could not be done because of too much complexity.
- */
+/// The [UnknownValue] is the sentinel in our analysis to mark an
+/// operation that could not be done because of too much complexity.
 class UnknownValue extends Value {
   const UnknownValue() : super(null);
   Value operator +(Value other) => const UnknownValue();
@@ -240,9 +228,7 @@ class UnknownValue extends Value {
   String toString() => 'Unknown';
 }
 
-/**
- * A symbolic value representing an [HInstruction].
- */
+/// A symbolic value representing an [HInstruction].
 class InstructionValue extends Value {
   final HInstruction instruction;
   InstructionValue(this.instruction, info) : super(info);
@@ -293,18 +279,14 @@ class InstructionValue extends Value {
   String toString() => 'Instruction: $instruction';
 }
 
-/**
- * Special value for instructions whose type is a positive integer.
- */
+/// Special value for instructions whose type is a positive integer.
 class PositiveValue extends InstructionValue {
   PositiveValue(HInstruction instruction, info) : super(instruction, info);
   bool get isPositive => true;
 }
 
-/**
- * Represents a binary operation on two [Value], where the operation
- * did not yield a canonical value.
- */
+/// Represents a binary operation on two [Value], where the operation
+/// did not yield a canonical value.
 class BinaryOperationValue extends Value {
   final Value left;
   final Value right;
@@ -457,11 +439,9 @@ class NegateValue extends Value {
   String toString() => '-$value';
 }
 
-/**
- * A [Range] represents the possible integer values an instruction
- * can have, from its [lower] bound to its [upper] bound, both
- * included.
- */
+/// A [Range] represents the possible integer values an instruction
+/// can have, from its [lower] bound to its [upper] bound, both
+/// included.
 class Range {
   final Value lower;
   final Value upper;
@@ -473,10 +453,8 @@ class Range {
 
   Range.unbound(info) : this(const MinIntValue(), const MaxIntValue(), info);
 
-  /**
-   * Checks if the given values are unknown, and creates a
-   * range that does not have any unknown values.
-   */
+  /// Checks if the given values are unknown, and creates a
+  /// range that does not have any unknown values.
   Range.normalize(Value low, Value up, info)
       : this(low == const UnknownValue() ? const MinIntValue() : low,
             up == const UnknownValue() ? const MaxIntValue() : up, info);
@@ -579,25 +557,19 @@ class Range {
   String toString() => '[$lower, $upper]';
 }
 
-/**
- * Visits the graph in dominator order, and computes value ranges for
- * integer instructions. While visiting the graph, this phase also
- * removes unnecessary bounds checks, and comparisons that are proven
- * to be true or false.
- */
+/// Visits the graph in dominator order, and computes value ranges for
+/// integer instructions. While visiting the graph, this phase also
+/// removes unnecessary bounds checks, and comparisons that are proven
+/// to be true or false.
 class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   String get name => 'SSA value range builder';
 
-  /**
-   * List of [HRangeConversion] instructions created by the phase. We
-   * save them here in order to remove them once the phase is done.
-   */
+  /// List of [HRangeConversion] instructions created by the phase. We
+  /// save them here in order to remove them once the phase is done.
   final List<HRangeConversion> conversions = <HRangeConversion>[];
 
-  /**
-   * Value ranges for integer instructions. This map gets populated by
-   * the dominator tree visit.
-   */
+  /// Value ranges for integer instructions. This map gets populated by
+  /// the dominator tree visit.
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
   final JClosedWorld closedWorld;
@@ -1088,9 +1060,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 }
 
-/**
- * Tries to find a range for the update instruction of a loop phi.
- */
+/// Tries to find a range for the update instruction of a loop phi.
 class LoopUpdateRecognizer extends HBaseVisitor {
   final JClosedWorld closedWorld;
   final Map<HInstruction, Range> ranges;

@@ -22,7 +22,7 @@ static method foo() → asy::Stream<core::List<core::int>> /* originally async* 
       try {
         #L1:
         {
-          if(:controller.{asy::_AsyncStarStreamController::add}(<dynamic>[]))
+          if(:controller.{asy::_AsyncStarStreamController::add}(core::_GrowableList::•<dynamic>(0)))
             return null;
           else
             [yield] null;
@@ -30,7 +30,7 @@ static method foo() → asy::Stream<core::List<core::int>> /* originally async* 
             return null;
           else
             [yield] null;
-          if(:controller.{asy::_AsyncStarStreamController::addStream}(<dynamic>[]))
+          if(:controller.{asy::_AsyncStarStreamController::addStream}(core::_GrowableList::•<dynamic>(0)))
             return null;
           else
             [yield] null;
@@ -60,7 +60,7 @@ static method bar() → core::Iterable<core::Map<core::int, core::int>> /* origi
   function :sync_op(core::_SyncIterator<core::Map<core::int, core::int>> :iterator) → core::bool yielding {
     {
       {
-        :iterator.{core::_SyncIterator::_current} = <dynamic, dynamic>{};
+        :iterator.{core::_SyncIterator::_current} = core::Map::•<dynamic, dynamic>();
         [yield] true;
       }
       {
@@ -68,7 +68,7 @@ static method bar() → core::Iterable<core::Map<core::int, core::int>> /* origi
         [yield] true;
       }
       {
-        :iterator.{core::_SyncIterator::_yieldEachIterable} = <dynamic, dynamic>{};
+        :iterator.{core::_SyncIterator::_yieldEachIterable} = core::Map::•<dynamic, dynamic>();
         [yield] true;
       }
       {

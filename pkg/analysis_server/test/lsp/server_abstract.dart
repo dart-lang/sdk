@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
@@ -41,7 +42,7 @@ abstract class AbstractLspAnalysisServerTest
 
   int _id = 0;
   String projectFolderPath, mainFilePath;
-  Uri mainFileUri;
+  Uri projectFolderUri, mainFileUri;
 
   void applyChanges(
     Map<String, String> fileContents,
@@ -111,11 +112,29 @@ abstract class AbstractLspAnalysisServerTest
     // number of inserts followed by a single remove or replace edit. If multiple
     // inserts have the same position, the order in the array defines the order in
     // which the inserted strings appear in the resulting text.
-    if (changes.length > 1) {
-      // TODO(dantup): Implement multi-edit edits.
-      throw 'Test helper applyTextEdits does not support applying multiple edits';
-    } else if (changes.length == 1) {
-      newContent = applyTextEdit(newContent, changes.single);
+
+    /// Ensures changes are simple enough to apply easily without any complicated
+    /// logic.
+    void validateChangesCanBeApplied() {
+      bool intersectsWithOrComesAfter(Position pos, Position other) =>
+          pos.line > other.line ||
+          (pos.line == other.line || pos.character >= other.character);
+
+      Position earliestPositionChanged;
+      for (final change in changes) {
+        if (earliestPositionChanged != null &&
+            intersectsWithOrComesAfter(
+                change.range.end, earliestPositionChanged)) {
+          throw 'Test helper applyTextEdits does not support applying multiple edits '
+              'where the edits are not in reverse order.';
+        }
+        earliestPositionChanged = change.range.start;
+      }
+    }
+
+    validateChangesCanBeApplied();
+    for (final change in changes) {
+      newContent = applyTextEdit(newContent, change);
     }
 
     return newContent;
@@ -131,6 +150,20 @@ abstract class AbstractLspAnalysisServerTest
       new DidChangeTextDocumentParams(
         new VersionedTextDocumentIdentifier(newVersion, uri.toString()),
         changes,
+      ),
+    );
+    channel.sendNotificationToServer(notification);
+    await pumpEventQueue();
+  }
+
+  Future changeWorkspaceFolders({List<Uri> add, List<Uri> remove}) async {
+    var notification = makeNotification(
+      Method.workspace_didChangeWorkspaceFolders,
+      new DidChangeWorkspaceFoldersParams(
+        new WorkspaceFoldersChangeEvent(
+          add?.map(toWorkspaceFolder)?.toList() ?? const [],
+          remove?.map(toWorkspaceFolder)?.toList() ?? const [],
+        ),
       ),
     );
     channel.sendNotificationToServer(notification);
@@ -198,7 +231,7 @@ abstract class AbstractLspAnalysisServerTest
     }
   }
 
-  Future<List<TextEdit>> formatDocument(String fileUri) async {
+  Future<List<TextEdit>> formatDocument(String fileUri) {
     final request = makeRequest(
       Method.textDocument_formatting,
       new DocumentFormattingParams(
@@ -210,7 +243,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Future<List<TextEdit>> formatOnType(
-      String fileUri, Position pos, String character) async {
+      String fileUri, Position pos, String character) {
     final request = makeRequest(
       Method.textDocument_onTypeFormatting,
       new DocumentOnTypeFormattingParams(
@@ -227,7 +260,7 @@ abstract class AbstractLspAnalysisServerTest
     String fileUri, {
     Range range,
     List<CodeActionKind> kinds,
-  }) async {
+  }) {
     final request = makeRequest(
       Method.textDocument_codeAction,
       new CodeActionParams(
@@ -242,7 +275,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
-      {CompletionContext context}) async {
+      {CompletionContext context}) {
     final request = makeRequest(
       Method.textDocument_completion,
       new CompletionParams(
@@ -254,7 +287,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
-  Future<List<Location>> getDefinition(Uri uri, Position pos) async {
+  Future<List<Location>> getDefinition(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
       new TextDocumentPositionParams(
@@ -265,8 +298,19 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
+  Future<List<DocumentHighlight>> getDocumentHighlights(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_documentHighlight,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<DocumentHighlight>>(request);
+  }
+
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(String fileUri) async {
+      getDocumentSymbols(String fileUri) {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       new DocumentSymbolParams(
@@ -276,7 +320,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo(request);
   }
 
-  Future<Hover> getHover(Uri uri, Position pos) async {
+  Future<Hover> getHover(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_hover,
       new TextDocumentPositionParams(
@@ -289,7 +333,7 @@ abstract class AbstractLspAnalysisServerTest
     Uri uri,
     Position pos, {
     includeDeclarations = false,
-  }) async {
+  }) {
     final request = makeRequest(
       Method.textDocument_references,
       new ReferenceParams(
@@ -301,7 +345,7 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
-  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) async {
+  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_signatureHelp,
       new TextDocumentPositionParams(
@@ -362,16 +406,22 @@ abstract class AbstractLspAnalysisServerTest
   /// match the spec exactly and are not verified.
   Future<ResponseMessage> initialize({
     String rootPath,
+    Uri rootUri,
+    List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
     WorkspaceClientCapabilities workspaceCapabilities,
   }) async {
-    final rootUri = Uri.file(rootPath ?? projectFolderPath).toString();
+    // Assume if none of the project options were set, that we want to default to
+    // opening the test project folder.
+    if (rootPath == null && rootUri == null && workspaceFolders == null) {
+      rootUri = Uri.file(projectFolderPath);
+    }
     final request = makeRequest(
         Method.initialize,
         new InitializeParams(
             null,
-            null,
-            rootUri,
+            rootPath,
+            rootUri?.toString(),
             null,
             new ClientCapabilities(
               workspaceCapabilities,
@@ -379,13 +429,14 @@ abstract class AbstractLspAnalysisServerTest
               null,
             ),
             null,
-            null));
+            workspaceFolders?.map(toWorkspaceFolder)?.toList()));
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
     if (response.error == null) {
       final notification = makeNotification(Method.initialized, null);
       channel.sendNotificationToServer(notification);
+      await pumpEventQueue();
     }
 
     return response;
@@ -393,6 +444,18 @@ abstract class AbstractLspAnalysisServerTest
 
   NotificationMessage makeNotification(Method method, ToJsonable params) {
     return new NotificationMessage(method, params, jsonRpcVersion);
+  }
+
+  RequestMessage makeRenameRequest(
+      int version, Uri uri, Position pos, String newName) {
+    final docIdentifier = version != null
+        ? new VersionedTextDocumentIdentifier(version, uri.toString())
+        : new TextDocumentIdentifier(uri.toString());
+    final request = makeRequest(
+      Method.textDocument_rename,
+      new RenameParams(docIdentifier, pos, newName),
+    );
+    return request;
   }
 
   RequestMessage makeRequest(Method method, ToJsonable params) {
@@ -411,34 +474,97 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Position positionFromMarker(String contents) =>
-      positionFromOffset(contents.indexOf('^'), contents);
+      positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
 
   Position positionFromOffset(int offset, String contents) {
-    final lineInfo = LineInfo.fromContent(contents);
+    final lineInfo = LineInfo.fromContent(withoutMarkers(contents));
     return toPosition(lineInfo.getLocation(offset));
+  }
+
+  Future<RangeAndPlaceholder> prepareRename(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_prepareRename,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<RangeAndPlaceholder>(request);
   }
 
   /// Returns the range surrounded by `[[markers]]` in the provided string,
   /// excluding the markers themselves (as well as position markers `^` from
   /// the offsets).
   Range rangeFromMarkers(String contents) {
-    contents = contents.replaceAll(positionMarker, '');
-    final start = contents.indexOf(rangeMarkerStart);
-    if (start == -1) {
-      throw 'Contents did not contain $rangeMarkerStart';
+    final ranges = rangesFromMarkers(contents);
+    if (ranges.length == 1) {
+      return ranges.first;
+    } else if (ranges.isEmpty) {
+      throw 'Contents did not include a marked range';
+    } else {
+      throw 'Contents contained multiple ranges but only one was expected';
     }
-    final end = contents.indexOf(rangeMarkerEnd);
-    if (end == -1) {
-      throw 'Contents did not contain $rangeMarkerEnd';
-    }
-    return new Range(
-      positionFromOffset(start, contents),
-      positionFromOffset(end - rangeMarkerStart.length, contents),
-    );
   }
 
-  Future replaceFile(int newVersion, Uri uri, String content) async {
-    await changeFile(
+  /// Returns all ranges surrounded by `[[markers]]` in the provided string,
+  /// excluding the markers themselves (as well as position markers `^` from
+  /// the offsets).
+  List<Range> rangesFromMarkers(String content) {
+    Iterable<Range> rangesFromMarkersImpl(String content) sync* {
+      content = content.replaceAll(positionMarker, '');
+      final contentsWithoutMarkers = withoutMarkers(content);
+      var searchStartIndex = 0;
+      var offsetForEarlierMarkers = 0;
+      while (true) {
+        final startMarker = content.indexOf(rangeMarkerStart, searchStartIndex);
+        if (startMarker == -1) {
+          return; // Exit if we didn't find any more.
+        }
+        final endMarker = content.indexOf(rangeMarkerEnd, startMarker);
+        if (endMarker == -1) {
+          throw 'Found unclosed range starting at offset $startMarker';
+        }
+        yield new Range(
+          positionFromOffset(
+              startMarker + offsetForEarlierMarkers, contentsWithoutMarkers),
+          positionFromOffset(
+              endMarker + offsetForEarlierMarkers - rangeMarkerStart.length,
+              contentsWithoutMarkers),
+        );
+        // Start the next search after this one, but remember to offset the future
+        // results by the lengths of these markers since they shouldn't affect the
+        // offsets.
+        searchStartIndex = endMarker;
+        offsetForEarlierMarkers -=
+            rangeMarkerStart.length + rangeMarkerEnd.length;
+      }
+    }
+
+    return rangesFromMarkersImpl(content).toList();
+  }
+
+  Future<WorkspaceEdit> rename(
+    Uri uri,
+    int version,
+    Position pos,
+    String newName,
+  ) {
+    final request = makeRenameRequest(version, uri, pos, newName);
+    return expectSuccessfulResponseTo<WorkspaceEdit>(request);
+  }
+
+  Future<ResponseMessage> renameRaw(
+    Uri uri,
+    int version,
+    Position pos,
+    String newName,
+  ) {
+    final request = makeRenameRequest(version, uri, pos, newName);
+    return channel.sendRequestToServer(request);
+  }
+
+  Future replaceFile(int newVersion, Uri uri, String content) {
+    return changeFile(
       newVersion,
       uri,
       [new TextDocumentContentChangeEvent(null, null, content)],
@@ -447,7 +573,7 @@ abstract class AbstractLspAnalysisServerTest
 
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
-  void respondTo<T>(RequestMessage request, T responseParams) async {
+  void respondTo<T>(RequestMessage request, T responseParams) {
     channel.sendResponseToServer(
         new ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
   }
@@ -464,6 +590,7 @@ abstract class AbstractLspAnalysisServerTest
         InstrumentationService.NULL_SERVICE);
 
     projectFolderPath = convertPath('/project');
+    projectFolderUri = Uri.file(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
@@ -476,6 +603,10 @@ abstract class AbstractLspAnalysisServerTest
   Future tearDown() async {
     channel.close();
     await server.shutdown();
+  }
+
+  WorkspaceFolder toWorkspaceFolder(Uri uri) {
+    return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
   }
 
   Future<List<Diagnostic>> waitForDiagnostics(Uri uri) async {
@@ -496,6 +627,10 @@ abstract class AbstractLspAnalysisServerTest
   /// positions/ranges in strings to avoid hard-coding positions in tests.
   String withoutMarkers(String contents) =>
       contents.replaceAll(allMarkersPattern, '');
+
+  /// Removes range markers from strings to give accurate position offsets.
+  String withoutRangeMarkers(String contents) =>
+      contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 }
 
 mixin ClientCapabilitiesHelperMixin {

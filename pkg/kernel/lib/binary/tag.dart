@@ -117,9 +117,10 @@ class Tag {
   static const int MemberReference = 101;
 
   static const int ConstantExpression = 107;
-  // 108 is occupied by [RedirectingFactoryConstructor] (member).
-  // 109 is occupied by [SetLiteral] (expression).
-  // 110 is occupied by [ConstSetLiteral] (expression).
+
+  /// 108 is occupied by [RedirectingFactoryConstructor] (member).
+  /// 109 is occupied by [SetLiteral] (expression).
+  /// 110 is occupied by [ConstSetLiteral] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -136,7 +137,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 15;
+  static const int BinaryFormatVersion = 16;
 }
 
 abstract class ConstantTag {
@@ -152,4 +153,8 @@ abstract class ConstantTag {
   static const int PartialInstantiationConstant = 9;
   static const int TearOffConstant = 10;
   static const int TypeLiteralConstant = 11;
+  static const int EnvironmentBoolConstant = 12;
+  static const int EnvironmentIntConstant = 13;
+  static const int EnvironmentStringConstant = 14;
+  static const int UnevaluatedConstant = 15;
 }

@@ -161,7 +161,7 @@ deps = {
       "packages": [
           {
               "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.1.1-dev.0.1",
+              "version": "version:2.1.1-dev.1.0",
           },
       ],
       "dep_type": "cipd",

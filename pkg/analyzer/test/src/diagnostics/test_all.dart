@@ -8,7 +8,14 @@ import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
+import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_required_param_test.dart' as invalid_required_param;
+import 'unnecessary_cast_test.dart' as unnecessary_cast;
+import 'unused_field_test.dart' as unused_field;
+import 'unused_import_test.dart' as unused_import;
+import 'unused_label_test.dart' as unused_label;
+import 'unused_shown_name_test.dart' as unused_shown_name;
+import 'use_of_void_result_test.dart' as use_of_void_result;
 
 main() {
   defineReflectiveSuite(() {
@@ -16,6 +23,13 @@ main() {
     can_be_null_after_null_aware.main();
     deprecated_member_use.main();
     division_optimization.main();
+    invalid_assignment.main();
     invalid_required_param.main();
+    unnecessary_cast.main();
+    unused_field.main();
+    unused_import.main();
+    unused_label.main();
+    unused_shown_name.main();
+    use_of_void_result.main();
   }, name: 'diagnostics');
 }

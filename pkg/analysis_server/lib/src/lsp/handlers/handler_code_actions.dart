@@ -13,8 +13,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analysis_server/src/protocol_server.dart' show SourceChange;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -90,7 +88,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       assist.change.message,
       CodeActionKind.Refactor,
       const [],
-      _createWorkspaceEdit(assist.change),
+      createWorkspaceEdit(server, assist.change),
       null,
     ));
   }
@@ -105,23 +103,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       fix.change.message,
       CodeActionKind.QuickFix,
       [diagnostic],
-      _createWorkspaceEdit(fix.change),
+      createWorkspaceEdit(server, fix.change),
       null,
     ));
-  }
-
-  /// Note: This code will fetch the version of each document being modified so
-  /// it's important to call this immediately after computing edits to ensure
-  /// the document is not modified before the version number is read.
-  WorkspaceEdit _createWorkspaceEdit(SourceChange change) {
-    return toWorkspaceEdit(
-        server.clientCapabilities?.workspace,
-        change.edits
-            .map((e) => new FileEditInformation(
-                server.getVersionedDocumentIdentifier(e.file),
-                server.getLineInfo(e.file),
-                e.edits))
-            .toList());
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(

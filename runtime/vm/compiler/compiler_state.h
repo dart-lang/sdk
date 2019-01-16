@@ -6,6 +6,7 @@
 #define RUNTIME_VM_COMPILER_COMPILER_STATE_H_
 
 #include "vm/compiler/cha.h"
+#include "vm/heap/safepoint.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -53,9 +54,10 @@ class DeoptId : public AllStatic {
 };
 
 // Global compiler state attached to the thread.
-class CompilerState : public StackResource {
+class CompilerState : public ThreadStackResource {
  public:
-  explicit CompilerState(Thread* thread) : StackResource(thread), cha_(thread) {
+  explicit CompilerState(Thread* thread)
+      : ThreadStackResource(thread), cha_(thread) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -127,10 +129,10 @@ class CompilerState : public StackResource {
   CompilerState* previous_;
 };
 
-class DeoptIdScope : public StackResource {
+class DeoptIdScope : public ThreadStackResource {
  public:
   DeoptIdScope(Thread* thread, intptr_t deopt_id)
-      : StackResource(thread),
+      : ThreadStackResource(thread),
         prev_deopt_id_(thread->compiler_state().deopt_id()) {
     thread->compiler_state().set_deopt_id(deopt_id);
   }
@@ -145,10 +147,10 @@ class DeoptIdScope : public StackResource {
 
 /// Ensures that there were no deopt id allocations during the lifetime of this
 /// object.
-class AssertNoDeoptIdsAllocatedScope : public StackResource {
+class AssertNoDeoptIdsAllocatedScope : public ThreadStackResource {
  public:
   explicit AssertNoDeoptIdsAllocatedScope(Thread* thread)
-      : StackResource(thread),
+      : ThreadStackResource(thread),
         prev_deopt_id_(thread->compiler_state().deopt_id()) {}
 
   ~AssertNoDeoptIdsAllocatedScope() {

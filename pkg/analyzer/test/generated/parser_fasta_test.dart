@@ -15,7 +15,6 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
@@ -26,6 +25,7 @@ import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/ast_type_matchers.dart';
 import 'parser_fasta_listener.dart';
 import 'parser_test.dart';
 import 'test_support.dart';
@@ -113,8 +113,9 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   void test_conditionalExpression_precedence_nullableType_as2() {
     ExpressionStatement statement = parseStatement('x as bool? ? (x + y) : z;');
     ConditionalExpression expression = statement.expression;
-    Expression condition = expression.condition;
-    expect(condition, isAsExpression);
+    AsExpression asExpression = expression.condition;
+    TypeName type = asExpression.type;
+    expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -127,9 +128,10 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     ExpressionStatement statement =
         parseStatement('(x as bool?) ? (x + y) : z;');
     ConditionalExpression expression = statement.expression;
-    Expression condition = expression.condition;
-    expect(condition, isParenthesizedExpression);
-    expect((condition as ParenthesizedExpression).expression, isAsExpression);
+    ParenthesizedExpression condition = expression.condition;
+    AsExpression asExpression = condition.expression;
+    TypeName type = asExpression.type;
+    expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -142,8 +144,9 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     ExpressionStatement statement =
         parseStatement('x is String? ? (x + y) : z;');
     ConditionalExpression expression = statement.expression;
-    Expression condition = expression.condition;
-    expect(condition, isIsExpression);
+    IsExpression isExpression = expression.condition;
+    TypeName type = isExpression.type;
+    expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -156,9 +159,10 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     ExpressionStatement statement =
         parseStatement('(x is String?) ? (x + y) : z;');
     ConditionalExpression expression = statement.expression;
-    Expression condition = expression.condition;
-    expect(condition, isParenthesizedExpression);
-    expect((condition as ParenthesizedExpression).expression, isIsExpression);
+    ParenthesizedExpression condition = expression.condition;
+    IsExpression isExpression = condition.expression;
+    TypeName type = isExpression.type;
+    expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;

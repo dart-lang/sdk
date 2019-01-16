@@ -4,12 +4,10 @@
 
 part of dart2js.js_emitter.program_builder;
 
-/**
- * Generates the code for all used classes in the program. Static fields (even
- * in classes) are ignored, since they can be treated as non-class elements.
- *
- * The code for the containing (used) methods must exist in the `universe`.
- */
+/// Generates the code for all used classes in the program. Static fields (even
+/// in classes) are ignored, since they can be treated as non-class elements.
+///
+/// The code for the containing (used) methods must exist in the `universe`.
 class Collector {
   final CompilerOptions _options;
   final JCommonElements _commonElements;
@@ -78,10 +76,8 @@ class Collector {
     return classes;
   }
 
-  /**
-   * Return a function that returns true if its argument is a class
-   * that needs to be emitted.
-   */
+  /// Return a function that returns true if its argument is a class
+  /// that needs to be emitted.
   Function computeClassFilter(Iterable<ClassEntity> backendTypeHelpers) {
     Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
     // The [Bool] class is not marked as abstract, but has a factory
@@ -129,9 +125,7 @@ class Collector {
     ];
   }
 
-  /**
-   * Compute all the constants that must be emitted.
-   */
+  /// Compute all the constants that must be emitted.
   void computeNeededConstants() {
     List<ConstantValue> constants =
         _worldBuilder.getConstantsForEmission(_emitter.compareConstants);

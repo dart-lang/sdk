@@ -75,7 +75,7 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
 }
 
 void Zone::Segment::IncrementMemoryCapacity(uintptr_t size) {
-  Thread* current_thread = Thread::Current();
+  ThreadState* current_thread = ThreadState::Current();
   if (current_thread != NULL) {
     current_thread->IncrementMemoryCapacity(size);
   } else if (ApiNativeScope::Current() != NULL) {
@@ -85,7 +85,7 @@ void Zone::Segment::IncrementMemoryCapacity(uintptr_t size) {
 }
 
 void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
-  Thread* current_thread = Thread::Current();
+  ThreadState* current_thread = ThreadState::Current();
   if (current_thread != NULL) {
     current_thread->DecrementMemoryCapacity(size);
   } else if (ApiNativeScope::Current() != NULL) {
@@ -288,7 +288,7 @@ char* Zone::VPrint(const char* format, va_list args) {
   return OS::VSCreate(this, format, args);
 }
 
-StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {
+StackZone::StackZone(ThreadState* thread) : StackResource(thread), zone_() {
   if (FLAG_trace_zones) {
     OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
                  reinterpret_cast<intptr_t>(this),

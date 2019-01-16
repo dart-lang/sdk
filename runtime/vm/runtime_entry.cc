@@ -2174,11 +2174,13 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   CodePatcher::PatchStaticCallAt(frame->pc(), caller_code, current_target_code);
   caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   if (FLAG_trace_patching) {
-    OS::PrintErr("FixCallersTarget: caller %#" Px
-                 " "
-                 "target '%s' -> %#" Px "\n",
-                 frame->pc(), target_function.ToFullyQualifiedCString(),
-                 current_target_code.EntryPoint());
+    OS::PrintErr(
+        "FixCallersTarget: caller %#" Px
+        " "
+        "target '%s' -> %#" Px " (%s)\n",
+        frame->pc(), target_function.ToFullyQualifiedCString(),
+        current_target_code.EntryPoint(),
+        current_target_code.is_optimized() ? "optimized" : "unoptimized");
   }
   ASSERT(!current_target_code.IsDisabled());
   arguments.SetReturn(current_target_code);

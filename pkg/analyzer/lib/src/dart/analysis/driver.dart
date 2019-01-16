@@ -550,7 +550,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (AnalysisEngine.isDartFileName(path)) {
       _fileTracker.addFile(path);
-      _changeFile(path);
+      // If the file is known, it has already been read, even if it did not
+      // exist. Now we are notified that the file exists, so we need to
+      // re-read it and make sure that we invalidate signature of the files
+      // that reference it.
+      if (_fsState.knownFilePaths.contains(path)) {
+        _changeFile(path);
+      }
     }
   }
 
@@ -1330,15 +1336,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Implementation for [changeFile].
    */
   void _changeFile(String path) {
-    // If the file is known, it has already been read, even if it din't exist.
-    // Now we are notified that the file changed (just changed or added), so we
-    // need to re-read it and make sure that we invalidate signature of the
-    // files that reference it.
-    if (_fsState.knownFilePaths.contains(path)) {
-      _fileTracker.changeFile(path);
-      _libraryContext = null;
-      _priorityResults.clear();
-    }
+    _fileTracker.changeFile(path);
+    _libraryContext = null;
+    _priorityResults.clear();
   }
 
   /**
@@ -1807,7 +1807,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     try {
       List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
-          .libraryFiles
+          .transitiveFiles
           .map((file) => new AnalysisDriverExceptionFileBuilder(
               path: file.path, content: file.content))
           .toList();

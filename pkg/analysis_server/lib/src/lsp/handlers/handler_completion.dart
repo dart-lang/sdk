@@ -77,12 +77,22 @@ class CompletionHandler
     int offset,
   ) async {
     final performance = new CompletionPerformance();
+    performance.path = unit.path;
+    performance.setContentsAndOffset(unit.content, offset);
+    server.performanceStats.completion.add(performance);
+
     final completionRequest =
         new CompletionRequestImpl(unit, offset, performance);
 
     try {
       CompletionContributor contributor = new DartCompletionManager();
       final items = await contributor.computeSuggestions(completionRequest);
+
+      performance.notificationCount = 1;
+      performance.suggestionCountFirst = items.length;
+      performance.suggestionCountLast = items.length;
+      performance.complete();
+
       return success(items
           .map((item) => toCompletionItem(
                 completionCapabilities,

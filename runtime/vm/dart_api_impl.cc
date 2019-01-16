@@ -5922,6 +5922,29 @@ Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
 }
 
 DART_EXPORT
+Dart_Handle Dart_SaveTypeFeedback(uint8_t** buffer, intptr_t* buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION(thread);
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CHECK_NULL(buffer_length);
+
+  WriteStream stream(buffer, ApiReallocate, MB);
+  TypeFeedbackSaver saver(&stream);
+  saver.WriteHeader();
+  saver.SaveClasses();
+  saver.SaveFields();
+  ProgramVisitor::VisitFunctions(&saver);
+  *buffer_length = stream.bytes_written();
+
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT
 Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
@@ -5933,6 +5956,25 @@ Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
   CompilationTraceLoader loader(thread);
   const Object& error =
       Object::Handle(loader.CompileTrace(buffer, buffer_length));
+  if (error.IsError()) {
+    return Api::NewHandle(T, Error::Cast(error).raw());
+  }
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT
+Dart_Handle Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION(thread);
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  ReadStream stream(buffer, buffer_length);
+  TypeFeedbackLoader loader(thread);
+  const Object& error = Object::Handle(loader.LoadFeedback(&stream));
   if (error.IsError()) {
     return Api::NewHandle(T, Error::Cast(error).raw());
   }

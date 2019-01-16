@@ -422,6 +422,9 @@ abstract class Member implements Element {
   bool get hasJS => _baseElement.hasJS;
 
   @override
+  bool get hasLiteral => _baseElement.hasLiteral;
+
+  @override
   bool get hasOverride => _baseElement.hasOverride;
 
   @override

@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class DivisionOptimizationTest extends ResolverTestCase {
   test_divisionOptimization() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(int x, int y) {
   var v = x / y.toInt();
 }
@@ -25,7 +25,7 @@ f(int x, int y) {
   }
 
   test_double() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f(double x, double y) {
   var v = (x / y).toInt();
 }
@@ -33,7 +33,7 @@ f(double x, double y) {
   }
 
   test_dynamic() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(x, y) {
   var v = (x / y).toInt();
 }
@@ -41,7 +41,7 @@ f(x, y) {
   }
 
   test_int() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f(int x, int y) {
   var v = (x / y).toInt();
 }
@@ -49,7 +49,7 @@ f(int x, int y) {
   }
 
   test_nonNumeric() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   num operator /(x) { return x; }
 }
@@ -60,7 +60,7 @@ f(A x, A y) {
   }
 
   test_wrappedInParentheses() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f(int x, int y) {
   var v = (((x / y))).toInt();
 }

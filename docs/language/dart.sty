@@ -184,7 +184,7 @@
   {#1}_1\FunctionTypeExtends{#2}_1,\,\ldots,\ %
   {#1}_{#3}\FunctionTypeExtends{#2}_{#3}}}
 
-% Used to specify function types: Same syntax as in source.
+% Used to specify non-generic function types: Same syntax as in source.
 % Arguments: Return type, formal parameter declarations.
 \newcommand{\FunctionTypeSimple}[2]{\code{\ensuremath{#1}\ \FUNCTION({#2})}}
 
@@ -199,33 +199,51 @@
 \newcommand{\RawFunctionType}[5]{\code{%
   \ensuremath{#1}\ \FUNCTION<\FTTypeParameters{#2}{#3}{#4}>({#5})}}
 
+% Used to specify function type parameter lists with positional optionals.
+% Arguments: Parameter type, number of required parameters,
+% number of optional parameters.
+\newcommand{\FunctionTypePositionalArguments}[3]{%
+  \List{#1}{1}{#2},\ [\List{#1}{{#2}+1}{{#2}+{#3}}]}
+
+\newcommand{\FunctionTypePositionalArgumentsStd}{%
+  \FunctionTypePositionalArguments{T}{n}{k}}
+
 % Used to specify function types with positional optionals:
 % Arguments: Return type, spacer, type parameter name, bound name,
 %   number of type parameters, parameter type, number of required parameters,
 %   number of optional parameters.
 \newcommand{\FunctionTypePositional}[8]{%
-  \FunctionType{#1}{#2}{#3}{#4}{#5}{\List{#6}{1}{#7},\ %
-    [\List{#6}{{#7}+1}{{#7}+{#8}}]}}
+  \FunctionType{#1}{#2}{#3}{#4}{#5}{%
+    \FunctionTypePositionalArguments{#6}{#7}{#8}}}
 
 % Same as \FunctionTypePositional except suitable for inline usage,
 % hence omitting the spacer argument.
 \newcommand{\RawFunctionTypePositional}[7]{%
-  \RawFunctionType{#1}{#2}{#3}{#4}{\List{#5}{1}{#6},\ %
-    [\List{#5}{{#6}+1}{{#6}+{#7}}]}}
+  \RawFunctionType{#1}{#2}{#3}{#4}{%
+    \FunctionTypePositionalArguments{#5}{#6}{#7}}}
+
+% Used to specify function type parameter lists with named optionals.
+% Arguments: Parameter type, number of required parameters,
+% name of optional parameters, number of optional parameters.
+\newcommand{\FunctionTypeNamedArguments}[4]{%
+  \List{#1}{1}{#2},\ \{\PairList{#1}{#3}{{#2}+1}{{#2}+{#4}}\}}
+  
+\newcommand{\FunctionTypeNamedArgumentsStd}{%
+  \FunctionTypeNamedArguments{T}{n}{x}{k}}
 
 % Used to specify function types with named parameters:
 % Arguments: Return type, spacer, type parameter name, bound name,
 %   number of type parameters, parameter type, number of required parameters,
 %   name of optional parameters, number of optional parameters.
 \newcommand{\FunctionTypeNamed}[9]{%
-  \FunctionType{#1}{#2}{#3}{#4}{#5}{\List{#6}{1}{#7},\ %
-    \{\PairList{#6}{#8}{{#7}+1}{{#7}+{#9}}\}}}
+  \FunctionType{#1}{#2}{#3}{#4}{#5}{%
+    \FunctionTypePositionalArguments{#6}{#7}{#8}{#9}}}
 
 % Same as \FunctionType except suitable for inline usage, hence omitting
 % the spacer argument.
 \newcommand{\RawFunctionTypeNamed}[8]{%
-  \RawFunctionType{#1}{#2}{#3}{#4}{\List{#5}{1}{#6},\ %
-    \{\PairList{#5}{#7}{{#6}+1}{{#6}+{#8}}\}}}
+  \RawFunctionType{#1}{#2}{#3}{#4}{%
+    \FunctionTypePositionalArguments{#5}{#6}{#7}{#8}}}
 
 % Used to specify function types with no optional parameters:
 % Arguments: Return type, spacer, type parameter name, bound name,
@@ -237,8 +255,14 @@
 \newcommand{\FunctionTypePositionalStd}[1]{%
   \FunctionTypePositional{#1}{ }{X}{B}{s}{T}{n}{k}}
 
+\newcommand{\RawFunctionTypePositionalStd}[1]{%
+  \RawFunctionTypePositional{#1}{X}{B}{s}{T}{n}{k}}
+
 \newcommand{\FunctionTypeNamedStd}[1]{%
   \FunctionTypeNamed{#1}{ }{X}{B}{s}{T}{n}{x}{k}}
+
+\newcommand{\RawFunctionTypeNamedStd}[1]{%
+  \RawFunctionTypeNamed{#1}{X}{B}{s}{T}{n}{x}{k}}
 
 \newcommand{\FunctionTypeAllRequiredStd}[1]{%
   \FunctionTypeAllRequired{#1}{ }{X}{B}{s}{T}{n}}

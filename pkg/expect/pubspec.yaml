@@ -8,3 +8,6 @@ description: >
  test assertions.
 environment:
   sdk: ">=0.8.10+6 <3.0.0"
+
+dependencies:
+  meta: any

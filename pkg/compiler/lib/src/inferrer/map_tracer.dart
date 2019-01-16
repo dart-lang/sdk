@@ -43,12 +43,10 @@ class MapTracerVisitor extends TracerVisitor {
 
   MapTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
-  /**
-   * Returns [true] if the analysis completed successfully, [false]
-   * if it bailed out. In the former case, [keyAssignments] and
-   * [valueAssignments] hold a list of [TypeInformation] nodes that
-   * flow into the key and value types of this map.
-   */
+  /// Returns [true] if the analysis completed successfully, [false]
+  /// if it bailed out. In the former case, [keyAssignments] and
+  /// [valueAssignments] hold a list of [TypeInformation] nodes that
+  /// flow into the key and value types of this map.
   bool run() {
     analyze();
     MapTypeInformation map = tracedType;

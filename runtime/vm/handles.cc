@@ -84,7 +84,7 @@ void HandleScope::Initialize() {
 #endif
 }
 
-HandleScope::HandleScope(Thread* thread) : StackResource(thread) {
+HandleScope::HandleScope(Thread* thread) : ThreadStackResource(thread) {
   Initialize();
 }
 

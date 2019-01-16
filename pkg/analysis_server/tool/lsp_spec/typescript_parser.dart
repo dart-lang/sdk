@@ -12,6 +12,8 @@ import 'typescript.dart';
 
 final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 
+bool isAnyType(TypeBase t) => t is Type && t.name == 'any';
+
 bool isNullType(TypeBase t) => t is Type && t.name == 'null';
 
 bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
@@ -20,7 +22,7 @@ bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
 /// of type names for inline types.
 const fieldNameForIndexer = 'indexer';
 
-List<AstNode> parseFile(String input) {
+List<AstNode> parseString(String input) {
   final scanner = new Scanner(input);
   final tokens = scanner.scan();
   final parser = new Parser(tokens);
@@ -298,7 +300,6 @@ class Parser {
     _eatUnwantedKeywords();
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     var canBeUndefined = _match([TokenType.QUESTION]);
-    var canBeNull = false;
     _consume(TokenType.COLON, 'Expected :');
     TypeBase type;
     Token value;
@@ -327,16 +328,17 @@ class Parser {
     // Special handling for fields that have fixed values.
     if (value != null) {
       return new FixedValueField(
-          leadingComment, name, value, type, canBeNull, canBeUndefined);
+          leadingComment, name, value, type, false, canBeUndefined);
     }
 
+    var canBeNull = false;
     if (type is UnionType) {
       UnionType union = type;
       // Since undefined and null can appear in the union type list but we want to
       // handle it specially in the code generation, we promote them to fields on
       // the Field.
       canBeUndefined |= union.types.any(isUndefinedType);
-      canBeNull = union.types.any(isNullType);
+      canBeNull = union.types.any((t) => isNullType(t) || isAnyType(t));
       // Finally, we need to remove them from the union.
       final remainingTypes = union.types
           .where((t) => !isNullType(t) && !isUndefinedType(t))
@@ -349,6 +351,11 @@ class Parser {
       type = remainingTypes.length > 1
           ? new UnionType(remainingTypes)
           : remainingTypes.single;
+    } else if (isAnyType(type)) {
+      // There are values in the spec marked as `any` that allow nulls (for
+      // example, the result field on ResponseMessage can be null for a
+      // successful response that has no return value, eg. shutdown).
+      canBeNull = true;
     }
     return Field(leadingComment, name, type, canBeNull, canBeUndefined);
   }

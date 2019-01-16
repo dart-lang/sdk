@@ -71,6 +71,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
+  ir.ClassHierarchy _classHierarchy;
 
   /// Library environment. Used for fast lookup.
   KProgramEnv env = new KProgramEnv();
@@ -413,6 +414,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (superClass == targetClass) {
       return target;
     }
+
+    /// This path is needed for synthetically injected superclasses like
+    /// `Interceptor` and `JavaScriptObject`.
     KClassEnv env = classes.getEnv(superClass);
     ConstructorEntity constructor = env.lookupConstructor(this, target.name);
     if (constructor != null) {
@@ -718,26 +722,16 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(env.mainComponent),
-          new ir.ClassHierarchy(env.mainComponent));
+          new ir.CoreTypes(env.mainComponent), classHierarchy);
     }
     return _typeEnvironment;
   }
 
-  DartType getStaticType(ir.Expression node) {
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
+  ir.ClassHierarchy get classHierarchy {
+    if (_classHierarchy == null) {
+      _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
     }
-    try {
-      typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return getDartType(node.getStaticType(typeEnvironment));
-    } catch (e) {
-      // The static type computation crashes on type errors. Use `dynamic`
-      // as static type.
-      return commonElements.dynamicType;
-    }
+    return _classHierarchy;
   }
 
   Name getName(ir.Name name) {
@@ -783,7 +777,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       return getSetterSelector(node.name);
     }
     if (node is ir.InvocationExpression) {
-      return getInvocationSelector(node);
+      return getInvocationSelector(node.name, node.arguments);
     }
     throw failedAt(
         CURRENT_ELEMENT_SPANNABLE,
@@ -791,8 +785,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         "${node}");
   }
 
-  Selector getInvocationSelector(ir.InvocationExpression invocation) {
-    Name name = getName(invocation.name);
+  Selector getInvocationSelector(ir.Name irName, ir.Arguments arguments) {
+    Name name = getName(irName);
     SelectorKind kind;
     if (Selector.isOperatorName(name.text)) {
       if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
@@ -804,7 +798,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       kind = SelectorKind.CALL;
     }
 
-    CallStructure callStructure = getCallStructure(invocation.arguments);
+    CallStructure callStructure = getCallStructure(arguments);
     return new Selector(kind, name, callStructure);
   }
 
@@ -1454,27 +1448,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _getTypedefNode(typedef);
   }
 
-  /// Returns the element type of a async/sync*/async* function.
-  @override
-  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode) {
-    DartType returnType = getDartType(functionNode.returnType);
-    switch (functionNode.asyncMarker) {
-      case ir.AsyncMarker.SyncStar:
-        return elementEnvironment.getAsyncOrSyncStarElementType(
-            AsyncMarker.SYNC_STAR, returnType);
-      case ir.AsyncMarker.Async:
-        return elementEnvironment.getAsyncOrSyncStarElementType(
-            AsyncMarker.ASYNC, returnType);
-      case ir.AsyncMarker.AsyncStar:
-        return elementEnvironment.getAsyncOrSyncStarElementType(
-            AsyncMarker.ASYNC_STAR, returnType);
-      default:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected ir.AsyncMarker: ${functionNode.asyncMarker}");
-    }
-    return null;
-  }
-
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
   bool isNativeClass(ir.Class node) {
@@ -1695,46 +1668,6 @@ class KernelElementEnvironment extends ElementEnvironment
   @override
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
     return elementMap._getFunctionTypeVariables(function);
-  }
-
-  @override
-  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
-    // TODO(sra): Should be getting the DartType from the node.
-    DartType returnType = getFunctionType(function).returnType;
-    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
-  }
-
-  @override
-  DartType getAsyncOrSyncStarElementType(
-      AsyncMarker asyncMarker, DartType returnType) {
-    switch (asyncMarker) {
-      case AsyncMarker.SYNC:
-        return returnType;
-      case AsyncMarker.SYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.iterableClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-      case AsyncMarker.ASYNC:
-        if (returnType is FutureOrType) return returnType.typeArgument;
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.futureClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-      case AsyncMarker.ASYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.streamClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-    }
-    assert(false, 'Unexpected marker ${asyncMarker}');
-    return null;
   }
 
   @override

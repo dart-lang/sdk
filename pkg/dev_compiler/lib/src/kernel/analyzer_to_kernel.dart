@@ -883,8 +883,7 @@ a.AnalysisContextImpl _createContextForSummaries(
     summaryData.addBundle(null, sdkSummaryBundle);
   }
 
-  // TODO(jmesserly): can we avoid creating an analysis context entirely?
-  // It doesn't look like StoreBasedSummaryResynthesizer uses much of it.
+  // TODO(jmesserly): use RestrictedAnalysisContext.
   var context = a.AnalysisEngine.instance.createAnalysisContext()
       as a.AnalysisContextImpl;
   context.sourceFactory = a.SourceFactory(

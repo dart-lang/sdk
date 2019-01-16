@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test.dart' show ParserTestCase;
+import '../../util/ast_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {

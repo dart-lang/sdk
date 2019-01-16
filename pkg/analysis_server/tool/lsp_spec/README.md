@@ -38,6 +38,7 @@ Below is a list of LSP methods and their implementation status.
 | client/registerCapability | | | | | unused, but should be used for DocumentSelector at least
 | client/unregisterCapability | | | | |
 | workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
+| workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
 | workspace/symbol | | | | |
 | workspace/executeCommand | ✅ | ✅ | ✅ | ✅ |
 | workspace/applyEdit | ✅ | ✅ | ✅ | ✅ |
@@ -55,13 +56,13 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/typeDefinition | | | | |
 | textDocument/implementation | | | | |
 | textDocument/references | ✅ | ✅ | ✅ | ✅ |
-| textDocument/documentHighlight | | | | |
+| textDocument/documentHighlight | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (refactors) | | | | |
-| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | |
-| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | |
+| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ |
+| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeLens | | | | |
 | codeLens/resolve | | | | |
 | textDocument/documentLink | | | | |
@@ -69,7 +70,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/formatting | ✅ | ✅ | ✅ | ✅ |
 | textDocument/rangeFormatting | | | | | requires support from dart_style?
 | textDocument/onTypeFormatting | ✅ | ✅ | ✅ | ✅ |
-| textDocument/rename | | | | |
+| textDocument/rename | ✅ | ✅ | Incomplete! | |
 | textDocument/prepareRename | | | | |
 | textDocument/foldingRange | | | | |
 

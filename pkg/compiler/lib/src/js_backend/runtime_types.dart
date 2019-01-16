@@ -15,6 +15,7 @@ import '../common_elements.dart'
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../ir/runtime_type_analysis.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
@@ -703,15 +704,13 @@ abstract class _RuntimeTypesBase {
 
   _RuntimeTypesBase(this._types);
 
-  /**
-   * Compute type arguments of classes that use one of their type variables in
-   * is-checks and add the is-checks that they imply.
-   *
-   * This function must be called after all is-checks have been registered.
-   *
-   * TODO(karlklose): move these computations into a function producing an
-   * immutable datastructure.
-   */
+  /// Compute type arguments of classes that use one of their type variables in
+  /// is-checks and add the is-checks that they imply.
+  ///
+  /// This function must be called after all is-checks have been registered.
+  ///
+  /// TODO(karlklose): move these computations into a function producing an
+  /// immutable datastructure.
   void registerImplicitChecks(
       Set<InterfaceType> instantiatedTypes,
       Iterable<ClassEntity> classesUsingChecks,
@@ -2276,20 +2275,18 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     }
   }
 
-  /**
-   * Compute a JavaScript expression that describes the necessary substitution
-   * for type arguments in a subtype test.
-   *
-   * The result can be:
-   *  1) `null`, if no substituted check is necessary, because the
-   *     type variables are the same or there are no type variables in the class
-   *     that is checked for.
-   *  2) A list expression describing the type arguments to be used in the
-   *     subtype check, if the type arguments to be used in the check do not
-   *     depend on the type arguments of the object.
-   *  3) A function mapping the type variables of the object to be checked to
-   *     a list expression.
-   */
+  /// Compute a JavaScript expression that describes the necessary substitution
+  /// for type arguments in a subtype test.
+  ///
+  /// The result can be:
+  ///  1) `null`, if no substituted check is necessary, because the type
+  ///     variables are the same or there are no type variables in the class
+  ///     that is checked for.
+  ///  2) A list expression describing the type arguments to be used in the
+  ///     subtype check, if the type arguments to be used in the check do not
+  ///     depend on the type arguments of the object.
+  ///  3) A function mapping the type variables of the object to be checked to
+  ///     a list expression.
   @override
   jsAst.Expression getSubstitutionCode(
       Emitter emitter, Substitution substitution) {
@@ -2381,10 +2378,8 @@ class TypeRepresentationGenerator
 
   TypeRepresentationGenerator(this.namer, this._nativeData);
 
-  /**
-   * Creates a type representation for [type]. [onVariable] is called to provide
-   * the type representation for type variables.
-   */
+  /// Creates a type representation for [type]. [onVariable] is called to
+  /// provide the type representation for type variables.
   jsAst.Expression getTypeRepresentation(
       Emitter emitter,
       DartType type,
@@ -2787,10 +2782,8 @@ class Substitution {
       'parameters=$parameters,length=$length)';
 }
 
-/**
- * A pair of a class that we need a check against and the type argument
- * substitution for this check.
- */
+/// A pair of a class that we need a check against and the type argument
+/// substitution for this check.
 class TypeCheck {
   final ClassEntity cls;
   final bool needsIs;

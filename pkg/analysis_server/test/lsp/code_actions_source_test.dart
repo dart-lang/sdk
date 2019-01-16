@@ -72,7 +72,7 @@ int minified(int x, int y) => min(x, y);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
-      mainFilePath: content,
+      mainFilePath: withoutMarkers(content),
     };
     applyDocumentChanges(contents, editParams.edit.documentChanges);
     expect(contents[mainFilePath], equals(expectedContent));
@@ -129,7 +129,7 @@ int minified(int x, int y) => min(x, y);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
-      mainFilePath: content,
+      mainFilePath: withoutMarkers(content),
     };
     applyChanges(contents, editParams.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));
@@ -270,7 +270,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
-      mainFilePath: content,
+      mainFilePath: withoutMarkers(content),
     };
     applyDocumentChanges(contents, editParams.edit.documentChanges);
     expect(contents[mainFilePath], equals(expectedContent));
@@ -320,7 +320,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
-      mainFilePath: content,
+      mainFilePath: withoutMarkers(content),
     };
     applyChanges(contents, editParams.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));

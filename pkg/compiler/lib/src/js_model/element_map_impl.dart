@@ -33,6 +33,7 @@ import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
+import '../ir/static_type_base.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
@@ -99,6 +100,7 @@ class JsKernelToElementMap
   JsConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
+  ir.ClassHierarchy _classHierarchy;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -1057,10 +1059,16 @@ class JsKernelToElementMap
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(programEnv.mainComponent),
-          new ir.ClassHierarchy(programEnv.mainComponent));
+          new ir.CoreTypes(programEnv.mainComponent), classHierarchy);
     }
     return _typeEnvironment;
+  }
+
+  ir.ClassHierarchy get classHierarchy {
+    if (_classHierarchy == null) {
+      _classHierarchy ??= new ir.ClassHierarchy(programEnv.mainComponent);
+    }
+    return _classHierarchy;
   }
 
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
@@ -1095,29 +1103,8 @@ class JsKernelToElementMap
     }
 
     assert(cachedStaticTypes != null, "No static types cached for $member.");
-    return new CachedStaticType(
-        // We need a copy of the type environment since the `thisType` field
-        // is holds state, making the environment contextually bound.
-        new ir.TypeEnvironment(
-            typeEnvironment.coreTypes, typeEnvironment.hierarchy)
-          ..thisType = thisType,
-        cachedStaticTypes);
-  }
-
-  DartType getStaticType(ir.Expression node) {
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
-    }
-    try {
-      typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return getDartType(node.getStaticType(typeEnvironment));
-    } catch (e) {
-      // The static type computation crashes on type errors. Use `dynamic`
-      // as static type.
-      return commonElements.dynamicType;
-    }
+    return new CachedStaticType(typeEnvironment, cachedStaticTypes,
+        new ThisInterfaceType.from(thisType));
   }
 
   Name getName(ir.Name name) {

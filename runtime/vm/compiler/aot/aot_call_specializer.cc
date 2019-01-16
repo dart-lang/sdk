@@ -415,6 +415,44 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
          TryOptimizeDoubleOperation(instr, op_kind);
 }
 
+// Modulo against a constant power-of-two can be optimized into a mask.
+// x % y -> x & (y - 1)
+Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
+                                               Token::Kind op_kind,
+                                               Value* left_value,
+                                               Value* right_value) {
+  if (!right_value->BindsToConstant()) {
+    return nullptr;
+  }
+
+  const Object& rhs = right_value->BoundConstant();
+  int64_t modulus = Utils::Abs(rhs.IsSmi() ? Smi::Cast(rhs).Value()
+                                           : Mint::Cast(rhs).value());
+  if (!Utils::IsPowerOfTwo(modulus) || !Smi::IsValid(modulus - 1)) {
+    return nullptr;
+  }
+
+  left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+
+#if defined(TARGET_ARCH_ARM)
+  Definition* right_definition = new (Z) UnboxedConstantInstr(
+      Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt32);
+  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
+  right_definition = new (Z)
+      UnboxedIntConverterInstr(kUnboxedInt32, kUnboxedInt64,
+                               new (Z) Value(right_definition), DeoptId::kNone);
+  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
+#else
+  Definition* right_definition = new (Z) UnboxedConstantInstr(
+      Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt64);
+  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
+#endif
+  right_value = new (Z) Value(right_definition);
+  return new (Z)
+      BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
+                         DeoptId::kNone, Instruction::kNotSpeculative);
+}
+
 bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
                                                      Token::Kind op_kind) {
   if (instr->type_args_len() != 0) {
@@ -500,10 +538,13 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         }
         break;
       }
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-        // TODO(ajcbik): 32-bit archs too?
       case Token::kMOD:
+        replacement = TryOptimizeMod(instr, op_kind, left_value, right_value);
+        if (replacement != nullptr) break;
       case Token::kTRUNCDIV:
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64)
+        // TODO(ajcbik): 32-bit archs too?
+        break;
 #endif
       case Token::kSHL:
       case Token::kSHR:

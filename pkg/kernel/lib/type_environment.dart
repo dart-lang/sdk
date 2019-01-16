@@ -8,11 +8,13 @@ import 'class_hierarchy.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
 
+import 'src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
+
 typedef void ErrorHandler(TreeNode node, String message);
 
-class TypeEnvironment extends SubtypeTester {
+abstract class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
-  final ClassHierarchy hierarchy;
 
   @override
   final bool legacyMode;
@@ -27,7 +29,13 @@ class TypeEnvironment extends SubtypeTester {
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
 
-  TypeEnvironment(this.coreTypes, this.hierarchy, {this.legacyMode: false});
+  TypeEnvironment.fromSubclass(this.coreTypes, {this.legacyMode: false});
+
+  factory TypeEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy,
+      {bool legacyMode: false}) {
+    return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy,
+        legacyMode: legacyMode);
+  }
 
   InterfaceType get objectType => coreTypes.objectClass.rawType;
   InterfaceType get nullType => coreTypes.nullClass.rawType;
@@ -82,8 +90,7 @@ class TypeEnvironment extends SubtypeTester {
       // we aren't concerned with it.  If a class implements multiple
       // instantiations of Future, getTypeAsInstanceOf is responsible for
       // picking the least one in the sense required by the spec.
-      InterfaceType future =
-          hierarchy.getTypeAsInstanceOf(type, coreTypes.futureClass);
+      InterfaceType future = getTypeAsInstanceOf(type, coreTypes.futureClass);
       if (future != null) {
         return future.typeArguments[0];
       }
@@ -143,21 +150,6 @@ class TypeEnvironment extends SubtypeTester {
     if (type1 == doubleType || type2 == doubleType) return doubleType;
     return numType;
   }
-
-  /// Returns true if [class_] has no proper subtypes that are usable as type
-  /// argument.
-  bool isSealedClass(Class class_) {
-    // The sealed core classes have subtypes in the patched SDK, but those
-    // classes cannot occur as type argument.
-    if (class_ == coreTypes.intClass ||
-        class_ == coreTypes.doubleClass ||
-        class_ == coreTypes.stringClass ||
-        class_ == coreTypes.boolClass ||
-        class_ == coreTypes.nullClass) {
-      return true;
-    }
-    return !hierarchy.hasProperSubtypes(class_);
-  }
 }
 
 /// The part of [TypeEnvironment] that deals with subtype tests.
@@ -167,10 +159,11 @@ abstract class SubtypeTester {
   InterfaceType get objectType;
   InterfaceType get nullType;
   InterfaceType get rawFunctionType;
-  ClassHierarchy get hierarchy;
   Class get futureOrClass;
   InterfaceType futureType(DartType type);
   bool get legacyMode;
+
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
 
   /// Determines if the given type is at the bottom of the type hierarchy.  May
   /// be overridden in subclasses.
@@ -221,8 +214,7 @@ abstract class SubtypeTester {
     }
 
     if (subtype is InterfaceType && supertype is InterfaceType) {
-      var upcastType =
-          hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
+      var upcastType = getTypeAsInstanceOf(subtype, supertype.classNode);
       if (upcastType == null) return false;
       for (int i = 0; i < upcastType.typeArguments.length; ++i) {
         // Termination: the 'supertype' parameter decreases in size.

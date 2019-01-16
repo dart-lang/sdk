@@ -4,14 +4,12 @@
 
 part of masks;
 
-/**
- * A [DictionaryTypeMask] is a [TypeMask] for a specific allocation
- * site of a map (currently only internal Map class) that is used as
- * a dictionary, i.e. a mapping from a set of statically known strings
- * to values. These typemasks only come into existence after the
- * [TypeGraphInferrer] has successfully identified such a usage. Otherwise,
- * the more general [MapTypeMask] is used.
- */
+/// A [DictionaryTypeMask] is a [TypeMask] for a specific allocation
+/// site of a map (currently only internal Map class) that is used as
+/// a dictionary, i.e. a mapping from a set of statically known strings
+/// to values. These typemasks only come into existence after the
+/// [TypeGraphInferrer] has successfully identified such a usage. Otherwise,
+/// the more general [MapTypeMask] is used.
 class DictionaryTypeMask extends MapTypeMask {
   /// Tag used for identifying serialized [DictionaryTypeMask] objects in a
   /// debugging data stream.

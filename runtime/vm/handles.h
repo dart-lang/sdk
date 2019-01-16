@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/os.h"
+#include "vm/thread_stack_resource.h"
 
 namespace dart {
 
@@ -278,7 +279,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 //   code that creates some scoped handles.
 //   ....
 // }
-class HandleScope : public StackResource {
+class HandleScope : public ThreadStackResource {
  public:
   explicit HandleScope(Thread* thread);
   ~HandleScope();

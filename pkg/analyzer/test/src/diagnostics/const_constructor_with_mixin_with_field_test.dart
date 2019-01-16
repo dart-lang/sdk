@@ -16,7 +16,6 @@ main() {
   });
 }
 
-@reflectiveTest
 mixin ConstConstructorWithMixinWithFieldMixin implements ResolutionTest {
   test_class_instance() async {
     addTestFile(r'''

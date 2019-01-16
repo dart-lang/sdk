@@ -1,10 +1,12 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:core';
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
@@ -29,9 +31,28 @@ import 'package:analyzer/src/util/glob.dart';
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
 abstract class AbstractAnalysisServer {
+  /// The options of this server instance.
+  AnalysisServerOptions options;
+
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
+
+  /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
+  /// server.
+  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
+
+  /// Performance information after initial analysis is complete
+  /// or `null` if the initial analysis is not yet complete
+  ServerPerformance performanceAfterStartup;
+
+  /// The class into which performance information is currently being recorded.
+  /// During startup, this will be the same as [performanceDuringStartup]
+  /// and after startup is complete, this switches to [performanceAfterStartup].
+  ServerPerformance performance;
+
+  /// Performance information before initial analysis is complete.
+  final ServerPerformance performanceDuringStartup = new ServerPerformance();
 
   /// The set of the files that are currently priority.
   final Set<String> priorityFiles = new Set<String>();
@@ -52,8 +73,10 @@ abstract class AbstractAnalysisServer {
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
   List<Glob> _analyzedFilesGlobs = null;
 
-  AbstractAnalysisServer(ResourceProvider baseResourceProvider)
-      : resourceProvider = OverlayResourceProvider(baseResourceProvider);
+  AbstractAnalysisServer(this.options, ResourceProvider baseResourceProvider)
+      : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
+    performance = performanceDuringStartup;
+  }
 
   /// Return a list of the globs used to determine which files should be
   /// analyzed.
@@ -81,6 +104,13 @@ abstract class AbstractAnalysisServer {
 
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
   Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
+
+  /// Return the total time the server's been alive.
+  Duration get uptime {
+    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
+        performanceDuringStartup.startTime);
+    return new DateTime.now().difference(start);
+  }
 
   /// If the state location can be accessed, return the file byte store,
   /// otherwise return the memory byte store.

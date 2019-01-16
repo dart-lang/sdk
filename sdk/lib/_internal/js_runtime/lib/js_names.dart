@@ -139,17 +139,15 @@ List extractKeys(victim) {
   return new JSArray.markFixed(result);
 }
 
-/**
- * Returns the (global) unmangled version of [name].
- *
- * Normally, you should use [mangledGlobalNames] directly, but this method
- * doesn't tell the compiler to preserve names. So this method only returns a
- * non-null value if some other component has made the compiler preserve names.
- *
- * This is used, for example, to return unmangled names from TypeImpl.toString
- * *if* names are being preserved for other reasons (use of dart:mirrors, for
- * example).
- */
+/// Returns the (global) unmangled version of [name].
+///
+/// Normally, you should use [mangledGlobalNames] directly, but this method
+/// doesn't tell the compiler to preserve names. So this method only returns a
+/// non-null value if some other component has made the compiler preserve names.
+///
+/// This is used, for example, to return unmangled names from TypeImpl.toString
+/// *if* names are being preserved for other reasons (use of dart:mirrors, for
+/// example).
 String unmangleGlobalNameIfPreservedAnyways(String name) {
   var names = JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES);
   return JsCache.fetch(names, name);

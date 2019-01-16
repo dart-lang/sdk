@@ -51,6 +51,7 @@ class FlowGraph;
 class Function;
 class Precompiler;
 class SpeculativeInliningPolicy;
+class TimelineStream;
 
 struct CompilerPassState {
   CompilerPassState(Thread* thread,

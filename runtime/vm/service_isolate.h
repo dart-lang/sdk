@@ -12,6 +12,7 @@
 
 namespace dart {
 
+class Isolate;
 class ObjectPointerVisitor;
 class SendPort;
 

@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/sdk.dart';
  * the SocketServer is to manage the lifetime of the AnalysisServer and to
  * encode and decode the JSON messages exchanged with the client.
  */
-class LspSocketServer {
+class LspSocketServer implements AbstractSocketServer {
   final AnalysisServerOptions analysisServerOptions;
   /**
    * The analysis server that was created when a client established a

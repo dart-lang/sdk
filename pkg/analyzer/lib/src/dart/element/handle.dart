@@ -46,6 +46,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get hasJS => actualElement.hasJS;
 
   @override
+  bool get hasLiteral => actualElement.hasLiteral;
+
+  @override
   bool get hasNonFinalField => actualElement.hasNonFinalField;
 
   @override
@@ -387,6 +390,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get hasJS => actualElement.hasJS;
+
+  @override
+  bool get hasLiteral => actualElement.hasLiteral;
 
   @override
   bool get hasOverride => actualElement.hasOverride;

@@ -132,7 +132,7 @@ class HValidator extends HInstructionVisitor {
     super.visitBasicBlock(block);
   }
 
-  /** Returns how often [instruction] is contained in [instructions]. */
+  /// Returns how often [instruction] is contained in [instructions].
   static int countInstruction(
       List<HInstruction> instructions, HInstruction instruction) {
     int result = 0;
@@ -142,11 +142,9 @@ class HValidator extends HInstructionVisitor {
     return result;
   }
 
-  /**
-   * Returns true if the predicate returns true for every instruction in the
-   * list. The argument to [f] is an instruction with the count of how often
-   * it appeared in the list [instructions].
-   */
+  /// Returns true if the predicate returns true for every instruction in the
+  /// list. The argument to [f] is an instruction with the count of how often
+  /// it appeared in the list [instructions].
   static bool everyInstruction(List<HInstruction> instructions, Function f) {
     var copy = new List<HInstruction>.from(instructions);
     // TODO(floitsch): there is currently no way to sort HInstructions before

@@ -45,7 +45,6 @@ class B extends test::A {}
 
     // No updated classes, the same hierarchy.
     expect(hierarchy.applyTreeChanges([], []), same(hierarchy));
-    expect(hierarchy.hasProperSubtypes(a), true);
 
     // Has updated classes, still the same hierarchy (instance). Can answer
     // queries about the new classes.
@@ -59,11 +58,9 @@ class B extends test::A {}
     expect(hierarchy.applyTreeChanges([libWithB], [libWithC]), same(hierarchy));
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
-    expect(hierarchy.hasProperSubtypes(a), true);
 
     // Remove so A should no longer be a super of anything.
     expect(hierarchy.applyTreeChanges([libWithC], []), same(hierarchy));
-    expect(hierarchy.hasProperSubtypes(a), false);
   }
 
   void test_applyMemberChanges() {

@@ -1901,9 +1901,9 @@ void Precompiler::DropLibraries() {
 }
 
 void Precompiler::BindStaticCalls() {
-  class BindStaticCallsVisitor : public FunctionVisitor {
+  class BindAOTStaticCallsVisitor : public FunctionVisitor {
    public:
-    explicit BindStaticCallsVisitor(Zone* zone)
+    explicit BindAOTStaticCallsVisitor(Zone* zone)
         : code_(Code::Handle(zone)),
           table_(Array::Handle(zone)),
           kind_and_offset_(Smi::Handle(zone)),
@@ -1962,7 +1962,7 @@ void Precompiler::BindStaticCalls() {
     Code& target_code_;
   };
 
-  BindStaticCallsVisitor visitor(Z);
+  BindAOTStaticCallsVisitor visitor(Z);
 
   // We need both iterations to ensure we visit all the functions that might end
   // up in the snapshot. The ProgramVisitor will miss closures from duplicated

@@ -15,6 +15,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/util/yaml_test.dart';
 import 'resolver_test_case.dart';
 
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CrossPackageHintCodeTest);
+    defineReflectiveTests(HintCodeTest);
+  });
+}
+
 final metaLibraryStub = r'''
 library meta;
 
@@ -59,20 +66,10 @@ class _VisibleForTesting {
 }
 ''';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(CrossPackageHintCodeTest);
-    defineReflectiveTests(HintCodeTest);
-  });
-}
-
 @reflectiveTest
 class CrossPackageHintCodeTest extends ResolverTestCase {
-  /// Write a pubspec file at [root], so that BestPracticesVerifier can see that
-  /// [root] is the root of a BasicWorkspace, and a BasicWorkspacePackage.
-  void newBasicPackage(String root) {
-    newFile('$root/pubspec.yaml');
-  }
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_subtypeOfSealedClass_extending() async {
     super.resetWith(packages: [
@@ -86,7 +83,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar extends Foo {}
@@ -108,98 +105,10 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar implements Foo {}
-                    ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
-    verify([source]);
-  }
-
-  test_subtypeOfSealedClass_with() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-      [
-        'foo',
-        r'''
-import 'package:meta/meta.dart';
-@sealed class Foo {}
-'''
-      ]
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                    import 'package:foo/foo.dart';
-                    class Bar extends Object with Foo {}
-                    ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
-    verify([source]);
-  }
-
-  test_subtypeOfSealedMixin_with() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-      [
-        'foo',
-        r'''
-import 'package:meta/meta.dart';
-@sealed mixin Foo {}
-'''
-      ]
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                    import 'package:foo/foo.dart';
-                    class Bar extends Object with Foo {}
-                    ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
-    verify([source]);
-  }
-
-  test_subtypeOfSealedClass_mixinOn() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-      [
-        'foo',
-        r'''
-import 'package:meta/meta.dart';
-@sealed class Foo {}
-'''
-      ]
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                    import 'package:foo/foo.dart';
-                    mixin Bar on Foo {}
-                    ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MIXIN_ON_SEALED_CLASS]);
-    verify([source]);
-  }
-
-  test_subtypeOfSealedClass_mixinImplements() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-      [
-        'foo',
-        r'''
-import 'package:meta/meta.dart';
-@sealed class Foo {}
-'''
-      ]
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                    import 'package:foo/foo.dart';
-                    mixin Bar implements Foo {}
                     ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
@@ -218,7 +127,7 @@ import 'package:meta/meta.dart';
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
                     class Bar1 {}
@@ -229,23 +138,66 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
-  test_subtypeOfSealedMixin_mixinApplication() async {
+  test_subtypeOfSealedClass_mixinImplements() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
       [
         'foo',
         r'''
 import 'package:meta/meta.dart';
-@sealed mixin Foo {}
+@sealed class Foo {}
 '''
       ]
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
-                    class Bar1 {}
-                    class Bar2 = Bar1 with Foo;
+                    mixin Bar implements Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_mixinOn() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    mixin Bar on Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MIXIN_ON_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_with() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar extends Object with Foo {}
                     ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
@@ -257,7 +209,7 @@ import 'package:meta/meta.dart';
       ['meta', metaLibraryStub],
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:meta/meta.dart';
                     @sealed class Foo {}
@@ -273,12 +225,64 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
+  test_subtypeOfSealedClass_withinPackageLibDirectory_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                     import 'package:meta/meta.dart';
+                     @sealed class Foo {}
+                     ''');
+    Source source2 = addNamedSource('/pkg1/lib/src/lib2.dart', r'''
+                     import '../lib1.dart';
+                     class Bar1 extends Foo {}
+                     class Bar2 implements Foo {}
+                     class Bar4 = Bar1 with Foo;
+                     mixin Bar5 on Foo {}
+                     mixin Bar6 implements Foo {}
+                     ''');
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source1);
+    assertNoErrors(source2);
+    verify([source1, source2]);
+  }
+
+  test_subtypeOfSealedClass_withinPackageTestDirectory_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    newFolder('/pkg1');
+    _newPubPackageRoot('/pkg1');
+
+    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                     import 'package:meta/meta.dart';
+                     @sealed class Foo {}
+                     ''');
+    Source source2 = addNamedSource('/pkg1/test/test.dart', r'''
+                     import '../lib/lib1.dart';
+                     class Bar1 extends Foo {}
+                     class Bar2 implements Foo {}
+                     class Bar4 = Bar1 with Foo;
+                     mixin Bar5 on Foo {}
+                     mixin Bar6 implements Foo {}
+                     ''');
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source1);
+    assertNoErrors(source2);
+    verify([source1, source2]);
+  }
+
   test_subtypeOfSealedClass_withinPart_OK() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
     ]);
 
-    newBasicPackage('/pkg1');
+    _newPubPackageRoot('/pkg1');
     Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
                      import 'package:meta/meta.dart';
                      part 'part1.dart';
@@ -297,48 +301,55 @@ import 'package:meta/meta.dart';
     verify([source1]);
   }
 
-  test_subtypeOfSealedClass_withinPackageLibDirectory_OK() async {
+  test_subtypeOfSealedMixin_mixinApplication() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed mixin Foo {}
+'''
+      ]
     ]);
 
-    newBasicPackage('/pkg1');
-    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                     import 'package:meta/meta.dart';
-                     @sealed class Foo {}
-                     ''');
-    addNamedSource('/pkg1/lib/src/lib2.dart', r'''
-                     class Bar1 extends Foo {}
-                     class Bar2 implements Foo {}
-                     class Bar4 = Bar1 with Foo;
-                     mixin Bar5 on Foo {}
-                     mixin Bar6 implements Foo {}
-                     ''');
-    await computeAnalysisResult(source1);
-    assertNoErrors(source1);
-    verify([source1]);
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar1 {}
+                    class Bar2 = Bar1 with Foo;
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
   }
 
-  test_subtypeOfSealedClass_withinPackageTestDirectory_OK() async {
+  test_subtypeOfSealedMixin_with() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed mixin Foo {}
+'''
+      ]
     ]);
 
-    newBasicPackage('/pkg1');
-    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                     import 'package:meta/meta.dart';
-                     @sealed class Foo {}
-                     ''');
-    addNamedSource('/pkg1/test/test.dart', r'''
-                     class Bar1 extends Foo {}
-                     class Bar2 implements Foo {}
-                     class Bar4 = Bar1 with Foo;
-                     mixin Bar5 on Foo {}
-                     mixin Bar6 implements Foo {}
-                     ''');
-    await computeAnalysisResult(source1);
-    assertNoErrors(source1);
-    verify([source1]);
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar extends Object with Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  /// Write a pubspec file at [root], so that BestPracticesVerifier can see
+  /// that [root] is the root of a PubWorkspace, and a PubWorkspacePackage.
+  void _newPubPackageRoot(String root) {
+    newFile('$root/pubspec.yaml');
   }
 }
 
@@ -1227,76 +1238,6 @@ main() { lib1.f(); }'''
     ]);
   }
 
-  test_invalidAssignment_instanceVariable() async {
-    Source source = addSource(r'''
-class A {
-  int x;
-}
-f(var y) {
-  A a;
-  if(y is String) {
-    a.x = y;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    verify([source]);
-  }
-
-  test_invalidAssignment_localVariable() async {
-    Source source = addSource(r'''
-f(var y) {
-  if(y is String) {
-    int x = y;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    verify([source]);
-  }
-
-  test_invalidAssignment_message() async {
-    // The implementation of HintCode.INVALID_ASSIGNMENT assumes that
-    // StaticTypeWarningCode.INVALID_ASSIGNMENT has the same message.
-    expect(StaticTypeWarningCode.INVALID_ASSIGNMENT.message,
-        HintCode.INVALID_ASSIGNMENT.message);
-  }
-
-  test_invalidAssignment_staticVariable() async {
-    Source source = addSource(r'''
-class A {
-  static int x;
-}
-f(var y) {
-  if(y is String) {
-    A.x = y;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    verify([source]);
-  }
-
-  test_invalidAssignment_variableDeclaration() async {
-    // 17971
-    Source source = addSource(r'''
-class Point {
-  final num x, y;
-  Point(this.x, this.y);
-  Point operator +(Point other) {
-    return new Point(x+other.x, y+other.y);
-  }
-}
-main() {
-  var p1 = new Point(0, 0);
-  var p2 = new Point(10, 10);
-  int n = p1 + p2;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    verify([source]);
-  }
-
   test_invalidImmutableAnnotation_method() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1320,6 +1261,55 @@ class A {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.INVALID_LITERAL_ANNOTATION]);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_nonConstContext() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = A();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_usingNew() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = new A();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW]);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_namedConstructor() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A.named();
+}
+void main() {
+  var a = A.named();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1347,6 +1337,17 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
+  test_invalidSealedAnnotation_onMixin() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed mixin M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidSealedAnnotation_onMixinApplication() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -1359,17 +1360,6 @@ abstract class B {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invalidSealedAnnotation_onMixin() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-@sealed mixin M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
     verify([source]);
   }
 
@@ -2415,21 +2405,6 @@ class B extends A {
     verify([source]);
   }
 
-  test_mustBeImmutable_mixinApplicationBase() async {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-class A {
-  int x;
-}
-class B {}
-@immutable
-class C = A with B;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
-    verify([source]);
-  }
-
   test_mustBeImmutable_fromMixin() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2466,6 +2441,21 @@ class A {}
 class B {
   int x;
 }
+class C = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_mixinApplicationBase() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  int x;
+}
+class B {}
+@immutable
 class C = A with B;
 ''');
     await computeAnalysisResult(source);
@@ -3900,26 +3890,6 @@ f(var a) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  test_unnecessaryCast_type_supertype() async {
-    Source source = addSource(r'''
-m(int i) {
-  var b = i as Object;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNNECESSARY_CAST]);
-    verify([source]);
-  }
-
-  test_unnecessaryCast_type_type() async {
-    Source source = addSource(r'''
-m(num i) {
-  var b = i as num;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNNECESSARY_CAST]);
-    verify([source]);
-  }
-
   test_unnecessaryNoSuchMethod_blockBody() async {
     Source source = addSource(r'''
 class A {
@@ -4746,346 +4716,6 @@ main() {
     verify([source]);
   }
 
-  test_unusedField_isUsed_argument() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f = 0;
-  main() {
-    print(++_f);
-  }
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_implicitThis() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  main() {
-    print(_f);
-  }
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_implicitThis_expressionFunctionBody() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  m() => _f;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_implicitThis_subclass() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  main() {
-    print(_f);
-  }
-}
-class B extends A {
-  int _f;
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_qualified_propagatedElement() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-main() {
-  var a = new A();
-  print(a._f);
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_qualified_staticElement() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-main() {
-  A a = new A();
-  print(a._f);
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_qualified_unresolved() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-main(a) {
-  print(a._f);
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_compoundAssign() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  main() {
-    _f += 2;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_constructorFieldInitializers() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  A() : _f = 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_fieldFormalParameter() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  A(this._f);
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_noReference() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_nullAssign() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  var _f;
-  m() {
-    _f ??= doSomething();
-  }
-}
-doSomething() => 0;
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_postfixExpr() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f = 0;
-  main() {
-    _f++;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_prefixExpr() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f = 0;
-  main() {
-    ++_f;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_simpleAssignment() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  m() {
-    _f = 1;
-  }
-}
-main(A a) {
-  a._f = 2;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedImport() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart';''');
-    Source source2 = addNamedSource("/lib1.dart", "library lib1;");
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedImport_as() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart' as one;
-one.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  @failingTest
-  test_unusedImport_as_equalPrefixes() async {
-    // See todo at ImportsVerifier.prefixElementMap.
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as one;
-import 'lib2.dart' as one;
-one.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}''');
-    Source source3 = addNamedSource("/lib2.dart", r'''
-library lib2;
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    await computeAnalysisResult(source3);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    assertNoErrors(source3);
-    verify([source, source2, source3]);
-  }
-
-  test_unusedImport_hide() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart' hide A;
-A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedImport_inComment_libraryDirective() async {
-    Source source = addSource(r'''
-/// Use [Future] class.
-library L;
-import 'dart:async';
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_unusedImport_show() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A;
-import 'lib1.dart' show B;
-A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedLabel_inSwitch() async {
-    Source source = addSource(r'''
-f(x) {
-  switch (x) {
-    label: case 0:
-      break;
-    default:
-      break;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_LABEL]);
-    verify([source]);
-  }
-
-  test_unusedLabel_onWhile() async {
-    Source source = addSource(r'''
-f(condition()) {
-  label: while (condition()) {
-    break;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_LABEL]);
-    verify([source]);
-  }
-
   test_unusedLocalVariable_inCatch_exception() async {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''
@@ -5286,79 +4916,5 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source);
     verify([source]);
-  }
-
-  test_unusedShownName() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A, B;
-A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedShownName_as() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as p show A, B;
-p.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedShownName_duplicates() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A, B;
-import 'lib1.dart' show C, D;
-A a;
-C c;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}
-class C {}
-class D {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(
-        source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedShownName_topLevelVariable() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show var1, var2;
-import 'lib1.dart' show var3, var4;
-int a = var1;
-int b = var2;
-int c = var3;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-const int var1 = 1;
-const int var2 = 2;
-const int var3 = 3;
-const int var4 = 4;''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
   }
 }

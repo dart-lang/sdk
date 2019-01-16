@@ -14,43 +14,41 @@ import '../universe/world_impact.dart'
 import 'backend_usage.dart' show BackendUsageBuilder;
 import 'native_data.dart';
 
-/**
- * Support for Custom Elements.
- *
- * The support for custom elements the compiler builds a table that maps the
- * custom element class's [Type] to the interceptor for the class and the
- * constructor(s) for the class.
- *
- * We want the table to contain only the custom element classes used, and we
- * want to avoid resolving and compiling constructors that are not used since
- * that may bring in unused code.  This class controls the resolution and code
- * generation to restrict the impact.
- *
- * The following line of code requires the generation of the generative
- * constructor factory function(s) for FancyButton, and their insertion into the
- * table:
- *
- *     document.register(FancyButton, 'x-fancy-button');
- *
- * We detect this by 'joining' the classes that are referenced as type literals
- * with the classes that are custom elements, enabled by detecting the presence
- * of the table access code used by document.register.
- *
- * We have to be more conservative when the type is unknown, e.g.
- *
- *     document.register(classMirror.reflectedType, tagFromMetadata);
- *
- * and
- *
- *     class Component<T> {
- *       final tag;
- *       Component(this.tag);
- *       void register() => document.register(T, tag);
- *     }
- *     const Component<FancyButton>('x-fancy-button').register();
- *
- * In these cases we conservatively generate all viable entries in the table.
- */
+/// Support for Custom Elements.
+///
+/// The support for custom elements the compiler builds a table that maps the
+/// custom element class's [Type] to the interceptor for the class and the
+/// constructor(s) for the class.
+///
+/// We want the table to contain only the custom element classes used, and we
+/// want to avoid resolving and compiling constructors that are not used since
+/// that may bring in unused code.  This class controls the resolution and code
+/// generation to restrict the impact.
+///
+/// The following line of code requires the generation of the generative
+/// constructor factory function(s) for FancyButton, and their insertion into
+/// the table:
+///
+///     document.register(FancyButton, 'x-fancy-button');
+///
+/// We detect this by 'joining' the classes that are referenced as type literals
+/// with the classes that are custom elements, enabled by detecting the presence
+/// of the table access code used by document.register.
+///
+/// We have to be more conservative when the type is unknown, e.g.
+///
+///     document.register(classMirror.reflectedType, tagFromMetadata);
+///
+/// and
+///
+///     class Component<T> {
+///       final tag;
+///       Component(this.tag);
+///       void register() => document.register(T, tag);
+///     }
+///     const Component<FancyButton>('x-fancy-button').register();
+///
+/// In these cases we conservatively generate all viable entries in the table.
 abstract class CustomElementsAnalysisBase {
   final NativeBasicData _nativeData;
   final ElementEnvironment _elementEnvironment;

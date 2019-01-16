@@ -504,6 +504,7 @@ namespace dart {
 // Forward declarations.
 class Function;
 class Library;
+class Object;
 class RawFunction;
 class RawGrowableObjectArray;
 class String;

@@ -233,9 +233,7 @@ class Selector {
   bool get isOperator => kind == SelectorKind.OPERATOR;
   bool get isUnaryOperator => isOperator && argumentCount == 0;
 
-  /**
-   * The member name for invocation mirrors created from this selector.
-   */
+  /// The member name for invocation mirrors created from this selector.
   String get invocationMirrorMemberName => isSetter ? '$name=' : name;
 
   int get invocationMirrorKind {

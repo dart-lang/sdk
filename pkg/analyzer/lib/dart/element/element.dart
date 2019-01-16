@@ -534,6 +534,9 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@JS(..)`.
   bool get hasJS;
 
+  /// Return `true` if this element has an annotation of the form '@literal'.
+  bool get hasLiteral;
+
   /// Return `true` if this element has an annotation of the form `@override`.
   bool get hasOverride;
 

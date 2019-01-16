@@ -39,9 +39,6 @@ abstract class ClassHierarchy {
   /// [unordered], they are not included.
   Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
 
-  /// True if the component contains another class that is a subtype of given one.
-  bool hasProperSubtypes(Class class_);
-
   // Returns the instantition of each generic supertype implemented by this
   // class (e.g. getClassAsInstanceOf applied to all superclasses and
   // interfaces).
@@ -694,14 +691,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         ++j;
       }
     }
-  }
-
-  @override
-  bool hasProperSubtypes(Class class_) {
-    _ClassInfo info = _infoFor[class_];
-    return info.directExtenders.isNotEmpty ||
-        info.directImplementers.isNotEmpty ||
-        info.directMixers.isNotEmpty;
   }
 
   @override

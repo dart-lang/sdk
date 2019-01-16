@@ -20,7 +20,7 @@ Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
 #if defined(HAS_C11_THREAD_LOCAL)
-thread_local Thread* OSThread::current_vm_thread_ = NULL;
+thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
 #endif
 
 OSThread::OSThread()
@@ -214,7 +214,7 @@ void OSThread::EnableOSThreadCreation() {
   creation_enabled_ = true;
 }
 
-OSThread* OSThread::GetOSThreadFromThread(Thread* thread) {
+OSThread* OSThread::GetOSThreadFromThread(ThreadState* thread) {
   ASSERT(thread->os_thread() != NULL);
   return thread->os_thread();
 }

@@ -33,8 +33,8 @@ enum DynamicUseKind {
 }
 
 /// The use of a dynamic property. [selector] defined the name and kind of the
-/// property and [receiverConstraint] defines the known constraint for the object on which
-/// the property is accessed.
+/// property and [receiverConstraint] defines the known constraint for the
+/// object on which the property is accessed.
 class DynamicUse {
   final Selector selector;
 
@@ -47,9 +47,9 @@ class DynamicUse {
       var constraint = receiverConstraint;
       if (constraint is StrongModeConstraint) {
         if (constraint.isThis) {
-          sb.write('<');
+          sb.write('this:');
         } else if (constraint.isExact) {
-          sb.write('=');
+          sb.write('exact:');
         }
         sb.write(constraint.cls.name);
       } else {

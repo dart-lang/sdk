@@ -566,8 +566,6 @@ class StandardTestSuite extends TestSuite {
   Set<String> _testListPossibleFilenames;
   RegExp _selectorFilenameRegExp;
 
-  static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
-
   StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
       {bool recursive: false})
@@ -1249,8 +1247,6 @@ class StandardTestSuite extends TestSuite {
   Map<String, dynamic> readOptionsFromFile(Uri uri) {
     if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if ("$uri".startsWith("$co19SuiteLocation")) {
-      return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
@@ -1394,9 +1390,11 @@ class StandardTestSuite extends TestSuite {
     //
     // Redo this code once we have a more precise test framework for detecting
     // and locating these errors.
-    var hasSyntaxError = contents.contains("/*@syntax-error=");
-    var hasCompileError =
-        hasSyntaxError || contents.contains("/*@compile-error=");
+    final hasSyntaxError = contents.contains("@syntax-error");
+    final hasCompileError =
+        hasSyntaxError || contents.contains("@compile-error");
+    final hasRuntimeError = contents.contains("@runtime-error");
+    final hasStaticWarning = contents.contains("@static-warning");
 
     return {
       "vmOptions": result,
@@ -1409,8 +1407,8 @@ class StandardTestSuite extends TestSuite {
       "packages": packages,
       "hasSyntaxError": hasSyntaxError,
       "hasCompileError": hasCompileError,
-      "hasRuntimeError": false,
-      "hasStaticWarning": false,
+      "hasRuntimeError": hasRuntimeError,
+      "hasStaticWarning": hasStaticWarning,
       "otherScripts": otherScripts,
       "otherResources": otherResources,
       "isMultitest": isMultitest,
@@ -1459,50 +1457,6 @@ class StandardTestSuite extends TestSuite {
         runtimes.contains(configuration.runtime);
     if (!needsVmOptions) return [[]];
     return optionsFromFile['vmOptions'] as List<List<String>>;
-  }
-
-  /**
-   * Read options from a co19 test file.
-   *
-   * The reason this is different from [readOptionsFromFile] is that
-   * co19 is developed based on a contract which defines certain test
-   * tags. These tags may appear unused, but should not be removed
-   * without consulting with the co19 team.
-   *
-   * Also, [readOptionsFromFile] recognizes a number of additional
-   * tags that are not appropriate for use in general tests of
-   * conformance to the Dart language. Any Dart implementation must
-   * pass the co19 test suite as is, and not require extra flags,
-   * environment variables, configuration files, etc.
-   */
-  Map<String, dynamic> readOptionsFromCo19File(Uri uri) {
-    String contents = decodeUtf8(new File.fromUri(uri).readAsBytesSync());
-
-    bool hasSyntaxError = contents.contains("@syntax-error");
-    bool hasCompileError =
-        hasSyntaxError || contents.contains("@compile-error");
-    bool hasRuntimeError = contents.contains("@runtime-error");
-    bool hasStaticWarning = contents.contains("@static-warning");
-    bool isMultitest = multiTestRegExp.hasMatch(contents);
-
-    return {
-      "vmOptions": <List<String>>[[]],
-      "sharedOptions": <String>[],
-      "dart2jsOptions": <String>[],
-      "dartOptions": null,
-      "packageRoot": null,
-      "hasSyntaxError": hasSyntaxError,
-      "hasCompileError": hasCompileError,
-      "hasRuntimeError": hasRuntimeError,
-      "hasStaticWarning": hasStaticWarning,
-      "otherScripts": <String>[],
-      "otherResources": <String>[],
-      "isMultitest": isMultitest,
-      "isMultiHtmlTest": false,
-      "subtestNames": <String>[],
-      "isolateStubs": '',
-      "containsDomImport": false,
-    };
   }
 }
 

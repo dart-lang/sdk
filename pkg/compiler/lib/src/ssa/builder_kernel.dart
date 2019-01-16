@@ -4933,10 +4933,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..cleanUp();
   }
 
-  /**
-   * Try to inline [element] within the correct context of the builder. The
-   * insertion point is the state of the builder.
-   */
+  /// Try to inline [element] within the correct context of the builder. The
+  /// insertion point is the state of the builder.
   bool _tryInlineMethod(
       FunctionEntity function,
       Selector selector,

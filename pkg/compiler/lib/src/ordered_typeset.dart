@@ -13,23 +13,21 @@ import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'serialization/serialization.dart';
 
-/**
- * An ordered set of the supertypes of a class. The supertypes of a class are
- * ordered by decreasing hierarchy depth and by the order they are extended,
- * mixed in, or implemented.
- *
- * For these classes
- *
- *     class A {} // Depth = 1.
- *     class B {} // Depth = 1.
- *     class C extends B implements A {} // Depth 2.
- *
- * the ordered supertypes are
- *
- *     A: [A, Object]
- *     B: [B, Object]
- *     C: [C, B, A, Object]
- */
+/// An ordered set of the supertypes of a class. The supertypes of a class are
+/// ordered by decreasing hierarchy depth and by the order they are extended,
+/// mixed in, or implemented.
+///
+/// For these classes
+///
+///     class A {} // Depth = 1.
+///     class B {} // Depth = 1.
+///     class C extends B implements A {} // Depth 2.
+///
+/// the ordered supertypes are
+///
+///     A: [A, Object]
+///     B: [B, Object]
+///     C: [C, B, A, Object]
 class OrderedTypeSet {
   /// Tag used for identifying serialized [OrderedTypeSet] objects in a
   /// debugging data stream.
@@ -198,23 +196,21 @@ class OrderedTypeSet {
   String toString() => types.toString();
 }
 
-/**
- * Builder for creation an ordered set of the supertypes of a class. The
- * supertypes are ordered by decreasing hierarchy depth and by the order they
- * are extended, mixed in, or implemented.
- *
- * For these classes
- *
- *     class A {} // Depth = 1.
- *     class B {} // Depth = 1.
- *     class C extends B implements A {} // Depth 2.
- *
- * the ordered supertypes are
- *
- *     A: [A, Object]
- *     B: [B, Object]
- *     C: [C, B, A, Object]
- */
+/// Builder for creation an ordered set of the supertypes of a class. The
+/// supertypes are ordered by decreasing hierarchy depth and by the order they
+/// are extended, mixed in, or implemented.
+///
+/// For these classes
+///
+///     class A {} // Depth = 1.
+///     class B {} // Depth = 1.
+///     class C extends B implements A {} // Depth 2.
+///
+/// the ordered supertypes are
+///
+///     A: [A, Object]
+///     B: [B, Object]
+///     C: [C, B, A, Object]
 abstract class OrderedTypeSetBuilder {
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces);
@@ -257,10 +253,8 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     return toTypeSet();
   }
 
-  /**
-   * Adds [type] and all supertypes of [type] to [allSupertypes] while
-   * substituting type variables.
-   */
+  /// Adds [type] and all supertypes of [type] to [allSupertypes] while
+  /// substituting type variables.
   void _addAllSupertypes(InterfaceType type) {
     ClassEntity classElement = type.element;
     Link<InterfaceType> supertypes = getOrderedTypeSet(classElement).supertypes;

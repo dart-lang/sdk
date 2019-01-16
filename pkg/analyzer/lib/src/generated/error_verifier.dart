@@ -2220,7 +2220,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (expressionType == null) {
       return;
     }
-    if (_expressionIsAssignableAtType(expression, expressionType, type)) {
+    if (_typeSystem.isAssignableTo(expressionType, type)) {
       return;
     }
     _errorReporter.reportErrorForNode(errorCode, expression, arguments);
@@ -2239,8 +2239,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    if (!_expressionIsAssignableAtType(
-        expression, actualStaticType, expectedStaticType)) {
+    if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
           errorCode, expression, [actualStaticType, expectedStaticType]);
       return false;
@@ -3093,7 +3092,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (staticType == null) {
       return;
     }
-    if (_expressionIsAssignableAtType(expression, staticType, fieldType)) {
+    if (_typeSystem.isAssignableTo(staticType, fieldType)) {
       return;
     }
     // report problem
@@ -4972,8 +4971,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       var checkWithType = (!_inAsync)
           ? fromType
           : _typeProvider.futureType.instantiate(<DartType>[fromType]);
-      if (_expressionIsAssignableAtType(
-          returnExpression, checkWithType, expectedType)) {
+      if (_typeSystem.isAssignableTo(checkWithType, expectedType)) {
         return;
       }
     }
@@ -5075,7 +5073,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType caseType = getStaticType(caseExpression);
 
     // check types
-    if (!_expressionIsAssignableAtType(expression, expressionType, caseType)) {
+    if (!_typeSystem.isAssignableTo(expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
@@ -5717,11 +5715,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, keyword);
       }
     }
-  }
-
-  bool _expressionIsAssignableAtType(Expression expression,
-      DartType actualStaticType, DartType expectedStaticType) {
-    return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }
 
   InterfaceType _findInterfaceTypeForMixin(TypeName mixin,

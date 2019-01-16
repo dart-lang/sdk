@@ -23,7 +23,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
@@ -89,7 +90,7 @@ class TypeConstraint {
       '${typeSchemaToString(lower)} <: <type> <: ${typeSchemaToString(upper)}';
 }
 
-class TypeSchemaEnvironment extends TypeEnvironment {
+class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment {
   TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : super(coreTypes, hierarchy);
 

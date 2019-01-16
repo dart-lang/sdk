@@ -24,7 +24,7 @@ import 'package:front_end/src/scanner/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
+import '../util/ast_type_matchers.dart';
 import 'test_support.dart';
 
 main() {

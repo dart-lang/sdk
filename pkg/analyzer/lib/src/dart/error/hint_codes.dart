@@ -68,6 +68,23 @@ class HintCode extends ErrorCode {
           "Try replacing the use of the deprecated member with the replacement.");
 
   /**
+   * Deprecated members should not be invoked or used from within the package
+   * where they are declared.
+   *
+   * Intentionally separate from DEPRECATED_MEMBER_USE, so that package owners
+   * can ignore same-package deprecate member use Hints if they like, and
+   * continue to see cross-package deprecated member use Hints.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = const HintCode(
+      'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
+      "'{0}' is deprecated and shouldn't be used.",
+      correction:
+          "Try replacing the use of the deprecated member with the replacement.");
+
+  /**
    * Users should not create a class named `Function` anymore.
    */
   static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = const HintCode(
@@ -159,23 +176,6 @@ class HintCode extends ErrorCode {
           "which is hidden by deferring this library.",
           correction: "Try changing the import to not be deferred, or "
               "rename the function in the imported library.");
-
-  /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.INVALID_ASSIGNMENT] would have been generated, if we
-   * used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the right hand side type
-   * 1: the name of the left hand side type
-   */
-  // TODO(brianwilkerson) This hint code should be removed, as should the code
-  //  that appears to generate it.
-  static const HintCode INVALID_ASSIGNMENT = const HintCode(
-      'INVALID_ASSIGNMENT',
-      "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
-      correction: "Try changing the type of the variable, or "
-          "casting the right-hand type to '{1}'.");
 
   /**
    * This hint is generated anywhere a @factory annotation is associated with
@@ -397,6 +397,27 @@ class HintCode extends ErrorCode {
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as @mustCallSuper in '{0}', "
       "but does not invoke the overridden method.");
+
+  /**
+   * Generate a hint for non-const instance creation using a constructor
+   * annotated with `@literal`.
+   */
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = const HintCode(
+      'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+      "This instance creation must be 'const', because the {0} constructor is "
+      "marked as '@literal'.",
+      correction: "Try adding a 'const' keyword.");
+
+  /**
+   * Generate a hint for non-const instance creation (with the `new` keyword)
+   * using a constructor annotated with `@literal`.
+   */
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
+      const HintCode(
+          'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+          "This instance creation must be 'const', because the {0} constructor is "
+          "marked as '@literal'.",
+          correction: "Try replacing the 'new' keyword with 'const'.");
 
   /**
    * When the left operand of a binary expression uses '?.' operator, it can be

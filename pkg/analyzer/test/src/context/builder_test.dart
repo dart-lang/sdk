@@ -17,7 +17,12 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer/src/workspace/package_build.dart';
+import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -870,6 +875,68 @@ environment:
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
+  }
+
+  void test_createWorkspace_hasPackagesFile_hasDartToolAndPubspec() {
+    newFile('/workspace/.packages');
+    newFolder('/workspace/.dart_tool/build/generated/project/lib');
+    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<PackageBuildWorkspace>());
+  }
+
+  void test_createWorkspace_hasPackagesFile_hasPubspec() {
+    newFile('/workspace/.packages');
+    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<PubWorkspace>());
+  }
+
+  void test_createWorkspace_hasPackagesFile_noMarkerFiles() {
+    newFile('/workspace/.packages');
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<BasicWorkspace>());
+  }
+
+  void test_createWorkspace_noPackagesFile_hasDartToolAndPubspec() {
+    newFolder('/workspace/.dart_tool/build/generated/project/lib');
+    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<PackageBuildWorkspace>());
+  }
+
+  void test_createWorkspace_noPackagesFile_hasPubspec() {
+    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<PubWorkspace>());
+  }
+
+  void test_createWorkspace_noPackagesFile_noMarkerFiles() {
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<BasicWorkspace>());
+  }
+
+  void test_createWorkspace_noPackagesFile_hasGnMarkerFiles() {
+    newFolder('/workspace/.jiri_root');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/project/lib/lib.packages');
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<GnWorkspace>());
+  }
+
+  void test_createWorkspace_noPackagesFile_hasBazelMarkerFiles() {
+    newFile('/workspace/WORKSPACE');
+    newFolder('/workspace/bazel-genfiles');
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, '/workspace/project/lib/lib.dart', builder);
+    expect(workspace, TypeMatcher<BazelWorkspace>());
   }
 
   _defineMockLintRules() {

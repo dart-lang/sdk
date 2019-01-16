@@ -10,6 +10,7 @@ import 'dart:core' hide Type;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -278,6 +279,7 @@ enum FieldSummaryType { kFieldGuard, kInitializer }
 class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Target target;
   final TypeEnvironment _environment;
+  final ClassHierarchy _hierarchy;
   final EntryPointsListener _entryPointsListener;
   final NativeCodeOracle _nativeCodeOracle;
   final GenericInterfacesInfo _genericInterfacesInfo;
@@ -298,8 +300,13 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   // Currently only used for factory constructors.
   Map<TypeParameter, TypeExpr> _fnTypeVariables;
 
-  SummaryCollector(this.target, this._environment, this._entryPointsListener,
-      this._nativeCodeOracle, this._genericInterfacesInfo) {
+  SummaryCollector(
+      this.target,
+      this._environment,
+      this._hierarchy,
+      this._entryPointsListener,
+      this._nativeCodeOracle,
+      this._genericInterfacesInfo) {
     assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
   }
@@ -992,8 +999,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     assertx(_receiver != null, details: node);
     final args = _visitArguments(_receiver, node.arguments);
     // Re-resolve target due to partial mixin resolution.
-    final target =
-        _environment.hierarchy.getDispatchTarget(_superclass, node.name);
+    final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
       return new Type.empty();
     } else {
@@ -1021,8 +1027,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     assertx(_receiver != null, details: node);
     final args = new Args<TypeExpr>([_receiver]);
     // Re-resolve target due to partial mixin resolution.
-    final target =
-        _environment.hierarchy.getDispatchTarget(_superclass, node.name);
+    final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
       return new Type.empty();
     } else {
@@ -1038,8 +1043,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_receiver, value]);
     // Re-resolve target due to partial mixin resolution.
-    final target = _environment.hierarchy
-        .getDispatchTarget(_superclass, node.name, setter: true);
+    final target =
+        _hierarchy.getDispatchTarget(_superclass, node.name, setter: true);
     if (target != null) {
       assertx((target is Field) || ((target is Procedure) && target.isSetter));
       _entryPointsListener.recordMemberCalledViaThis(target);
@@ -1539,14 +1544,15 @@ class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
   final TypeEnvironment _environment;
   final SummaryCollector _summaryCollector;
 
-  CreateAllSummariesVisitor(
-      Target target, this._environment, GenericInterfacesInfo hierarchy)
+  CreateAllSummariesVisitor(Target target, this._environment,
+      ClassHierarchy hierarchy, GenericInterfacesInfo genericInterfacesInfo)
       : _summaryCollector = new SummaryCollector(
             target,
             _environment,
+            hierarchy,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(null, null),
-            hierarchy);
+            genericInterfacesInfo);
 
   @override
   defaultMember(Member m) {

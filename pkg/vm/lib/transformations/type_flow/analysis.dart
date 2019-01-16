@@ -220,6 +220,7 @@ class _DirectInvocation extends _Invocation {
         }
         fieldValue.setValue(initializerResult, typeFlowAnalysis,
             field.isStatic ? null : args.receiver);
+        fieldValue.isInitialized = true;
         return const EmptyType();
     }
 
@@ -731,6 +732,9 @@ class _FieldValue extends _DependencyTracker {
   final Type staticType;
   final Summary typeGuardSummary;
   Type value;
+
+  /// Flag indicating if field initializer was executed.
+  bool isInitialized = false;
 
   _FieldValue(this.field, this.typeGuardSummary)
       : staticType = new Type.fromStatic(field.type) {
@@ -1357,7 +1361,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache = new _ClassHierarchyCache(
         this, hierarchy, _genericInterfacesInfo, environment);
     summaryCollector = new SummaryCollector(
-        target, environment, this, nativeCodeOracle, hierarchyCache);
+        target, environment, hierarchy, this, nativeCodeOracle, hierarchyCache);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
@@ -1385,12 +1389,24 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache.seal();
   }
 
+  /// Returns true if analysis found that given member
+  /// could be executed / field could be accessed.
   bool isMemberUsed(Member member) {
     if (member is Field) {
       return _fieldValues.containsKey(member);
     } else {
       return _summaries.containsKey(member);
     }
+  }
+
+  /// Returns true if analysis found that initializer of the given [field]
+  /// could be executed.
+  bool isFieldInitializerUsed(Field field) {
+    final fieldValue = _fieldValues[field];
+    if (fieldValue != null) {
+      return fieldValue.isInitialized;
+    }
+    return false;
   }
 
   bool isClassAllocated(Class c) => hierarchyCache.allocatedClasses.contains(c);

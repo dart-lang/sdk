@@ -90,7 +90,7 @@ enum DartTypeKind {
   interfaceType,
   typedef,
   dynamicType,
-  futureOr
+  futureOr,
 }
 
 /// Visitor that serializes [DartType] object together with [AbstractDataSink].
@@ -194,6 +194,9 @@ enum DartTypeNodeKind {
   dynamicType,
   bottomType,
   invalidType,
+  thisInterfaceType,
+  exactInterfaceType,
+  doesNotComplete,
 }
 
 const String functionTypeNodeTag = 'function-type-node';
@@ -235,12 +238,22 @@ class DartTypeNodeWriter
 
   void visitBottomType(
       ir.BottomType node, List<ir.TypeParameter> functionTypeVariables) {
-    _sink.writeEnum(DartTypeNodeKind.bottomType);
+    if (node == const DoesNotCompleteType()) {
+      _sink.writeEnum(DartTypeNodeKind.doesNotComplete);
+    } else {
+      _sink.writeEnum(DartTypeNodeKind.bottomType);
+    }
   }
 
   void visitInterfaceType(
       ir.InterfaceType node, List<ir.TypeParameter> functionTypeVariables) {
-    _sink.writeEnum(DartTypeNodeKind.interfaceType);
+    if (node is ThisInterfaceType) {
+      _sink.writeEnum(DartTypeNodeKind.thisInterfaceType);
+    } else if (node is ExactInterfaceType) {
+      _sink.writeEnum(DartTypeNodeKind.exactInterfaceType);
+    } else {
+      _sink.writeEnum(DartTypeNodeKind.interfaceType);
+    }
     _sink.writeClassNode(node.classNode);
     visitTypes(node.typeArguments, functionTypeVariables);
   }

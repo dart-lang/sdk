@@ -70,6 +70,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// flags.
   Map<String, String> environment = const <String, String>{};
 
+  /// Flags enabling language experiments.
+  Map<fe.ExperimentalFlag, bool> languageExperiments = {};
+
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -170,6 +173,11 @@ class CompilerOptions implements DiagnosticOptions {
   // TODO(sigmund): rename to minify
   bool enableMinification = false;
 
+  /// Flag to turn off minification even if enabled elsewhere, e.g. via
+  /// -O2. Both [enableMinification] and [_disableMinification] can be true, in
+  /// which case [_disableMinification] wins.
+  bool _disableMinification = false;
+
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
@@ -244,10 +252,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// (experimental)
   bool useNewSourceInfo = false;
 
-  /// Whether the user requested to use the fast startup emitter. The full
-  /// emitter might still be used if the program uses dart:mirrors.
-  bool useStartupEmitter = false;
-
   /// Enable verbose printing during compilation. Includes a time-breakdown
   /// between phases at the end.
   bool verbose = false;
@@ -312,6 +316,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
+      ..languageExperiments = _extractExperiments(options)
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -323,6 +328,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableExperimentalMirrors =
           _hasOption(options, Flags.enableExperimentalMirrors)
       ..enableMinification = _hasOption(options, Flags.minify)
+      .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
@@ -358,7 +364,6 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
-      ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
@@ -391,7 +396,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   void deriveOptions() {
     if (benchmarkingProduction) {
-      useStartupEmitter = true;
       trustPrimitives = true;
       omitImplicitChecks = true;
     }
@@ -426,6 +430,10 @@ class CompilerOptions implements DiagnosticOptions {
     } else {
       parameterCheckPolicy = CheckPolicy.checked;
       implicitDowncastCheckPolicy = CheckPolicy.checked;
+    }
+
+    if (_disableMinification) {
+      enableMinification = false;
     }
   }
 
@@ -503,6 +511,13 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
     }
   }
   return null;
+}
+
+Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
+  List<String> experiments =
+      _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
+  return fe.parseExperimentalFlags(
+      experiments, (String error) => throw new ArgumentError(error));
 }
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

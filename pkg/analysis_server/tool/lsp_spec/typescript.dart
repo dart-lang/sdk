@@ -32,9 +32,15 @@ String cleanComment(String comment) {
   return comment.trim();
 }
 
-/// Fixes up some enum types that are not as specific as they could be in the
-/// spec. For example, Diagnostic.severity is typed "number" but can be mapped
-/// to the DiagnosticSeverity enum class.
+/// Improves types in generated code, including:
+///
+/// - Fixes up some enum types that are not as specific as they could be in the
+///   spec. For example, Diagnostic.severity is typed "number" but can be mapped
+///   to the DiagnosticSeverity enum class.
+///
+/// - Narrows unions to single types where they're only generated on the server
+///   and we know we always use a specific type. This avoids wrapping a lot
+///   of code in `EitherX<Y,Z>.tX()` and simplifies the testing of them.
 String getImprovedType(String interfaceName, String fieldName) {
   const Map<String, Map<String, String>> _improvedTypeMappings = {
     "Diagnostic": {
@@ -72,6 +78,9 @@ String getImprovedType(String interfaceName, String fieldName) {
     },
     "ParameterInformation": {
       "label": "String",
+    },
+    "ServerCapabilities": {
+      "changeNotifications": "bool",
     }
   };
 

@@ -148,7 +148,8 @@ bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
   return Isolate::IsVMInternalIsolate(isolate);
 }
 
-NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
+NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
+    : ThreadStackResource(thread) {
   thread->DeferOOBMessageInterrupts();
 }
 
@@ -157,7 +158,7 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 }
 
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
-    : StackResource(thread), isolate_(isolate) {
+    : ThreadStackResource(thread), isolate_(isolate) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(isolate_ != NULL);
   AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
@@ -2836,10 +2837,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     os_thread->set_thread(thread);
     if (is_mutator) {
       scheduled_mutator_thread_ = thread;
-      if (this != Dart::vm_isolate()) {
-        scheduled_mutator_thread_->set_top(heap()->new_space()->top());
-        scheduled_mutator_thread_->set_end(heap()->new_space()->end());
-      }
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
@@ -2865,7 +2862,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     }
   } else {
     ASSERT(thread->api_top_scope_ == NULL);
-    ASSERT(thread->zone_ == NULL);
+    ASSERT(thread->zone() == NULL);
     ASSERT(thread->sticky_error() == Error::null());
   }
   if (!bypass_safepoint) {
@@ -2878,12 +2875,6 @@ void Isolate::UnscheduleThread(Thread* thread,
   os_thread->set_thread(NULL);
   OSThread::SetCurrent(os_thread);
   if (is_mutator) {
-    if (this != Dart::vm_isolate()) {
-      heap()->new_space()->set_top(scheduled_mutator_thread_->top_);
-      heap()->new_space()->set_end(scheduled_mutator_thread_->end_);
-    }
-    scheduled_mutator_thread_->top_ = 0;
-    scheduled_mutator_thread_->end_ = 0;
     scheduled_mutator_thread_ = NULL;
   }
   // Even if we unschedule the mutator thread, e.g. via calling

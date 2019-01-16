@@ -57,14 +57,7 @@ ${parser.usage}""");
         testData["current"] = result["result"];
         testData["current_counter"] = 1;
       }
-      // Remove this code once all files are updated
-      const occurrencesMisspelled = "occurences";
-      var occurrences = testData[occurrencesMisspelled];
-      if (occurrences != null) {
-        testData["occurrences"] = occurrences;
-        testData.remove(occurrencesMisspelled);
-      }
-      occurrences = testData.putIfAbsent("occurrences", () => <String, dynamic>{});
+      var occurrences = testData.putIfAbsent("occurrences", () => <String, dynamic>{});
       occurrences.putIfAbsent(result["result"], () => 0);
       occurrences[result["result"]]++;
     }
@@ -79,6 +72,9 @@ ${parser.usage}""");
   for (final key in keys) {
     final testData = data[key];
     if (testData["outcomes"].length < 2) continue;
+    // Remove this code once all files are updated
+    const occurrencesMisspelled = "occurences";
+    if (testData.containsKey(occurrencesMisspelled)) continue;
     // Forgive tests that have become deterministic again. If they flake less
     // than once in a 100 (p<1%), then if they flake again, the probability of
     // them getting past 5 runs of deflaking is 1%^5 = 0.00000001%.

@@ -487,8 +487,10 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 
   @override
   visitComponent(Component node) {
+    var hierarchy = ClassHierarchy(node);
     inference ??= NullableInference(JSTypeRep(
-      fe.TypeSchemaEnvironment(CoreTypes(node), ClassHierarchy(node)),
+      fe.TypeSchemaEnvironment(CoreTypes(node), hierarchy),
+      hierarchy,
     ));
 
     if (useAnnotations) {

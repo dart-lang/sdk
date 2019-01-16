@@ -182,10 +182,8 @@ bool isFixedLength(AbstractValue mask, JClosedWorld closedWorld) {
   return false;
 }
 
-/**
- * If both inputs to known operations are available execute the operation at
- * compile-time.
- */
+/// If both inputs to known operations are available execute the operation at
+/// compile-time.
 class SsaInstructionSimplifier extends HBaseVisitor
     implements OptimizationPhase {
   // We don't produce constant-folded strings longer than this unless they have
@@ -1253,7 +1251,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           field, _globalInferenceResults);
     }
 
-    return new HFieldGet(field, receiver, type, isAssignable: isAssignable);
+    return new HFieldGet(field, receiver, type, isAssignable: isAssignable)
+      ..sourceInformation = node.sourceInformation;
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1289,7 +1288,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
     HFieldSet result =
-        new HFieldSet(_abstractValueDomain, field, receiver, value);
+        new HFieldSet(_abstractValueDomain, field, receiver, value)
+          ..sourceInformation = node.sourceInformation;
     _log?.registerFieldSet(node, result);
     return result;
   }
@@ -2819,11 +2819,9 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 }
 
-/**
- * Optimization phase that tries to eliminate memory loads (for example
- * [HFieldGet]), when it knows the value stored in that memory location, and
- * stores that overwrite with the same value.
- */
+/// Optimization phase that tries to eliminate memory loads (for example
+/// [HFieldGet]), when it knows the value stored in that memory location, and
+/// stores that overwrite with the same value.
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final JClosedWorld closedWorld;

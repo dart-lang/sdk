@@ -22,7 +22,8 @@ main() {
       if (e is TypeError) {
         var m = e.message.toString();
         return m.contains("is not a subtype of type 'int'") ||
-            m.contains("is not a subtype of expected type 'int'");
+            m.contains(
+                "Expected a value of type 'int', but got one of type 'String'");
       }
       return false;
     });

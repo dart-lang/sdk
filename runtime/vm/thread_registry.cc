@@ -192,7 +192,7 @@ Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
 
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != NULL);
-  ASSERT(thread->os_thread_ == NULL);
+  ASSERT(thread->os_thread() == NULL);
   ASSERT(thread->isolate_ == NULL);
   ASSERT(thread->heap_ == NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());

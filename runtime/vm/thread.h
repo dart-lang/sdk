@@ -16,6 +16,7 @@
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/thread_state.h"
 
 namespace dart {
 
@@ -38,7 +39,6 @@ class Instance;
 class Interpreter;
 class Isolate;
 class Library;
-class LongJumpScope;
 class Object;
 class OSThread;
 class JSONObject;
@@ -201,7 +201,7 @@ enum class ValidationPolicy {
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
 // automatically when the underlying OS thread exits. NOTE: On Windows, CleanUp
 // must currently be called manually (issue 23474).
-class Thread : public BaseThread {
+class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
   enum TaskKind {
@@ -220,13 +220,13 @@ class Thread : public BaseThread {
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
 #if defined(HAS_C11_THREAD_LOCAL)
-    return OSThread::CurrentVMThread();
+    return static_cast<Thread*>(OSThread::CurrentVMThread());
 #else
     BaseThread* thread = OSThread::GetCurrentTLS();
     if (thread == NULL || thread->is_os_thread()) {
       return NULL;
     }
-    return reinterpret_cast<Thread*>(thread);
+    return static_cast<Thread*>(thread);
 #endif
   }
 
@@ -317,35 +317,8 @@ class Thread : public BaseThread {
     return (stack_limit_ & kInterruptsMask) != 0;
   }
 
-  // OSThread corresponding to this thread.
-  OSThread* os_thread() const { return os_thread_; }
-  void set_os_thread(OSThread* os_thread) { os_thread_ = os_thread; }
-
   // Monitor corresponding to this thread.
   Monitor* thread_lock() const { return thread_lock_; }
-
-  // The topmost zone used for allocation in this thread.
-  Zone* zone() const { return zone_; }
-
-  bool ZoneIsOwnedByThread(Zone* zone) const;
-
-  void IncrementMemoryCapacity(uintptr_t value) {
-    current_zone_capacity_ += value;
-    if (current_zone_capacity_ > zone_high_watermark_) {
-      zone_high_watermark_ = current_zone_capacity_;
-    }
-  }
-
-  void DecrementMemoryCapacity(uintptr_t value) {
-    ASSERT(current_zone_capacity_ >= value);
-    current_zone_capacity_ -= value;
-  }
-
-  uintptr_t current_zone_capacity() { return current_zone_capacity_; }
-
-  uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
-
-  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -454,27 +427,21 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, top_exit_frame_info_);
   }
 
-  StackResource* top_resource() const { return top_resource_; }
-  void set_top_resource(StackResource* value) { top_resource_ = value; }
-  static intptr_t top_resource_offset() {
-    return OFFSET_OF(Thread, top_resource_);
-  }
-
   // Heap of the isolate that this thread is operating on.
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
   void set_top(uword value) {
-    ASSERT(heap_ != NULL);
     top_ = value;
   }
   void set_end(uword value) {
-    ASSERT(heap_ != NULL);
     end_ = value;
   }
 
   uword top() { return top_; }
   uword end() { return end_; }
+
+  bool HasActiveTLAB() { return end_ > 0; }
 
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
@@ -563,9 +530,6 @@ class Thread : public BaseThread {
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
-
-  LongJumpScope* long_jump_base() const { return long_jump_base_; }
-  void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
 #if defined(DEBUG)
   // For asserts only. Has false positives when running with a simulator or
@@ -869,15 +833,9 @@ class Thread : public BaseThread {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
-  OSThread* os_thread_;
   Monitor* thread_lock_;
-  Zone* zone_;
-  uintptr_t current_zone_capacity_;
-  uintptr_t zone_high_watermark_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
-  StackResource* top_resource_;
-  LongJumpScope* long_jump_base_;
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
@@ -939,8 +897,6 @@ class Thread : public BaseThread {
   void DeferredMarkingStackRelease();
   void DeferredMarkingStackAcquire();
 
-  void set_zone(Zone* zone) { zone_ = zone; }
-
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
@@ -980,6 +936,30 @@ class DisableThreadInterruptsScope : public StackResource {
   explicit DisableThreadInterruptsScope(Thread* thread);
   ~DisableThreadInterruptsScope();
 };
+
+// Within a NoSafepointScope, the thread must not reach any safepoint. Used
+// around code that manipulates raw object pointers directly without handles.
+#if defined(DEBUG)
+class NoSafepointScope : public ThreadStackResource {
+ public:
+  explicit NoSafepointScope(Thread* thread = nullptr)
+      : ThreadStackResource(thread != nullptr ? thread : Thread::Current()) {
+    this->thread()->IncrementNoSafepointScopeDepth();
+  }
+  ~NoSafepointScope() { thread()->DecrementNoSafepointScopeDepth(); }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#else   // defined(DEBUG)
+class NoSafepointScope : public ValueObject {
+ public:
+  explicit NoSafepointScope(Thread* thread = nullptr) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#endif  // defined(DEBUG)
 
 }  // namespace dart
 

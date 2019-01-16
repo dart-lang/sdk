@@ -560,14 +560,12 @@ const String softDeferredBoilerplate = '''
 #inheritance;
 }''';
 
-/**
- * This class builds a JavaScript tree for a given fragment.
- *
- * A fragment is generally written into a separate file so that it can be
- * loaded dynamically when a deferred library is loaded.
- *
- * This class is stateless and can be reused for different fragments.
- */
+/// This class builds a JavaScript tree for a given fragment.
+///
+/// A fragment is generally written into a separate file so that it can be
+/// loaded dynamically when a deferred library is loaded.
+///
+/// This class is stateless and can be reused for different fragments.
 class FragmentEmitter {
   final Compiler compiler;
   final Namer namer;
@@ -595,6 +593,13 @@ class FragmentEmitter {
 
   js.Expression classReference(Class cls) {
     return js.js('#.#', [cls.holder.name, cls.name]);
+  }
+
+  void registerEntityAst(Entity entity, js.Node code, {LibraryEntity library}) {
+    compiler.dumpInfoTask.registerEntityAst(entity, code);
+    // TODO(sigmund): stop recoding associations twice, dump-info already
+    // has library to element dependencies to recover this data.
+    if (library != null) compiler.dumpInfoTask.registerEntityAst(library, code);
   }
 
   js.Statement emitMainFragment(
@@ -792,30 +797,28 @@ class FragmentEmitter {
         .where((Holder holder) => !holder.isStaticStateHolder)
         .toList(growable: false);
 
-    Map<Holder, Map<js.Name, js.Expression>> holderCode = {};
+    Map<Holder, List<js.Property>> holderCode = {};
 
     for (Holder holder in holders) {
-      holderCode[holder] = <js.Name, js.Expression>{};
+      holderCode[holder] = <js.Property>[];
     }
 
     for (Library library in fragment.libraries) {
       for (StaticMethod method in library.statics) {
         assert(!method.holder.isStaticStateHolder);
         var staticMethod = emitStaticMethod(method);
-        if (compiler.options.dumpInfo) {
-          for (var code in staticMethod.values) {
-            compiler.dumpInfoTask.registerEntityAst(method.element, code);
-            compiler.dumpInfoTask.registerEntityAst(library.element, code);
-          }
-        }
-        holderCode[method.holder].addAll(staticMethod);
+        staticMethod.forEach((key, value) {
+          var property = new js.Property(js.quoteName(key), value);
+          holderCode[method.holder].add(property);
+          registerEntityAst(method.element, property, library: library.element);
+        });
       }
       for (Class cls in library.classes) {
         assert(!cls.holder.isStaticStateHolder);
         var constructor = emitConstructor(cls);
-        compiler.dumpInfoTask.registerEntityAst(cls.element, constructor);
-        compiler.dumpInfoTask.registerEntityAst(library.element, constructor);
-        holderCode[cls.holder][cls.name] = constructor;
+        var property = new js.Property(js.quoteName(cls.name), constructor);
+        registerEntityAst(cls.element, property, library: library.element);
+        holderCode[cls.holder].add(property);
       }
     }
 
@@ -823,10 +826,7 @@ class FragmentEmitter {
     List<Holder> activeHolders = [];
 
     for (Holder holder in holders) {
-      List<js.Property> properties = [];
-      holderCode[holder].forEach((js.Name key, js.Expression value) {
-        properties.add(new js.Property(js.quoteName(key), value));
-      });
+      List<js.Property> properties = holderCode[holder];
       if (properties.isEmpty) {
         holderInitializations.add(new js.VariableInitialization(
             new js.VariableDeclaration(holder.name, allowRename: false),
@@ -1006,8 +1006,7 @@ class FragmentEmitter {
       var proto = js.js.statement(
           '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
       ClassEntity element = cls.element;
-      compiler.dumpInfoTask.registerEntityAst(element, proto);
-      compiler.dumpInfoTask.registerEntityAst(element.library, proto);
+      registerEntityAst(element, proto, library: element.library);
       return proto;
     }).toList(growable: false);
 
@@ -1050,7 +1049,7 @@ class FragmentEmitter {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
         var prop = js.Property(name, code);
-        compiler.dumpInfoTask.registerEntityAst(method.element, prop);
+        registerEntityAst(method.element, prop);
         properties.add(prop);
       });
     });
@@ -1216,11 +1215,13 @@ class FragmentEmitter {
         if (cls.isSoftDeferred != softDeferred) continue;
         collect(cls);
         if (cls.mixinClass != null) {
-          mixinCalls.add(js.js.statement('#(#, #)', [
+          js.Statement statement = js.js.statement('#(#, #)', [
             locals.find('_mixin', 'hunkHelpers.mixin'),
             classReference(cls),
             classReference(cls.mixinClass),
-          ]));
+          ]);
+          registerEntityAst(cls.element, statement, library: library.element);
+          mixinCalls.add(statement);
         }
       }
     }
@@ -1231,13 +1232,27 @@ class FragmentEmitter {
           ? new js.LiteralNull()
           : classReference(superclass);
       if (list.length == 1) {
-        inheritCalls.add(js.js.statement('#(#, #)', [
+        Class cls = list.single;
+        var statement = js.js.statement('#(#, #)', [
           locals.find('_inherit', 'hunkHelpers.inherit'),
-          classReference(list.single),
+          classReference(cls),
           superclassReference
-        ]));
+        ]);
+        registerEntityAst(cls.element, statement, library: cls.element.library);
+        inheritCalls.add(statement);
       } else {
-        var listElements = list.map(classReference).toList();
+        List<js.Expression> listElements = [];
+        // Since inheritMany shares the superclass reference, we attribute it
+        // only to the first subclass.
+        ClassEntity firstClass = list.first.element;
+        registerEntityAst(firstClass, superclassReference,
+            library: firstClass.library);
+        for (Class cls in list) {
+          js.Expression reference = classReference(cls);
+          registerEntityAst(cls.element, reference,
+              library: cls.element.library);
+          listElements.add(reference);
+        }
         inheritCalls.add(js.js.statement('#(#, #)', [
           locals.find('_inheritMany', 'hunkHelpers.inheritMany'),
           superclassReference,
@@ -1271,14 +1286,18 @@ class FragmentEmitter {
           if (method.aliasName != null) {
             if (firstAlias) {
               firstAlias = false;
-              assignments.add(js.js.statement(
+              js.Statement statement = js.js.statement(
                   assignments.isEmpty
                       ? 'var _ = #.prototype;'
                       : '_ = #.prototype',
-                  classReference(cls)));
+                  classReference(cls));
+              registerEntityAst(method.element, statement);
+              assignments.add(statement);
             }
-            assignments.add(js.js.statement('_.# = _.#',
-                [js.quoteName(method.aliasName), js.quoteName(method.name)]));
+            js.Statement statement = js.js.statement('_.# = _.#',
+                [js.quoteName(method.aliasName), js.quoteName(method.name)]);
+            registerEntityAst(method.element, statement);
+            assignments.add(statement);
           }
         }
       }
@@ -1489,8 +1508,11 @@ class FragmentEmitter {
         if (method is StaticDartMethod) {
           if (method.needsTearOff) {
             Holder holder = method.holder;
-            inits.add(
-                emitInstallTearOff(new js.VariableUse(holder.name), method));
+            js.Statement statement =
+                emitInstallTearOff(new js.VariableUse(holder.name), method);
+            registerEntityAst(method.element, statement,
+                library: library.element);
+            inits.add(statement);
           }
         }
       }
@@ -1508,7 +1530,9 @@ class FragmentEmitter {
           reference = js.js('# = #', [temp, container]);
         }
         for (InstanceMethod method in methods) {
-          inits.add(emitInstallTearOff(reference, method));
+          js.Statement statement = emitInstallTearOff(reference, method);
+          registerEntityAst(method.element, statement);
+          inits.add(statement);
           reference = temp; // Second and subsequent calls use temp.
         }
       }
@@ -1558,8 +1582,11 @@ class FragmentEmitter {
     //
     Iterable<js.Statement> statements = fields.map((StaticField field) {
       assert(field.holder.isStaticStateHolder);
-      return js.js
+      js.Statement statement = js.js
           .statement("#.# = #;", [field.holder.name, field.name, field.code]);
+      registerEntityAst(field.element, statement,
+          library: field.element.library);
+      return statement;
     });
     return wrapPhase('staticFields', statements.toList());
   }
@@ -1574,13 +1601,17 @@ class FragmentEmitter {
     LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
-      statements.add(js.js.statement("#(#, #, #, #);", [
+      js.Statement statement = js.js.statement("#(#, #, #, #);", [
         locals.find('_lazy', 'hunkHelpers.lazy'),
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(field.getterName),
         field.code
-      ]));
+      ]);
+
+      registerEntityAst(field.element, statement,
+          library: field.element.library);
+      statements.add(statement);
     }
 
     if (locals.isNotEmpty) {

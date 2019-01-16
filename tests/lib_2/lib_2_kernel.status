@@ -81,7 +81,6 @@ isolate/browser/package_resolve_browser_test: CompileTimeError
 [ $compiler == dartkb && $strong ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
 isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
-isolate/kill_regexp_test: Pass, Crash # Issue 35590 - isolate.cc: 2863: error: expected: sticky_error_ == Error::null()
 isolate/mandel_isolate_test: Pass, Timeout # Please triage.
 isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
 mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232

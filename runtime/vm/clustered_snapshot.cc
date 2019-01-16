@@ -4202,7 +4202,7 @@ Serializer::Serializer(Thread* thread,
                        ImageWriter* image_writer,
                        bool vm,
                        V8SnapshotProfileWriter* profile_writer)
-    : StackResource(thread),
+    : ThreadStackResource(thread),
       heap_(thread->isolate()->heap()),
       zone_(thread->zone()),
       kind_(kind),
@@ -4616,7 +4616,7 @@ void Serializer::Serialize() {
   intptr_t code_order_length = 0;
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
     !defined(TARGET_ARCH_DBC)
-  if (Snapshot::IncludesCode(kind_)) {
+  if (kind_ == Snapshot::kFullAOT) {
     auto code_objects =
         static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
             ->discovered_objects();
@@ -4866,7 +4866,7 @@ Deserializer::Deserializer(Thread* thread,
                            const uint8_t* instructions_buffer,
                            const uint8_t* shared_data_buffer,
                            const uint8_t* shared_instructions_buffer)
-    : StackResource(thread),
+    : ThreadStackResource(thread),
       heap_(thread->isolate()->heap()),
       zone_(thread->zone()),
       kind_(kind),

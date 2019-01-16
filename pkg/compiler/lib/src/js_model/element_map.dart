@@ -119,10 +119,6 @@ abstract class JsToElementMap {
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
 
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
-
   /// [ElementEnvironment] for library, class and member lookup.
   JElementEnvironment get elementEnvironment;
 

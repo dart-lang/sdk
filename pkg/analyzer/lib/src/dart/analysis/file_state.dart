@@ -361,6 +361,23 @@ class FileState {
   }
 
   /**
+   * Return the set of transitive files - the file itself and all of the
+   * directly or indirectly referenced files.
+   */
+  Set<FileState> get transitiveFiles {
+    var transitiveFiles = new Set<FileState>();
+
+    void appendReferenced(FileState file) {
+      if (transitiveFiles.add(file)) {
+        file._directReferencedFiles?.forEach(appendReferenced);
+      }
+    }
+
+    appendReferenced(this);
+    return transitiveFiles;
+  }
+
+  /**
    * Return the signature of the file, based on API signatures of the
    * transitive closure of imported / exported files.
    */
@@ -670,9 +687,8 @@ class FileState {
       return _createEmptyCompilationUnit();
     }
 
-    AnalysisOptions analysisOptions = _fsState._analysisOptions;
-    ExperimentStatus experimentStatus =
-        new ExperimentStatus.fromStrings(analysisOptions.enabledExperiments);
+    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
+    ExperimentStatus experimentStatus = analysisOptions.experimentStatus;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
     scanner.enableGtGtGt = experimentStatus.constant_update_2018;

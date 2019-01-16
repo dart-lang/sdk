@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -23,13 +24,17 @@ main() async {
   final String spec = await fetchSpec();
   final List<AstNode> types = extractTypeScriptBlocks(spec)
       .where(shouldIncludeScriptBlock)
-      .map(parseFile)
+      .map(parseString)
       .expand((f) => f)
       .where(includeTypeDefinitionInOutput)
       .toList();
 
   // Generate an enum for all of the request methods to avoid strings.
   types.add(extractMethodsEnum(spec));
+
+  // Extract additional inline types that are specificed online in the `results`
+  // section of the doc.
+  types.addAll(extractResultsInlineTypes(spec));
 
   final String output = generateDartForTypes(types);
 
@@ -88,6 +93,42 @@ const jsonEncoder = const JsonEncoder.withIndent('    ');
 
 final Uri specUri = Uri.parse(
     'https://raw.githubusercontent.com/Microsoft/language-server-protocol/gh-pages/specification.md');
+
+/// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
+/// Doesn't parse past full stops as some of these have english sentences tagged on
+/// the end that we don't want to parse.
+final _resultsInlineTypesPattern = new RegExp(r'''\* result:[^\.]*({.*})''');
+
+/// Extract inline types found directly in the `results:` sections of the spec
+/// that are not declared with their own names elsewhere.
+List<AstNode> extractResultsInlineTypes(String spec) {
+  InlineInterface toInterface(String typeDef) {
+    // The definition passed here will be a bare inline type, such as:
+    //
+    //     { range: Range, placeholder: string }
+    //
+    // In order to parse this, we'll just format it as a type alias and then
+    // run it through the standard parsing code.
+    final typeAlias = 'type temp = ${typeDef.replaceAll(',', ';')};';
+
+    final parsed = parseString(typeAlias);
+
+    // Extract the InlineInterface that was created.
+    InlineInterface interface = parsed.firstWhere((t) => t is InlineInterface);
+
+    // Create a new name based on the fields.
+    var newName = interface.members.map((m) => capitalize(m.name)).join('And');
+
+    return new InlineInterface(newName, interface.members);
+  }
+
+  return _resultsInlineTypesPattern
+      .allMatches(spec)
+      .map((m) => m.group(1).trim())
+      .toList()
+      .map(toInterface)
+      .toList();
+}
 
 Future<String> fetchSpec() async {
   final resp = await http.get(specUri);

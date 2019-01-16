@@ -291,6 +291,9 @@ class ProcessedOptions {
   /// Whether to generate bytecode.
   bool get bytecode => _raw.bytecode;
 
+  /// Whether to write a file (e.g. a dill file) when reporting a crash.
+  bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
+
   Target _target;
   Target get target => _target ??=
       _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));

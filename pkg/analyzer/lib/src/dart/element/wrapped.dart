@@ -65,6 +65,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   bool get hasJS => wrappedUnit.hasJS;
 
   @override
+  bool get hasLiteral => wrappedUnit.hasLiteral;
+
+  @override
   bool get hasLoadLibraryFunction => wrappedUnit.hasLoadLibraryFunction;
 
   @override
@@ -253,6 +256,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   bool get hasJS => wrappedImport.hasJS;
+
+  @override
+  bool get hasLiteral => wrappedImport.hasLiteral;
 
   @override
   bool get hasOverride => wrappedImport.hasOverride;
@@ -452,6 +458,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   bool get hasJS => wrappedLib.hasJS;
+
+  @override
+  bool get hasLiteral => wrappedLib.hasLiteral;
 
   @override
   bool get hasLoadLibraryFunction => wrappedLib.hasLoadLibraryFunction;

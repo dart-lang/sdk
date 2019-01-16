@@ -25,7 +25,7 @@ class InvalidRequiredParamTest extends ResolverTestCase {
   }
 
   test_namedParameter_withDefault() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m({@required a = 1}) => null;
@@ -33,7 +33,7 @@ m({@required a = 1}) => null;
   }
 
   test_positionalParameter_withDefault() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
@@ -41,7 +41,7 @@ m([@required a = 1]) => null;
   }
 
   test_ppositionalParameter_noDefault() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m([@required a]) => null;
@@ -49,7 +49,7 @@ m([@required a]) => null;
   }
 
   test_requiredParameter() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m(@required a) => null;
@@ -57,7 +57,7 @@ m(@required a) => null;
   }
 
   test_valid() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m1() => null;

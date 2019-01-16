@@ -287,11 +287,12 @@ class BazelWorkspace extends Workspace {
   /**
    * Find the Bazel workspace that contains the given [filePath].
    *
-   * Return `null` if a workspace markers, such as the `WORKSPACE` file, or
+   * Return `null` if a workspace marker, such as the `WORKSPACE` file, or
    * the sibling `READONLY` folder cannot be found.
    *
    * Return `null` if the workspace does not have `bazel-genfiles` or
-   * `blaze-genfiles` folders, so we don't know where to search generated files.
+   * `blaze-genfiles` folders, since we don't know where to search generated
+   * files.
    *
    * Return `null` if there is a folder 'foo' with the sibling `READONLY`
    * folder, but there is corresponding folder 'foo' in `READONLY`, i.e. the

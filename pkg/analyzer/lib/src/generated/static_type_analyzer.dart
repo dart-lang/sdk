@@ -10,12 +10,15 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
@@ -52,6 +55,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _dynamicType;
 
   /**
+   * The status of the active experiments of the current context.
+   */
+  ExperimentStatus _experimentStatus;
+
+  /**
    * The type representing the class containing the nodes being analyzed,
    * or `null` if the nodes are not within a class.
    */
@@ -72,6 +80,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _promoteManager = _resolver.promoteManager;
+    _experimentStatus = (_resolver.definingLibrary.context.analysisOptions
+            as AnalysisOptionsImpl)
+        .experimentStatus;
   }
 
   /**
@@ -173,21 +184,33 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
-    if (contextType != null &&
-        node.typeArguments == null &&
-        node.entries.isEmpty &&
-        _typeSystem.isAssignableTo(_typeProvider.setNullType, contextType) &&
-        !_typeSystem.isAssignableTo(
-            _typeProvider.mapNullNullType, contextType)) {
-      // The node is really an empty set literal with no type arguments. Rewrite
-      // the AST and infer the type of the set as appropriate.
-      SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
-          node.constKeyword, null, node.leftBracket, null, node.rightBracket);
-      InferenceContext.setType(setLiteral, contextType);
-      NodeReplacer.replace(node, setLiteral);
-      DartType type = inferSetType(setLiteral, downwards: downwards);
-      setLiteral.staticType = type;
-      return type;
+    if (contextType != null && _experimentStatus.set_literals) {
+      DartType unwrap(DartType type) {
+        if (type is InterfaceType &&
+            type.isDartAsyncFutureOr &&
+            type.typeArguments.length == 1) {
+          return unwrap(type.typeArguments[0]);
+        }
+        return type;
+      }
+
+      DartType unwrappedContextType = unwrap(contextType);
+      if (node.typeArguments == null &&
+          node.entries.isEmpty &&
+          _typeSystem.isAssignableTo(
+              _typeProvider.iterableObjectType, unwrappedContextType) &&
+          !_typeSystem.isAssignableTo(
+              _typeProvider.mapObjectObjectType, unwrappedContextType)) {
+        // The node is really an empty set literal with no type arguments.
+        // Rewrite the AST and infer the type of the set as appropriate.
+        SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
+            node.constKeyword, null, node.leftBracket, null, node.rightBracket);
+        InferenceContext.setType(setLiteral, contextType);
+        NodeReplacer.replace(node, setLiteral);
+        DartType type = inferSetType(setLiteral, downwards: downwards);
+        setLiteral.staticType = type;
+        return type;
+      }
     }
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
@@ -830,13 +853,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand, read: true);
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
-      DartType intType = _typeProvider.intType;
-      if (identical(staticType, intType)) {
-        staticType = intType;
-      }
+
+    // No need to check for `intVar++`, the result is `int`.
+    if (!staticType.isDartCoreInt) {
+      var operatorElement = node.staticElement;
+      var operatorReturnType = _computeStaticReturnType(operatorElement);
+      _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
     }
+
     _recordStaticType(node, staticType);
   }
 
@@ -894,9 +918,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       if (operator == TokenType.MINUS_MINUS ||
           operator == TokenType.PLUS_PLUS) {
-        DartType intType = _typeProvider.intType;
-        if (identical(_getStaticType(node.operand, read: true), intType)) {
-          staticType = intType;
+        Expression operand = node.operand;
+        var operandReadType = _getStaticType(operand, read: true);
+        if (operandReadType.isDartCoreInt) {
+          staticType = _typeProvider.intType;
+        } else {
+          _checkForInvalidAssignmentIncDec(node, operand, staticType);
         }
       }
       _recordStaticType(node, staticType);
@@ -1187,6 +1214,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             _dynamicType;
 
     _recordStaticType(node, staticType);
+  }
+
+  /// Check that the result [type] of a prefix or postfix `++` or `--`
+  /// expression is assignable to the write type of the [operand].
+  void _checkForInvalidAssignmentIncDec(
+      AstNode node, Expression operand, DartType type) {
+    var operandWriteType = _getStaticType(operand);
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+      _resolver.errorReporter.reportTypeErrorForNode(
+        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        node,
+        [type, operandWriteType],
+      );
+    }
   }
 
   /**

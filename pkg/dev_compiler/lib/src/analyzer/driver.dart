@@ -9,14 +9,15 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -241,16 +242,13 @@ class CompilerAnalysisDriver {
     var bundle = PackageBundle.fromBuffer(summaryBytes);
 
     /// Create an analysis context to contain the state for this build unit.
-    var context =
-        AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
-    context.sourceFactory = sourceFactory;
+    var context = RestrictedAnalysisContext(
+        analysisOptions, declaredVariables, sourceFactory);
     var resultProvider = InputPackagesResultProvider(
         context,
         SummaryDataStore([])
           ..addStore(summaryData)
           ..addBundle(null, bundle));
-    context.resultProvider = resultProvider;
-    context.contentCache = _ContentCacheWrapper(fsState);
 
     var resynthesizer = resultProvider.resynthesizer;
     _extensionTypes ??= ExtensionTypeSet(context.typeProvider, resynthesizer);
@@ -315,10 +313,7 @@ class LinkedAnalysisDriver {
       this._fsState,
       this._resourceProvider);
 
-  AnalysisContextImpl get context => resynthesizer.context;
-
-  /// Clean up any state used by this driver.
-  void dispose() => context.dispose();
+  TypeProvider get typeProvider => resynthesizer.typeProvider;
 
   /// True if [uri] refers to a Dart library (i.e. a Dart source file exists
   /// with this uri, and it is not a part file).
@@ -339,9 +334,9 @@ class LinkedAnalysisDriver {
         declaredVariables,
         resynthesizer.sourceFactory,
         (uri) => _isLibraryUri('$uri'),
-        context,
+        resynthesizer.context,
         resynthesizer,
-        InheritanceManager2(context.typeSystem),
+        InheritanceManager2(resynthesizer.typeSystem),
         libraryFile,
         _resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
@@ -358,53 +353,5 @@ class LinkedAnalysisDriver {
 
   LibraryElement getLibrary(String uri) {
     return resynthesizer.getLibraryElement(uri);
-  }
-}
-
-/// [ContentCache] wrapper around [FileSystemState].
-class _ContentCacheWrapper implements ContentCache {
-  final FileSystemState fsState;
-
-  _ContentCacheWrapper(this.fsState);
-
-  @override
-  void accept(ContentCacheVisitor visitor) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String getContents(Source source) {
-    return _getFileForSource(source).content;
-  }
-
-  @override
-  bool getExists(Source source) {
-    if (source.isInSystemLibrary) {
-      return true;
-    }
-    String uriStr = source.uri.toString();
-    if (fsState.externalSummaries != null &&
-        fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
-      return true;
-    }
-    return _getFileForSource(source).exists;
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    if (source.isInSystemLibrary) {
-      return 0;
-    }
-    return _getFileForSource(source).exists ? 0 : -1;
-  }
-
-  @override
-  String setContents(Source source, String contents) {
-    throw new UnimplementedError();
-  }
-
-  FileState _getFileForSource(Source source) {
-    String path = source.fullName;
-    return fsState.getFileForPath(path);
   }
 }

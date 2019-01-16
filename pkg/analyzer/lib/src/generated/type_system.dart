@@ -885,7 +885,7 @@ class Dart2TypeSystem extends TypeSystem {
   DartType _substituteForUnknownType(DartType type, {bool lowerBound: false}) {
     if (identical(type, UnknownInferredType.instance)) {
       if (lowerBound) {
-        // TODO(jmesserly): this should be the bottom type, once i can be
+        // TODO(jmesserly): this should be the bottom type, once it can be
         // reified.
         return typeProvider.nullType;
       }
@@ -896,7 +896,8 @@ class Dart2TypeSystem extends TypeSystem {
       var newTypeArgs = _transformList(type.typeArguments,
           (t) => _substituteForUnknownType(t, lowerBound: lowerBound));
       if (identical(type.typeArguments, newTypeArgs)) return type;
-      return new InterfaceTypeImpl(type.element, type.prunedTypedefs)
+      return new InterfaceTypeImpl(
+          type.element, type.prunedTypedefs, type.nullability)
         ..typeArguments = newTypeArgs;
     }
     if (type is FunctionType) {
@@ -922,7 +923,8 @@ class Dart2TypeSystem extends TypeSystem {
       }
 
       return new FunctionTypeImpl.synthetic(
-          newReturnType, type.typeFormals, newParameters);
+          newReturnType, type.typeFormals, newParameters,
+          nullability: (type as TypeImpl).nullability);
     }
     return type;
   }
@@ -2171,10 +2173,14 @@ class UnknownInferredType extends TypeImpl {
   bool get isDynamic => true;
 
   @override
+  Nullability get nullability => Nullability.indeterminate;
+
+  @override
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> types) {
+  void appendTo(StringBuffer buffer, Set<TypeImpl> types,
+      {bool withNullability = false}) {
     buffer.write('?');
   }
 
@@ -2227,6 +2233,9 @@ class UnknownInferredType extends TypeImpl {
     }
     return this;
   }
+
+  @override
+  TypeImpl withNullability(Nullability nullability) => this;
 
   /// Given a [type] T, return true if it does not have an unknown type `?`.
   static bool isKnown(DartType type) => !isUnknown(type);

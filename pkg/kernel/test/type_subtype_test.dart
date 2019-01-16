@@ -200,10 +200,15 @@ class MockSubtypeTester extends SubtypeTester {
   Class futureClass;
   Class futureOrClass;
   LazyTypeEnvironment environment;
-  bool legacyMode = true;
+  bool legacyMode = false;
 
   InterfaceType futureType(DartType type) =>
       new InterfaceType(futureClass, [type]);
+
+  @override
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+    return hierarchy.getTypeAsInstanceOf(type, superclass);
+  }
 
   MockSubtypeTester(
       this.hierarchy,

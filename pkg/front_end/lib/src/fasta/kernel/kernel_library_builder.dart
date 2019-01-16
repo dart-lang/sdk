@@ -39,6 +39,8 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         VoidType;
 
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/src/bounds_checks.dart'
@@ -597,13 +599,14 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       int charOffset,
+      int charEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
     KernelFieldBuilder field = new KernelFieldBuilder(
-        metadata, type, name, modifiers, this, charOffset);
+        metadata, type, name, modifiers, this, charOffset, charEndOffset);
     addBuilder(name, field, charOffset);
     if (initializerTokenForInference != null) {
       assert(type == null);
@@ -1651,6 +1654,7 @@ class KernelLibraryBuilder
   void checkBoundsInMethodInvocation(
       DartType receiverType,
       TypeEnvironment typeEnvironment,
+      ClassHierarchy hierarchy,
       TypeInferrerImpl typeInferrer,
       Name name,
       Member interfaceTarget,
@@ -1668,14 +1672,13 @@ class KernelLibraryBuilder
       return;
     }
     // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
-    Member method = typeEnvironment.hierarchy.getDispatchTarget(klass, name) ??
-        interfaceTarget;
+    Member method = hierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
     if (method == null || method is! Procedure) {
       return;
     }
     if (klass != method.enclosingClass) {
-      Supertype parent = typeEnvironment.hierarchy
-          .getClassAsInstanceOf(klass, method.enclosingClass);
+      Supertype parent =
+          hierarchy.getClassAsInstanceOf(klass, method.enclosingClass);
       klass = method.enclosingClass;
       receiverTypeArguments = parent.typeArguments;
     }

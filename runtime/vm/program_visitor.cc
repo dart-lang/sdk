@@ -4,6 +4,7 @@
 
 #include "vm/program_visitor.h"
 
+#include "vm/code_patcher.h"
 #include "vm/deopt_instructions.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
@@ -112,6 +113,66 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
     visitor->Visit(function);
     ASSERT(!function.HasImplicitClosureFunction());
   }
+}
+
+void ProgramVisitor::BindStaticCalls() {
+#if !defined(TARGET_ARCH_DBC)
+  if (FLAG_precompiled_mode) {
+    return;
+  }
+
+  class BindJITStaticCallsVisitor : public FunctionVisitor {
+   public:
+    explicit BindJITStaticCallsVisitor(Zone* zone)
+        : code_(Code::Handle(zone)),
+          table_(Array::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          target_(Object::Handle(zone)),
+          target_code_(Code::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      table_ = code_.static_calls_target_table();
+      StaticCallsTable static_calls(table_);
+      for (const auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        Code::CallKind kind = Code::KindField::decode(kind_and_offset_.Value());
+        if (kind != Code::kCallViaCode) {
+          continue;
+        }
+        int32_t pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
+        target_ = view.Get<Code::kSCallTableFunctionTarget>();
+        if (target_.IsNull()) {
+          target_ = view.Get<Code::kSCallTableCodeTarget>();
+          ASSERT(!Code::Cast(target_).IsFunctionCode());
+          // Allocation stub or AllocateContext or AllocateArray or ...
+        } else {
+          const Function& target_func = Function::Cast(target_);
+          if (target_func.HasCode()) {
+            target_code_ = target_func.CurrentCode();
+          } else {
+            target_code_ = StubCode::CallStaticFunction().raw();
+          }
+          uword pc = pc_offset + code_.PayloadStart();
+          CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
+        }
+      }
+    }
+
+   private:
+    Code& code_;
+    Array& table_;
+    Smi& kind_and_offset_;
+    Object& target_;
+    Code& target_code_;
+  };
+
+  BindJITStaticCallsVisitor visitor(Thread::Current()->zone());
+  ProgramVisitor::VisitFunctions(&visitor);
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void ProgramVisitor::ShareMegamorphicBuckets() {
@@ -821,8 +882,7 @@ void ProgramVisitor::Dedup() {
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
 
-  // TODO(rmacnak): Bind static calls whose target has been compiled. Forward
-  // references to disabled code.
+  BindStaticCalls();
   ShareMegamorphicBuckets();
   DedupStackMaps();
   DedupPcDescriptors();

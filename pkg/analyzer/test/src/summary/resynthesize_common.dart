@@ -451,6 +451,36 @@ class C {
 ''');
   }
 
+  test_class_constructor_field_formal_functionTyped_noReturnType() async {
+    var library = await checkLibrary(r'''
+class C {
+  var x;
+  C(this.x(double b));
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic x;
+  C((double) → dynamic this.x);
+}
+''');
+  }
+
+  test_class_constructor_field_formal_functionTyped_withReturnType() async {
+    var library = await checkLibrary(r'''
+class C {
+  var x;
+  C(int this.x(double b));
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic x;
+  C((double) → int this.x);
+}
+''');
+  }
+
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // This is a compile-time error but it should still analyze consistently.
     var library = await checkLibrary('class C { C(this.x); int x; String x; }',

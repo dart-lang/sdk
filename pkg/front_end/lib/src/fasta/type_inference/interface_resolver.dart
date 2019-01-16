@@ -33,7 +33,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
 
 import '../../base/instrumentation.dart'
     show
@@ -675,7 +676,7 @@ class ForwardingNode extends Procedure {
 class InterfaceResolver {
   final TypeInferenceEngine _typeInferenceEngine;
 
-  final TypeEnvironment _typeEnvironment;
+  final HierarchyBasedTypeEnvironment _typeEnvironment;
 
   final Instrumentation _instrumentation;
 
@@ -1244,8 +1245,8 @@ class InterfaceResolver {
   /// Determines the appropriate substitution to translate type parameters
   /// mentioned in the given [candidate] to type parameters on [class_].
   Substitution _substitutionFor(Procedure candidate, Class class_) {
-    return Substitution.fromInterfaceType(_typeEnvironment.hierarchy
-        .getTypeAsInstanceOf(class_.thisType, candidate.enclosingClass));
+    return Substitution.fromInterfaceType(_typeEnvironment.getTypeAsInstanceOf(
+        class_.thisType, candidate.enclosingClass));
   }
 
   /// Executes [callback] once for each uniquely named member of [candidates].

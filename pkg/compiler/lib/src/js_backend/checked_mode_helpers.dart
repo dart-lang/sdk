@@ -154,12 +154,10 @@ class CheckedModeHelpers {
       new Map<String, CheckedModeHelper>.fromIterable(helpers,
           key: (helper) => helper.name);
 
-  /**
-   * Returns the checked mode helper that will be needed to do a type check/type
-   * cast on [type] at runtime. Note that this method is being called both by
-   * the resolver with interface types (int, String, ...), and by the SSA
-   * backend with implementation types (JSInt, JSString, ...).
-   */
+  /// Returns the checked mode helper that will be needed to do a type
+  /// check/type cast on [type] at runtime. Note that this method is being
+  /// called both by the resolver with interface types (int, String, ...), and
+  /// by the SSA backend with implementation types (JSInt, JSString, ...).
   CheckedModeHelper getCheckedModeHelper(
       DartType type, CommonElements commonElements,
       {bool typeCast}) {
@@ -167,11 +165,9 @@ class CheckedModeHelpers {
         typeCast: typeCast, nativeCheckOnly: false);
   }
 
-  /**
-   * Returns the native checked mode helper that will be needed to do a type
-   * check/type cast on [type] at runtime. If no native helper exists for
-   * [type], [:null:] is returned.
-   */
+  /// Returns the native checked mode helper that will be needed to do a type
+  /// check/type cast on [type] at runtime. If no native helper exists for
+  /// [type], [:null:] is returned.
   CheckedModeHelper getNativeCheckedModeHelper(
       DartType type, CommonElements commonElements,
       {bool typeCast}) {
@@ -179,10 +175,9 @@ class CheckedModeHelpers {
         typeCast: typeCast, nativeCheckOnly: true);
   }
 
-  /**
-   * Returns the checked mode helper for the type check/type cast for [type]. If
-   * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
-   */
+  /// Returns the checked mode helper for the type check/type cast for
+  /// [type]. If [nativeCheckOnly] is [:true:], only names for native helpers
+  /// are returned.
   CheckedModeHelper getCheckedModeHelperInternal(
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {

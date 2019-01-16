@@ -5,8 +5,8 @@
 /*element: Class1a.:static=[Object.(0)]*/
 class Class1a<T> {
   /*element: Class1a.==:
-   dynamic=[<Class1a.runtimeType,Object.runtimeType,Type.==],
-   runtimeType=[equals:Class1a<Class1a.T>/dynamic]
+   dynamic=[this:Class1a.runtimeType,Object.runtimeType,Type.==],
+   runtimeType=[equals:Class1a<Class1a.T>/Object]
   */
   bool operator ==(other) {
     return runtimeType == other.runtimeType;
@@ -16,8 +16,8 @@ class Class1a<T> {
 /*element: Class1b.:static=[Class1a.(0)]*/
 class Class1b<T> extends Class1a<T> {
   /*element: Class1b.==:
-   dynamic=[<Class1b.runtimeType,Object.runtimeType,Type.==],
-   runtimeType=[equals:dynamic/Class1b<Class1b.T>]
+   dynamic=[this:Class1b.runtimeType,Object.runtimeType,Type.==],
+   runtimeType=[equals:Object/Class1b<Class1b.T>]
   */
   bool operator ==(other) {
     return other.runtimeType == runtimeType;
@@ -27,8 +27,8 @@ class Class1b<T> extends Class1a<T> {
 /*element: Class1c.:static=[Object.(0)]*/
 class Class1c<T> implements Class1a<T> {
   /*element: Class1c.==:
-   dynamic=[<Class1c.runtimeType,Object.==,Object.runtimeType,Type.==],
-   runtimeType=[equals:Class1c<Class1c.T>/dynamic],
+   dynamic=[this:Class1c.runtimeType,Object.==,Object.runtimeType,Type.==],
+   runtimeType=[equals:Class1c<Class1c.T>/Object],
    type=[inst:JSNull]
   */
   bool operator ==(other) {
@@ -39,8 +39,8 @@ class Class1c<T> implements Class1a<T> {
 /*element: Class1d.:static=[Object.(0)]*/
 class Class1d<T> implements Class1a<T> {
   /*element: Class1d.==:
-   dynamic=[<Class1d.runtimeType,Object.==,Object.runtimeType,Type.==],
-   runtimeType=[equals:dynamic/Class1d<Class1d.T>],
+   dynamic=[this:Class1d.runtimeType,Object.==,Object.runtimeType,Type.==],
+   runtimeType=[equals:Object/Class1d<Class1d.T>],
    type=[inst:JSNull]
   */
   bool operator ==(other) {
@@ -379,7 +379,7 @@ notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
 
 /*element: main:
- dynamic=[Class1a.==],
+ dynamic=[exact:Class1a.==],
  static=[
   Class1a.(0),
   Class1b.(0),

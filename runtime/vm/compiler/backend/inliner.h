@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -139,6 +140,7 @@ class FlowGraphInliner : ValueObject {
                                         GraphEntryInstr* graph_entry,
                                         FunctionEntryInstr** entry,
                                         Instruction** last,
+                                        Definition** result,
                                         SpeculativeInliningPolicy* policy,
                                         ExactnessInfo* exactness = nullptr);
 

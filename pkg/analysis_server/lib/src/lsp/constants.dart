@@ -23,6 +23,7 @@ abstract class DartCodeActionKind {
     // We have to explicitly list this for the client to enable built-in command.
     CodeActionKind.SourceOrganizeImports,
     SortMembers,
+    CodeActionKind.QuickFix,
   ];
   static const SortMembers = const CodeActionKind('source.sortMembers');
 }
@@ -39,6 +40,7 @@ abstract class ServerErrorCodes {
   static const FileNotAnalyzed = const ErrorCodes(-32007);
   static const FileHasErrors = const ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = const ErrorCodes(-32009);
+  static const RenameNotValid = const ErrorCodes(-32010);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

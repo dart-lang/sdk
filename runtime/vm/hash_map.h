@@ -374,7 +374,7 @@ class DirectChainedHashMap
  public:
   DirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
-            ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 
   explicit DirectChainedHashMap(Zone* zone)
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(

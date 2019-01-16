@@ -37,6 +37,8 @@ import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
@@ -67,6 +69,7 @@ abstract class Compiler {
   final FileSystem fileSystem;
   final Uri platformKernelPath;
   bool suppressWarnings;
+  List<String> experimentalFlags;
   bool bytecode;
   String packageConfig;
 
@@ -76,6 +79,7 @@ abstract class Compiler {
 
   Compiler(this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
+      this.experimentalFlags: null,
       this.bytecode: false,
       this.packageConfig: null}) {
     Uri packagesUri = null;
@@ -92,6 +96,13 @@ abstract class Compiler {
       print("DFE: platformKernelPath: ${platformKernelPath}");
     }
 
+    var expFlags = List<String>();
+    if (experimentalFlags != null) {
+      for (String flag in experimentalFlags) {
+        expFlags.addAll(flag.split(","));
+      }
+    }
+
     options = new CompilerOptions()
       ..fileSystem = fileSystem
       ..target = new VmTarget(new TargetFlags())
@@ -99,6 +110,8 @@ abstract class Compiler {
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
       ..bytecode = bytecode
+      ..experimentalFlags =
+          parseExperimentalFlags(expFlags, (msg) => errors.add(msg))
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -163,10 +176,12 @@ class IncrementalCompilerWrapper extends Compiler {
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
+      List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
+            experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
 
@@ -186,6 +201,7 @@ class IncrementalCompilerWrapper extends Compiler {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
         fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
+        experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
 
@@ -213,10 +229,12 @@ class SingleShotCompilerWrapper extends Compiler {
   SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool suppressWarnings: false,
+      List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
+            experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
 
@@ -240,6 +258,7 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
+    List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
     String multirootFilepaths,
@@ -268,6 +287,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // isolate was shut down. Message should be handled here in this script.
       compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
           suppressWarnings: suppressWarnings,
+          experimentalFlags: experimentalFlags,
           bytecode: bytecode,
           packageConfig: packageConfig);
     }
@@ -445,10 +465,12 @@ Future _processLoadRequest(request) async {
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
-  final bool bytecode = request[9];
-  final String packageConfig = request[10];
-  final String multirootFilepaths = request[11];
-  final String multirootScheme = request[12];
+  final List<String> experimentalFlags =
+      request[9] != null ? request[9].cast<String>() : null;
+  final bool bytecode = request[10];
+  final String packageConfig = request[11];
+  final String multirootFilepaths = request[12];
+  final String multirootScheme = request[13];
 
   if (bytecode) {
     // Bytecode generator is hooked into kernel service after kernel component
@@ -507,6 +529,7 @@ Future _processLoadRequest(request) async {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
         suppressWarnings: suppressWarnings,
+        experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
@@ -517,6 +540,7 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: false,
         suppressWarnings: suppressWarnings,
+        experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
   }
@@ -641,6 +665,7 @@ train(String scriptUri, String platformKernelPath) {
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
+    null /* experimental_flags */,
     false /* generate bytecode */,
     null /* package_config */,
     null /* multirootFilepaths */,

@@ -50,6 +50,8 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ blx(TMP);
     __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
     __ str(TMP, Address(THR, Thread::vm_tag_offset()));
+    ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
+    ASSERT((kAbiPreservedCpuRegs & (1 << PP)) != 0);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

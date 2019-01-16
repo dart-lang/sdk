@@ -2846,6 +2846,74 @@ VoidToInt f = new C();''');
     verify([source]);
   }
 
+  test_invalidAssignment_postfixExpression_localVariable() async {
+    Source source = addSource(r'''
+class A {
+  A operator+(_) => this;
+}
+
+f(A a) {
+  a++;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidAssignment_postfixExpression_property() async {
+    Source source = addSource(r'''
+class A {
+  A operator+(_) => this;
+}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  c.a++;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidAssignment_prefixExpression_localVariable() async {
+    Source source = addSource(r'''
+class A {
+  A operator+(_) => this;
+}
+
+f(A a) {
+  ++a;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidAssignment_prefixExpression_property() async {
+    Source source = addSource(r'''
+class A {
+  A operator+(_) => this;
+}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  ++c.a;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_invalidAssignment_toDynamic() async {
     Source source = addSource(r'''
 f() {

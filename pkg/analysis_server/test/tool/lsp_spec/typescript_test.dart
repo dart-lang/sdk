@@ -21,7 +21,7 @@ export interface SomeOptions {
 	options?: OptionKind[];
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -46,7 +46,7 @@ export interface Capabilities {
   };
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       // Length is two because we'll fabricate the type of textDoc.
       expect(output, hasLength(2));
 
@@ -87,7 +87,7 @@ export interface SomeOptions {
 	options1: any;
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -106,7 +106,7 @@ interface ResponseError<D> {
 	data?: D;
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -128,7 +128,7 @@ export interface MyMessage {
 	params?: Array<any> | object;
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -152,7 +152,7 @@ export interface WorkspaceEdit {
 	changes: { [uri: string]: TextEdit[]; };
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -173,7 +173,7 @@ export interface A {
   canBeUndefined?: string;
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       final Interface interface = output[0];
       expect(interface.members, hasLength(4));
       interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
@@ -213,7 +213,7 @@ export interface A {
   a: a;
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       final Interface interface = output[0];
       expect(interface.commentText, equals('''
 Describes the what this class in lots of words that wrap onto multiple lines that will need re-wrapping to format nicely when converted into Dart.
@@ -234,7 +234,7 @@ Sometimes after a blank line we'll have a note.
       final String input = '''
 export type DocumentSelector = DocumentFilter[];
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<TypeAlias>());
       final TypeAlias typeAlias = output[0];
@@ -261,7 +261,7 @@ export namespace ResourceOperationKind {
 	export const Rename: ResourceOperationKind = 'rename';
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Namespace>());
       final Namespace namespace = output[0];
@@ -290,7 +290,7 @@ interface SomeInformation {
 	label: string | [number, number];
 }
     ''';
-      final List<AstNode> output = parseFile(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];

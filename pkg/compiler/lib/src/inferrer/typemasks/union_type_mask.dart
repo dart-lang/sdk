@@ -232,14 +232,12 @@ class UnionTypeMask implements TypeMask {
   bool get isForwarding => false;
   bool get isValue => false;
 
-  /**
-   * Checks whether [other] is contained in this union.
-   *
-   * Invariants:
-   * - [other] may not be a [UnionTypeMask] itself
-   * - the cheap test matching against individual members of [disjointMasks]
-   *   must have failed.
-   */
+  /// Checks whether [other] is contained in this union.
+  ///
+  /// Invariants:
+  /// - [other] may not be a [UnionTypeMask] itself
+  /// - the cheap test matching against individual members of [disjointMasks]
+  ///   must have failed.
   bool slowContainsCheck(TypeMask other, JClosedWorld closedWorld) {
     // Unions should never make it here.
     assert(!other.isUnion);

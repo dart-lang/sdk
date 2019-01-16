@@ -12,26 +12,24 @@ import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
-/**
- * This phase simplifies interceptors in multiple ways:
- *
- * 1) If the interceptor is for an object whose type is known, it
- * tries to use a constant interceptor instead.
- *
- * 2) Interceptors are specialized based on the selector it is used with.
- *
- * 3) If we know the object is not intercepted, we just use the object
- * instead.
- *
- * 4) Single use interceptors at dynamic invoke sites are replaced with 'one
- * shot interceptors' which are synthesized static helper functions that fetch
- * the interceptor and then call the method.  This saves code size and makes the
- * receiver of an intercepted call a candidate for being generated at use site.
- *
- * 5) Some HIs operations on an interceptor are replaced with a HIs version that
- * uses 'instanceof' rather than testing a type flag.
- *
- */
+/// This phase simplifies interceptors in multiple ways:
+///
+/// 1) If the interceptor is for an object whose type is known, it
+/// tries to use a constant interceptor instead.
+///
+/// 2) Interceptors are specialized based on the selector it is used with.
+///
+/// 3) If we know the object is not intercepted, we just use the object
+/// instead.
+///
+/// 4) Single use interceptors at dynamic invoke sites are replaced with 'one
+/// shot interceptors' which are synthesized static helper functions that fetch
+/// the interceptor and then call the method.  This saves code size and makes the
+/// receiver of an intercepted call a candidate for being generated at use site.
+///
+/// 5) Some HIs operations on an interceptor are replaced with a HIs version that
+/// uses 'instanceof' rather than testing a type flag.
+///
 class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";

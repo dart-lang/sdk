@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -43,12 +44,21 @@ class EditDartFix {
 
   EditDartFix(this.server, this.request);
 
-  void addFix(String description, Location location, SourceChange change) {
+  void addSourceChange(
+      String description, Location location, SourceChange change) {
     suggestions.add(new DartFixSuggestion(description, location: location));
     for (SourceFileEdit fileEdit in change.edits) {
       for (SourceEdit sourceEdit in fileEdit.edits) {
         sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
       }
+    }
+  }
+
+  void addSourceFileEdit(
+      String description, Location location, SourceFileEdit fileEdit) {
+    suggestions.add(new DartFixSuggestion(description, location: location));
+    for (SourceEdit sourceEdit in fileEdit.edits) {
+      sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
     }
   }
 
@@ -89,6 +99,7 @@ class EditDartFix {
 
     final preferIntLiterals = lintRules['prefer_int_literals'];
     final preferIntLiteralsFix = new PreferIntLiteralsFix(this);
+    final nonNullableFix = new NonNullableFix(this);
     preferIntLiterals?.reporter = preferIntLiteralsFix;
 
     // Setup
@@ -163,6 +174,9 @@ class EditDartFix {
             for (LinterFix fix in fixes) {
               await fix.applyLocalFixes(result);
             }
+            if (isIncluded(source.fullName)) {
+              nonNullableFix.applyLocalFixes(result);
+            }
           }
           break;
         } on InconsistentAnalysisException catch (_) {
@@ -219,7 +233,7 @@ class EditDartFix {
     Fix fix = await processor.computeFix();
     final location = locationFor(result, error.offset, error.length);
     if (fix != null) {
-      addFix(fix.change.message, location, fix.change);
+      addSourceChange(fix.change.message, location, fix.change);
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.

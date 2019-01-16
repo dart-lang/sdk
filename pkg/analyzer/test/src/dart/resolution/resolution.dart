@@ -58,6 +58,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   TypeProvider get typeProvider =>
       result.unit.declaredElement.context.typeProvider;
 
+  /// Whether `DartType.toString()` with nullability should be asked.
+  bool get typeToStringWithNullability => false;
+
   void addTestFile(String content) {
     newFile('/test/lib/test.dart', content: content);
   }
@@ -127,7 +130,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementTypeString(DartType type, String expected) {
-    expect(type.toString(), expected);
+    TypeImpl typeImpl = type;
+    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
+        expected);
   }
 
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {
@@ -320,7 +325,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertType(AstNode node, String expected) {
-    DartType actual;
+    TypeImpl actual;
     if (node is Expression) {
       actual = node.staticType;
     } else if (node is GenericFunctionType) {
@@ -330,7 +335,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
-    expect(actual?.toString(), expected);
+    expect(actual?.toString(withNullability: typeToStringWithNullability),
+        expected);
   }
 
   void assertTypeDynamic(Expression expression) {

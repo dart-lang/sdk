@@ -46,7 +46,8 @@ Component transformComponent(
 
   if (kDumpAllSummaries) {
     Statistics.reset();
-    new CreateAllSummariesVisitor(target, types, genericInterfacesInfo)
+    new CreateAllSummariesVisitor(
+            target, types, hierarchy, genericInterfacesInfo)
         .visitComponent(component);
     Statistics.print("All summaries statistics");
   }
@@ -73,7 +74,7 @@ Component transformComponent(
 
   new TreeShaker(component, typeFlowAnalysis).transformComponent(component);
 
-  new TFADevirtualization(component, typeFlowAnalysis)
+  new TFADevirtualization(component, typeFlowAnalysis, hierarchy)
       .visitComponent(component);
 
   new AnnotateKernel(component, typeFlowAnalysis).visitComponent(component);
@@ -92,9 +93,9 @@ Component transformComponent(
 class TFADevirtualization extends Devirtualization {
   final TypeFlowAnalysis _typeFlowAnalysis;
 
-  TFADevirtualization(Component component, this._typeFlowAnalysis)
-      : super(_typeFlowAnalysis.environment.coreTypes, component,
-            _typeFlowAnalysis.environment.hierarchy);
+  TFADevirtualization(
+      Component component, this._typeFlowAnalysis, ClassHierarchy hierarchy)
+      : super(_typeFlowAnalysis.environment.coreTypes, component, hierarchy);
 
   @override
   DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
@@ -366,6 +367,8 @@ class TreeShaker {
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
   bool isMemberBodyReachable(Member m) => typeFlowAnalysis.isMemberUsed(m);
+  bool isFieldInitializerReachable(Field f) =>
+      typeFlowAnalysis.isFieldInitializerUsed(f);
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
@@ -591,6 +594,30 @@ class _TreeShakerPass1 extends Transformer {
       }
       shaker.addUsedMember(node);
       node.transformChildren(this);
+    } else if (shaker.isMemberReferencedFromNativeCode(node)) {
+      // Preserve members referenced from native code to satisfy lookups, even
+      // if they are not reachable. An instance member could be added via
+      // native code entry point but still unreachable if no instances of
+      // its enclosing class are allocated.
+      shaker.addUsedMember(node);
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitField(Field node) {
+    if (shaker.isMemberBodyReachable(node)) {
+      if (kPrintTrace) {
+        tracePrint("Visiting $node");
+      }
+      shaker.addUsedMember(node);
+      if (node.initializer != null) {
+        if (shaker.isFieldInitializerReachable(node)) {
+          node.transformChildren(this);
+        } else {
+          node.initializer = _makeUnreachableCall([]);
+        }
+      }
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
       // if they are not reachable. An instance member could be added via

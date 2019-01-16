@@ -116,6 +116,8 @@ class ProgramCompiler extends Object
 
   final TypeEnvironment types;
 
+  final ClassHierarchy hierarchy;
+
   /// Information about virtual and overridden fields/getters/setters in the
   /// class we're currently compiling, or `null` if we aren't compiling a class.
   ClassPropertyModel _classProperties;
@@ -202,9 +204,9 @@ class ProgramCompiler extends Object
     var types = TypeSchemaEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
-    var jsTypeRep = JSTypeRep(types);
+    var jsTypeRep = JSTypeRep(types, hierarchy);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
-        types, jsTypeRep, NullableInference(jsTypeRep), options);
+        types, hierarchy, jsTypeRep, NullableInference(jsTypeRep), options);
   }
 
   ProgramCompiler._(
@@ -213,6 +215,7 @@ class ProgramCompiler extends Object
       this._extensionTypes,
       this._constants,
       this.types,
+      this.hierarchy,
       this._typeRep,
       this._nullableInference,
       this.options)
@@ -229,8 +232,6 @@ class ProgramCompiler extends Object
             sdk.getClass('dart:collection', '_IdentityHashSet'),
         syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
         asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl');
-
-  ClassHierarchy get hierarchy => types.hierarchy;
 
   Uri get currentLibraryUri => _currentLibrary.importUri;
 
@@ -5118,6 +5119,14 @@ class ProgramCompiler extends Object
   visitTypeLiteralConstant(node) => defaultConstant(node);
   @override
   visitPartialInstantiationConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentBoolConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentIntConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentStringConstant(node) => defaultConstant(node);
+  @override
+  visitUnevaluatedConstant(node) => defaultConstant(node);
 }
 
 bool isSdkInternalRuntime(Library l) =>

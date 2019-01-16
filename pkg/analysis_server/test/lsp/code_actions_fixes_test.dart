@@ -50,7 +50,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
-      mainFilePath: content,
+      mainFilePath: withoutMarkers(content),
     };
     applyDocumentChanges(contents, fixAction.edit.documentChanges);
     expect(contents[mainFilePath], equals(expectedContent));
@@ -88,7 +88,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
-      mainFilePath: content,
+      mainFilePath: withoutMarkers(content),
     };
     applyChanges(contents, fixAction.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));

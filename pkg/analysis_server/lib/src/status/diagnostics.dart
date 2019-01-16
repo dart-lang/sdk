@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,7 +11,10 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
+    show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -145,6 +148,8 @@ td.pre {
 }
 ''';
 
+/// TODO(devoncarew): We're not currently tracking the time spent in specific
+/// lints by default (analysisOptions / driverOptions enableTiming)
 final bool _showLints = false;
 
 String get _sdkVersion {
@@ -157,6 +162,74 @@ String get _sdkVersion {
 
 String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
+}
+
+abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
+  AbstractCompletionPage(DiagnosticsSite site)
+      : super(site, 'completion', 'Code Completion',
+            description: 'Latency statistics for code completion.');
+
+  pathPackage.Context get pathContext;
+  List<CompletionPerformance> get performanceItems;
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+
+    List<CompletionPerformance> completions = performanceItems;
+
+    if (completions.isEmpty) {
+      blankslate('No completions recorded.');
+      return;
+    }
+
+    int fastCount =
+        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
+
+    // draw a chart
+    buf.writeln(
+        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
+    StringBuffer rowData = new StringBuffer();
+    for (int i = completions.length - 1; i >= 0; i--) {
+      // [' ', 101.5]
+      if (rowData.isNotEmpty) {
+        rowData.write(',');
+      }
+      rowData.write("[' ', ${completions[i].elapsedInMilliseconds}]");
+    }
+    buf.writeln('''
+      <script type="text/javascript">
+      google.charts.load('current', {'packages':['bar']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Completions', 'Time'],
+          $rowData
+        ]);
+        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
+        var chart = new google.charts.Bar(document.getElementById('chart-div'));
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+      }
+      </script>
+''');
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
+    for (CompletionPerformance completion in completions) {
+      String shortName = pathContext.basename(completion.path);
+      buf.writeln('<tr>'
+          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
+          '<td class="right">${completion.suggestionCount}</td>'
+          '<td>${escape(shortName)}</td>'
+          '<td><code>${escape(completion.snippet)}</code></td>'
+          '</tr>');
+    }
+    buf.writeln('</table>');
+  }
 }
 
 class AstPage extends DiagnosticPageWithNav {
@@ -222,6 +295,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
     void writeRow(List<String> data, {List<String> classes}) {
       buf.write("<tr>");
       for (int i = 0; i < data.length; i++) {
@@ -237,28 +311,11 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="columns">');
 
-    ServerPerformance perf = server.performanceAfterStartup;
-    if (perf != null) {
+    if (server.performanceAfterStartup != null) {
       buf.writeln('<div class="column one-half">');
+
       h3('Current');
-
-      int requestCount = perf.requestCount;
-      int averageLatency =
-          requestCount > 0 ? (perf.requestLatency ~/ requestCount) : 0;
-      int maximumLatency = perf.maxLatency;
-      double slowRequestPercent =
-          requestCount > 0 ? (perf.slowRequestCount / requestCount) : 0.0;
-
-      buf.write('<table>');
-      writeRow([printInteger(requestCount), 'requests'],
-          classes: ["right", null]);
-      writeRow([printMilliseconds(averageLatency), 'average latency'],
-          classes: ["right", null]);
-      writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
-          classes: ["right", null]);
-      writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
-          classes: ["right", null]);
-      buf.write('</table>');
+      _writePerformanceTable(server.performanceAfterStartup, writeRow);
 
       String time = server.uptime.toString();
       if (time.contains('.')) {
@@ -270,106 +327,64 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     }
 
     buf.writeln('<div class="column one-half">');
-    h3('Startup');
-    perf = server.performanceDuringStartup;
 
+    h3('Startup');
+    _writePerformanceTable(server.performanceDuringStartup, writeRow);
+
+    if (server.performanceAfterStartup != null) {
+      int startupTime = server.performanceAfterStartup.startTime -
+          server.performanceDuringStartup.startTime;
+      buf.writeln(
+          writeOption('Initial analysis time', printMilliseconds(startupTime)));
+    }
+
+    buf.write('</div>');
+
+    buf.write('</div>');
+  }
+
+  void _writePerformanceTable(ServerPerformance perf,
+      void writeRow(List<String> data, {List<String> classes})) {
     int requestCount = perf.requestCount;
+    int latencyCount = perf.latencyCount;
     int averageLatency =
-        requestCount > 0 ? (perf.requestLatency ~/ requestCount) : 0;
+        latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : 0;
     int maximumLatency = perf.maxLatency;
     double slowRequestPercent =
-        requestCount > 0 ? (perf.slowRequestCount / requestCount) : 0.0;
+        latencyCount > 0 ? (perf.slowRequestCount / latencyCount) : 0.0;
 
     buf.write('<table>');
     writeRow([printInteger(requestCount), 'requests'],
         classes: ["right", null]);
-    writeRow([printMilliseconds(averageLatency), 'average latency'],
+    writeRow([printInteger(latencyCount), 'requests with latency information'],
         classes: ["right", null]);
-    writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
-        classes: ["right", null]);
-    writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
-        classes: ["right", null]);
-    buf.write('</table>');
-
-    if (server.performanceAfterStartup != null) {
-      int startupTime =
-          server.performanceAfterStartup.startTime - perf.startTime;
-      buf.writeln(
-          writeOption('Initial analysis time', printMilliseconds(startupTime)));
+    if (latencyCount > 0) {
+      writeRow([printMilliseconds(averageLatency), 'average latency'],
+          classes: ["right", null]);
+      writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
+          classes: ["right", null]);
+      writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
+          classes: ["right", null]);
     }
-    buf.write('</div>');
-
-    buf.write('</div>');
+    buf.write('</table>');
   }
 }
 
-class CompletionPage extends DiagnosticPageWithNav {
-  CompletionPage(DiagnosticsSite site)
-      : super(site, 'completion', 'Code Completion',
-            description: 'Latency statistics for code completion.');
+class CompletionPage extends AbstractCompletionPage {
+  @override
+  AnalysisServer server;
+  CompletionPage(DiagnosticsSite site, this.server) : super(site);
+
+  CompletionDomainHandler get completionDomain => server.handlers
+      .firstWhere((handler) => handler is CompletionDomainHandler);
 
   @override
-  Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    CompletionDomainHandler completionDomain = server.handlers
-        .firstWhere((handler) => handler is CompletionDomainHandler);
+  pathPackage.Context get pathContext =>
+      completionDomain.server.resourceProvider.pathContext;
 
-    List<CompletionPerformance> completions =
-        completionDomain.performanceList.items.toList();
-
-    if (completions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    int fastCount =
-        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
-    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
-
-    // draw a chart
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = new StringBuffer();
-    for (int i = completions.length - 1; i >= 0; i--) {
-      // [' ', 101.5]
-      if (rowData.isNotEmpty) {
-        rowData.write(',');
-      }
-      rowData.write("[' ', ${completions[i].elapsedInMilliseconds}]");
-    }
-    buf.writeln('''
-      <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
-          $rowData
-        ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
-        var chart = new google.charts.Bar(document.getElementById('chart-div'));
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-      </script>
-''');
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
-    var pathContext = completionDomain.server.resourceProvider.pathContext;
-    for (CompletionPerformance completion in completions) {
-      String shortName = pathContext.basename(completion.path);
-      buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCount}</td>'
-          '<td>${escape(shortName)}</td>'
-          '<td><code>${escape(completion.snippet)}</code></td>'
-          '</tr>');
-    }
-    buf.writeln('</table>');
-  }
+  @override
+  List<CompletionPerformance> get performanceItems =>
+      completionDomain.performanceList.items.toList();
 }
 
 class ContextsPage extends DiagnosticPageWithNav {
@@ -575,15 +590,14 @@ class ContextsPage extends DiagnosticPageWithNav {
 
 /// A page with a proscriptive notion of layout.
 abstract class DiagnosticPage extends Page {
-  final Site site;
+  final DiagnosticsSite site;
 
   DiagnosticPage(this.site, String id, String title, {String description})
       : super(id, title, description: description);
 
   bool get isNavPage => false;
 
-  AnalysisServer get server =>
-      (site as DiagnosticsSite).socketServer.analysisServer;
+  AbstractAnalysisServer get server => site.socketServer.analysisServer;
 
   Future<void> generateContainer(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -661,7 +675,7 @@ abstract class DiagnosticPage extends Page {
 }
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
-  DiagnosticPageWithNav(Site site, String id, String title,
+  DiagnosticPageWithNav(DiagnosticsSite site, String id, String title,
       {String description})
       : super(site, id, title, description: description);
 
@@ -711,22 +725,31 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 class DiagnosticsSite extends Site implements AbstractGetHandler {
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
-  SocketServer socketServer;
+  AbstractSocketServer socketServer;
 
   /// The last few lines printed.
   final List<String> lastPrintedLines;
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
-    pages.add(new CompletionPage(this));
     pages.add(new CommunicationsPage(this));
     pages.add(new ContextsPage(this));
     pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
-    pages.add(new PluginsPage(this));
     pages.add(new ProfilePage(this));
-    pages.add(new SubscriptionsPage(this));
+
+    // Add server-specific pages. Ordering doesn't matter as the items are
+    // sorted later.
+    final server = this.socketServer.analysisServer;
+    if (server is AnalysisServer) {
+      pages.add(new CompletionPage(this, server));
+      pages.add(new PluginsPage(this, server));
+      pages.add(new SubscriptionsPage(this, server));
+    } else if (server is LspAnalysisServer) {
+      pages.add(new LspCompletionPage(this, server));
+      pages.add(new LspCapabilitiesPage(this, server));
+    }
 
     ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -831,7 +854,7 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
 class ExceptionPage extends DiagnosticPage {
   final StackTrace trace;
 
-  ExceptionPage(Site site, String message, this.trace)
+  ExceptionPage(DiagnosticsSite site, String message, this.trace)
       : super(site, '', '500 Oops', description: message);
 
   Future generateContent(Map<String, String> params) async {
@@ -948,6 +971,51 @@ class InstrumentationPage extends DiagnosticPageWithNav {
   }
 }
 
+class LspCapabilitiesPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspCapabilitiesPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp_capabilities', 'LSP Capabilities',
+            description: 'Client and Server LSP Capabilities.');
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    buf.writeln('<div class="columns">');
+
+    buf.writeln('<div class="column one-half">');
+    h3('Client Capabilities');
+    if (server.clientCapabilities == null) {
+      p('Client capabilities have not yet been received.');
+    } else {
+      prettyJson(server.clientCapabilities.toJson());
+    }
+    buf.writeln('</div>');
+
+    buf.writeln('<div class="column one-half">');
+    h3('Server Capabilities');
+    if (server.capabilities == null) {
+      p('Server capabilities have not yet been computed.');
+    } else {
+      prettyJson(server.capabilities.toJson());
+    }
+    buf.writeln('</div>');
+  }
+}
+
+class LspCompletionPage extends AbstractCompletionPage {
+  @override
+  LspAnalysisServer server;
+  LspCompletionPage(DiagnosticsSite site, this.server) : super(site);
+
+  @override
+  pathPackage.Context get pathContext => server.resourceProvider.pathContext;
+
+  @override
+  List<CompletionPerformance> get performanceItems =>
+      server.performanceStats.completion.items.toList();
+}
+
 class MemoryAndCpuPage extends DiagnosticPageWithNav {
   final ProcessProfiler profiler;
 
@@ -1018,7 +1086,7 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
 class NotFoundPage extends DiagnosticPage {
   final String path;
 
-  NotFoundPage(Site site, this.path)
+  NotFoundPage(DiagnosticsSite site, this.path)
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
   Future generateContent(Map<String, String> params) async {
@@ -1027,16 +1095,18 @@ class NotFoundPage extends DiagnosticPage {
   }
 }
 
-// TODO(devoncarew): We're not currently tracking the time spent in specific
-// lints by default (analysisOptions / driverOptions enableTiming)
 class PluginsPage extends DiagnosticPageWithNav {
-  PluginsPage(DiagnosticsSite site)
+  @override
+  AnalysisServer server;
+
+  PluginsPage(DiagnosticsSite site, this.server)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
 
   @override
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
     h3('Analysis plugins');
     List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
 
@@ -1255,6 +1325,7 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
+    buf.writeln(writeOption('Server type', server.runtimeType));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
     bool uxExp1 =
@@ -1276,7 +1347,7 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('</div>');
 
-    List<String> lines = (site as DiagnosticsSite).lastPrintedLines;
+    List<String> lines = site.lastPrintedLines;
     if (lines.isNotEmpty) {
       h3('Debug output');
       p(lines.join('\n'), style: 'white-space: pre');
@@ -1285,7 +1356,10 @@ class StatusPage extends DiagnosticPageWithNav {
 }
 
 class SubscriptionsPage extends DiagnosticPageWithNav {
-  SubscriptionsPage(DiagnosticsSite site)
+  @override
+  AnalysisServer server;
+
+  SubscriptionsPage(DiagnosticsSite site, this.server)
       : super(site, 'subscriptions', 'Subscriptions',
             description: 'Registered subscriptions to analysis server events.');
 
@@ -1293,6 +1367,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
     // server domain
     h3('Server domain subscriptions');
     ul(ServerService.VALUES, (item) {

@@ -102,13 +102,11 @@ class RuntimeTypeGenerator {
       : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
             _commonElements, _outputUnitData);
 
-  /**
-   * Generate "is tests" for [cls] itself, and the "is tests" for the
-   * classes it implements and type argument substitution functions for these
-   * tests.   We don't need to add the "is tests" of the super class because
-   * they will be inherited at runtime, but we may need to generate the
-   * substitutions, because they may have changed.
-   */
+  /// Generate "is tests" for [cls] itself, and the "is tests" for the
+  /// classes it implements and type argument substitution functions for these
+  /// tests.   We don't need to add the "is tests" of the super class because
+  /// they will be inherited at runtime, but we may need to generate the
+  /// substitutions, because they may have changed.
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///

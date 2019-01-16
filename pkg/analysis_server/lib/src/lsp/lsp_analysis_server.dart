@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -10,7 +11,10 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domain_completion.dart'
+    show CompletionDomainHandler;
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -18,9 +22,13 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/completion/completion_performance.dart'
+    show CompletionPerformance;
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -43,11 +51,6 @@ import 'package:watcher/watcher.dart';
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
-
-  /**
-   * The options of this server instance.
-   */
-  AnalysisServerOptions options;
 
   /**
    * The channel from which messages are received and to which responses should
@@ -75,6 +78,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * also referenced by the ContextManager.
    */
   final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+
+  /**
+   * The workspace for rename refactorings. Should be accessed through the
+   * refactoringWorkspace getter to be automatically created (lazily).
+   */
+  RefactoringWorkspace _refactoringWorkspace;
+
+  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
+      new RefactoringWorkspace(driverMap.values, searchEngine);
 
   /**
    * The versions of each document known to the server (keyed by path), used to
@@ -112,17 +124,25 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   final Map<int, Completer<ResponseMessage>> completers = {};
 
   /**
+   * Capabilities of the server. Will be null prior to initialization as
+   * the server capabilities depend on the client capabilities.
+   */
+  ServerCapabilities capabilities;
+
+  LspPerformance performanceStats = new LspPerformance();
+
+  /**
    * Initialize a newly created server to send and receive messages to the given
    * [channel].
    */
   LspAnalysisServer(
     this.channel,
     ResourceProvider baseResourceProvider,
-    this.options,
+    AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
     ResolverProvider packageResolverProvider: null,
-  }) : super(baseResourceProvider) {
+  }) : super(options, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
@@ -206,6 +226,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             null, new Uri.file(path).toString());
   }
 
+  void handleClientConnection(ClientCapabilities capabilities) {
+    _clientCapabilities = capabilities;
+
+    performanceAfterStartup = new ServerPerformance();
+    performance = performanceAfterStartup;
+  }
+
   /// Handles a response from the client by invoking the completer that the
   /// outbound request created.
   void handleClientResponse(ResponseMessage message) {
@@ -235,8 +262,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * Handle a [message] that was read from the communication channel.
    */
   void handleMessage(Message message) {
-    // TODO(dantup): Put in all the things this server is missing, like:
-    //     _performance.logRequest(message);
+    performance.logRequestTiming(null);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         try {
@@ -288,6 +314,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       new LogMessageParams(MessageType.Error, message),
       jsonRpcVersion,
     ));
+  }
+
+  void publishDiagnostics(String path, List<Diagnostic> errors) {
+    final params =
+        new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final message = new NotificationMessage(
+      Method.textDocument_publishDiagnostics,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
   }
 
   removePriorityFile(String path) {
@@ -375,15 +412,22 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // Log the full message since showMessage above may be truncated or formatted
     // badly (eg. VS Code takes the newlines out).
     logError(fullError.toString());
+
+    // remember the last few exceptions
+    if (exception is CaughtException) {
+      stackTrace ??= exception.stackTrace;
+    }
+    exceptions.add(new ServerException(
+      message,
+      exception,
+      stackTrace is StackTrace ? stackTrace : null,
+      false,
+    ));
   }
 
-  void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,
-      Map<String, String> packageRoots) {
-    contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
-  }
-
-  void setClientCapabilities(ClientCapabilities capabilities) {
-    _clientCapabilities = capabilities;
+  void setAnalysisRoots(List<String> includedPaths) {
+    final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
+    contextManager.setRoots(uniquePaths.toList(), [], {});
   }
 
   /**
@@ -412,6 +456,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return new Future.value();
   }
 
+  void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
+    // TODO(dantup): This is currently case-sensitive!
+    final newPaths =
+        HashSet<String>.of(contextManager.includedPaths ?? const [])
+          ..addAll(addedPaths ?? const [])
+          ..removeAll(removedPaths ?? const []);
+
+    contextManager.setRoots(newPaths.toList(), [], {});
+  }
+
   void updateOverlay(String path, String contents) {
     if (contents != null) {
       resourceProvider.setOverlay(path,
@@ -427,6 +481,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       driver.priorityFiles = priorityFiles.toList();
     });
   }
+}
+
+class LspPerformance {
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
+  final RecentBuffer<CompletionPerformance> completion =
+      new RecentBuffer<CompletionPerformance>(
+          CompletionDomainHandler.performanceListMaxLength);
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -459,14 +521,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             result.errors,
             toDiagnostic);
 
-        final params = new PublishDiagnosticsParams(
-            Uri.file(result.path).toString(), serverErrors);
-        final message = new NotificationMessage(
-          Method.textDocument_publishDiagnostics,
-          params,
-          jsonRpcVersion,
-        );
-        analysisServer.sendNotification(message);
+        analysisServer.publishDiagnostics(result.path, serverErrors);
       }
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
@@ -504,7 +559,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void applyFileRemoved(nd.AnalysisDriver driver, String file) {
     driver.removeFile(file);
-    // sendAnalysisNotificationFlushResults(analysisServer, [file]);
+    analysisServer.publishDiagnostics(file, []);
   }
 
   @override
@@ -547,8 +602,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    // sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+    // Flush any errors for these files that the client may be displaying.
+    flushedFiles
+        ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
 }

@@ -310,10 +310,8 @@ class InferrerEngineImpl extends InferrerEngine {
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= new KernelGlobalTypeInferenceElementData();
 
-  /**
-   * Update [sideEffects] with the side effects of [callee] being
-   * called with [selector].
-   */
+  /// Update [sideEffects] with the side effects of [callee] being
+  /// called with [selector].
   void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector selector, MemberEntity callee) {
     if (callee.isField) {

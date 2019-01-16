@@ -32,6 +32,8 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ movq(Assembler::VMTagAddress(), RAX);
     __ CallCFunction(RAX);
     __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+    ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << THR)) != 0);
+    ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << PP)) != 0);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

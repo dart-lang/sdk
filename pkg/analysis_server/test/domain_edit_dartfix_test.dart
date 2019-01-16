@@ -111,6 +111,55 @@ main() {
     ''');
   }
 
+  test_dartfix_non_nullable() async {
+    // Add analysis options to enable non-nullable analysis
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+
+    createProject();
+    addTestFile('''
+main() {
+  functionWithNullableParam(new List<Object>(1));
+  functionWithNullableParam(null);
+}
+
+void functionWithNullableParam(Object object) {
+  if (object == null) {
+    print('object is null');
+  } else {
+    print('object is not-null');
+  }
+  List<Object> list = null;
+  list = <Object>[];
+  list.add(object);
+}
+''');
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expect(result.hasErrors, isFalse);
+    expectSuggestion(result.suggestions[0], 'non-nullable', 46, 6);
+    expectEdits(result.edits, '''
+main() {
+  functionWithNullableParam(new List<Object?>(1));
+  functionWithNullableParam(null);
+}
+
+void functionWithNullableParam(Object? object) {
+  if (object == null) {
+    print('object is null');
+  } else {
+    print('object is not-null');
+  }
+  List<Object?>? list = null;
+  list = <Object?>[];
+  list.add(object);
+}
+''');
+  }
+
   test_dartfix_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''

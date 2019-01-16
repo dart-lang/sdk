@@ -18,8 +18,8 @@ import '../generated/test_support.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
-  AnalysisError invalid_assignment =
-      new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+  AnalysisError invalid_assignment = new AnalysisError(
+      new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);

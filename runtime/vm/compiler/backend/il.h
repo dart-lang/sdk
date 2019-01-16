@@ -181,10 +181,10 @@ struct CidRange : public ZoneAllocated {
 
 typedef MallocGrowableArray<CidRange> CidRangeVector;
 
-class HierarchyInfo : public StackResource {
+class HierarchyInfo : public ThreadStackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
-      : StackResource(thread),
+      : ThreadStackResource(thread),
         cid_subtype_ranges_(NULL),
         cid_subtype_ranges_abstract_(NULL),
         cid_subclass_ranges_(NULL) {
@@ -7275,6 +7275,8 @@ class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
+
+  bool IsRedundant(const RangeBoundary& length);
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };

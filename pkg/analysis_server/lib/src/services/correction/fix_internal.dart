@@ -1334,14 +1334,19 @@ class FixProcessor {
     if (constructorElement.enclosingElement is! ClassElement) {
       return;
     }
-    ClassElement targetElement = constructorElement.enclosingElement;
-    // prepare location for a new constructor
-    var targetNode = await _getClassDeclaration(targetElement);
-    if (targetNode == null) {
+
+    // prepare target ClassDeclaration
+    var targetElement = constructorElement.enclosingElement;
+    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    if (targetResult.node is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassMemberLocation targetLocation =
-        utils.prepareNewConstructorLocation(targetNode);
+    ClassOrMixinDeclaration targetNode = targetResult.node;
+
+    // prepare location
+    var targetLocation = CorrectionUtils(targetResult.resolvedUnit)
+        .prepareNewConstructorLocation(targetNode);
+
     Source targetSource = targetElement.source;
     String targetFile = targetSource.fullName;
     var changeBuilder = _newDartChangeBuilder();
@@ -1390,17 +1395,22 @@ class FixProcessor {
     if (targetType is! InterfaceType) {
       return;
     }
-    // prepare location for a new constructor
-    ClassElement targetElement = targetType.element as ClassElement;
-    var targetNode = await _getClassDeclaration(targetElement);
-    if (targetNode == null) {
+
+    // prepare target ClassDeclaration
+    ClassElement targetElement = targetType.element;
+    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    if (targetResult.node is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassMemberLocation targetLocation =
-        utils.prepareNewConstructorLocation(targetNode);
+    ClassOrMixinDeclaration targetNode = targetResult.node;
+
+    // prepare location
+    var targetLocation = CorrectionUtils(targetResult.resolvedUnit)
+        .prepareNewConstructorLocation(targetNode);
+
     String targetFile = targetElement.source.fullName;
     var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(targetElement.name,
@@ -2147,8 +2157,10 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, kind, args: [uriText]);
   }
 
-  Future<void> _addFix_importLibrary_withElement(String name,
-      List<ElementKind> elementKinds, TopLevelDeclarationKind kind2) async {
+  Future<void> _addFix_importLibrary_withElement(
+      String name,
+      List<ElementKind> elementKinds,
+      List<TopLevelDeclarationKind> kinds2) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // ignore if private
@@ -2221,7 +2233,7 @@ class FixProcessor {
       var declarations = await session.getTopLevelDeclarations(name);
       for (TopLevelDeclarationInSource declaration in declarations) {
         // Check the kind.
-        if (declaration.declaration.kind != kind2) {
+        if (!kinds2.contains(declaration.declaration.kind)) {
           continue;
         }
         // Check the source.
@@ -2259,8 +2271,13 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       if (invocation.realTarget == null && invocation.methodName == node) {
         String name = (node as SimpleIdentifier).name;
-        await _addFix_importLibrary_withElement(name,
-            const [ElementKind.FUNCTION], TopLevelDeclarationKind.function);
+        await _addFix_importLibrary_withElement(name, const [
+          ElementKind.FUNCTION,
+          ElementKind.TOP_LEVEL_VARIABLE
+        ], const [
+          TopLevelDeclarationKind.function,
+          TopLevelDeclarationKind.variable
+        ]);
       }
     }
   }
@@ -2273,7 +2290,7 @@ class FixProcessor {
       await _addFix_importLibrary_withElement(
           name,
           const [ElementKind.TOP_LEVEL_VARIABLE],
-          TopLevelDeclarationKind.variable);
+          const [TopLevelDeclarationKind.variable]);
     }
   }
 
@@ -2285,11 +2302,11 @@ class FixProcessor {
       await _addFix_importLibrary_withElement(
           typeName,
           const [ElementKind.CLASS, ElementKind.FUNCTION_TYPE_ALIAS],
-          TopLevelDeclarationKind.type);
+          const [TopLevelDeclarationKind.type]);
     } else if (_mayBeImplicitConstructor(node)) {
       String typeName = (node as SimpleIdentifier).name;
-      await _addFix_importLibrary_withElement(
-          typeName, const [ElementKind.CLASS], TopLevelDeclarationKind.type);
+      await _addFix_importLibrary_withElement(typeName,
+          const [ElementKind.CLASS], const [TopLevelDeclarationKind.type]);
     }
   }
 

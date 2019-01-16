@@ -21,7 +21,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
   ErrorOr<void> handle(InitializedParams params) {
     server.messageHandler = new InitializedStateMessageHandler(server);
 
-    server.setAnalysisRoots(openWorkspacePaths, [], {});
+    server.setAnalysisRoots(openWorkspacePaths);
 
     return success();
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../constants/values.dart';
@@ -29,7 +30,11 @@ abstract class KernelToElementMap {
   /// Access to the [DartTypes] object.
   DartTypes get types;
 
+  /// Returns the type environment for the underlying kernel model.
   ir.TypeEnvironment get typeEnvironment;
+
+  /// Returns the class hierarchy for the underlying kernel model.
+  ir.ClassHierarchy get classHierarchy;
 
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
@@ -54,6 +59,10 @@ abstract class KernelToElementMap {
   /// Returns the [Selector] corresponding to the invocation or getter/setter
   /// access of [node].
   Selector getSelector(ir.Expression node);
+
+  /// Returns the [Selector] corresponding to the invocation of [name] with
+  /// [arguments].
+  Selector getInvocationSelector(ir.Name name, ir.Arguments arguments);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
@@ -112,10 +121,6 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [cls].
   ir.Class getClassNode(covariant ClassEntity cls);
-
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
 
   /// Adds libraries in [component] to the set of libraries.
   ///
@@ -176,9 +181,6 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [member].
   ir.Member getMemberNode(covariant MemberEntity member);
-
-  /// Returns the element type of a async/sync*/async* function.
-  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode);
 }
 
 /// Kinds of foreign functions.

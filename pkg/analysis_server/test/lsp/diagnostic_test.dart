@@ -19,21 +19,40 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
 
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final initialDiagnostics = await waitForDiagnostics(mainFileUri);
+    final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(0));
 
     await openFile(mainFileUri, initialContents);
+
+    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await replaceFile(222, mainFileUri, 'String a = 1;');
-    final updatedDiagnostics = await waitForDiagnostics(mainFileUri);
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(1));
+  }
+
+  test_deletedFile() async {
+    newFile(mainFilePath, content: 'String a = 1;');
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final originalDiagnostics = await firstDiagnosticsUpdate;
+    expect(originalDiagnostics, hasLength(1));
+
+    // Deleting the file should result in an update to remove the diagnostics.
+    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await deleteFile(mainFilePath);
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    expect(updatedDiagnostics, hasLength(0));
   }
 
   test_initialAnalysis() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = await waitForDiagnostics(mainFileUri);
+    final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics.first;
     expect(diagnostic.code, equals('invalid_assignment'));

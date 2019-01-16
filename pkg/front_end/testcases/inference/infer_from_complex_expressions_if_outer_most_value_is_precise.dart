@@ -40,9 +40,9 @@ test1() {
   b = /*error:INVALID_ASSIGNMENT*/ "hi";
   b = new B(3);
   c1 = /*@typeArgs=dynamic*/ [];
-  c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+  c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
   c2 = /*@typeArgs=dynamic*/ [];
-  c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+  c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
   d = /*@typeArgs=dynamic, dynamic*/ {};
   d = /*error:INVALID_ASSIGNMENT*/ 3;
   e = new A();

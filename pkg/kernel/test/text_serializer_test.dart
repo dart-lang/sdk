@@ -16,7 +16,7 @@ void main() {
 Expression readExpression(String input) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
-  Expression result = expressionSerializer.readFrom(stream);
+  Expression result = expressionSerializer.readFrom(stream, null);
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
@@ -25,19 +25,24 @@ Expression readExpression(String input) {
 
 String writeExpression(Expression expression) {
   StringBuffer buffer = new StringBuffer();
-  expressionSerializer.writeTo(buffer, expression);
+  expressionSerializer.writeTo(buffer, expression, null);
   return buffer.toString();
 }
 
 void test() {
   List<String> failures = [];
   List<String> tests = [
-    "(let (var \"x\" (dynamic) (int 0) ()) (null))",
-    "(let (var \"x\" (dynamic) _ ()) (null))",
-    "(let (const \"x\" (dynamic) (int 0) ()) (null))",
-    "(let (const \"x\" (dynamic) _ ()) (null))",
-    "(let (final \"x\" (dynamic) (int 0) ()) (null))",
-    "(let (final \"x\" (dynamic) _ ()) (null))",
+    "(get-prop (int 0) (public \"hashCode\"))",
+    "(get-super (public \"hashCode\"))",
+    "(invoke-method (int 0) (public \"foo\") () ((int 1) (int 2)) ())",
+    "(invoke-method (int 0) (public \"foo\") ((dynamic) (void)) "
+        "((int 1) (int 2)) (\"others\" (list (dynamic) ((int 3) (int 4)))))",
+    "(let (var \"x^0\" (dynamic) (int 0) ()) (null))",
+    "(let (var \"x^0\" (dynamic) _ ()) (null))",
+    "(let (const \"x^0\" (dynamic) (int 0) ()) (null))",
+    "(let (const \"x^0\" (dynamic) _ ()) (null))",
+    "(let (final \"x^0\" (dynamic) (int 0) ()) (null))",
+    "(let (final \"x^0\" (dynamic) _ ()) (null))",
     "(string \"Hello, 'string'!\")",
     "(string \"Hello, \\\"string\\\"!\")",
     "(string \"Yeah nah yeah, here is\\nthis really long string haiku\\n"

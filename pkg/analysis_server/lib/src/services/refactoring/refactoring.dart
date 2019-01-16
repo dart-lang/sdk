@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -434,6 +434,14 @@ class RefactoringWorkspace {
   }
 }
 
+class RenameRefactoringElement {
+  final Element element;
+  final int offset;
+  final int length;
+
+  RenameRefactoringElement(this.element, this.offset, this.length);
+}
+
 /**
  * Abstract [Refactoring] for renaming some [Element].
  */
@@ -473,6 +481,41 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameClassMemberRefactoringImpl(workspace, session, element);
     }
     return null;
+  }
+
+  /// Given a node/element, finds the best element to rename (for example
+  /// the class when on the `new` keyword).
+  static RenameRefactoringElement getElementToRename(
+      AstNode node, Element element) {
+    int offset = node.offset;
+    int length = node.length;
+
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+
+    // Use the prefix offset/length when renaming an import directive.
+    if (node is ImportDirective && element is ImportElement) {
+      if (node.prefix != null) {
+        offset = node.prefix.offset;
+        length = node.prefix.length;
+      } else {
+        // -1 means the name does not exist yet.
+        offset = -1;
+        length = 0;
+      }
+    }
+
+    // Rename the class when on `new` in an instance creation.
+    if (node is InstanceCreationExpression) {
+      InstanceCreationExpression creation = node;
+      var typeIdentifier = creation.constructorName.type.name;
+      element = typeIdentifier.staticElement;
+      offset = typeIdentifier.offset;
+      length = typeIdentifier.length;
+    }
+
+    return new RenameRefactoringElement(element, offset, length);
   }
 
   /**

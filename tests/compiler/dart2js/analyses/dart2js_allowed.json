@@ -264,9 +264,6 @@
   "pkg/compiler/lib/src/ssa/value_set.dart": {
     "Dynamic invocation of 'add'.": 2
   },
-  "pkg/compiler/lib/src/js_emitter/full_emitter/emitter.dart": {
-    "Dynamic access of 'scheme'.": 1
-  },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
     "Dynamic access of 'keys'.": 1,
     "Dynamic invocation of 'toSet'.": 1,

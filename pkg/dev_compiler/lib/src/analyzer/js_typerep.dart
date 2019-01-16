@@ -18,7 +18,7 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
   final ClassElement _jsString;
 
   JSTypeRep(this.rules, LinkedAnalysisDriver driver)
-      : types = driver.context.typeProvider,
+      : types = driver.typeProvider,
         _jsBool = driver.getClass('dart:_interceptors', 'JSBool'),
         _jsString = driver.getClass('dart:_interceptors', 'JSString'),
         _jsNumber = driver.getClass('dart:_interceptors', 'JSNumber');

@@ -4,10 +4,8 @@
 
 part of masks;
 
-/**
- * A type mask that wraps an other one, and delegate all its
- * implementation methods to it.
- */
+/// A type mask that wraps an other one, and delegate all its
+/// implementation methods to it.
 abstract class ForwardingTypeMask implements TypeMask {
   TypeMask get forwardTo;
 

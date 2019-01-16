@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ArgumentTypeNotAssignableTest extends ResolverTestCase {
   test_functionType() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   var a = new A();
   a.n(() => 0);
@@ -29,7 +29,7 @@ class A {
   }
 
   test_interfaceType() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   var i = '';
   n(i);

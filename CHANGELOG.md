@@ -1,4 +1,59 @@
+## 2.1.1-dev.2.0
+
+### Core library changes
+
+#### `dart:core`
+
+*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator
+    when parsing from a string. (Issue [35576][])
+
+[35576]: https://github.com/dart-lang/sdk/issues/35576
+
+### Tool Changes
+
+#### Analyzer
+
+*   New hints added:
+
+    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
+        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
+        const constructor is called in a non-const context (or with `new`).
+
+#### dart2js
+
+* `--fast-startup` is forced on.  The flag is silently ignored and will be
+  deprecated and then removed at a later date.
+
+  The alternative 'full emitter' is no longer available. The generated code for
+  `--fast-startup` is optimized to load faster, even though it can be slightly
+  larger.
+
 ## 2.1.1-dev.1.0
+
+### Dart VM
+
+In previous releases it was possible to violate static types using dart:mirrors but this bug is fixed now. Meaning that the code below would run without any TypeErrors and print "impossible" output.
+
+```dart
+import 'dart:mirrors';
+
+class A {
+  void method(int v) {
+    if (v != null && v is! int) {
+      print("This should be impossible: expected null or int got ${v}");
+    }
+  }
+}
+
+void main() {
+  final obj = A();
+  reflect(obj).invoke(#method, ['not-an-number']);
+}
+```
+
+Only code that already violates static typing will break.
+
+See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more details.
 
 ### Tool Changes
 

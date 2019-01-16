@@ -83,7 +83,7 @@ abstract class Node {
   const Node();
 
   accept(Visitor v);
-  visitChildren(Visitor v);
+  void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
   ///
@@ -2190,7 +2190,7 @@ abstract class Expression extends TreeNode {
       type = (type as TypeParameterType).parameter.bound;
     }
     if (type is InterfaceType) {
-      var upcastType = types.hierarchy.getTypeAsInstanceOf(type, superclass);
+      var upcastType = types.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
     } else if (type is BottomType) {
       return superclass.bottomType;
@@ -2558,8 +2558,7 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
+    var receiver = types.getTypeAsInstanceOf(types.thisType, declaringClass);
     return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
@@ -2881,8 +2880,7 @@ class SuperMethodInvocation extends InvocationExpression {
   DartType getStaticType(TypeEnvironment types) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
+    var receiverType = types.getTypeAsInstanceOf(types.thisType, superclass);
     var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
@@ -5440,6 +5438,67 @@ class TypeLiteralConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) => types.typeType;
+}
+
+abstract class EnvironmentConstant extends Constant {
+  final String name;
+  final Constant defaultValue;
+
+  EnvironmentConstant(this.name, this.defaultValue);
+  visitChildren(Visitor v) {
+    defaultValue.acceptReference(v);
+  }
+}
+
+class EnvironmentBoolConstant extends EnvironmentConstant {
+  EnvironmentBoolConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentBoolConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentBoolConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.boolType;
+}
+
+class EnvironmentIntConstant extends EnvironmentConstant {
+  EnvironmentIntConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentIntConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentIntConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.intType;
+}
+
+class EnvironmentStringConstant extends EnvironmentConstant {
+  EnvironmentStringConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentStringConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentStringConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.stringType;
+}
+
+class UnevaluatedConstant extends Constant {
+  final Expression expression;
+
+  UnevaluatedConstant(this.expression);
+
+  visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitUnevaluatedConstant(this);
+  acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => expression.getStaticType(types);
 }
 
 // ------------------------------------------------------------------------

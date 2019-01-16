@@ -901,7 +901,7 @@ Success streamListen(string streamId)
 The _streamListen_ RPC subscribes to a stream in the VM. Once
 subscribed, the client will begin receiving events from the stream.
 
-If the client is not subscribed to the stream, the _103_ (Stream already
+If the client is already subscribed to the stream, the _103_ (Stream already
 subscribed) error code is returned.
 
 The _streamId_ parameter may have the following published values:

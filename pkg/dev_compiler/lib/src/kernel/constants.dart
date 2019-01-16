@@ -187,8 +187,7 @@ class _ConstantEvaluator extends ConstantEvaluator {
       {bool enableAsserts: false})
       : unavailableConstant = InstanceConstant(null, [], {}),
         super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
-            enableAsserts,
-            errorReporter: const _ErrorReporter()) {
+            enableAsserts, const _ErrorReporter()) {
     env = EvaluationEnvironment();
   }
 
@@ -311,7 +310,7 @@ class _ConstantsBackend implements ConstantsBackend {
   lowerListConstant(constant) => constant;
 }
 
-class _ErrorReporter extends ErrorReporterBase {
+class _ErrorReporter extends SimpleErrorReporter {
   const _ErrorReporter();
 
   @override

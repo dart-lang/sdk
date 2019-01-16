@@ -474,6 +474,9 @@ class CodeActionKind {
 class CodeActionOptions implements ToJsonable {
   CodeActionOptions(this.codeActionKinds);
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
+    if (CodeActionRegistrationOptions.canParse(json)) {
+      return CodeActionRegistrationOptions.fromJson(json);
+    }
     final codeActionKinds = json['codeActionKinds']
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
@@ -2548,11 +2551,7 @@ class DiagnosticSeverity {
 }
 
 class DidChangeConfigurationParams implements ToJsonable {
-  DidChangeConfigurationParams(this.settings) {
-    if (settings == null) {
-      throw 'settings is required but was not provided';
-    }
-  }
+  DidChangeConfigurationParams(this.settings);
   static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
     final settings = json['settings'];
     return new DidChangeConfigurationParams(settings);
@@ -2563,8 +2562,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['settings'] =
-        settings ?? (throw 'settings is required but was not set');
+    __result['settings'] = settings;
     return __result;
   }
 
@@ -3932,6 +3930,7 @@ class ErrorCodes {
 
   /// Defined by the protocol.
   static const RequestCancelled = const ErrorCodes(-32800);
+  static const ContentModified = const ErrorCodes(-32801);
 
   Object toJson() => _value;
 
@@ -4682,12 +4681,7 @@ class InitializeParams implements ToJsonable {
   /// The capabilities provided by the client (editor or tool)
   final ClientCapabilities capabilities;
 
-  /// Client provided initialization options. Usually these are options that
-  /// could equally be command line options passed when starting the server.
-  /// This property shouldn't be used to pass any user configuration to the
-  /// server. If a user configuration is needed the server should use
-  /// `workspace/configuration` requests together with dynamic registration to
-  /// obtain them.
+  /// User provided initialization options.
   final dynamic initializationOptions;
 
   /// The process Id of the parent process that started the server. Is null if
@@ -4961,6 +4955,9 @@ class LocationLink implements ToJsonable {
     if (targetRange == null) {
       throw 'targetRange is required but was not provided';
     }
+    if (targetSelectionRange == null) {
+      throw 'targetSelectionRange is required but was not provided';
+    }
   }
   static LocationLink fromJson(Map<String, dynamic> json) {
     final originSelectionRange = json['originSelectionRange'] != null
@@ -5108,7 +5105,7 @@ class LogMessageParams implements ToJsonable {
 /// https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
 ///
 /// Here is an example how such a string can be constructed using JavaScript /
-/// TypeScript: ```ts let markdown: MarkdownContent = {
+/// TypeScript: ```typescript let markdown: MarkdownContent = {
 ///
 /// kind: MarkupKind.Markdown,
 /// 	value: [
@@ -5222,6 +5219,15 @@ class Message implements ToJsonable {
     }
   }
   static Message fromJson(Map<String, dynamic> json) {
+    if (RequestMessage.canParse(json)) {
+      return RequestMessage.fromJson(json);
+    }
+    if (ResponseMessage.canParse(json)) {
+      return ResponseMessage.fromJson(json);
+    }
+    if (NotificationMessage.canParse(json)) {
+      return NotificationMessage.fromJson(json);
+    }
     final jsonrpc = json['jsonrpc'];
     return new Message(jsonrpc);
   }
@@ -5685,9 +5691,13 @@ class ParameterInformation implements ToJsonable {
   /// The label of this parameter information.
   ///
   /// Either a string or an inclusive start and exclusive end offsets within its
-  /// containing signature label. (see SignatureInformation.label). *Note*: A
-  /// label of type string must be a substring of its containing signature
-  /// label.
+  /// containing signature label. (see SignatureInformation.label). The offsets
+  /// are based on a UTF-16 string representation as `Position` and `Range`
+  /// does.
+  ///
+  /// *Note*: a label of type string should be a substring of its containing
+  /// signature label. Its intended use case is to highlight the parameter label
+  /// part in the `SignatureInformation.label`.
   final String label;
 
   Map<String, dynamic> toJson() {
@@ -5903,6 +5913,60 @@ class Range implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, start.hashCode);
     hash = JenkinsSmiHash.combine(hash, end.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class RangeAndPlaceholder implements ToJsonable {
+  RangeAndPlaceholder(this.range, this.placeholder) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (placeholder == null) {
+      throw 'placeholder is required but was not provided';
+    }
+  }
+  static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final placeholder = json['placeholder'];
+    return new RangeAndPlaceholder(range, placeholder);
+  }
+
+  final String placeholder;
+  final Range range;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['placeholder'] =
+        placeholder ?? (throw 'placeholder is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('placeholder') &&
+        obj['placeholder'] is String;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is RangeAndPlaceholder) {
+      return range == other.range && placeholder == other.placeholder && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, placeholder.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6689,14 +6753,15 @@ class ResponseMessage implements Message, ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id;
-    if (result != null) {
-      __result['result'] = result;
-    }
-    if (error != null) {
-      __result['error'] = error;
-    }
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
+    if (error != null && result != null) {
+      throw 'result and error cannot both be set';
+    } else if (error != null) {
+      __result['error'] = error;
+    } else {
+      __result['result'] = result;
+    }
     return __result;
   }
 
@@ -7202,13 +7267,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   static ServerCapabilitiesWorkspaceFolders fromJson(
       Map<String, dynamic> json) {
     final supported = json['supported'];
-    final changeNotifications = json['changeNotifications'] is String
-        ? new Either2<String, bool>.t1(json['changeNotifications'])
-        : (json['changeNotifications'] is bool
-            ? new Either2<String, bool>.t2(json['changeNotifications'])
-            : (json['changeNotifications'] == null
-                ? null
-                : (throw '''${json['changeNotifications']} was not one of (String, bool)''')));
+    final changeNotifications = json['changeNotifications'];
     return new ServerCapabilitiesWorkspaceFolders(
         supported, changeNotifications);
   }
@@ -7219,7 +7278,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   /// notification is registered on the client side. The ID can be used to
   /// unregister for these events using the `client/unregisterCapability`
   /// request.
-  final Either2<String, bool> changeNotifications;
+  final bool changeNotifications;
 
   /// The server has support for workspace folders
   final bool supported;
@@ -8106,7 +8165,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
   /// Capabilities specific to the `textDocument/declaration`
   final TextDocumentClientCapabilitiesDeclaration declaration;
 
-  /// Capabilities specific to the `textDocument/definition`
+  /// Capabilities specific to the `textDocument/definition`.
+  ///
+  /// Since 3.14.0
   final TextDocumentClientCapabilitiesDefinition definition;
 
   /// Capabilities specific to the `textDocument/documentHighlight`
@@ -8793,6 +8854,8 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of declaration links.
+  ///
+  /// Since 3.14.0
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
@@ -9230,6 +9293,8 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
+  ///
+  /// Since 3.14.0
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
@@ -9323,6 +9388,8 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 
   /// The client supports processing label offsets instead of a simple label
   /// string.
+  ///
+  /// Since 3.14.0
   final bool labelOffsetSupport;
 
   Map<String, dynamic> toJson() {
@@ -9803,6 +9870,8 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
+  ///
+  /// Since 3.14.0
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
@@ -9981,6 +10050,9 @@ class TextDocumentIdentifier implements ToJsonable {
     }
   }
   static TextDocumentIdentifier fromJson(Map<String, dynamic> json) {
+    if (VersionedTextDocumentIdentifier.canParse(json)) {
+      return VersionedTextDocumentIdentifier.fromJson(json);
+    }
     final uri = json['uri'];
     return new TextDocumentIdentifier(uri);
   }
@@ -10114,6 +10186,12 @@ class TextDocumentPositionParams implements ToJsonable {
     }
   }
   static TextDocumentPositionParams fromJson(Map<String, dynamic> json) {
+    if (CompletionParams.canParse(json)) {
+      return CompletionParams.fromJson(json);
+    }
+    if (ReferenceParams.canParse(json)) {
+      return ReferenceParams.fromJson(json);
+    }
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
@@ -10170,6 +10248,33 @@ class TextDocumentPositionParams implements ToJsonable {
 class TextDocumentRegistrationOptions implements ToJsonable {
   TextDocumentRegistrationOptions(this.documentSelector);
   static TextDocumentRegistrationOptions fromJson(Map<String, dynamic> json) {
+    if (TextDocumentChangeRegistrationOptions.canParse(json)) {
+      return TextDocumentChangeRegistrationOptions.fromJson(json);
+    }
+    if (TextDocumentSaveRegistrationOptions.canParse(json)) {
+      return TextDocumentSaveRegistrationOptions.fromJson(json);
+    }
+    if (CompletionRegistrationOptions.canParse(json)) {
+      return CompletionRegistrationOptions.fromJson(json);
+    }
+    if (SignatureHelpRegistrationOptions.canParse(json)) {
+      return SignatureHelpRegistrationOptions.fromJson(json);
+    }
+    if (CodeActionRegistrationOptions.canParse(json)) {
+      return CodeActionRegistrationOptions.fromJson(json);
+    }
+    if (CodeLensRegistrationOptions.canParse(json)) {
+      return CodeLensRegistrationOptions.fromJson(json);
+    }
+    if (DocumentLinkRegistrationOptions.canParse(json)) {
+      return DocumentLinkRegistrationOptions.fromJson(json);
+    }
+    if (DocumentOnTypeFormattingRegistrationOptions.canParse(json)) {
+      return DocumentOnTypeFormattingRegistrationOptions.fromJson(json);
+    }
+    if (RenameRegistrationOptions.canParse(json)) {
+      return RenameRegistrationOptions.fromJson(json);
+    }
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
@@ -10961,6 +11066,8 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   }
 
   /// Did change watched files notification supports dynamic registration.
+  /// Please note that the current protocol doesn't support static configuration
+  /// for file changes from the server side.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {

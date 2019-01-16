@@ -60,6 +60,10 @@ abstract class Declaration {
 
   bool get isTypeVariable => false;
 
+  bool get isMixinApplication => false;
+
+  bool get isNamedMixinApplication => false;
+
   /// Applies [patch] to this declaration.
   void applyPatch(Declaration patch) {
     unsupported("${runtimeType}.applyPatch", charOffset, fileUri);

@@ -33,12 +33,12 @@ class Tags {
   static const String runtimeTypeUse = 'runtimeType';
 }
 
-class ImpactDataComputer extends DataComputer<String> {
+class ImpactDataComputer extends DataComputer<Features> {
   const ImpactDataComputer();
 
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     WorldImpact impact = compiler.impactCache[member];
@@ -72,10 +72,11 @@ class ImpactDataComputer extends DataComputer<String> {
       }
     }
     Id id = computeEntityId(node);
-    actualMap[id] = new ActualData<String>(
-        id, features.getText(), computeSourceSpanFromTreeNode(node), member);
+    actualMap[id] = new ActualData<Features>(
+        id, features, computeSourceSpanFromTreeNode(node), member);
   }
 
   @override
-  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
+  DataInterpreter<Features> get dataValidator =>
+      const FeaturesDataInterpreter();
 }

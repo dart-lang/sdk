@@ -131,6 +131,9 @@ async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong tr
 [ $compiler != dartdevc && $checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
+[ $compiler == dartk && $system == macos && $hot_reload && ($arch == simdbc || $arch == simdbc64) ]
+isolate/unresolved_ports_test: Pass, RuntimeError #  Issue 35410
+
 [ $compiler == none && $mode == product ]
 mirrors/library_enumeration_deferred_loading_test: RuntimeError, OK # Deferred loaded eagerly
 mirrors/library_import_deferred_loading_test: RuntimeError, OK # Deferred loaded eagerly

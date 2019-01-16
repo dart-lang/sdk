@@ -21,6 +21,7 @@
 #include "vm/random.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
+#include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -106,7 +107,7 @@ class IsolateVisitor {
 };
 
 // Disallow OOB message handling within this scope.
-class NoOOBMessageScope : public StackResource {
+class NoOOBMessageScope : public ThreadStackResource {
  public:
   explicit NoOOBMessageScope(Thread* thread);
   ~NoOOBMessageScope();
@@ -116,7 +117,7 @@ class NoOOBMessageScope : public StackResource {
 };
 
 // Disallow isolate reload.
-class NoReloadScope : public StackResource {
+class NoReloadScope : public ThreadStackResource {
  public:
   NoReloadScope(Isolate* isolate, Thread* thread);
   ~NoReloadScope();

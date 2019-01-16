@@ -43,6 +43,8 @@ class Flags {
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';
 
+  static const String enableLanguageExperiments = '--enable-experiment';
+
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
@@ -59,6 +61,8 @@ class Flags {
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
+  // Disables minification even if enabled by other options, e.g. '-O2'.
+  static const String noMinify = '--no-minify';
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
   static const String showPackageWarnings = '--show-package-warnings';
@@ -126,6 +130,10 @@ class Flags {
 class Option {
   static const String showPackageWarnings =
       '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
+
+  static const String enableLanguageExperiments =
+      '${Flags.enableLanguageExperiments}|'
+      '${Flags.enableLanguageExperiments}=.*';
 
   // Experimental options.
   static const String resolutionInput = '--resolution-input=.+';

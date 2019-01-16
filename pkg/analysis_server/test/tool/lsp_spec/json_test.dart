@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -89,6 +89,42 @@ main() {
           .replaceAll(new RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
+
+    test('ResponseMessage does not include an error with a result', () {
+      final id = new Either2<num, String>.t1(1);
+      final result = 'my result';
+      final resp = new ResponseMessage(id, result, null, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('result'));
+      expect(jsonMap, isNot(contains('error')));
+    });
+
+    test('ResponseMessage can include a null result', () {
+      final id = new Either2<num, String>.t1(1);
+      final resp = new ResponseMessage(id, null, null, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('result'));
+      expect(jsonMap, isNot(contains('error')));
+    });
+
+    test('ResponseMessage does not include a result for an error', () {
+      final id = new Either2<num, String>.t1(1);
+      final error =
+          new ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final resp = new ResponseMessage(id, null, error, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('error'));
+      expect(jsonMap, isNot(contains('result')));
+    });
+
+    test('ResponseMessage throws if both result and error are non-null', () {
+      final id = new Either2<num, String>.t1(1);
+      final result = 'my result';
+      final error =
+          new ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final resp = new ResponseMessage(id, result, error, jsonRpcVersion);
+      expect(resp.toJson, throwsA(new TypeMatcher<String>()));
+    });
   });
 
   group('fromJson', () {
@@ -120,6 +156,18 @@ main() {
       final input = '{"method":"test","jsonrpc":"test"}';
       final message = NotificationMessage.fromJson(jsonDecode(input));
       expect(message.params, isNull);
+    });
+
+    test('deserialises subtypes into the correct class', () {
+      // Create some JSON that includes a VersionedTextDocumentIdenfitier but
+      // where the class definition only references a TextDocumentIdemntifier.
+      final input = jsonEncode(new TextDocumentPositionParams(
+        new VersionedTextDocumentIdentifier(111, 'file:///foo/bar.dart'),
+        new Position(1, 1),
+      ).toJson());
+      final params = TextDocumentPositionParams.fromJson(jsonDecode(input));
+      expect(params.textDocument,
+          const TypeMatcher<VersionedTextDocumentIdentifier>());
     });
   });
 

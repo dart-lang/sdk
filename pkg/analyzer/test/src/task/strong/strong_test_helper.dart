@@ -245,6 +245,8 @@ class AbstractStrongTest with ResourceProviderMixin {
 
   bool get enableNewAnalysisDriver => false;
 
+  List<String> get enabledExperiments => [];
+
   /// Adds a file to check. The file should contain:
   ///
   ///   * all expected failures are listed in the source code using comments
@@ -286,6 +288,7 @@ class AbstractStrongTest with ResourceProviderMixin {
     analysisOptions.strongModeHints = true;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
+    analysisOptions.enabledExperiments = enabledExperiments;
 
     var mockSdk = new MockSdk(resourceProvider: resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
