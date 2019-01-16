@@ -65,7 +65,6 @@ ProfilerCounters Profiler::counters_;
 
 void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
-  SetSamplePeriod(FLAG_profile_period);
   SetSampleDepth(FLAG_max_profile_depth);
   Sample::Init();
   if (!FLAG_profiler) {
@@ -77,7 +76,7 @@ void Profiler::Init() {
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
   ThreadInterrupter::Init();
-  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
+  SetSamplePeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
 }
@@ -123,6 +122,11 @@ void Profiler::SetSamplePeriod(intptr_t period) {
   } else {
     FLAG_profile_period = period;
   }
+  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
+}
+
+void Profiler::UpdateSamplePeriod() {
+  SetSamplePeriod(FLAG_profile_period);
 }
 
 intptr_t Sample::pcs_length_ = 0;

@@ -116,6 +116,7 @@ void ThreadInterrupter::Cleanup() {
 
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
+  MonitorLocker ml(monitor_);
   if (shutdown_) {
     return;
   }
@@ -172,6 +173,9 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
         // Woken up from deep sleep.
         ASSERT(interrupted_thread_count == 0);
         // Return to regular interrupts.
+        current_wait_time_ = interrupt_period_;
+      } else if (current_wait_time_ != interrupt_period_) {
+        // The interrupt period may have been updated via the service protocol.
         current_wait_time_ = interrupt_period_;
       }
 

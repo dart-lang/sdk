@@ -4545,16 +4545,20 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
 
   // Changing most flags at runtime is dangerous because e.g., it may leave the
   // behavior generated code and the runtime out of sync.
+  const uintptr_t kProfilePeriodIndex = 3;
   const char* kAllowedFlags[] = {
       "pause_isolates_on_start",
       "pause_isolates_on_exit",
       "pause_isolates_on_unhandled_exceptions",
+      "profile_period",
   };
 
   bool allowed = false;
+  bool profile_period = false;
   for (size_t i = 0; i < ARRAY_SIZE(kAllowedFlags); i++) {
     if (strcmp(flag_name, kAllowedFlags[i]) == 0) {
       allowed = true;
+      profile_period = (i == kProfilePeriodIndex);
       break;
     }
   }
@@ -4569,6 +4573,11 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
   const char* error = NULL;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
     PrintSuccess(js);
+    if (profile_period) {
+      // FLAG_profile_period has already been set to the new value. Now we need
+      // to notify the ThreadInterrupter to pick up the change.
+      Profiler::UpdateSamplePeriod();
+    }
     return true;
   } else {
     JSONObject jsobj(js);

@@ -60,6 +60,9 @@ class Profiler : public AllStatic {
 
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
+  // Restarts sampling with a given profile period. This is called after the
+  // profile period is changed via the service protocol.
+  static void UpdateSamplePeriod();
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
   static AllocationSampleBuffer* allocation_sample_buffer() {
