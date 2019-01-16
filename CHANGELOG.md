@@ -40,6 +40,13 @@
         `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
         const constructor is called in a non-const context (or with `new`).
 
+*   The `DEPRECATED_MEMBER_USE` hint was split into two hints:
+
+    *   `DEPRECATED_MEMBER_USE` reports on usage of `@deprecated` members
+        declared in a different package.
+    *   `DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE` reports on usage of
+        `@deprecated` members declared in the same package.
+
 #### dart2js
 
 * `--fast-startup` is forced on.  The flag is silently ignored and will be
