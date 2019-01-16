@@ -6,6 +6,7 @@ import '../common.dart';
 import '../elements/entities.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../util/enumset.dart';
+import 'call_structure.dart';
 
 abstract class AbstractUsage<T> {
   final EnumSet<T> _pendingUse = new EnumSet<T>();
@@ -96,7 +97,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   ///
   /// For a function this is a normal invocation, for a field this is a read
   /// access followed by an invocation of the function-like value.
-  EnumSet<MemberUse> invoke() => MemberUses.NONE;
+  EnumSet<MemberUse> invoke(CallStructure callStructure) => MemberUses.NONE;
 
   /// Registers all possible uses of [entity] and returns the new [MemberUse]s
   /// that it caused.
@@ -155,7 +156,7 @@ class FieldUsage extends MemberUsage {
   }
 
   @override
-  EnumSet<MemberUse> invoke() => read();
+  EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
 
   @override
   EnumSet<MemberUse> fullyUse() {
@@ -196,7 +197,7 @@ class FinalFieldUsage extends MemberUsage {
   }
 
   @override
-  EnumSet<MemberUse> invoke() => read();
+  EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
 
   @override
   EnumSet<MemberUse> fullyUse() => read();
@@ -211,7 +212,7 @@ class FunctionUsage extends MemberUsage {
       // We mark signature methods as "always used" to prevent them from being
       // optimized away.
       // TODO(johnniwinther): Make this a part of the regular enqueueing.
-      invoke();
+      invoke(function.parameterStructure.callStructure);
     }
   }
 
@@ -222,7 +223,7 @@ class FunctionUsage extends MemberUsage {
   EnumSet<MemberUse> read() => fullyUse();
 
   @override
-  EnumSet<MemberUse> invoke() {
+  EnumSet<MemberUse> invoke(CallStructure callStructure) {
     if (hasInvoke) {
       return MemberUses.NONE;
     }
@@ -274,7 +275,7 @@ class GetterUsage extends MemberUsage {
   }
 
   @override
-  EnumSet<MemberUse> invoke() => read();
+  EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
 
   @override
   EnumSet<MemberUse> fullyUse() => read();
@@ -306,10 +307,12 @@ class ConstructorUsage extends MemberUsage {
 
   ConstructorUsage(ConstructorEntity constructor) : super.internal(constructor);
 
+  ConstructorEntity get entity => super.entity;
+
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
   @override
-  EnumSet<MemberUse> invoke() {
+  EnumSet<MemberUse> invoke(CallStructure callStructure) {
     if (hasInvoke) {
       return MemberUses.NONE;
     }
@@ -319,7 +322,8 @@ class ConstructorUsage extends MemberUsage {
   }
 
   @override
-  EnumSet<MemberUse> fullyUse() => invoke();
+  EnumSet<MemberUse> fullyUse() =>
+      invoke(entity.parameterStructure.callStructure);
 
   @override
   bool get fullyUsed => hasInvoke;
@@ -418,7 +422,7 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
 
   EnumSet<MemberUse> write() => normalUse();
 
-  EnumSet<MemberUse> invoke() => normalUse();
+  EnumSet<MemberUse> invoke(CallStructure callStructure) => normalUse();
 
   EnumSet<MemberUse> fullyUse() => normalUse();
 

@@ -130,12 +130,12 @@ int topLevelFunction2Typed(String a, [num b, double c]) => null;
 
 /*strong.element: topLevelFunction3Typed:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -190,12 +190,12 @@ testTopLevelInvokeTyped() {
 
 /*strong.element: topLevelFunctionTyped1:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -209,12 +209,12 @@ topLevelFunctionTyped1(void a(num b)) {}
 
 /*strong.element: topLevelFunctionTyped2:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -228,12 +228,12 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
 
 /*strong.element: topLevelFunctionTyped3:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -247,12 +247,12 @@ topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
 
 /*strong.element: topLevelFunctionTyped4:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -312,7 +312,7 @@ var topLevelField;
 /*element: testTopLevelField:static=[topLevelField]*/
 testTopLevelField() => topLevelField;
 
-/*element: topLevelFieldLazy:static=[throwCyclicInit,topLevelFunction1(1)],type=[inst:JSNull]*/
+/*element: topLevelFieldLazy:static=[throwCyclicInit(1),topLevelFunction1(1)],type=[inst:JSNull]*/
 var topLevelFieldLazy = topLevelFunction1(null);
 
 /*element: testTopLevelFieldLazy:static=[topLevelFieldLazy]*/
@@ -324,7 +324,7 @@ const topLevelFieldConst = null;
 /*element: testTopLevelFieldConst:static=[topLevelFieldConst]*/
 testTopLevelFieldConst() => topLevelFieldConst;
 
-/*element: topLevelFieldFinal:static=[throwCyclicInit,topLevelFunction1(1)],type=[inst:JSNull]*/
+/*element: topLevelFieldFinal:static=[throwCyclicInit(1),topLevelFunction1(1)],type=[inst:JSNull]*/
 final topLevelFieldFinal = topLevelFunction1(null);
 
 /*element: testTopLevelFieldFinal:static=[topLevelFieldFinal]*/
@@ -350,12 +350,12 @@ testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 
 /*strong.element: topLevelFieldGeneric3:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -472,11 +472,11 @@ testLocalWithInitializerTyped() {
 
 /*strong.element: testLocalFunction:
  static=[
-  computeSignature,
+  computeSignature(3),
   def:localFunction,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -492,11 +492,11 @@ testLocalFunction() {
 
 /*strong.element: testLocalFunctionTyped:
  static=[
-  computeSignature,
+  computeSignature(3),
   def:localFunction,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -513,12 +513,12 @@ testLocalFunctionTyped() {
 
 /*strong.element: testLocalFunctionInvoke:
  dynamic=[call(0)],
- static=[computeSignature,
+ static=[computeSignature(3),
   def:localFunction,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
   localFunction(0),
-  setRuntimeTypeInfo],
+  setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
@@ -530,11 +530,11 @@ testLocalFunctionInvoke() {
   localFunction();
 }
 
-/*strong.element: testLocalFunctionGet:static=[computeSignature,
+/*strong.element: testLocalFunctionGet:static=[computeSignature(3),
   def:localFunction,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
@@ -546,11 +546,11 @@ testLocalFunctionGet() {
   localFunction;
 }
 
-/*strong.element: testClosure:static=[computeSignature,
+/*strong.element: testClosure:static=[computeSignature(3),
   def:<anonymous>,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
@@ -563,11 +563,11 @@ testClosure() {
 
 /*strong.element: testClosureInvoke:
  dynamic=[call(0)],
- static=[computeSignature,
+ static=[computeSignature(3),
   def:<anonymous>,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,

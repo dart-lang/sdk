@@ -15,13 +15,13 @@ class C implements A<int>, B<String, bool> {}
 /*element: testA:
  dynamic=[call<A.T>(0)],
  static=[
-  checkSubtype,
+  checkSubtype(4),
   extractTypeArguments<A<dynamic>>(2),
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   impl:A<dynamic>,
   impl:Function,
@@ -37,13 +37,13 @@ testA(c, f) => extractTypeArguments<A>(c, f);
 /*element: testB:
  dynamic=[call<B.S,B.U>(0)],
  static=[
-  checkSubtype,
+  checkSubtype(4),
   extractTypeArguments<B<dynamic,dynamic>>(2),
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   impl:B<dynamic,dynamic>,
   impl:Function,

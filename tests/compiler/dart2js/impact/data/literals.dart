@@ -80,22 +80,35 @@ testDouble() => 37.5;
 /*element: testString:type=[inst:JSString]*/
 testString() => 'foo';
 
-/*element: testStringInterpolation:dynamic=[toString(0)],static=[S],type=[inst:JSBool,inst:JSString]*/
+/*element: testStringInterpolation:
+ dynamic=[toString(0)],
+ static=[S(1)],type=[inst:JSBool,inst:JSString]
+*/
 testStringInterpolation() => '${true}';
 
-/*element: testStringInterpolationConst:dynamic=[toString(0)],static=[S],type=[inst:JSBool,inst:JSString]*/
+/*element: testStringInterpolationConst:
+ dynamic=[toString(0)],
+ static=[S(1)],type=[inst:JSBool,inst:JSString]
+*/
 testStringInterpolationConst() {
   const b = '${true}';
   return b;
 }
 
-/*element: testStringJuxtaposition:dynamic=[toString(0)],static=[S],type=[inst:JSString]*/
+/*element: testStringJuxtaposition:
+ dynamic=[toString(0)],
+ static=[S(1)],
+ type=[inst:JSString]
+*/
 testStringJuxtaposition() => 'a' 'b';
 
-/*element: testSymbol:static=[Symbol.],type=[inst:Symbol]*/
+/*element: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
 
-/*element: testConstSymbol:static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSString,inst:Symbol]*/
+/*element: testConstSymbol:
+ static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
+ type=[inst:JSString,inst:Symbol]
+*/
 testConstSymbol() => const Symbol('main');
 
 /*strong.element: complexSymbolField1:
@@ -104,7 +117,11 @@ testConstSymbol() => const Symbol('main');
 */
 const complexSymbolField1 = "true".length == 4;
 
-/*strong.element: complexSymbolField2:dynamic=[toString(0)],static=[S],type=[inst:JSBool,inst:JSNull,inst:JSString,param:String]*/
+/*strong.element: complexSymbolField2:
+ dynamic=[toString(0)],
+ static=[S(1)],
+ type=[inst:JSBool,inst:JSNull,inst:JSString,param:String]
+*/
 const complexSymbolField2 = "true" "false" "${true}${null}";
 
 /*strong.element: complexSymbolField3:
@@ -112,20 +129,20 @@ const complexSymbolField2 = "true" "false" "${true}${null}";
   static=[
    GenericClass.generative(0),
    String.fromEnvironment(1),
-   Symbol.,
-   assertIsSubtype,
+   Symbol.(1),
+   assertIsSubtype(5),
    bool.fromEnvironment(1,defaultValue),
-   checkSubtype,
-   getRuntimeTypeArgument,
-   getRuntimeTypeArgumentIntercepted,
-   getRuntimeTypeInfo,
-   getTypeArgumentByIndex,
+   checkSubtype(4),
+   getRuntimeTypeArgument(3),
+   getRuntimeTypeArgumentIntercepted(4),
+   getRuntimeTypeInfo(1),
+   getTypeArgumentByIndex(2),
    identical(2),
    int.fromEnvironment(1,defaultValue),
    override,
-   setRuntimeTypeInfo,
+   setRuntimeTypeInfo(2),
    testComplexConstSymbol,
-   throwTypeError],
+   throwTypeError(1)],
   type=[
    inst:ConstantMap<dynamic,dynamic>,
    inst:ConstantProtoMap<dynamic,dynamic>,
@@ -159,17 +176,33 @@ const complexSymbolField3 = const {
   override: const GenericClass<int, String>.generative(),
 };
 
-/*strong.element: complexSymbolField:static=[complexSymbolField1,complexSymbolField2,complexSymbolField3],type=[inst:JSBool,param:Object]*/
+/*strong.element: complexSymbolField:
+ static=[
+  complexSymbolField1,
+  complexSymbolField2,
+  complexSymbolField3],
+ type=[inst:JSBool,param:Object]
+*/
 const complexSymbolField =
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 
-/*strong.element: testComplexConstSymbol:static=[Symbol.,Symbol.(1),Symbol.validated,complexSymbolField],type=[impl:String,inst:JSBool,inst:Symbol]*/
+/*strong.element: testComplexConstSymbol:
+ static=[Symbol.(1),Symbol.(1),Symbol.validated(1),complexSymbolField],
+ type=[impl:String,inst:JSBool,inst:Symbol]
+*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*element: testIfNullConstSymbol:dynamic=[Null.==],static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSNull,inst:JSString,inst:Symbol]*/
+/*element: testIfNullConstSymbol:
+ dynamic=[Null.==],
+ static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
+ type=[inst:JSNull,inst:JSString,inst:Symbol]
+*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
-/*element: testTypeLiteral:static=[createRuntimeType],type=[inst:Type,inst:TypeImpl,lit:Object]*/
+/*element: testTypeLiteral:
+ static=[createRuntimeType(1)],
+ type=[inst:Type,inst:TypeImpl,lit:Object]
+*/
 testTypeLiteral() => Object;
 
 /*element: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/

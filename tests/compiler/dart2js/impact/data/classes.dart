@@ -157,13 +157,13 @@ class ForwardingConstructorGenericSuperClass<T> {
   /*strong.element: ForwardingConstructorGenericSuperClass.:
    static=[
     Object.(0),
-    checkSubtype,
-    checkSubtypeOfRuntimeType,
-    getRuntimeTypeArgument,
-    getRuntimeTypeArgumentIntercepted,
-    getRuntimeTypeInfo,
-    getTypeArgumentByIndex,
-    setRuntimeTypeInfo],
+    checkSubtype(4),
+    checkSubtypeOfRuntimeType(2),
+    getRuntimeTypeArgument(3),
+    getRuntimeTypeArgumentIntercepted(4),
+    getRuntimeTypeInfo(1),
+    getTypeArgumentByIndex(2),
+    setRuntimeTypeInfo(2)],
    type=[
     inst:JSArray<dynamic>,
     inst:JSBool,
@@ -182,8 +182,8 @@ class ForwardingConstructorGenericClass<
 /*element: testForwardingConstructorGeneric:
  static=[
   ForwardingConstructorGenericClass.(1),
-  assertIsSubtype,
-  throwTypeError],
+  assertIsSubtype(5),
+  throwTypeError(1)],
  type=[inst:JSNull]
 */
 testForwardingConstructorGeneric() {
@@ -211,13 +211,13 @@ testEnum() => Enum.A;
 
 /*strong.element: staticGenericMethod:
  static=[
-  checkSubtype,
-  checkSubtypeOfRuntimeType,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  checkSubtypeOfRuntimeType(2),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -243,8 +243,8 @@ testStaticGenericMethod() {
  dynamic=[exact:GenericClass.genericMethod<bool>(1)],
  static=[
   GenericClass.generative(0),
-  assertIsSubtype,
-  throwTypeError],
+  assertIsSubtype(5),
+  throwTypeError(1)],
  type=[inst:JSBool]
 */
 testInstanceGenericMethod() {
@@ -271,16 +271,16 @@ testNamedMixinInstantiation() => new NamedMixin();
 /*element: testGenericMixinInstantiation:
  static=[
   GenericSub.(0),
-  assertIsSubtype,
-  throwTypeError]
+  assertIsSubtype(5),
+  throwTypeError(1)]
 */
 testGenericMixinInstantiation() => new GenericSub<int, String>();
 
 /*element: testGenericNamedMixinInstantiation:
  static=[
   GenericNamedMixin.(0),
-  assertIsSubtype,
-  throwTypeError]
+  assertIsSubtype(5),
+  throwTypeError(1)]
 */
 testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
 
@@ -294,13 +294,13 @@ class GenericClass<X, Y> {
 
   /*strong.element: GenericClass.genericMethod:
    static=[
-    checkSubtype,
-    checkSubtypeOfRuntimeType,
-    getRuntimeTypeArgument,
-    getRuntimeTypeArgumentIntercepted,
-    getRuntimeTypeInfo,
-    getTypeArgumentByIndex,
-    setRuntimeTypeInfo],
+    checkSubtype(4),
+    checkSubtypeOfRuntimeType(2),
+    getRuntimeTypeArgument(3),
+    getRuntimeTypeArgumentIntercepted(4),
+    getRuntimeTypeInfo(1),
+    getTypeArgumentByIndex(2),
+    setRuntimeTypeInfo(2)],
    type=[
     inst:JSArray<dynamic>,
     inst:JSBool,

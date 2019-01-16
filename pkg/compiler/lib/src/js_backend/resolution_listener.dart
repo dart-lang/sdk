@@ -215,9 +215,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (constant.isType) {
       FunctionEntity helper = _commonElements.createRuntimeType;
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          // TODO(johnniwinther): Find the right [CallStructure].
-          helper,
-          null));
+          helper, helper.parameterStructure.callStructure));
       _backendUsage.registerBackendFunctionUse(helper);
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
@@ -232,10 +230,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
+        FunctionEntity helper = _commonElements.createRuntimeType;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            _commonElements.createRuntimeType,
-            null));
+            helper, helper.parameterStructure.callStructure));
       }
     }
   }

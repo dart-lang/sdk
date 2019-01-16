@@ -49,7 +49,7 @@ testConstructorInvoke() {
   new Class.generative();
 }
 
-/*element: testConstructorInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype,throwTypeError]*/
+/*element: testConstructorInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
 testConstructorInvokeGeneric() {
   new GenericClass<int, String>.generative();
 }
@@ -69,7 +69,7 @@ testFactoryInvoke() {
   new Class.fact();
 }
 
-/*element: testFactoryInvokeGeneric:static=[GenericClass.fact(0),assertIsSubtype,throwTypeError]*/
+/*element: testFactoryInvokeGeneric:static=[GenericClass.fact(0),assertIsSubtype(5),throwTypeError(1)]*/
 testFactoryInvokeGeneric() {
   new GenericClass<int, String>.fact();
 }
@@ -89,7 +89,7 @@ testRedirectingFactoryInvoke() {
   new Class.redirect();
 }
 
-/*element: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype,throwTypeError]*/
+/*element: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
 testRedirectingFactoryInvokeGeneric() {
   new GenericClass<int, String>.redirect();
 }
@@ -109,7 +109,7 @@ testConstRedirectingFactoryInvoke() {
   const Class.redirect();
 }
 
-/*element: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype,throwTypeError]*/
+/*element: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
 testConstRedirectingFactoryInvokeGeneric() {
   const GenericClass<int, String>.redirect();
 }

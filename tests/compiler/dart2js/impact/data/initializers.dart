@@ -123,13 +123,13 @@ class ClassGeneric<T> {
   /*strong.element: ClassGeneric.:
    static=[
     Object.(0),
-    checkSubtype,
-    checkSubtypeOfRuntimeType,
-    getRuntimeTypeArgument,
-    getRuntimeTypeArgumentIntercepted,
-    getRuntimeTypeInfo,
-    getTypeArgumentByIndex,
-    setRuntimeTypeInfo],
+    checkSubtype(4),
+    checkSubtypeOfRuntimeType(2),
+    getRuntimeTypeArgument(3),
+    getRuntimeTypeArgumentIntercepted(4),
+    getRuntimeTypeInfo(1),
+    getTypeArgumentByIndex(2),
+    setRuntimeTypeInfo(2)],
    type=[
     inst:JSArray<dynamic>,
     inst:JSBool,
@@ -142,5 +142,5 @@ class ClassGeneric<T> {
   ClassGeneric(T arg);
 }
 
-/*element: testGenericClass:static=[ClassGeneric.(1),assertIsSubtype,throwTypeError],type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*element: testGenericClass:static=[ClassGeneric.(1),assertIsSubtype(5),throwTypeError(1)],type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 testGenericClass() => new ClassGeneric<int>(0);

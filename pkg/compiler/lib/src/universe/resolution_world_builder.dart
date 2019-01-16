@@ -636,7 +636,8 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _process(_instanceMembersByName, (m) => m.invoke());
+          _process(_instanceMembersByName,
+              (m) => m.invoke(dynamicUse.selector.callStructure));
         }
         break;
       case DynamicUseKind.GET:
@@ -742,20 +743,17 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.SET:
         useSet.addAll(usage.write());
         break;
-      case StaticUseKind.REFLECT:
-        useSet.addAll(usage.fullyUse());
-        break;
       case StaticUseKind.INIT:
         useSet.addAll(usage.init());
         break;
       case StaticUseKind.INVOKE:
         registerStaticInvocation(staticUse);
-        useSet.addAll(usage.invoke());
+        useSet.addAll(usage.invoke(staticUse.callStructure));
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
-        useSet.addAll(usage.invoke());
+        useSet.addAll(usage.invoke(staticUse.callStructure));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         failedAt(element, 'Direct static use is not supported for resolution.');
@@ -860,7 +858,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.read());
       }
       if (!usage.hasInvoke && _hasInvocation(member)) {
-        useSet.addAll(usage.invoke());
+        useSet.addAll(usage.invoke(null));
       }
       if (!usage.hasWrite && hasInvokedSetter(member)) {
         useSet.addAll(usage.write());
@@ -889,7 +887,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.read());
       }
       if (!usage.hasInvoke && _hasInvocation(member)) {
-        useSet.addAll(usage.invoke());
+        useSet.addAll(usage.invoke(null));
       }
       if (!usage.hasWrite && hasInvokedSetter(member)) {
         useSet.addAll(usage.write());

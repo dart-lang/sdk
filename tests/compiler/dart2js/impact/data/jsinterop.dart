@@ -56,12 +56,12 @@ typedef void Callback<T>(T value);
 class GenericClass<T> {
   /*strong.element: GenericClass.method:
    static=[
-    checkSubtype,
-    getRuntimeTypeArgument,
-    getRuntimeTypeArgumentIntercepted,
-    getRuntimeTypeInfo,
-    getTypeArgumentByIndex,
-    setRuntimeTypeInfo],
+    checkSubtype(4),
+    getRuntimeTypeArgument(3),
+    getRuntimeTypeArgumentIntercepted(4),
+    getRuntimeTypeInfo(1),
+    getTypeArgumentByIndex(2),
+    setRuntimeTypeInfo(2)],
    type=[
     inst:JSArray<dynamic>,
     inst:JSBool,
