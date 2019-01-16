@@ -328,6 +328,58 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value2.value, 6);
   }
 
+  void test_setLiteral_spread_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    SetLiteral set = parseExpression('<int>{...[3]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 3)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+    ListLiteral list = set.elements[0];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spreadQ_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    SetLiteral set = parseExpression('<int>{...?[3]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+    ListLiteral list = set.elements[0];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread2() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    SetLiteral set = parseExpression('{3, ...[4]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+    ListLiteral list = set.elements[1];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread2Q() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    SetLiteral set = parseExpression('{3, ...?[4]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+    ListLiteral list = set.elements[1];
+    expect(list.elements, hasLength(1));
+  }
+
   void test_setLiteral_const_typeArgument() {
     SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNotNull);

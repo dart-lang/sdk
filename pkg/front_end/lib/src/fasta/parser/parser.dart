@@ -4186,12 +4186,7 @@ class Parser {
         token = next;
         break;
       }
-      if (optional('...', next) || optional('...?', next)) {
-        token = parseExpression(token.next);
-        listener.handleSpreadExpression(next);
-      } else {
-        token = parseExpression(token);
-      }
+      token = parseSpreadExpressionOrExpression(token);
       next = token.next;
       ++count;
       if (!optional(',', next)) {
@@ -4225,6 +4220,17 @@ class Parser {
     }
     mayParseFunctionExpressions = old;
     listener.handleLiteralList(count, beginToken, constKeyword, token);
+    return token;
+  }
+
+  Token parseSpreadExpressionOrExpression(Token token) {
+    Token next = token.next;
+    if (optional('...', next) || optional('...?', next)) {
+      token = parseExpression(token.next);
+      listener.handleSpreadExpression(next);
+    } else {
+      token = parseExpression(token);
+    }
     return token;
   }
 
@@ -4369,7 +4375,7 @@ class Parser {
 
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseExpression(token);
+    token = parseSpreadExpressionOrExpression(token);
     mayParseFunctionExpressions = old;
 
     return parseLiteralSetRest(token, constKeyword, beginToken);
@@ -4408,7 +4414,7 @@ class Parser {
           break;
         }
       }
-      token = parseExpression(token);
+      token = parseSpreadExpressionOrExpression(token);
       ++count;
     }
     assert(optional('}', token));
