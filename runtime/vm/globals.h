@@ -77,14 +77,6 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 
-// For checking deterministic graph generation, we can store instruction
-// tag in the ICData and check it when recreating the flow graph in
-// optimizing compiler. Enable it for other modes (product, release) if needed
-// for debugging.
-#if defined(DEBUG)
-#define TAG_IC_DATA
-#endif
-
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

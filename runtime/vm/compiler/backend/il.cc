@@ -485,23 +485,21 @@ const ICData* Instruction::GetICData(
   ASSERT(deopt_id_ != DeoptId::kNone);
   if (deopt_id_ < ic_data_array.length()) {
     const ICData* result = ic_data_array[deopt_id_];
-#if defined(TAG_IC_DATA)
+#if defined(DEBUG)
     if (result != NULL) {
-      ICData::Tag ic_data_tag = ICData::Tag::kUnknown;
       switch (tag()) {
         case kInstanceCall:
-          ic_data_tag = ICData::Tag::kInstanceCall;
+          if (result->is_static_call()) {
+            FATAL("ICData tag mismatch");
+          }
           break;
         case kStaticCall:
-          ic_data_tag = ICData::Tag::kStaticCall;
+          if (!result->is_static_call()) {
+            FATAL("ICData tag mismatch");
+          }
           break;
         default:
           UNREACHABLE();
-      }
-      if (result->tag() == ICData::Tag::kUnknown) {
-        result->set_tag(ic_data_tag);
-      } else if (result->tag() != ic_data_tag) {
-        FATAL("ICData tag mismatch");
       }
     }
 #endif

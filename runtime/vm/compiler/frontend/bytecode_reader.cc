@@ -455,9 +455,6 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                         array,  // Arguments descriptor.
                         H.thread()->compiler_state().GetNextDeoptId(),
                         checked_argument_count, ICData::RebindRule::kInstance);
-#if defined(TAG_IC_DATA)
-        ICData::Cast(obj).set_tag(ICData::Tag::kInstanceCall);
-#endif
       } break;
       case ConstantPoolTag::kStaticICData: {
         elem = ReadObject();
@@ -473,9 +470,6 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                           H.thread()->compiler_state().GetNextDeoptId(),
                           num_args_checked, ICData::RebindRule::kStatic);
         ICData::Cast(obj).AddTarget(Function::Cast(elem));
-#if defined(TAG_IC_DATA)
-        ICData::Cast(obj).set_tag(ICData::Tag::kStaticCall);
-#endif
       } break;
       case ConstantPoolTag::kStaticField:
         obj = ReadObject();

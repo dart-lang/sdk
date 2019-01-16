@@ -1960,12 +1960,6 @@ class ICData : public Object {
     kCachedICDataArrayCount = kCachedICDataOneArgWithExactnessTrackingIdx + 1,
   };
 
-#if defined(TAG_IC_DATA)
-  using Tag = RawICData::Tag;
-  void set_tag(Tag value) const;
-  Tag tag() const { return raw_ptr()->tag_; }
-#endif
-
   bool is_static_call() const;
 
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
