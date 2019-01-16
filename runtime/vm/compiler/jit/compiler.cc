@@ -619,8 +619,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           }
         }
 
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "BuildFlowGraph"));
+        TIMELINE_DURATION(thread(), Compiler, "BuildFlowGraph");
         flow_graph = pipeline->BuildFlowGraph(
             zone, parsed_function(), ic_data_array, osr_id(), optimized());
       }
@@ -638,8 +637,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(
-            thread(), compiler_timeline, "BlockScheduler::AssignEdgeWeights"));
+        TIMELINE_DURATION(thread(), Compiler,
+                          "BlockScheduler::AssignEdgeWeights");
         block_scheduler.AssignEdgeWeights();
       }
 
@@ -649,8 +648,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       pass_state.reorder_blocks = reorder_blocks;
 
       if (optimized()) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "OptimizationPasses"));
+        TIMELINE_DURATION(thread(), Compiler, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -677,14 +675,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array);
       {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "CompileGraph"));
+        TIMELINE_DURATION(thread(), Compiler, "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "FinalizeCompilation"));
+        TIMELINE_DURATION(thread(), Compiler, "FinalizeCompilation");
         if (thread()->IsMutatorThread()) {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
@@ -1205,7 +1201,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     // it now, but don't bother remembering it because it won't be used again.
     ASSERT(!field.HasPrecompiledInitializer());
     {
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
       VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
       TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                                 "CompileStaticInitializer");

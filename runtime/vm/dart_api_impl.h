@@ -102,7 +102,7 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
   TimelineDurationScope tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 #define API_TIMELINE_DURATION_BASIC(thread)                                    \

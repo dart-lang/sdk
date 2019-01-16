@@ -165,7 +165,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   return pthread_self();
 }
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
 }

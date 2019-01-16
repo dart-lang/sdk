@@ -173,8 +173,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
 
     PrintGraph(state, kTraceBefore, round);
     {
-      NOT_IN_PRODUCT(
-          TimelineDurationScope tds2(thread, state->compiler_timeline, name()));
+      TIMELINE_DURATION(thread, Compiler, name());
       repeat = DoBody(state);
       DEBUG_ASSERT(state->flow_graph->VerifyUseLists());
       thread->CheckForSafepoint();

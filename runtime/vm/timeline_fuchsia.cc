@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
-#if defined(HOST_OS_FUCHSIA) && !defined(PRODUCT)
+#include "vm/globals.h"
+#if defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
 
 #include <trace-engine/context.h>
 #include <trace-engine/instrumentation.h>

@@ -73,6 +73,10 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 #define NOT_IN_PRECOMPILED(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(PRODUCT) || defined(HOST_OS_FUCHSIA) || defined(TARGET_OS_FUCHSIA)
+#define SUPPORT_TIMELINE 1
+#endif
+
 #if defined(ARCH_IS_64_BIT)
 #define HASH_IN_OBJECT_HEADER 1
 #endif

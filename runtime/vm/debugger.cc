@@ -3111,8 +3111,7 @@ void Debugger::Pause(ServiceEvent* event) {
   {
     Thread* thread = Thread::Current();
     DisableThreadInterruptsScope dtis(thread);
-    TimelineDurationScope tds(thread, Timeline::GetDebuggerStream(),
-                              "Debugger Pause");
+    TIMELINE_DURATION(thread, Debugger, "Debugger Pause");
 
     // Send the pause event.
     Service::HandleEvent(event);
