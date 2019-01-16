@@ -648,6 +648,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
   StaticWarningCode.UNDEFINED_NAMED_PARAMETER,
   StaticWarningCode.USE_OF_VOID_RESULT,
+  StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
   StrongModeCode.ASSIGNMENT_CAST,
   StrongModeCode.COULD_NOT_INFER,
   StrongModeCode.DOWN_CAST_COMPOSITE,

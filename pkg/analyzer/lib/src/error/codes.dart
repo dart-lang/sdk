@@ -4597,6 +4597,19 @@ class StaticWarningCode extends ErrorCode {
               "defining a new parameter with this name.");
 
   /**
+   * For the purposes of experimenting with potential non-null type semantics.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode UNCHECKED_USE_OF_NULLABLE_VALUE =
+      const StaticWarningCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          'The expression is nullable and must be null-checked before it can be'
+          ' used.',
+          correction:
+              'Try casting or check the value is not null before using it.');
+
+  /**
    * It is a static warning to assign void to any non-void type in dart.
    * compile-time error). Report that error specially for a better user
    * experience.
