@@ -1173,7 +1173,6 @@ class ConstantEvaluator extends RecursiveVisitor {
         final Constant right = positionalArguments[1];
         // Since we canonicalize constants during the evaluation, we can use
         // identical here.
-        assert(left == right);
         return identical(left, right) ? trueConstant : falseConstant;
       }
     }

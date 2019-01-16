@@ -44,7 +44,7 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/transformations/constants.dart' as constants
-    show SimpleErrorReporter, transformLibraries;
+    show transformLibraries;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
@@ -98,7 +98,8 @@ import 'kernel_builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder;
 
-import 'kernel_constants.dart' show KernelConstantsBackend;
+import 'kernel_constants.dart'
+    show KernelConstantErrorReporter, KernelConstantsBackend;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -749,13 +750,15 @@ class KernelTarget extends TargetImplementation {
   /// libraries for the first time.
   void runBuildTransformations() {
     if (loader.target.enableConstantUpdate2018) {
+      TypeEnvironment environment = new TypeEnvironment(
+          loader.coreTypes, loader.hierarchy,
+          legacyMode: false);
       constants.transformLibraries(
           loader.libraries,
           new KernelConstantsBackend(),
           loader.coreTypes,
-          new TypeEnvironment(loader.coreTypes, loader.hierarchy,
-              legacyMode: false),
-          const constants.SimpleErrorReporter());
+          environment,
+          new KernelConstantErrorReporter(loader, environment));
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(
