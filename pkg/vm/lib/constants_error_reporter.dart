@@ -12,7 +12,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:front_end/src/api_unstable/vm.dart' as codes;
 
 import 'package:kernel/ast.dart'
-    show Constant, DartType, IntConstant, Procedure, TreeNode;
+    show Constant, DartType, IntConstant, Member, TreeNode;
 import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -69,7 +69,7 @@ class ForwardConstantEvaluationErrors extends constants.ErrorReporter {
 
   @override
   void invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target) {
+      List<TreeNode> context, TreeNode node, Member target) {
     final message = codes.templateConstEvalInvalidStaticInvocation
         .withArguments(target.name.toString());
     reportIt(context, message, node);

@@ -1910,9 +1910,14 @@ class Printer extends Visitor<Null> {
       sb.write('>');
     }
     sb.write(' {');
+    bool first = true;
     node.fieldValues.forEach((Reference fieldRef, Constant constant) {
       final String name = syntheticNames.nameConstant(constant);
-      sb.write('${fieldRef.asField.name}: $name, ');
+      if (!first) {
+        first = false;
+        sb.write(', ');
+      }
+      sb.write('${fieldRef.asField.name}: $name');
     });
     sb.write('}');
     endLine(sb.toString());
@@ -1934,6 +1939,13 @@ class Printer extends Visitor<Null> {
     final String name = syntheticNames.nameConstant(node);
     final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
     endLine('  $name = String.fromEnvironment(${node.name}, ${defaultValue})');
+  }
+
+  visitUnevaluatedConstant(UnevaluatedConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    writeExpression(node.expression);
+    endLine();
   }
 
   defaultNode(Node node) {

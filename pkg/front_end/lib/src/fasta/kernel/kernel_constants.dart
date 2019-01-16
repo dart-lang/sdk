@@ -15,8 +15,8 @@ import 'package:kernel/ast.dart'
         Library,
         ListConstant,
         MapConstant,
+        Member,
         NullConstant,
-        Procedure,
         StaticInvocation,
         StringConstant,
         TreeNode;
@@ -102,7 +102,7 @@ class KernelConstantErrorReporter extends ErrorReporter {
 
   @override
   void invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target) {
+      List<TreeNode> context, TreeNode node, Member target) {
     addProblem(
         node,
         templateConstEvalInvalidStaticInvocation

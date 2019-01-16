@@ -56,10 +56,7 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 [ $compiler == fasta ]
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
-LanguageFeatures/Constant_update2018/CastOperator_A03_t02/01: Crash
 LanguageFeatures/Constant_update2018/CastOperator_A04_t02: Crash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03: Crash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04: Crash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t01: Crash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t02: Crash
 LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError
@@ -82,8 +79,6 @@ LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: Crash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: Crash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: Crash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: Crash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/01: Crash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/01: Crash
 LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError # Issue 35608
@@ -848,13 +843,7 @@ LibTest/isolate/ReceivePort/transform_A01_t01: RuntimeError
 LanguageFeatures/Constant_update2018/CastOperator_A01_t01: DartkCrash
 LanguageFeatures/Constant_update2018/CastOperator_A02_t01: DartkCrash
 LanguageFeatures/Constant_update2018/CastOperator_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/02: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/03: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A03_t02/01: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A04_t01: Pass
 LanguageFeatures/Constant_update2018/CastOperator_A04_t02: DartkCrash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03: DartkCrash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t01: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t02: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Fail
@@ -878,8 +867,6 @@ LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01: Pass
 LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/01: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01: Pass
 LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02: Pass
 LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass

@@ -1107,10 +1107,14 @@ class ConstantEvaluator extends RecursiveVisitor {
   visitStaticGet(StaticGet node) {
     return withNewEnvironment(() {
       final Member target = node.target;
-      if (target is Field && target.isConst) {
-        return runInsideContext(target, () {
-          return _evaluateSubexpression(target.initializer);
-        });
+      if (target is Field) {
+        if (target.isConst) {
+          return runInsideContext(target, () {
+            return _evaluateSubexpression(target.initializer);
+          });
+        }
+        errorReporter.invalidStaticInvocation(contextChain, node, target);
+        throw new _AbortCurrentEvaluation();
       } else if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
           return canonicalize(new TearOffConstant(target));
@@ -1500,7 +1504,7 @@ abstract class ErrorReporter {
   void invalidMethodInvocation(
       List<TreeNode> context, TreeNode node, Constant receiver, String op);
   void invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target);
+      List<TreeNode> context, TreeNode node, Member target);
   void invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant);
   void invalidSymbolName(
@@ -1567,7 +1571,7 @@ class SimpleErrorReporter extends ErrorReporter {
 
   @override
   void invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target) {
+      List<TreeNode> context, TreeNode node, Member target) {
     report(
         context, 'Cannot invoke "$target" inside a constant expression', node);
   }
