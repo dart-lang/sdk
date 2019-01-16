@@ -22,9 +22,9 @@ main() {
     expect(resolveInputUri('c:/foo').scheme, 'file');
     if (Platform.isWindows) {
       /// : is an invalid path character in windows.
-      expect(() => resolveInputUri('test:foo').scheme, throwsArgumentError);
+      expect(() => resolveInputUri('test:foo').scheme, throwsA(anything));
       expect(() => resolveInputUri('org-dartlang-foo:bar').scheme,
-          throwsArgumentError);
+          throwsA(anything));
     } else {
       expect(resolveInputUri('test:foo').scheme, 'file');
       expect(resolveInputUri('org-dartlang-foo:bar').scheme, 'file');
