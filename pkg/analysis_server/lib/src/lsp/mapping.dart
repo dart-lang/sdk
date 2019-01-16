@@ -256,7 +256,7 @@ ErrorOr<String> pathOfUri(Uri uri) {
     return new ErrorOr<String>.error(new ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'URI was not a valid file:// URI',
-        uri));
+        uri.toString()));
   }
   try {
     return new ErrorOr<String>.success(uri.toFilePath());
@@ -266,7 +266,7 @@ ErrorOr<String> pathOfUri(Uri uri) {
     return new ErrorOr<String>.error(new ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'File URI did not contain a valid file path',
-        uri));
+        uri.toString()));
   }
 }
 
@@ -458,7 +458,7 @@ ErrorOr<int> toOffset(
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
             : lsp.ServerErrorCodes.InvalidFileLineCol,
         'Invalid line number',
-        pos.line));
+        pos.line.toString()));
   }
   // TODO(dantup): Is there any way to validate the character? We could ensure
   // it's less than the offset of the next line, but that would only work for

@@ -6674,9 +6674,9 @@ class ResponseError<D> implements ToJsonable {
   /// A number indicating the error type that occurred.
   final ErrorCodes code;
 
-  /// A Primitive or Structured value that contains additional information about
-  /// the error. Can be omitted.
-  final D data;
+  /// A string that contains additional information about the error. Can be
+  /// omitted.
+  final String data;
 
   /// A string providing a short description of the error.
   final String message;

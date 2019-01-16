@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -98,6 +99,13 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     }
   }
 
+  /// Run the object through JSON serialisation to catch any
+  /// issues like fields that are unserialisable types. This is used for
+  /// messages going server-to-client.
+  void ensureMessageCanBeJsonSerialized(ToJsonable message) {
+    jsonEncode(message.toJson());
+  }
+
   @override
   void listen(void Function(lsp.Message message) onMessage,
       {Function onError, void Function() onDone}) {
@@ -110,6 +118,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
+    ensureMessageCanBeJsonSerialized(notification);
+
     _serverToClient.add(notification);
   }
 
@@ -118,7 +129,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
     notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
+
     _clientToServer.add(notification);
   }
 
@@ -128,6 +141,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
+    ensureMessageCanBeJsonSerialized(request);
+
     _serverToClient.add(request);
   }
 
@@ -141,7 +157,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       throw new Exception('sendLspRequest after connection closed');
     }
+
     request = _convertJson(request, lsp.RequestMessage.fromJson);
+
     // Wrap send request in future to simulate WebSocket.
     new Future(() => _clientToServer.add(request));
     return waitForResponse(request);
@@ -153,6 +171,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
+    ensureMessageCanBeJsonSerialized(response);
+
     // Wrap send response in future to simulate WebSocket.
     new Future(() => _serverToClient.add(response));
   }
@@ -162,7 +183,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
     response = _convertJson(response, lsp.ResponseMessage.fromJson);
+
     _clientToServer.add(response);
   }
 

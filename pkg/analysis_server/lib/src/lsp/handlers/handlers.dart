@@ -32,7 +32,7 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 mixin Handler<P, R> {
   LspAnalysisServer server;
 
-  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
+  ErrorOr<R> error<R>(ErrorCodes code, String message, String data) =>
       new ErrorOr<R>.error(new ResponseError(code, message, data));
 
   ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
@@ -93,7 +93,7 @@ abstract class ServerStateMessageHandler {
   }
 
   ErrorOr<Object> failure<Object>(ErrorCodes code, String message,
-          [Object data]) =>
+          [String data]) =>
       new ErrorOr<Object>.error(new ResponseError(code, message, data));
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
