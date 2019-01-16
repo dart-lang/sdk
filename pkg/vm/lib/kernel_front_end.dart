@@ -41,6 +41,7 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
+import 'bytecode/ast_remover.dart' show ASTRemover;
 import 'bytecode/gen_bytecode.dart' show generateBytecode;
 
 import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
@@ -288,11 +289,14 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
-          dropAST: dropAST,
           emitSourcePositions: emitBytecodeSourcePositions,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
     });
+
+    if (dropAST) {
+      new ASTRemover(component).visitComponent(component);
+    }
   }
 
   // Restore error handler (in case 'options' are reused).
@@ -613,22 +617,32 @@ Future writeOutputSplitByPackages(
         component.mainMethod = null;
       }
 
+      ASTRemover astRemover;
       if (genBytecode) {
         final List<Library> libraries = component.libraries
             .where((lib) => packageFor(lib) == package)
             .toList();
         generateBytecode(component,
             libraries: libraries,
-            dropAST: dropAST,
             emitSourcePositions: emitBytecodeSourcePositions,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);
+
+        if (dropAST) {
+          astRemover = new ASTRemover(component);
+          for (var library in libraries) {
+            astRemover.visitLibrary(library);
+          }
+        }
       }
 
       final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(component);
       component.mainMethod = main;
+      if (genBytecode && dropAST) {
+        astRemover.restoreAST();
+      }
 
       await sink.close();
     }
