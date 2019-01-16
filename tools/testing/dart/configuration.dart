@@ -116,7 +116,6 @@ class TestConfiguration {
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
   bool get useSdk => configuration.useSdk;
-  bool get useFastStartup => configuration.useFastStartup;
   bool get useEnableAsserts => configuration.enableAsserts;
   bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
   bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
@@ -245,7 +244,6 @@ class TestConfiguration {
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
-    if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
     if (useDart2JSOldFrontend) args.add("--use-old-frontend");
@@ -463,7 +461,6 @@ class TestConfiguration {
         'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
-        'fast_startup': useFastStartup,
         'timeout': timeout,
         'no_preview_dart_2': noPreviewDart2,
         'use_cfe': useAnalyzerCfe,

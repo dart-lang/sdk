@@ -215,19 +215,6 @@ list_test/none: Crash # Unsupported operation: Unsupported type parameter type n
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
-[ $compiler == dart2js && $fast_startup && $strong ]
-error_stack_trace1_test: RuntimeError
-growable_list_test: RuntimeError
-integer_to_radix_string_test/01: RuntimeError
-integer_to_radix_string_test/02: RuntimeError
-integer_to_radix_string_test/none: RuntimeError
-integer_to_string_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-list_concurrent_modify_test: RuntimeError
-main_test: RuntimeError
-nan_infinity_test/01: RuntimeError
-symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
-
 [ $compiler == dart2js && $minified && $strong ]
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -256,12 +243,6 @@ integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
-list_unmodifiable_test: RuntimeError
-main_test: RuntimeError
-nan_infinity_test/01: RuntimeError
-regexp/pcre_test: RuntimeError
-symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
 [ $compiler == dart2js && !$strong ]
 *: SkipByDesign

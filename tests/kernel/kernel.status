@@ -20,9 +20,6 @@ unsorted/types_test: RuntimeError
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/super_mixin_test: CompileTimeError
 
-[ $compiler == dart2js && !$fast_startup ]
-unsorted/super_mixin_test: RuntimeError
-
 [ $compiler == dart2js && $host_checked ]
 unsorted/super_mixin_test: Crash
 
