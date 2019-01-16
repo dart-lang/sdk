@@ -31,7 +31,7 @@ class FormatOnTypeHandler
   Future<ErrorOr<List<TextEdit>>> handle(
       DocumentOnTypeFormattingParams params) async {
     final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireUnit);
+    final unit = await path.mapResult(requireResolvedUnit);
     return unit.mapResult((unit) => formatFile(path.result, unit));
   }
 }

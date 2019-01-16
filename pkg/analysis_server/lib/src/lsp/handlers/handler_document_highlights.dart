@@ -25,7 +25,7 @@ class DocumentHighlightsHandler extends MessageHandler<
       TextDocumentPositionParams params) async {
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireUnit);
+    final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((requestedOffset) {

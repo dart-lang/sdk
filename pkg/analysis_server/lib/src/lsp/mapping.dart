@@ -417,6 +417,28 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
+lsp.FoldingRange toFoldingRange(
+    server.LineInfo lineInfo, server.FoldingRegion region) {
+  final range = toRange(lineInfo, region.offset, region.length);
+  return new lsp.FoldingRange(range.start.line, range.start.character,
+      range.end.line, range.end.character, toFoldingRangeKind(region.kind));
+}
+
+lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
+  switch (kind) {
+    case server.FoldingKind.DOCUMENTATION_COMMENT:
+    case server.FoldingKind.FILE_HEADER:
+      return lsp.FoldingRangeKind.Comment;
+    case server.FoldingKind.DIRECTIVES:
+      return lsp.FoldingRangeKind.Imports;
+    default:
+      // null (actually undefined in LSP, the toJson() takes care of that) is
+      // valid, and actually the value used for the majority of folds
+      // (class/functions/etc.).
+      return null;
+  }
+}
+
 List<lsp.DocumentHighlight> toHighlights(
     server.LineInfo lineInfo, server.Occurrences occurrences) {
   return occurrences.offsets

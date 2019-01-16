@@ -77,6 +77,6 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/onTypeFormatting | ✅ | ✅ | ✅ | ✅ |
 | textDocument/rename | ✅ | ✅ | ✅ | ✅ |
 | textDocument/prepareRename | | | | |
-| textDocument/foldingRange | | | | |
+| textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ |
 
 

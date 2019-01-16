@@ -72,45 +72,6 @@ abstract class AbstractLspAnalysisServerTest
     );
   }
 
-  /// Validates the document versions for a set of edits match the versions in
-  /// the supplied map.
-  void expectDocumentVersions(
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
-        documentChanges,
-    Map<String, int> expectedVersions,
-  ) {
-    documentChanges.map(
-      // Validate versions on simple doc edits
-      (edits) => edits
-          .forEach((edit) => expectDocumentVersion(edit, expectedVersions)),
-      // For resource changes, we only need to validate changes since
-      // creates/renames/deletes do not supply versions.
-      (changes) => changes.forEach((change) {
-            change.map(
-              (edit) => expectDocumentVersion(edit, expectedVersions),
-              (create) => {},
-              (rename) {},
-              (delete) {},
-            );
-          }),
-    );
-  }
-
-  void expectDocumentVersion(
-    TextDocumentEdit edit,
-    Map<String, int> expectedVersions,
-  ) {
-    final path = Uri.parse(edit.textDocument.uri).toFilePath();
-    final expectedVersion = expectedVersions[path];
-
-    if (edit.textDocument is VersionedTextDocumentIdentifier) {
-      expect(edit.textDocument.version, equals(expectedVersion));
-    } else {
-      throw 'Document identifier for $path was not versioned (expected version $expectedVersion)';
-    }
-  }
-
   void applyResourceChanges(
     Map<String, String> oldFileContent,
     List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
@@ -232,6 +193,45 @@ abstract class AbstractLspAnalysisServerTest
       ),
     );
     return expectSuccessfulResponseTo(request);
+  }
+
+  void expectDocumentVersion(
+    TextDocumentEdit edit,
+    Map<String, int> expectedVersions,
+  ) {
+    final path = Uri.parse(edit.textDocument.uri).toFilePath();
+    final expectedVersion = expectedVersions[path];
+
+    if (edit.textDocument is VersionedTextDocumentIdentifier) {
+      expect(edit.textDocument.version, equals(expectedVersion));
+    } else {
+      throw 'Document identifier for $path was not versioned (expected version $expectedVersion)';
+    }
+  }
+
+  /// Validates the document versions for a set of edits match the versions in
+  /// the supplied map.
+  void expectDocumentVersions(
+    Either2<List<TextDocumentEdit>,
+            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+        documentChanges,
+    Map<String, int> expectedVersions,
+  ) {
+    documentChanges.map(
+      // Validate versions on simple doc edits
+      (edits) => edits
+          .forEach((edit) => expectDocumentVersion(edit, expectedVersions)),
+      // For resource changes, we only need to validate changes since
+      // creates/renames/deletes do not supply versions.
+      (changes) => changes.forEach((change) {
+            change.map(
+              (edit) => expectDocumentVersion(edit, expectedVersions),
+              (create) => {},
+              (rename) {},
+              (delete) {},
+            );
+          }),
+    );
   }
 
   Future<T> expectErrorNotification<T>(
@@ -361,6 +361,14 @@ abstract class AbstractLspAnalysisServerTest
       ),
     );
     return expectSuccessfulResponseTo(request);
+  }
+
+  Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_foldingRange,
+      new FoldingRangeParams(new TextDocumentIdentifier(uri.toString())),
+    );
+    return expectSuccessfulResponseTo<List<FoldingRange>>(request);
   }
 
   Future<Hover> getHover(Uri uri, Position pos) {

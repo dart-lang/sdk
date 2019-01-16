@@ -239,4 +239,13 @@ abstract class AbstractAnalysisServer {
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .catchError((_) => null);
   }
+
+  /// Return the unresolved unit for the file with the given [path].
+  ParsedUnitResult getParsedUnit(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    return getAnalysisDriver(path)?.currentSession?.getParsedUnit(path);
+  }
 }

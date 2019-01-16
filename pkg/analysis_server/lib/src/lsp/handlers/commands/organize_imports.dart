@@ -33,7 +33,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     final path = arguments.single;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
 
-    final result = await requireUnit(path);
+    final result = await requireResolvedUnit(path);
     return result.mapResult((result) {
       final code = result.content;
       final unit = result.unit;
