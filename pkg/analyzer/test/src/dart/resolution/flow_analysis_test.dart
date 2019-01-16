@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +23,7 @@ main() {
 
 @reflectiveTest
 class DefiniteAssignmentFlowTest extends DriverResolutionTest {
-  FlowAnalysis flow;
+  final List<LocalVariableElement> readBeforeWritten = [];
 
   /// Assert that only local variables with the given names are marked as read
   /// before being written.  All the other local variables are implicitly
@@ -33,7 +34,7 @@ class DefiniteAssignmentFlowTest extends DriverResolutionTest {
         .where((i) => i != null)
         .map((name) => findElement.localVar(name))
         .toList();
-    expect(flow.readBeforeWritten, unorderedEquals(expected));
+    expect(readBeforeWritten, unorderedEquals(expected));
   }
 
   test_binaryExpression_logicalAnd_left() async {
@@ -102,6 +103,184 @@ main() {
     assertReadBeforeWritten();
   }
 
+  test_conditional_both() async {
+    await trackCode(r'''
+f(bool v) {
+  int v;
+  b ? (v = 1) : (v = 2);
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_conditional_else() async {
+    await trackCode(r'''
+f(bool v) {
+  int v;
+  b ? 1 : (v = 2);
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_conditional_then() async {
+    await trackCode(r'''
+f(bool v) {
+  int v;
+  b ? (v = 1) : 2;
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_doWhile_break_afterAssignment() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  do {
+    v = 0;
+    v;
+    if (b) break;
+  } while (b);
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_doWhile_break_beforeAssignment() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  do {
+    if (b) break;
+    v = 0;
+  } while (b);
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_doWhile_breakOuterFromInner() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2, v3;
+  L1: do {
+    do {
+      v1 = 0;
+      if (b) break L1;
+      v2 = 0;
+      v3 = 0;
+    } while (b);
+    v2;
+  } while (b);
+  v1;
+  v3;
+}
+''');
+    assertReadBeforeWritten('v3');
+  }
+
+  test_doWhile_condition() async {
+    await trackCode(r'''
+void f() {
+  int v1, v2;
+  do {
+    v1; // assigned in the condition, but not yet
+  } while ((v1 = 0) + (v2 = 0) >= 0);
+  v2;
+}
+''');
+    assertReadBeforeWritten('v1');
+  }
+
+  test_doWhile_condition_break() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  do {
+    if (b) break;
+  } while ((v = 0) >= 0);
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_doWhile_condition_break_continue() async {
+    await trackCode(r'''
+void f(bool b1, b2) {
+  int v1, v2, v3, v4, v5, v6;
+  do {
+    v1 = 0; // visible outside, visible to the condition
+    if (b1) break;
+    v2 = 0; // not visible outside, visible to the condition
+    v3 = 0; // not visible outside, visible to the condition
+    if (b2) continue;
+    v4 = 0; // not visible
+    v5 = 0; // not visible
+  } while ((v6 = v1 + v2 + v4) == 0); // has break => v6 is not visible outside
+  v1;
+  v3;
+  v5;
+  v6;
+}
+''');
+    assertReadBeforeWritten('v3', 'v4', 'v5', 'v6');
+  }
+
+  test_doWhile_condition_continue() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2, v3, v4;
+  do {
+    v1 = 0; // visible outside, visible to the condition
+    if (b) continue;
+    v2 = 0; // not visible
+    v3 = 0; // not visible
+  } while ((v4 = v1 + v2) == 0); // no break => v4 visible outside
+  v1;
+  v3;
+  v4;
+}
+''');
+    assertReadBeforeWritten('v2', 'v3');
+  }
+
+  test_doWhile_continue_beforeAssignment() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  do {
+    if (b) continue;
+    v = 0;
+  } while (b);
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_doWhile_true_assignInBreak() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  do {
+    if (b) {
+      v = 0;
+      break;
+    }
+  } while (true);
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
   test_if_condition() async {
     await trackCode(r'''
 main() {
@@ -118,7 +297,6 @@ main() {
   }
 
   test_if_condition_false() async {
-    // new test
     await trackCode(r'''
 void f() {
   int v;
@@ -134,7 +312,6 @@ void f() {
   }
 
   test_if_condition_logicalAnd_else() async {
-    // new test
     await trackCode(r'''
 void f(bool b, int i) {
   int v;
@@ -148,7 +325,6 @@ void f(bool b, int i) {
   }
 
   test_if_condition_logicalAnd_then() async {
-    // new test
     await trackCode(r'''
 void f(bool b, int i) {
   int v;
@@ -161,7 +337,6 @@ void f(bool b, int i) {
   }
 
   test_if_condition_logicalOr_else() async {
-    // new test
     await trackCode(r'''
 void f(bool b, int i) {
   int v;
@@ -175,7 +350,6 @@ void f(bool b, int i) {
   }
 
   test_if_condition_logicalOr_then() async {
-    // new test
     await trackCode(r'''
 void f(bool b, int i) {
   int v;
@@ -189,7 +363,6 @@ void f(bool b, int i) {
   }
 
   test_if_condition_notFalse() async {
-    // new test
     await trackCode(r'''
 void f() {
   int v;
@@ -203,7 +376,6 @@ void f() {
   }
 
   test_if_condition_notTrue() async {
-    // new test
     await trackCode(r'''
 void f() {
   int v;
@@ -219,7 +391,6 @@ void f() {
   }
 
   test_if_condition_true() async {
-    // new test
     await trackCode(r'''
 void f() {
   int v;
@@ -292,28 +463,205 @@ main(bool c) {
     assertReadBeforeWritten('v');
   }
 
+  test_while_condition() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  while ((v = 0) >= 0) {
+    v;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_while_condition_notTrue() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  while (b) {
+    v1 = 0;
+    v2 = 0;
+    v1;
+  }
+  v2;
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_while_true_break_afterAssignment() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  while (true) {
+    v1 = 0;
+    v1;
+    if (b) break;
+    v1;
+    v2 = 0;
+    v2;
+  }
+  v1;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_while_true_break_beforeAssignment() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  while (true) {
+    if (b) break;
+    v1 = 0;
+    v2 = 0;
+    v2;
+  }
+  v1;
+}
+''');
+    assertReadBeforeWritten('v1');
+  }
+
+  test_while_true_break_if() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  while (true) {
+    if (b) {
+      v = 0;
+      break;
+    } else {
+      v = 0;
+      break;
+    }
+    v;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_while_true_break_if2() async {
+    await trackCode(r'''
+void f(bool b) {
+  var v;
+  while (true) {
+    if (b) {
+      break;
+    } else {
+      v = 0;
+    }
+    v;
+  }
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_while_true_break_if3() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  while (true) {
+    if (b) {
+      v1 = 0;
+      v2 = 0;
+      if (b) break;
+    } else {
+      if (b) break;
+      v1 = 0;
+      v2 = 0;
+    }
+    v1;
+  }
+  v2;
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_while_true_breakOuterFromInner() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2, v3;
+  L1: while (true) {
+    L2: while (true) {
+      v1 = 0;
+      if (b) break L1;
+      v2 = 0;
+      v3 = 0;
+      if (b) break L2;
+    }
+    v2;
+  }
+  v1;
+  v3;
+}
+''');
+    assertReadBeforeWritten('v3');
+  }
+
+  test_while_true_continue() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  while (true) {
+    if (b) continue;
+    v = 0;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_while_true_noBreak() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  while (true) {
+    // No assignment, but no break.
+    // So, we don't exit the loop.
+    // So, all variables are assigned.
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
   /// Resolve the given [code] and track assignments in the unit.
   Future<void> trackCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
 
-    var typeSystem = result.unit.declaredElement.context.typeSystem;
-    flow = FlowAnalysis(typeSystem);
+    var unit = result.unit;
 
-    var visitor = _AstVisitor(flow, {});
-    result.unit.accept(visitor);
+    var loopAssignedVariables = LoopAssignedVariables();
+    unit.accept(_LoopAssignedVariablesVisitor(loopAssignedVariables));
+
+    var typeSystem = unit.declaredElement.context.typeSystem;
+    unit.accept(_AstVisitor(
+      typeSystem,
+      loopAssignedVariables,
+      {},
+      readBeforeWritten,
+    ));
   }
 }
 
 @reflectiveTest
 class TypePromotionFlowTest extends DriverResolutionTest {
-  Map<AstNode, DartType> promotedTypes = {};
-  FlowAnalysis flow;
+  final Map<AstNode, DartType> promotedTypes = {};
 
   void assertNotPromoted(String search) {
     var node = findNode.simple(search);
     var actualType = promotedTypes[node];
-    expect(actualType, isNull);
+    expect(actualType, isNull, reason: search);
   }
 
   void assertPromoted(String search, String expectedType) {
@@ -325,8 +673,119 @@ class TypePromotionFlowTest extends DriverResolutionTest {
     assertElementTypeString(actualType, expectedType);
   }
 
+  test_assignment() async {
+    await trackCode(r'''
+f(Object x) {
+  if (x is String) {
+    x = 42;
+    x; // 1
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+  }
+
+  test_conditional() async {
+    await trackCode(r'''
+f(bool b, Object x) {
+  b ? ((x is num) || (throw 1)) : ((x is int) || (throw 2));
+  x; // 1
+}
+''');
+    assertPromoted('x; // 1', 'num');
+  }
+
+  test_do_condition_isNotType() async {
+    await trackCode(r'''
+void f(Object x) {
+  do {
+    x; // 1
+    x = '';
+  } while (x is! String)
+  x; // 2
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertPromoted('x; // 2', 'String');
+  }
+
+  test_do_condition_isType() async {
+    await trackCode(r'''
+void f(Object x) {
+  do {
+    x; // 1
+  } while (x is String)
+  x; // 2
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_do_outerIsType() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    do {
+      x; // 1
+    } while (b);
+    x; // 2
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+  }
+
+  test_do_outerIsType_loopAssigned_body() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    do {
+      x; // 1
+      x = x.length;
+    } while (b);
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_do_outerIsType_loopAssigned_condition() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    do {
+      x; // 1
+      x = x.length;
+    } while (x != 0);
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x != 0');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_do_outerIsType_loopAssigned_condition2() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    do {
+      x; // 1
+    } while ((x = 1) != 0);
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
   test_if_combine_empty() async {
-    // new test
     await trackCode(r'''
 main(bool b, Object v) {
   if (b) {
@@ -340,8 +799,39 @@ main(bool b, Object v) {
     assertNotPromoted('v; // 3');
   }
 
+  test_if_conditional_isNotType() async {
+    await trackCode(r'''
+f(bool b, Object v) {
+  if (b ? (v is! int) : (v is! num)) {
+    v; // 1
+  } else {
+    v; // 2
+  }
+  v; // 3
+}
+''');
+    assertNotPromoted('v; // 1');
+    assertPromoted('v; // 2', 'num');
+    assertNotPromoted('v; // 3');
+  }
+
+  test_if_conditional_isType() async {
+    await trackCode(r'''
+f(bool b, Object v) {
+  if (b ? (v is int) : (v is num)) {
+    v; // 1
+  } else {
+    v; // 2
+  }
+  v; // 3
+}
+''');
+    assertPromoted('v; // 1', 'num');
+    assertNotPromoted('v; // 2');
+    assertNotPromoted('v; // 3');
+  }
+
   test_if_isNotType() async {
-    // new test
     await trackCode(r'''
 main(v) {
   if (v is! String) {
@@ -358,10 +848,19 @@ main(v) {
   }
 
   test_if_isNotType_return() async {
-    // new test
     await trackCode(r'''
 main(v) {
   if (v is! String) return;
+  v; // ref
+}
+''');
+    assertPromoted('v; // ref', 'String');
+  }
+
+  test_if_isNotType_throw() async {
+    await trackCode(r'''
+main(v) {
+  if (v is! String) throw 42;
   v; // ref
 }
 ''');
@@ -396,7 +895,6 @@ f(Object x) {
   }
 
   test_if_logicalNot_isType() async {
-    // new test
     await trackCode(r'''
 main(v) {
   if (!(v is String)) {
@@ -413,7 +911,6 @@ main(v) {
   }
 
   test_logicalOr_throw() async {
-    // new test
     await trackCode(r'''
 main(v) {
   v is String || (throw 42);
@@ -423,36 +920,151 @@ main(v) {
     assertPromoted('v; // ref', 'String');
   }
 
+  test_potentiallyMutatedInClosure() async {
+    await trackCode(r'''
+f(Object x) {
+  localFunction() {
+    x = 42;
+  }
+
+  if (x is String) {
+    localFunction();
+    x; // 1
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+  }
+
+  test_potentiallyMutatedInScope() async {
+    await trackCode(r'''
+f(Object x) {
+  if (x is String) {
+    x; // 1
+  }
+
+  x = 42;
+}
+''');
+    assertPromoted('x; // 1', 'String');
+  }
+
+  test_while_condition_false() async {
+    await trackCode(r'''
+void f(Object x) {
+  while (x is! String) {
+    x; // 1
+  }
+  x; // 2
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertPromoted('x; // 2', 'String');
+  }
+
+  test_while_condition_true() async {
+    await trackCode(r'''
+void f(Object x) {
+  while (x is String) {
+    x; // 1
+  }
+  x; // 2
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_while_outerIsType() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    while (b) {
+      x; // 1
+    }
+    x; // 2
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+  }
+
+  test_while_outerIsType_loopAssigned_body() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    while (b) {
+      x; // 1
+      x = x.length;
+    }
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_while_outerIsType_loopAssigned_condition() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    while (x != 0) {
+      x; // 1
+      x = x.length;
+    }
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x != 0');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
   /// Resolve the given [code] and track assignments in the unit.
   Future<void> trackCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
 
-    var typeSystem = result.unit.declaredElement.context.typeSystem;
-    flow = FlowAnalysis(typeSystem);
+    var unit = result.unit;
 
-    var visitor = _AstVisitor(flow, promotedTypes);
-    result.unit.accept(visitor);
+    var loopAssignedVariables = LoopAssignedVariables();
+    unit.accept(_LoopAssignedVariablesVisitor(loopAssignedVariables));
+
+    var typeSystem = unit.declaredElement.context.typeSystem;
+    unit.accept(_AstVisitor(
+      typeSystem,
+      loopAssignedVariables,
+      promotedTypes,
+      [],
+    ));
   }
 }
 
 /// [AstVisitor] that drives the [flow] in the way we expect the resolver
 /// will do in production.
 class _AstVisitor extends RecursiveAstVisitor<void> {
-  final FlowAnalysis flow;
+  final TypeSystem typeSystem;
+  final LoopAssignedVariables loopAssignedVariables;
   final Map<AstNode, DartType> promotedTypes;
+  final List<LocalVariableElement> readBeforeWritten;
 
-  _AstVisitor(this.flow, this.promotedTypes);
+  FlowAnalysis flow;
+
+  _AstVisitor(this.typeSystem, this.loopAssignedVariables, this.promotedTypes,
+      this.readBeforeWritten);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
-    LocalVariableElement localElement;
+    VariableElement localElement;
     if (left is SimpleIdentifier) {
       var element = left.staticElement;
-      if (element is LocalVariableElement) {
+      if (element is VariableElement) {
         localElement = element;
       }
     }
@@ -515,8 +1127,16 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
+    var isFlowOwner = flow == null;
+    flow ??= FlowAnalysis(typeSystem, node);
+
     super.visitBlockFunctionBody(node);
-    flow.verifyStackEmpty();
+
+    if (isFlowOwner) {
+      readBeforeWritten.addAll(flow.readBeforeWritten);
+      flow.verifyStackEmpty();
+      flow = null;
+    }
   }
 
   @override
@@ -531,9 +1151,49 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    super.visitExpressionFunctionBody(node);
-    flow.verifyStackEmpty();
+  void visitBreakStatement(BreakStatement node) {
+    var target = _getLabelTarget(node, node.label?.staticElement);
+    flow.handleBreak(target);
+    super.visitBreakStatement(node);
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    var condition = node.condition;
+    var thenExpression = node.thenExpression;
+    var elseExpression = node.elseExpression;
+
+    condition.accept(this);
+
+    flow.conditional_thenBegin(node);
+    thenExpression.accept(this);
+    var isBool = thenExpression.staticType.isDartCoreBool;
+
+    flow.conditional_elseBegin(node, isBool);
+    elseExpression.accept(this);
+
+    flow.conditional_end(node, isBool);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    var target = _getLabelTarget(node, node.label?.staticElement);
+    flow.handleContinue(target);
+    super.visitContinueStatement(node);
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    var body = node.body;
+    var condition = node.condition;
+
+    flow.doStatement_bodyBegin(node, loopAssignedVariables[node]);
+    body.accept(this);
+
+    flow.doStatement_conditionBegin();
+    condition.accept(this);
+
+    flow.doStatement_end(node);
   }
 
   @override
@@ -563,7 +1223,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
-      if (element is LocalElement) {
+      if (element is VariableElement) {
         flow.isExpression_end(node, element, typeAnnotation.type);
       }
     }
@@ -598,7 +1258,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
           flow.read(element);
         }
 
-        var promotedType = flow.promotedType(element);
+        var promotedType = flow?.promotedType(element);
         if (promotedType != null) {
           promotedTypes[node] = promotedType;
         }
@@ -626,11 +1286,93 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
     super.visitVariableDeclarationStatement(node);
   }
 
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    var condition = node.condition;
+    var body = node.body;
+
+    flow.whileStatement_conditionBegin(node, loopAssignedVariables[node]);
+    condition.accept(this);
+
+    flow.whileStatement_bodyBegin(node);
+    body.accept(this);
+
+    flow.whileStatement_end();
+  }
+
+  /// This code has OK performance for tests, but think if there is something
+  /// better when using in production.
+  AstNode _getLabelTarget(AstNode node, LabelElement element) {
+    for (; node != null; node = node.parent) {
+      if (node is DoStatement ||
+          node is ForEachStatement ||
+          node is ForStatement ||
+          node is SwitchStatement ||
+          node is WhileStatement) {
+        if (element == null) {
+          return node;
+        }
+        var parent = node.parent;
+        if (parent is LabeledStatement) {
+          for (var nodeLabel in parent.labels) {
+            if (identical(nodeLabel.label.staticElement, element)) {
+              return node;
+            }
+          }
+        }
+      }
+      if (element != null && node is SwitchStatement) {
+        for (var member in node.members) {
+          for (var nodeLabel in member.labels) {
+            if (identical(nodeLabel.label.staticElement, element)) {
+              return node;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   static bool _isFalseLiteral(AstNode node) {
     return node is BooleanLiteral && !node.value;
   }
 
   static bool _isTrueLiteral(AstNode node) {
     return node is BooleanLiteral && node.value;
+  }
+}
+
+class _LoopAssignedVariablesVisitor extends RecursiveAstVisitor<void> {
+  final LoopAssignedVariables loopAssignedVariables;
+
+  _LoopAssignedVariablesVisitor(this.loopAssignedVariables);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    var left = node.leftHandSide;
+
+    super.visitAssignmentExpression(node);
+
+    if (left is SimpleIdentifier) {
+      var element = left.staticElement;
+      if (element is VariableElement) {
+        loopAssignedVariables.write(element);
+      }
+    }
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    loopAssignedVariables.beginLoop();
+    super.visitDoStatement(node);
+    loopAssignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    loopAssignedVariables.beginLoop();
+    super.visitWhileStatement(node);
+    loopAssignedVariables.endLoop(node);
   }
 }

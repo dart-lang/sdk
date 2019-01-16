@@ -69,6 +69,12 @@ abstract class DartType {
   bool get isDartAsyncFutureOr;
 
   /**
+   * Return `true` if this type represents the type 'bool' defined in the
+   * dart:core library.
+   */
+  bool get isDartCoreBool;
+
+  /**
    * Return `true` if this type represents the type 'Function' defined in the
    * dart:core library.
    */
