@@ -87,7 +87,6 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE,
   MISSING_EXPRESSION_IN_THROW,
-  MULTI_INHERITANCE,
   NO_SUCH_SUPER_MEMBER,
   NON_NATIVE_EXTERNAL,
   NOT_A_COMPILE_TIME_CONSTANT,
@@ -171,12 +170,6 @@ class MessageTemplate {
       MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS: const MessageTemplate(
           MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS,
           "Cycle in the compile-time constant computation."),
-
-      MessageKind.MULTI_INHERITANCE: const MessageTemplate(
-          MessageKind.MULTI_INHERITANCE,
-          "Dart2js does not currently support inheritance of the same class "
-          "with different type arguments: Both #{firstType} and #{secondType} "
-          "are supertypes of #{thisType}."),
 
       MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER: const MessageTemplate(
           MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
