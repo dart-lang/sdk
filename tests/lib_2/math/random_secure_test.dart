@@ -6,9 +6,6 @@
 // duplicates. Note that this test is flaky by definition, since duplicates
 // can occur. They should be extremely rare, though.
 
-// Library tag to allow Dartium to run the test.
-library random_secure;
-
 import "package:expect/expect.dart";
 import 'dart:math';
 
