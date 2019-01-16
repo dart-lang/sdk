@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-import '../js/js.dart' as js;
+//import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
@@ -1846,31 +1846,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (foreign.inputs.length < 1) return false;
     if (foreign.inputs.first != receiver) return false;
     if (foreign.throwBehavior.isNullNSMGuard) return true;
-
-    // TODO(sra): Fix NativeThrowBehavior to distinguish MAY from
-    // throws-nsm-on-null-followed-by-MAY and remove all the code below.
-
-    // We look for a template of the form
-    //
-    // #.something -or- #.something()
-    //
-    // where # is substituted by receiver.
-    js.Template template = foreign.codeTemplate;
-    js.Node node = template.ast;
-    // #.something = ...
-    if (node is js.Assignment) {
-      js.Assignment assignment = node;
-      node = assignment.leftHandSide;
-    }
-
-    // #.something
-    if (node is js.PropertyAccess) {
-      js.PropertyAccess access = node;
-      if (access.receiver is js.InterpolatedExpression) {
-        js.InterpolatedExpression hole = access.receiver;
-        return hole.isPositional && hole.nameOrPosition == 0;
-      }
-    }
     return false;
   }
 
@@ -1949,14 +1924,18 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (!instruction.usedBy.isEmpty) return false;
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
-    if (instruction.canThrow(_abstractValueDomain) &&
-        instruction.onlyThrowsNSM() &&
-        hasFollowingThrowingNSM(instruction)) {
-      return true;
+    if (instruction.canThrow(_abstractValueDomain)) {
+      if (instruction.onlyThrowsNSM() && hasFollowingThrowingNSM(instruction)) {
+        // [instruction] is a null reciever guard that is followed by an
+        // instruction that fails the same way (by accessing a property of
+        // `null` or `undefined`).
+        return true;
+      }
+      return false;
     }
-    return !instruction.canThrow(_abstractValueDomain) &&
-        instruction is! HParameterValue &&
-        instruction is! HLocalSet;
+    if (instruction is HParameterValue) return false;
+    if (instruction is HLocalSet) return false;
+    return true;
   }
 
   void visitGraph(HGraph graph) {
