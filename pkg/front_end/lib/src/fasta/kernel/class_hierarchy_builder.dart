@@ -141,12 +141,7 @@ class ClassHierarchyBuilder {
       } else {
         cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
             cls.fullNameForErrors.length,
-            context: <LocatedMessage>[
-              messageInheritedMembersConflictCause1.withLocation(
-                  a.fileUri, a.charOffset, name.length),
-              messageInheritedMembersConflictCause2.withLocation(
-                  b.fileUri, b.charOffset, name.length),
-            ]);
+            context: inheritedConflictContext(a, b));
       }
     } else if (a.isStatic != b.isStatic) {
       Declaration staticMember;
@@ -619,4 +614,33 @@ enum MergeKind {
   /// Merging members with inherited setters, or setters with inherited
   /// members.
   accessors,
+}
+
+List<LocatedMessage> inheritedConflictContext(Declaration a, Declaration b) {
+  return inheritedConflictContextKernel(
+      a.target, b.target, a.fullNameForErrors.length);
+}
+
+List<LocatedMessage> inheritedConflictContextKernel(
+    Member a, Member b, int length) {
+  // TODO(ahe): Delete this method when it isn't used by [InterfaceResolver].
+  int compare = "${a.fileUri}".compareTo("${b.fileUri}");
+  if (compare == 0) {
+    compare = a.fileOffset.compareTo(b.fileOffset);
+  }
+  Member first;
+  Member second;
+  if (compare < 0) {
+    first = a;
+    second = b;
+  } else {
+    first = b;
+    second = a;
+  }
+  return <LocatedMessage>[
+    messageInheritedMembersConflictCause1.withLocation(
+        first.fileUri, first.fileOffset, length),
+    messageInheritedMembersConflictCause2.withLocation(
+        second.fileUri, second.fileOffset, length),
+  ];
 }

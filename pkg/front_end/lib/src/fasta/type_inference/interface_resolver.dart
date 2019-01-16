@@ -44,6 +44,9 @@ import '../../base/instrumentation.dart'
 
 import '../builder/builder.dart' show LibraryBuilder;
 
+import '../kernel/class_hierarchy_builder.dart'
+    show inheritedConflictContextKernel;
+
 import '../kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
 import '../kernel/kernel_shadow_ast.dart'
@@ -59,8 +62,6 @@ import '../messages.dart'
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
         messageInheritedMembersConflict,
-        messageInheritedMembersConflictCause1,
-        messageInheritedMembersConflictCause2,
         noLength,
         templateCantInferTypeDueToCircularity,
         templateCantInferTypeDueToInconsistentOverrides;
@@ -895,12 +896,8 @@ class InterfaceResolver {
               } else {
                 library.addProblem(messageInheritedMembersConflict,
                     class_.fileOffset, noLength, class_.fileUri,
-                    context: [
-                      messageInheritedMembersConflictCause1.withLocation(
-                          member.fileUri, member.fileOffset, noLength),
-                      messageInheritedMembersConflictCause2.withLocation(
-                          conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
+                    context: inheritedConflictContextKernel(
+                        member, conflict, noLength));
               }
             } else {
               // If it's a setter conflicting with a method and both are
@@ -962,12 +959,8 @@ class InterfaceResolver {
               } else {
                 library.addProblem(messageInheritedMembersConflict,
                     class_.fileOffset, noLength, class_.fileUri,
-                    context: [
-                      messageInheritedMembersConflictCause1.withLocation(
-                          member.fileUri, member.fileOffset, noLength),
-                      messageInheritedMembersConflictCause2.withLocation(
-                          conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
+                    context: inheritedConflictContextKernel(
+                        member, conflict, noLength));
               }
             }
             return;
