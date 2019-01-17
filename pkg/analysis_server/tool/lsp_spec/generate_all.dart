@@ -40,6 +40,11 @@ main(List<String> arguments) async {
   final String outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
   new Directory(outFolder).createSync();
 
+  await writeSpecClasses(args, outFolder);
+  await writeCustomClasses(args, outFolder);
+}
+
+Future writeSpecClasses(ArgResults args, String outFolder) async {
   if (args[argDownload]) {
     await downloadSpec();
   }
@@ -62,7 +67,28 @@ main(List<String> arguments) async {
   final String output = generateDartForTypes(types);
 
   new File(path.join(outFolder, 'protocol_generated.dart'))
-      .writeAsStringSync(_generatedFileHeader + output);
+      .writeAsStringSync(generatedFileHeader(2018) + output);
+}
+
+/// Writes classes used by Dart's custom LSP methods.
+Future writeCustomClasses(ArgResults args, String outFolder) async {
+  interface(String name, List<Member> fields) {
+    return new Interface(null, Token.identifier(name), [], [], fields);
+  }
+
+  field(String name, {String type, canBeNull: false, canBeUndefined: false}) {
+    return new Field(null, Token.identifier(name), Type.identifier(type),
+        canBeNull, canBeUndefined);
+  }
+
+  final List<AstNode> customTypes = [
+    interface('DartDiagnosticServer', [field('port', type: 'number')]),
+  ];
+
+  final String output = generateDartForTypes(customTypes);
+
+  new File(path.join(outFolder, 'protocol_custom_generated.dart'))
+      .writeAsStringSync(generatedFileHeader(2019) + output);
 }
 
 Namespace extractMethodsEnum(String spec) {
@@ -91,8 +117,8 @@ Namespace extractMethodsEnum(String spec) {
       comment, new Token.identifier('Method'), methodConstants);
 }
 
-const _generatedFileHeader = '''
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+String generatedFileHeader(int year) => '''
+// Copyright (c) $year, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -102,6 +128,7 @@ const _generatedFileHeader = '''
 
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: unnecessary_brace_in_string_interps
+// ignore_for_file: unused_import
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;

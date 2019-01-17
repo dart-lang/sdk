@@ -8,6 +8,7 @@
 
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: unnecessary_brace_in_string_interps
+// ignore_for_file: unused_import
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
