@@ -750,7 +750,7 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
           }
         } else if (expectedValue != actualValue) {
           errorsFound.add(
-              "Mismatch for $key: expected '$expectedValue', found '${actualValue}");
+              "Mismatch for $key: expected '$expectedValue', found '${actualValue}'");
         }
       });
       return errorsFound.isNotEmpty ? errorsFound.join('\n ') : null;

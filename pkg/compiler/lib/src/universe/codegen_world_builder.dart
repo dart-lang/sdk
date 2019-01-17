@@ -521,14 +521,14 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.invoke(null));
       }
 
-      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+      if (usage.hasPendingClosurizationUse) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
             .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
             .add(usage);
       }
-      if (usage.pendingUse.contains(MemberUse.NORMAL)) {
+      if (usage.hasPendingNormalUse) {
         // The element is not yet used. Add it to the list of instance
         // members to still be processed.
         _instanceMembersByName

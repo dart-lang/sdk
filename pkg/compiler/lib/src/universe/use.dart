@@ -64,13 +64,7 @@ class DynamicUse {
       sb.write('>');
     }
     if (selector.isCall) {
-      sb.write('(');
-      sb.write(selector.callStructure.positionalArgumentCount);
-      if (selector.callStructure.namedArgumentCount > 0) {
-        sb.write(',');
-        sb.write(selector.callStructure.getOrderedNamedArguments().join(','));
-      }
-      sb.write(')');
+      sb.write(selector.callStructure.shortText);
     } else if (selector.isSetter) {
       sb.write('=');
     }

@@ -350,6 +350,24 @@ class ParameterStructure {
     return true;
   }
 
+  /// Short textual representation use for testing.
+  String get shortText {
+    StringBuffer sb = new StringBuffer();
+    if (typeParameters != 0) {
+      sb.write('<');
+      sb.write(typeParameters);
+      sb.write('>');
+    }
+    sb.write('(');
+    sb.write(positionalParameters);
+    if (namedParameters.length > 0) {
+      sb.write(',');
+      sb.write(namedParameters.join(','));
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ParameterStructure(');
@@ -359,4 +377,7 @@ class ParameterStructure {
     sb.write('typeParameters=$typeParameters)');
     return sb.toString();
   }
+
+  int get size =>
+      positionalParameters + typeParameters + namedParameters.length;
 }
