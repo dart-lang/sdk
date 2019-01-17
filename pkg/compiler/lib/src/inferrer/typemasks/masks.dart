@@ -11,6 +11,7 @@ import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
+import '../../elements/types.dart' show DartType, InterfaceType, DynamicType;
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -771,6 +772,20 @@ class CommonMasks implements AbstractValueDomain {
     if (value is AllocationTypeMask) {
       return value.forwardTo;
     }
+    return null;
+  }
+
+  @override
+  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type) {
+    if (type is InterfaceType) {
+      if (type.typeArguments.isNotEmpty) return null;
+      // TODO(sra): Consider using a strengthened type check to avoid passing
+      // `null` to primitive types since the native methods usually have
+      // non-nullable primitive parameter types.
+      return createNullableSubtype(type.element);
+    }
+    if (type is DynamicType) return dynamicType;
+    // TODO(sra): Convert other [DartType]s to [AbstractValue]s
     return null;
   }
 

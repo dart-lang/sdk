@@ -14,7 +14,6 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-//import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
@@ -755,49 +754,49 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction tryInlineNativeMethod(
       HInvokeDynamicMethod node, FunctionEntity method) {
-    // Enable direct calls to a native method only if we don't run in checked
-    // mode, where the Dart version may have type annotations on parameters and
-    // return type that it should check.
-    // Also check that the parameters are not functions: it's the callee that
-    // will translate them to JS functions.
-    //
-    // TODO(ngeoffray): There are some cases where we could still inline in
-    // checked mode if we know the arguments have the right type. And we could
-    // do the closure conversion as well as the return type annotation check.
-
+    // We can replace the call to the native class interceptor method (target)
+    // if the target does no conversions or useful type checks.
+    if (_options.disableInlining) return null;
     if (!node.isInterceptedCall) return null;
 
     FunctionType type = _closedWorld.elementEnvironment.getFunctionType(method);
     if (type.namedParameters.isNotEmpty) return null;
 
-    // Return types on native methods don't need to be checked, since the
-    // declaration has to be truthful.
-
     // The call site might omit optional arguments. The inlined code must
     // preserve the number of arguments, so check only the actual arguments.
 
-    List<HInstruction> inputs = node.inputs.sublist(1);
     bool canInline = true;
-    if (_options.parameterCheckPolicy.isEmitted && inputs.length > 1) {
-      // TODO(sra): Check if [input] is guaranteed to pass the parameter
-      // type check.  Consider using a strengthened type check to avoid
-      // passing `null` to primitive types since the native methods usually
-      // have non-nullable primitive parameter types.
-      canInline = false;
-    } else {
-      int inputPosition = 1; // Skip receiver.
-      void checkParameterType(DartType type) {
-        if (inputPosition++ < inputs.length && canInline) {
-          if (type.unaliased.isFunctionType) {
-            canInline = false;
-          }
-        }
+    List<HInstruction> inputs = node.inputs;
+    int inputPosition = 2; // Skip interceptor and receiver.
+
+    void checkParameterType(DartType parameterType) {
+      if (!canInline) return;
+      if (inputPosition >= inputs.length) return;
+      HInstruction input = inputs[inputPosition++];
+      if (parameterType.unaliased.isFunctionType) {
+        // Must call the target since it contains a function conversion.
+        canInline = false;
+        return;
       }
 
-      type.parameterTypes.forEach(checkParameterType);
-      type.optionalParameterTypes.forEach(checkParameterType);
-      type.namedParameterTypes.forEach(checkParameterType);
+      // If the target has no checks don't let a bad type stop us inlining.
+      if (!_options.parameterCheckPolicy.isEmitted) return;
+
+      AbstractValue parameterAbstractValue = _abstractValueDomain
+          .getAbstractValueForNativeMethodParameterType(parameterType);
+
+      if (parameterAbstractValue == null ||
+          _abstractValueDomain
+              .isIn(input.instructionType, parameterAbstractValue)
+              .isPotentiallyFalse) {
+        canInline = false;
+        return;
+      }
     }
+
+    type.parameterTypes.forEach(checkParameterType);
+    type.optionalParameterTypes.forEach(checkParameterType);
+    assert(type.namedParameterTypes.isEmpty);
 
     if (!canInline) return null;
 
@@ -809,7 +808,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
         node.selector,
         node.mask,
-        inputs,
+        inputs.sublist(1), // Drop interceptor.
         returnType,
         node.typeArguments,
         node.sourceInformation);
