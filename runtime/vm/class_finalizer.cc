@@ -172,7 +172,8 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
   Thread* thread = Thread::Current();
-  TIMELINE_DURATION(thread, Isolate, "ProcessPendingClasses");
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
+                                           "ProcessPendingClasses"));
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   HANDLESCOPE(thread);
@@ -1126,7 +1127,10 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
 
-  TIMELINE_DURATION(thread, Compiler, "ClassFinalizer::FinalizeClass");
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "ClassFinalizer::FinalizeClass");
+#endif  // !defined(PRODUCT)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.

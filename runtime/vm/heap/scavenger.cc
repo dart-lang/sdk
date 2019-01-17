@@ -603,9 +603,7 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 }
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
-#ifdef SUPPORT_TIMELINE
-  Thread* thread = Thread::Current();
-#endif
+  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
   int64_t start = OS::GetCurrentMonotonicMicros();
   {
     TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");

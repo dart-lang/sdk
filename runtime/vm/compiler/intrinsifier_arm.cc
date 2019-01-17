@@ -2227,10 +2227,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-#if !defined(SUPPORT_TIMELINE)
-  __ LoadObject(R0, Bool::False());
-  __ Ret();
-#else
+  if (!FLAG_support_timeline) {
+    __ LoadObject(R0, Bool::False());
+    __ Ret();
+  }
   // Load TimelineStream*.
   __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
   // Load uintptr_t from TimelineStream*.
@@ -2239,7 +2239,6 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(R0, Bool::True(), NE);
   __ LoadObject(R0, Bool::False(), EQ);
   __ Ret();
-#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,

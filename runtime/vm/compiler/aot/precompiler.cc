@@ -2286,8 +2286,10 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
-
-        TIMELINE_DURATION(thread(), Compiler, "BuildFlowGraph");
+#ifndef PRODUCT
+        TimelineDurationScope tds(thread(), compiler_timeline,
+                                  "BuildFlowGraph");
+#endif  // !PRODUCT
         flow_graph =
             pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
                                      Compiler::kNoOSRDeoptId, optimized());
@@ -2315,7 +2317,10 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
 
       if (optimized()) {
-        TIMELINE_DURATION(thread(), Compiler, "OptimizationPasses");
+#ifndef PRODUCT
+        TimelineDurationScope tds(thread(), compiler_timeline,
+                                  "OptimizationPasses");
+#endif  // !PRODUCT
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -2359,12 +2364,17 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
       {
-        TIMELINE_DURATION(thread(), Compiler, "CompileGraph");
+#ifndef PRODUCT
+        TimelineDurationScope tds(thread(), compiler_timeline, "CompileGraph");
+#endif  // !PRODUCT
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-        TIMELINE_DURATION(thread(), Compiler, "FinalizeCompilation");
+#ifndef PRODUCT
+        TimelineDurationScope tds(thread(), compiler_timeline,
+                                  "FinalizeCompilation");
+#endif  // !PRODUCT
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);

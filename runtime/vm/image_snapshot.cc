@@ -272,7 +272,8 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Heap* heap = thread->isolate()->heap();
-  TIMELINE_DURATION(thread, Isolate, "WriteInstructions");
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
+                                           "WriteInstructions"));
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.

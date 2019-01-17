@@ -175,7 +175,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   return info.koid;
 }
 
-#ifdef SUPPORT_TIMELINE
+#ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return pthread_self();
 }

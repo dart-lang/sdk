@@ -164,10 +164,11 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();
-#if defined(SUPPORT_TIMELINE)
-  Timeline::Init();
-  TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
-#endif
+  if (FLAG_support_timeline) {
+    Timeline::Init();
+  }
+  NOT_IN_PRODUCT(
+      TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
   Isolate::InitVM();
   PortMap::Init();
   FreeListElement::Init();
@@ -213,9 +214,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ArgumentsDescriptor::Init();
     ICData::Init();
     if (vm_isolate_snapshot != NULL) {
-#if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "VMIsolateSnapshot");
-#endif
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "VMIsolateSnapshot"));
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
         return strdup("Invalid vm isolate snapshot seen");
@@ -260,7 +260,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       ReversePcLookupCache::BuildAndAttachToIsolate(vm_isolate_);
 
       Object::FinishInit(vm_isolate_);
-#if defined(SUPPORT_TIMELINE)
+#if !defined(PRODUCT)
       if (tds.enabled()) {
         tds.SetNumArguments(2);
         tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
@@ -309,9 +309,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     }
 #endif
     {
-#if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "FinalizeVMIsolate");
-#endif
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "FinalizeVMIsolate"));
       Object::FinalizeVMIsolate(vm_isolate_);
     }
 #if defined(DEBUG)
@@ -527,13 +526,13 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   NOT_IN_PRODUCT(CodeObservers::Cleanup());
-#if defined(SUPPORT_TIMELINE)
-  if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
-                 UptimeMillis());
+  if (FLAG_support_timeline) {
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
+                   UptimeMillis());
+    }
+    Timeline::Cleanup();
   }
-  Timeline::Cleanup();
-#endif
   OS::Cleanup();
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
@@ -572,17 +571,16 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-#if defined(SUPPORT_TIMLINE)
-  TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                            "InitializeIsolate");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
-#endif
+  NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
+                                           "InitializeIsolate");
+                 tds.SetNumArguments(1);
+                 tds.CopyArgument(0, "isolateName", I->name());)
   ASSERT(I != NULL);
   StackZone zone(T);
   HandleScope handle_scope(T);
   {
-    TIMELINE_DURATION(T, Isolate, "ObjectStore::Init");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
+                                             "ObjectStore::Init"));
     ObjectStore::Init(I);
   }
 
@@ -593,10 +591,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
   if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
-#if defined(SUPPORT_TIMELINE)
-    TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                              "IsolateSnapshotReader");
-#endif
+    NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
+                                             "IsolateSnapshotReader"));
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
     if (snapshot == NULL) {
@@ -622,7 +618,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
     ReversePcLookupCache::BuildAndAttachToIsolate(I);
 
-#if defined(SUPPORT_TIMELINE)
+#if !defined(PRODUCT)
     if (tds.enabled()) {
       tds.SetNumArguments(2);
       tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());

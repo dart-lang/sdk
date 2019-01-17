@@ -69,7 +69,7 @@ class OSThread : public BaseThread {
     return id_;
   }
 
-#ifdef SUPPORT_TIMELINE
+#ifndef PRODUCT
   ThreadId trace_id() const {
     ASSERT(trace_id_ != OSThread::kInvalidThreadId);
     return trace_id_;
@@ -230,7 +230,7 @@ class OSThread : public BaseThread {
   void set_thread(ThreadState* value) { thread_ = value; }
 
   static void Cleanup();
-#ifdef SUPPORT_TIMELINE
+#ifndef PRODUCT
   static ThreadId GetCurrentThreadTraceId();
 #endif  // PRODUCT
   static OSThread* GetOSThreadFromThread(ThreadState* thread);
@@ -246,7 +246,7 @@ class OSThread : public BaseThread {
   // only called once per OSThread.
   ThreadJoinId join_id_;
 #endif
-#ifdef SUPPORT_TIMELINE
+#ifndef PRODUCT
   const ThreadId trace_id_;  // Used to interface with tracing tools.
 #endif
   char* name_;  // A name for this thread.

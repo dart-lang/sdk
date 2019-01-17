@@ -380,7 +380,6 @@ class ObjectPointerVisitor;
   V(DartVMService, "dart:_vmservice")                                          \
   V(DartIOLibName, "dart.io")                                                  \
   V(DartVMProduct, "dart.vm.product")                                          \
-  V(DartDeveloperTimeline, "dart.developer.timeline")                          \
   V(EvalSourceUri, "evaluate:source")                                          \
   V(ExternalName, "ExternalName")                                              \
   V(_Random, "_Random")                                                        \

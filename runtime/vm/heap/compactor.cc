@@ -293,9 +293,7 @@ void CompactorTask::Run() {
   bool result =
       Thread::EnterIsolateAsHelper(isolate_, Thread::kCompactorTask, true);
   ASSERT(result);
-#ifdef SUPPORT_TIMELINE
-  Thread* thread = Thread::Current();
-#endif
+  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
   {
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "Plan");

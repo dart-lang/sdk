@@ -597,7 +597,8 @@ class FunctionDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "PostLoadFunction");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(
+        Thread::Current(), Timeline::GetIsolateStream(), "PostLoadFunction"));
 
     if (kind == Snapshot::kFullAOT) {
       Function& func = Function::Handle(zone);
@@ -1010,7 +1011,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "PostLoadField");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(
+        Thread::Current(), Timeline::GetIsolateStream(), "PostLoadField"));
 
     Field& field = Field::Handle(zone);
     if (!Isolate::Current()->use_field_guards()) {
@@ -3283,7 +3285,8 @@ class MintDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {}
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "PostLoadMint");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(
+        Thread::Current(), Timeline::GetIsolateStream(), "PostLoadMint"));
 
     const Class& mint_cls =
         Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
@@ -5104,7 +5107,8 @@ void Deserializer::Deserialize() {
   }
 
   {
-    TIMELINE_DURATION(thread(), Isolate, "ReadAlloc");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(
+        thread(), Timeline::GetIsolateStream(), "ReadAlloc"));
     for (intptr_t i = 0; i < num_clusters_; i++) {
       clusters_[i] = ReadCluster();
       clusters_[i]->ReadAlloc(this);
@@ -5119,7 +5123,8 @@ void Deserializer::Deserialize() {
   ASSERT((next_ref_index_ - 1) == num_objects_);
 
   {
-    TIMELINE_DURATION(thread(), Isolate, "ReadFill");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(
+        thread(), Timeline::GetIsolateStream(), "ReadFill"));
     for (intptr_t i = 0; i < num_clusters_; i++) {
       clusters_[i]->ReadFill(this);
 #if defined(DEBUG)
@@ -5417,7 +5422,8 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   // generated from a VM that has loaded this snapshots, much like app-jit
   // snapshots.
   if ((vm_snapshot_data_buffer != NULL) && (kind != Snapshot::kFullAOT)) {
-    TIMELINE_DURATION(thread(), Isolate, "PrepareNewVMIsolate");
+    NOT_IN_PRODUCT(TimelineDurationScope tds(
+        thread(), Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
 
     SeedVMIsolateVisitor visitor(thread()->zone(),
                                  Snapshot::IncludesCode(kind));
@@ -5458,7 +5464,8 @@ FullSnapshotWriter::~FullSnapshotWriter() {
 }
 
 intptr_t FullSnapshotWriter::WriteVMSnapshot() {
-  TIMELINE_DURATION(thread(), Isolate, "WriteVMSnapshot");
+  NOT_IN_PRODUCT(TimelineDurationScope tds(
+      thread(), Timeline::GetIsolateStream(), "WriteVMSnapshot"));
 
   ASSERT(vm_snapshot_data_buffer_ != NULL);
   Serializer serializer(thread(), kind_, vm_snapshot_data_buffer_, alloc_,
@@ -5491,7 +5498,8 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
 }
 
 void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
-  TIMELINE_DURATION(thread(), Isolate, "WriteIsolateSnapshot");
+  NOT_IN_PRODUCT(TimelineDurationScope tds(
+      thread(), Timeline::GetIsolateStream(), "WriteIsolateSnapshot"));
 
   Serializer serializer(thread(), kind_, isolate_snapshot_data_buffer_, alloc_,
                         kInitialSize, isolate_image_writer_, /*vm=*/false,

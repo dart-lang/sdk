@@ -419,7 +419,7 @@ static intptr_t Prepare(const RegExp& regexp,
 
   if (regexp.bytecode(is_one_byte, sticky) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
-#if defined(SUPPORT_TIMELINE)
+#if !defined(PRODUCT)
     TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                               "CompileIrregexpBytecode");
     if (tds.enabled()) {

@@ -189,7 +189,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   return pthread_self();
 }
 
-#ifdef SUPPORT_TIMELINE
+#ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return syscall(__NR_gettid);
 }
