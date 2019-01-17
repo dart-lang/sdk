@@ -106,8 +106,8 @@ dart/snapshot_version_test: SkipByDesign # Spawns processes
 dart/spawn_infinite_loop_test: SkipByDesign # VM shutdown test
 dart/spawn_shutdown_test: SkipByDesign # VM Shutdown test
 
-[ $runtime != dart_precompiled ]
-dart/bare_instructions_trampolines_test: SkipByDesign # This test is for VM AOT only.
+[ $runtime != dart_precompiled  || $system == android ]
+dart/bare_instructions_trampolines_test: SkipByDesign # This test is for VM AOT only (android fails due to listing interfaces).
 
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
