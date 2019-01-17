@@ -817,7 +817,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     } else if (node.isNamed) {
       b.kind = UnlinkedParamKind.named;
     } else {
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       throw new StateError('Unexpected parameter kind: ${node.kind}');
     }
     return b;

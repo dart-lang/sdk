@@ -908,10 +908,9 @@ class Dart2TypeSystem extends TypeSystem {
         var newType =
             _substituteForUnknownType(p.type, lowerBound: !lowerBound);
         return new ParameterElementImpl.synthetic(
-            // ignore: deprecated_member_use
             p.name,
             newType,
-            // ignore: deprecated_member_use
+            // ignore: deprecated_member_use_from_same_package
             p.parameterKind);
       });
       // Return type is covariant.

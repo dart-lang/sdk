@@ -1432,7 +1432,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
     parameter.isConst = node.isConst;
     parameter.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
     parameter.isFinal = node.isFinal;
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     parameter.parameterKind = node.kind;
     // visible range
     _setParameterVisibleRange(node, parameter);
@@ -1459,7 +1459,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       parameter.parameterKind = node.kind;
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
@@ -1488,7 +1488,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -1531,7 +1531,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       if (node.type == null) {

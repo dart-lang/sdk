@@ -27,7 +27,7 @@ main() {
     defineReflectiveTests(NodeLocatorTest);
     defineReflectiveTests(NodeLocator2Test);
     defineReflectiveTests(ResolutionCopierTest);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(ToSourceVisitorTest);
     defineReflectiveTests(ToSourceVisitor2Test);
   });

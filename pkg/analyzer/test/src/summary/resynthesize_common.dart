@@ -9671,7 +9671,7 @@ mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
     compareVariableElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);

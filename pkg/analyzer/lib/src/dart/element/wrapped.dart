@@ -185,7 +185,7 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
 
   @override
   String computeDocumentationComment() => wrappedUnit
-      .computeDocumentationComment(); // ignore: deprecated_member_use
+      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
 
   @deprecated
   @override
@@ -377,7 +377,7 @@ class WrappedImportElement implements ImportElement {
 
   @override
   String computeDocumentationComment() => wrappedImport
-      .computeDocumentationComment(); // ignore: deprecated_member_use
+      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
 
   @deprecated
   @override
@@ -599,8 +599,8 @@ class WrappedLibraryElement implements LibraryElement {
   T accept<T>(ElementVisitor<T> visitor) => wrappedLib.accept(visitor);
 
   @override
-  String computeDocumentationComment() =>
-      wrappedLib.computeDocumentationComment(); // ignore: deprecated_member_use
+  String computeDocumentationComment() => wrappedLib
+      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
 
   @deprecated
   @override

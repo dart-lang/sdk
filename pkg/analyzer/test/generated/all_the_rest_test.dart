@@ -45,7 +45,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContentCacheTest);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ElementLocatorTest);
@@ -57,7 +57,7 @@ main() {
     defineReflectiveTests(ExitDetectorTest2);
     defineReflectiveTests(FileBasedSourceTest);
     defineReflectiveTests(ResolveRelativeUriTest);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(SDKLibrariesReaderTest);
     defineReflectiveTests(UriKindTest);
   });

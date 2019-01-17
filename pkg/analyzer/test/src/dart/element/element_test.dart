@@ -3904,9 +3904,9 @@ class B<S> extends A<S> {
     MethodElement AfElement = elementB.type
         .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
     expect(
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         BfElement.getReifiedType(objectType),
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         equals(AfElement.getReifiedType(objectType)));
   }
 }

@@ -1586,7 +1586,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     for (FormalParameter parameter in parameters.parameters) {
       ParameterElementImpl element =
           new ParameterElementImpl.forNode(parameter.identifier);
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
       parameter.identifier.staticElement = element;

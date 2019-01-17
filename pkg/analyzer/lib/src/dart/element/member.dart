@@ -636,7 +636,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
         buffer.write(", ");
       }
       ParameterElement parameter = parameters[i];
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind != kind) {
         if (closing != null) {
