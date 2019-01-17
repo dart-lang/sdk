@@ -38,6 +38,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   List<T> arguments;
 
+  @override
   TypeDeclarationBuilder<T, R> declaration;
 
   NamedTypeBuilder(this.name, this.arguments);
