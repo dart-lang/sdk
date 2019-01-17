@@ -6420,6 +6420,49 @@ class CodeGenerator extends Object
   /// Unused, see [_defineClass].
   @override
   visitWithClause(node) => _unreachable(node);
+
+//  @override
+  visitCollectionForElement(CollectionForElement node) => _unreachable(node);
+
+//  @override
+  visitCollectionIfElement(CollectionIfElement node) => _unreachable(node);
+
+//  @override
+  visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+      _unreachable(node);
+
+//  @override
+  visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+      _unreachable(node);
+
+//  @override
+  visitForStatement2(ForStatement2 node) => _unreachable(node);
+
+//  @override
+  visitListLiteral2(ListLiteral2 node) => _unreachable(node);
+
+//  @override
+  visitMapForElement(MapForElement node) => _unreachable(node);
+
+//  @override
+  visitMapIfElement(MapIfElement node) => _unreachable(node);
+
+//  @override
+  visitMapLiteral2(MapLiteral2 node) => _unreachable(node);
+
+//  @override
+  visitSetLiteral2(SetLiteral2 node) => _unreachable(node);
+
+//  @override
+  visitSpreadElement(SpreadElement node) => _unreachable(node);
+
+//  @override
+  visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+      _unreachable(node);
+
+//  @override
+  visitForPartsWithExpression(ForPartsWithExpression node) =>
+      _unreachable(node);
 }
 
 /// Choose a canonical name from the [library] element.
