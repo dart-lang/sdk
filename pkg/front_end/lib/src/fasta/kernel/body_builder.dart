@@ -2368,35 +2368,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("EmptyLiteralSetOrMap");
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("LiteralSetOrMap");
     // Treat as map literal - type inference will find the right type.
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
-    assert(typeArguments == null || typeArguments.length > 2);
-    if (typeArguments != null && typeArguments.length > 2) {
-      if (library.loader.target.enableSetLiterals) {
-        addProblem(
-            fasta.messageSetOrMapLiteralTooManyTypeArguments,
-            offsetForToken(leftBrace),
-            lengthOfSpan(leftBrace, leftBrace.endGroup));
-      } else {
-        addProblem(
-            fasta.messageMapLiteralTypeArgumentMismatch,
-            offsetForToken(leftBrace),
-            lengthOfSpan(leftBrace, leftBrace.endGroup));
-      }
-    }
-    DartType implicitTypeArgument = this.implicitTypeArgument;
-    push(forest.literalMap(
-        constKeyword,
-        constKeyword != null || constantContext == ConstantContext.inferred,
-        implicitTypeArgument,
-        implicitTypeArgument,
-        null,
-        leftBrace,
-        <MapEntry>[],
-        rightBrace));
+    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
   }
 
   @override
@@ -2423,8 +2399,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
-    List<MapEntry> entries =
-        const GrowableList<MapEntry>().pop(stack, count) ?? <MapEntry>[];
+
+    // TODO(danrubel): Revise once spread collection entries are supported.
+    // For now, drop those on the floor
+    // as error(s) have already been reported in handleSpreadExpression.
+    List<MapEntry> entries = <MapEntry>[];
+    const FixedNullableList<dynamic>().pop(stack, count)?.forEach((entry) {
+      if (entry is MapEntry) {
+        entries.add(entry);
+      }
+    });
+
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
     DartType keyType;
     DartType valueType;

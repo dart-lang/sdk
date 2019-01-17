@@ -1163,9 +1163,9 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralSet");
   }
 
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
-    logEvent('EmptyLiteralSetOrMap');
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    logEvent('LiteralSetOrMap');
   }
 
   void handleLiteralNull(Token token) {

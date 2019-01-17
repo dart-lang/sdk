@@ -4186,7 +4186,7 @@ class Parser {
         token = next;
         break;
       }
-      token = parseSpreadExpressionOrExpression(token);
+      token = parseSpreadableExpression(token);
       next = token.next;
       ++count;
       if (!optional(',', next)) {
@@ -4223,10 +4223,10 @@ class Parser {
     return token;
   }
 
-  Token parseSpreadExpressionOrExpression(Token token) {
+  Token parseSpreadableExpression(Token token) {
     Token next = token.next;
     if (optional('...', next) || optional('...?', next)) {
-      token = parseExpression(token.next);
+      token = parseExpression(next);
       listener.handleSpreadExpression(next);
     } else {
       token = parseExpression(token);
@@ -4244,23 +4244,34 @@ class Parser {
 
     Token leftBrace = start.next;
     assert(optional('{', leftBrace));
-    if (optional('}', leftBrace.next)) {
-      Token rightBrace = leftBrace.next;
-      listener.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
-      return rightBrace;
+
+    Token token = leftBrace;
+    Token next = token.next;
+    int count = 0;
+    while (optional('...', next) || optional('...?', next)) {
+      token = parseExpression(next);
+      listener.handleSpreadExpression(next);
+      next = token.next;
+      ++count;
+    }
+
+    if (optional('}', next)) {
+      listener.handleLiteralSetOrMap(count, leftBrace, constKeyword, next);
+      return next;
     }
 
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    Token token = parseExpression(leftBrace);
+    token = parseExpression(token);
+    ++count;
     mayParseFunctionExpressions = old;
 
-    Token next = token.next;
+    next = token.next;
     if (optional('}', next)) {
-      listener.handleLiteralSet(1, leftBrace, constKeyword, next);
+      listener.handleLiteralSet(count, leftBrace, constKeyword, next);
       return next;
     } else if (optional(',', next)) {
-      return parseLiteralSetRest(token, constKeyword, leftBrace);
+      return parseLiteralSetRest(token, count, constKeyword, leftBrace);
     } else {
       // TODO(danrubel): Consider better recovery
       // rather than just assuming this is a literal map.
@@ -4272,7 +4283,7 @@ class Parser {
       mayParseFunctionExpressions = old;
 
       listener.handleLiteralMapEntry(colon, token.next);
-      return parseLiteralMapRest(token, constKeyword, leftBrace);
+      return parseLiteralMapRest(token, count, constKeyword, leftBrace);
     }
   }
 
@@ -4302,12 +4313,12 @@ class Parser {
     token = parseMapLiteralEntry(token);
     mayParseFunctionExpressions = old;
 
-    return parseLiteralMapRest(token, constKeyword, beginToken);
+    return parseLiteralMapRest(token, 1, constKeyword, beginToken);
   }
 
   /// Parse a literal map after the first entry.
-  Token parseLiteralMapRest(Token token, Token constKeyword, Token beginToken) {
-    int count = 1;
+  Token parseLiteralMapRest(
+      Token token, int count, Token constKeyword, Token beginToken) {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
@@ -4375,15 +4386,15 @@ class Parser {
 
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseSpreadExpressionOrExpression(token);
+    token = parseSpreadableExpression(token);
     mayParseFunctionExpressions = old;
 
-    return parseLiteralSetRest(token, constKeyword, beginToken);
+    return parseLiteralSetRest(token, 1, constKeyword, beginToken);
   }
 
   /// Parse a literal set after the first expression.
-  Token parseLiteralSetRest(Token token, Token constKeyword, Token beginToken) {
-    int count = 1;
+  Token parseLiteralSetRest(
+      Token token, int count, Token constKeyword, Token beginToken) {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
@@ -4414,7 +4425,7 @@ class Parser {
           break;
         }
       }
-      token = parseSpreadExpressionOrExpression(token);
+      token = parseSpreadableExpression(token);
       ++count;
     }
     assert(optional('}', token));
@@ -4488,17 +4499,24 @@ class Parser {
 
   /// ```
   /// mapLiteralEntry:
-  ///   expression ':' expression
+  ///   expression ':' expression |
+  ///   ( '...' | '...?' ) expressionList
   /// ;
   /// ```
   Token parseMapLiteralEntry(Token token) {
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
-    token = parseExpression(token);
-    Token colon = ensureColon(token);
-    token = parseExpression(colon);
-    listener.handleLiteralMapEntry(colon, token.next);
+    Token next = token.next;
+    if (optional('...', next) || optional('...?', next)) {
+      token = parseExpression(next);
+      listener.handleSpreadExpression(next);
+    } else {
+      token = parseExpression(token);
+      Token colon = ensureColon(token);
+      token = parseExpression(colon);
+      listener.handleLiteralMapEntry(colon, token.next);
+    }
     return token;
   }
 

@@ -906,13 +906,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     // TODO(danrubel): From a type resolution standpoint, this could be either
     // a set literal or a map literal depending upon the context
     // in which this expression occurs.
-    // For now, generate a map literal.
-    handleLiteralMap(0, leftBrace, constKeyword, rightBrace);
+    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
   }
 
   void handleLiteralSet(
@@ -935,7 +934,16 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralMap");
 
-    List<MapLiteralEntry> entries = popTypedList(count) ?? <MapLiteralEntry>[];
+    // TODO(danrubel): Revise once spread collection AST structures
+    // are in place. For now, drop those on the floor
+    // as error(s) have already been reported in handleSpreadExpression.
+    List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+    popTypedList(count)?.forEach((entry) {
+      if (entry is MapLiteralEntry) {
+        entries.add(entry);
+      }
+    });
+
     TypeArgumentList typeArguments = pop();
     push(ast.mapLiteral(
         constKeyword, typeArguments, leftBracket, entries, rightBracket));

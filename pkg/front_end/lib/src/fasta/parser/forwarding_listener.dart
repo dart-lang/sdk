@@ -981,9 +981,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
-    listener?.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    listener?.handleLiteralSetOrMap(count, leftBrace, constKeyword, rightBrace);
   }
 
   @override

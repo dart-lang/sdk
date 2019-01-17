@@ -308,6 +308,109 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 6);
   }
 
+  void test_mapLiteral_invalid_set_entry() {
+    MapLiteral map =
+        parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
+    ]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+  }
+
+  @failingTest
+  void test_mapLiteral_invalid_too_many_type_arguments1() {
+    MapLiteral map =
+        parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_OR_TWO_TYPE_VARIABLES */
+          ParserErrorCode.EXPECTED_TOKEN,
+          11,
+          3),
+    ]);
+    expect(map.constKeyword, isNull);
+    expect(map.entries, hasLength(0));
+  }
+
+  @failingTest
+  void test_mapLiteral_invalid_too_many_type_arguments2() {
+    MapLiteral map =
+        parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_OR_TWO_TYPE_VARIABLES */
+          ParserErrorCode.EXPECTED_TOKEN,
+          11,
+          3),
+    ]);
+    expect(map.constKeyword, isNull);
+    expect(map.entries, hasLength(0));
+  }
+
+  void test_mapLiteral_spread() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral map = parseExpression('{1: 2, ...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 3)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral map = parseExpression('{1: 2, ...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 4)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral map = parseExpression('<int, int>{...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 3)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(0));
+  }
+
+  void test_mapLiteral_spreadQ_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral map = parseExpression('<int, int>{...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 4)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(0));
+  }
+
+  void test_mapLiteral_spread2_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral map = parseExpression('<int, int>{1: 2, ...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 3)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ2_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral map = parseExpression('<int, int>{1: 2, ...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 4)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+  }
+
   void test_setLiteral() {
     SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNull);
@@ -328,28 +431,43 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value2.value, 6);
   }
 
-  void test_setLiteral_spread_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
-    SetLiteral set = parseExpression('<int>{...[3]}',
-        parseSetLiterals: true,
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 3)]);
-    expect(set.constKeyword, isNull);
-    expect(set.typeArguments, isNotNull);
-    expect(set.elements, hasLength(1));
-    ListLiteral list = set.elements[0];
-    expect(list.elements, hasLength(1));
+  void test_setLiteral_const_typed() {
+    SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
   }
 
-  void test_setLiteral_spreadQ_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
-    SetLiteral set = parseExpression('<int>{...?[3]}',
-        parseSetLiterals: true,
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 4)]);
+  void test_setLiteral_invalid_map_entry() {
+    SetLiteral set =
+        parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+    ]);
     expect(set.constKeyword, isNull);
-    expect(set.typeArguments, isNotNull);
-    expect(set.elements, hasLength(1));
-    ListLiteral list = set.elements[0];
-    expect(list.elements, hasLength(1));
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+  }
+
+  void test_setLiteral_nested_typeArgument() {
+    SetLiteral set = parseExpression('<Set<int>>{{3}}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg1 = set.typeArguments.arguments[0];
+    expect(typeArg1.name.name, 'Set');
+    expect(typeArg1.typeArguments.arguments, hasLength(1));
+    NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
+    expect(typeArg2.name.name, 'int');
+    expect(set.elements.length, 1);
+    SetLiteral intSet = set.elements[0];
+    expect(intSet.elements, hasLength(1));
+    IntegerLiteral value = intSet.elements[0];
+    expect(value.value, 3);
   }
 
   void test_setLiteral_spread2() {
@@ -380,79 +498,31 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(list.elements, hasLength(1));
   }
 
-  void test_setLiteral_const_typeArgument() {
-    SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
-    expect(set.constKeyword, isNotNull);
-    expect(set.typeArguments.arguments, hasLength(1));
-    NamedType typeArg = set.typeArguments.arguments[0];
-    expect(typeArg.name.name, 'int');
-    expect(set.elements.length, 1);
-    IntegerLiteral value = set.elements[0];
-    expect(value.value, 3);
-  }
-
-  void test_setLiteral_invalid_map_entry() {
-    parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-    ]);
-  }
-
-  @failingTest
-  void test_setLiteral_invalid_too_many_type_arguments1() {
-    parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
-      // TODO(danrubel): Currently the resolver reports invalid number of
-      // type arguments, but the parser could report this.
-      expectedError(
-          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
-          ParserErrorCode.EXPECTED_TOKEN,
-          15,
-          1),
-    ]);
-  }
-
-  @failingTest
-  void test_setLiteral_invalid_too_many_type_arguments2() {
-    parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
-      // TODO(danrubel): Currently the resolver reports invalid number of
-      // type arguments, but the parser could report this.
-      expectedError(
-          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
-          ParserErrorCode.EXPECTED_TOKEN,
-          15,
-          1),
-    ]);
-  }
-
-  @failingTest
-  void test_setLiteral_invalid_too_many_type_arguments3() {
-    parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
-      // TODO(danrubel): Currently the resolver reports invalid number of
-      // type arguments, but the parser could report this.
-      expectedError(
-          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
-          ParserErrorCode.EXPECTED_TOKEN,
-          10,
-          1),
-    ]);
-  }
-
-  void test_setLiteral_nested_typeArgument() {
-    SetLiteral set = parseExpression('<Set<int>>{{3}}', parseSetLiterals: true);
+  void test_setLiteral_spread_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    SetLiteral set = parseExpression('<int>{...[3]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 3)]);
     expect(set.constKeyword, isNull);
-    expect(set.typeArguments.arguments, hasLength(1));
-    NamedType typeArg1 = set.typeArguments.arguments[0];
-    expect(typeArg1.name.name, 'Set');
-    expect(typeArg1.typeArguments.arguments, hasLength(1));
-    NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
-    expect(typeArg2.name.name, 'int');
-    expect(set.elements.length, 1);
-    SetLiteral intSet = set.elements[0];
-    expect(intSet.elements, hasLength(1));
-    IntegerLiteral value = intSet.elements[0];
-    expect(value.value, 3);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+    ListLiteral list = set.elements[0];
+    expect(list.elements, hasLength(1));
   }
 
-  void test_setLiteral_typeArgument() {
+  void test_setLiteral_spreadQ_typed() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    SetLiteral set = parseExpression('<int>{...?[3]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+    ListLiteral list = set.elements[0];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_typed() {
     SetLiteral set = parseExpression('<int>{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));
@@ -461,6 +531,26 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(set.elements.length, 1);
     IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
+  }
+
+  void test_setOrMapLiteral_spread() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral set = parseExpression('{...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 1, 3)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.entries, hasLength(0));
+  }
+
+  void test_setOrMapLiteral_spreadQ() {
+    // TODO(danrubel): Revise this once AST supports new syntax
+    MapLiteral set = parseExpression('{...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 1, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.entries, hasLength(0));
   }
 }
 
