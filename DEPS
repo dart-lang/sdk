@@ -177,7 +177,7 @@ deps = {
   },
 
   Var("dart_root") + "/tests/co19_2/src":
-      Var("dart_git") + "/co19.git" +
+      Var("dart_git") + "co19.git" +
       "@" + Var("co19_2_rev"),
 
   Var("dart_root") + "/third_party/zlib":
