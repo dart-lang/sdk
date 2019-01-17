@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:37: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
@@ -23,8 +25,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'A'.
 // var /*@topType=A*/ v_postfix_mm = (new B(). /*@target=B::a*/ a--);
 //                                                               ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

@@ -1,4 +1,19 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/undefined_getter_in_compound_assignment.dart:13:33: Error: The getter 'x' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/undefined_getter_in_compound_assignment.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'x'.
+//   c. /*@error=UndefinedGetter*/ x += 1;
+//                                 ^
+//
+// pkg/front_end/testcases/undefined_getter_in_compound_assignment.dart:14:33: Error: The getter 'x' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/undefined_getter_in_compound_assignment.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'x'.
+//   c. /*@error=UndefinedGetter*/ x ??= 1;
+//                                 ^
+//
 import self as self;
 import "dart:core" as core;
 

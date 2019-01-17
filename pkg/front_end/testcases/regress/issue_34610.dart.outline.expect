@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34610.dart:5:16: Error: Expected '{' before this.
 // class A { get A.named => null; get bar => 1; }
@@ -26,8 +28,7 @@
 // Try adding a parameter list to the method declaration.
 // class C { C.named => null; get bar => 1; }
 //           ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

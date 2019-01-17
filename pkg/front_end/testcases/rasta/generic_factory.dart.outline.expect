@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Warning: Couldn't find constructor 'Missing'.
 //   factory A.c() = Missing;
@@ -7,8 +9,7 @@
 // pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Warning: Redirection constructor target not found: 'Missing'
 //   factory A.c() = Missing;
 //           ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

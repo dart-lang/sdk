@@ -1,11 +1,12 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/constructors_infer_from_arguments.dart:26:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 //                                                        ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

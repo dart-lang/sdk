@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/co19_language_metadata_syntax_t04.dart:21:1: Error: Expected '{' before this.
 // class B {}
@@ -10,18 +12,7 @@
 // pkg/front_end/testcases/co19_language_metadata_syntax_t04.dart:16:7: Context: Previous declaration of 'A'.
 // class A {
 //       ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/co19_language_metadata_syntax_t04.dart:21:1: Error: Expected '{' before this.
-// class B {}
-// ^^^^^
-//
-// pkg/front_end/testcases/co19_language_metadata_syntax_t04.dart:20:1: Error: 'A' is already declared in this scope.
-// A()
-// ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

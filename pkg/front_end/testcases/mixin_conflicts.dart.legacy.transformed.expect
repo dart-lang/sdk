@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/mixin_conflicts.dart:22:7: Error: The non-abstract class 'N2' is missing implementations for these members:
 //  - M.foo
@@ -7,9 +9,12 @@
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-// 
+//
 // class N2 = Object with M2;
 //       ^^
+// pkg/front_end/testcases/mixin_conflicts.dart:7:3: Context: 'M.foo' is defined here.
+//   foo() {}
+//   ^^^
 //
 // pkg/front_end/testcases/mixin_conflicts.dart:29:7: Error: The non-abstract class 'C2' is missing implementations for these members:
 //  - M.foo
@@ -18,11 +23,13 @@
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-// 
+//
 // class C2 extends Object with M2 {}
 //       ^^
-
-library;
+// pkg/front_end/testcases/mixin_conflicts.dart:7:3: Context: 'M.foo' is defined here.
+//   foo() {}
+//   ^^^
+//
 import self as self;
 import "dart:core" as core;
 

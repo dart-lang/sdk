@@ -4,6 +4,8 @@
 
 library fasta.codes;
 
+import 'dart:convert' show JsonEncoder;
+
 import 'package:kernel/ast.dart'
     show Constant, DartType, demangleMixinApplicationName;
 
@@ -180,6 +182,19 @@ class FormattedMessage implements DiagnosticMessage {
   Iterable<String> get plainTextFormatted {
     // TODO(ahe): Implement this correctly.
     return ansiFormatted;
+  }
+
+  Map<String, Object> toJson() {
+    // The should be kept in sync with package:kernel/problems.md
+    return <String, Object>{
+      "ansiFormatted": ansiFormatted.toList(),
+      "plainTextFormatted": plainTextFormatted.toList(),
+    };
+  }
+
+  String toJsonString() {
+    JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+    return encoder.convert(this);
   }
 }
 

@@ -1,4 +1,19 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The method '+' isn't defined for the class 'FutureOr<String>'.
+//  - 'FutureOr' is from 'dart:async'.
+// Try correcting the name to the name of an existing method, or defining a method named '+'.
+//                           /*@type=int*/ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
+//                                                                                                                        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:31:108: Error: The argument type 'String Function(String, int)' can't be assigned to the parameter type 'FutureOr<String> Function(FutureOr<String>, int)'.
+//  - 'FutureOr' is from 'dart:async'.
+// Try changing the type of the parameter, or casting the argument to 'FutureOr<String> Function(FutureOr<String>, int)'.
+//                   /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=String*/ (String
+//                                                                                                            ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

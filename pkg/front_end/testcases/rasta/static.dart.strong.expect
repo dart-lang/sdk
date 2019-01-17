@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/static.dart:28:9: Error: Getter not found: 'staticSetter'.
 //     Foo.staticSetter;
@@ -175,8 +177,7 @@
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     use(Foo.staticField());
 //                        ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

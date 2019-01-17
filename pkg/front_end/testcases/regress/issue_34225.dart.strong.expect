@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34225.dart:6:14: Error: A class member can't have the same name as the enclosing class.
 //   static set C(v) {} //# 01: compile-time error
@@ -13,18 +15,7 @@
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
 //   c.C = 5;
 //     ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_34225.dart:6:14: Error: A class member can't have the same name as the enclosing class.
-//   static set C(v) {} //# 01: compile-time error
-//              ^
-//
-// pkg/front_end/testcases/regress/issue_34225.dart:10:7: Error: A class member can't have the same name as the enclosing class.
-//   set D(v) {} //# 02: compile-time error
-//       ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

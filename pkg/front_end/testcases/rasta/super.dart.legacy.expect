@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
 //   set n(_) {}
@@ -236,34 +238,7 @@
 // Try to initialize the field in the declaration or in every constructor.
 //   final d;
 //         ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
-//   set n(_) {}
-//       ^
-//
-// pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.
-// Try removing '+'.
-//     +super;
-//     ^
-//
-// pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.
-// Try removing '+'.
-//     use(+super);
-//         ^
-//
-// pkg/front_end/testcases/rasta/super.dart:11:9: Error: Final field 'f' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final f;
-//         ^
-//
-// pkg/front_end/testcases/rasta/super.dart:33:9: Error: Final field 'd' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final d;
-//         ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

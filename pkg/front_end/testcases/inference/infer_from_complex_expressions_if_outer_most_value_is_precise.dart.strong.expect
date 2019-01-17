@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:61: Error: Getter not found: 'x'.
 // var /*@topType=B*/ b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
@@ -81,8 +83,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'B'.
 //   j = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ [];
 //                                                          ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;

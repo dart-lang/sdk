@@ -23,14 +23,12 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         InvalidInitializer,
         Library,
-        ListLiteral,
         Name,
         NamedExpression,
         NullLiteral,
         Procedure,
         RedirectingInitializer,
         Source,
-        StringLiteral,
         SuperInitializer,
         TypeParameter,
         TypeParameterType,
@@ -58,7 +56,7 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../messages.dart'
     show
-        LocatedMessage,
+        FormattedMessage,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
@@ -71,9 +69,9 @@ import '../messages.dart'
 
 import '../problems.dart' show unhandled, unimplemented;
 
-import '../severity.dart' show Severity;
-
 import '../scope.dart' show AmbiguousBuilder;
+
+import '../severity.dart' show Severity;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -266,6 +264,8 @@ class KernelTarget extends TargetImplementation {
       loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
+      installAllComponentProblems(loader.allComponentProblems);
+      loader.allComponentProblems.clear();
       return component;
     }, () => loader?.currentUriForCrashReporting);
   }
@@ -294,27 +294,19 @@ class KernelTarget extends TargetImplementation {
       runBuildTransformations();
 
       if (verify) this.verify();
-      handleRecoverableErrors(loader.unhandledErrors);
+      installAllComponentProblems(loader.allComponentProblems);
       return component;
     }, () => loader?.currentUriForCrashReporting);
   }
 
-  /// Adds a synthetic field named `#errors` to the main library that contains
-  /// [recoverableErrors] formatted.
-  ///
-  /// If [recoverableErrors] is empty, this method does nothing.
-  void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
-    if (recoverableErrors.isEmpty) return;
-    KernelLibraryBuilder mainLibrary = loader.first;
-    if (mainLibrary == null) return;
-    List<Expression> expressions = <Expression>[];
-    for (LocatedMessage error in recoverableErrors) {
-      expressions.add(new StringLiteral(context.format(error, Severity.error)));
+  void installAllComponentProblems(
+      List<FormattedMessage> allComponentProblems) {
+    for (int i = 0; i < allComponentProblems.length; i++) {
+      FormattedMessage formattedMessage = allComponentProblems[i];
+      if (formattedMessage.severity != Severity.ignored) {
+        component.problemsAsJson.add(formattedMessage.toJsonString());
+      }
     }
-    mainLibrary.library.addMember(new Field(new Name("#errors"),
-        initializer: new ListLiteral(expressions, isConst: true),
-        isConst: true,
-        isStatic: true));
   }
 
   /// Creates a component by combining [libraries] with the libraries of

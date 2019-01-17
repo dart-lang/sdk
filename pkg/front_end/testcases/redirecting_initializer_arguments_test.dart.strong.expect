@@ -1,11 +1,12 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
 // Try changing the type of the parameter, or casting the argument to 'T'.
 //   Foo.from(String _init) : this._internal(x: _init);
 //                                              ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

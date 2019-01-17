@@ -1,4 +1,15 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/invalid_type.dart:7:5: Error: Expected identifier, but got 'this'.
+//     this.bar();
+//     ^^^^
+//
+// pkg/front_end/testcases/invalid_type.dart:12:12: Warning: 'Missing' isn't a type.
+//   (null as Missing).bar();
+//            ^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:41: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
@@ -9,8 +11,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
 //     d.value /*@checkReturn=(num) -> num*/ += 1;
 //                                           ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

@@ -1,10 +1,11 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_29941.dart:7:5: Error: Expected an identifier, but got '""'.
 //   a."";
 //     ^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

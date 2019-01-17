@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
 //  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
@@ -11,8 +13,7 @@
 // Try changing the type of the variable.
 //   await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
 //                                                             ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

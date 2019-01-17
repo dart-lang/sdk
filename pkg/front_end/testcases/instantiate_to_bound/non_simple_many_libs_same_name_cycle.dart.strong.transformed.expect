@@ -1,11 +1,18 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle.dart:11:7: Error: Generic type 'Hest' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest'.
 // Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
 // class Hest<TypeX extends lib.Hest> {}
 //       ^^^^
-
-library;
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle.dart:11:12: Context: Bound of this variable references raw type 'Hest'.
+// class Hest<TypeX extends lib.Hest> {}
+//            ^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib.dart:16:12: Context: Bound of this variable references raw type 'Hest'.
+// class Hest<TypeY extends lib.Hest> {}
+//            ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

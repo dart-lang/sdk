@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/warn_unresolved_sends.dart:49:39: Warning: Getter not found: 'missingField'.
 //     this. /*@warning=GetterNotFound*/ missingField;
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/warn_unresolved_sends.dart:55:33: Warning: Method not found: 'missingMethod'.
 //     /*@warning=MethodNotFound*/ missingMethod();
 //                                 ^^^^^^^^^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/cascade.dart:26:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
 //  - 'List' is from 'dart:core'.
@@ -20,8 +22,7 @@
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
 //     ..[0].last.toString();
 //           ^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

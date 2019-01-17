@@ -1,4 +1,36 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//       int x = /*error:INVALID_ASSIGNMENT*/ i;
+//                                            ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//       int x = /*error:INVALID_ASSIGNMENT*/ i;
+//                                            ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+//  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//     String y = /*error:INVALID_ASSIGNMENT*/ x;
+//                                             ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+//  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
+// Try changing the type of the variable.
+//   await for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ myStream) {
+//                     ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:74: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
+//  - 'Stream' is from 'dart:async'.
+//   await for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+//                                                                          ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

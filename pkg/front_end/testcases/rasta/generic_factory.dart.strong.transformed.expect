@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Couldn't find constructor 'Missing'.
 //   factory A.c() = Missing;
@@ -21,8 +23,11 @@
 //  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //   factory B.b() = C<C2>;
 //                   ^
-
-library;
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
+//   factory A.c() = Missing;
+//           ^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

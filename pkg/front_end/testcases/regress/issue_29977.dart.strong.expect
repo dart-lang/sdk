@@ -1,18 +1,12 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/regress/issue_29977.dart:5:19: Error: Couldn't parse URI 'data:async':
-//   Invalid MIME type.
-// import 'data:async';
-//                   ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/regress/issue_29977.dart:5:19: Error: Couldn't parse URI 'data:async':
-//   Invalid MIME type.
-// import 'data:async';
-//                   ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29977.dart:5:19: Error: Couldn't parse URI 'data:async':
+//   Invalid MIME type.
+// import 'data:async';
+//                   ^
+//
 import self as self;
 
 static method main() → dynamic {}

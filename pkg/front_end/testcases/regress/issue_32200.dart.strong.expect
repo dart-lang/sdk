@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_32200.dart:8:3: Error: 'self.Foo' can't be used as a type because 'self' doesn't refer to an import prefix.
 //   self.Foo self;
@@ -9,14 +11,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'invalid-type'.
 //   instance.self = instance;
 //                   ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_32200.dart:8:3: Error: 'self.Foo' can't be used as a type because 'self' doesn't refer to an import prefix.
-//   self.Foo self;
-//   ^^^^^^^^
-
-library;
 import self as self;
 import "dart:core" as core;
 

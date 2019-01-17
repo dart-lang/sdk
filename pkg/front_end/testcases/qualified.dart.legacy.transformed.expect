@@ -1,8 +1,17 @@
-// Unhandled errors:
+library test.qualified.main;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/qualified.dart:13:11: Error: The name of a constructor must match the name of the enclosing class.
 //   factory WrongName() {}
 //           ^^^^^^^^^
+// pkg/front_end/testcases/qualified.dart:11:7: Context: The name of the enclosing class is 'Bad'.
+// class Bad extends lib.Missing {
+//       ^^^
+//
+// pkg/front_end/testcases/qualified.dart:12:3: Warning: Type 'lib.Missing' not found.
+//   lib.Missing method() {}
+//   ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/qualified.dart:11:19: Error: Type 'lib.Missing' not found.
 // class Bad extends lib.Missing {
@@ -11,8 +20,7 @@
 // pkg/front_end/testcases/qualified.dart:18:7: Error: The type 'lib.VoidFunction' can't be used as supertype.
 // class IllegalSupertype extends lib.VoidFunction {}
 //       ^
-
-library test.qualified.main;
+//
 import self as self;
 import "dart:core" as core;
 import "./qualified_lib.dart" as lib;

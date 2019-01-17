@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:32:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
@@ -49,8 +51,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
 //                                                                   ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

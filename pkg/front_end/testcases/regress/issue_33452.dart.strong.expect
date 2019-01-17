@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_33452.dart:10:29: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
 //   var x = new ExistingClass.nonExistingConstructor();
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/regress/issue_33452.dart:15:11: Error: Method not found: 'NonExistingClass'.
 //   x = new NonExistingClass();
 //           ^^^^^^^^^^^^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

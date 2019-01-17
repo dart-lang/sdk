@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The method '+' isn't defined for the class 'FutureOr<String>'.
 //  - 'FutureOr' is from 'dart:async'.
@@ -11,8 +13,7 @@
 // Try changing the type of the parameter, or casting the argument to 'FutureOr<String> Function(FutureOr<String>, int)'.
 //                   /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=String*/ (String
 //                                                                                                            ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

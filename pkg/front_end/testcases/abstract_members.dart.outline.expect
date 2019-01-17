@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
 // abstract class A implements Interface1, Interface2, Interface3 {
@@ -129,8 +131,7 @@
 // pkg/front_end/testcases/abstract_members.dart:91:10: Context: This is the other inherited member.
 //   Object foo() {}
 //          ^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

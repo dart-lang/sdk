@@ -60,6 +60,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         messageConflictsWithTypeVariableCause,
@@ -102,6 +103,8 @@ import '../modifier.dart'
         staticMask;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../severity.dart' show Severity;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -235,6 +238,25 @@ class KernelLibraryBuilder
     return addNamedType("void", null, charOffset)
       ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
           const VoidType(), this, charOffset));
+  }
+
+  @override
+  void addProblem(Message message, int charOffset, int length, Uri fileUri,
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity,
+      bool problemOnLibrary: false}) {
+    fileUri ??= this.fileUri;
+    FormattedMessage formattedMessage = loader.target.createFormattedMessage(
+        message, charOffset, length, fileUri, context, severity);
+    if (formattedMessage != null) {
+      target.problemsAsJson.add(formattedMessage.toJsonString());
+    }
+    super.addProblem(message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: true);
   }
 
   void addClass(
@@ -1310,6 +1332,7 @@ class KernelLibraryBuilder
     super.includePart(part, usedParts);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+    target.problemsAsJson.addAll(part.target.problemsAsJson);
   }
 
   @override

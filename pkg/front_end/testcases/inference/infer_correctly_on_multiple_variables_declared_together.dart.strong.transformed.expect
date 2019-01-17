@@ -1,4 +1,22 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:26:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::y*/ y;
+//                                                              ^
+//
+// pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:28:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::w*/ w;
+//                                                              ^
+//
+// pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:32:62: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;
+//                                                              ^
+//
 import self as self;
 import "dart:core" as core;
 

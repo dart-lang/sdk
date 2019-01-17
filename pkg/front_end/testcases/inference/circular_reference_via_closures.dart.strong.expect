@@ -1,28 +1,17 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/inference/circular_reference_via_closures.dart:10:67: Error: Can't infer the type of 'y': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
-//                                                                   ^
-//
-// pkg/front_end/testcases/inference/circular_reference_via_closures.dart:8:67: Error: Can't infer the type of 'x': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
-//                                                                   ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/inference/circular_reference_via_closures.dart:10:67: Error: Can't infer the type of 'y': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
-//                                                                   ^
-//
-// pkg/front_end/testcases/inference/circular_reference_via_closures.dart:8:67: Error: Can't infer the type of 'x': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
-//                                                                   ^
-
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/circular_reference_via_closures.dart:10:67: Error: Can't infer the type of 'y': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
+//                                                                   ^
+//
+// pkg/front_end/testcases/inference/circular_reference_via_closures.dart:8:67: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+//                                                                   ^
+//
 import self as self;
 
 static field dynamic x = () → dynamic => self::y;

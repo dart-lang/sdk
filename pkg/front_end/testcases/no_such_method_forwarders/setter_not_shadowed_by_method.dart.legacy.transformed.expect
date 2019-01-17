@@ -1,10 +1,14 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:12:12: Error: 'foo' is already declared in this scope.
 //   void set foo(int x);
 //            ^^^
-
-library;
+// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:10:8: Context: Previous declaration of 'foo'.
+//   void foo(int x) {}
+//        ^^^
+//
 import self as self;
 import "dart:core" as core;
 

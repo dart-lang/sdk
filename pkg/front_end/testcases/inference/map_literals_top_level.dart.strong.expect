@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/map_literals_top_level.dart:14:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
@@ -25,8 +27,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'Pattern'.
 //   x2 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
 //                                                              ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

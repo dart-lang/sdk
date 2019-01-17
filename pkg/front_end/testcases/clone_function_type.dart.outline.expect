@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/clone_function_type.dart:22:51: Error: Expected an identifier, but got '}'.
 // class Fm1<Z> extends Object with Am1<Function({int}), Z> {}
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/clone_function_type.dart:190:34: Error: Expected an identifier, but got '}'.
 // class Ef1<X extends Function({int})> {
 //                                  ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

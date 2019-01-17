@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/bug21938.dart:10:4: Error: The method 'call' isn't defined for the class 'Object'.
 //  - 'Object' is from 'dart:core'.
@@ -17,8 +19,7 @@
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   x. /*@error=UndefinedMethod*/ call();
 //                                 ^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

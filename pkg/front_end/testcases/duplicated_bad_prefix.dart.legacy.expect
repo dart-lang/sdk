@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/duplicated_bad_prefix.dart:10:7: Error: 'Dupe' is already declared in this scope.
 // class Dupe {}
@@ -18,14 +20,7 @@
 // pkg/front_end/testcases/duplicated_bad_prefix.dart:13:3: Warning: 'Dupe.a' isn't a type.
 //   Dupe.a b;
 //   ^^^^^^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/duplicated_bad_prefix.dart:10:7: Error: 'Dupe' is already declared in this scope.
-// class Dupe {}
-//       ^^^^
-
-library;
 import self as self;
 import "dart:core" as core;
 

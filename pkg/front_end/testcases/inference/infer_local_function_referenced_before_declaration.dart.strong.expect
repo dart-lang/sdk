@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:74: Error: Method not found: 'g'.
 //   /*@returnType=dynamic*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
@@ -10,8 +12,7 @@
 // pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:74: Context: Previous use of 'g'.
 //   /*@returnType=dynamic*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
 //                                                                          ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

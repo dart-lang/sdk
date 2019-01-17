@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000032.dart:7:1: Error: Expected an identifier, but got '}'.
 // }
@@ -16,8 +18,7 @@
 // pkg/front_end/testcases/rasta/issue_000032.dart:7:1: Error: Expected '{' before this.
 // }
 // ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

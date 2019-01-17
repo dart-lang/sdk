@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/bad_continue.dart:6:3: Error: A continue statement can't be used outside of a loop or switch statement.
 // Try removing the continue statement.
@@ -14,20 +16,7 @@
 // Try removing the continue statement.
 //   label: continue label;
 //          ^^^^^^^^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/rasta/bad_continue.dart:6:3: Error: A continue statement can't be used outside of a loop or switch statement.
-// Try removing the continue statement.
-//   continue here;
-//   ^^^^^^^^
-//
-// pkg/front_end/testcases/rasta/bad_continue.dart:7:10: Error: A continue statement can't be used outside of a loop or switch statement.
-// Try removing the continue statement.
-//   label: continue label;
-//          ^^^^^^^^
-
-library;
 import self as self;
 
 static method main() → dynamic {

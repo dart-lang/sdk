@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34563.dart:9:10: Error: Expected 'on' instead of this.
 // mixin M2 extend M1 {}
@@ -15,8 +17,31 @@
 // pkg/front_end/testcases/regress/issue_34563.dart:19:10: Error: Expected 'extends' instead of this.
 // class C3 on C1 with M3 {}
 //          ^^
-
-library;
+//
+// pkg/front_end/testcases/regress/issue_34563.dart:23:6: Error: The getter 'm' isn't defined for the class 'C2'.
+//  - 'C2' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm'.
+//   c2.m + c2.c;
+//      ^
+//
+// pkg/front_end/testcases/regress/issue_34563.dart:23:13: Error: The getter 'c' isn't defined for the class 'C2'.
+//  - 'C2' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
+//   c2.m + c2.c;
+//             ^
+//
+// pkg/front_end/testcases/regress/issue_34563.dart:25:6: Error: The getter 'm' isn't defined for the class 'C3'.
+//  - 'C3' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm'.
+//   c3.m + c3.c;
+//      ^
+//
+// pkg/front_end/testcases/regress/issue_34563.dart:25:13: Error: The getter 'c' isn't defined for the class 'C3'.
+//  - 'C3' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
+//   c3.m + c3.c;
+//             ^
+//
 import self as self;
 import "dart:core" as core;
 

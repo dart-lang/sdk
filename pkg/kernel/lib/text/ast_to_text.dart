@@ -5,6 +5,8 @@ library kernel.ast_to_text;
 
 import 'dart:core' hide MapEntry;
 
+import 'dart:convert' show json;
+
 import '../ast.dart';
 import '../import_table.dart';
 
@@ -344,6 +346,32 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  void writeComponentProblems(Component component) {
+    writeProblemsAsJson("Problems in component", component.problemsAsJson);
+  }
+
+  void writeProblemsAsJson(String header, Set<String> problemsAsJson) {
+    if (problemsAsJson?.isEmpty == false) {
+      endLine("//");
+      write("// ");
+      write(header);
+      endLine(":");
+      endLine("//");
+      for (String s in problemsAsJson) {
+        Map<String, Object> decoded = json.decode(s);
+        List<Object> plainTextFormatted = decoded["plainTextFormatted"];
+        List<String> lines = plainTextFormatted.join("\n").split("\n");
+        for (int i = 0; i < lines.length; i++) {
+          write("//");
+          String trimmed = lines[i].trimRight();
+          if (trimmed.isNotEmpty) write(" ");
+          endLine(trimmed);
+        }
+        if (lines.isNotEmpty) endLine("//");
+      }
+    }
+  }
+
   void writeLibraryFile(Library library) {
     writeAnnotationList(library.annotations);
     writeWord('library');
@@ -351,6 +379,9 @@ class Printer extends Visitor<Null> {
       writeWord(library.name);
     }
     endLine(';');
+
+    writeProblemsAsJson("Problems in library", library.problemsAsJson);
+
     var imports = new LibraryImportTable(library);
     for (var library in imports.importedLibraries) {
       var importPath = imports.getImportPath(library);
@@ -437,6 +468,7 @@ class Printer extends Visitor<Null> {
       writeWord(prefix);
       endLine(' {');
       ++inner.indentation;
+      writeProblemsAsJson("Problems in library", library.problemsAsJson);
       library.dependencies.forEach(inner.writeNode);
       library.typedefs.forEach(inner.writeNode);
       library.classes.forEach(inner.writeNode);

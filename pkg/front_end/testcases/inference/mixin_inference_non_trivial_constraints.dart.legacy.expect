@@ -1,4 +1,5 @@
-// Formatted problems:
+//
+// Problems in component:
 //
 // pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart:14:7: Error: 'M2 with M0' can't implement both 'I<List<Map<int, int>>>' and 'I<List<dynamic>>'
 //  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart'.
@@ -13,23 +14,7 @@
 //  - 'Map' is from 'dart:core'.
 // class A extends M2<int> with M0 {}
 //       ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart:14:7: Error: 'M2 with M0' can't implement both 'I<List<Map<int, int>>>' and 'I<List<dynamic>>'
-//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart'.
-//  - 'List' is from 'dart:core'.
-//  - 'Map' is from 'dart:core'.
-// class A extends M2<int> with M0 {}
-//       ^
-//
-// pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart:14:7: Error: 'A' can't implement both 'I<List<Map<int, int>>>' and 'I<List<dynamic>>'
-//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart'.
-//  - 'List' is from 'dart:core'.
-//  - 'Map' is from 'dart:core'.
-// class A extends M2<int> with M0 {}
-//       ^
-
 library;
 import self as self;
 import "dart:core" as core;

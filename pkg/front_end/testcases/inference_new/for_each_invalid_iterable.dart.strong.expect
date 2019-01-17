@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
@@ -19,8 +21,7 @@
 //  - 'Stream' is from 'dart:async'.
 //   await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
 //                                                       ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

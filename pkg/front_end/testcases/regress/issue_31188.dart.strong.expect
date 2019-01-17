@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31188.dart:7:17: Error: Expected ';' after this.
 // type T = Map<A, B>
@@ -25,26 +27,7 @@
 // pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
 // type T = Map<A, B>
 // ^^^^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:17: Error: Expected ';' after this.
-// type T = Map<A, B>
-//                 ^
-//
-// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected a declaration, but got '>'.
-// type T = Map<A, B>
-//                  ^
-//
-// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
-// type T = Map<A, B>
-// ^^^^
-//
-// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
-// type T = Map<A, B>
-// ^^^^
-
-library;
 import self as self;
 import "dart:core" as core;
 

@@ -1,10 +1,14 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/bug30695.dart:11:3: Error: Can't declare a member that conflicts with an inherited one.
 //   foo() => 42;
 //   ^^^
-
-library;
+// pkg/front_end/testcases/bug30695.dart:6:7: Context: This is the inherited member.
+//   var foo = 42;
+//       ^^^
+//
 import self as self;
 import "dart:core" as core;
 

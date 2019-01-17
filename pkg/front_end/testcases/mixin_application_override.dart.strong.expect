@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
@@ -119,58 +121,7 @@
 // pkg/front_end/testcases/mixin_application_override.dart:39:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
 // class B2X extends S with M1, M2, M, MX {}
 //       ^^^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

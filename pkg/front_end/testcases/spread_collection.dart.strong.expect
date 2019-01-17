@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/spread_collection.dart:6:25: Error: Unexpected token '...'.
 //   final list = <int>[1, ...[2], ...?[3]];
@@ -19,18 +21,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   final list = <int>[1, ...[2], ...?[3]];
 //                                     ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/spread_collection.dart:6:25: Error: Unexpected token '...'.
-//   final list = <int>[1, ...[2], ...?[3]];
-//                         ^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:6:33: Error: Unexpected token '...?'.
-//   final list = <int>[1, ...[2], ...?[3]];
-//                                 ^^^^
-
-library;
 import self as self;
 import "dart:core" as core;
 

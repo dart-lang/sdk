@@ -1,4 +1,31 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/missing_constructor.dart:10:11: Error: Superclass has no constructor named 'Super'.
+//   Sub() : super();
+//           ^^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:11:15: Error: Superclass has no constructor named 'Super.foo'.
+//   Sub.foo() : super.foo();
+//               ^^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:15:15: Error: Couldn't find constructor 'Bad'.
+//   Bad.foo() : this();
+//               ^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:16:15: Error: Couldn't find constructor 'Bad.baz'.
+//   Bad.bar() : this.baz();
+//               ^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:22:24: Error: Superclass has no constructor named 'Super'.
+//   MixinApplication() : super();
+//                        ^^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:23:28: Error: Superclass has no constructor named 'Super.foo'.
+//   MixinApplication.foo() : super.foo();
+//                            ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

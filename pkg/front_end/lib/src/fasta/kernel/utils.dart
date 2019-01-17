@@ -34,6 +34,7 @@ void printComponentText(Component component,
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
+  printer.writeComponentProblems(component);
   for (Library library in component.libraries) {
     if (libraryFilter != null && !libraryFilter(library)) continue;
     printer.writeLibraryFile(library);

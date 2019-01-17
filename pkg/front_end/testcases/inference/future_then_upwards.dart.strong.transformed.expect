@@ -1,4 +1,14 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/future_then_upwards.dart:21:49: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'Future<int>'.
+//  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards.dart'.
+//  - 'Future' is from 'dart:async'.
+// Try changing the type of the left hand side, or casting the right hand side to 'Future<int>'.
+//   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
+//                                                 ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

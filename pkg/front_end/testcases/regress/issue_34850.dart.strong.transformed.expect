@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34850.dart:5:1: Error: Expected a declaration, but got '<'.
 // <foo<
@@ -40,8 +42,7 @@
 // pkg/front_end/testcases/regress/issue_34850.dart:14:16: Error: Functions marked 'async' must have a return type assignable to 'Future'.
 // Future<List<>> f3() async {
 //                ^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

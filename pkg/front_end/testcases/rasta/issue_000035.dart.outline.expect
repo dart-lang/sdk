@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Error: The non-ASCII character 'æ' (U+00E6) can't be used in identifiers, only in strings and comments.
 // Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Context: 'C.æøC' is defined here.
 // class C {æøC();}
 //          ^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

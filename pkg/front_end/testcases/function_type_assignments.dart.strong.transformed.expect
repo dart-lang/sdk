@@ -1,4 +1,24 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/function_type_assignments.dart:11:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+// String x = identity; // No bound
+//            ^
+//
+// pkg/front_end/testcases/function_type_assignments.dart:12:12: Error: A value of type 'T Function<T extends Object>(T)' can't be assigned to a variable of type 'String'.
+//  - 'Object' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+// String y = identityObject; // Object bound
+//            ^
+//
+// pkg/front_end/testcases/function_type_assignments.dart:13:12: Error: A value of type 'T Function<T extends List<T>>(T)' can't be assigned to a variable of type 'String'.
+//  - 'List' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+// String z = identityList; // List<T> bound
+//            ^
+//
 import self as self;
 import "dart:core" as core;
 

@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:55:62: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
 // Try changing the type of the left hand side, or casting the right hand side to 'double'.
@@ -34,8 +36,7 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;
 //                                                                 ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
 // abstract class A implements Interface1, Interface2, Interface3 {
@@ -129,65 +131,7 @@
 // pkg/front_end/testcases/abstract_members.dart:91:10: Context: This is the other inherited member.
 //   Object foo() {}
 //          ^^^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
-// abstract class A implements Interface1, Interface2, Interface3 {
-//                ^
-//
-// pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
-//  - A.abstractMethod
-//  - A.property1=
-//  - A.property3=
-//  - Interface1.interfaceMethod1
-//  - Interface2.interfaceMethod1
-//  - Interface2.interfaceMethod2
-//  - Interface3.interfaceMethod3
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-// 
-// class MyClass extends B {
-//       ^^^^^^^
-//
-// pkg/front_end/testcases/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
-//  - A.abstractMethod
-//  - A.property1=
-//  - A.property2=
-//  - A.property3=
-//  - Interface1.interfaceMethod1
-//  - Interface2.interfaceMethod1
-//  - Interface2.interfaceMethod2
-//  - Interface3.interfaceMethod3
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-// 
-// class MyMock3 extends B {
-//       ^^^^^^^
-//
-// pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
-// abstract class D extends C implements Interface2 {}
-//                ^
-//
-// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
-// abstract class F extends E implements Interface1 {}
-//                ^
-//
-// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
-// abstract class H extends G implements Foo {}
-//                ^
-//
-// pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
-// abstract class J extends I implements Bar {}
-//                ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

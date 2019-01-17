@@ -14,6 +14,7 @@ import 'crash.dart' show firstSourceUri;
 
 import 'messages.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         noLength,
@@ -24,8 +25,6 @@ import 'messages.dart'
         templateSourceBodySummary;
 
 import 'problems.dart' show internalProblem, unhandled;
-
-import 'rewrite_severity.dart' show rewriteSeverity;
 
 import 'severity.dart' show Severity;
 
@@ -57,6 +56,10 @@ abstract class Loader<L> {
   /// An unhandled error is an error that hasn't been handled, see
   /// [handledErrors].
   final List<LocatedMessage> unhandledErrors = <LocatedMessage>[];
+
+  /// List of all problems seen so far by libraries loaded by this loader that
+  /// does not belong directly to a library.
+  final List<FormattedMessage> allComponentProblems = <FormattedMessage>[];
 
   final Set<String> seenMessages = new Set<String>();
 
@@ -216,14 +219,12 @@ abstract class Loader<L> {
   void addProblem(Message message, int charOffset, int length, Uri fileUri,
       {bool wasHandled: false,
       List<LocatedMessage> context,
-      Severity severity}) {
-    severity ??= message.code.severity;
-    if (severity == Severity.errorLegacyWarning) {
-      severity =
-          target.backendTarget.legacyMode ? Severity.warning : Severity.error;
-    }
+      Severity severity,
+      bool problemOnLibrary: false}) {
     addMessage(message, charOffset, length, fileUri, severity,
-        wasHandled: wasHandled, context: context);
+        wasHandled: wasHandled,
+        context: context,
+        problemOnLibrary: problemOnLibrary);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
@@ -238,8 +239,10 @@ abstract class Loader<L> {
   /// [wasHandled] is false.
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    severity = rewriteSeverity(severity, message.code, fileUri);
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      bool problemOnLibrary: false}) {
+    severity = target.fixSeverity(severity, message, fileUri);
     if (severity == Severity.ignored) return false;
     String trace = """
 message: ${message.message}
@@ -274,6 +277,10 @@ fileUri: ${contextMessage.uri}
     if (severity == Severity.error) {
       (wasHandled ? handledErrors : unhandledErrors)
           .add(message.withLocation(fileUri, charOffset, length));
+    }
+    if (!problemOnLibrary) {
+      allComponentProblems.add(target.createFormattedMessage(
+          message, charOffset, length, fileUri, context, severity));
     }
     return true;
   }

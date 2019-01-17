@@ -1,4 +1,143 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/static.dart:28:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:29:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:31:9: Warning: Setter not found: 'staticConstant'.
+//     Foo.staticConstant++;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:32:13: Warning: Setter not found: 'staticConstant'.
+//     use(Foo.staticConstant++);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:35:9: Warning: Setter not found: 'staticFunction'.
+//     Foo.staticFunction++;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:36:13: Warning: Setter not found: 'staticFunction'.
+//     use(Foo.staticFunction++);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:37:9: Warning: Setter not found: 'staticGetter'.
+//     Foo.staticGetter++;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:38:13: Warning: Setter not found: 'staticGetter'.
+//     use(Foo.staticGetter++);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:39:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter++;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:40:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter++);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:42:11: Warning: Setter not found: 'staticConstant'.
+//     ++Foo.staticConstant;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:43:15: Warning: Setter not found: 'staticConstant'.
+//     use(++Foo.staticConstant);
+//               ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:46:11: Warning: Setter not found: 'staticFunction'.
+//     ++Foo.staticFunction;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:47:15: Warning: Setter not found: 'staticFunction'.
+//     use(++Foo.staticFunction);
+//               ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:48:11: Warning: Setter not found: 'staticGetter'.
+//     ++Foo.staticGetter;
+//           ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:49:15: Warning: Setter not found: 'staticGetter'.
+//     use(++Foo.staticGetter);
+//               ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:50:11: Warning: Getter not found: 'staticSetter'.
+//     ++Foo.staticSetter;
+//           ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:51:15: Warning: Getter not found: 'staticSetter'.
+//     use(++Foo.staticSetter);
+//               ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:61:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter();
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:62:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter());
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:64:9: Warning: Setter not found: 'staticConstant'.
+//     Foo.staticConstant = 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:65:13: Warning: Setter not found: 'staticConstant'.
+//     use(Foo.staticConstant = 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:68:9: Warning: Setter not found: 'staticFunction'.
+//     Foo.staticFunction = 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:69:13: Warning: Setter not found: 'staticFunction'.
+//     use(Foo.staticFunction = 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:70:9: Warning: Setter not found: 'staticGetter'.
+//     Foo.staticGetter = 87;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:71:13: Warning: Setter not found: 'staticGetter'.
+//     use(Foo.staticGetter = 87);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:75:9: Warning: Setter not found: 'staticConstant'.
+//     Foo.staticConstant ??= 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:76:13: Warning: Setter not found: 'staticConstant'.
+//     use(Foo.staticConstant ??= 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:79:9: Warning: Setter not found: 'staticFunction'.
+//     Foo.staticFunction ??= 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:80:13: Warning: Setter not found: 'staticFunction'.
+//     use(Foo.staticFunction ??= 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:81:9: Warning: Setter not found: 'staticGetter'.
+//     Foo.staticGetter ??= 87;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:82:13: Warning: Setter not found: 'staticGetter'.
+//     use(Foo.staticGetter ??= 87);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:83:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter ??= 87;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:84:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter ??= 87);
+//             ^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

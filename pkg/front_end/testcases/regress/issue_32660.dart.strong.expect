@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_32660.dart:6:3: Error: The method 'A.foo' has fewer named arguments than those of overridden method 'B.foo'.
 //   foo(int x) => x;
@@ -19,18 +21,7 @@
 // pkg/front_end/testcases/regress/issue_32660.dart:24:7: Context: Both members are inherited by the non-abstract class 'E'.
 // class E extends D {
 //       ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_32660.dart:6:3: Error: The method 'A.foo' has fewer named arguments than those of overridden method 'B.foo'.
-//   foo(int x) => x;
-//   ^
-//
-// pkg/front_end/testcases/regress/issue_32660.dart:21:3: Error: The method 'D.foo' has fewer named arguments than those of overridden method 'E.foo'.
-//   foo(int x) => x;
-//   ^
-
-library;
 import self as self;
 import "dart:core" as core;
 
