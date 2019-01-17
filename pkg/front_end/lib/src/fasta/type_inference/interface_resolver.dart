@@ -44,9 +44,6 @@ import '../../base/instrumentation.dart'
 
 import '../builder/builder.dart' show LibraryBuilder;
 
-import '../kernel/class_hierarchy_builder.dart'
-    show inheritedConflictContextKernel;
-
 import '../kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
 import '../kernel/kernel_shadow_ast.dart'
@@ -59,9 +56,6 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../messages.dart'
     show
-        messageDeclaredMemberConflictsWithInheritedMember,
-        messageDeclaredMemberConflictsWithInheritedMemberCause,
-        messageInheritedMembersConflict,
         noLength,
         templateCantInferTypeDueToCircularity,
         templateCantInferTypeDueToInconsistentOverrides;
@@ -834,88 +828,12 @@ class InterfaceResolver {
     // and static members, use a map from names to lists of members.  There can
     // be more than one static member with a given name, e.g., if there is a
     // getter and a setter.  We will report both conflicts.
-    Map<Name, List<Member>> staticMembers = {};
-    for (var procedure in class_.procedures) {
-      if (procedure.isStatic && !procedure.isFactory) {
-        staticMembers.putIfAbsent(procedure.name, () => []).add(procedure);
-      }
-    }
-    for (var field in class_.fields) {
-      if (field.isStatic) {
-        staticMembers.putIfAbsent(field.name, () => []).add(field);
-      }
-    }
     forEachApiMember(candidates, (int start, int end, Name name) {
       Procedure member = candidates[start];
-      // We should not have a method, getter, or setter in our interface that
-      // conflicts with a static method, getter, or setter declared in the
-      // class.
-      List<Member> conflicts = staticMembers[name];
-      if (conflicts != null) {
-        for (var conflict in conflicts) {
-          library.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
-              conflict.fileOffset, noLength, conflict.fileUri,
-              context: [
-                messageDeclaredMemberConflictsWithInheritedMemberCause
-                    .withLocation(member.fileUri, member.fileOffset, noLength)
-              ]);
-        }
-        return;
-      }
       ProcedureKind kind = _kindOf(member);
       if (kind != ProcedureKind.Getter && kind != ProcedureKind.Setter) {
         for (int i = start + 1; i < end; ++i) {
-          if (_kindOf(candidates[i]) != kind) {
-            // We've seen a getter or setter.  If it's a getter conflicting
-            // with a method and both are declared in the same class, then that
-            // has already been signaled as a duplicated definition.
-            Procedure conflict = candidates[i];
-            if (conflict.enclosingClass != member.enclosingClass) {
-              if (member.enclosingClass == class_) {
-                library.addProblem(
-                    messageDeclaredMemberConflictsWithInheritedMember,
-                    member.fileOffset,
-                    noLength,
-                    member.fileUri,
-                    context: [
-                      messageDeclaredMemberConflictsWithInheritedMemberCause
-                          .withLocation(
-                              conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
-              } else if (conflict.enclosingClass == class_) {
-                library.addProblem(
-                    messageDeclaredMemberConflictsWithInheritedMember,
-                    conflict.fileOffset,
-                    noLength,
-                    conflict.fileUri,
-                    context: [
-                      messageDeclaredMemberConflictsWithInheritedMemberCause
-                          .withLocation(
-                              member.fileUri, member.fileOffset, noLength)
-                    ]);
-              } else {
-                library.addProblem(messageInheritedMembersConflict,
-                    class_.fileOffset, noLength, class_.fileUri,
-                    context: inheritedConflictContextKernel(
-                        member, conflict, noLength));
-              }
-            } else {
-              // If it's a setter conflicting with a method and both are
-              // declared in the same class, it hasn't been signaled as a
-              // duplicated definition so it's reported here.
-              library.addProblem(
-                  messageDeclaredMemberConflictsWithInheritedMember,
-                  member.fileOffset,
-                  noLength,
-                  member.fileUri,
-                  context: [
-                    messageDeclaredMemberConflictsWithInheritedMemberCause
-                        .withLocation(
-                            conflict.fileUri, conflict.fileOffset, noLength)
-                  ]);
-            }
-            return;
-          }
+          if (_kindOf(candidates[i]) != kind) return;
         }
         if (member.enclosingClass == class_ && _requiresTypeInference(member)) {
           inferMethodType(library, class_, member, candidates, start + 1, end);
@@ -942,29 +860,7 @@ class InterfaceResolver {
         while (++getterEnd < end) {
           ProcedureKind currentKind = _kindOf(candidates[getterEnd]);
           if (currentKind == ProcedureKind.Setter) break;
-          if (currentKind != ProcedureKind.Getter) {
-            Procedure conflict = candidates[getterEnd];
-            if (conflict.enclosingClass != member.enclosingClass) {
-              if (member.enclosingClass == class_) {
-                library.addProblem(
-                    messageDeclaredMemberConflictsWithInheritedMember,
-                    member.fileOffset,
-                    noLength,
-                    member.fileUri,
-                    context: [
-                      messageDeclaredMemberConflictsWithInheritedMemberCause
-                          .withLocation(
-                              conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
-              } else {
-                library.addProblem(messageInheritedMembersConflict,
-                    class_.fileOffset, noLength, class_.fileUri,
-                    context: inheritedConflictContextKernel(
-                        member, conflict, noLength));
-              }
-            }
-            return;
-          }
+          if (currentKind != ProcedureKind.Getter) return;
         }
       }
 

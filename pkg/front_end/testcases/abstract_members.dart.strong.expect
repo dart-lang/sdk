@@ -5,60 +5,19 @@
 //                ^
 // pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
-//        ^
+//        ^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
-//       ^
-//
-// pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
-// abstract class D extends C implements Interface2 {}
-//                ^
-// pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is one inherited member.
-//   var interfaceMethod1;
-//       ^
-// pkg/front_end/testcases/abstract_members.dart:59:8: Context: This is the other inherited member.
-//   void interfaceMethod1(_) {}
-//        ^
-//
-// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
-// abstract class F extends E implements Interface1 {}
-//                ^
-// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
-//   void interfaceMethod1() {}
-//        ^
-// pkg/front_end/testcases/abstract_members.dart:67:12: Context: This is the other inherited member.
-//   void set interfaceMethod1(_) {}
-//            ^
-//
-// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
-// abstract class H extends G implements Foo {}
-//                ^
-// pkg/front_end/testcases/abstract_members.dart:75:8: Context: This is one inherited member.
-//   void foo() {}
-//        ^
-// pkg/front_end/testcases/abstract_members.dart:79:12: Context: This is the other inherited member.
-//   void set foo(_) {}
-//            ^
-//
-// pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
-// abstract class J extends I implements Bar {}
-//                ^
-// pkg/front_end/testcases/abstract_members.dart:87:14: Context: This is one inherited member.
-//   Object get foo => null;
-//              ^
-// pkg/front_end/testcases/abstract_members.dart:91:10: Context: This is the other inherited member.
-//   Object foo() {}
-//          ^
+//       ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
-//  - 'interfaceMethod2'
-//  - 'abstractMethod'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod3'
-//  - 'property3='
-//  - 'interfaceMethod1='
-//  - 'property1='
+//  - A.abstractMethod
+//  - A.property1=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -67,41 +26,37 @@
 //
 // class MyClass extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:10:8: Context: 'interfaceMethod2' is defined here.
-//   void interfaceMethod2() {}
-//        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'abstractMethod' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
 //   abstractMethod();
 //   ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:6:8: Context: 'interfaceMethod1' is defined here.
-//   void interfaceMethod1() {}
-//        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'interfaceMethod1' is defined here.
-//   var interfaceMethod1;
-//       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'interfaceMethod3' is defined here.
-//   void interfaceMethod3() {}
-//        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'property3=' is defined here.
-//   void set property3(_);
-//            ^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'interfaceMethod1=' is defined here.
-//   var interfaceMethod1;
-//       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'property1=' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
 //   void set property1(_);
 //            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
+//   void set property3(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: 'Interface1.interfaceMethod1' is defined here.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'Interface2.interfaceMethod1' is defined here.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:10:8: Context: 'Interface2.interfaceMethod2' is defined here.
+//   void interfaceMethod2() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
+//   void interfaceMethod3() {}
+//        ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
-//  - 'interfaceMethod2'
-//  - 'abstractMethod'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod3'
-//  - 'property3='
-//  - 'interfaceMethod1='
-//  - 'property1='
-//  - 'property2='
+//  - A.abstractMethod
+//  - A.property1=
+//  - A.property2=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -110,33 +65,70 @@
 //
 // class MyMock3 extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:10:8: Context: 'interfaceMethod2' is defined here.
-//   void interfaceMethod2() {}
-//        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'abstractMethod' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
 //   abstractMethod();
 //   ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:6:8: Context: 'interfaceMethod1' is defined here.
-//   void interfaceMethod1() {}
-//        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'interfaceMethod1' is defined here.
-//   var interfaceMethod1;
-//       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'interfaceMethod3' is defined here.
-//   void interfaceMethod3() {}
-//        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'property3=' is defined here.
-//   void set property3(_);
-//            ^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'interfaceMethod1=' is defined here.
-//   var interfaceMethod1;
-//       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'property1=' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
 //   void set property1(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:23:12: Context: 'property2=' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:23:12: Context: 'A.property2=' is defined here.
 //   void set property2(_);
 //            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
+//   void set property3(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: 'Interface1.interfaceMethod1' is defined here.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'Interface2.interfaceMethod1' is defined here.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:10:8: Context: 'Interface2.interfaceMethod2' is defined here.
+//   void interfaceMethod2() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
+//   void interfaceMethod3() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
+// abstract class D extends C implements Interface2 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is one inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:59:8: Context: This is the other inherited member.
+//   void interfaceMethod1(_) {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// abstract class F extends E implements Interface1 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:67:12: Context: This is the other inherited member.
+//   void set interfaceMethod1(_) {}
+//            ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// abstract class H extends G implements Foo {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:75:8: Context: This is one inherited member.
+//   void foo() {}
+//        ^^^
+// pkg/front_end/testcases/abstract_members.dart:79:12: Context: This is the other inherited member.
+//   void set foo(_) {}
+//            ^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
+// abstract class J extends I implements Bar {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:87:14: Context: This is one inherited member.
+//   Object get foo => null;
+//              ^^^
+// pkg/front_end/testcases/abstract_members.dart:91:10: Context: This is the other inherited member.
+//   Object foo() {}
+//          ^^^
 
 // Unhandled errors:
 //
@@ -144,6 +136,41 @@
 // abstract class A implements Interface1, Interface2, Interface3 {
 //                ^
 //
+// pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property1=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class MyClass extends B {
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property1=
+//  - A.property2=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class MyMock3 extends B {
+//       ^^^^^^^
+//
 // pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
 // abstract class D extends C implements Interface2 {}
 //                ^
@@ -159,43 +186,6 @@
 // pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
 // abstract class J extends I implements Bar {}
 //                ^
-//
-// pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
-//  - 'interfaceMethod2'
-//  - 'abstractMethod'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod3'
-//  - 'property3='
-//  - 'interfaceMethod1='
-//  - 'property1='
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-// 
-// class MyClass extends B {
-//       ^^^^^^^
-//
-// pkg/front_end/testcases/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
-//  - 'interfaceMethod2'
-//  - 'abstractMethod'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod1'
-//  - 'interfaceMethod3'
-//  - 'property3='
-//  - 'interfaceMethod1='
-//  - 'property1='
-//  - 'property2='
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-// 
-// class MyMock3 extends B {
-//       ^^^^^^^
 
 library;
 import self as self;

@@ -11,7 +11,7 @@
 //           ^
 //
 // pkg/front_end/testcases/rasta/issue_000035.dart:5:7: Error: The non-abstract class 'C' is missing implementations for these members:
-//  - 'æøC'
+//  - C.æøC
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,

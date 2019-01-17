@@ -1,7 +1,7 @@
 // Unhandled errors:
 //
 // pkg/front_end/testcases/mixin_conflicts.dart:22:7: Error: The non-abstract class 'N2' is missing implementations for these members:
-//  - 'foo'
+//  - M.foo
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -12,7 +12,7 @@
 //       ^^
 //
 // pkg/front_end/testcases/mixin_conflicts.dart:29:7: Error: The non-abstract class 'C2' is missing implementations for these members:
-//  - 'foo'
+//  - M.foo
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
