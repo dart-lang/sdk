@@ -56,117 +56,124 @@ class KernelConstantErrorReporter extends ErrorReporter {
 
   KernelConstantErrorReporter(this.loader, this.typeEnvironment);
 
-  void addProblem(TreeNode node, Message message) {
-    loader.addProblem(message, getFileOffset(node), noLength, getFileUri(node));
+  String addProblem(TreeNode node, Message message) {
+    int offset = getFileOffset(node);
+    Uri uri = getFileUri(node);
+    loader.addProblem(message, offset, noLength, uri);
+    return loader.target.context.format(
+        message.withLocation(uri, offset, noLength), message.code.severity);
   }
 
   @override
-  void freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
-    addProblem(node, templateConstEvalFreeTypeParameter.withArguments(type));
+  String freeTypeParameter(
+      List<TreeNode> context, TreeNode node, DartType type) {
+    return addProblem(
+        node, templateConstEvalFreeTypeParameter.withArguments(type));
   }
 
   @override
-  void duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
-    addProblem(node, templateConstEvalDuplicateKey.withArguments(key));
+  String duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
+    return addProblem(node, templateConstEvalDuplicateKey.withArguments(key));
   }
 
   @override
-  void invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
-      DartType expectedType) {
-    addProblem(
+  String invalidDartType(List<TreeNode> context, TreeNode node,
+      Constant receiver, DartType expectedType) {
+    return addProblem(
         node,
         templateConstEvalInvalidType.withArguments(
             receiver, expectedType, receiver.getType(typeEnvironment)));
   }
 
   @override
-  void invalidBinaryOperandType(
+  String invalidBinaryOperandType(
       List<TreeNode> context,
       TreeNode node,
       Constant receiver,
       String op,
       DartType expectedType,
       DartType actualType) {
-    addProblem(
+    return addProblem(
         node,
         templateConstEvalInvalidBinaryOperandType.withArguments(
             op, receiver, expectedType, actualType));
   }
 
   @override
-  void invalidMethodInvocation(
+  String invalidMethodInvocation(
       List<TreeNode> context, TreeNode node, Constant receiver, String op) {
-    addProblem(node,
+    return addProblem(node,
         templateConstEvalInvalidMethodInvocation.withArguments(op, receiver));
   }
 
   @override
-  void invalidStaticInvocation(
+  String invalidStaticInvocation(
       List<TreeNode> context, TreeNode node, Member target) {
-    addProblem(
+    return addProblem(
         node,
         templateConstEvalInvalidStaticInvocation
             .withArguments(target.name.toString()));
   }
 
   @override
-  void invalidStringInterpolationOperand(
+  String invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant) {
-    addProblem(
+    return addProblem(
         node,
         templateConstEvalInvalidStringInterpolationOperand
             .withArguments(constant));
   }
 
   @override
-  void invalidSymbolName(
+  String invalidSymbolName(
       List<TreeNode> context, TreeNode node, Constant constant) {
-    addProblem(
+    return addProblem(
         node, templateConstEvalInvalidSymbolName.withArguments(constant));
   }
 
   @override
-  void zeroDivisor(
+  String zeroDivisor(
       List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
-    addProblem(node,
+    return addProblem(node,
         templateConstEvalZeroDivisor.withArguments(op, '${receiver.value}'));
   }
 
   @override
-  void negativeShift(List<TreeNode> context, TreeNode node,
+  String negativeShift(List<TreeNode> context, TreeNode node,
       IntConstant receiver, String op, IntConstant argument) {
-    addProblem(
+    return addProblem(
         node,
         templateConstEvalNegativeShift.withArguments(
             op, '${receiver.value}', '${argument.value}'));
   }
 
   @override
-  void nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
-    addProblem(node, templateConstEvalNonConstantLiteral.withArguments(klass));
+  String nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
+    return addProblem(
+        node, templateConstEvalNonConstantLiteral.withArguments(klass));
   }
 
   @override
-  void failedAssertion(List<TreeNode> context, TreeNode node, String string) {
-    if (string == null) {
-      addProblem(node, messageConstEvalFailedAssertion);
-    } else {
-      addProblem(node,
-          templateConstEvalFailedAssertionWithMessage.withArguments(string));
-    }
+  String failedAssertion(List<TreeNode> context, TreeNode node, String string) {
+    return addProblem(
+        node,
+        (string == null)
+            ? messageConstEvalFailedAssertion
+            : templateConstEvalFailedAssertionWithMessage
+                .withArguments(string));
   }
 
   @override
-  void nonConstantVariableGet(
+  String nonConstantVariableGet(
       List<TreeNode> context, TreeNode node, String variableName) {
-    addProblem(node,
+    return addProblem(node,
         templateConstEvalNonConstantVariableGet.withArguments(variableName));
   }
 
   @override
-  void deferredLibrary(
+  String deferredLibrary(
       List<TreeNode> context, TreeNode node, String importName) {
-    addProblem(
+    return addProblem(
         node, templateConstEvalDeferredLibrary.withArguments(importName));
   }
 }
@@ -187,7 +194,7 @@ class KernelConstantsBackend extends ConstantsBackend {
       List<TreeNode> context,
       StaticInvocation node,
       ErrorReporter errorReporter,
-      void abortEvaluation()) {
+      void abortEvaluation(String message)) {
     // VM-specific names of the fromEnvironment factory constructors.
     if (nativeName == 'Bool_fromEnvironment' ||
         nativeName == 'Integer_fromEnvironment' ||

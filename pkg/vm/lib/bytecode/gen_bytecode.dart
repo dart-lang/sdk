@@ -399,9 +399,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return expr.constant;
     }
     final constant = constantEvaluator.evaluate(expr);
-    if (constant == null) {
+    if (constant is UnevaluatedConstant &&
+        constant.expression is InvalidExpression) {
       // Compile-time error is already reported. Proceed with compilation
-      // in order to report as many errors as possible.
+      // in order to report errors in other constant expressions.
       hasErrors = true;
       return new NullConstant();
     }

@@ -26,28 +26,29 @@ class ForwardConstantEvaluationErrors extends constants.ErrorReporter {
   ForwardConstantEvaluationErrors(this.typeEnvironment);
 
   @override
-  void freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
+  String freeTypeParameter(
+      List<TreeNode> context, TreeNode node, DartType type) {
     final message =
         codes.templateConstEvalFreeTypeParameter.withArguments(type);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
+  String duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
     final message = codes.templateConstEvalDuplicateKey.withArguments(key);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
-      DartType expectedType) {
+  String invalidDartType(List<TreeNode> context, TreeNode node,
+      Constant receiver, DartType expectedType) {
     final message = codes.templateConstEvalInvalidType.withArguments(
         receiver, expectedType, receiver.getType(typeEnvironment));
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void invalidBinaryOperandType(
+  String invalidBinaryOperandType(
       List<TreeNode> context,
       TreeNode node,
       Constant receiver,
@@ -56,90 +57,91 @@ class ForwardConstantEvaluationErrors extends constants.ErrorReporter {
       DartType actualType) {
     final message = codes.templateConstEvalInvalidBinaryOperandType
         .withArguments(op, receiver, expectedType, actualType);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void invalidMethodInvocation(
+  String invalidMethodInvocation(
       List<TreeNode> context, TreeNode node, Constant receiver, String op) {
     final message = codes.templateConstEvalInvalidMethodInvocation
         .withArguments(op, receiver);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void invalidStaticInvocation(
+  String invalidStaticInvocation(
       List<TreeNode> context, TreeNode node, Member target) {
     final message = codes.templateConstEvalInvalidStaticInvocation
         .withArguments(target.name.toString());
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void invalidStringInterpolationOperand(
+  String invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant) {
     final message = codes.templateConstEvalInvalidStringInterpolationOperand
         .withArguments(constant);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void invalidSymbolName(
+  String invalidSymbolName(
       List<TreeNode> context, TreeNode node, Constant constant) {
     final message =
         codes.templateConstEvalInvalidSymbolName.withArguments(constant);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void zeroDivisor(
+  String zeroDivisor(
       List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
     final message = codes.templateConstEvalZeroDivisor
         .withArguments(op, '${receiver.value}');
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void negativeShift(List<TreeNode> context, TreeNode node,
+  String negativeShift(List<TreeNode> context, TreeNode node,
       IntConstant receiver, String op, IntConstant argument) {
     final message = codes.templateConstEvalNegativeShift
         .withArguments(op, '${receiver.value}', '${argument.value}');
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
+  String nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
     final message =
         codes.templateConstEvalNonConstantLiteral.withArguments(klass);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void failedAssertion(List<TreeNode> context, TreeNode node, String string) {
+  String failedAssertion(List<TreeNode> context, TreeNode node, String string) {
     final message = string == null
         ? codes.messageConstEvalFailedAssertion
         : codes.templateConstEvalFailedAssertionWithMessage
             .withArguments(string);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void nonConstantVariableGet(
+  String nonConstantVariableGet(
       List<TreeNode> context, TreeNode node, String variableName) {
     final message = codes.templateConstEvalNonConstantVariableGet
         .withArguments(variableName);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
   @override
-  void deferredLibrary(
+  String deferredLibrary(
       List<TreeNode> context, TreeNode node, String importName) {
     final message =
         codes.templateConstEvalDeferredLibrary.withArguments(importName);
-    reportIt(context, message, node);
+    return reportIt(context, message, node);
   }
 
-  void reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
+  String reportIt(
+      List<TreeNode> context, codes.Message message, TreeNode node) {
     final Uri uri = getFileUri(node);
     final int fileOffset = getFileOffset(node);
 
@@ -156,5 +158,6 @@ class ForwardConstantEvaluationErrors extends constants.ErrorReporter {
 
     compilerContext.options
         .report(locatedMessage, Severity.error, context: contextMessages);
+    return locatedMessage.message;
   }
 }
