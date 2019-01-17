@@ -61,6 +61,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show
         KernelTextSerialization,
+        MatchContext,
         MatchExpectation,
         Print,
         TypeCheck,
@@ -117,7 +118,7 @@ String generateExpectationName(bool legacyMode) {
   return legacyMode ? "legacy" : "strong";
 }
 
-class FastaContext extends ChainContext {
+class FastaContext extends ChainContext with MatchContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
@@ -130,12 +131,17 @@ class FastaContext extends ChainContext {
   final Map<Component, StringBuffer> componentToDiagnostics =
       <Component, StringBuffer>{};
   final Uri platformBinaries;
-  Uri platformUri;
-  Component platform;
 
+  @override
+  final bool updateExpectations;
+
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
-  Expectation verificationError;
+
+  Uri platformUri;
+
+  Component platform;
 
   FastaContext(
       this.vm,
@@ -144,7 +150,7 @@ class FastaContext extends ChainContext {
       this.onlyCrashes,
       this.enableSetLiterals,
       bool ignoreExpectations,
-      bool updateExpectations,
+      this.updateExpectations,
       bool updateComments,
       this.skipVm,
       bool kernelTextSerialization,
@@ -155,13 +161,10 @@ class FastaContext extends ChainContext {
           const Print(),
           new Verify(fullCompile)
         ] {
-    verificationError = expectationSet["VerificationError"];
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(
-          fullCompile
-              ? ".${generateExpectationName(legacyMode)}.expect"
-              : ".outline.expect",
-          updateExpectations: updateExpectations));
+      steps.add(new MatchExpectation(fullCompile
+          ? ".${generateExpectationName(legacyMode)}.expect"
+          : ".outline.expect"));
     }
     if (!legacyMode) {
       steps.add(const TypeCheck());
@@ -173,11 +176,9 @@ class FastaContext extends ChainContext {
     if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation(
-            fullCompile
-                ? ".${generateExpectationName(legacyMode)}.transformed.expect"
-                : ".outline.transformed.expect",
-            updateExpectations: updateExpectations));
+        steps.add(new MatchExpectation(fullCompile
+            ? ".${generateExpectationName(legacyMode)}.transformed.expect"
+            : ".outline.transformed.expect"));
       }
       steps.add(const EnsureNoErrors());
       if (!skipVm) {
@@ -186,6 +187,8 @@ class FastaContext extends ChainContext {
       }
     }
   }
+
+  Expectation get verificationError => expectationSet["VerificationError"];
 
   Future ensurePlatformUris() async {
     if (platformUri == null) {

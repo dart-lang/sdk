@@ -33,7 +33,7 @@ import 'package:kernel/text/text_serialization_verifier.dart'
         TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step;
+    show ChainContext, Expectation, ExpectationSet, Result, StdioProcess, Step;
 
 import '../../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -48,6 +48,71 @@ import '../messages.dart' show LocatedMessage;
 
 import '../fasta_codes.dart'
     show templateInternalProblemUnhandled, templateUnspecified;
+
+abstract class MatchContext implements ChainContext {
+  bool get updateExpectations;
+
+  ExpectationSet get expectationSet;
+
+  Expectation get expectationFileMismatch =>
+      expectationSet["ExpectationFileMismatch"];
+
+  Expectation get expectationFileMissing =>
+      expectationSet["ExpectationFileMissing"];
+
+  Future<Result<O>> match<O>(
+    String suffix,
+    String actual,
+    Uri uri,
+    O output,
+  ) async {
+    actual = actual.trim();
+    if (actual.isNotEmpty) {
+      actual += "\n";
+    }
+    File expectedFile = new File("${uri.toFilePath()}$suffix");
+    if (await expectedFile.exists()) {
+      String expected = await expectedFile.readAsString();
+      if (expected != actual) {
+        if (updateExpectations) {
+          return updateExpectationFile<O>(expectedFile.uri, actual, output);
+        }
+        String diff = await runDiff(expectedFile.uri, actual);
+        return new Result<O>(output, expectationFileMismatch,
+            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+      } else {
+        return new Result<O>.pass(output);
+      }
+    } else {
+      if (actual.isEmpty) return new Result<O>.pass(output);
+      if (updateExpectations) {
+        return updateExpectationFile(expectedFile.uri, actual, output);
+      }
+      return new Result<O>(
+          output,
+          expectationFileMissing,
+          """
+Please create file ${expectedFile.path} with this content:
+$actual""",
+          null);
+    }
+  }
+
+  Future<Result<O>> updateExpectationFile<O>(
+    Uri uri,
+    String actual,
+    O output,
+  ) async {
+    if (actual.isEmpty) {
+      await new File.fromUri(uri).delete();
+    } else {
+      await openWrite(uri, (IOSink sink) {
+        sink.write(actual);
+      });
+    }
+    return new Result<O>.pass(output);
+  }
+}
 
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
@@ -132,21 +197,18 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
   }
 }
 
-class MatchExpectation extends Step<Component, Component, ChainContext> {
+class MatchExpectation extends Step<Component, Component, MatchContext> {
   final String suffix;
 
-  // TODO(ahe): This is true by default which doesn't match well with the class
-  // name.
-  final bool updateExpectations;
-
-  const MatchExpectation(this.suffix, {this.updateExpectations: false});
+  const MatchExpectation(this.suffix);
 
   String get name => "match expectations";
 
-  Future<Result<Component>> run(Component component, dynamic context) async {
-    StringBuffer messages = context.componentToDiagnostics[component];
-    Uri uri = component.uriToSource.keys
-        .firstWhere((uri) => uri != null && uri.scheme == "file");
+  Future<Result<Component>> run(Component component, MatchContext context) {
+    StringBuffer messages =
+        (context as dynamic).componentToDiagnostics[component];
+    Uri uri =
+        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
     Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri base = uri.resolve(".");
@@ -159,36 +221,7 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
     String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
-    File expectedFile = new File("${uri.toFilePath()}$suffix");
-    if (await expectedFile.exists()) {
-      String expected = await expectedFile.readAsString();
-      if (expected.trim() != actual.trim()) {
-        if (!updateExpectations) {
-          String diff = await runDiff(expectedFile.uri, actual);
-          return new Result<Component>(
-              component,
-              context.expectationSet["ExpectationFileMismatch"],
-              "$uri doesn't match ${expectedFile.uri}\n$diff",
-              null);
-        }
-      } else {
-        return pass(component);
-      }
-    }
-    if (updateExpectations) {
-      await openWrite(expectedFile.uri, (IOSink sink) {
-        sink.writeln(actual.trim());
-      });
-      return pass(component);
-    } else {
-      return new Result<Component>(
-          component,
-          context.expectationSet["ExpectationFileMissing"],
-          """
-Please create file ${expectedFile.path} with this content:
-$actual""",
-          null);
-    }
+    return context.match<Component>(suffix, actual, uri, component);
   }
 }
 
