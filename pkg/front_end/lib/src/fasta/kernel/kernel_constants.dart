@@ -30,6 +30,7 @@ import '../fasta_codes.dart'
     show
         Message,
         noLength,
+        messageConstEvalCircularity,
         messageConstEvalFailedAssertion,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateKey,
@@ -175,6 +176,11 @@ class KernelConstantErrorReporter extends ErrorReporter {
       List<TreeNode> context, TreeNode node, String importName) {
     return addProblem(
         node, templateConstEvalDeferredLibrary.withArguments(importName));
+  }
+
+  @override
+  String circularity(List<TreeNode> context, TreeNode node) {
+    return addProblem(node, messageConstEvalCircularity);
   }
 }
 

@@ -146,6 +146,10 @@ ConstEvalDeferredLibrary:
 ConstEvalFreeTypeParameter:
   template: "The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed."
 
+ConstEvalCircularity:
+  template: "Constant expression depends on itself."
+  analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION

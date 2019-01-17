@@ -34,6 +34,7 @@ export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        messageConstEvalCircularity,
         messageConstEvalContext,
         messageConstEvalFailedAssertion,
         noLength,

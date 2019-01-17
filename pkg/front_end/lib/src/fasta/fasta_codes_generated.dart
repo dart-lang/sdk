@@ -974,6 +974,15 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
         r"""Constant constructor can't call non-constant super constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalCircularity = messageConstEvalCircularity;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalCircularity = const MessageCode(
+    "ConstEvalCircularity",
+    analyzerCodes: <String>["RECURSIVE_COMPILE_TIME_CONSTANT"],
+    message: r"""Constant expression depends on itself.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalContext = messageConstEvalContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

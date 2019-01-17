@@ -415,7 +415,9 @@ class ConstantEvaluator extends RecursiveVisitor {
       // environment.
       if (nodeCache.containsKey(node)) {
         final Constant constant = nodeCache[node];
-        if (constant == null) throw new _AbortCurrentEvaluation('circularity');
+        if (constant == null)
+          throw new _AbortCurrentEvaluation(
+              errorReporter.circularity(contextChain, node));
         return constant;
       }
 
@@ -1514,6 +1516,7 @@ abstract class ErrorReporter {
       List<TreeNode> context, TreeNode node, String variableName);
   String deferredLibrary(
       List<TreeNode> context, TreeNode node, String importName);
+  String circularity(List<TreeNode> context, TreeNode node);
 }
 
 class SimpleErrorReporter extends ErrorReporter {
@@ -1656,6 +1659,11 @@ class SimpleErrorReporter extends ErrorReporter {
         'Deferred "$importName" cannot be used inside a constant '
         'expression',
         node);
+  }
+
+  @override
+  String circularity(List<TreeNode> context, TreeNode node) {
+    return report(context, 'Constant expression depends on itself.', node);
   }
 }
 

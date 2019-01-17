@@ -140,6 +140,12 @@ class ForwardConstantEvaluationErrors extends constants.ErrorReporter {
     return reportIt(context, message, node);
   }
 
+  @override
+  String circularity(List<TreeNode> context, TreeNode node) {
+    final message = codes.messageConstEvalCircularity;
+    return reportIt(context, message, node);
+  }
+
   String reportIt(
       List<TreeNode> context, codes.Message message, TreeNode node) {
     final Uri uri = getFileUri(node);
