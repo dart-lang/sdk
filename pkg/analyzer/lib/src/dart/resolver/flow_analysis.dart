@@ -215,6 +215,15 @@ class FlowAnalysis {
     _current = _State.identity;
   }
 
+  void ifNullExpression_end() {
+    var afterLeft = _stack.removeLast();
+    _current = _current.combine(typeSystem, afterLeft);
+  }
+
+  void ifNullExpression_rightBegin() {
+    _stack.add(_current); // afterLeft
+  }
+
   void ifStatement_elseBegin() {
     var afterThen = _current;
     var falseCondition = _stack.removeLast();

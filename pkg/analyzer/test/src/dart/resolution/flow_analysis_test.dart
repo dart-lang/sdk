@@ -38,6 +38,99 @@ class DefiniteAssignmentFlowTest extends DriverResolutionTest {
     expect(readBeforeWritten, unorderedEquals(expected));
   }
 
+  test_assignment_leftExpression() async {
+    await trackCode(r'''
+void f() {
+  List<int> v;
+  v[0] = (v = [1, 2])[1];
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_assignment_leftLocal_compound() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  v += 1;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_assignment_leftLocal_compound_assignInRight() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  v += (v = v);
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_assignment_leftLocal_pure_eq() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  v = 0;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_assignment_leftLocal_pure_eq_self() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  v = v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_assignment_leftLocal_pure_questionEq() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  v ??= 0;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_assignment_leftLocal_pure_questionEq_self() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  v ??= v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_binaryExpression_ifNull_left() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  (v = 0) ?? 0;
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_binaryExpression_ifNull_right() async {
+    await trackCode(r'''
+void f(int a) {
+  int v;
+  a ?? (v = 0);
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
   test_binaryExpression_logicalAnd_left() async {
     await trackCode(r'''
 main(bool c) {
@@ -135,6 +228,17 @@ f(bool v) {
 }
 ''');
     assertReadBeforeWritten('v');
+  }
+
+  test_conditionalExpression_condition() async {
+    await trackCode(r'''
+main() {
+  int v;
+  (v = 0) >= 0 ? 1 : 2;
+  v;
+}
+''');
+    assertReadBeforeWritten();
   }
 
   test_doWhile_break_afterAssignment() async {
@@ -894,6 +998,21 @@ void g() {}
     assertReadBeforeWritten();
   }
 
+  test_tryCatch_body_catchRethrow() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    v = 0;
+  } catch (_) {
+    rethrow;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
   test_tryCatch_catch() async {
     await trackCode(r'''
 void f() {
@@ -1212,14 +1331,58 @@ f(Object x) {
     assertNotPromoted('x; // 1');
   }
 
-  test_conditional() async {
+  test_binaryExpression_ifNull() async {
     await trackCode(r'''
-f(bool b, Object x) {
+void f(Object x) {
+  ((x is num) || (throw 1)) ?? ((x is int) || (throw 2));
+  x; // 1
+}
+''');
+    assertPromoted('x; // 1', 'num');
+  }
+
+  test_binaryExpression_ifNull_rightUnPromote() async {
+    await trackCode(r'''
+void f(Object x, Object y, Object z) {
+  if (x is int) {
+    x; // 1
+    y ?? (x = z);
+    x; // 2
+  }
+}
+''');
+    assertPromoted('x; // 1', 'int');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_conditional_both() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
   b ? ((x is num) || (throw 1)) : ((x is int) || (throw 2));
   x; // 1
 }
 ''');
     assertPromoted('x; // 1', 'num');
+  }
+
+  test_conditional_else() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  b ? 0 : ((x is int) || (throw 2));
+  x; // 1
+}
+''');
+    assertNotPromoted('x; // 1');
+  }
+
+  test_conditional_then() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  b ? ((x is num) || (throw 1)) : 0;
+  x; // 1
+}
+''');
+    assertNotPromoted('x; // 1');
   }
 
   test_do_condition_isNotType() async {
@@ -1568,6 +1731,18 @@ main(v) {
     assertNotPromoted('v; // 3');
   }
 
+  test_if_then_isNotType_return() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (b) {
+    if (x is! String) return;
+  }
+  x; // 1
+}
+''');
+    assertNotPromoted('x; // 1');
+  }
+
   test_logicalOr_throw() async {
     await trackCode(r'''
 main(v) {
@@ -1685,6 +1860,26 @@ void g() {}
 ''');
     assertPromoted('x; // 1', 'String');
     assertPromoted('x; // 2', 'String');
+    assertPromoted('x; // 3', 'String');
+  }
+
+  test_try_isNotType_exit_body_catchRethrow() async {
+    await trackCode(r'''
+void f(Object x) {
+  try {
+    if (x is! String) return;
+    x; // 1
+  } catch (_) {
+    x; // 2
+    rethrow;
+  }
+  x; // 3
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
     assertPromoted('x; // 3', 'String');
   }
 
@@ -1950,26 +2145,17 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
       right.accept(this);
 
       flow.logicalOr_end(node);
+    } else if (operator == TokenType.QUESTION_QUESTION) {
+      left.accept(this);
+
+      flow.ifNullExpression_rightBegin();
+      right.accept(this);
+
+      flow.ifNullExpression_end();
     } else {
       left.accept(this);
       right.accept(this);
     }
-
-//    var isLogical = operator == TokenType.AMPERSAND_AMPERSAND ||
-//        operator == TokenType.BAR_BAR ||
-//        operator == TokenType.QUESTION_QUESTION;
-//
-//    left.accept(this);
-//
-//    if (isLogical) {
-//      tracker.beginBinaryExpressionLogicalRight();
-//    }
-//
-//    right.accept(this);
-//
-//    if (isLogical) {
-//      tracker.endBinaryExpressionLogicalRight();
-//    }
   }
 
   @override
@@ -2130,6 +2316,12 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
     } else {
       operand.accept(this);
     }
+  }
+
+  @override
+  void visitRethrowExpression(RethrowExpression node) {
+    super.visitRethrowExpression(node);
+    flow.handleExit();
   }
 
   @override
