@@ -1391,43 +1391,6 @@ DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
 #endif
 }
 
-DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
-  Thread* thread = Thread::Current();
-  DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  NoSafepointScope no_safepoint_scope;
-  if ((isolate->sticky_error() != Error::null()) && !::Dart_IsNull(error)) {
-    FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
-  }
-  if (!::Dart_IsUnhandledExceptionError(error) && !::Dart_IsNull(error)) {
-    FATAL1("%s expects the error to be an unhandled exception error or null.",
-           CURRENT_FUNC);
-  }
-  isolate->SetStickyError(Api::UnwrapErrorHandle(Z, error).raw());
-}
-
-DART_EXPORT bool Dart_HasStickyError() {
-  Thread* T = Thread::Current();
-  Isolate* isolate = T->isolate();
-  CHECK_ISOLATE(isolate);
-  NoSafepointScope no_safepoint_scope;
-  return isolate->sticky_error() != Error::null();
-}
-
-DART_EXPORT Dart_Handle Dart_GetStickyError() {
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_ISOLATE(I);
-  NoSafepointScope no_safepoint_scope;
-  if (I->sticky_error() != Error::null()) {
-    TransitionNativeToVM transition(T);
-    Dart_Handle error = Api::NewHandle(T, I->sticky_error());
-    return error;
-  }
-  return Dart_Null();
-}
-
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
@@ -1608,10 +1571,12 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     }
   }
   ::Dart_EnterIsolate(Api::CastIsolate(I));
-  if (I->sticky_error() != Object::null()) {
+  {
     Thread* T = Thread::Current();
-    TransitionNativeToVM transition(T);
-    return Api::NewHandle(T, I->StealStickyError());
+    if (T->sticky_error() != Object::null()) {
+      TransitionNativeToVM transition(T);
+      return Api::NewHandle(T, T->StealStickyError());
+    }
   }
   if (FLAG_print_class_table) {
     HANDLESCOPE(Thread::Current());

@@ -705,11 +705,6 @@ char* BuildIsolateName(const char* script_name, const char* func_name) {
 static void OnIsolateShutdown(void* callback_data) {
   Dart_EnterScope();
 
-  Dart_Handle sticky_error = Dart_GetStickyError();
-  if (!Dart_IsNull(sticky_error) && !Dart_IsFatalError(sticky_error)) {
-    Log::PrintErr("%s\n", Dart_GetError(sticky_error));
-  }
-
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   isolate_data->OnIsolateShutdown();
 
