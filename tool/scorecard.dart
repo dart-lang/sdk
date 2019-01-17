@@ -21,7 +21,8 @@ Iterable<LintRule> _registeredLints;
 Iterable<LintRule> get registeredLints {
   if (_registeredLints == null) {
     registerLintRules();
-    _registeredLints = Registry.ruleRegistry;
+    _registeredLints = Registry.ruleRegistry.toList()
+      ..sort((l1, l2) => l1.name.compareTo(l2.name));
   }
   return _registeredLints;
 }
