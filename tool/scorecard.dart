@@ -28,10 +28,32 @@ Iterable<LintRule> get registeredLints {
 }
 
 main() async {
+  // Lens on just ruleset comparisons.
+  // See: https://github.com/dart-lang/linter/issues/1365.
+  var ruleSetLens = true;
+
   var scorecard = await ScoreCard.calculate();
+  var totalLintCount = scorecard.lintCount;
+
+  if (ruleSetLens) {
+    scorecard.removeWhere((LintScore score) =>
+        score.ruleSets.isEmpty ||
+        (ruleSetLens &&
+            score.ruleSets.length == 1 &&
+            score.ruleSets[0] == 'flutter_repo'));
+  }
 
   //printAll(scorecard);
-  printMarkdownTable(scorecard);
+  printMarkdownTable(scorecard, justRules: ruleSetLens);
+
+  var footer = new StringBuffer('\n_$totalLintCount lints');
+  if (ruleSetLens) {
+    var filteredCount = totalLintCount - scorecard.lintCount;
+    footer.write(' ($filteredCount w/o rulesets not shown)');
+  }
+  footer.writeln('_');
+
+  print(footer);
 }
 
 void printAll(ScoreCard scorecard) {
@@ -39,29 +61,43 @@ void printAll(ScoreCard scorecard) {
   scorecard.forEach(print);
 }
 
-void printMarkdownTable(ScoreCard scorecard) {
-  print(
-      '| name | linter | dart sdk | fix | flutter user | flutter repo | pedantic | stagehand | status | bug refs |');
-  print(
-      '| :--- | :--- | :--- | :---: | :---:| :---: | :---: | :---: | :---: | :--- |');
+const allHeader = [
+  '| name | linter | dart sdk | fix | pedantic | stagehand | flutter user | flutter repo | status | bug refs |',
+  '| :--- | :--- | :--- | :---: | :---:| :---: | :---: | :---: | :---: | :--- |'
+];
+
+/// https://github.com/dart-lang/linter/issues/1365
+const justRuleSetsHeader = [
+  '| name | pedantic | stagehand | flutter user |',
+  '| :--- | :---: | :---: | :---: |'
+];
+
+void printMarkdownTable(ScoreCard scorecard, {bool justRules = false}) {
+  print(justRules ? justRuleSetsHeader[0] : allHeader[0]);
+  print(justRules ? justRuleSetsHeader[1] : allHeader[1]);
   scorecard.forEach((lint) {
     var sb = StringBuffer('| `${lint.name}` |');
-    sb.write(' ${lint.since.sinceLinter} |');
-    sb.write(' ${lint.since.sinceDartSdk} |');
-    sb.write('${lint.hasFix ? " $bulb" : ""} |');
-    sb.write('${lint.ruleSets.contains('flutter') ? " $checkMark" : ""} |');
-    sb.write(
-        '${lint.ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
+    if (!justRules) {
+      sb.write(' ${lint.since.sinceLinter} |');
+      sb.write(' ${lint.since.sinceDartSdk} |');
+      sb.write('${lint.hasFix ? " $bulb" : ""} |');
+    }
     sb.write('${lint.ruleSets.contains('pedantic') ? " $checkMark" : ""} |');
     sb.write('${lint.ruleSets.contains('stagehand') ? " $checkMark" : ""} |');
-    sb.write('${lint.maturity != 'stable' ? ' **${lint.maturity}** ' : ""} |');
-    sb.write(' ${lint.bugReferences.join(", ")} |');
+    sb.write('${lint.ruleSets.contains('flutter') ? " $checkMark" : ""} |');
+    if (!justRules) {
+      sb.write(
+          '${lint.ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
+      sb.write(
+          '${lint.maturity != 'stable' ? ' **${lint.maturity}** ' : ""} |');
+      sb.write(' ${lint.bugReferences.join(", ")} |');
+    }
     print(sb.toString());
   });
 }
 
 class ScoreCard {
-  int get lintCount => registeredLints.length;
+  int get lintCount => scores.length;
 
   List<LintScore> scores = <LintScore>[];
 
@@ -139,6 +175,10 @@ class ScoreCard {
     }
 
     return scorecard;
+  }
+
+  void removeWhere(bool test(LintScore element)) {
+    scores.removeWhere(test);
   }
 }
 
