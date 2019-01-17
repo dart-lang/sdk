@@ -128,6 +128,69 @@ class FlowAnalysis {
     _conditionFalse = _current;
   }
 
+  void forEachStatement_bodyBegin(Set<VariableElement> loopAssigned) {
+    _stack.add(_current);
+    _current = _current.removePromotedAll(loopAssigned);
+  }
+
+  void forEachStatement_end() {
+    var afterIterable = _stack.removeLast();
+    _current = _current.combine(typeSystem, afterIterable);
+  }
+
+  void forStatement_bodyBegin(ForStatement node, Expression condition) {
+    _conditionalEnd(condition);
+    // Tail of the stack: falseCondition, trueCondition
+
+    var trueCondition = _stack.removeLast();
+
+    _statementToStackIndex[node] = _stack.length;
+    _stack.add(_State.identity); // break
+    _stack.add(_State.identity); // continue
+
+    _current = trueCondition;
+  }
+
+  void forStatement_conditionBegin(Set<VariableElement> loopAssigned) {
+    _current = _current.removePromotedAll(loopAssigned);
+  }
+
+  void forStatement_end() {
+    // Tail of the stack: falseCondition, break
+    var breakState = _stack.removeLast();
+    var falseCondition = _stack.removeLast();
+
+    _current = falseCondition.combine(typeSystem, breakState);
+  }
+
+  void forStatement_updaterBegin() {
+    // Tail of the stack: falseCondition, break, continue
+    var afterBody = _current;
+    var continueState = _stack.removeLast();
+
+    _current = afterBody.combine(typeSystem, continueState);
+  }
+
+  void functionExpression_begin() {
+    _stack.add(_current);
+
+    Set<VariableElement> notPromoted = null;
+    for (var variable in _current.promoted.keys) {
+      if (functionBody.isPotentiallyMutatedInScope(variable)) {
+        notPromoted ??= Set<VariableElement>.identity();
+        notPromoted.add(variable);
+      }
+    }
+
+    if (notPromoted != null) {
+      _current = _current.removePromotedAll(notPromoted);
+    }
+  }
+
+  void functionExpression_end() {
+    _current = _stack.removeLast();
+  }
+
   void handleBreak(AstNode target) {
     var breakIndex = _statementToStackIndex[target];
     if (breakIndex != null) {
@@ -284,10 +347,68 @@ class FlowAnalysis {
     }
   }
 
+  /// The [notPromoted] set contains all variables that are potentially
+  /// assigned in other cases that might target this with `continue`, so
+  /// these variables might have different types and are "un-promoted" from
+  /// the "afterExpression" state.
+  void switchStatement_beginCase(Set<VariableElement> notPromoted) {
+    _current = _stack.last.removePromotedAll(notPromoted);
+  }
+
+  void switchStatement_end(SwitchStatement node, bool hasDefault) {
+    // Tail of the stack: break, continue, afterExpression
+    var afterExpression = _current = _stack.removeLast();
+    _stack.removeLast(); // continue
+    var breakState = _stack.removeLast();
+
+    if (hasDefault) {
+      _current = breakState;
+    } else {
+      _current = breakState.combine(typeSystem, afterExpression);
+    }
+  }
+
+  void switchStatement_expressionEnd(SwitchStatement node) {
+    _statementToStackIndex[node] = _stack.length;
+    _stack.add(_State.identity); // break
+    _stack.add(_State.identity); // continue
+    _stack.add(_current); // afterExpression
+  }
+
   void trueLiteral(BooleanLiteral expression) {
     _condition = expression;
     _conditionTrue = _current;
     _conditionFalse = _State.identity;
+  }
+
+  void tryStatement_bodyBegin() {
+    _stack.add(_current);
+    // Tail of the stack: beforeBody
+  }
+
+  void tryStatement_bodyEnd(Set<VariableElement> notPromoted) {
+    var beforeBody = _stack.removeLast();
+    var beforeCatch = beforeBody.removePromotedAll(notPromoted);
+    _stack.add(beforeCatch);
+    _stack.add(_current); // afterBodyAndCatches
+    // Tail of the stack: beforeCatch, afterBodyAndCatches
+  }
+
+  void tryStatement_catchBegin() {
+    var beforeCatch = _stack[_stack.length - 2];
+    _current = beforeCatch;
+  }
+
+  void tryStatement_catchEnd() {
+    var afterBodyAndCatches = _stack.last;
+    _stack.last = afterBodyAndCatches.combine(typeSystem, _current);
+  }
+
+  void tryStatement_finallyBegin() {
+    var afterBodyAndCatches = _stack.removeLast();
+    _stack.removeLast(); // beforeCatch
+
+    _current = afterBodyAndCatches;
   }
 
   void verifyStackEmpty() {
@@ -296,7 +417,7 @@ class FlowAnalysis {
 
   void whileStatement_bodyBegin(WhileStatement node) {
     _conditionalEnd(node.condition);
-    // Tail of the stack:  falseCondition, trueCondition
+    // Tail of the stack: falseCondition, trueCondition
 
     var trueCondition = _stack.removeLast();
 
@@ -307,8 +428,7 @@ class FlowAnalysis {
     _current = trueCondition;
   }
 
-  void whileStatement_conditionBegin(
-      WhileStatement node, Set<VariableElement> loopAssigned) {
+  void whileStatement_conditionBegin(Set<VariableElement> loopAssigned) {
     _current = _current.removePromotedAll(loopAssigned);
   }
 
@@ -341,7 +461,7 @@ class FlowAnalysis {
 
 /// Sets of variables that are potentially assigned in loops.
 class LoopAssignedVariables {
-  static final _emptySet = Set<VariableElement>();
+  static final emptySet = Set<VariableElement>();
 
   /// Mapping from a loop [AstNode] to the set of variables that are
   /// potentially assigned in this loop.
@@ -352,7 +472,7 @@ class LoopAssignedVariables {
 
   /// Return the set of variables that are potentially assigned in the [loop].
   Set<VariableElement> operator [](AstNode loop) {
-    return _map[loop] ?? _emptySet;
+    return _map[loop] ?? emptySet;
   }
 
   void beginLoop() {

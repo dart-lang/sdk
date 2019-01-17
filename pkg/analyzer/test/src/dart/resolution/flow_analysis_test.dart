@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -281,6 +282,289 @@ void f(bool b) {
     assertReadBeforeWritten();
   }
 
+  test_for_body() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  for (; b;) {
+    v = 0;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_for_break() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  for (; b;) {
+    v1 = 0;
+    if (b) break;
+    v2 = 0;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v1', 'v2');
+  }
+
+  test_for_break_updaters() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  for (; b; v1 + v2) {
+    v1 = 0;
+    if (b) break;
+    v2 = 0;
+  }
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_for_condition() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  for (; (v = 0) >= 0;) {
+    v;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_for_continue() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  for (; b;) {
+    v1 = 0;
+    if (b) continue;
+    v2 = 0;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v1', 'v2');
+  }
+
+  test_for_continue_updaters() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  for (; b; v1 + v2) {
+    v1 = 0;
+    if (b) continue;
+    v2 = 0;
+  }
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_for_initializer_expression() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  for (v = 0;;) {
+    v;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_for_initializer_variable() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  for (var t = (v = 0);;) {
+    v;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_for_updaters() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2, v3, v4;
+  for (; b; v1 = 0, v2 = 0, v3 = 0, v4) {
+    v1;
+  }
+  v2;
+}
+''');
+    assertReadBeforeWritten('v1', 'v2', 'v4');
+  }
+
+  test_for_updaters_afterBody() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v;
+  for (; b; v) {
+    v = 0;
+  }
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_forEach() async {
+    await trackCode(r'''
+void f() {
+  int v1, v2;
+  for (var _ in (v1 = [0, 1, 2])) {
+    v2 = 0;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_forEach_break() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  for (var _ in [0, 1, 2]) {
+    v1 = 0;
+    if (b) break;
+    v2 = 0;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v1', 'v2');
+  }
+
+  test_forEach_continue() async {
+    await trackCode(r'''
+void f(bool b) {
+  int v1, v2;
+  for (var _ in [0, 1, 2]) {
+    v1 = 0;
+    if (b) continue;
+    v2 = 0;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v1', 'v2');
+  }
+
+  test_functionExpression_closure_read() async {
+    await trackCode(r'''
+void f() {
+  int v1, v2;
+  
+  v1 = 0;
+  
+  [0, 1, 2].forEach((t) {
+    v1;
+    v2;
+  });
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_functionExpression_closure_write() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  
+  [0, 1, 2].forEach((t) {
+    v = t;
+  });
+
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_functionExpression_localFunction_local() async {
+    await trackCode(r'''
+void f() {
+  int v;
+
+  v = 0;
+
+  void f() {
+    int v; // 1
+    v;
+  }
+}
+''');
+    var localV = findNode.simple('v; // 1').staticElement;
+    expect(readBeforeWritten, unorderedEquals([localV]));
+  }
+
+  test_functionExpression_localFunction_local2() async {
+    await trackCode(r'''
+void f() {
+  int v1;
+
+  v1 = 0;
+
+  void f() {
+    int v2, v3;
+    v2 = 0;
+    v1;
+    v2;
+    v3;
+  }
+}
+''');
+    assertReadBeforeWritten('v3');
+  }
+
+  test_functionExpression_localFunction_read() async {
+    await trackCode(r'''
+void f() {
+  int v1, v2, v3;
+
+  v1 = 0;
+
+  void f() {
+    v1;
+    v2;
+  }
+
+  v2 = 0;
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_functionExpression_localFunction_write() async {
+    await trackCode(r'''
+void f() {
+  int v;
+
+  void f() {
+    v = 0;
+  }
+
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
   test_if_condition() async {
     await trackCode(r'''
 main() {
@@ -461,6 +745,249 @@ main(bool c) {
 }
 ''');
     assertReadBeforeWritten('v');
+  }
+
+  test_switch_case1_default() async {
+    await trackCode(r'''
+void f(int e) {
+  int v;
+  switch (e) {
+    case 1:
+      v = 0;
+      break;
+    case 2:
+      // not assigned
+      break;
+    default:
+      v = 0;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_switch_case2_default() async {
+    await trackCode(r'''
+void f(int e) {
+  int v1, v2;
+  switch (e) {
+    case 1:
+      v1 = 0;
+      v2 = 0;
+      v1;
+      break;
+    default:
+      v1 = 0;
+      v1;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_switch_case_default_break() async {
+    await trackCode(r'''
+void f(bool b, int e) {
+  int v1, v2;
+  switch (e) {
+    case 1:
+      v1 = 0;
+      if (b) break;
+      v2 = 0;
+      break;
+    default:
+      v1 = 0;
+      if (b) break;
+      v2 = 0;
+  }
+  v1;
+  v2;
+}
+''');
+    assertReadBeforeWritten('v2');
+  }
+
+  test_switch_case_default_continue() async {
+    await trackCode(r'''
+void f(int e) {
+  int v;
+  switch (e) {
+    L: case 1:
+      v = 0;
+      break;
+    case 2:
+      continue L;
+      break;
+    default:
+      v = 0;
+  }
+  v;
+}
+''');
+    // We don't analyze to which `case` we go from `continue L`,
+    // but we don't have to. If all cases assign, then the variable is
+    // removed from the unassigned set in the `breakState`. And if there is a
+    // case when it is not assigned, then the variable will be left unassigned
+    // in the `breakState`.
+    assertReadBeforeWritten();
+  }
+
+  test_switch_case_noDefault() async {
+    await trackCode(r'''
+void f(int e) {
+  int v;
+  switch (e) {
+    case 1:
+      v = 0;
+      break;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_switch_expression() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  switch (v = 0) {}
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_tryCatch_body() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    v = 0;
+  } catch (_) {
+    // not assigned
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_tryCatch_body_catch() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    g();
+    v = 0;
+  } catch (_) {
+    v = 0;
+  }
+  v;
+}
+
+void g() {}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_tryCatch_catch() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    // not assigned
+  } catch (_) {
+    v = 0;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_tryCatchFinally_body() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    v = 0;
+  } catch (_) {
+    // not assigned
+  } finally {
+    // not assigned
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_tryCatchFinally_catch() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    // not assigned
+  } catch (_) {
+    v = 0;
+  } finally {
+    // not assigned
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten('v');
+  }
+
+  test_tryCatchFinally_finally() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    // not assigned
+  } catch (_) {
+    // not assigned
+  } finally {
+    v = 0;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_tryFinally_body() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    v = 0;
+  } finally {
+    // not assigned
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
+  }
+
+  test_tryFinally_finally() async {
+    await trackCode(r'''
+void f() {
+  int v;
+  try {
+    // not assigned
+  } finally {
+    v = 0;
+  }
+  v;
+}
+''');
+    assertReadBeforeWritten();
   }
 
   test_while_condition() async {
@@ -668,7 +1195,7 @@ class TypePromotionFlowTest extends DriverResolutionTest {
     var node = findNode.simple(search);
     var actualType = promotedTypes[node];
     if (actualType == null) {
-      fail('$expectedType expected, but actually not promoted');
+      fail('$expectedType expected, but actually not promoted\n$search');
     }
     assertElementTypeString(actualType, expectedType);
   }
@@ -783,6 +1310,137 @@ void f(bool b, Object x) {
 ''');
     assertNotPromoted('x; // 1');
     assertNotPromoted('x; // 2');
+  }
+
+  test_for_outerIsType() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    for (; b;) {
+      x; // 1
+    }
+    x; // 2
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+  }
+
+  test_for_outerIsType_loopAssigned_body() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    for (; b;) {
+      x; // 1
+      x = 42;
+    }
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_for_outerIsType_loopAssigned_condition() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    for (; (x = 42) > 0;) {
+      x; // 1
+    }
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_for_outerIsType_loopAssigned_updaters() async {
+    await trackCode(r'''
+void f(bool b, Object x) {
+  if (x is String) {
+    for (; b; x = 42) {
+      x; // 1
+    }
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_forEach_outerIsType_loopAssigned() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    for (var _ in (v1 = [0, 1, 2])) {
+      x; // 1
+      x = 42;
+    }
+    x; // 2
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_functionExpression_isType() async {
+    await trackCode(r'''
+void f() {
+  void g(Object x) {
+    if (x is String) {
+      x; // 1
+    }
+    x = 42;
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+  }
+
+  test_functionExpression_isType_mutatedInClosure2() async {
+    await trackCode(r'''
+void f() {
+  void g(Object x) {
+    if (x is String) {
+      x; // 1
+    }
+    
+    void h() {
+      x = 42;
+    }
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+  }
+
+  test_functionExpression_outerIsType_assignedOutside() async {
+    await trackCode(r'''
+void f(Object x) {
+  void Function() g;
+  
+  if (x is String) {
+    x; // 1
+
+    g = () {
+      x; // 2
+    }
+  }
+
+  x = 42;
+  x; // 3
+  g();
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
+    assertNotPromoted('x; // 3');
   }
 
   test_if_combine_empty() async {
@@ -949,6 +1607,193 @@ f(Object x) {
     assertPromoted('x; // 1', 'String');
   }
 
+  test_switch_outerIsType_assignedInCase() async {
+    await trackCode(r'''
+void f(int e, Object x) {
+  if (x is String) {
+    switch (e) {
+      L: case 1:
+        x; // 1
+        break;
+      case 2: // no label
+        x; // 2
+        break;
+      case 3:
+        x = 42;
+        continue L;
+    }
+    x; // 3
+  }
+}
+''');
+    assertNotPromoted('x; // 1');
+    assertPromoted('x; // 2', 'String');
+    assertNotPromoted('x; // 3');
+  }
+
+  test_try_assigned_body() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is! String) return;
+  x; // 1
+  try {
+    x = 42;
+    g(); // might throw
+    if (x is! String) return;
+    x; // 2
+  } catch (_) {}
+  x; // 3
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+    assertNotPromoted('x; // 3');
+  }
+
+  test_try_isNotType_exit_body() async {
+    await trackCode(r'''
+void f(Object x) {
+  try {
+    if (x is! String) return;
+    x; // 1
+  } catch (_) {}
+  x; // 2
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_try_isNotType_exit_body_catch() async {
+    await trackCode(r'''
+void f(Object x) {
+  try {
+    if (x is! String) return;
+    x; // 1
+  } catch (_) {
+    if (x is! String) return;
+    x; // 2
+  }
+  x; // 3
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+    assertPromoted('x; // 3', 'String');
+  }
+
+  test_try_isNotType_exit_catch() async {
+    await trackCode(r'''
+void f(Object x) {
+  try {
+  } catch (_) {
+    if (x is! String) return;
+    x; // 1
+  }
+  x; // 2
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
+  }
+
+  test_try_outerIsType() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    try {
+      x; // 1
+    } catch (_) {
+      x; // 2
+    } finally {
+      x; // 3
+    }
+    x; // 4
+  }
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+    assertPromoted('x; // 3', 'String');
+    assertPromoted('x; // 4', 'String');
+  }
+
+  test_try_outerIsType_assigned_body() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    try {
+      x; // 1
+      x = 42;
+      g();
+    } catch (_) {
+      x; // 2
+    } finally {
+      x; // 3
+    }
+    x; // 4
+  }
+}
+
+void g() {}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
+    assertNotPromoted('x; // 3');
+    assertNotPromoted('x; // 4');
+  }
+
+  test_try_outerIsType_assigned_catch() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    try {
+      x; // 1
+    } catch (_) {
+      x; // 2
+      x = 42;
+    } finally {
+      x; // 3
+    }
+    x; // 4
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+    assertNotPromoted('x; // 3');
+    assertNotPromoted('x; // 4');
+  }
+
+  test_try_outerIsType_assigned_finally() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    try {
+      x; // 1
+    } finally {
+      x; // 2
+      x = 42;
+    }
+    x; // 3
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertPromoted('x; // 2', 'String');
+    assertNotPromoted('x; // 3');
+  }
+
   test_while_condition_false() async {
     await trackCode(r'''
 void f(Object x) {
@@ -1046,6 +1891,8 @@ void f(bool b, Object x) {
 /// [AstVisitor] that drives the [flow] in the way we expect the resolver
 /// will do in production.
 class _AstVisitor extends RecursiveAstVisitor<void> {
+  static final trueLiteral = astFactory.booleanLiteral(null, true);
+
   final TypeSystem typeSystem;
   final LoopAssignedVariables loopAssignedVariables;
   final Map<AstNode, DartType> promotedTypes;
@@ -1197,6 +2044,49 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForEachStatement(ForEachStatement node) {
+    var iterable = node.iterable;
+    var body = node.body;
+
+    iterable.accept(this);
+    flow.forEachStatement_bodyBegin(loopAssignedVariables[node]);
+
+    body.accept(this);
+
+    flow.forEachStatement_end();
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    var condition = node.condition;
+
+    node.initialization?.accept(this);
+    node.variables?.accept(this);
+
+    flow.forStatement_conditionBegin(loopAssignedVariables[node]);
+    if (condition != null) {
+      condition.accept(this);
+    } else {
+      flow.trueLiteral(trueLiteral);
+    }
+
+    flow.forStatement_bodyBegin(node, condition ?? trueLiteral);
+    node.body.accept(this);
+
+    flow.forStatement_updaterBegin();
+    node.updaters?.accept(this);
+
+    flow.forStatement_end();
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    flow?.functionExpression_begin();
+    super.visitFunctionExpression(node);
+    flow?.functionExpression_end();
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     var condition = node.condition;
     var thenStatement = node.thenStatement;
@@ -1269,9 +2159,60 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+    flow.switchStatement_expressionEnd(node);
+
+    var assignedInCases = loopAssignedVariables[node];
+
+    var members = node.members;
+    var membersLength = members.length;
+    var hasDefault = false;
+    for (var i = 0; i < membersLength; i++) {
+      var member = members[i];
+
+      flow.switchStatement_beginCase(
+        member.labels.isNotEmpty
+            ? assignedInCases
+            : LoopAssignedVariables.emptySet,
+      );
+      member.accept(this);
+
+      // Implicit `break` at the end of `default`.
+      if (member is SwitchDefault) {
+        hasDefault = true;
+        flow.handleBreak(node);
+      }
+    }
+
+    flow.switchStatement_end(node, hasDefault);
+  }
+
+  @override
   void visitThrowExpression(ThrowExpression node) {
     super.visitThrowExpression(node);
     flow.handleExit();
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    var body = node.body;
+    var catchClauses = node.catchClauses;
+
+    flow.tryStatement_bodyBegin();
+    body.accept(this);
+    flow.tryStatement_bodyEnd(loopAssignedVariables[node.body]);
+
+    var catchLength = catchClauses.length;
+    for (var i = 0; i < catchLength; ++i) {
+      var catchClause = catchClauses[i];
+      flow.tryStatement_catchBegin();
+      catchClause.accept(this);
+      flow.tryStatement_catchEnd();
+    }
+
+    flow.tryStatement_finallyBegin();
+    node.finallyBlock?.accept(this);
   }
 
   @override
@@ -1291,7 +2232,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
     var condition = node.condition;
     var body = node.body;
 
-    flow.whileStatement_conditionBegin(node, loopAssignedVariables[node]);
+    flow.whileStatement_conditionBegin(loopAssignedVariables[node]);
     condition.accept(this);
 
     flow.whileStatement_bodyBegin(node);
@@ -1367,6 +2308,52 @@ class _LoopAssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     loopAssignedVariables.beginLoop();
     super.visitDoStatement(node);
     loopAssignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    var iterable = node.iterable;
+    var body = node.body;
+
+    iterable.accept(this);
+
+    loopAssignedVariables.beginLoop();
+    body.accept(this);
+    loopAssignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    node.initialization?.accept(this);
+    node.variables?.accept(this);
+
+    loopAssignedVariables.beginLoop();
+    node.condition?.accept(this);
+    node.body.accept(this);
+    node.updaters?.accept(this);
+    loopAssignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    var expression = node.expression;
+    var members = node.members;
+
+    expression.accept(this);
+
+    loopAssignedVariables.beginLoop();
+    members.accept(this);
+    loopAssignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    loopAssignedVariables.beginLoop();
+    node.body.accept(this);
+    loopAssignedVariables.endLoop(node.body);
+
+    node.catchClauses.accept(this);
+    node.finallyBlock?.accept(this);
   }
 
   @override
