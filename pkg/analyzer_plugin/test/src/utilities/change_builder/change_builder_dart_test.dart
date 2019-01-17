@@ -28,6 +28,7 @@ main() {
     defineReflectiveTests(DartEditBuilderImplTest);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
+    defineReflectiveTests(ImportLibraryTest);
   });
 }
 
@@ -77,318 +78,6 @@ class DartChangeBuilderImplTest extends AbstractContextTest
 @reflectiveTest
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
-  test_importLibraries_DP() async {
-    await _assertImportLibrary('''
-import 'dart:aaa';
-import 'dart:ccc';
-
-import 'package:aaa/aaa.dart';
-import 'package:ccc/ccc.dart';
-''', ['dart:bbb', 'package:bbb/bbb.dart'], '''
-import 'dart:aaa';
-import 'dart:bbb';
-import 'dart:ccc';
-
-import 'package:aaa/aaa.dart';
-import 'package:bbb/bbb.dart';
-import 'package:ccc/ccc.dart';
-''');
-  }
-
-  test_importLibraries_PD() async {
-    await _assertImportLibrary('''
-import 'dart:aaa';
-import 'dart:ccc';
-
-import 'package:aaa/aaa.dart';
-import 'package:ccc/ccc.dart';
-''', ['package:bbb/bbb.dart', 'dart:bbb'], '''
-import 'dart:aaa';
-import 'dart:bbb';
-import 'dart:ccc';
-
-import 'package:aaa/aaa.dart';
-import 'package:bbb/bbb.dart';
-import 'package:ccc/ccc.dart';
-''');
-  }
-
-  test_importLibrary_afterLibraryDirective_dart() async {
-    await _assertImportLibrary('''
-library test;
-
-class A {}
-''', ['dart:async'], '''
-library test;
-
-import 'dart:async';
-
-
-class A {}
-''');
-  }
-
-  test_importLibrary_dart_beforeDart() async {
-    await _assertImportLibrary('''
-import 'dart:aaa';
-import 'dart:ccc';
-''', ['dart:bbb'], '''
-import 'dart:aaa';
-import 'dart:bbb';
-import 'dart:ccc';
-''');
-  }
-
-  test_importLibrary_dart_beforeDart_first() async {
-    await _assertImportLibrary('''
-import 'dart:bbb';
-''', ['dart:aaa'], '''
-import 'dart:aaa';
-import 'dart:bbb';
-''');
-  }
-
-  test_importLibrary_dart_beforePackage() async {
-    await _assertImportLibrary('''
-import 'package:foo/foo.dart';
-''', ['dart:async'], '''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-''');
-  }
-
-  test_importLibrary_noDirectives_docComment() async {
-    await _assertImportLibrary('''
-/// Documentation comment.
-/// Continues.
-void main() {}
-''', ['dart:async'], '''
-import 'dart:async';
-
-/// Documentation comment.
-/// Continues.
-void main() {}
-''');
-  }
-
-  test_importLibrary_noDirectives_hashBang() async {
-    await _assertImportLibrary('''
-#!/bin/dart
-
-void main() {}
-''', ['dart:async'], '''
-#!/bin/dart
-
-import 'dart:async';
-
-void main() {}
-''');
-  }
-
-  test_importLibrary_noDirectives_lineComment() async {
-    await _assertImportLibrary('''
-// Not documentation comment.
-// Continues.
-
-void main() {}
-''', ['dart:async'], '''
-// Not documentation comment.
-// Continues.
-
-import 'dart:async';
-
-void main() {}
-''');
-  }
-
-  test_importLibrary_package_afterDart() async {
-    await _assertImportLibrary('''
-import 'dart:async';
-''', ['package:aaa/aaa.dart'], '''
-import 'dart:async';
-
-import 'package:aaa/aaa.dart';
-''');
-  }
-
-  test_importLibrary_package_afterPackage() async {
-    await _assertImportLibrary('''
-import 'package:aaa/a1.dart';
-
-import 'foo.dart';
-''', ['package:aaa/a2.dart'], '''
-import 'package:aaa/a1.dart';
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_afterPackage_leadingComment() async {
-    await _assertImportLibrary('''
-// comment
-import 'package:aaa/a1.dart';
-
-import 'foo.dart';
-''', ['package:aaa/a2.dart'], '''
-// comment
-import 'package:aaa/a1.dart';
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_afterPackage_trailingComment() async {
-    await _assertImportLibrary('''
-import 'package:aaa/a1.dart'; // comment
-
-import 'foo.dart';
-''', ['package:aaa/a2.dart'], '''
-import 'package:aaa/a1.dart'; // comment
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_beforePackage() async {
-    await _assertImportLibrary('''
-import 'package:aaa/a1.dart';
-import 'package:aaa/a3.dart';
-
-import 'foo.dart';
-''', ['package:aaa/a2.dart'], '''
-import 'package:aaa/a1.dart';
-import 'package:aaa/a2.dart';
-import 'package:aaa/a3.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_beforePackage_first() async {
-    await _assertImportLibrary('''
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''', ['package:aaa/a1.dart'], '''
-import 'package:aaa/a1.dart';
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_beforePackage_leadingComments() async {
-    await _assertImportLibrary('''
-// comment a2
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''', ['package:aaa/a1.dart'], '''
-// comment a2
-import 'package:aaa/a1.dart';
-import 'package:aaa/a2.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_beforePackage_trailingComments() async {
-    await _assertImportLibrary('''
-import 'package:aaa/a2.dart'; // comment a2
-
-import 'foo.dart';
-''', ['package:aaa/a1.dart'], '''
-import 'package:aaa/a1.dart';
-import 'package:aaa/a2.dart'; // comment a2
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_package_beforeRelative() async {
-    await _assertImportLibrary('''
-import 'foo.dart';
-''', ['package:aaa/aaa.dart'], '''
-import 'package:aaa/aaa.dart';
-
-import 'foo.dart';
-''');
-  }
-
-  test_importLibrary_relative_afterDart() async {
-    await _assertImportLibrary('''
-import 'dart:async';
-''', ['aaa.dart'], '''
-import 'dart:async';
-
-import 'aaa.dart';
-''');
-  }
-
-  test_importLibrary_relative_afterPackage() async {
-    await _assertImportLibrary('''
-import 'package:foo/foo.dart';
-''', ['aaa.dart'], '''
-import 'package:foo/foo.dart';
-
-import 'aaa.dart';
-''');
-  }
-
-  test_importLibrary_relative_beforeRelative() async {
-    await _assertImportLibrary('''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-
-import 'aaa.dart';
-import 'ccc.dart';
-''', ['bbb.dart'], '''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-
-import 'aaa.dart';
-import 'bbb.dart';
-import 'ccc.dart';
-''');
-  }
-
-  test_importLibrary_relative_beforeRelative_first() async {
-    await _assertImportLibrary('''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-
-import 'bbb.dart';
-''', ['aaa.dart'], '''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-
-import 'aaa.dart';
-import 'bbb.dart';
-''');
-  }
-
-  test_importLibrary_relative_last() async {
-    await _assertImportLibrary('''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-''', ['aaa.dart'], '''
-import 'dart:async';
-
-import 'package:foo/foo.dart';
-
-import 'aaa.dart';
-''');
-  }
-
   test_writeClassDeclaration_interfaces() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
@@ -2259,25 +1948,6 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<void> _assertImportLibrary(
-      String initialCode, List<String> newUris, String expectedCode) async {
-    String path = convertPath('/home/test/lib/test.dart');
-    addSource(path, initialCode);
-    DartChangeBuilderImpl builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      for (String newUri in newUris) {
-        builder.importLibrary(Uri.parse(newUri));
-      }
-    });
-
-    String resultCode = initialCode;
-    List<SourceEdit> edits = getEdits(builder);
-    for (SourceEdit edit in edits) {
-      resultCode = edit.apply(resultCode);
-    }
-    expect(resultCode, expectedCode);
-  }
-
   /**
    * Assuming that the [content] being edited defines a class named `A` whose
    * member with the given [nameToOverride] to be overridden and has
@@ -2460,5 +2130,435 @@ class C extends B {}
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+}
+
+@reflectiveTest
+class ImportLibraryTest extends AbstractContextTest with BuilderTestMixin {
+  test_afterLibraryDirective_dart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+library test;
+
+class A {}
+''',
+      uriList: ['dart:async'],
+      expectedCode: '''
+library test;
+
+import 'dart:async';
+
+
+class A {}
+''',
+    );
+  }
+
+  test_dart_beforeDart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:aaa';
+import 'dart:ccc';
+''',
+      uriList: ['dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+import 'dart:ccc';
+''',
+    );
+  }
+
+  test_dart_beforeDart_first() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+''',
+    );
+  }
+
+  test_dart_beforePackage() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:foo/foo.dart';
+''',
+      uriList: ['dart:async'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+    );
+  }
+
+  test_multiple_dart_then_package() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:aaa';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:ccc/ccc.dart';
+''',
+      uriList: ['dart:bbb', 'package:bbb/bbb.dart'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:bbb/bbb.dart';
+import 'package:ccc/ccc.dart';
+''',
+    );
+  }
+
+  test_multiple_package_then_dart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:aaa';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:ccc/ccc.dart';
+''',
+      uriList: ['package:bbb/bbb.dart', 'dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:bbb/bbb.dart';
+import 'package:ccc/ccc.dart';
+''',
+    );
+  }
+
+  test_noDirectives_docComment() async {
+    await _assertImportLibrary(
+      initialCode: '''
+/// Documentation comment.
+/// Continues.
+void main() {}
+''',
+      uriList: ['dart:async'],
+      expectedCode: '''
+import 'dart:async';
+
+/// Documentation comment.
+/// Continues.
+void main() {}
+''',
+    );
+  }
+
+  test_noDirectives_hashBang() async {
+    await _assertImportLibrary(
+      initialCode: '''
+#!/bin/dart
+
+void main() {}
+''',
+      uriList: ['dart:async'],
+      expectedCode: '''
+#!/bin/dart
+
+import 'dart:async';
+
+void main() {}
+''',
+    );
+  }
+
+  test_noDirectives_lineComment() async {
+    await _assertImportLibrary(
+      initialCode: '''
+// Not documentation comment.
+// Continues.
+
+void main() {}
+''',
+      uriList: ['dart:async'],
+      expectedCode: '''
+// Not documentation comment.
+// Continues.
+
+import 'dart:async';
+
+void main() {}
+''',
+    );
+  }
+
+  test_package_afterDart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+''',
+      uriList: ['package:aaa/aaa.dart'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:aaa/aaa.dart';
+''',
+    );
+  }
+
+  test_package_afterPackage() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:aaa/a1.dart';
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a2.dart'],
+      expectedCode: '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_afterPackage_leadingComment() async {
+    await _assertImportLibrary(
+      initialCode: '''
+// comment
+import 'package:aaa/a1.dart';
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a2.dart'],
+      expectedCode: '''
+// comment
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_afterPackage_trailingComment() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:aaa/a1.dart'; // comment
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a2.dart'],
+      expectedCode: '''
+import 'package:aaa/a1.dart'; // comment
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_beforePackage() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a3.dart';
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a2.dart'],
+      expectedCode: '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+import 'package:aaa/a3.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_beforePackage_first() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a1.dart'],
+      expectedCode: '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_beforePackage_leadingComments() async {
+    await _assertImportLibrary(
+      initialCode: '''
+// comment a2
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a1.dart'],
+      expectedCode: '''
+// comment a2
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_beforePackage_trailingComments() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:aaa/a2.dart'; // comment a2
+
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/a1.dart'],
+      expectedCode: '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart'; // comment a2
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_package_beforeRelative() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'foo.dart';
+''',
+      uriList: ['package:aaa/aaa.dart'],
+      expectedCode: '''
+import 'package:aaa/aaa.dart';
+
+import 'foo.dart';
+''',
+    );
+  }
+
+  test_relative_afterDart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+''',
+      uriList: ['aaa.dart'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'aaa.dart';
+''',
+    );
+  }
+
+  test_relative_afterPackage() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'package:foo/foo.dart';
+''',
+      uriList: ['aaa.dart'],
+      expectedCode: '''
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+''',
+    );
+  }
+
+  test_relative_beforeRelative() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'ccc.dart';
+''',
+      uriList: ['bbb.dart'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'bbb.dart';
+import 'ccc.dart';
+''',
+    );
+  }
+
+  test_relative_beforeRelative_first() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'bbb.dart';
+''',
+      uriList: ['aaa.dart'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'bbb.dart';
+''',
+    );
+  }
+
+  test_relative_last() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+      uriList: ['aaa.dart'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+''',
+    );
+  }
+
+  Future<void> _assertImportLibrary({
+    String initialCode,
+    List<String> uriList,
+    String expectedCode,
+  }) async {
+    String path = convertPath('/home/test/lib/test.dart');
+    addSource(path, initialCode);
+    DartChangeBuilderImpl builder = newBuilder();
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      for (var i = 0; i < uriList.length; ++i) {
+        var uri = Uri.parse(uriList[i]);
+        builder.importLibrary(uri);
+      }
+    });
+
+    String resultCode = initialCode;
+    List<SourceEdit> edits = getEdits(builder);
+    for (SourceEdit edit in edits) {
+      resultCode = edit.apply(resultCode);
+    }
+    expect(resultCode, expectedCode);
   }
 }
