@@ -59,6 +59,7 @@ classes: TextSerializationFailure # Was: Pass
 clone_function_type: TextSerializationFailure # Was: Pass
 closure: TextSerializationFailure # Was: Pass
 co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
+complex_class_hierarchy: TextSerializationFailure
 constructor_const_inference: TextSerializationFailure # Was: Pass
 constructor_cycle: TextSerializationFailure # Was: Pass
 constructor_function_types: TextSerializationFailure # Was: Pass

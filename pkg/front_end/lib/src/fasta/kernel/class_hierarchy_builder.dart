@@ -288,11 +288,22 @@ class ClassHierarchyBuilder {
     /// superclasses.
     List<Declaration> interfaceSetters;
 
+    List<KernelTypeBuilder> superclasses;
+
+    List<KernelTypeBuilder> interfaces;
+
     if (supernode == null) {
       // This should be Object.
       classMembers = localMembers;
       classSetters = localSetters;
+      superclasses = new List<KernelTypeBuilder>(0);
+      interfaces = new List<KernelTypeBuilder>(0);
     } else {
+      superclasses =
+          new List<KernelTypeBuilder>(supernode.superclasses.length + 1);
+      superclasses.setRange(0, superclasses.length - 1, supernode.superclasses);
+      superclasses[superclasses.length - 1] = cls.supertype;
+
       classMembers = merge(
           cls, localMembers, supernode.classMembers, MergeKind.superclass);
       classSetters = merge(
@@ -307,21 +318,47 @@ class ClassHierarchyBuilder {
       // only need to check the local setters.
       merge(cls, localSetters, classMembers, MergeKind.accessors);
 
-      List<KernelTypeBuilder> interfaces = cls.interfaces;
+      List<KernelTypeBuilder> directInterfaces = cls.interfaces;
       if (cls.isMixinApplication) {
-        if (interfaces == null) {
-          interfaces = <KernelTypeBuilder>[cls.mixedInType];
+        if (directInterfaces == null) {
+          directInterfaces = <KernelTypeBuilder>[cls.mixedInType];
         } else {
-          interfaces = <KernelTypeBuilder>[cls.mixedInType]..addAll(interfaces);
+          directInterfaces = <KernelTypeBuilder>[cls.mixedInType]
+            ..addAll(directInterfaces);
         }
       }
-      if (interfaces != null) {
-        MergeResult result = mergeInterfaces(cls, supernode, interfaces);
+      if (directInterfaces != null) {
+        MergeResult result = mergeInterfaces(cls, supernode, directInterfaces);
         interfaceMembers = result.mergedMembers;
         interfaceSetters = result.mergedSetters;
+        interfaces = <KernelTypeBuilder>[];
+        if (supernode.interfaces != null) {
+          List<KernelTypeBuilder> types = supernode.interfaces;
+          for (int i = 0; i < types.length; i++) {
+            addInterface(interfaces, superclasses, types[i]);
+          }
+        }
+        for (int i = 0; i < directInterfaces.length; i++) {
+          addInterface(interfaces, superclasses, directInterfaces[i]);
+          ClassHierarchyNode interfaceNode = getNode(directInterfaces[i]);
+          if (interfaceNode != null) {
+            List<KernelTypeBuilder> types = interfaceNode.superclasses;
+            for (int i = 0; i < types.length; i++) {
+              addInterface(interfaces, superclasses, types[i]);
+            }
+
+            if (interfaceNode.interfaces != null) {
+              List<KernelTypeBuilder> types = interfaceNode.interfaces;
+              for (int i = 0; i < types.length; i++) {
+                addInterface(interfaces, superclasses, types[i]);
+              }
+            }
+          }
+        }
       } else {
         interfaceMembers = supernode.interfaceMembers;
         interfaceSetters = supernode.interfaceSetters;
+        interfaces = supernode.interfaces;
       }
       if (interfaceMembers != null) {
         interfaceMembers =
@@ -340,8 +377,15 @@ class ClassHierarchyBuilder {
         merge(cls, classMembers, interfaceSetters, MergeKind.accessors);
       }
     }
-    nodes[cls] = new ClassHierarchyNode(cls, scope, classMembers, classSetters,
-        interfaceMembers, interfaceSetters);
+    nodes[cls] = new ClassHierarchyNode(
+      cls,
+      classMembers,
+      classSetters,
+      interfaceMembers,
+      interfaceSetters,
+      superclasses,
+      interfaces,
+    );
 
     if (abstractMembers != null && !cls.isAbstract) {
       if (!hasNoSuchMethod) {
@@ -352,6 +396,29 @@ class ClassHierarchyBuilder {
     }
     hasNoSuchMethod = false;
     abstractMembers = null;
+  }
+
+  KernelTypeBuilder addInterface(List<KernelTypeBuilder> interfaces,
+      List<KernelTypeBuilder> superclasses, KernelTypeBuilder type) {
+    ClassHierarchyNode node = getNode(type);
+    if (node == null) return null;
+    int depth = node.depth;
+    int myDepth = superclasses.length;
+    if (depth < myDepth && superclasses[depth].declaration == node.cls) {
+      // This is a potential conflict.
+      return superclasses[depth];
+    } else {
+      for (int i = 0; i < interfaces.length; i++) {
+        // This is a quadratic algorithm, but normally, the number of
+        // interfaces is really small.
+        if (interfaces[i].declaration == type.declaration) {
+          // This is a potential conflict.
+          return interfaces[i];
+        }
+      }
+    }
+    interfaces.add(type);
+    return null;
   }
 
   MergeResult mergeInterfaces(KernelClassBuilder cls,
@@ -569,13 +636,6 @@ class ClassHierarchyNode {
   /// The class corresponding to this hierarchy node.
   final KernelClassBuilder cls;
 
-  /// The local members of [cls]. For regular classes, this is simply
-  /// `cls.scope`, but for mixin-applications this is the mixed-in type's
-  /// scope. The members are sorted in order of declaration.
-  // TODO(ahe): Do we need to copy the scope from the mixed-in type to remove
-  // static members?
-  final Scope localMembers;
-
   /// All the members of this class including [classMembers] of its
   /// superclasses. The members are sorted by [compareDeclarations].
   final List<Declaration> classMembers;
@@ -593,8 +653,75 @@ class ClassHierarchyNode {
   /// Similar to [interfaceMembers] but for setters.
   final List<Declaration> interfaceSetters;
 
-  ClassHierarchyNode(this.cls, this.localMembers, this.classMembers,
-      this.classSetters, this.interfaceMembers, this.interfaceSetters);
+  /// All superclasses of [cls] excluding itself. The classes are sorted by
+  /// depth from the root (Object) in ascending order.
+  final List<KernelTypeBuilder> superclasses;
+
+  /// The list of all classes implemented by [cls] and its supertypes excluding
+  /// any classes from [superclasses].
+  final List<KernelTypeBuilder> interfaces;
+
+  int get depth => superclasses.length;
+
+  ClassHierarchyNode(
+      this.cls,
+      this.classMembers,
+      this.classSetters,
+      this.interfaceMembers,
+      this.interfaceSetters,
+      this.superclasses,
+      this.interfaces);
+
+  String toString([StringBuffer sb]) {
+    sb ??= new StringBuffer();
+    sb
+      ..write(cls.fullNameForErrors)
+      ..writeln(":")
+      ..writeln("  superclasses:");
+    int depth = 0;
+    for (KernelTypeBuilder superclass in superclasses) {
+      sb.write("  " * (depth + 2));
+      if (depth != 0) sb.write("-> ");
+      superclass.printOn(sb);
+      sb.writeln();
+      depth++;
+    }
+    if (interfaces != null) {
+      sb.write("  interfaces:");
+      bool first = true;
+      for (KernelTypeBuilder i in interfaces) {
+        if (!first) sb.write(",");
+        sb.write(" ");
+        i.printOn(sb);
+        first = false;
+      }
+      sb.writeln();
+    }
+    printMembers(classMembers, sb, "classMembers");
+    printMembers(classSetters, sb, "classSetters");
+    if (interfaceMembers != null) {
+      printMembers(interfaceMembers, sb, "interfaceMembers");
+    }
+    if (interfaceSetters != null) {
+      printMembers(interfaceSetters, sb, "interfaceSetters");
+    }
+    return "$sb";
+  }
+
+  void printMembers(
+      List<Declaration> members, StringBuffer sb, String heading) {
+    sb.write("  ");
+    sb.write(heading);
+    sb.writeln(":");
+    for (Declaration member in members) {
+      sb
+        ..write("    ")
+        ..write(member.parent.fullNameForErrors)
+        ..write(".")
+        ..write(member.fullNameForErrors)
+        ..writeln();
+    }
+  }
 }
 
 class MergeResult {

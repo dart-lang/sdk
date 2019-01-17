@@ -55,6 +55,12 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyNode;
+
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
+    show ClassHierarchyBuilder;
+
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
@@ -172,6 +178,9 @@ class FastaContext extends ChainContext with MatchContext {
     steps.add(const EnsureNoErrors());
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
+    }
+    if (legacyMode && !fullCompile) {
+      steps.add(new MatchHierarchy());
     }
     if (fullCompile) {
       steps.add(const Transform());
@@ -348,7 +357,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = new KernelTarget(
+      KernelTarget sourceTarget = new KernelTestingTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
@@ -436,5 +445,34 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
     return buffer.isEmpty
         ? pass(component)
         : fail(component, """Unexpected errors:\n$buffer""");
+  }
+}
+
+class KernelTestingTarget extends KernelTarget {
+  @override
+  ClassHierarchyBuilder builderHierarchy;
+
+  KernelTestingTarget(StandardFileSystem fileSystem, bool includeComments,
+      DillTarget dillTarget, UriTranslator uriTranslator)
+      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+}
+
+class MatchHierarchy extends Step<Component, Component, FastaContext> {
+  const MatchHierarchy();
+
+  String get name => "check hierarchy";
+
+  Future<Result<Component>> run(
+      Component component, FastaContext context) async {
+    Uri uri =
+        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+    KernelTestingTarget target = context.componentToTarget[component];
+    ClassHierarchyBuilder hierarchy = target.builderHierarchy;
+    StringBuffer sb = new StringBuffer();
+    for (ClassHierarchyNode node in hierarchy.nodes.values) {
+      node.toString(sb);
+      sb.writeln();
+    }
+    return context.match<Component>(".hierarchy.expect", "$sb", uri, component);
   }
 }

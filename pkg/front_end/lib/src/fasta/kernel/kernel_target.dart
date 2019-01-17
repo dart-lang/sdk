@@ -84,6 +84,7 @@ import '../uri_translator.dart' show UriTranslator;
 import 'kernel_builder.dart'
     show
         ClassBuilder,
+        ClassHierarchyBuilder,
         Declaration,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -144,6 +145,8 @@ class KernelTarget extends TargetImplementation {
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
   }
+
+  void set builderHierarchy(ClassHierarchyBuilder o) {}
 
   SourceLoader<Library> createLoader() =>
       new SourceLoader<Library>(fileSystem, includeComments, this);
@@ -254,7 +257,8 @@ class KernelTarget extends TargetImplementation {
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
-      loader.buildClassHierarchy(myClasses, objectClassBuilder);
+      builderHierarchy =
+          loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);

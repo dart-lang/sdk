@@ -926,7 +926,7 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildClassHierarchy(
+  ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
     ticker.logMs("Building class hierarchy");
     ClassHierarchyBuilder classHierarchyBuilder =
@@ -935,6 +935,7 @@ class SourceLoader<L> extends Loader<L> {
       classHierarchyBuilder.add(sourceClasses[i]);
     }
     ticker.logMs("Built class hierarchy");
+    return classHierarchyBuilder;
   }
 
   void createTypeInferenceEngine() {
