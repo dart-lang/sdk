@@ -283,7 +283,7 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
   Definition* receiver = check->value()->definition();
   CompileType* type = TypeOf(receiver);
-  if (type->is_nullable() && !type->IsNull()) {
+  if (type->is_nullable()) {
     // Insert redefinition for the receiver to guard against invalid
     // code motion.
     EnsureMoreAccurateRedefinition(check, receiver, type->CopyNonNullable());
@@ -305,7 +305,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   if (target.IsNull()) {
     // If the selector is not defined on Null, we can propagate non-nullness.
     CompileType* type = TypeOf(receiver);
-    if (type->is_nullable() && !type->IsNull()) {
+    if (type->is_nullable()) {
       // Insert redefinition for the receiver to guard against invalid
       // code motion.
       EnsureMoreAccurateRedefinition(call, receiver, type->CopyNonNullable());

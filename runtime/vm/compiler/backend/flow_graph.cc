@@ -1559,7 +1559,13 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
     }
   }
   RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
-  redef->set_constrained_type(new CompileType(compile_type));
+
+  // Don't set the constrained type when the type is None(), which denotes an
+  // unreachable value (e.g. using value null after an explicit null check).
+  if (!compile_type.IsNone()) {
+    redef->set_constrained_type(new CompileType(compile_type));
+  }
+
   InsertAfter(prev, redef, NULL, FlowGraph::kValue);
   RenameDominatedUses(original, redef, redef);
   return redef;
