@@ -4712,6 +4712,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
+  ASSERT_CALLBACK_STATE(arguments->thread());
   if ((retval != Api::Null()) && !Api::IsInstance(retval) &&
       !Api::IsError(retval)) {
     // Print the current stack trace to make the problematic caller
@@ -4832,6 +4833,8 @@ Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  ASSERT(arguments->thread()->isolate() == Isolate::Current());
+  ASSERT_CALLBACK_STATE(arguments->thread());
   arguments->SetReturn(Bool::Get(retval));
 }
 
@@ -4839,6 +4842,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
                                             int64_t retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
+  ASSERT_CALLBACK_STATE(arguments->thread());
   if (Smi::IsValid(retval)) {
     Api::SetSmiReturnValue(arguments, static_cast<intptr_t>(retval));
   } else {
@@ -4852,6 +4856,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
                                            double retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  ASSERT(arguments->thread()->isolate() == Isolate::Current());
   ASSERT_CALLBACK_STATE(arguments->thread());
   TransitionNativeToVM transition(arguments->thread());
   Api::SetDoubleReturnValue(arguments, retval);
