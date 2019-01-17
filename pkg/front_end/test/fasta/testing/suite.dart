@@ -111,6 +111,8 @@ const String EXPECTATIONS = '''
 
 const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
+final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
+
 String generateExpectationName(bool legacyMode) {
   return legacyMode ? "legacy" : "strong";
 }
@@ -122,6 +124,7 @@ class FastaContext extends ChainContext {
   final bool legacyMode;
   final bool onlyCrashes;
   final bool enableSetLiterals;
+  final bool skipVm;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -143,7 +146,7 @@ class FastaContext extends ChainContext {
       bool ignoreExpectations,
       bool updateExpectations,
       bool updateComments,
-      bool skipVm,
+      this.skipVm,
       bool kernelTextSerialization,
       this.uriTranslator,
       bool fullCompile)
@@ -167,7 +170,7 @@ class FastaContext extends ChainContext {
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
     }
-    if (fullCompile && !skipVm) {
+    if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(
@@ -177,8 +180,10 @@ class FastaContext extends ChainContext {
             updateExpectations: updateExpectations));
       }
       steps.add(const EnsureNoErrors());
-      steps.add(const WriteDill());
-      steps.add(const Run());
+      if (!skipVm) {
+        steps.add(const WriteDill());
+        steps.add(const Run());
+      }
     }
   }
 
@@ -209,6 +214,15 @@ class FastaContext extends ChainContext {
       return result.copyWithOutcome(Expectation.Pass);
     }
     return super.processTestResult(description, result, last);
+  }
+
+  @override
+  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+    if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
+      return new Set<Expectation>.from([Expectation.Pass]);
+    } else {
+      return outcomes;
+    }
   }
 
   static Future<FastaContext> create(
