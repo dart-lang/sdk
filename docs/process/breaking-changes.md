@@ -29,7 +29,7 @@ abide by the following basic conditions:
 
 * Must contain no static analysis **errors**.
 
-* Must not rely on certain runtime **error** being thrown (in other words, 
+* Must not rely on a certain runtime **error** being thrown (in other words, 
   a new SDK might throw fewer errors than an old SDK).
 
 * Must access libraries via the public API (for example, must not reach into
@@ -51,7 +51,7 @@ Anyone wishing to make a breaking change to Dart is expected to perform the
 following steps.  It is expected that all of these steps are followed prior
 to a change being released in a dev channel release.
 
-### Step 1: announcement
+### Step 1: Announcement
 
 * Create an issue in the Dart SDK issue tracker labelled
   `breaking-change-request` containing the following:
