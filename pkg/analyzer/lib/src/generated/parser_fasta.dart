@@ -63,6 +63,26 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  void set enableSpreadCollections(bool value) {
+    if (IsExpired.spread_collections &&
+        value != IsEnabledByDefault.spread_collections) {
+      throw new StateError('spread_collections may only be set'
+          ' to ${IsEnabledByDefault.spread_collections}');
+    }
+    astBuilder.enableSpreadCollections = value;
+  }
+
+  @override
+  void set enableControlFlowCollections(bool value) {
+    if (IsExpired.control_flow_collections &&
+        value != IsEnabledByDefault.control_flow_collections) {
+      throw new StateError('control_flow_collections may only be set'
+          ' to ${IsEnabledByDefault.control_flow_collections}');
+    }
+    astBuilder.enableControlFlowCollections = value;
+  }
+
+  @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
     astBuilder.parseFunctionBodies = parseFunctionBodies;
   }

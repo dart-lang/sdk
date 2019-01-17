@@ -100,6 +100,12 @@ class AstBuilder extends StackListener {
   /// `true` if non-nullable behavior is enabled
   bool enableNonNullable = false;
 
+  /// `true` if spread-collections behavior is enabled
+  bool enableSpreadCollections = false;
+
+  /// `true` if control-flow-collections behavior is enabled
+  bool enableControlFlowCollections = false;
+
   /// Is `true` if [enableNonNullable] is enabled, and the library directive
   /// is annotated with `@pragma('analyzer:non-nullable')`.
   bool hasPragmaAnalyzerNonNullable = false;

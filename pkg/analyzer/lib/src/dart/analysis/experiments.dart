@@ -113,11 +113,18 @@ class ExperimentStatus {
   /// Initializes a newly created set of experiments based on optional
   /// arguments.
   ExperimentStatus(
-      {bool constant_update_2018, bool set_literals, bool non_nullable})
+      {bool constant_update_2018,
+      bool control_flow_collections,
+      bool non_nullable,
+      bool set_literals,
+      bool spread_collections})
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
           set_literals ?? IsEnabledByDefault.set_literals,
           non_nullable ?? IsEnabledByDefault.non_nullable,
+          spread_collections ?? IsEnabledByDefault.spread_collections,
+          control_flow_collections ??
+              IsEnabledByDefault.control_flow_collections,
         ];
 
   /// Decodes the strings given in [flags] into a representation of the set of
@@ -144,6 +151,12 @@ class ExperimentStatus {
 
   /// Current state for the flag "set-literals"
   bool get set_literals => _enableFlags[1];
+
+  /// Current state for the flag "spread_collections"
+  bool get spread_collections => _enableFlags[3];
+
+  /// Current state for the flag "control_flow_collections"
+  bool get control_flow_collections => _enableFlags[4];
 
   /// Queries whether the given [feature] is enabled or disabled.
   bool isEnabled(ExperimentalFeature feature) => feature.isExpired

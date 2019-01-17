@@ -251,6 +251,22 @@ class Parser {
     }
   }
 
+  /// Enables or disables parsing of spread collections.
+  void set enableSpreadCollections(bool value) {
+    if (value) {
+      throw new UnimplementedError(
+          'spread_collections experiment not supported by analyzer parser');
+    }
+  }
+
+  /// Enables or disables parsing of control flow collections.
+  void set enableControlFlowCollections(bool value) {
+    if (value) {
+      throw new UnimplementedError('control_flow_collections experiment'
+          ' not supported by analyzer parser');
+    }
+  }
+
   /// Return `true` if the parser is to allow URI's in part-of directives.
   @deprecated
   bool get enableUriInPartOf => true;
