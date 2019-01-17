@@ -4,9 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -339,6 +341,14 @@ abstract class AbstractLspAnalysisServerTest
       ),
     );
     return expectSuccessfulResponseTo<List<Location>>(request);
+  }
+
+  Future<DartDiagnosticServer> getDiagnosticServer() {
+    final request = makeRequest(
+      CustomMethods.DiagnosticServer,
+      null,
+    );
+    return expectSuccessfulResponseTo(request);
   }
 
   Future<List<DocumentHighlight>> getDocumentHighlights(Uri uri, Position pos) {

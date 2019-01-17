@@ -17,6 +17,7 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 abstract class AbstractSocketServer {
   AnalysisServerOptions get analysisServerOptions;
   AbstractAnalysisServer get analysisServer;
+  DiagnosticServer get diagnosticServer;
 }
 
 /**

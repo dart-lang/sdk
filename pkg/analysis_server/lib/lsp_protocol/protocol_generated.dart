@@ -5360,234 +5360,182 @@ class MessageType {
 
 /// Valid LSP methods known at the time of code generation from the spec.
 class Method {
-  const Method._(this._value);
+  const Method(this._value);
   const Method.fromJson(this._value);
 
   final String _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case r'$/cancelRequest':
-      case r'initialize':
-      case r'initialized':
-      case r'shutdown':
-      case r'exit':
-      case r'window/showMessage':
-      case r'window/showMessageRequest':
-      case r'window/logMessage':
-      case r'telemetry/event':
-      case r'client/registerCapability':
-      case r'client/unregisterCapability':
-      case r'workspace/workspaceFolders':
-      case r'workspace/didChangeWorkspaceFolders':
-      case r'workspace/configuration':
-      case r'workspace/didChangeWatchedFiles':
-      case r'workspace/symbol':
-      case r'workspace/executeCommand':
-      case r'workspace/applyEdit':
-      case r'textDocument/didOpen':
-      case r'textDocument/didChange':
-      case r'textDocument/willSave':
-      case r'textDocument/willSaveWaitUntil':
-      case r'textDocument/didClose':
-      case r'textDocument/publishDiagnostics':
-      case r'textDocument/completion':
-      case r'completionItem/resolve':
-      case r'textDocument/hover':
-      case r'textDocument/signatureHelp':
-      case r'textDocument/declaration':
-      case r'textDocument/definition':
-      case r'textDocument/typeDefinition':
-      case r'textDocument/implementation':
-      case r'textDocument/references':
-      case r'textDocument/documentHighlight':
-      case r'textDocument/documentSymbol':
-      case r'textDocument/codeAction':
-      case r'textDocument/codeLens':
-      case r'codeLens/resolve':
-      case r'textDocument/documentLink':
-      case r'documentLink/resolve':
-      case r'textDocument/documentColor':
-      case r'textDocument/colorPresentation':
-      case r'textDocument/formatting':
-      case r'textDocument/onTypeFormatting':
-      case r'textDocument/rename':
-      case r'textDocument/prepareRename':
-      case r'textDocument/foldingRange':
-        return true;
-    }
-    return false;
+    return obj is String;
   }
 
   /// Constant for the '$/cancelRequest' method.
-  static const cancelRequest = const Method._(r'$/cancelRequest');
+  static const cancelRequest = const Method(r'$/cancelRequest');
 
   /// Constant for the 'initialize' method.
-  static const initialize = const Method._(r'initialize');
+  static const initialize = const Method(r'initialize');
 
   /// Constant for the 'initialized' method.
-  static const initialized = const Method._(r'initialized');
+  static const initialized = const Method(r'initialized');
 
   /// Constant for the 'shutdown' method.
-  static const shutdown = const Method._(r'shutdown');
+  static const shutdown = const Method(r'shutdown');
 
   /// Constant for the 'exit' method.
-  static const exit = const Method._(r'exit');
+  static const exit = const Method(r'exit');
 
   /// Constant for the 'window/showMessage' method.
-  static const window_showMessage = const Method._(r'window/showMessage');
+  static const window_showMessage = const Method(r'window/showMessage');
 
   /// Constant for the 'window/showMessageRequest' method.
   static const window_showMessageRequest =
-      const Method._(r'window/showMessageRequest');
+      const Method(r'window/showMessageRequest');
 
   /// Constant for the 'window/logMessage' method.
-  static const window_logMessage = const Method._(r'window/logMessage');
+  static const window_logMessage = const Method(r'window/logMessage');
 
   /// Constant for the 'telemetry/event' method.
-  static const telemetry_event = const Method._(r'telemetry/event');
+  static const telemetry_event = const Method(r'telemetry/event');
 
   /// Constant for the 'client/registerCapability' method.
   static const client_registerCapability =
-      const Method._(r'client/registerCapability');
+      const Method(r'client/registerCapability');
 
   /// Constant for the 'client/unregisterCapability' method.
   static const client_unregisterCapability =
-      const Method._(r'client/unregisterCapability');
+      const Method(r'client/unregisterCapability');
 
   /// Constant for the 'workspace/workspaceFolders' method.
   static const workspace_workspaceFolders =
-      const Method._(r'workspace/workspaceFolders');
+      const Method(r'workspace/workspaceFolders');
 
   /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
   static const workspace_didChangeWorkspaceFolders =
-      const Method._(r'workspace/didChangeWorkspaceFolders');
+      const Method(r'workspace/didChangeWorkspaceFolders');
 
   /// Constant for the 'workspace/configuration' method.
   static const workspace_configuration =
-      const Method._(r'workspace/configuration');
+      const Method(r'workspace/configuration');
 
   /// Constant for the 'workspace/didChangeWatchedFiles' method.
   static const workspace_didChangeWatchedFiles =
-      const Method._(r'workspace/didChangeWatchedFiles');
+      const Method(r'workspace/didChangeWatchedFiles');
 
   /// Constant for the 'workspace/symbol' method.
-  static const workspace_symbol = const Method._(r'workspace/symbol');
+  static const workspace_symbol = const Method(r'workspace/symbol');
 
   /// Constant for the 'workspace/executeCommand' method.
   static const workspace_executeCommand =
-      const Method._(r'workspace/executeCommand');
+      const Method(r'workspace/executeCommand');
 
   /// Constant for the 'workspace/applyEdit' method.
-  static const workspace_applyEdit = const Method._(r'workspace/applyEdit');
+  static const workspace_applyEdit = const Method(r'workspace/applyEdit');
 
   /// Constant for the 'textDocument/didOpen' method.
-  static const textDocument_didOpen = const Method._(r'textDocument/didOpen');
+  static const textDocument_didOpen = const Method(r'textDocument/didOpen');
 
   /// Constant for the 'textDocument/didChange' method.
-  static const textDocument_didChange =
-      const Method._(r'textDocument/didChange');
+  static const textDocument_didChange = const Method(r'textDocument/didChange');
 
   /// Constant for the 'textDocument/willSave' method.
-  static const textDocument_willSave = const Method._(r'textDocument/willSave');
+  static const textDocument_willSave = const Method(r'textDocument/willSave');
 
   /// Constant for the 'textDocument/willSaveWaitUntil' method.
   static const textDocument_willSaveWaitUntil =
-      const Method._(r'textDocument/willSaveWaitUntil');
+      const Method(r'textDocument/willSaveWaitUntil');
 
   /// Constant for the 'textDocument/didClose' method.
-  static const textDocument_didClose = const Method._(r'textDocument/didClose');
+  static const textDocument_didClose = const Method(r'textDocument/didClose');
 
   /// Constant for the 'textDocument/publishDiagnostics' method.
   static const textDocument_publishDiagnostics =
-      const Method._(r'textDocument/publishDiagnostics');
+      const Method(r'textDocument/publishDiagnostics');
 
   /// Constant for the 'textDocument/completion' method.
   static const textDocument_completion =
-      const Method._(r'textDocument/completion');
+      const Method(r'textDocument/completion');
 
   /// Constant for the 'completionItem/resolve' method.
-  static const completionItem_resolve =
-      const Method._(r'completionItem/resolve');
+  static const completionItem_resolve = const Method(r'completionItem/resolve');
 
   /// Constant for the 'textDocument/hover' method.
-  static const textDocument_hover = const Method._(r'textDocument/hover');
+  static const textDocument_hover = const Method(r'textDocument/hover');
 
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
-      const Method._(r'textDocument/signatureHelp');
+      const Method(r'textDocument/signatureHelp');
 
   /// Constant for the 'textDocument/declaration' method.
   static const textDocument_declaration =
-      const Method._(r'textDocument/declaration');
+      const Method(r'textDocument/declaration');
 
   /// Constant for the 'textDocument/definition' method.
   static const textDocument_definition =
-      const Method._(r'textDocument/definition');
+      const Method(r'textDocument/definition');
 
   /// Constant for the 'textDocument/typeDefinition' method.
   static const textDocument_typeDefinition =
-      const Method._(r'textDocument/typeDefinition');
+      const Method(r'textDocument/typeDefinition');
 
   /// Constant for the 'textDocument/implementation' method.
   static const textDocument_implementation =
-      const Method._(r'textDocument/implementation');
+      const Method(r'textDocument/implementation');
 
   /// Constant for the 'textDocument/references' method.
   static const textDocument_references =
-      const Method._(r'textDocument/references');
+      const Method(r'textDocument/references');
 
   /// Constant for the 'textDocument/documentHighlight' method.
   static const textDocument_documentHighlight =
-      const Method._(r'textDocument/documentHighlight');
+      const Method(r'textDocument/documentHighlight');
 
   /// Constant for the 'textDocument/documentSymbol' method.
   static const textDocument_documentSymbol =
-      const Method._(r'textDocument/documentSymbol');
+      const Method(r'textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/codeAction' method.
   static const textDocument_codeAction =
-      const Method._(r'textDocument/codeAction');
+      const Method(r'textDocument/codeAction');
 
   /// Constant for the 'textDocument/codeLens' method.
-  static const textDocument_codeLens = const Method._(r'textDocument/codeLens');
+  static const textDocument_codeLens = const Method(r'textDocument/codeLens');
 
   /// Constant for the 'codeLens/resolve' method.
-  static const codeLens_resolve = const Method._(r'codeLens/resolve');
+  static const codeLens_resolve = const Method(r'codeLens/resolve');
 
   /// Constant for the 'textDocument/documentLink' method.
   static const textDocument_documentLink =
-      const Method._(r'textDocument/documentLink');
+      const Method(r'textDocument/documentLink');
 
   /// Constant for the 'documentLink/resolve' method.
-  static const documentLink_resolve = const Method._(r'documentLink/resolve');
+  static const documentLink_resolve = const Method(r'documentLink/resolve');
 
   /// Constant for the 'textDocument/documentColor' method.
   static const textDocument_documentColor =
-      const Method._(r'textDocument/documentColor');
+      const Method(r'textDocument/documentColor');
 
   /// Constant for the 'textDocument/colorPresentation' method.
   static const textDocument_colorPresentation =
-      const Method._(r'textDocument/colorPresentation');
+      const Method(r'textDocument/colorPresentation');
 
   /// Constant for the 'textDocument/formatting' method.
   static const textDocument_formatting =
-      const Method._(r'textDocument/formatting');
+      const Method(r'textDocument/formatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =
-      const Method._(r'textDocument/onTypeFormatting');
+      const Method(r'textDocument/onTypeFormatting');
 
   /// Constant for the 'textDocument/rename' method.
-  static const textDocument_rename = const Method._(r'textDocument/rename');
+  static const textDocument_rename = const Method(r'textDocument/rename');
 
   /// Constant for the 'textDocument/prepareRename' method.
   static const textDocument_prepareRename =
-      const Method._(r'textDocument/prepareRename');
+      const Method(r'textDocument/prepareRename');
 
   /// Constant for the 'textDocument/foldingRange' method.
   static const textDocument_foldingRange =
-      const Method._(r'textDocument/foldingRange');
+      const Method(r'textDocument/foldingRange');
 
   Object toJson() => _value;
 

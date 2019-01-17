@@ -155,11 +155,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
 
-  /// The DiagnosticServer for this AnalysisServer. If available, it can be used
-  /// to start an http diagnostics server or return the port for an existing
-  /// server.
-  final DiagnosticServer diagnosticServer;
-
   final DetachableFileSystemManager detachableFileSystemManager;
 
   /// Initialize a newly created server to receive requests from and send
@@ -175,11 +170,11 @@ class AnalysisServer extends AbstractAnalysisServer {
     AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
-    this.diagnosticServer,
+    DiagnosticServer diagnosticServer,
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  }) : super(options, baseResourceProvider) {
+  }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
 
     pluginManager = new PluginManager(

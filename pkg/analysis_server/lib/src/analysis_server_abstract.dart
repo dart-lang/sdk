@@ -8,6 +8,7 @@ import 'dart:core';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -37,6 +38,11 @@ abstract class AbstractAnalysisServer {
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
+
+  /// The DiagnosticServer for this AnalysisServer. If available, it can be used
+  /// to start an http diagnostics server or return the port for an existing
+  /// server.
+  final DiagnosticServer diagnosticServer;
 
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
@@ -73,7 +79,8 @@ abstract class AbstractAnalysisServer {
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
   List<Glob> _analyzedFilesGlobs = null;
 
-  AbstractAnalysisServer(this.options, ResourceProvider baseResourceProvider)
+  AbstractAnalysisServer(this.options, this.diagnosticServer,
+      ResourceProvider baseResourceProvider)
       : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
     performance = performanceDuringStartup;
   }
