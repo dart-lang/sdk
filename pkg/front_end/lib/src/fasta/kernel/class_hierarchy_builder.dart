@@ -81,8 +81,8 @@ class ClassHierarchyBuilder {
 
   ClassHierarchyBuilder(this.objectClass);
 
-  /// A merge conflict arises when merging two lists that each have an element
-  /// with the same name.
+  /// When merging `aList` and `bList`, [a] (from `aList`) and [b] (from
+  /// `bList`) each have the same name.
   ///
   /// If [mergeKind] is `MergeKind.superclass`, [a] should override [b].
   ///
@@ -184,6 +184,8 @@ class ClassHierarchyBuilder {
     }
   }
 
+  /// When merging `aList` and `bList`, [member] was only found in `aList`.
+  ///
   /// If [mergeKind] is `MergeKind.superclass` [member] is declared in current
   /// class, and isn't overriding a method from the superclass.
   ///
@@ -197,6 +199,8 @@ class ClassHierarchyBuilder {
     }
   }
 
+  /// When merging `aList` and `bList`, [member] was only found in `bList`.
+  ///
   /// If [mergeKind] is `MergeKind.superclass` [member] is being inherited from
   /// a superclass.
   ///

@@ -126,7 +126,7 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
   }
 
   KernelTypeBuilder visitVoidType(VoidType node) {
-    return new KernelNamedTypeBuilder("dynamic", null)
+    return new KernelNamedTypeBuilder("void", null)
       ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
           const VoidType(), loader.coreLibrary, -1));
   }
