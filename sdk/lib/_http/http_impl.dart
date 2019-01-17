@@ -2926,6 +2926,14 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
     return _socket.setOption(option, enabled);
   }
 
+  Uint8List getRawOption(RawSocketOption option) {
+    return _socket.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _socket.setRawOption(option);
+  }
+
   Map _toJSON(bool ref) {
     return (_socket as dynamic)._toJSON(ref);
   }

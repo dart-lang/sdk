@@ -116,6 +116,35 @@ testDatagramSocketTtl() {
   test(InternetAddress.loopbackIPv6, null, false);
 }
 
+testDatagramSocketMulticastIf() {
+  test(address) async {
+    asyncStart();
+    final socket = await RawDatagramSocket.bind(address, 0);
+    RawSocketOption option;
+    if (address.type == InternetAddressType.IPv4) {
+      option = RawSocketOption(RawSocketOption.levelIPv4,
+          RawSocketOption.IPv4MulticastInterface, address.rawAddress);
+    } else {
+      // We'll need a Uint8List(4) for this option, since it will be an 4 byte
+      // word value sent into get/setsockopt.
+      option = RawSocketOption(RawSocketOption.levelIPv6,
+          RawSocketOption.IPv6MulticastInterface, Uint8List(4));
+    }
+
+    socket.setRawOption(option);
+    final getResult = socket.getRawOption(option);
+
+    if (address.type == InternetAddressType.IPv4) {
+      Expect.listEquals(getResult, address.rawAddress);
+    } else {
+      Expect.listEquals(getResult, [0, 0, 0, 0]);
+    }
+
+    asyncSuccess(socket);
+    asyncEnd();
+  }
+}
+
 testBroadcast() {
   test(bindAddress, broadcastAddress, enabled) {
     asyncStart();
@@ -363,6 +392,7 @@ main() {
   testDatagramMulticastOptions();
   testDatagramSocketReuseAddress();
   testDatagramSocketTtl();
+  testDatagramSocketMulticastIf();
   testBroadcast();
   testLoopbackMulticast();
   testLoopbackMulticastError();

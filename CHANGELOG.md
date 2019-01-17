@@ -28,6 +28,10 @@
 [35484]: https://github.com/dart-lang/sdk/issues/35484
 [35510]: https://github.com/dart-lang/sdk/issues/35510
 
+#### `dart:io`
+
+*   Added ability to get and set low level socket options.
+
 ### Dart VM
 
 ### Tool Changes
@@ -2800,7 +2804,7 @@ during isolate initialization.
     people in practice.
 
   * **Breaking:** Support for `barback` versions prior to 0.15.0 (released July
-    2014) has been dropped. Pub will no longer install these older barback
+    1)    has been dropped. Pub will no longer install these older barback
     versions.
 
   * `pub serve` now GZIPs the assets it serves to make load times more similar

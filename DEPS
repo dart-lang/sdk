@@ -87,7 +87,7 @@ vars = {
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.7",
   "html_tag" : "0.13.3+2",
-  "http_io_rev": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
+  "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",

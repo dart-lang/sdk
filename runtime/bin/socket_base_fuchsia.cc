@@ -375,6 +375,26 @@ bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
   return false;
 }
 
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  return NO_RETRY_EXPECTED(
+             setsockopt(handle->fd(), level, option, data, length)) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  return NO_RETRY_EXPECTED(
+             getsockopt(handle->fd(), level, option, data, length)) == 0;
+}
+
 bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
                                const RawAddr&,

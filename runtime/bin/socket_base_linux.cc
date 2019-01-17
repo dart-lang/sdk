@@ -391,6 +391,22 @@ bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
                                       sizeof(on))) == 0;
 }
 
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  return NO_RETRY_EXPECTED(setsockopt(fd, level, option, data, length)) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  return NO_RETRY_EXPECTED(getsockopt(fd, level, option, data, length)) == 0;
+}
+
 bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
                                const RawAddr&,
