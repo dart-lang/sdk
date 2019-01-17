@@ -1226,32 +1226,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   // Helper methods:
 
   void ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
-    DartType constantType;
-    if (constant is NullConstant) {
-      constantType = new InterfaceType(coreTypes.nullClass);
-    } else if (constant is BoolConstant) {
-      constantType = new InterfaceType(coreTypes.boolClass);
-    } else if (constant is IntConstant) {
-      constantType = new InterfaceType(coreTypes.intClass);
-    } else if (constant is DoubleConstant) {
-      constantType = new InterfaceType(coreTypes.doubleClass);
-    } else if (constant is StringConstant) {
-      constantType = new InterfaceType(coreTypes.stringClass);
-    } else if (constant is MapConstant) {
-      constantType = new InterfaceType(
-          coreTypes.mapClass, <DartType>[constant.keyType, constant.valueType]);
-    } else if (constant is ListConstant) {
-      constantType = new InterfaceType(
-          coreTypes.stringClass, <DartType>[constant.typeArgument]);
-    } else if (constant is InstanceConstant) {
-      constantType = new InterfaceType(constant.klass, constant.typeArguments);
-    } else if (constant is TearOffConstant) {
-      constantType = constant.procedure.function.functionType;
-    } else if (constant is TypeLiteralConstant) {
-      constantType = new InterfaceType(coreTypes.typeClass);
-    } else {
-      throw new Exception('No support for ${constant.runtimeType}.runtimeType');
-    }
+    DartType constantType = constant.getType(typeEnvironment);
 
     if (!typeEnvironment.isSubtypeOf(constantType, type)) {
       throw new _AbortCurrentEvaluation(
@@ -1463,7 +1438,7 @@ abstract class ConstantsBackend {
       List<TreeNode> context,
       StaticInvocation node,
       ErrorReporter errorReporter,
-      void abortEvaluation(String message));
+      Constant abortEvaluation(String message));
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);
 }

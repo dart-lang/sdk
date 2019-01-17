@@ -56,7 +56,6 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 [ $compiler == fasta ]
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
-LanguageFeatures/Constant_update2018/CastOperator_A04_t02: Crash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t01: Crash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t02: Crash
 LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError
@@ -66,11 +65,8 @@ LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A02_t07: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02: Crash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05: Crash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t05: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: Crash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06: Crash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: Crash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: Crash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: Crash
@@ -839,7 +835,6 @@ LibTest/isolate/ReceivePort/transform_A01_t01: RuntimeError
 LanguageFeatures/Constant_update2018/CastOperator_A01_t01: DartkCrash
 LanguageFeatures/Constant_update2018/CastOperator_A02_t01: DartkCrash
 LanguageFeatures/Constant_update2018/CastOperator_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A04_t02: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t01: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A01_t02: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Fail
@@ -849,10 +844,7 @@ LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Fail
 LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t05: DartkCrash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: DartkCrash

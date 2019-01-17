@@ -51,7 +51,7 @@ class VmConstantsBackend implements ConstantsBackend {
       List<TreeNode> context,
       StaticInvocation node,
       ErrorReporter errorReporter,
-      void abortEvaluation(String message)) {
+      Constant abortEvaluation(String message)) {
     if ([
       'Bool_fromEnvironment',
       'Integer_fromEnvironment',
@@ -118,7 +118,7 @@ class VmConstantsBackend implements ConstantsBackend {
                 makeConstant: (v) => new StringConstant(v));
         }
       } else {
-        abortEvaluation(errorReporter.invalidDartType(
+        return abortEvaluation(errorReporter.invalidDartType(
             context,
             node.arguments.positional.first,
             argument,

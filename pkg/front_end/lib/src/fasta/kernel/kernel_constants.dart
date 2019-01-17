@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         MapConstant,
         Member,
         NullConstant,
+        Procedure,
         StaticInvocation,
         StringConstant,
         TreeNode;
@@ -49,7 +50,7 @@ import '../fasta_codes.dart'
 
 import '../loader.dart' show Loader;
 
-import '../problems.dart' show unexpected, unimplemented;
+import '../problems.dart' show unexpected;
 
 class KernelConstantErrorReporter extends ErrorReporter {
   final Loader<Library> loader;
@@ -110,10 +111,22 @@ class KernelConstantErrorReporter extends ErrorReporter {
   @override
   String invalidStaticInvocation(
       List<TreeNode> context, TreeNode node, Member target) {
+    // TODO(kmillikin) For an invalid factory invocation we should adopt a
+    // better message.  This will show something like:
+    //
+    // "The invocation of 'List' is not allowed within a const context."
+    //
+    // Which is not quite right when the code was "new List()".
+    String name = target.name.toString();
+    if (target is Procedure && target.isFactory) {
+      if (name.isEmpty) {
+        name = target.enclosingClass.name;
+      } else {
+        name = '${target.enclosingClass.name}.${name}';
+      }
+    }
     return addProblem(
-        node,
-        templateConstEvalInvalidStaticInvocation
-            .withArguments(target.name.toString()));
+        node, templateConstEvalInvalidStaticInvocation.withArguments(name));
   }
 
   @override
@@ -200,7 +213,7 @@ class KernelConstantsBackend extends ConstantsBackend {
       List<TreeNode> context,
       StaticInvocation node,
       ErrorReporter errorReporter,
-      void abortEvaluation(String message)) {
+      Constant abortEvaluation(String message)) {
     // VM-specific names of the fromEnvironment factory constructors.
     if (nativeName == 'Bool_fromEnvironment' ||
         nativeName == 'Integer_fromEnvironment' ||
@@ -224,7 +237,7 @@ class KernelConstantsBackend extends ConstantsBackend {
       return unexpected('valid constructor invocation', node.toString(),
           node.fileOffset, node.location.file);
     }
-    return unimplemented('constant evaluation of ${nativeName}',
-        node.fileOffset, node.location.file);
+    return abortEvaluation(
+        errorReporter.invalidStaticInvocation(context, node, node.target));
   }
 }
