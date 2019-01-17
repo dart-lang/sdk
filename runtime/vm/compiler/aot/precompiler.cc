@@ -247,9 +247,34 @@ void Precompiler::DoCompileAll() {
         //   - build method extractor code
         MegamorphicCacheTable::ReInitMissHandlerCode(
             isolate_, global_object_pool_wrapper());
-        I->object_store()->set_build_method_extractor_code(
-            Code::Handle(StubCode::GetBuildMethodExtractorStub(
-                global_object_pool_wrapper())));
+
+        auto& stub_code = Code::Handle();
+
+        stub_code =
+            StubCode::GetBuildMethodExtractorStub(global_object_pool_wrapper());
+        I->object_store()->set_build_method_extractor_code(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
+                global_object_pool_wrapper());
+        I->object_store()->set_null_error_stub_with_fpu_regs_stub(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificNullErrorSharedWithoutFPURegsStub(
+                global_object_pool_wrapper());
+        I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
+                global_object_pool_wrapper());
+        I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
+            stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificStackOverflowSharedWithoutFPURegsStub(
+                global_object_pool_wrapper());
+        I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
+            stub_code);
       }
 
       CollectDynamicFunctionNames();

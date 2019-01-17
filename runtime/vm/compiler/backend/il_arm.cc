@@ -3072,11 +3072,34 @@ class CheckStackOverflowSlowPath
 };
 
 void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
-
   __ ldr(IP, Address(THR, Thread::stack_limit_offset()));
   __ cmp(SP, Operand(IP));
+
+  auto object_store = compiler->isolate()->object_store();
+  const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      live_fpu_regs
+          ? object_store->stack_overflow_stub_with_fpu_regs_stub()
+          : object_store->stack_overflow_stub_without_fpu_regs_stub());
+  const bool using_shared_stub = locs()->call_on_shared_slow_path();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      using_shared_stub && !stub.InVMHeap()) {
+    compiler->AddPcRelativeCallStubTarget(stub);
+    __ GenerateUnRelocatedPcRelativeCall(LS);
+
+    // We use the "extended" environment which has the locations updated to
+    // reflect live registers being saved in the shared spilling stubs (see
+    // the stub above).
+    auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
+    compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
+                                   RawPcDescriptors::kOther, locs(),
+                                   extended_env);
+    return;
+  }
+
+  CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
     const Register temp = locs()->temp(0).reg();
@@ -5740,6 +5763,47 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
   __ BranchIfNotSmi(value, deopt);
+}
+
+void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value_reg = locs()->in(0).reg();
+  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
+  // in order to be able to allocate it on register.
+  __ CompareObject(value_reg, Object::null_object());
+
+  auto object_store = compiler->isolate()->object_store();
+  const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      live_fpu_regs ? object_store->null_error_stub_with_fpu_regs_stub()
+                    : object_store->null_error_stub_without_fpu_regs_stub());
+  const bool using_shared_stub = locs()->call_on_shared_slow_path();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      using_shared_stub && !stub.InVMHeap()) {
+    compiler->AddPcRelativeCallStubTarget(stub);
+    __ GenerateUnRelocatedPcRelativeCall(EQUAL);
+
+    // We use the "extended" environment which has the locations updated to
+    // reflect live registers being saved in the shared spilling stubs (see
+    // the stub above).
+    auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
+    compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
+                                   RawPcDescriptors::kOther, locs(),
+                                   extended_env);
+    CheckNullInstr::AddMetadataForRuntimeCall(this, compiler);
+    return;
+  }
+
+  NullErrorSlowPath* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                           bool save_fpu_registers) {
+  compiler->assembler()->CallNullErrorShared(save_fpu_registers);
 }
 
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,

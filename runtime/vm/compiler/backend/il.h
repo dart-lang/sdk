@@ -7175,6 +7175,9 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
+                                        FlowGraphCompiler* compiler);
+
  private:
   const TokenPosition token_pos_;
   const String& function_name_;

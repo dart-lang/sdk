@@ -386,6 +386,25 @@ static void EnsureIdentifier(char* label) {
   }
 }
 
+const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
+                                          const Code& code) {
+  if (code.raw() == object_store->build_method_extractor_code()) {
+    return "_iso_stub_BuildMethodExtractorStub";
+  } else if (code.raw() == object_store->null_error_stub_with_fpu_regs_stub()) {
+    return "_iso_stub_NullErrorSharedWithFPURegsStub";
+  } else if (code.raw() ==
+             object_store->null_error_stub_without_fpu_regs_stub()) {
+    return "_iso_stub_NullErrorSharedWithoutFPURegsStub";
+  } else if (code.raw() ==
+             object_store->stack_overflow_stub_with_fpu_regs_stub()) {
+    return "_iso_stub_StackOverflowStubWithFPURegsStub";
+  } else if (code.raw() ==
+             object_store->stack_overflow_stub_without_fpu_regs_stub()) {
+    return "_iso_stub_StackOverflowStubWithoutFPURegsStub";
+  }
+  return nullptr;
+}
+
 void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Zone* zone = Thread::Current()->zone();
 
@@ -496,14 +515,15 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       owner = code.owner();
       if (owner.IsNull()) {
         const char* name = StubCode::NameOfStub(insns.EntryPoint());
-        if (name == nullptr &&
-            code.raw() == object_store->build_method_extractor_code()) {
-          name = "BuildMethodExtractor";
-        }
-        if (name != NULL) {
+        if (name != nullptr) {
           assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
         } else {
-          const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
+          if (name == nullptr) {
+            name = NameOfStubIsolateSpecificStub(object_store, code);
+          }
+          if (name == nullptr) {
+            name = tts.StubNameFromAddresss(insns.EntryPoint());
+          }
           assembly_stream_.Print("Precompiled__%s:\n", name);
         }
       } else if (owner.IsClass()) {

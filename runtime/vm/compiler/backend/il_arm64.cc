@@ -2695,8 +2695,9 @@ class CheckStackOverflowSlowPath
       : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    auto locs = instruction()->locs();
     if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
-      const Register value = instruction()->locs()->temp(0).reg();
+      const Register value = locs->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
       __ LoadImmediate(value, Thread::kOsrRequest);
@@ -2704,10 +2705,9 @@ class CheckStackOverflowSlowPath
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
-    const bool using_shared_stub =
-        instruction()->locs()->call_on_shared_slow_path();
+    const bool using_shared_stub = locs->call_on_shared_slow_path();
     if (!using_shared_stub) {
-      compiler->SaveLiveRegisters(instruction()->locs());
+      compiler->SaveLiveRegisters(locs);
     }
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
@@ -2717,14 +2717,30 @@ class CheckStackOverflowSlowPath
     compiler->pending_deoptimization_env_ = env;
 
     if (using_shared_stub) {
-      uword entry_point_offset =
-          instruction()->locs()->live_registers()->FpuRegisterCount() > 0
-              ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
-              : Thread::
-                    stack_overflow_shared_without_fpu_regs_entry_point_offset();
-      __ ldr(LR, Address(THR, entry_point_offset));
-      __ blr(LR);
-      compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
+      auto object_store = compiler->isolate()->object_store();
+      const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
+      const auto& stub = Code::Handle(
+          compiler->zone(),
+          live_fpu_regs
+              ? object_store->stack_overflow_stub_with_fpu_regs_stub()
+              : object_store->stack_overflow_stub_without_fpu_regs_stub());
+
+      if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+          using_shared_stub && !stub.InVMHeap()) {
+        compiler->AddPcRelativeCallStubTarget(stub);
+        __ GenerateUnRelocatedPcRelativeCall();
+
+      } else {
+        uword entry_point_offset =
+            locs->live_registers()->FpuRegisterCount() > 0
+                ? Thread::
+                      stack_overflow_shared_with_fpu_regs_entry_point_offset()
+                : Thread::
+                      stack_overflow_shared_without_fpu_regs_entry_point_offset();
+        __ ldr(LR, Address(THR, entry_point_offset));
+        __ blr(LR);
+      }
+      compiler->RecordSafepoint(locs, kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves();
       compiler->AddDescriptor(
           RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
@@ -2733,7 +2749,7 @@ class CheckStackOverflowSlowPath
     } else {
       compiler->GenerateRuntimeCall(
           instruction()->token_pos(), instruction()->deopt_id(),
-          kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
+          kStackOverflowRuntimeEntry, kNumSlowPathArgs, locs);
     }
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
@@ -2745,7 +2761,7 @@ class CheckStackOverflowSlowPath
     }
     compiler->pending_deoptimization_env_ = NULL;
     if (!using_shared_stub) {
-      compiler->RestoreLiveRegisters(instruction()->locs());
+      compiler->RestoreLiveRegisters(locs);
     }
     __ b(exit_label());
   }
@@ -4954,6 +4970,40 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
   __ BranchIfNotSmi(value, deopt);
+}
+
+void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  NullErrorSlowPath* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Register value_reg = locs()->in(0).reg();
+  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
+  // in order to be able to allocate it on register.
+  __ CompareObject(value_reg, Object::null_object());
+  __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                           bool save_fpu_registers) {
+  auto check_null = instruction()->AsCheckNull();
+  auto locs = check_null->locs();
+  const bool using_shared_stub = locs->call_on_shared_slow_path();
+
+  const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
+  auto object_store = compiler->isolate()->object_store();
+  const auto& stub = Code::Handle(
+      compiler->zone(),
+      live_fpu_regs ? object_store->null_error_stub_with_fpu_regs_stub()
+                    : object_store->null_error_stub_without_fpu_regs_stub());
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      using_shared_stub && !stub.InVMHeap()) {
+    compiler->AddPcRelativeCallStubTarget(stub);
+    compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
+    return;
+  }
+
+  compiler->assembler()->CallNullErrorShared(save_fpu_registers);
 }
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,

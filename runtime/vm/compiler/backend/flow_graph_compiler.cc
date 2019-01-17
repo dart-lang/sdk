@@ -471,10 +471,11 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
 void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
                                              intptr_t deopt_id,
                                              RawPcDescriptors::Kind kind,
-                                             LocationSummary* locs) {
+                                             LocationSummary* locs,
+                                             Environment* env) {
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
-  RecordCatchEntryMoves();
+  RecordCatchEntryMoves(env);
   if (deopt_id != DeoptId::kNone) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
@@ -2278,7 +2279,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ PushRegister(locs->in(i).reg());
   }
   if (use_shared_stub) {
-    EmitSharedStubCall(compiler->assembler(), live_fpu_registers);
+    EmitSharedStubCall(compiler, live_fpu_registers);
   } else {
     __ CallRuntime(runtime_entry_, num_args_);
   }

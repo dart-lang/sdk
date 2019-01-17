@@ -298,6 +298,7 @@ const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
 const char* StubCode::NameOfStub(uword entry_point) {
 #define VM_STUB_CODE_TESTER(name)                                              \
   if (entries_[k##name##Index] != nullptr &&                                   \
+      !entries_[k##name##Index]->IsNull() &&                                   \
       entries_[k##name##Index]->EntryPoint() == entry_point) {                 \
     return "" #name;                                                           \
   }

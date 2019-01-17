@@ -4532,43 +4532,16 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-class NullErrorSlowPath : public ThrowErrorSlowPathCode {
- public:
-  static const intptr_t kNumberOfArguments = 0;
-
-  NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
-      : ThrowErrorSlowPathCode(instruction,
-                               kNullErrorRuntimeEntry,
-                               kNumberOfArguments,
-                               try_index) {}
-
-  const char* name() override { return "check null"; }
-
-  void EmitSharedStubCall(Assembler* assembler,
-                          bool save_fpu_registers) override {
-    assembler->CallNullErrorShared(save_fpu_registers);
-  }
-
-  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
-    const String& function_name = instruction()->AsCheckNull()->function_name();
-    const intptr_t name_index =
-        compiler->assembler()->object_pool_wrapper().FindObject(function_name);
-    compiler->AddNullCheck(compiler->assembler()->CodeSize(),
-                           instruction()->token_pos(), name_index);
-  }
-};
-
-void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  NullErrorSlowPath* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
-
-  Register value_reg = locs()->in(0).reg();
-  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
-  // in order to be able to allocate it on register.
-  __ CompareObject(value_reg, Object::null_object());
-  __ BranchIf(EQUAL, slow_path->entry_label());
+#if !defined(TARGET_ARCH_DBC)
+void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
+                                               FlowGraphCompiler* compiler) {
+  const String& function_name = check_null->function_name();
+  const intptr_t name_index =
+      compiler->assembler()->object_pool_wrapper().FindObject(function_name);
+  compiler->AddNullCheck(compiler->assembler()->CodeSize(),
+                         check_null->token_pos(), name_index);
 }
+#endif  // !defined(TARGET_ARCH_DBC)
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();

@@ -169,6 +169,16 @@ class StubCode : public AllStatic {
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#define GENERATE_STUB(name)                                                    \
+  static RawCode* BuildIsolateSpecific##name##Stub(ObjectPoolWrapper* opw) {   \
+    return StubCode::Generate("_iso_stub_" #name, opw,                         \
+                              StubCode::Generate##name##Stub);                 \
+  }
+  VM_STUB_CODE_LIST(GENERATE_STUB);
+#undef GENERATE_STUB
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
  private:
   friend class MegamorphicCacheTable;
 

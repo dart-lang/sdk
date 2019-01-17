@@ -262,7 +262,7 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
   virtual void EmitCodeAtSlowPathEntry(FlowGraphCompiler* compiler) {}
   virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
 
-  virtual void EmitSharedStubCall(Assembler* assembler,
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
                                   bool save_fpu_registers) {
     UNREACHABLE();
   }
@@ -273,6 +273,27 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
   const RuntimeEntry& runtime_entry_;
   const intptr_t num_args_;
   const intptr_t try_index_;
+};
+
+class NullErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kNullErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+
+  const char* name() override { return "check null"; }
+
+  void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                          bool save_fpu_registers) override;
+
+  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
+    CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
+                                              compiler);
+  }
 };
 
 #endif  // !defined(TARGET_ARCH_DBC)
@@ -597,10 +618,20 @@ class FlowGraphCompiler : public ValueObject {
   void RecordCatchEntryMoves(Environment* env = NULL,
                              intptr_t try_index = kInvalidTryIndex);
 
+  // Emits the following metadata for the current PC:
+  //
+  //   * Attaches current try index
+  //   * Attaches stackmaps
+  //   * Attaches catch entry moves (in AOT)
+  //   * Deoptimization information (in JIT)
+  //
+  // If [env] is not `nullptr` it will be used instead of the
+  // `pending_deoptimization_env`.
   void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
                             RawPcDescriptors::Kind kind,
-                            LocationSummary* locs);
+                            LocationSummary* locs,
+                            Environment* env = nullptr);
 
   void EmitComment(Instruction* instr);
 
@@ -767,6 +798,9 @@ class FlowGraphCompiler : public ValueObject {
   bool IsEmptyBlock(BlockEntryInstr* block) const;
 
  private:
+  friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
+  friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
+  friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
   friend class CheckedSmiComparisonSlowPath;  // Same.

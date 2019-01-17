@@ -1106,7 +1106,7 @@ class Assembler : public AssemblerBase {
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
   // will be used during relocation to fix the offset.
-  void GenerateUnRelocatedPcRelativeCall();
+  void GenerateUnRelocatedPcRelativeCall(Condition cond = AL);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

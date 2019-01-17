@@ -3406,9 +3406,9 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
-void Assembler::GenerateUnRelocatedPcRelativeCall() {
-  // Emit "blr <offset>".
-  EmitType5(AL, 0x686868, /*link=*/true);
+void Assembler::GenerateUnRelocatedPcRelativeCall(Condition cond) {
+  // Emit "blr.cond <offset>".
+  EmitType5(cond, 0x686868, /*link=*/true);
 }
 
 void Assembler::Stop(const char* message) {

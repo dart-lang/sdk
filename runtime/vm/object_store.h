@@ -125,6 +125,10 @@ class ObjectPointerVisitor;
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
+  RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
+  RW(Code, null_error_stub_without_fpu_regs_stub)                              \
+  RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
+  RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
   RW(Array, code_order_table)                                                  \
