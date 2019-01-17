@@ -621,6 +621,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    // Note that `problemsAsJson` on Component is implicitly skipped.
     const intptr_t length = program_->library_count();
     Object& last_library = Library::Handle(Z);
     for (intptr_t i = 0; i < length; i++) {

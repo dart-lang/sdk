@@ -526,6 +526,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final componentOffset = getBufferOffset();
     writeUInt32(Tag.ComponentFile);
     writeUInt32(Tag.BinaryFormatVersion);
+    writeSetOfStrings(component.problemsAsJson);
     indexLinkTable(component);
     _collectMetadata(component);
     if (_metadataSubsections != null) {
@@ -545,6 +546,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeComponentIndex(component, component.libraries);
 
     _flush();
+  }
+
+  void writeSetOfStrings(Set<String> strings) {
+    writeUInt30(strings.length);
+    for (String s in strings) {
+      // This is slow, but we expect there to in general be no problems. If this
+      // turns out to be wrong we can optimize it as we do URLs for instance.
+      writeByteList(utf8.encoder.convert(s));
+    }
   }
 
   /// Collect non-empty metadata repositories associated with the component.
@@ -886,6 +896,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri);
+    writeSetOfStrings(node.problemsAsJson);
     enterScope(memberScope: true);
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);

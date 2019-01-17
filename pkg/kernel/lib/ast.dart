@@ -291,6 +291,8 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   String name;
 
+  Set<String> problemsAsJson = new Set<String>();
+
   @nocoq
   final List<Expression> annotations;
 
@@ -5508,6 +5510,8 @@ class UnevaluatedConstant extends Constant {
 /// A way to bundle up libraries in a component.
 class Component extends TreeNode {
   final CanonicalName root;
+
+  Set<String> problemsAsJson = new Set<String>();
 
   final List<Library> libraries;
 

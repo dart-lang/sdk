@@ -624,6 +624,9 @@ class BinaryBuilder {
       throw InvalidKernelVersionError(formatVersion);
     }
 
+    Set<String> problemsAsJson = readSetOfStrings();
+    component.problemsAsJson.addAll(problemsAsJson);
+
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
@@ -657,6 +660,16 @@ class BinaryBuilder {
     component.mainMethodName ??= mainMethod;
 
     _byteOffset = _componentStartOffset + componentFileSize;
+  }
+
+  Set<String> readSetOfStrings() {
+    int length = readUInt();
+    Set<String> strings = new Set<String>();
+    for (int i = 0; i < length; i++) {
+      String s = const Utf8Decoder().convert(readByteList());
+      strings.add(s);
+    }
+    return strings;
   }
 
   Map<Uri, Source> readUriToSource() {
@@ -795,10 +808,13 @@ class BinaryBuilder {
     // TODO(jensj): We currently save (almost the same) uri twice.
     Uri fileUri = readUriReference();
 
+    Set<String> problemsAsJson = readSetOfStrings();
+
     if (shouldWriteData) {
       library.isExternal = isExternal;
       library.name = name;
       library.fileUri = fileUri;
+      library.problemsAsJson = problemsAsJson;
     }
 
     assert(() {

@@ -699,6 +699,7 @@ class LibraryHelper {
     kCanonicalName,
     kName,
     kSourceUriIndex,
+    kProblemsAsJson,
     kAnnotations,
     kDependencies,
     kAdditionalExports,
