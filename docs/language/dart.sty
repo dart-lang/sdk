@@ -184,9 +184,14 @@
   {#1}_1\FunctionTypeExtends{#2}_1,\,\ldots,\ %
   {#1}_{#3}\FunctionTypeExtends{#2}_{#3}}}
 
-% Used to specify non-generic function types: Same syntax as in source.
+% Used to specify simple non-generic function types: Same syntax as in source.
 % Arguments: Return type, formal parameter declarations.
 \newcommand{\FunctionTypeSimple}[2]{\code{\ensuremath{#1}\ \FUNCTION({#2})}}
+
+% Used to specify simple generic function types: Same syntax as in source.
+% Arguments: Return type, formal parameter declarations.
+\newcommand{\FunctionTypeSimpleGeneric}[3]{\code{%
+  \ensuremath{#1}\ \FUNCTION<{#2}>({#3})}}
 
 % Used to specify function types: Same syntax as in source.
 % Arguments: Return type, spacer, type parameter name, bound name,

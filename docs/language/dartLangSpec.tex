@@ -8307,12 +8307,12 @@ If $f$ denotes a static method or top-level function,
 class $C$ does not override the \code{==} operator
 inherited from the \code{Object} class.
 
-\commentary{
+\commentary{%
 In other words, $C$ has the freedom to be a proper subtype of
 the function type that we can read off of the declaration of $f$
 because it may need to be a specific internal platform defined class,
 but $C$ does not have the freedom to be a subtype of
-a different and more special function type, and it cannot be \code{Null}.
+a different and more special function type, and it cannot be \code{Null}.%
 }
 
 \LMHash{}%
@@ -8326,6 +8326,216 @@ yielding the same completion
 as the invocation of $f$ would have yielded.
 
 
+\subsubsection{Generic Function Instantiation}
+\LMLabel{genericFunctionInstantiation}
+
+%% TODO(eernst): The specification of generic function instantiation relies
+%% on type inference in a different way than other mechanisms that we have
+%% specified, because it is impossible to claim that 'type inference is
+%% assumed to have taken place already' and then we just consider the
+%% program where the missing type arguments or type annotations have been
+%% added syntactically. Consequently, this section will probably need to be
+%% rewritten rather extensively when we add a specification of inference.
+
+\LMHash{}%
+Generic function instantiation is a mechanism that yields
+a non-generic function object,
+based on a reference to a generic function.
+
+\commentary{%
+It is a mechanism which is very similar to function closurization
+(\ref{functionClosurization}),
+but it only occurs in situations where
+a compile-time error would otherwise occur.
+}
+
+\rationale{%
+The essence of generic function instantiation
+is to allow for ``curried'' invocations,
+in the sense that a generic function can receive its actual
+type arguments separately during closurization
+(it must then receive \emph{all} type arguments, not just some of them),
+and that yields a non-generic function object.
+The type arguments are passed implicitly, based on type inference;
+a future version of Dart may allow for passing them explicitly.%
+}
+\commentary{Here is an example:}
+
+\begin{dartCode}
+X fg<X \EXTENDS{} num>(X x) => x;
+\\
+\CLASS{} A \{
+  \STATIC{} X fs<X \EXTENDS{} num>(X x) => x;
+\}
+\\
+\VOID{} main() \{
+  X fl<X \EXTENDS{} num>(X x) => x;
+  List<int \FUNCTION{}(int)> functions = [fg, A.fs, fl];
+\}
+\end{dartCode}
+
+\commentary{%
+\noindent
+Each function object stored in \code{functions}
+has dynamic type \code{int\,\,\FUNCTION(int)},
+and it is obtained by implicitly
+``passing the actual type argument \code{int}''
+to the corresponding generic function.
+}
+
+\LMHash{}%
+Let $f$ of the form
+\syntax{<identifier> ('.'~<identifier>\,('.'~<identifier>)?)?}~be
+an expression that denotes
+a declaration of a local function, a static method, or a top-level function,
+and let $G$ be the static type of $f$.
+Consider the situation where $G$ is a function type of the form
+\RawFunctionType{T_0}{X}{B}{s}{\metavar{parameters}}
+with $s > 0$
+(\commentary{that is, $G$ is a generic function type}),
+and the context type is a non-generic function type $F$.
+In this situation a compile-time error occurs
+(\ref{variables},
+\ref{functions},
+\ref{generativeConstructors},
+\ref{redirectingGenerativeConstructors},
+\ref{initializerLists},
+\ref{new},
+\ref{const},
+\ref{bindingActualsToFormals},
+\ref{assignment},
+\ref{localVariableDeclaration},
+\ref{switch},
+\ref{return},
+\ref{yieldEach}),
+except when the following step succeeds:
+
+\LMHash{}%
+\Index{Generic function type instantiation}:
+Type inference is applied to $G$ with context type $F$,
+and it succeeds, yielding the actual type argument list
+\List{T}{1}{s}.
+
+\commentary{%
+The generic function type instantiation fails
+in the case where type inference fails,
+in which case the above mentioned compile-time error occurs.
+It will be specified in a future version of this document
+how type inference computes \List{T}{1}{s}
+(\ref{overview}).
+}
+
+\LMHash{}%
+Otherwise, the generic function type instantiation succeeded.
+Let $F'$ denote the type
+$[T_1/X_1, \ldots, T_s/X_s]%
+(\FunctionTypeSimple{T_0}{\metavar{parameters}})$.
+\commentary{%
+Note that it is guaranteed that $F'$ is assignable to $F$,
+or inference would have failed.%
+}
+
+\LMHash{}%
+\Case{Top-level Functions and Static Methods}
+Consider the situation where $f$ denotes
+a top-level function or a static method.
+%
+In this situation, the program is modified such that $f$ is replaced by
+a reference $f'$ to an implicitly induced non-generic function
+whose signature is $F'$,
+whose dynamic type is $[t_1/T_1, \ldots, t_s/T_s]F'$,
+and whose semantics for each invocation is the same as
+invoking $f$ with \List{t}{1}{s} as the actual type argument list,
+where \List{t}{1}{s} is the actual value of \List{T}{1}{s}
+at the point during execution where $f'$ was evaluated.
+\commentary{Here is an example:}
+
+\begin{dartCode}
+List<T> foo<T>(T t) => [t];
+List<int> fooOfInt(int i) => [i];
+\\
+String bar(List<int> f(int)) => "\${f(42)}";
+\\
+\VOID{} main() \{
+  print(bar(foo));
+\}
+\end{dartCode}
+
+\commentary{%
+In this example,
+\code{foo} as an actual argument to \code{bar} will be modified
+as if the call had been \code{bar(fooOfInt)},
+except for equality, which is specified next.
+}
+
+\LMHash{}%
+Consider the situation where the program
+before generic function instantiation contains
+two occurrences of $f$ in the same scope or different scopes,
+but denoting the same function,
+respectively the situation where
+an execution of the program containing $f$ evaluates it twice.
+Let $o_1$ and $o_2$ denote the function objects obtained by
+evaluation of those two expressions,
+respectively the two evaluations of that expression.
+
+\LMHash{}%
+In the case where the actual values of the type arguments
+are the same for both evaluations,
+it is guaranteed that $o_1$ and $o_2$ are equal
+according to operator \syntax{`=='}.
+However, it is unspecified whether
+\code{identical($o_1$, $o_2$)} evaluates to \TRUE{} or \FALSE{}.
+
+\rationale{%
+No notion of equality is appropriate
+when different type arguments are provided,
+even if the resulting function objects
+turn out to have exactly the same type at run time,
+because execution of two function objects that differ in these ways
+can have different side-effects and return different results
+when executed starting from exactly the same state.%
+}
+\commentary{%
+For instance, there could be a type parameter \code{X}
+that does not occur in the signature of the function,
+and the function could create and return a \code{List<X>}.%
+}
+
+\LMHash{}%
+\Case{Local Functions}
+Consider the situation where $f$ is an identifier denoting a local function.
+\commentary{For a local function, only an identifier can denote it.}
+%
+In this situation, the program is modified such that $f$ is replaced by
+a reference $f'$ to an implicitly induced non-generic function
+whose signature is $F'$,
+whose dynamic type is $[t_1/T_1, \ldots, t_s/T_s]F'$,
+and whose semantics for each invocation is the same as
+invoking $f$ with \List{t}{1}{s} as the actual type argument list,
+where \List{t}{1}{s} is the actual value of \List{T}{1}{s}
+at the point during execution where $f'$ was evaluated.
+
+\commentary{%
+No guarantees are provided regarding equality
+of non-generic functions obtained from a local function
+by generic function instantiation.%
+}
+
+\rationale{%
+Such a local function could have received exactly
+the same actual type arguments in the two cases,
+and still its body could contain references
+to declarations of types, variables, and other entities
+in the enclosing scopes.
+Those references could denote different entities
+when the two function objects were created.
+In that situation it is unreasonable
+to consider the two function objects to be the same function.%
+}
+\EndCase{}
+
+
 \subsection{Lookup}
 \LMLabel{lookup}
 
@@ -8337,12 +8547,12 @@ and proceeding with the superclass of the current class at each step.
 A lookup may be part of the static analysis, and it may be performed
 at run time. It may succeed or fail.
 
-\commentary{
+\commentary{%
 We define several kinds of lookup with a very similar structure.
 We spell out each of them in spite of the redundancy,
 in order to avoid introducing meta-level abstraction mechanisms just for this purpose.
 The point is that we must indicate for each lookup which kind of member it is looking for,
-because, e.g., a `method lookup' and a `getter lookup' are used in different situations.
+because, e.g., a `method lookup' and a `getter lookup' are used in different situations.%
 }
 
 { % Scope for 'lookup' definition.
@@ -9235,6 +9445,259 @@ Assume that an occurrence of the expression \SUPER{}.$m$ in a given class
 is evaluated on two occasions where \THIS{} is bound to $o_1$ respectively $o_2$,
 and the resulting function objects are $c_1$ respectively $c_2$:
 \code{$c_1$ == $c_2$} is then true if and only if $o_1$ and $o_2$ is the same object.
+
+
+\subsubsection{Generic Method Instantiation}
+\LMLabel{genericMethodInstantiation}
+
+%% TODO(eernst): Like generic function instantiation, generic method instantiation
+%% relies on type inference. See the comment in \ref{genericFunctionInstantiation}
+%% for further details.
+
+\LMHash{}%
+Generic method instantiation is a mechanism that yields
+a non-generic function object,
+based on a property extraction which denotes an instance method closurization
+(\ref{ordinaryMemberClosurization}, \ref{superClosurization}).
+
+\commentary{%
+It is a mechanism which is very similar to instance method closurization,
+but it only occurs in situations where
+a compile-time error would otherwise occur.%
+}
+
+\rationale{%
+The essence of generic method instantiation
+is to allow for ``curried'' invocations,
+in the sense that a generic instance method can receive its actual
+type arguments separately during closurization
+(it must then receive \emph{all} type arguments, not just some of them),
+and that yields a non-generic function object.
+The type arguments are passed implicitly, based on type inference;
+a future version of Dart may allow for passing them explicitly.%
+}
+\commentary{Here is an example:}
+
+\begin{dartCode}
+\CLASS{} A \{
+  X fi<X \EXTENDS{} num>(X x) => x;
+\}
+\\
+\CLASS{} B \EXTENDS{} /*\,or\,\,\IMPLEMENTS\,*/ A \{
+  X fi<X \EXTENDS{} num>(X x, [List<X> xs]) => x;
+\}
+\\
+\VOID{} main() \{
+  A a = B();
+  int \FUNCTION{}(int) f = a.fi;
+\}
+\end{dartCode}
+
+\commentary{%
+\noindent
+The function object which is stored in \code{f} at the end of \code{main}
+has dynamic type \code{int\,\,\FUNCTION(int,\,[List<int>])},
+and it is obtained by implicitly
+``passing the actual type argument \code{int}''
+to the denoted generic instance method,
+thus obtaining a non-generic function object of the specified type.
+%
+Note that this function object accepts an optional positional argument,
+even though this is not part of
+the statically known type of the corresponding instance method,
+nor of the context type.
+}
+
+\rationale{%
+In other words, generic method instantiation yields a function
+whose signature matches the context type as far as possible,
+but with respect to its parameter list shape
+(that is, the number of positional parameters and their optionality,
+or the set of names of named parameters),
+it will be determined by the method signature of the actual instance method
+of the given receiver.
+Of course, the difference can only be such that the actual type is
+% This is about the dynamic type, so there is no exception for \COVARIANT.
+a subtype of the given context type,
+otherwise the declaration of that instance method
+would have been a compile-time error.%
+}
+
+\LMHash{}%
+Let $i$ be a property extraction expression of the form
+\code{$e$?.\id}, \code{$e$.\id}, or \code{\SUPER.\id}
+(\ref{propertyExtraction}, \ref{superGetterAccessAndMethodClosurization}),
+which is statically resolved to denote an instance method named \id,
+and let $G$ be the static type of $i$.
+Consider the situation where $G$ is a function type of the form
+\RawFunctionType{T_0}{X}{B}{s}{\metavar{parameters}}
+with $s > 0$
+(\commentary{that is, $G$ is a generic function type}),
+and the context type is a non-generic function type $F$.
+In this situation a compile-time error occurs
+(\ref{variables},
+\ref{functions},
+\ref{generativeConstructors},
+\ref{redirectingGenerativeConstructors},
+\ref{initializerLists},
+\ref{new},
+\ref{const},
+\ref{bindingActualsToFormals},
+\ref{assignment},
+\ref{localVariableDeclaration},
+\ref{switch},
+\ref{return},
+\ref{yieldEach}),
+except when generic function type instantiation
+(\ref{genericFunctionInstantiation})
+succeeds, that is:
+
+\LMHash{}%
+Type inference is applied to $G$ with context type $F$,
+and it succeeds, yielding the actual type argument list
+\List{T}{1}{s}.
+
+{ % Scope for \gmiName.
+
+\def\gmiName{\metavar{gmiName\ensuremath{_{\id}}}}
+
+% For any given method name \id, \gmiName is the "associated" name which
+% is used for the implicitly induced method that we use to get the function
+% object which is the result of a generic method instantiation. Let's call
+% that associated method the "generic instantiation method".
+%
+% The basic idea is that we consider all libraries included in the
+% compilation of a complete Dart program, and then we select a suffix,
+% say `_*`, which is globally unique (because no user-written identifier
+% can have that suffix, and the compiler doesn't use anything similar
+% for other purposes).
+%
+% When we have found such a "globally fresh suffix", it is easy to see
+% that we can use it to specify the implicitly induced methods in a way
+% that will do the right thing:
+%
+% Assume that a class `C` has a generic method `foo`, and it is subject
+% to generic method instantiation.
+%
+% We then generate a generic instantiation method for `foo` in in `C`, with the
+% name `foo_*`. If there is a subclass `D` of `C` which has an overriding
+% declaration of `foo` then we also generate a `foo_*` generic instantiation
+% method in `D`, and that one might return a closure with a different parameter
+% list shape, because that's the way `foo` is declared in `D`.
+%
+% We can then call `e.foo_*<...>()` where `e` has static type `C`,
+% at a location where the original source code had `e.foo` and the context
+% type was non-generic (so generic method instantiation kicked in).
+% This may invoke `foo_*` in `C`, or `D`, or some other class, whatever is the
+% dynamic type of the result of evaluating `e`.
+%
+% Altogether, this ensures that we obtain a function object whose parameter
+% list shape corresponds precisely to the parameter list shape of `foo` in
+% the dynamic type of the receiver, as it should. There will not be any
+% name clashes with user-written declarations, and overriding declarations
+% will actually override as they should, because they all use that same
+% "globally fresh suffix".
+%
+% The text below tries to communicate how this could work without being too
+% much like a particular implementation.
+
+\LMHash{}%
+Consider the situation where generic function type instantiation succeeded.
+Let \gmiName{} be a fresh name which is associated with \id{},
+which is private if and only if \id{} is private.
+\commentary{%
+An implementation could use, say, \code{foo_*} when \id{} is \code{foo},
+which is known to be fresh because user-written identifiers cannot contain `\code{*}'.%
+}
+The program is then modified as follows:
+
+\begin{itemize}
+\item When $i$ is \code{$e$?.\id}:
+  Replace $i$ by \code{$e$?.\gmiName<\List{T}{1}{s}>()}.
+\item When $i$ is \code{$e$.\id}:
+  Replace $i$ by \code{$e$.\gmiName<\List{T}{1}{s}>()}.
+\item When $i$ is \code{\SUPER.\id}:
+  Replace $i$ by \code{\SUPER.\gmiName<\List{T}{1}{s}>()}.
+\end{itemize}
+
+\LMHash{}%
+The inserted expressions have no compile-time error and can be executed,
+because the corresponding generic method is induced implicitly.
+We use the phrase
+\Index{generic instantiation method}
+to denote these implicitly induced methods,
+and designate the method that induced it as its
+\IndexCustom{target}{generic instantiation method!target}.
+
+\LMHash{}%
+Assume that a class $C$ declares a generic instance method named \id,
+with a method signature corresponding to a generic function type $G$,
+formal type parameters \TypeParametersStd{},
+and formal parameter declarations \metavar{parameters}.
+Let \metavar{arguments} denote the corresponding actual argument list,
+passing these parameters.
+\commentary{%
+For instance, \metavar{parameters} could be
+
+\noindent
+\code{$\PairList{T}{p}{1}{n},\ $\{$T_{n+1}\ p_{n+1} = d_1, \ldots,\ T_{n+k}\ p_{n+k} = d_k$\}}
+
+\noindent
+in which case \metavar{arguments} would be
+\code{\List{p}{1}{n},\ $p_{n+1}$:\ $p_{n+1}$,\ $p_{n+k}$:\ $p_{n+k}$}.%
+}
+
+\LMHash{}%
+Let $G'$ be the same function type as $G$,
+except that it omits the formal type parameter declarations.
+\commentary{%
+For instance, if $G$ is
+\FunctionTypeSimpleGeneric{\VOID}{$X$, $Y$ \EXTENDS\ num}{X x, List<Y> ys}
+then $G'$ is
+\FunctionTypeSimple{\VOID}{X x, List<Y> ys}.
+Note that $G'$ will typically contain free type variables.
+}
+
+\LMHash{}%
+An instance method with the name \gmiName{} is then implicitly induced,
+with the same behavior as the following declaration
+(except for equality of the returned function object,
+which is specified below):
+
+% Use `\THIS.\id..` because there could be a parameter named \id.
+\begin{normativeDartCode}
+$G'$ \gmiName<\TypeParametersStd{}>() \{
+\ \ \RETURN{} (\metavar{parameters}) => \THIS.\id<\List{X}{1}{s}>(\metavar{arguments});
+\}
+\end{normativeDartCode}
+
+\LMHash{}%
+Let $o$ be an instance of a class which contains
+an implicitly induced declaration of \gmiName{}
+as described above.
+%
+Consider the situation where the program evaluates
+two invocations of this method with the same receiver $o$,
+and with actual type arguments whose actual values are
+the same types \List{t}{1}{s} for both invocations,
+and assume that the invocations returned
+the instances $o_1$ respectively $o_2$.
+%
+It is then guaranteed that $o_1$ and $o_2$ are equal
+according to operator \syntax{`=='}.
+It is unspecified whether
+\code{identical($o_1$, $o_2$)}
+evaluates to \TRUE{} or \FALSE{}.
+
+} % End of scope for \gmiName.
+
+\rationale{%
+No notion of equality is appropriate with different receivers,
+nor when different type arguments are provided,
+because execution of two function objects that differ in these ways
+can have different side-effects and return different results
+when executed starting from exactly the same state.%
+}
 
 
 \subsection{Assignment}
