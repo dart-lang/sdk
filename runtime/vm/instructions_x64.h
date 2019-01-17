@@ -115,6 +115,9 @@ class SetFramePointerPattern
 // callq *[rip+offset]
 class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
  public:
+  static const intptr_t kLowerCallingRange = -(DART_UINT64_C(1) << 31);
+  static const intptr_t kUpperCallingRange = (DART_UINT64_C(1) << 31) - 1;
+
   explicit PcRelativeCallPattern(uword pc) : InstructionPattern(pc) {}
 
   int32_t distance() {
@@ -137,29 +140,50 @@ class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
   static const int kLengthInBytes = 5;
 };
 
-// jmpq *[rip+offset]
-class PcRelativeJumpPattern : public InstructionPattern<PcRelativeJumpPattern> {
+// Instruction pattern for a tail call to a signed 32-bit PC-relative offset
+//
+// The AOT compiler can emit PC-relative calls. If the destination of such a
+// call is not in range for the "bl.<cond> <offset>" instruction, the AOT
+// compiler will emit a trampoline which is in range. That trampoline will
+// then tail-call to the final destination (also via PC-relative offset, but it
+// supports a full signed 32-bit offset).
+//
+// The pattern of the trampoline looks like:
+//
+//     jmp $rip + <offset>
+//
+// (Strictly speaking the pc-relative call distance on X64 is big enough, but
+// for making AOT relocation code (i.e. relocation.cc) platform independent and
+// allow testing of trampolines on X64 we have it nonetheless)
+class PcRelativeTrampolineJumpPattern : public ValueObject {
  public:
-  explicit PcRelativeJumpPattern(uword pc) : InstructionPattern(pc) {}
+  explicit PcRelativeTrampolineJumpPattern(uword pattern_start)
+      : pattern_start_(pattern_start) {}
+
+  void Initialize() {
+    uint8_t* pattern = reinterpret_cast<uint8_t*>(pattern_start_);
+    pattern[0] = 0xe9;
+  }
 
   int32_t distance() {
-    return *reinterpret_cast<int32_t*>(start() + 2) + kLengthInBytes;
+    return *reinterpret_cast<int32_t*>(pattern_start_ + 1) + kLengthInBytes;
   }
 
   void set_distance(int32_t distance) {
     // [distance] is relative to the start of the instruction, x64 considers the
     // offset relative to next PC.
-    *reinterpret_cast<int32_t*>(start() + 2) = distance - kLengthInBytes;
+    *reinterpret_cast<int32_t*>(pattern_start_ + 1) = distance - kLengthInBytes;
   }
 
-  static const int* pattern() {
-    static const int kPattern[kLengthInBytes] = {0xff, 0x25, -1, -1, -1, -1};
-    return kPattern;
+  bool IsValid() const {
+    uint8_t* pattern = reinterpret_cast<uint8_t*>(pattern_start_);
+    return pattern[0] == 0xe9;
   }
 
-  static int pattern_length_in_bytes() { return kLengthInBytes; }
+ private:
+  static const int kLengthInBytes = 5;
 
-  static const int kLengthInBytes = 6;
+  uword pattern_start_;
 };
 
 }  // namespace dart

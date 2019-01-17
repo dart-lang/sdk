@@ -111,6 +111,15 @@ void ImageWriter::PrepareForSerialization(
           heap_->SetObjectId(instructions, offset);
           break;
         }
+        case ImageWriterCommand::InsertBytesOfTrampoline: {
+          auto trampoline_bytes = inst.insert_trampoline_bytes.buffer;
+          auto trampoline_length = inst.insert_trampoline_bytes.buffer_length;
+          const intptr_t offset = next_text_offset_;
+          instructions_.Add(
+              InstructionsData(trampoline_bytes, trampoline_length, offset));
+          next_text_offset_ += trampoline_length;
+          break;
+        }
         default:
           UNREACHABLE();
       }
@@ -279,6 +288,9 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   // will allocate on the Dart heap.
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     InstructionsData& data = instructions_[i];
+    const bool is_trampoline = data.trampoline_bytes != nullptr;
+    if (is_trampoline) continue;
+
     data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
     ASSERT(data.raw_code_ != NULL);
     data.code_ = &Code::Handle(zone, data.raw_code_);
@@ -406,18 +418,37 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   TypeTestingStubFinder tts;
   intptr_t text_offset = 0;
 
+  ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
   for (intptr_t i = 0; i < instructions_.length(); i++) {
-    auto& instr = instructions_[i];
-    ASSERT((instr.text_offset_ - instructions_[0].text_offset_) == text_offset);
+    auto& data = instructions_[i];
+    const bool is_trampoline = data.trampoline_bytes != nullptr;
+    ASSERT((data.text_offset_ - instructions_[0].text_offset_) == text_offset);
+
+    if (is_trampoline) {
+      if (profile_writer_ != nullptr) {
+        const intptr_t offset = Image::kHeaderSize + text_offset;
+        profile_writer_->SetObjectTypeAndName({offset_space_, offset},
+                                              "Trampolines",
+                                              /*name=*/nullptr);
+        profile_writer_->AttributeBytesTo({offset_space_, offset},
+                                          data.trampline_length);
+      }
+
+      const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
+      const auto end = start + data.trampline_length;
+      text_offset += WriteByteSequence(start, end);
+      delete[] data.trampoline_bytes;
+      data.trampoline_bytes = nullptr;
+      continue;
+    }
 
     const intptr_t instr_start = text_offset;
 
-    const Instructions& insns = *instr.insns_;
-    const Code& code = *instr.code_;
+    const Instructions& insns = *data.insns_;
+    const Code& code = *data.code_;
 
     if (profile_writer_ != nullptr) {
       const intptr_t offset = Image::kHeaderSize + text_offset;
-      ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
       profile_writer_->SetObjectTypeAndName({offset_space_, offset},
                                             "Instructions",
                                             /*name=*/nullptr);
@@ -451,9 +482,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
       text_offset += sizeof(uword);
-
-      WriteByteSequence(beginning, entry);
-      text_offset += (entry - beginning);
+      text_offset += WriteByteSequence(beginning, entry);
 
       ASSERT((text_offset - instr_start) == insns.HeaderSize());
     }
@@ -512,8 +541,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       ASSERT(Utils::IsAligned(entry, sizeof(uword)));
       ASSERT(Utils::IsAligned(end, sizeof(uword)));
 
-      WriteByteSequence(entry, end);
-      text_offset += (end - entry);
+      text_offset += WriteByteSequence(entry, end);
     }
 
     ASSERT((text_offset - instr_start) == insns.raw()->Size());
@@ -618,11 +646,12 @@ void AssemblyImageWriter::FrameUnwindEpilogue() {
   assembly_stream_.Print(".cfi_endproc\n");
 }
 
-void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
+intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   for (uword* cursor = reinterpret_cast<uword*>(start);
        cursor < reinterpret_cast<uword*>(end); cursor++) {
     WriteWordLiteralText(*cursor);
   }
+  return end - start;
 }
 
 BlobImageWriter::BlobImageWriter(Thread* thread,
@@ -639,6 +668,14 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size) {
 }
 
+intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
+  for (uword* cursor = reinterpret_cast<uword*>(start);
+       cursor < reinterpret_cast<uword*>(end); cursor++) {
+    instructions_blob_stream_.WriteWord(*cursor);
+  }
+  return end - start;
+}
+
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
@@ -653,12 +690,24 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
-    auto& instr = instructions_[i];
-    const Instructions& insns = *instructions_[i].insns_;
-    AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
-    ASSERT((instr.text_offset_ - instructions_[0].text_offset_) == text_offset);
+    auto& data = instructions_[i];
+    const bool is_trampoline = data.trampoline_bytes != nullptr;
+    ASSERT((data.text_offset_ - instructions_[0].text_offset_) == text_offset);
+
+    if (is_trampoline) {
+      const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
+      const auto end = start + data.trampline_length;
+      text_offset += WriteByteSequence(start, end);
+      delete[] data.trampoline_bytes;
+      data.trampoline_bytes = nullptr;
+      continue;
+    }
 
     const intptr_t instr_start = text_offset;
+
+    const Instructions& insns = *instructions_[i].insns_;
+    AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
+
     uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
     uword entry = beginning + Instructions::HeaderSize();
     uword payload_size = insns.Size();
@@ -684,12 +733,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     instructions_blob_stream_.WriteWord(marked_tags);
     text_offset += sizeof(uword);
     beginning += sizeof(uword);
-
-    for (uword* cursor = reinterpret_cast<uword*>(beginning);
-         cursor < reinterpret_cast<uword*>(end); cursor++) {
-      instructions_blob_stream_.WriteWord(*cursor);
-      text_offset += sizeof(uword);
-    }
+    text_offset += WriteByteSequence(beginning, end);
 
     ASSERT((text_offset - instr_start) == insns.raw()->Size());
   }

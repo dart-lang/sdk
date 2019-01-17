@@ -144,6 +144,37 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   return start;
 }
 
+void InstructionPattern::EncodeLoadWordImmediate(uword end,
+                                                 Register reg,
+                                                 intptr_t value) {
+  uint16_t low16 = value & 0xffff;
+  uint16_t high16 = (value >> 16) & 0xffff;
+
+  // movw reg, #imm_lo
+  uint32_t movw_instr = 0xe3000000;
+  movw_instr |= (low16 >> 12) << 16;
+  movw_instr |= (reg << 12);
+  movw_instr |= (low16 & 0xfff);
+
+  // movt reg, #imm_hi
+  uint32_t movt_instr = 0xe3400000;
+  movt_instr |= (high16 >> 12) << 16;
+  movt_instr |= (reg << 12);
+  movt_instr |= (high16 & 0xfff);
+
+  uint32_t* cursor = reinterpret_cast<uint32_t*>(end);
+  *(--cursor) = movt_instr;
+  *(--cursor) = movw_instr;
+
+#if defined(DEBUG)
+  Register decoded_reg;
+  intptr_t decoded_value;
+  DecodeLoadWordImmediate(end, &decoded_reg, &decoded_value);
+  ASSERT(reg == decoded_reg);
+  ASSERT(value == decoded_value);
+#endif
+}
+
 static bool IsLoadWithOffset(int32_t instr,
                              Register base,
                              intptr_t* offset,
@@ -326,19 +357,64 @@ bool ReturnPattern::IsValid() const {
 }
 
 bool PcRelativeCallPattern::IsValid() const {
-  // bl <offset>
+  // bl.<cond> <offset>
   const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
   const uint32_t cond_all = 0xe0;
   const uint32_t branch_link = 0x0b;
   return (word >> 24) == (cond_all | branch_link);
 }
 
-bool PcRelativeJumpPattern::IsValid() const {
-  // b <offset>
-  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
-  const uint32_t cond_all = 0xe0;
-  const uint32_t branch_nolink = 0x0a;
-  return (word >> 24) == (cond_all | branch_nolink);
+void PcRelativeTrampolineJumpPattern::Initialize() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint32_t* add_pc =
+      reinterpret_cast<uint32_t*>(pattern_start_ + 2 * Instr::kInstrSize);
+  *add_pc = kAddPcEncoding;
+  set_distance(0);
+#else
+  UNREACHABLE();
+#endif
+}
+
+int32_t PcRelativeTrampolineJumpPattern::distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uword end = pattern_start_ + 2 * Instr::kInstrSize;
+  Register reg;
+  intptr_t value;
+  InstructionPattern::DecodeLoadWordImmediate(end, &reg, &value);
+  value -= kDistanceOffset;
+  ASSERT(reg == TMP);
+  return value;
+#else
+  UNREACHABLE();
+  return 0;
+#endif
+}
+
+void PcRelativeTrampolineJumpPattern::set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uword end = pattern_start_ + 2 * Instr::kInstrSize;
+  InstructionPattern::EncodeLoadWordImmediate(end, TMP,
+                                              distance + kDistanceOffset);
+#else
+  UNREACHABLE();
+#endif
+}
+
+bool PcRelativeTrampolineJumpPattern::IsValid() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uword end = pattern_start_ + 2 * Instr::kInstrSize;
+  Register reg;
+  intptr_t value;
+  InstructionPattern::DecodeLoadWordImmediate(end, &reg, &value);
+
+  uint32_t* add_pc =
+      reinterpret_cast<uint32_t*>(pattern_start_ + 2 * Instr::kInstrSize);
+
+  return reg == TMP && *add_pc == kAddPcEncoding;
+#else
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {

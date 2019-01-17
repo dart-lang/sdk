@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_IMAGE_SNAPSHOT_H_
 #define RUNTIME_VM_IMAGE_SNAPSHOT_H_
 
+#include <memory>
 #include <utility>
 
 #include "platform/assert.h"
@@ -102,19 +103,28 @@ typedef DirectChainedHashMap<ObjectOffsetTrait> ObjectOffsetMap;
 // A command which instructs the image writer to emit something into the ".text"
 // segment.
 //
-// For now this just supports emitting the instructions of a [Code] object.
-// In the future we might also want to add support for emitting trampolines.
+// For now this supports
+//
+//   * emitting the instructions of a [Code] object
+//   * emitting a trampoline of a certain size
+//
 struct ImageWriterCommand {
   enum Opcode {
     InsertInstructionOfCode,
+    InsertBytesOfTrampoline,
   };
 
-  ImageWriterCommand(intptr_t expected_offset,
-                     ImageWriterCommand::Opcode opcode,
-                     RawCode* code)
+  ImageWriterCommand(intptr_t expected_offset, RawCode* code)
       : expected_offset(expected_offset),
-        op(opcode),
+        op(ImageWriterCommand::InsertInstructionOfCode),
         insert_instruction_of_code({code}) {}
+
+  ImageWriterCommand(intptr_t expected_offset,
+                     uint8_t* trampoline_bytes,
+                     intptr_t trampoine_length)
+      : expected_offset(expected_offset),
+        op(ImageWriterCommand::InsertBytesOfTrampoline),
+        insert_trampoline_bytes({trampoline_bytes, trampoine_length}) {}
 
   // The offset (relative to the very first [ImageWriterCommand]) we expect
   // this [ImageWriterCommand] to have.
@@ -125,6 +135,10 @@ struct ImageWriterCommand {
     struct {
       RawCode* code;
     } insert_instruction_of_code;
+    struct {
+      uint8_t* buffer;
+      intptr_t buffer_length;
+    } insert_trampoline_bytes;
   };
 };
 
@@ -177,7 +191,20 @@ class ImageWriter : public ValueObject {
     InstructionsData(RawInstructions* insns,
                      RawCode* code,
                      intptr_t text_offset)
-        : raw_insns_(insns), raw_code_(code), text_offset_(text_offset) {}
+        : raw_insns_(insns),
+          raw_code_(code),
+          text_offset_(text_offset),
+          trampoline_bytes(nullptr),
+          trampline_length(0) {}
+
+    InstructionsData(uint8_t* trampoline_bytes,
+                     intptr_t trampline_length,
+                     intptr_t text_offset)
+        : raw_insns_(nullptr),
+          raw_code_(nullptr),
+          text_offset_(text_offset),
+          trampoline_bytes(trampoline_bytes),
+          trampline_length(trampline_length) {}
 
     union {
       RawInstructions* raw_insns_;
@@ -188,6 +215,9 @@ class ImageWriter : public ValueObject {
       const Code* code_;
     };
     intptr_t text_offset_;
+
+    uint8_t* trampoline_bytes;
+    intptr_t trampline_length;
   };
 
   struct ObjectData {
@@ -279,7 +309,7 @@ class AssemblyImageWriter : public ImageWriter {
  private:
   void FrameUnwindPrologue();
   void FrameUnwindEpilogue();
-  void WriteByteSequence(uword start, uword end);
+  intptr_t WriteByteSequence(uword start, uword end);
   void WriteWordLiteralText(uword value) {
 // Padding is helpful for comparing the .S with --disassemble.
 #if defined(ARCH_IS_64_BIT)
@@ -312,6 +342,8 @@ class BlobImageWriter : public ImageWriter {
   }
 
  private:
+  intptr_t WriteByteSequence(uword start, uword end);
+
   WriteStream instructions_blob_stream_;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
