@@ -1,0 +1,18 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/spread_collection.dart:6:25: Error: Unexpected token '...'.
+//   final list = <int>[1, ...[2], ...?[3]];
+//                         ^^^
+//
+// pkg/front_end/testcases/spread_collection.dart:6:33: Error: Unexpected token '...?'.
+//   final list = <int>[1, ...[2], ...?[3]];
+//                                 ^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  final dynamic list = <core::int>[1, <dynamic>[2], <dynamic>[3]];
+  core::print(list);
+}

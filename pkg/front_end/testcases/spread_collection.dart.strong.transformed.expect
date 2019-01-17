@@ -1,0 +1,26 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/spread_collection.dart:6:25: Error: Unexpected token '...'.
+//   final list = <int>[1, ...[2], ...?[3]];
+//                         ^^^
+//
+// pkg/front_end/testcases/spread_collection.dart:6:33: Error: Unexpected token '...?'.
+//   final list = <int>[1, ...[2], ...?[3]];
+//                                 ^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  final core::List<core::int> list = <core::int>[1, let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:6:28: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+ - 'List' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  final list = <int>[1, ...[2], ...?[3]];
+                           ^" in <core::int>[2] as{TypeError} core::int, let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:6:37: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+ - 'List' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  final list = <int>[1, ...[2], ...?[3]];
+                                    ^" in <core::int>[3] as{TypeError} core::int];
+  core::print(list);
+}
