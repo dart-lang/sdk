@@ -270,18 +270,6 @@ class BinaryBuilder {
       case ConstantTag.TypeLiteralConstant:
         final DartType type = readDartType();
         return new TypeLiteralConstant(type);
-      case ConstantTag.EnvironmentBoolConstant:
-        final String name = readStringReference();
-        final Constant defaultValue = readConstantReference();
-        return new EnvironmentBoolConstant(name, defaultValue);
-      case ConstantTag.EnvironmentIntConstant:
-        final String name = readStringReference();
-        final Constant defaultValue = readConstantReference();
-        return new EnvironmentIntConstant(name, defaultValue);
-      case ConstantTag.EnvironmentStringConstant:
-        final String name = readStringReference();
-        final Constant defaultValue = readConstantReference();
-        return new EnvironmentStringConstant(name, defaultValue);
       case ConstantTag.UnevaluatedConstant:
         final Expression expression = readExpression();
         return new UnevaluatedConstant(expression);

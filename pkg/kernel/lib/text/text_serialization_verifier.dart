@@ -302,24 +302,6 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
-  void visitEnvironmentBoolConstantReference(EnvironmentBoolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentIntConstantReference(EnvironmentIntConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentStringConstantReference(EnvironmentStringConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
@@ -399,24 +381,6 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitNullConstant(NullConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
   }

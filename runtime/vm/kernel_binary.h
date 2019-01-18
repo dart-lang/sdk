@@ -17,7 +17,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 17;
+static const uint32_t kBinaryFormatVersion = 18;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -149,10 +149,7 @@ enum ConstantTag {
   kTypeLiteralConstant = 11,
   // These constants are not expected to be seen by the VM, because all
   // constants are fully evaluated.
-  kEnvironmentBoolConstant = 12,
-  kEnvironmentIntConstant = 13,
-  kEnvironmentStringConstant = 14,
-  kUnevaluatedConstant = 15,
+  kUnevaluatedConstant = 12,
 };
 
 static const int SpecializedIntLiteralBias = 3;

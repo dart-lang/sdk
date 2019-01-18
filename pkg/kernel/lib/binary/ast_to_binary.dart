@@ -243,18 +243,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
-    } else if (constant is EnvironmentBoolConstant) {
-      writeByte(ConstantTag.EnvironmentBoolConstant);
-      writeStringReference(constant.name);
-      writeConstantReference(constant.defaultValue);
-    } else if (constant is EnvironmentIntConstant) {
-      writeByte(ConstantTag.EnvironmentIntConstant);
-      writeStringReference(constant.name);
-      writeConstantReference(constant.defaultValue);
-    } else if (constant is EnvironmentStringConstant) {
-      writeByte(ConstantTag.EnvironmentStringConstant);
-      writeStringReference(constant.name);
-      writeConstantReference(constant.defaultValue);
     } else if (constant is UnevaluatedConstant) {
       writeByte(ConstantTag.UnevaluatedConstant);
       writeNode(constant.expression);
@@ -2074,39 +2062,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitDoubleConstantReference(DoubleConstant node) {
     throw new UnsupportedError('serialization of DoubleConstant references');
-  }
-
-  @override
-  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
-    throw new UnsupportedError('serialization of EnvironmentBoolConstants');
-  }
-
-  @override
-  void visitEnvironmentBoolConstantReference(EnvironmentBoolConstant node) {
-    throw new UnsupportedError(
-        'serialization of EnvironmentBoolConstant references');
-  }
-
-  @override
-  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    throw new UnsupportedError('serialization of EnvironmentIntConstants');
-  }
-
-  @override
-  void visitEnvironmentIntConstantReference(EnvironmentIntConstant node) {
-    throw new UnsupportedError(
-        'serialization of EnvironmentIntConstant references');
-  }
-
-  @override
-  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
-    throw new UnsupportedError('serialization of EnvironmentStringConstants');
-  }
-
-  @override
-  void visitEnvironmentStringConstantReference(EnvironmentStringConstant node) {
-    throw new UnsupportedError(
-        'serialization of EnvironmentStringConstant references');
   }
 
   @override

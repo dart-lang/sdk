@@ -14,9 +14,6 @@ import 'package:kernel/ast.dart'
         DartType,
         DoubleConstant,
         DynamicType,
-        EnvironmentBoolConstant,
-        EnvironmentIntConstant,
-        EnvironmentStringConstant,
         Field,
         FunctionType,
         InvalidType,
@@ -312,18 +309,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
     node.type.accept(this);
-  }
-
-  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
-    unsupported('printing unevaluated constants', -1, null);
-  }
-
-  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    unsupported('printing unevaluated constants', -1, null);
-  }
-
-  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
-    unsupported('printing unevaluated constants', -1, null);
   }
 
   void visitUnevaluatedConstant(UnevaluatedConstant node) {

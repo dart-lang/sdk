@@ -6,21 +6,18 @@ library fasta.kernel_constants;
 
 import 'package:kernel/ast.dart'
     show
+        Arguments,
         Constant,
         DartType,
-        EnvironmentBoolConstant,
-        EnvironmentIntConstant,
-        EnvironmentStringConstant,
         IntConstant,
         Library,
         ListConstant,
         MapConstant,
         Member,
-        NullConstant,
         Procedure,
         StaticInvocation,
-        StringConstant,
-        TreeNode;
+        TreeNode,
+        UnevaluatedConstant;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -49,8 +46,6 @@ import '../fasta_codes.dart'
         templateConstEvalZeroDivisor;
 
 import '../loader.dart' show Loader;
-
-import '../problems.dart' show unexpected;
 
 class KernelConstantErrorReporter extends ErrorReporter {
   final Loader<Library> loader;
@@ -218,24 +213,17 @@ class KernelConstantsBackend extends ConstantsBackend {
     if (nativeName == 'Bool_fromEnvironment' ||
         nativeName == 'Integer_fromEnvironment' ||
         nativeName == 'String_fromEnvironment') {
-      if (positionalArguments.length == 1 &&
-          positionalArguments.first is StringConstant &&
-          (namedArguments.length == 0 ||
-              (namedArguments.length == 1 &&
-                  namedArguments.containsKey('defaultValue')))) {
-        StringConstant name = positionalArguments.first;
-        Constant defaultValue =
-            namedArguments['defaultValue'] ?? new NullConstant();
-        if (nativeName == 'Bool_fromEnvironment') {
-          return new EnvironmentBoolConstant(name.value, defaultValue);
-        }
-        if (nativeName == 'Integer_fromEnvironment') {
-          return new EnvironmentIntConstant(name.value, defaultValue);
-        }
-        return new EnvironmentStringConstant(name.value, defaultValue);
+      // Replace the evaluated arguments.
+      Arguments arguments = node.arguments;
+      for (int i = 0; i < arguments.positional.length; ++i) {
+        Constant constant = positionalArguments[i];
+        arguments.positional[i] = constant.asExpression()..parent = arguments;
       }
-      return unexpected('valid constructor invocation', node.toString(),
-          node.fileOffset, node.location.file);
+      for (int i = 0; i < arguments.named.length; ++i) {
+        Constant constant = namedArguments[arguments.named[i].name];
+        arguments.named[i].value = constant.asExpression()..parent = arguments;
+      }
+      return new UnevaluatedConstant(node);
     }
     return abortEvaluation(
         errorReporter.invalidStaticInvocation(context, node, node.target));

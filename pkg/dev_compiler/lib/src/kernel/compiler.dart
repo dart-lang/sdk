@@ -5120,12 +5120,6 @@ class ProgramCompiler extends Object
   @override
   visitPartialInstantiationConstant(node) => defaultConstant(node);
   @override
-  visitEnvironmentBoolConstant(node) => defaultConstant(node);
-  @override
-  visitEnvironmentIntConstant(node) => defaultConstant(node);
-  @override
-  visitEnvironmentStringConstant(node) => defaultConstant(node);
-  @override
   visitUnevaluatedConstant(node) => defaultConstant(node);
 }
 

@@ -1955,24 +1955,6 @@ class Printer extends Visitor<Null> {
     endLine(sb.toString());
   }
 
-  visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
-    final String name = syntheticNames.nameConstant(node);
-    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
-    endLine('  $name = bool.fromEnvironment(${node.name}, ${defaultValue})');
-  }
-
-  visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    final String name = syntheticNames.nameConstant(node);
-    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
-    endLine('  $name = int.fromEnvironment(${node.name}, ${defaultValue})');
-  }
-
-  visitEnvironmentStringConstant(EnvironmentStringConstant node) {
-    final String name = syntheticNames.nameConstant(node);
-    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
-    endLine('  $name = String.fromEnvironment(${node.name}, ${defaultValue})');
-  }
-
   visitUnevaluatedConstant(UnevaluatedConstant node) {
     final String name = syntheticNames.nameConstant(node);
     write('  $name = ');
