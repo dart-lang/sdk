@@ -363,7 +363,10 @@ bool SocketBase::GetOption(intptr_t fd,
                            int option,
                            char* data,
                            unsigned int* length) {
-  return NO_RETRY_EXPECTED(getsockopt(fd, level, option, data, length)) == 0;
+  socklen_t optlen = static_cast<socklen_t>(*length);
+  auto result = NO_RETRY_EXPECTED(getsockopt(fd, level, option, data, &optlen));
+  *length = static_cast<unsigned int>(optlen);
+  return result == 0;
 }
 
 bool SocketBase::JoinMulticast(intptr_t fd,

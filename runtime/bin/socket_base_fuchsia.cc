@@ -9,10 +9,10 @@
 
 // TODO(ZX-766): If/when Fuchsia adds getifaddrs(), use that instead of the
 // ioctl in netconfig.h.
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
+#include <errno.h>    // NOLINT
+#include <fcntl.h>    // NOLINT
+#include <ifaddrs.h>  // NOLINT
 #include <lib/netstack/c/netconfig.h>
-#include <ifaddrs.h>      // NOLINT
 #include <net/if.h>       // NOLINT
 #include <netinet/tcp.h>  // NOLINT
 #include <stdio.h>        // NOLINT
@@ -391,8 +391,11 @@ bool SocketBase::GetOption(intptr_t fd,
                            char* data,
                            unsigned int* length) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
-  return NO_RETRY_EXPECTED(
-             getsockopt(handle->fd(), level, option, data, length)) == 0;
+  socklen_t optlen = static_cast<socklen_t>(*length);
+  auto result =
+      NO_RETRY_EXPECTED(getsockopt(handle->fd(), level, option, data, &optlen));
+  *length = static_cast<unsigned int>(optlen);
+  return result == 0;
 }
 
 bool SocketBase::JoinMulticast(intptr_t fd,
