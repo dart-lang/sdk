@@ -5142,7 +5142,7 @@ abstract class ListLiteral extends TypedLiteral {
  *
  *    listLiteral ::=
  *        'const'? ('<' [TypeAnnotation] '>')?
- *        '[' ([CollectionLiteralElement] ','?)? ']'
+ *        '[' ([CollectionElement] ','?)? ']'
  *
  * This is the class that is used to represent a list literal when either the
  * 'control-flow-collections' or 'spread-collections' experiments are enabled.

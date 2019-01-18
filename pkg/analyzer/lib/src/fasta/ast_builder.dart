@@ -279,9 +279,12 @@ class AstBuilder extends StackListener {
 
   @override
   void handleSpreadExpression(Token spreadToken) {
-    // TODO(danrubel): generate new AST structure
-    handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
-        spreadToken, spreadToken);
+    if (enableSpreadCollections) {
+      push(ast.spreadElement(spreadOperator: spreadToken, expression: pop()));
+    } else {
+      handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
+          spreadToken, spreadToken);
+    }
   }
 
   void handleStringJuxtaposition(int literalCount) {
@@ -865,10 +868,22 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    List<Expression> expressions = popTypedList(count);
-    TypeArgumentList typeArguments = pop();
-    push(ast.listLiteral(
-        constKeyword, typeArguments, leftBracket, expressions, rightBracket));
+    if (enableSpreadCollections) {
+      List<CollectionElement> elements = popTypedList(count);
+      TypeArgumentList typeArguments = pop();
+      push(ast.listLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<Expression> expressions = popTypedList(count);
+      TypeArgumentList typeArguments = pop();
+      push(ast.listLiteral(
+          constKeyword, typeArguments, leftBracket, expressions, rightBracket));
+    }
   }
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
@@ -927,10 +942,23 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralSet");
 
-    List<Expression> entries = popTypedList(count) ?? <Expression>[];
-    TypeArgumentList typeArguments = pop();
-    push(ast.setLiteral(
-        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    if (enableSpreadCollections) {
+      List<CollectionElement> elements =
+          popTypedList(count) ?? <CollectionElement>[];
+      TypeArgumentList typeArguments = pop();
+      push(ast.setLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<Expression> entries = popTypedList(count) ?? <Expression>[];
+      TypeArgumentList typeArguments = pop();
+      push(ast.setLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    }
   }
 
   void handleLiteralMap(
@@ -940,19 +968,34 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralMap");
 
-    // TODO(danrubel): Revise once spread collection AST structures
-    // are in place. For now, drop those on the floor
-    // as error(s) have already been reported in handleSpreadExpression.
-    List<MapLiteralEntry> entries = <MapLiteralEntry>[];
-    popTypedList(count)?.forEach((entry) {
-      if (entry is MapLiteralEntry) {
-        entries.add(entry);
-      }
-    });
+    if (enableSpreadCollections) {
+      List<MapElement> entries = <MapElement>[];
+      popTypedList(count)?.forEach((entry) {
+        if (entry is MapElement) {
+          entries.add(entry);
+        }
+      });
 
-    TypeArgumentList typeArguments = pop();
-    push(ast.mapLiteral(
-        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+      TypeArgumentList typeArguments = pop();
+      push(ast.mapLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        entries: entries,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+      popTypedList(count)?.forEach((entry) {
+        if (entry is MapLiteralEntry) {
+          entries.add(entry);
+        }
+      });
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.mapLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    }
   }
 
   void handleLiteralMapEntry(Token colon, Token endToken) {

@@ -40,6 +40,7 @@ main() {
     defineReflectiveTests(NNBDParserTest_Fasta);
     defineReflectiveTests(RecoveryParserTest_Fasta);
     defineReflectiveTests(SimpleParserTest_Fasta);
+    defineReflectiveTests(CollectionLiteralParserTest);
     defineReflectiveTests(StatementParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
@@ -101,6 +102,196 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
+  }
+}
+
+/**
+ * Tests of the fasta parser based on [ExpressionParserTestMixin].
+ */
+@reflectiveTest
+class CollectionLiteralParserTest extends FastaParserTestCase {
+  Expression parseCollectionLiteral(String source,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      int expectedEndOffset}) {
+    return parseExpression(source,
+        codes: codes,
+        errors: errors,
+        expectedEndOffset: expectedEndOffset,
+        parseSetLiterals: true,
+        parseSpreadCollections: true);
+  }
+
+  void test_listLiteral_spread() {
+    ListLiteral2 list = parseCollectionLiteral('[1, ...[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    SpreadElement element = list.elements[1];
+    expect(element.spreadOperator.lexeme, '...');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_listLiteral_spreadQ() {
+    ListLiteral2 list = parseCollectionLiteral('[1, ...?[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    SpreadElement element = list.elements[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_spread() {
+    MapLiteral2 map = parseCollectionLiteral('{1: 2, ...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ() {
+    MapLiteral2 map = parseCollectionLiteral('{1: 2, ...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread2_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ2_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_setLiteral_spread2() {
+    SetLiteral2 set = parseCollectionLiteral('{3, ...[4]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+
+    SpreadElement element = set.elements[1];
+    expect(element.spreadOperator.lexeme, '...');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread2Q() {
+    SetLiteral2 set = parseCollectionLiteral('{3, ...?[4]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+
+    SpreadElement element = set.elements[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread_typed() {
+    SetLiteral2 set = parseCollectionLiteral('<int>{...[3]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+
+    SpreadElement element = set.elements[0];
+    expect(element.spreadOperator.lexeme, '...');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spreadQ_typed() {
+    SetLiteral2 set = parseCollectionLiteral('<int>{...?[3]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+
+    SpreadElement element = set.elements[0];
+    expect(element.spreadOperator.lexeme, '...?');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setOrMapLiteral_spread() {
+    MapLiteral2 map = parseCollectionLiteral('{...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_setOrMapLiteral_spreadQ() {
+    MapLiteral2 map = parseCollectionLiteral('{...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
   }
 }
 
@@ -261,7 +452,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_listLiteral_spread() {
-    // TODO(danrubel): Revise this test once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     ListLiteral list = parseExpression('[1, ...[2]]', errors: [
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3),
     ]);
@@ -273,7 +464,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_listLiteral_spreadQ() {
-    // TODO(danrubel): Revise this test once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     ListLiteral list = parseExpression('[1, ...?[2]]', errors: [
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 4),
     ]);
@@ -352,7 +543,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_spread() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral map = parseExpression('{1: 2, ...{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 3)]);
@@ -362,7 +553,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_spreadQ() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral map = parseExpression('{1: 2, ...?{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 4)]);
@@ -372,7 +563,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_spread_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral map = parseExpression('<int, int>{...{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 3)]);
@@ -382,7 +573,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_spreadQ_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral map = parseExpression('<int, int>{...?{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 4)]);
@@ -392,7 +583,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_spread2_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral map = parseExpression('<int, int>{1: 2, ...{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 3)]);
@@ -402,7 +593,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_spreadQ2_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral map = parseExpression('<int, int>{1: 2, ...?{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 4)]);
@@ -471,7 +662,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setLiteral_spread2() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     SetLiteral set = parseExpression('{3, ...[4]}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3)]);
@@ -485,7 +676,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setLiteral_spread2Q() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     SetLiteral set = parseExpression('{3, ...?[4]}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 4)]);
@@ -499,7 +690,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setLiteral_spread_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     SetLiteral set = parseExpression('<int>{...[3]}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 3)]);
@@ -511,7 +702,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setLiteral_spreadQ_typed() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     SetLiteral set = parseExpression('<int>{...?[3]}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 4)]);
@@ -534,7 +725,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setOrMapLiteral_spread() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral set = parseExpression('{...{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 1, 3)]);
@@ -544,7 +735,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setOrMapLiteral_spreadQ() {
-    // TODO(danrubel): Revise this once AST supports new syntax
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
     MapLiteral set = parseExpression('{...?{3: 4}}',
         parseSetLiterals: true,
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 1, 4)]);
@@ -810,9 +1001,11 @@ class FastaParserTestCase
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
       int expectedEndOffset,
-      bool parseSetLiterals = false}) {
+      bool parseSetLiterals = false,
+      bool parseSpreadCollections = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
     _parserProxy.fastaParser.enableSetLiterals = parseSetLiterals;
+    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;
