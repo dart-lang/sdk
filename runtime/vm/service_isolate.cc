@@ -381,6 +381,10 @@ class RunServiceTask : public ThreadPool::Task {
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
+      error = I->sticky_error();
+      if (!error.IsNull() && !error.IsUnwindError()) {
+        OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
+      }
       Dart::RunShutdownCallback();
     }
     ASSERT(ServiceIsolate::IsServiceIsolate(I));

@@ -866,13 +866,12 @@ void Object::Init(Isolate* isolate) {
   // needs to be created earlier as VM isolate snapshot reader references it
   // before Object::FinalizeVMIsolate.
 
-  // Some thread and isolate fields need to be reinitialized as null constants
-  // have not been initialized until now.
+  // Some thread fields need to be reinitialized as null constants have not been
+  // initialized until now.
   Thread* thr = Thread::Current();
   ASSERT(thr != NULL);
   thr->ClearStickyError();
   thr->clear_pending_functions();
-  isolate->ClearStickyError();
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());

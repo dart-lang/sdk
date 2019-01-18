@@ -1699,8 +1699,11 @@ static void ShutdownIsolate(uword parameter) {
   Dart::ShutdownIsolate(isolate);
 }
 
-void Isolate::ClearStickyError() {
-  sticky_error_ = Error::null();
+void Isolate::SetStickyError(RawError* sticky_error) {
+  ASSERT(
+      ((sticky_error_ == Error::null()) || (sticky_error == Error::null())) &&
+      (sticky_error != sticky_error_));
+  sticky_error_ = sticky_error;
 }
 
 void Isolate::Run() {
@@ -2326,6 +2329,13 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   deoptimized_code.Add(code);
 }
 
+RawError* Isolate::StealStickyError() {
+  NoSafepointScope no_safepoint;
+  RawError* return_value = sticky_error_;
+  sticky_error_ = Error::null();
+  return return_value;
+}
+
 #if !defined(PRODUCT)
 void Isolate::set_pending_service_extension_calls(
     const GrowableObjectArray& value) {
@@ -2827,11 +2837,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     os_thread->set_thread(thread);
     if (is_mutator) {
       scheduled_mutator_thread_ = thread;
-      if (sticky_error() != Error::null()) {
-        ASSERT(thread->sticky_error() == Error::null());
-        thread->sticky_error_ = sticky_error_;
-        sticky_error_ = Error::null();
-      }
       if (this != Dart::vm_isolate()) {
         scheduled_mutator_thread_->set_top(heap()->new_space()->top());
         scheduled_mutator_thread_->set_end(heap()->new_space()->end());

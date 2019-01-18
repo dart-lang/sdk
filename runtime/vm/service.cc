@@ -3142,8 +3142,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "A library tag handler must be installed.");
     return true;
   }
-  if ((thread->sticky_error() != Error::null()) ||
-      (isolate->sticky_error() != Error::null()) ||
+  if ((isolate->sticky_error() != Error::null()) ||
       (Thread::Current()->sticky_error() != Error::null())) {
     js->PrintError(kIsolateReloadBarred,
                    "This isolate cannot reload sources anymore because there "

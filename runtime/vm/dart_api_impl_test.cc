@@ -3696,6 +3696,22 @@ VM_UNIT_TEST_CASE(DartAPI_SetMessageCallbacks) {
   Dart_ShutdownIsolate();
 }
 
+TEST_CASE(DartAPI_SetStickyError) {
+  const char* kScriptChars = "main() => throw 'HI';";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle retobj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT(Dart_IsError(retobj));
+  EXPECT(Dart_IsUnhandledExceptionError(retobj));
+  EXPECT(!Dart_HasStickyError());
+  EXPECT(Dart_GetStickyError() == Dart_Null());
+  Dart_SetStickyError(retobj);
+  EXPECT(Dart_HasStickyError());
+  EXPECT(Dart_GetStickyError() != Dart_Null());
+  Dart_SetStickyError(Dart_Null());
+  EXPECT(!Dart_HasStickyError());
+  EXPECT(Dart_GetStickyError() == Dart_Null());
+}
+
 TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
   const char* kScriptChars =
       "class MyClass0 {\n"
