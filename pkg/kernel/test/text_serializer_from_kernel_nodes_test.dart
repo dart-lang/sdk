@@ -117,6 +117,21 @@ void test() {
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
+    () {
+      Field field = new Field(new Name("field"), type: const DynamicType());
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          fields: <Field>[field]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase(
+          name: "/* suppose top-level: dynamic field; */ field = 1",
+          node: new StaticSet(field, new IntLiteral(1)),
+          expectation:
+              "(set-static \"package:foo/bar.dart::@fields::field\" (int 1))",
+          serializationState: new SerializationState(null),
+          deserializationState: new DeserializationState(null, component.root));
+    }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =

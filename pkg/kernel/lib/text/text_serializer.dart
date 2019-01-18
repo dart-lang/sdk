@@ -99,6 +99,7 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitVariableGet(VariableGet _) => "get-var";
   String visitVariableSet(VariableSet _) => "set-var";
   String visitStaticGet(StaticGet _) => "get-static";
+  String visitStaticSet(StaticSet _) => "set-static";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -556,6 +557,20 @@ StaticGet wrapStaticGet(CanonicalName name) {
   return new StaticGet.byReference(name.getReference());
 }
 
+TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
+    unwrapStaticSet,
+    wrapStaticSet,
+    new Tuple2Serializer(
+        const CanonicalNameSerializer(), expressionSerializer));
+
+Tuple2<CanonicalName, Expression> unwrapStaticSet(StaticSet expression) {
+  return new Tuple2(expression.targetReference.canonicalName, expression.value);
+}
+
+StaticSet wrapStaticSet(Tuple2<CanonicalName, Expression> tuple) {
+  return new StaticSet.byReference(tuple.first.getReference(), tuple.second);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -763,6 +778,7 @@ void initializeSerializers() {
     "get-var",
     "set-var",
     "get-static",
+    "set-static",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -800,6 +816,7 @@ void initializeSerializers() {
     variableGetSerializer,
     variableSetSerializer,
     staticGetSerializer,
+    staticSetSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
