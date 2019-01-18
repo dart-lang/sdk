@@ -111,9 +111,6 @@ class KernelTarget extends TargetImplementation {
 
   final DillTarget dillTarget;
 
-  /// Shared with [CompilerContext].
-  final Map<Uri, Source> uriToSource;
-
   /// The [MetadataCollector] to write metadata to.
   final MetadataCollector metadataCollector;
 
@@ -138,7 +135,6 @@ class KernelTarget extends TargetImplementation {
       UriTranslator uriTranslator,
       {MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
-        uriToSource = CompilerContext.current.uriToSource,
         metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();

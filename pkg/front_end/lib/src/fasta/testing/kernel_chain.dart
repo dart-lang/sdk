@@ -40,6 +40,9 @@ import '../../api_prototype/compiler_options.dart'
 
 import '../../base/processed_options.dart' show ProcessedOptions;
 
+import '../../compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import '../compiler_context.dart' show CompilerContext;
 
 import '../kernel/verifier.dart' show verifyComponent;
@@ -48,6 +51,10 @@ import '../messages.dart' show LocatedMessage;
 
 import '../fasta_codes.dart'
     show templateInternalProblemUnhandled, templateUnspecified;
+
+import '../util/relativize.dart' show relativizeUri;
+
+final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
 abstract class MatchContext implements ChainContext {
   bool get updateExpectations;
@@ -218,7 +225,16 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
     new Printer(buffer)
       ..writeProblemsAsJson("Problems in component", component.problemsAsJson)
       ..writeLibraryFile(library);
-    String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
+    String actual = "$buffer";
+    String binariesPath = relativizeUri(platformBinariesLocation);
+    if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
+      // We are running from the built SDK.
+      actual = actual.replaceAll(
+          binariesPath.substring(
+              0, binariesPath.length - "lib/_internal/".length),
+          "sdk/");
+    }
+    actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
     return context.match<Component>(suffix, actual, uri, component);

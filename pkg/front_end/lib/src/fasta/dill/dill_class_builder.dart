@@ -41,6 +41,8 @@ class DillClassBuilder extends KernelClassBuilder {
             parent,
             cls.fileOffset);
 
+  Uri get fileUri => cls.fileUri;
+
   KernelTypeBuilder get supertype {
     KernelTypeBuilder supertype = super.supertype;
     if (supertype == null) {

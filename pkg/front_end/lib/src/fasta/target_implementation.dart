@@ -4,6 +4,8 @@
 
 library fasta.target_implementation;
 
+import 'package:kernel/ast.dart' show Source;
+
 import 'package:kernel/target/targets.dart' as backend show Target;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -35,6 +37,9 @@ abstract class TargetImplementation extends Target {
   final backend.Target backendTarget;
 
   final CompilerContext context = CompilerContext.current;
+
+  /// Shared with [CompilerContext].
+  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
   Declaration cachedAbstractClassInstantiationError;
   Declaration cachedCompileTimeError;
