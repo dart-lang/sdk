@@ -124,8 +124,6 @@ abstract class TargetImplementation extends Target {
 
   void readPatchFiles(covariant LibraryBuilder library) {}
 
-  /// Create a FormattedMessage and return it, or return [null] if [severity] is
-  /// [Severity.ignored].
   FormattedMessage createFormattedMessage(
       Message message,
       int charOffset,
@@ -133,8 +131,6 @@ abstract class TargetImplementation extends Target {
       Uri fileUri,
       List<LocatedMessage> messageContext,
       Severity severity) {
-    severity = fixSeverity(severity, message, fileUri);
-    if (severity == Severity.ignored) return null;
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
         message.withLocation(fileUri, charOffset, length),

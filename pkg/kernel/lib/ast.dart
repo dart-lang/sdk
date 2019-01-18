@@ -291,7 +291,11 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   String name;
 
-  Set<String> problemsAsJson = new Set<String>();
+  /// Problems in this [Library] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   @nocoq
   final List<Expression> annotations;
@@ -5511,7 +5515,11 @@ class UnevaluatedConstant extends Constant {
 class Component extends TreeNode {
   final CanonicalName root;
 
-  Set<String> problemsAsJson = new Set<String>();
+  /// Problems in this [Component] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   final List<Library> libraries;
 

@@ -71,8 +71,6 @@ import '../problems.dart' show unhandled, unimplemented;
 
 import '../scope.dart' show AmbiguousBuilder;
 
-import '../severity.dart' show Severity;
-
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -305,11 +303,12 @@ class KernelTarget extends TargetImplementation {
 
   void installAllComponentProblems(
       List<FormattedMessage> allComponentProblems) {
+    if (allComponentProblems.isNotEmpty) {
+      component.problemsAsJson ??= <String>[];
+    }
     for (int i = 0; i < allComponentProblems.length; i++) {
       FormattedMessage formattedMessage = allComponentProblems[i];
-      if (formattedMessage.severity != Severity.ignored) {
-        component.problemsAsJson.add(formattedMessage.toJsonString());
-      }
+      component.problemsAsJson.add(formattedMessage.toJsonString());
     }
   }
 

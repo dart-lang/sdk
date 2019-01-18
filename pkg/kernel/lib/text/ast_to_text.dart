@@ -350,7 +350,7 @@ class Printer extends Visitor<Null> {
     writeProblemsAsJson("Problems in component", component.problemsAsJson);
   }
 
-  void writeProblemsAsJson(String header, Set<String> problemsAsJson) {
+  void writeProblemsAsJson(String header, List<String> problemsAsJson) {
     if (problemsAsJson?.isEmpty == false) {
       endLine("//");
       write("// ");

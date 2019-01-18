@@ -241,22 +241,23 @@ class KernelLibraryBuilder
   }
 
   @override
-  void addProblem(Message message, int charOffset, int length, Uri fileUri,
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
       {bool wasHandled: false,
       List<LocatedMessage> context,
       Severity severity,
       bool problemOnLibrary: false}) {
-    fileUri ??= this.fileUri;
-    FormattedMessage formattedMessage = loader.target.createFormattedMessage(
-        message, charOffset, length, fileUri, context, severity);
-    if (formattedMessage != null) {
-      target.problemsAsJson.add(formattedMessage.toJsonString());
-    }
-    super.addProblem(message, charOffset, length, fileUri,
+    FormattedMessage formattedMessage = super.addProblem(
+        message, charOffset, length, fileUri,
         wasHandled: wasHandled,
         context: context,
         severity: severity,
         problemOnLibrary: true);
+    if (formattedMessage != null) {
+      target.problemsAsJson ??= <String>[];
+      target.problemsAsJson.add(formattedMessage.toJsonString());
+    }
+    return formattedMessage;
   }
 
   void addClass(
@@ -1332,7 +1333,10 @@ class KernelLibraryBuilder
     super.includePart(part, usedParts);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
-    target.problemsAsJson.addAll(part.target.problemsAsJson);
+    if (part.target.problemsAsJson != null) {
+      target.problemsAsJson ??= <String>[];
+      target.problemsAsJson.addAll(part.target.problemsAsJson);
+    }
   }
 
   @override
