@@ -98,6 +98,7 @@ class ExpressionTagger extends ExpressionVisitor<String>
 
   String visitVariableGet(VariableGet _) => "get-var";
   String visitVariableSet(VariableSet _) => "set-var";
+  String visitStaticGet(StaticGet _) => "get-static";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -381,7 +382,8 @@ class LetSerializer extends TextSerializer<Let> {
         stream,
         new DeserializationState(
             new DeserializationEnvironment(state.environment)
-              ..add(variable.name, variable)));
+              ..add(variable.name, variable),
+            state.nameRoot));
     return new Let(variable, body);
   }
 
@@ -509,6 +511,49 @@ Tuple2<VariableDeclaration, Expression> unwrapVariableSet(VariableSet node) {
 
 VariableSet wrapVariableSet(Tuple2<VariableDeclaration, Expression> tuple) {
   return new VariableSet(tuple.first, tuple.second);
+}
+
+class CanonicalNameSerializer extends TextSerializer<CanonicalName> {
+  static const String delimiter = "::";
+
+  const CanonicalNameSerializer();
+
+  static void writeName(CanonicalName name, StringBuffer buffer) {
+    if (!name.isRoot) {
+      if (!name.parent.isRoot) {
+        writeName(name.parent, buffer);
+        buffer.write(delimiter);
+      }
+      buffer.write(name.name);
+    }
+  }
+
+  CanonicalName readFrom(Iterator<Object> stream, DeserializationState state) {
+    String string = const DartString().readFrom(stream, state);
+    CanonicalName name = state.nameRoot;
+    for (String s in string.split(delimiter)) {
+      name = name.getChild(s);
+    }
+    return name;
+  }
+
+  void writeTo(
+      StringBuffer buffer, CanonicalName name, SerializationState state) {
+    StringBuffer sb = new StringBuffer();
+    writeName(name, sb);
+    const DartString().writeTo(buffer, sb.toString(), state);
+  }
+}
+
+TextSerializer<StaticGet> staticGetSerializer =
+    new Wrapped(unwrapStaticGet, wrapStaticGet, new CanonicalNameSerializer());
+
+CanonicalName unwrapStaticGet(StaticGet expression) {
+  return expression.targetReference.canonicalName;
+}
+
+StaticGet wrapStaticGet(CanonicalName name) {
+  return new StaticGet.byReference(name.getReference());
 }
 
 Case<Expression> expressionSerializer =
@@ -717,6 +762,7 @@ void initializeSerializers() {
     "invoke-super",
     "get-var",
     "set-var",
+    "get-static",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -753,6 +799,7 @@ void initializeSerializers() {
     superMethodInvocationSerializer,
     variableGetSerializer,
     variableSetSerializer,
+    staticGetSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",

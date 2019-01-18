@@ -7,6 +7,7 @@ library kernel.serializer_combinators;
 import 'dart:convert' show json;
 
 import '../ast.dart' show Node;
+import '../canonical_name.dart' show CanonicalName;
 import 'text_serializer.dart' show Tagger;
 
 class DeserializationEnvironment<T extends Node> {
@@ -70,8 +71,9 @@ class SerializationEnvironment<T extends Node> {
 
 class DeserializationState {
   final DeserializationEnvironment environment;
+  final CanonicalName nameRoot;
 
-  DeserializationState(this.environment);
+  DeserializationState(this.environment, this.nameRoot);
 }
 
 class SerializationState {

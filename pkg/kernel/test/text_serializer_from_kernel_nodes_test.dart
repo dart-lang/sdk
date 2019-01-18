@@ -45,8 +45,8 @@ class TestCase {
       DeserializationState deserializationState})
       : this.serializationState =
             serializationState ?? new SerializationState(null),
-        this.deserializationState =
-            deserializationState ?? new DeserializationState(null);
+        this.deserializationState = deserializationState ??
+            new DeserializationState(null, new CanonicalName.root());
 }
 
 void test() {
@@ -94,14 +94,28 @@ void test() {
           new VariableDeclaration("x", type: const DynamicType());
       return new TestCase(
           name: "/* suppose: dynamic x; */ x = 42",
-          node: () {
-            return new VariableSet(x, new IntLiteral(42));
-          }(),
+          node: new VariableSet(x, new IntLiteral(42)),
           expectation: "(set-var \"x^0\" (int 42))",
           serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+            new SerializationEnvironment(null)..add(x, "x^0"),
+          ),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x)));
+              new DeserializationEnvironment(null)..add("x^0", x),
+              new CanonicalName.root()));
+    }(),
+    () {
+      Field field = new Field(new Name("field"), type: const DynamicType());
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          fields: <Field>[field]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase(
+          name: "/* suppose top-level: dynamic field; */ field",
+          node: new StaticGet(field),
+          expectation: "(get-static \"package:foo/bar.dart::@fields::field\")",
+          serializationState: new SerializationState(null),
+          deserializationState: new DeserializationState(null, component.root));
     }(),
   ];
   for (TestCase testCase in tests) {

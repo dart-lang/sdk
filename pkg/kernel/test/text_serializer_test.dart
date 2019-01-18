@@ -17,8 +17,8 @@ void main() {
 Expression readExpression(String input) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
-  Expression result =
-      expressionSerializer.readFrom(stream, new DeserializationState(null));
+  Expression result = expressionSerializer.readFrom(
+      stream, new DeserializationState(null, new CanonicalName.root()));
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
