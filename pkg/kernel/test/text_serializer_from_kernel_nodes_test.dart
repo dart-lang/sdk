@@ -14,37 +14,39 @@ void main() {
 }
 
 // Wrappers for testing.
-Expression readExpression(
-    String input, DeserializationEnvironment environment) {
+Expression readExpression(String input, DeserializationState state) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
-  Expression result = expressionSerializer.readFrom(stream, environment);
+  Expression result = expressionSerializer.readFrom(stream, state);
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
   return result;
 }
 
-String writeExpression(
-    Expression expression, SerializationEnvironment environment) {
+String writeExpression(Expression expression, SerializationState state) {
   StringBuffer buffer = new StringBuffer();
-  expressionSerializer.writeTo(buffer, expression, environment);
+  expressionSerializer.writeTo(buffer, expression, state);
   return buffer.toString();
 }
 
 class TestCase {
   final String name;
   final Node node;
-  final SerializationEnvironment serializationEnvironment;
-  final DeserializationEnvironment deserializationEnvironment;
+  final SerializationState serializationState;
+  final DeserializationState deserializationState;
   final String expectation;
 
   TestCase(
       {this.name,
       this.node,
       this.expectation,
-      this.serializationEnvironment,
-      this.deserializationEnvironment});
+      SerializationState serializationState,
+      DeserializationState deserializationState})
+      : this.serializationState =
+            serializationState ?? new SerializationState(null),
+        this.deserializationState =
+            deserializationState ?? new DeserializationState(null);
 }
 
 void test() {
@@ -96,15 +98,15 @@ void test() {
             return new VariableSet(x, new IntLiteral(42));
           }(),
           expectation: "(set-var \"x^0\" (int 42))",
-          serializationEnvironment: new SerializationEnvironment(null)
-            ..add(x, "x^0"),
-          deserializationEnvironment: new DeserializationEnvironment(null)
-            ..add("x^0", x));
+          serializationState: new SerializationState(
+              new SerializationEnvironment(null)..add(x, "x^0")),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null)..add("x^0", x)));
     }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =
-        writeExpression(testCase.node, testCase.serializationEnvironment);
+        writeExpression(testCase.node, testCase.serializationState);
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           '* initial serialization for test "${testCase.name}"'
@@ -112,9 +114,9 @@ void test() {
     }
 
     TreeNode deserialized =
-        readExpression(roundTripInput, testCase.deserializationEnvironment);
+        readExpression(roundTripInput, testCase.deserializationState);
     String roundTripOutput =
-        writeExpression(deserialized, testCase.serializationEnvironment);
+        writeExpression(deserialized, testCase.serializationState);
     if (roundTripOutput != roundTripInput) {
       failures.add(''
           '* input "${testCase.name}" gave output "${roundTripOutput}"');

@@ -374,29 +374,29 @@ MapLiteral wrapConstMapLiteral(
 class LetSerializer extends TextSerializer<Let> {
   const LetSerializer();
 
-  Let readFrom(
-      Iterator<Object> stream, DeserializationEnvironment environment) {
+  Let readFrom(Iterator<Object> stream, DeserializationState state) {
     VariableDeclaration variable =
-        variableDeclarationSerializer.readFrom(stream, environment);
+        variableDeclarationSerializer.readFrom(stream, state);
     Expression body = expressionSerializer.readFrom(
         stream,
-        new DeserializationEnvironment(environment)
-          ..add(variable.name, variable));
+        new DeserializationState(
+            new DeserializationEnvironment(state.environment)
+              ..add(variable.name, variable)));
     return new Let(variable, body);
   }
 
-  void writeTo(
-      StringBuffer buffer, Let object, SerializationEnvironment environment) {
-    SerializationEnvironment bodyScope =
-        new SerializationEnvironment(environment);
+  void writeTo(StringBuffer buffer, Let object, SerializationState state) {
+    SerializationState bodyState =
+        new SerializationState(new SerializationEnvironment(state.environment));
     VariableDeclaration variable = object.variable;
     String oldVariableName = variable.name;
-    String newVariableName = bodyScope.add(variable, oldVariableName);
+    String newVariableName =
+        bodyState.environment.add(variable, oldVariableName);
     variableDeclarationSerializer.writeTo(
-        buffer, variable..name = newVariableName, environment);
+        buffer, variable..name = newVariableName, state);
     variable.name = oldVariableName;
     buffer.write(' ');
-    expressionSerializer.writeTo(buffer, object.body, bodyScope);
+    expressionSerializer.writeTo(buffer, object.body, bodyState);
   }
 }
 
