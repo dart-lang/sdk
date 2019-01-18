@@ -229,6 +229,33 @@ void test() {
               new DeserializationEnvironment(null)..add("x^0", x),
               component.root));
     }(),
+    () {
+      Procedure method = new Procedure(
+          new Name("foo"), ProcedureKind.Method, new FunctionNode(null),
+          isStatic: true, isConst: true);
+      Class klass = new Class(name: "A", procedures: <Procedure>[method]);
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          classes: <Class>[klass]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+
+      VariableDeclaration x =
+          new VariableDeclaration("x", type: const DynamicType());
+      return new TestCase(
+          name: "/* suppose A {foo() {...}} A x; */ x.{A::foo}()",
+          node: new DirectMethodInvocation.byReference(
+              new VariableGet(x), method.reference, new Arguments([])),
+          expectation: ""
+              "(invoke-direct-method (get-var \"x^0\" _)"
+              " \"package:foo/bar.dart::A::@methods::foo\""
+              " () () ())",
+          serializationState: new SerializationState(
+              new SerializationEnvironment(null)..add(x, "x^0")),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null)..add("x^0", x),
+              component.root));
+    }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =

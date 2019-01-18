@@ -105,6 +105,10 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitStaticInvocation(StaticInvocation expression) {
     return expression.isConst ? "invoke-const-static" : "invoke-static";
   }
+
+  String visitDirectMethodInvocation(DirectMethodInvocation _) {
+    return "invoke-direct-method";
+  }
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -641,6 +645,25 @@ StaticInvocation wrapConstStaticInvocation(
       isConst: true);
 }
 
+TextSerializer<DirectMethodInvocation> directMethodInvocationSerializer =
+    new Wrapped(
+        unwrapDirectMethodInvocation,
+        wrapDirectMethodInvocation,
+        new Tuple3Serializer(expressionSerializer,
+            const CanonicalNameSerializer(), argumentsSerializer));
+
+Tuple3<Expression, CanonicalName, Arguments> unwrapDirectMethodInvocation(
+    DirectMethodInvocation expression) {
+  return new Tuple3(expression.receiver,
+      expression.targetReference.canonicalName, expression.arguments);
+}
+
+DirectMethodInvocation wrapDirectMethodInvocation(
+    Tuple3<Expression, CanonicalName, Arguments> tuple) {
+  return new DirectMethodInvocation.byReference(
+      tuple.first, tuple.second.getReference(), tuple.third);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -853,6 +876,7 @@ void initializeSerializers() {
     "set-direct-prop",
     "invoke-static",
     "invoke-const-static",
+    "invoke-direct-method",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -895,6 +919,7 @@ void initializeSerializers() {
     directPropertySetSerializer,
     staticInvocationSerializer,
     constStaticInvocationSerializer,
+    directMethodInvocationSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
