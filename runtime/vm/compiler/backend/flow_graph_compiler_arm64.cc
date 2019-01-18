@@ -26,6 +26,32 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
+void FlowGraphCompiler::ArchSpecificInitialization() {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    auto object_store = isolate()->object_store();
+
+    const auto& stub =
+        Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
+    if (!stub.InVMHeap()) {
+      assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
+        const intptr_t offset_into_target =
+            Thread::WriteBarrierWrappersOffsetForRegister(reg);
+        AddPcRelativeCallStubTarget(stub);
+        assembler_->GenerateUnRelocatedPcRelativeCall(offset_into_target);
+      };
+    }
+
+    const auto& array_stub =
+        Code::ZoneHandle(object_store->array_write_barrier_stub());
+    if (!array_stub.InVMHeap()) {
+      assembler_->invoke_array_write_barrier_ = [&]() {
+        AddPcRelativeCallStubTarget(array_stub);
+        assembler_->GenerateUnRelocatedPcRelativeCall();
+      };
+    }
+  }
+}
+
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.

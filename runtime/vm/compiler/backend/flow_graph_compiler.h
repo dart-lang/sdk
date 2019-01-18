@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 
+#include <functional>
+
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
@@ -346,6 +348,8 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<intptr_t>& caller_inline_id,
                     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
                     CodeStatistics* stats = NULL);
+
+  void ArchSpecificInitialization();
 
   ~FlowGraphCompiler();
 
@@ -801,6 +805,8 @@ class FlowGraphCompiler : public ValueObject {
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
+  friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
+  friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
   friend class CheckedSmiComparisonSlowPath;  // Same.
@@ -1038,7 +1044,6 @@ class FlowGraphCompiler : public ValueObject {
   Environment* pending_deoptimization_env_;
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
-
   Array& edge_counters_array_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);

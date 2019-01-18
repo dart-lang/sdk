@@ -28,6 +28,13 @@ Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
     : AssemblerBase(object_pool_wrapper), constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
   ASSERT(!use_far_branches);
+
+  generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
+    call(Address(THR, Thread::write_barrier_wrappers_thread_offset(reg)));
+  };
+  invoke_array_write_barrier_ = [&]() {
+    call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+  };
 }
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
@@ -1291,7 +1298,7 @@ void Assembler::StoreIntoObject(Register object,
     }
     movq(kWriteBarrierValueReg, value);
   }
-  call(Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
+  generate_invoke_write_barrier_wrapper_(objectForCall);
   if (value != kWriteBarrierValueReg) {
     if (object == kWriteBarrierValueReg) {
       popq(objectForCall);
@@ -1337,7 +1344,7 @@ void Assembler::StoreIntoArray(Register object,
     UNIMPLEMENTED();
   }
 
-  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+  invoke_array_write_barrier_();
 
   Bind(&done);
 }
@@ -1829,10 +1836,14 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
-void Assembler::GenerateUnRelocatedPcRelativeCall() {
+void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<uint8_t>(0xe8);
-  buffer_.Emit<int32_t>(0x68686868);
+  buffer_.Emit<int32_t>(0);
+
+  PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
 }
 
 void Assembler::Align(int alignment, intptr_t offset) {

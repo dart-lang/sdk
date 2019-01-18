@@ -24,32 +24,32 @@ class UnresolvedCall : public IntrusiveDListEntry<UnresolvedCall>,
  public:
   UnresolvedCall(RawCode* caller,
                  intptr_t call_offset,
-                 Code::CallEntryPoint call_entry_point,
                  intptr_t text_offset,
-                 RawCode* callee)
+                 RawCode* callee,
+                 intptr_t offset_into_target)
       : caller(caller),
         call_offset(call_offset),
-        call_entry_point(call_entry_point),
         text_offset(text_offset),
-        callee(callee) {}
+        callee(callee),
+        offset_into_target(offset_into_target) {}
 
   UnresolvedCall(const UnresolvedCall& other)
       : caller(other.caller),
         call_offset(other.call_offset),
-        call_entry_point(other.call_entry_point),
         text_offset(other.text_offset),
-        callee(other.callee) {}
+        callee(other.callee),
+        offset_into_target(other.offset_into_target) {}
 
   // The caller which has an unresolved call.
   RawCode* caller;
   // The offset from the payload of the calling code which performs the call.
   intptr_t call_offset;
-  // Type entry-point type we call in the destination.
-  Code::CallEntryPoint call_entry_point;
   // The offset in the .text segment where the call happens.
   intptr_t text_offset;
   // The target of the forward call.
   RawCode* callee;
+  // The extra offset into the target.
+  intptr_t offset_into_target;
 };
 
 // A list of all unresolved calls.
@@ -65,17 +65,29 @@ using SameDestinationUnresolvedCallsList = IntrusiveDList<UnresolvedCall, 2>;
 // increase the range of PC-relative calls.  If a pc-relative call in normal
 // code is too far away from it's destination, it will call a trampoline
 // instead (which will tail-call the destination).
-struct UnresolvedTrampoline {
-  // The entry-point type we call in the destination.
-  Code::CallEntryPoint call_entry_point;
+class UnresolvedTrampoline : public IntrusiveDListEntry<UnresolvedTrampoline> {
+ public:
+  UnresolvedTrampoline(RawCode* callee,
+                       intptr_t offset_into_target,
+                       uint8_t* trampoline_bytes,
+                       intptr_t text_offset)
+      : callee(callee),
+        offset_into_target(offset_into_target),
+        trampoline_bytes(trampoline_bytes),
+        text_offset(text_offset) {}
+
   // The target of the forward call.
   RawCode* callee;
+  // The extra offset into the target.
+  intptr_t offset_into_target;
 
   // The trampoline buffer.
   uint8_t* trampoline_bytes;
   // The offset in the .text segment where the trampoline starts.
   intptr_t text_offset;
 };
+
+using UnresolvedTrampolineList = IntrusiveDList<UnresolvedTrampoline>;
 
 template <typename ValueType, ValueType kNoValue>
 class InstructionsMapTraits {
@@ -104,6 +116,9 @@ class InstructionsMapTraits {
 
 using InstructionsPosition =
     DirectChainedHashMap<InstructionsMapTraits<intptr_t, -1>>;
+
+using TrampolinesMap = DirectChainedHashMap<
+    InstructionsMapTraits<UnresolvedTrampolineList*, nullptr>>;
 
 using InstructionsUnresolvedCalls = DirectChainedHashMap<
     InstructionsMapTraits<SameDestinationUnresolvedCallsList*, nullptr>>;
@@ -135,13 +150,17 @@ class CodeRelocator : public StackResource {
 
   void Relocate(bool is_vm_isolate);
 
+  void FindInstructionAndCallLimits();
+
   bool AddInstructionsToText(RawCode* code);
-  void AddTrampolineToText(RawInstructions* destination,
-                           uint8_t* trampoline_bytes,
-                           intptr_t trampoline_length);
   void ScanCallTargets(const Code& code,
                        const Array& call_targets,
                        intptr_t code_text_offset);
+
+  UnresolvedTrampoline* FindTrampolineFor(UnresolvedCall* unresolved_call);
+  void AddTrampolineToText(RawInstructions* destination,
+                           uint8_t* trampoline_bytes,
+                           intptr_t trampoline_length);
 
   void EnqueueUnresolvedCall(UnresolvedCall* unresolved_call);
   void EnqueueUnresolvedTrampoline(UnresolvedTrampoline* unresolved_trampoline);
@@ -156,10 +175,14 @@ class CodeRelocator : public StackResource {
   void BuildTrampolinesForAlmostOutOfRangeCalls();
 
   intptr_t FindDestinationInText(const RawInstructions* destination,
-                                 Code::CallEntryPoint call_entry_point);
+                                 intptr_t offset_into_target);
 
   bool IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                           intptr_t target_text_offset);
+
+  // The code relocation happens during AOT snapshot writing and operates on raw
+  // objects. No allocations can be done.
+  NoSafepointScope no_savepoint_scope_;
 
   const GrowableArray<RawCode*>* code_objects_;
   GrowableArray<ImageWriterCommand>* commands_;
@@ -168,14 +191,14 @@ class CodeRelocator : public StackResource {
   intptr_t max_instructions_size_ = 0;
   // The maximum number of pc-relative calls in an instructions object.
   intptr_t max_calls_ = 0;
+  intptr_t max_offset_into_target_ = 0;
 
   // Data structures used for relocation.
   intptr_t next_text_offset_ = 0;
   InstructionsPosition text_offsets_;
-  InstructionsPosition trampoline_text_offsets_;
+  TrampolinesMap trampolines_by_destination_;
   InstructionsUnresolvedCalls unresolved_calls_by_destination_;
   AllUnresolvedCallsList all_unresolved_calls_;
-  GrowableArray<UnresolvedTrampoline*> unresolved_trampolines_;
 
   // Reusable handles for [ScanCallTargets].
   Smi& kind_type_and_offset_;

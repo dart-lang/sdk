@@ -8,6 +8,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
+#include "vm/instructions.h"
 #include "vm/longjump.h"
 #include "vm/runtime_entry.h"
 #include "vm/simulator.h"
@@ -26,7 +27,16 @@ Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
     : AssemblerBase(object_pool_wrapper),
       use_far_branches_(use_far_branches),
-      constant_pool_allowed_(false) {}
+      constant_pool_allowed_(false) {
+  generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
+    ldr(LR, Address(THR, Thread::write_barrier_wrappers_thread_offset(reg)));
+    blr(LR);
+  };
+  invoke_array_write_barrier_ = [&]() {
+    ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()));
+    blr(LR);
+  };
+}
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
@@ -1009,8 +1019,9 @@ void Assembler::StoreIntoObject(Register object,
     }
     mov(kWriteBarrierValueReg, value);
   }
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
-  blr(LR);
+
+  generate_invoke_write_barrier_wrapper_(objectForCall);
+
   if (value != kWriteBarrierValueReg) {
     if (object != kWriteBarrierValueReg) {
       Pop(kWriteBarrierValueReg);
@@ -1061,10 +1072,7 @@ void Assembler::StoreIntoArray(Register object,
     // allocator.
     UNIMPLEMENTED();
   }
-
-  ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()));
-  blr(LR);
-
+  invoke_array_write_barrier_();
   if (!lr_reserved) Pop(LR);
   Bind(&done);
 }
@@ -1546,9 +1554,13 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
-void Assembler::GenerateUnRelocatedPcRelativeCall() {
+void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   // Emit "bl <offset>".
-  EmitUnconditionalBranchOp(BL, 0x686868);
+  EmitUnconditionalBranchOp(BL, 0);
+
+  PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

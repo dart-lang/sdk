@@ -438,10 +438,11 @@ class ObjectPoolWrapper : public ValueObject {
 
 enum RestorePP { kRestoreCallerPP, kKeepCalleePP };
 
-class AssemblerBase : public ValueObject {
+class AssemblerBase : public StackResource {
  public:
   explicit AssemblerBase(ObjectPoolWrapper* object_pool_wrapper)
-      : prologue_offset_(-1),
+      : StackResource(Thread::Current()),
+        prologue_offset_(-1),
         has_single_entry_point_(true),
         object_pool_wrapper_(object_pool_wrapper) {}
   virtual ~AssemblerBase() {}

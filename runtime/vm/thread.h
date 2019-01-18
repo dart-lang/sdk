@@ -494,7 +494,7 @@ class Thread : public ThreadState {
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
-  static intptr_t write_barrier_wrappers_offset(Register reg) {
+  static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
@@ -504,6 +504,19 @@ class Thread : public ThreadState {
     }
     return OFFSET_OF(Thread, write_barrier_wrappers_entry_points_) +
            index * sizeof(uword);
+  }
+
+  static intptr_t WriteBarrierWrappersOffsetForRegister(Register reg) {
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+      if (i == reg) {
+        return index * kStoreBufferWrapperSize;
+      }
+      ++index;
+    }
+    UNREACHABLE();
+    return 0;
   }
 #endif
 

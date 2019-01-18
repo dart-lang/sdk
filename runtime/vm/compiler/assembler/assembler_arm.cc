@@ -8,6 +8,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
+#include "vm/instructions.h"
 #include "vm/longjump.h"
 #include "vm/runtime_entry.h"
 #include "vm/simulator.h"
@@ -25,6 +26,23 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+
+Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches)
+    : AssemblerBase(object_pool_wrapper),
+      use_far_branches_(use_far_branches),
+      constant_pool_allowed_(false) {
+  generate_invoke_write_barrier_wrapper_ = [&](Condition cond, Register reg) {
+    ldr(LR, Address(THR, Thread::write_barrier_wrappers_thread_offset(reg)),
+        cond);
+    blx(LR, cond);
+  };
+  invoke_array_write_barrier_ = [&](Condition cond) {
+    ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()),
+        cond);
+    blx(LR, cond);
+  };
+}
 
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
@@ -1630,8 +1648,8 @@ void Assembler::StoreIntoObject(Register object,
       mov(objectForCall, Operand(object));
     }
     mov(kWriteBarrierValueReg, Operand(value));
-    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
-    blx(LR);
+    generate_invoke_write_barrier_wrapper_(AL, objectForCall);
+
     if (object != kWriteBarrierValueReg) {
       Pop(kWriteBarrierValueReg);
     } else {
@@ -1639,8 +1657,7 @@ void Assembler::StoreIntoObject(Register object,
     }
     Bind(&restore_and_done);
   } else {
-    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
-    blx(LR, NE);
+    generate_invoke_write_barrier_wrapper_(NE, object);
   }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
@@ -1687,10 +1704,7 @@ void Assembler::StoreIntoArray(Register object,
     // allocator.
     UNIMPLEMENTED();
   }
-
-  ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()), NE);
-  blx(LR, NE);
-
+  invoke_array_write_barrier_(NE);
   if (!lr_reserved) Pop(LR);
   Bind(&done);
 }
@@ -3406,9 +3420,14 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
-void Assembler::GenerateUnRelocatedPcRelativeCall(Condition cond) {
+void Assembler::GenerateUnRelocatedPcRelativeCall(Condition cond,
+                                                  intptr_t offset_into_target) {
   // Emit "blr.cond <offset>".
   EmitType5(cond, 0x686868, /*link=*/true);
+
+  PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
 }
 
 void Assembler::Stop(const char* message) {

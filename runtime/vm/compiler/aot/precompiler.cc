@@ -275,6 +275,14 @@ void Precompiler::DoCompileAll() {
                 global_object_pool_wrapper());
         I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
             stub_code);
+
+        stub_code = StubCode::BuildIsolateSpecificWriteBarrierWrappersStub(
+            global_object_pool_wrapper());
+        I->object_store()->set_write_barrier_wrappers_stub(stub_code);
+
+        stub_code = StubCode::BuildIsolateSpecificArrayWriteBarrierStub(
+            global_object_pool_wrapper());
+        I->object_store()->set_array_write_barrier_stub(stub_code);
       }
 
       CollectDynamicFunctionNames();

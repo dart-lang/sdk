@@ -164,6 +164,8 @@ FlowGraphCompiler::FlowGraphCompiler(
   code_source_map_builder_ = new (zone_)
       CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
+
+  ArchSpecificInitialization();
 }
 
 bool FlowGraphCompiler::IsUnboxedField(const Field& field) {

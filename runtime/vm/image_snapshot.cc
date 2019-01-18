@@ -400,6 +400,10 @@ const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
   } else if (code.raw() ==
              object_store->stack_overflow_stub_without_fpu_regs_stub()) {
     return "_iso_stub_StackOverflowStubWithoutFPURegsStub";
+  } else if (code.raw() == object_store->write_barrier_wrappers_stub()) {
+    return "_iso_stub_WriteBarrierWrappersStub";
+  } else if (code.raw() == object_store->array_write_barrier_stub()) {
+    return "_iso_stub_ArrayWriteBarrierStub";
   }
   return nullptr;
 }

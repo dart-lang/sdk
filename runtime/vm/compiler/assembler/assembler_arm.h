@@ -9,6 +9,8 @@
 #error Do not include assembler_arm.h directly; use assembler.h instead.
 #endif
 
+#include <functional>
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_arm.h"
@@ -338,11 +340,7 @@ class FieldAddress : public Address {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
-                     bool use_far_branches = false)
-      : AssemblerBase(object_pool_wrapper),
-        use_far_branches_(use_far_branches),
-        constant_pool_allowed_(false) {}
-
+                     bool use_far_branches = false);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -1106,7 +1104,12 @@ class Assembler : public AssemblerBase {
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
   // will be used during relocation to fix the offset.
-  void GenerateUnRelocatedPcRelativeCall(Condition cond = AL);
+  //
+  // The provided [offset_into_target] will be added to calculate the final
+  // destination.  It can be used e.g. for calling into the middle of a
+  // function.
+  void GenerateUnRelocatedPcRelativeCall(Condition cond = AL,
+                                         intptr_t offset_into_target = 0);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
@@ -1272,6 +1275,11 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
+
+  friend class FlowGraphCompiler;
+  std::function<void(Condition, Register)>
+      generate_invoke_write_barrier_wrapper_;
+  std::function<void(Condition)> invoke_array_write_barrier_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

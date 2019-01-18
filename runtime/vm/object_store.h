@@ -129,6 +129,8 @@ class ObjectPointerVisitor;
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
+  RW(Code, write_barrier_wrappers_stub)                                        \
+  RW(Code, array_write_barrier_stub)                                           \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
   RW(Array, code_order_table)                                                  \

@@ -160,6 +160,11 @@ class IntrusiveDList {
       return *this;
     }
 
+    inline Iterator<ContainerType, I>& operator--() {
+      entry_ = entry_->Prev();
+      return *this;
+    }
+
    private:
     friend IntrusiveDList;
 
