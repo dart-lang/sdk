@@ -90,7 +90,7 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
-[ $runtime == dart_precompiled && $system == linux && ($arch == simarm || $arch == simarm64) ]
+[ $runtime == dart_precompiled && $system == linux && ($arch == simarm || $arch == simarm64 || $arch == x64) ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
 [ $runtime == vm && !$checked && !$strong ]
