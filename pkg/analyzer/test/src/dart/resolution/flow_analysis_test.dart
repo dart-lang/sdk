@@ -18,6 +18,7 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DefiniteAssignmentFlowTest);
+    defineReflectiveTests(ReachableFlowTest);
     defineReflectiveTests(TypePromotionFlowTest);
   });
 }
@@ -1079,6 +1080,26 @@ void f() {
     assertReadBeforeWritten();
   }
 
+  @failingTest
+  test_tryCatchFinally_useInFinally() async {
+    await trackCode(r'''
+f() {
+  int x;
+  try {
+    g(); // may throw an exception
+    x = 1;
+  } catch (_) {
+    x = 1;
+  } finally {
+    x; // BAD
+  }
+}
+
+void g() {}
+''');
+    assertReadBeforeWritten('x');
+  }
+
   test_tryFinally_body() async {
     await trackCode(r'''
 void f() {
@@ -1296,7 +1317,481 @@ void f() {
       loopAssignedVariables,
       {},
       readBeforeWritten,
+      [],
+      [],
     ));
+  }
+}
+
+@reflectiveTest
+class ReachableFlowTest extends DriverResolutionTest {
+  final List<AstNode> unreachableNodes = [];
+  final List<FunctionBody> functionBodiesThatDontComplete = [];
+
+  test_conditional_false() async {
+    await trackCode(r'''
+void f() {
+  false ? 1 : 2;
+}
+''');
+    verify(unreachableExpressions: ['1']);
+  }
+
+  test_conditional_true() async {
+    await trackCode(r'''
+void f() {
+  true ? 1 : 2;
+}
+''');
+    verify(unreachableExpressions: ['2']);
+  }
+
+  test_do_false() async {
+    await trackCode(r'''
+void f() {
+  do (true) {
+    1;
+  } while (false);
+  2;
+}
+''');
+    verify();
+  }
+
+  test_do_true() async {
+    await trackCode(r'''
+void f() { // f
+  do (true) {
+    1;
+  } while (true);
+  2;
+}
+''');
+    verify(
+      unreachableStatements: ['2;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_exit_beforeSplitStatement() async {
+    await trackCode(r'''
+void f(bool b, int i) { // f
+  return;
+  do {} while (b);
+  for (;;) {}
+  for (_ in []) {}
+  if (b) {}
+  switch (i) {}
+  try {} finally {}
+  while (b) {}
+}
+''');
+    verify(
+      unreachableStatements: [
+        'do {}',
+        'for (;;',
+        'for (_',
+        'if (b)',
+        'try {',
+        'switch (i)',
+        'while (b) {}'
+      ],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_for_condition_true() async {
+    await trackCode(r'''
+void f() { // f
+  for (; true;) {
+    1;
+  }
+  2;
+}
+''');
+    verify(
+      unreachableStatements: ['2;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_for_condition_true_implicit() async {
+    await trackCode(r'''
+void f() { // f
+  for (;;) {
+    1;
+  }
+  2;
+}
+''');
+    verify(
+      unreachableStatements: ['2;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_forEach() async {
+    await trackCode(r'''
+void f() {
+  for (_ in [0, 1, 2]) {
+    1;
+    return;
+  }
+  2;
+}
+''');
+    verify();
+  }
+
+  test_functionBody_hasReturn() async {
+    await trackCode(r'''
+int f() { // f
+  return 42;
+}
+''');
+    verify(functionBodiesThatDontComplete: ['{ // f']);
+  }
+
+  test_functionBody_noReturn() async {
+    await trackCode(r'''
+void f() {
+  1;
+}
+''');
+    verify();
+  }
+
+  test_if_condition() async {
+    await trackCode(r'''
+void f(bool b) {
+  if (b) {
+    1;
+  } else {
+    2;
+  }
+  3;
+}
+''');
+    verify();
+  }
+
+  test_if_false_then_else() async {
+    await trackCode(r'''
+void f() {
+  if (false) { // 1
+    1;
+  } else { // 2
+  }
+  3;
+}
+''');
+    verify(unreachableStatements: ['{ // 1']);
+  }
+
+  test_if_true_return() async {
+    await trackCode(r'''
+void f() { // f
+  1;
+  if (true) {
+    return;
+  }
+  2;
+}
+''');
+    verify(
+      unreachableStatements: ['2;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_if_true_then_else() async {
+    await trackCode(r'''
+void f() {
+  if (true) { // 1
+  } else { // 2
+    2;
+  }
+  3;
+}
+''');
+    verify(unreachableStatements: ['{ // 2']);
+  }
+
+  test_logicalAnd_leftFalse() async {
+    await trackCode(r'''
+void f(int x) {
+  false && (x == 1);
+}
+''');
+    verify(unreachableExpressions: ['(x == 1)']);
+  }
+
+  test_logicalOr_leftTrue() async {
+    await trackCode(r'''
+void f(int x) {
+  true || (x == 1);
+}
+''');
+    verify(unreachableExpressions: ['(x == 1)']);
+  }
+
+  test_switch_case_neverCompletes() async {
+    await trackCode(r'''
+void f(bool b, int i) {
+  switch (i) {
+    case 1:
+      1;
+      if (b) {
+        return;
+      } else {
+        return;
+      }
+      2;
+  }
+  3;
+}
+''');
+    verify(unreachableStatements: ['2;']);
+  }
+
+  test_tryCatch() async {
+    await trackCode(r'''
+void f() {
+  try {
+    1;
+  } catch (_) {
+    2;
+  }
+  3;
+}
+''');
+    verify();
+  }
+
+  test_tryCatch_return_body() async {
+    await trackCode(r'''
+void f() {
+  try {
+    1;
+    return;
+    2;
+  } catch (_) {
+    3;
+  }
+  4;
+}
+''');
+    verify(unreachableStatements: ['2;']);
+  }
+
+  test_tryCatch_return_catch() async {
+    await trackCode(r'''
+void f() {
+  try {
+    1;
+  } catch (_) {
+    2;
+    return;
+    3;
+  }
+  4;
+}
+''');
+    verify(unreachableStatements: ['3;']);
+  }
+
+  test_tryCatchFinally_return_body() async {
+    await trackCode(r'''
+void f() {
+  try {
+    1;
+    return;
+  } catch (_) {
+    2;
+  } finally {
+    3;
+  }
+  4;
+}
+''');
+    verify();
+  }
+
+  test_tryCatchFinally_return_bodyCatch() async {
+    await trackCode(r'''
+void f() { // f
+  try {
+    1;
+    return;
+  } catch (_) {
+    2;
+    return;
+  } finally {
+    3;
+  }
+  4;
+}
+''');
+    verify(
+      unreachableStatements: ['4;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_tryCatchFinally_return_catch() async {
+    await trackCode(r'''
+void f() {
+  try {
+    1;
+  } catch (_) {
+    2;
+    return;
+  } finally {
+    3;
+  }
+  4;
+}
+''');
+    verify();
+  }
+
+  test_tryFinally_return_body() async {
+    await trackCode(r'''
+void f() { // f
+  try {
+    1;
+    return;
+  } finally {
+    2;
+  }
+  3;
+}
+''');
+    verify(
+      unreachableStatements: ['3;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_while_false() async {
+    await trackCode(r'''
+void f() {
+  while (false) { // 1
+    1;
+  }
+  2;
+}
+''');
+    verify(unreachableStatements: ['{ // 1']);
+  }
+
+  test_while_true() async {
+    await trackCode(r'''
+void f() { // f
+  while (true) {
+    1;
+  }
+  2;
+  3;
+}
+''');
+    verify(
+      unreachableStatements: ['2;', '3;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  test_while_true_break() async {
+    await trackCode(r'''
+void f() {
+  while (true) {
+    1;
+    break;
+    2;
+  }
+  3;
+}
+''');
+    verify(unreachableStatements: ['2;']);
+  }
+
+  test_while_true_breakIf() async {
+    await trackCode(r'''
+void f(bool b) {
+  while (true) {
+    1;
+    if (b) break;
+    2;
+  }
+  3;
+}
+''');
+    verify();
+  }
+
+  test_while_true_continue() async {
+    await trackCode(r'''
+void f() { // f
+  while (true) {
+    1;
+    continue;
+    2;
+  }
+  3;
+}
+''');
+    verify(
+      unreachableStatements: ['2;', '3;'],
+      functionBodiesThatDontComplete: ['{ // f'],
+    );
+  }
+
+  /// Resolve the given [code] and track unreachable nodes in the unit.
+  Future<void> trackCode(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+
+    var unit = result.unit;
+
+    var loopAssignedVariables = LoopAssignedVariables();
+    unit.accept(_LoopAssignedVariablesVisitor(loopAssignedVariables));
+
+    var typeSystem = unit.declaredElement.context.typeSystem;
+    unit.accept(_AstVisitor(
+      typeSystem,
+      loopAssignedVariables,
+      {},
+      [],
+      unreachableNodes,
+      functionBodiesThatDontComplete,
+    ));
+  }
+
+  void verify({
+    List<String> unreachableExpressions = const [],
+    List<String> unreachableStatements = const [],
+    List<String> functionBodiesThatDontComplete = const [],
+  }) {
+    var expectedUnreachableNodes = <AstNode>[];
+    expectedUnreachableNodes.addAll(
+      unreachableStatements.map((search) => findNode.statement(search)),
+    );
+    expectedUnreachableNodes.addAll(
+      unreachableExpressions.map((search) => findNode.expression(search)),
+    );
+
+    expect(
+      this.unreachableNodes,
+      unorderedEquals(expectedUnreachableNodes),
+    );
+    expect(
+      this.functionBodiesThatDontComplete,
+      unorderedEquals(
+        functionBodiesThatDontComplete
+            .map((search) => findNode.functionBody(search))
+            .toList(),
+      ),
+    );
   }
 }
 
@@ -1806,7 +2301,7 @@ void f(int e, Object x) {
     assertNotPromoted('x; // 3');
   }
 
-  test_try_assigned_body() async {
+  test_tryCatch_assigned_body() async {
     await trackCode(r'''
 void f(Object x) {
   if (x is! String) return;
@@ -1827,7 +2322,7 @@ void g() {}
     assertNotPromoted('x; // 3');
   }
 
-  test_try_isNotType_exit_body() async {
+  test_tryCatch_isNotType_exit_body() async {
     await trackCode(r'''
 void f(Object x) {
   try {
@@ -1843,7 +2338,7 @@ void g() {}
     assertNotPromoted('x; // 2');
   }
 
-  test_try_isNotType_exit_body_catch() async {
+  test_tryCatch_isNotType_exit_body_catch() async {
     await trackCode(r'''
 void f(Object x) {
   try {
@@ -1863,7 +2358,7 @@ void g() {}
     assertPromoted('x; // 3', 'String');
   }
 
-  test_try_isNotType_exit_body_catchRethrow() async {
+  test_tryCatch_isNotType_exit_body_catchRethrow() async {
     await trackCode(r'''
 void f(Object x) {
   try {
@@ -1883,7 +2378,7 @@ void g() {}
     assertPromoted('x; // 3', 'String');
   }
 
-  test_try_isNotType_exit_catch() async {
+  test_tryCatch_isNotType_exit_catch() async {
     await trackCode(r'''
 void f(Object x) {
   try {
@@ -1900,7 +2395,7 @@ void g() {}
     assertNotPromoted('x; // 2');
   }
 
-  test_try_outerIsType() async {
+  test_tryCatchFinally_outerIsType() async {
     await trackCode(r'''
 void f(Object x) {
   if (x is String) {
@@ -1923,7 +2418,7 @@ void g() {}
     assertPromoted('x; // 4', 'String');
   }
 
-  test_try_outerIsType_assigned_body() async {
+  test_tryCatchFinally_outerIsType_assigned_body() async {
     await trackCode(r'''
 void f(Object x) {
   if (x is String) {
@@ -1948,7 +2443,7 @@ void g() {}
     assertNotPromoted('x; // 4');
   }
 
-  test_try_outerIsType_assigned_catch() async {
+  test_tryCatchFinally_outerIsType_assigned_catch() async {
     await trackCode(r'''
 void f(Object x) {
   if (x is String) {
@@ -1970,7 +2465,26 @@ void f(Object x) {
     assertNotPromoted('x; // 4');
   }
 
-  test_try_outerIsType_assigned_finally() async {
+  test_tryFinally_outerIsType_assigned_body() async {
+    await trackCode(r'''
+void f(Object x) {
+  if (x is String) {
+    try {
+      x; // 1
+      x = 42;
+    } finally {
+      x; // 2
+    }
+    x; // 3
+  }
+}
+''');
+    assertPromoted('x; // 1', 'String');
+    assertNotPromoted('x; // 2');
+    assertNotPromoted('x; // 3');
+  }
+
+  test_tryFinally_outerIsType_assigned_finally() async {
     await trackCode(r'''
 void f(Object x) {
   if (x is String) {
@@ -2079,24 +2593,33 @@ void f(bool b, Object x) {
       loopAssignedVariables,
       promotedTypes,
       [],
+      [],
+      [],
     ));
   }
 }
 
 /// [AstVisitor] that drives the [flow] in the way we expect the resolver
 /// will do in production.
-class _AstVisitor extends RecursiveAstVisitor<void> {
+class _AstVisitor extends GeneralizingAstVisitor<void> {
   static final trueLiteral = astFactory.booleanLiteral(null, true);
 
   final TypeSystem typeSystem;
   final LoopAssignedVariables loopAssignedVariables;
   final Map<AstNode, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
+  final List<AstNode> unreachableNodes;
+  final List<FunctionBody> functionBodiesThatDontComplete;
 
   FlowAnalysis flow;
 
-  _AstVisitor(this.typeSystem, this.loopAssignedVariables, this.promotedTypes,
-      this.readBeforeWritten);
+  _AstVisitor(
+      this.typeSystem,
+      this.loopAssignedVariables,
+      this.promotedTypes,
+      this.readBeforeWritten,
+      this.unreachableNodes,
+      this.functionBodiesThatDontComplete);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -2135,6 +2658,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
       left.accept(this);
 
       flow.logicalAnd_rightBegin(node);
+      _checkUnreachableNode(node.rightOperand);
       right.accept(this);
 
       flow.logicalAnd_end(node);
@@ -2142,6 +2666,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
       left.accept(this);
 
       flow.logicalOr_rightBegin(node);
+      _checkUnreachableNode(node.rightOperand);
       right.accept(this);
 
       flow.logicalOr_end(node);
@@ -2167,6 +2692,11 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
     if (isFlowOwner) {
       readBeforeWritten.addAll(flow.readBeforeWritten);
+
+      if (!flow.isReachable) {
+        functionBodiesThatDontComplete.add(node);
+      }
+
       flow.verifyStackEmpty();
       flow = null;
     }
@@ -2185,9 +2715,9 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitBreakStatement(BreakStatement node) {
+    super.visitBreakStatement(node);
     var target = _getLabelTarget(node, node.label?.staticElement);
     flow.handleBreak(target);
-    super.visitBreakStatement(node);
   }
 
   @override
@@ -2199,10 +2729,12 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
     condition.accept(this);
 
     flow.conditional_thenBegin(node);
+    _checkUnreachableNode(node.thenExpression);
     thenExpression.accept(this);
     var isBool = thenExpression.staticType.isDartCoreBool;
 
     flow.conditional_elseBegin(node, isBool);
+    _checkUnreachableNode(node.elseExpression);
     elseExpression.accept(this);
 
     flow.conditional_end(node, isBool);
@@ -2210,13 +2742,15 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitContinueStatement(ContinueStatement node) {
+    super.visitContinueStatement(node);
     var target = _getLabelTarget(node, node.label?.staticElement);
     flow.handleContinue(target);
-    super.visitContinueStatement(node);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
+    _checkUnreachableNode(node);
+
     var body = node.body;
     var condition = node.condition;
 
@@ -2231,6 +2765,8 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitForEachStatement(ForEachStatement node) {
+    _checkUnreachableNode(node);
+
     var iterable = node.iterable;
     var body = node.body;
 
@@ -2244,6 +2780,8 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
+    _checkUnreachableNode(node);
+
     var condition = node.condition;
 
     node.initialization?.accept(this);
@@ -2274,6 +2812,8 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
+    _checkUnreachableNode(node);
+
     var condition = node.condition;
     var thenStatement = node.thenStatement;
     var elseStatement = node.elseStatement;
@@ -2351,7 +2891,15 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitStatement(Statement node) {
+    _checkUnreachableNode(node);
+    super.visitStatement(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
+    _checkUnreachableNode(node);
+
     node.expression.accept(this);
     flow.switchStatement_expressionEnd(node);
 
@@ -2388,6 +2936,8 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTryStatement(TryStatement node) {
+    _checkUnreachableNode(node);
+
     var body = node.body;
     var catchClauses = node.catchClauses;
 
@@ -2405,6 +2955,8 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
     flow.tryStatement_finallyBegin();
     node.finallyBlock?.accept(this);
+
+    flow.tryStatement_end();
   }
 
   @override
@@ -2421,6 +2973,8 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitWhileStatement(WhileStatement node) {
+    _checkUnreachableNode(node);
+
     var condition = node.condition;
     var body = node.body;
 
@@ -2431,6 +2985,20 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
     body.accept(this);
 
     flow.whileStatement_end();
+  }
+
+  /// Mark the [node] as unreachable if it is not covered by another node that
+  /// is already known to be unreachable.
+  void _checkUnreachableNode(AstNode node) {
+    if (flow.isReachable) return;
+
+    // Ignore the [node] if it is fully covered by the last unreachable.
+    if (unreachableNodes.isNotEmpty) {
+      var last = unreachableNodes.last;
+      if (node.offset >= last.offset && node.end <= last.end) return;
+    }
+
+    unreachableNodes.add(node);
   }
 
   /// This code has OK performance for tests, but think if there is something

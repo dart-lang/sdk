@@ -39,8 +39,11 @@ class FlowAnalysis {
   _State _conditionFalse;
 
   FlowAnalysis(this.typeSystem, this.functionBody) {
-    _current = _State(false, _ElementSet.empty, const {});
+    _current = _State(true, _ElementSet.empty, const {});
   }
+
+  /// Return `true` if the current state is reachable.
+  bool get isReachable => _current.reachable;
 
   /// Add a new [variable], which might be already [assigned].
   void add(LocalVariableElement variable, {bool assigned: false}) {
@@ -413,11 +416,22 @@ class FlowAnalysis {
     _stack.last = afterBodyAndCatches.combine(typeSystem, _current);
   }
 
-  void tryStatement_finallyBegin() {
+  void tryStatement_end() {
     var afterBodyAndCatches = _stack.removeLast();
-    _stack.removeLast(); // beforeCatch
+    _current = _current.setReachable(afterBodyAndCatches.reachable);
+  }
 
-    _current = afterBodyAndCatches;
+  void tryStatement_finallyBegin() {
+    // TODO(scheglov) This code is incomplete, so has bug.
+    // `finally` might be executed:
+    // (1) on exception in the body or a catch;
+    // (2) on normal completion of the body or a catch;
+    // The code below only works for (1).
+    var afterBodyAndCatches = _stack.removeLast();
+    var beforeCatch = _stack.removeLast();
+
+    _current = afterBodyAndCatches.setReachable(beforeCatch.reachable);
+    _stack.add(afterBodyAndCatches); // for 'reachable'
   }
 
   void verifyStackEmpty() {
@@ -629,6 +643,12 @@ class _State {
     if (identical(newPromoted, promoted)) return this;
 
     return _State(reachable, notAssigned, newPromoted);
+  }
+
+  _State setReachable(bool reachable) {
+    if (this.reachable == reachable) return this;
+
+    return _State(reachable, notAssigned, promoted);
   }
 
   _State write(VariableElement variable) {
