@@ -253,10 +253,10 @@ class Wrapped<S, K> extends TextSerializer<K> {
   bool get isEmpty => contents.isEmpty;
 }
 
-class ScopedReference<T extends Node> extends TextSerializer<T> {
+class ScopedUse<T extends Node> extends TextSerializer<T> {
   final DartString stringSerializer = const DartString();
 
-  const ScopedReference();
+  const ScopedUse();
 
   T readFrom(Iterator<Object> stream, DeserializationState state) {
     return state.environment.lookup(stringSerializer.readFrom(stream, null));

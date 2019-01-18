@@ -485,7 +485,7 @@ SuperMethodInvocation wrapSuperMethodInvocation(Tuple2<Name, Arguments> tuple) {
 TextSerializer<VariableGet> variableGetSerializer = new Wrapped(
     unwrapVariableGet,
     wrapVariableGet,
-    new Tuple2Serializer(const ScopedReference<VariableDeclaration>(),
+    new Tuple2Serializer(const ScopedUse<VariableDeclaration>(),
         new Optional(dartTypeSerializer)));
 
 Tuple2<VariableDeclaration, DartType> unwrapVariableGet(VariableGet node) {
@@ -501,7 +501,7 @@ TextSerializer<VariableSet> variableSetSerializer = new Wrapped(
     unwrapVariableSet,
     wrapVariableSet,
     new Tuple2Serializer(
-        const ScopedReference<VariableDeclaration>(), expressionSerializer));
+        const ScopedUse<VariableDeclaration>(), expressionSerializer));
 
 Tuple2<VariableDeclaration, Expression> unwrapVariableSet(VariableSet node) {
   return new Tuple2<VariableDeclaration, Expression>(node.variable, node.value);
