@@ -952,6 +952,7 @@ runtime_checks_new/stub_from_interface_covariantImpl_from_class: TextSerializati
 runtime_checks_new/stub_from_interface_covariantImpl_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantImpl_from_super: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerializationFailure # Was: Pass
+sdk_diagnostic: TextSerializationFailure
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 spread_collection: TextSerializationFailure # Should be fixed as part of implementing spread collection support
 statements: Crash
