@@ -144,9 +144,6 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash
 
-[ ($compiler == dartk || $compiler == dartkb) && $runtime == vm ]
-dart/appjit_cha_deopt_test: Pass, RuntimeError # Issue 34627
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
