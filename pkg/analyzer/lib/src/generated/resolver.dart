@@ -4450,7 +4450,6 @@ class ResolverVisitor extends ScopedVisitor {
   void visitAssertStatement(AssertStatement node) {
     InferenceContext.setType(node.condition, typeProvider.boolType);
     super.visitAssertStatement(node);
-    _propagateTrueState(node.condition);
   }
 
   @override
@@ -4491,7 +4490,6 @@ class ResolverVisitor extends ScopedVisitor {
         try {
           _promoteManager.enterScope();
           try {
-            _propagateTrueState(leftOperand);
             // Type promotion.
             _promoteTypes(leftOperand);
             _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
@@ -4515,7 +4513,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (rightOperand != null) {
         _overrideManager.enterScope();
         try {
-          _propagateFalseState(leftOperand);
           rightOperand.accept(this);
         } finally {
           _overrideManager.exitScope();
@@ -4677,7 +4674,6 @@ class ResolverVisitor extends ScopedVisitor {
       try {
         _promoteManager.enterScope();
         try {
-          _propagateTrueState(condition);
           // Type promotion.
           _promoteTypes(condition);
           _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
@@ -4697,7 +4693,6 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseExpression != null) {
       _overrideManager.enterScope();
       try {
-        _propagateFalseState(condition);
         InferenceContext.setTypeFromNode(elseExpression, node);
         elseExpression.accept(this);
       } finally {
@@ -4706,15 +4701,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    bool thenIsAbrupt = _isAbruptTerminationExpression(thenExpression);
-    bool elseIsAbrupt = _isAbruptTerminationExpression(elseExpression);
-    if (elseIsAbrupt && !thenIsAbrupt) {
-      _propagateTrueState(condition);
-      _propagateState(thenExpression);
-    } else if (thenIsAbrupt && !elseIsAbrupt) {
-      _propagateFalseState(condition);
-      _propagateState(elseExpression);
-    }
   }
 
   @override
@@ -4984,7 +4970,6 @@ class ResolverVisitor extends ScopedVisitor {
     node.condition?.accept(this);
     _overrideManager.enterScope();
     try {
-      _propagateTrueState(node.condition);
       visitStatementInScope(node.body);
       node.updaters.accept(this);
     } finally {
@@ -5101,7 +5086,6 @@ class ResolverVisitor extends ScopedVisitor {
       try {
         _promoteManager.enterScope();
         try {
-          _propagateTrueState(condition);
           // Type promotion.
           _promoteTypes(condition);
           _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
@@ -5123,7 +5107,6 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseStatement != null) {
       _overrideManager.enterScope();
       try {
-        _propagateFalseState(condition);
         visitStatementInScope(elseStatement);
       } finally {
         elseOverrides = _overrideManager.captureLocalOverrides();
@@ -5136,10 +5119,8 @@ class ResolverVisitor extends ScopedVisitor {
     bool thenIsAbrupt = _isAbruptTerminationStatement(thenStatement);
     bool elseIsAbrupt = _isAbruptTerminationStatement(elseStatement);
     if (elseIsAbrupt && !thenIsAbrupt) {
-      _propagateTrueState(condition);
       _overrideManager.applyOverrides(thenOverrides);
     } else if (thenIsAbrupt && !elseIsAbrupt) {
-      _propagateFalseState(condition);
       _overrideManager.applyOverrides(elseOverrides);
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
       List<Map<VariableElement, DartType>> perBranchOverrides =
@@ -5506,7 +5487,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (body != null) {
         _overrideManager.enterScope();
         try {
-          _propagateTrueState(condition);
           visitStatementInScope(body);
         } finally {
           _overrideManager.exitScope();
@@ -5960,53 +5940,6 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition is ParenthesizedExpression) {
       _promoteTypes(condition.expression);
-    }
-  }
-
-  /// Propagate any type information that results from knowing that the given
-  /// condition will have been evaluated to 'false'.
-  ///
-  /// @param condition the condition that will have evaluated to 'false'
-  void _propagateFalseState(Expression condition) {
-    if (condition is BinaryExpression) {
-      if (condition.operator.type == TokenType.BAR_BAR) {
-        _propagateFalseState(condition.leftOperand);
-        _propagateFalseState(condition.rightOperand);
-      }
-    } else if (condition is PrefixExpression) {
-      if (condition.operator.type == TokenType.BANG) {
-        _propagateTrueState(condition.operand);
-      }
-    } else if (condition is ParenthesizedExpression) {
-      _propagateFalseState(condition.expression);
-    }
-  }
-
-  /// Propagate any type information that results from knowing that the given
-  /// expression will have been evaluated without altering the flow of
-  /// execution.
-  ///
-  /// @param expression the expression that will have been evaluated
-  void _propagateState(Expression expression) {
-    // TODO(brianwilkerson) Implement this.
-  }
-
-  /// Propagate any type information that results from knowing that the given
-  /// condition will have been evaluated to 'true'.
-  ///
-  /// @param condition the condition that will have evaluated to 'true'
-  void _propagateTrueState(Expression condition) {
-    if (condition is BinaryExpression) {
-      if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        _propagateTrueState(condition.leftOperand);
-        _propagateTrueState(condition.rightOperand);
-      }
-    } else if (condition is PrefixExpression) {
-      if (condition.operator.type == TokenType.BANG) {
-        _propagateFalseState(condition.operand);
-      }
-    } else if (condition is ParenthesizedExpression) {
-      _propagateTrueState(condition.expression);
     }
   }
 
