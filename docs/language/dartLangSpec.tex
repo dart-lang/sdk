@@ -1594,7 +1594,8 @@ This means that every function type is of one of the forms
 \noindent
 where $T_0$ is the return type,
 $X_j$ are the formal type parameters with bounds $B_j$, $j \in 1 .. s$,
-$T_j$ are the formal parameter types for $j \in 1 .. n + k$.
+$T_j$ are the formal parameter types for $j \in 1 .. n + k$,
+and $x_{n+j}$ are the names of named parameters for $j \in 1 .. k$.
 Non-generic function types are covered by the case $s = 0$,
 where the type parameter declaration list
 \code{<\ldots{}>}
@@ -1664,7 +1665,8 @@ Let $F$ be a function with
 type parameters \TypeParametersStd,
 required formal parameter types \List{T}{1}{n},
 return type $T_0$,
-and named parameters \PairList{T}{x}{n+1}{n+k}.
+and named parameters \PairList{T}{x}{n+1}{n+k},
+where $x_{n+j}$, $j \in 1 .. k$ may or may not have a default value.
 Then the static type of $F$ is
 \FunctionTypeNamedStd{T_0}.
 
@@ -1684,12 +1686,12 @@ The following must then hold:
 $u$ is a class that implements the built-in class \FUNCTION{};
 $u$ is a subtype of $t$;
 and $u$ is not a subtype of any function type which is a proper subtype of $t$.
-\commentary{
+\commentary{%
 If we had omitted the last requirement then
 \code{f \IS{} int\,\FUNCTION([int])}
 could evaluate to \TRUE{} with the declaration
 \code{\VOID{} f()\,\{\}},
-e.g., by letting $u$ be \code{Null}.
+which is obviously not the intention.%
 }
 
 \rationale{
@@ -1883,15 +1885,12 @@ satisfy the class interface
 (in which case it will be overridden by another \code{noSuchMethod} forwarder).
 }
 
-% making an exception for the setters generated for final fields is tempting but problematic.
-% If a super type defines a setter, it will be overridden yet have no impact on the interface.
-% Maybe the final field hides the setter in scope?
-% I think the original rules were best.
-
 \commentary{
 It is a compile-time error if a class declares two members of the same name,
-either because it declares the same name twice in the same scope (\ref{scoping}),
-or because it declares a static member and an instance member with the same name
+either because it declares the same name twice in the same scope
+(\ref{scoping}),
+or because it declares a static member and an instance member
+with the same name
 (\ref{classMemberConflicts}).
 }
 
@@ -3184,10 +3183,10 @@ and/or the actual type argument list of the redirectee constructor is omitted (\
 \LMHash{}%
 It is a compile-time error if $k$ explicitly specifies a default value for an optional parameter.
 
-\commentary{
+\rationale{%
 Default values specified in $k$ would be ignored,
 since it is the \emph{actual} parameters that are passed to $k'$.
-Hence, default values are disallowed.
+Hence, default values are disallowed.%
 }
 
 \LMHash{}%
@@ -5811,7 +5810,7 @@ It is further a constant expression if the map literal evaluates to a value.
 \item $e_1$ evaluates to \FALSE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
 \end{enumerate}
 
-\item An expression of the form \code{~$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value of type \code{int}.
+\item An expression of the form \code{\~{}$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value of type \code{int}.
 
 \item An expression of one of the forms \code{$e_1$\,\&\,$e_2$}, \code{$e_1$\,|\,$e_2$}, or \code{$e_1$\,\^\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that both evaluate to values that are both instances of \code{int}, or that are both instances of \code{bool}.
 % The bool case is new in 2.1.
@@ -6583,8 +6582,8 @@ If $e$ has two type arguments, then it is a map literal.
 If $e$ has three or more type arguments, it is a compile-time error.
 If $e$ has \emph{no} type arguments,
 then let $S$ be the static context type of the literal.
-If $\basetype{S}$ (\ref{typeFutureOr}) is a subtype of \code{Iterable<Object>}
-and $\basetype{S}$ is not a subtype of \code{Map<Object, Object>},
+If $\futureOrBase{S}$ (\ref{typeFutureOr}) is a subtype of \code{Iterable<Object>}
+and $\futureOrBase{S}$ is not a subtype of \code{Map<Object, Object>},
 then $e$ is set literal,
 and otherwise it is a map literal.
 A map literal derived from \synt{setOrMapLiteral}
@@ -10573,22 +10572,24 @@ If $f$ completes with a value $v$, $a$ evaluates to $v$.
 
 %Otherwise, the value of $a$ is the value of $e$. If evaluation of $e$ raises an exception $x$, $a$ raises $x$.
 
-\commentary{
-It is a compile-time error if the function immediately enclosing $a$ is not declared asynchronous.
-However, this error is simply a syntax error, because in the context of a normal function, \AWAIT{} has no special meaning.
-% TODO(lrn): Update this, it's not actually correct,
-% the expression "await(expr)" is valid non-async syntax *and* a valid
-% async await expression.
+\commentary{%
+It is typically a compile-time error
+if the function immediately enclosing $a$ is not declared asynchronous.
+E.g., it can be a syntax error because \AWAIT{} has no special meaning
+in the context of a normal function.
+However, \code{\AWAIT($e$)} can also be a function invocation.%
 }
 
-\rationale{
+\rationale{%
 An await expression has no meaning in a synchronous function.
-If such a function were to suspend waiting for a future, it would no longer be synchronous.
+If such a function were to suspend waiting for a future,
+it would no longer be synchronous.%
 }
 
-\commentary{
-It is not a compile-time error if the type of $e$ is not a subtype of \code{Future}.
-Tools may choose to give a hint in such cases.
+\commentary{%
+It is not a compile-time error if the type of $e$ is not
+a subtype of \code{Future}.
+Tools may choose to give a hint in such cases.%
 }
 
 \LMHash{}%
@@ -12779,7 +12780,8 @@ A deferred import must include a prefix clause or a compile-time error occurs.
 It is a compile-time error if a prefix used in a deferred import is used in another import clause.
 
 \LMHash{}%
-An import directive $I$ may optionally include a namespace combinator clauses used to restrict the set of names imported by $I$.
+An import directive $I$ may optionally include namespace combinator clauses
+used to restrict the set of names imported by $I$.
 Currently, two namespace combinators are supported: \HIDE{} and \SHOW{}.
 
 \LMHash{}%
@@ -12881,7 +12883,10 @@ where $hide(l, n)$ takes a list of identifiers $l$ and a namespace $n$, and prod
 \end{itemize}
 
 \LMHash{}%
-Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS = NS_n \cup \{p: prefixObject(NS_n)\}$ where $prefixObject(NS_n)$ is a \Index{prefix object} for the namespace $NS_n$, which is an object that has the following members:
+Next, if $I$ includes a prefix clause of the form \AS{} $p$,
+let $NS = \{p: prefixObject(NS_n)\}$ where $prefixObject(NS_n)$ is
+a \Index{prefix object} for the namespace $NS_n$,
+which is an object that has the following members:
 
 \begin{itemize}
 \item For every top level function $f$ named \id{} in $NS_n$, a corresponding method with the same name and signature as $f$ that forwards (\ref{functionDeclarations}) to $f$.
@@ -14588,24 +14593,31 @@ or they are very, very likely to be developer mistakes.
 
 \LMHash{}%
 The built-in type declaration \code{FutureOr},
-which is declared in the library \code{dart:async},
+which is exported by the library \code{dart:async},
 defines a generic type with one type parameter (\ref{generics}).
+The type \code{FutureOr<$T$>} is a non-class type
+which is regular-bounded for all $T$.
 
-\LMHash{}%
-The \code{FutureOr<$T$>} type is a non-class type with the following
-type relations:
+\commentary{%
+The subtype relations involving \code{FutureOr} are specified elsewhere
+(\ref{subtypeRules}).
+Note, however, that they entail certain useful properties:
 \begin{itemize}
-    \item{} $T$ <: \code{FutureOr<$T$>}.
-    \item{} \code{Future<$T$>} <: \code{FutureOr<$T$>}.
-    \item{} If $T$ <: $S$ and \code{Future<$T$>} <: $S$
-        then \code{FutureOr<$T$>} <: $S$.
-        \commentary{In particular, \code{FutureOr<$T$>} <: \code{Object}.}
+\item[$\bullet$]
+  $T <: \code{FutureOr<$T$>}$.
+\item[$\bullet$]
+  $\code{Future<$T$>} <: \code{FutureOr<$T$>}$.
+\item[$\bullet$]
+  If $T <: S$ and $\code{Future<$T$>} <: S$, then $\code{FutureOr<$T$>} <: S$.
 \end{itemize}.
 
-\commentary{
-The last point guarantees that generic type \code{FutureOr} is
-\emph{covariant} in its type parameter, just like class types.
-That is, if $S$ <: $T$ then \code{FutureOr<$S$>} <: \code{FutureOr<$T$>}.
+That is, \code{FutureOr} is in a sense
+the union of $T$ and the corresponding future type.
+The last point guarantees that
+\code{FutureOr<$T$>} <: \code{Object},
+and also that \code{FutureOr} is covariant in its type parameter,
+just like class types:
+if $S$ <: $T$ then \code{FutureOr<$S$>} <: \code{FutureOr<$T$>}.%
 }
 
 \LMHash{}%
@@ -14616,41 +14628,44 @@ The name \code{FutureOr} as an expression
 denotes a \code{Type} object representing the type \code{FutureOr<dynamic>}.
 
 \rationale{
-The \code{FutureOr<\metavar{type}>} type represents a case where a value can be
-either an instance of the type \metavar{type}
-or the type \code{Future<\metavar{type}>}.
+The \code{FutureOr<$T$>} type represents a case where a value can be
+either an instance of the type $T$
+or the type \code{Future<$T$>}.
 Such cases occur naturally in asynchronous code.
-Using \code{FutureOr} instead of \DYNAMIC{} allows some tools
-to provide a more precise type analysis.
+The available alternative would be to use a top type (e.g., \DYNAMIC{}),
+but \code{FutureOr} allows some tools to provide a more precise type analysis.
 }
 
 \LMHash{}%
 The type \code{FutureOr<$T$>} has an interface that is identical to that
 of \code{Object}.
-
-\commentary{
-The only members that can be invoked on a value with static type
-\code{FutureOr<$T$>} are members that are also on \code{Object}.
+\commentary{%
+That is, only members that \code{Object} has can be invoked
+on a value with static type \code{FutureOr<$T$>}.%
 }
 
 \rationale{
 We only want to allow invocations of members that are inherited from
 a common supertype of both $T$ and \code{Future<$T$>}.
-In most cases the only common supertype is \code{Object}. The exceptions, like
-\code{FutureOr<Future<Object\gtgt} which has \code{Future<Object>} as common
-supertype, are few and not practically useful, so for now we choose to
-only allow invocations of members inherited from \code{Object}.
+In most cases the only common supertype is \code{Object}.
+The exceptions, like \code{FutureOr<Future<Object\gtgt}
+which has \code{Future<Object>} as common supertype,
+are few and not practically useful,
+so for now we choose to only allow invocations of
+members inherited from \code{Object}.
 }
 
 \LMHash{}%
 We define the auxiliary function
-\IndexCustom{\basetype{T}}{basetype(t)@\emph{basetype}$(T)$}
+\IndexCustom{\futureOrBase{T}}{futureOrBase(t)@\emph{futureOrBase}$(T)$}
 as follows:
 
 \begin{itemize}
-\item If $T$ is \code{FutureOr<$S$>} for some $S$ then $\basetype{T} = \basetype{S}$.
-\item Otherwise $\basetype{T} = T$.
+\item If $T$ is \code{FutureOr<$S$>} for some $S$
+  then $\futureOrBase{T} = \futureOrBase{S}$.
+\item Otherwise $\futureOrBase{T} = T$.
 \end{itemize}
+
 
 \subsection{Type Void}
 \LMLabel{typeVoid}
@@ -14844,7 +14859,7 @@ the usage of \code{x} in the loop body is constrained,
 because it has type \VOID.%
 }
 
-\paragraph{Void Soundness}
+\subsubsection{Void Soundness}
 \LMLabel{voidSoundness}
 
 \LMHash{}%

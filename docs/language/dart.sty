@@ -96,7 +96,7 @@
 
 % Auxiliary functions.
 \newcommand{\flatten}[1]{\ensuremath{\mbox{\it flatten}({#1})}}
-\newcommand{\basetype}[1]{\ensuremath{\mbox{\it basetype}({#1})}}
+\newcommand{\futureOrBase}[1]{\ensuremath{\mbox{\it futureOrBase}({#1})}}
 \newcommand{\overrides}[1]{\ensuremath{\mbox{\it overrides}({#1})}}
 \newcommand{\inherited}[1]{\ensuremath{\mbox{\it inherited}({#1})}}
 
@@ -242,13 +242,13 @@
 %   name of optional parameters, number of optional parameters.
 \newcommand{\FunctionTypeNamed}[9]{%
   \FunctionType{#1}{#2}{#3}{#4}{#5}{%
-    \FunctionTypePositionalArguments{#6}{#7}{#8}{#9}}}
+    \FunctionTypeNamedArguments{#6}{#7}{#8}{#9}}}
 
 % Same as \FunctionType except suitable for inline usage, hence omitting
 % the spacer argument.
 \newcommand{\RawFunctionTypeNamed}[8]{%
   \RawFunctionType{#1}{#2}{#3}{#4}{%
-    \FunctionTypePositionalArguments{#5}{#6}{#7}{#8}}}
+    \FunctionTypeNamedArguments{#5}{#6}{#7}{#8}}}
 
 % Used to specify function types with no optional parameters:
 % Arguments: Return type, spacer, type parameter name, bound name,
