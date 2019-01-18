@@ -145,7 +145,6 @@ typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
 
 WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12307,6 +12306,66 @@ class Element extends Node
     }
   }
 
+  @pragma('dart2js:tryInline')
+  String getAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  String getAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttribute(String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttribute(name, value);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttributeNS(String namespaceURI, String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttributeNS(namespaceURI, name, value);
+  }
+
   /**
    * List of the direct children of this element.
    *
@@ -13916,9 +13975,11 @@ class Element extends Node
 
   List<Animation> getAnimations() native;
 
-  String getAttribute(String name) native;
+  @JSName('getAttribute')
+  String _getAttribute(String name) native;
 
-  String getAttributeNS(String namespaceURI, String localName) native;
+  @JSName('getAttributeNS')
+  String _getAttributeNS(String namespaceURI, String localName) native;
 
   List<String> getAttributeNames() native;
 
@@ -14083,9 +14144,11 @@ class Element extends Node
   @JSName('scrollTo')
   void _scrollTo_3(num x, y) native;
 
-  void setAttribute(String name, String value) native;
+  @JSName('setAttribute')
+  void _setAttribute(String name, String value) native;
 
-  void setAttributeNS(String namespaceURI, String name, String value) native;
+  @JSName('setAttributeNS')
+  void _setAttributeNS(String namespaceURI, String name, String value) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -34119,11 +34182,8 @@ class _ElementAttributeMap extends _AttributeMap {
     _element.setAttribute(key, value);
   }
 
-  String remove(Object key) {
-    String value = _element.getAttribute(key);
-    _element._removeAttribute(key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -34133,6 +34193,21 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == null;
+
+  // Inline this because almost all call sites of [remove] do not use [value],
+  // and the annotations on the `getAttribute` call allow it to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttribute(#)',
+        element,
+        key);
+    JS('', '#.removeAttribute(#)', element, key);
+    return value;
+  }
 }
 
 /**
@@ -34155,11 +34230,9 @@ class _NamespacedAttributeMap extends _AttributeMap {
     _element.setAttributeNS(_namespace, key, value);
   }
 
-  String remove(Object key) {
-    String value = this[key];
-    _element._removeAttributeNS(_namespace, key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) =>
+      key is String ? _remove(_namespace, _element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -34169,6 +34242,23 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == _namespace;
+
+  // Inline this because almost all call sites of [remove] do not use the
+  // returned [value], and the annotations on the `getAttributeNS` call allow it
+  // to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(String namespace, Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttributeNS(#, #)',
+        element,
+        namespace,
+        key);
+    JS('', '#.removeAttributeNS(#, #)', element, namespace, key);
+    return value;
+  }
 }
 
 /**

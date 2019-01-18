@@ -13,6 +13,16 @@
 
 [35576]: https://github.com/dart-lang/sdk/issues/35576
 
+#### `dart:html`
+
+*   Added methods `Element.removeAttribute`, `Element.removeAttributeNS`,
+    `Element.hasAttribute` and `Element.hasAttributeNS`. (Issue [35655][]).
+*   Improved dart2js compilation of `element.attributes.remove(name)` to
+    generate `element.removeAttribute(name)`, so that there is no performance
+    reason to migrate to the above methods.
+
+[35655]: https://github.com/dart-lang/sdk/issues/35655
+
 *   Fixed a number of 'dart:html' P1 bugs:
 
     *   Fixed HTML API's with callback typedef to correctly convert Dart function to JS function.

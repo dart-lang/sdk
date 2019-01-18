@@ -1397,22 +1397,22 @@ checkNull(object) {
 }
 
 @NoInline()
-checkNum(value) {
+num checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
 }
 
-checkInt(value) {
+int checkInt(value) {
   if (value is! int) throw argumentErrorValue(value);
   return value;
 }
 
-checkBool(value) {
+bool checkBool(value) {
   if (value is! bool) throw argumentErrorValue(value);
   return value;
 }
 
-checkString(value) {
+String checkString(value) {
   if (value is! String) throw argumentErrorValue(value);
   return value;
 }
