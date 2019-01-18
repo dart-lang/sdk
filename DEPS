@@ -81,7 +81,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.27.0",
+  "dartdoc_tag" : "v0.28.0",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
   "fixnum_tag": "0.10.9",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
@@ -103,7 +103,7 @@ vars = {
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "mustache4dart_tag" : "v2.1.2",
+  "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "1.0.5",
@@ -281,10 +281,10 @@ deps = {
       Var("dart_git") + "mime.git" + "@" + Var("mime_tag"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_tag"),
-  Var("dart_root") + "/third_party/pkg/mustache4dart":
-      Var("chromium_git")
-      + "/external/github.com/valotas/mustache4dart.git"
-      + "@" + Var("mustache4dart_tag"),
+  Var("dart_root") + "/third_party/pkg/mustache":
+      Var("dart_git")
+      + "external/github.com/xxgreg/mustache"
+      + "@" + Var("mustache_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":

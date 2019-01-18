@@ -63,7 +63,7 @@ matcher:third_party/pkg/matcher/lib
 meta:pkg/meta/lib
 mime:third_party/pkg/mime/lib
 mockito:third_party/pkg/mockito/lib
-mustache4dart:third_party/pkg/mustache4dart/lib
+mustache:third_party/pkg/mustache/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
 package_config:third_party/pkg_tested/package_config/lib
