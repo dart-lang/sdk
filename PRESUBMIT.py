@@ -22,6 +22,8 @@ def _CheckFormat(input_api, identification, extension, windows,
   upstream = input_api.change._upstream
   unformatted_files = []
   for git_file in input_api.AffectedTextFiles():
+    if git_file.LocalPath().startswith("pkg/front_end/testcases/"):
+      continue
     filename = git_file.AbsoluteLocalPath()
     if filename.endswith(extension) and hasFormatErrors(filename=filename):
       old_version_has_errors = False
