@@ -3036,6 +3036,7 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   return true;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
     SourceReport::kCallSitesStr,
     SourceReport::kCoverageStr,
@@ -3043,18 +3044,25 @@ static const char* const report_enum_names[] = {
     SourceReport::kProfileStr,
     NULL,
 };
+#endif
 
 static const MethodParameter* get_source_report_params[] = {
+#if !defined(DART_PRECOMPILED_RUNTIME)
     RUNNABLE_ISOLATE_PARAMETER,
     new EnumListParameter("reports", true, report_enum_names),
     new IdParameter("scriptId", false),
     new UIntParameter("tokenPos", false),
     new UIntParameter("endTokenPos", false),
     new BoolParameter("forceCompile", false),
+#endif
     NULL,
 };
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "disabled in AOT mode and PRODUCT.");
+  return false;
+#else
   if (CheckCompilerDisabled(thread, js)) {
     return true;
   }
@@ -3116,6 +3124,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
   report.PrintJSON(js, script, TokenPosition(start_pos),
                    TokenPosition(end_pos));
   return true;
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 static const MethodParameter* reload_sources_params[] = {

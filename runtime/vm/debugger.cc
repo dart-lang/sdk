@@ -2789,17 +2789,11 @@ bool Debugger::FindBestFit(const Script& script,
         if (!field.has_initializer()) {
           continue;
         }
-
-        bool has_func_literal_initializer = false;
-#ifndef DART_PRECOMPILED_RUNTIME
-        has_func_literal_initializer =
-            kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
-#endif  // !DART_PRECOMPILED_RUNTIME
-        if (has_func_literal_initializer) {
-          if ((start <= token_pos && token_pos <= end) ||
-              (token_pos <= start && start <= last_token_pos)) {
-            return true;
-          }
+        start = field.token_pos();
+        end = field.end_token_pos();
+        if ((start <= token_pos && token_pos <= end) ||
+            (token_pos <= start && start <= last_token_pos)) {
+          return true;
         }
       }
     }

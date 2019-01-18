@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_SOURCE_REPORT_H_
 #define RUNTIME_VM_SOURCE_REPORT_H_
 
+#include "vm/globals.h"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/hash_map.h"
@@ -60,6 +63,7 @@ class SourceReport {
 
   bool IsReportRequested(ReportKind report_kind);
   bool ShouldSkipFunction(const Function& func);
+  bool ShouldSkipField(const Field& field);
   intptr_t GetScriptIndex(const Script& script);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
 
@@ -79,9 +83,10 @@ class SourceReport {
   void PrintScriptTable(JSONArray* jsarr);
 
   void VisitFunction(JSONArray* jsarr, const Function& func);
+  void VisitField(JSONArray* jsarr, const Field& field);
   void VisitLibrary(JSONArray* jsarr, const Library& lib);
   void VisitClosures(JSONArray* jsarr);
-
+  RawFunction* GetInitializerFunction(const Field& field);
   // An entry in the script table.
   struct ScriptTableEntry {
     ScriptTableEntry() : key(NULL), index(-1), script(NULL) {}
@@ -122,4 +127,5 @@ class SourceReport {
 
 }  // namespace dart
 
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_SOURCE_REPORT_H_

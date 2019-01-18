@@ -78,9 +78,9 @@ var tests = <IsolateTest>[
     final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
 
-    // Running in app_jitk mode will result in the number of ranges being 6
-    // during the training run and 7 when running from the snapshot.
-    expect(((numRanges == 6) || (numRanges == 7)), isTrue);
+    // Running in app_jitk mode will result in the number of ranges being 7
+    // during the training run and 8 when running from the snapshot.
+    expect(((numRanges == 7) || (numRanges == 8)), isTrue);
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(
