@@ -102,6 +102,9 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitStaticSet(StaticSet _) => "set-static";
   String visitDirectPropertyGet(DirectPropertyGet _) => "get-direct-prop";
   String visitDirectPropertySet(DirectPropertySet _) => "set-direct-prop";
+  String visitStaticInvocation(StaticInvocation expression) {
+    return expression.isConst ? "invoke-const-static" : "invoke-static";
+  }
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -609,6 +612,35 @@ DirectPropertySet wrapDirectPropertySet(
       tuple.first, tuple.second.getReference(), tuple.third);
 }
 
+TextSerializer<StaticInvocation> staticInvocationSerializer = new Wrapped(
+    unwrapStaticInvocation,
+    wrapStaticInvocation,
+    new Tuple2Serializer(const CanonicalNameSerializer(), argumentsSerializer));
+
+Tuple2<CanonicalName, Arguments> unwrapStaticInvocation(
+    StaticInvocation expression) {
+  return new Tuple2(
+      expression.targetReference.canonicalName, expression.arguments);
+}
+
+StaticInvocation wrapStaticInvocation(Tuple2<CanonicalName, Arguments> tuple) {
+  return new StaticInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: false);
+}
+
+TextSerializer<StaticInvocation> constStaticInvocationSerializer = new Wrapped(
+    unwrapStaticInvocation,
+    wrapConstStaticInvocation,
+    new Tuple2Serializer(const CanonicalNameSerializer(), argumentsSerializer));
+
+StaticInvocation wrapConstStaticInvocation(
+    Tuple2<CanonicalName, Arguments> tuple) {
+  return new StaticInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: true);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -819,6 +851,8 @@ void initializeSerializers() {
     "set-static",
     "get-direct-prop",
     "set-direct-prop",
+    "invoke-static",
+    "invoke-const-static",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -859,6 +893,8 @@ void initializeSerializers() {
     staticSetSerializer,
     directPropertyGetSerializer,
     directPropertySetSerializer,
+    staticInvocationSerializer,
+    constStaticInvocationSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",

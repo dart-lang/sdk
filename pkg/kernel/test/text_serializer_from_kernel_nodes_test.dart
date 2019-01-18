@@ -133,6 +133,55 @@ void test() {
           deserializationState: new DeserializationState(null, component.root));
     }(),
     () {
+      Procedure topLevelProcedure = new Procedure(
+          new Name("foo"),
+          ProcedureKind.Method,
+          new FunctionNode(null, positionalParameters: <VariableDeclaration>[
+            new VariableDeclaration("x", type: const DynamicType())
+          ]),
+          isStatic: true);
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          procedures: <Procedure>[topLevelProcedure]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase(
+          name: "/* suppose top-level: foo(dynamic x) {...}; */ foo(42)",
+          node: new StaticInvocation.byReference(topLevelProcedure.reference,
+              new Arguments(<Expression>[new IntLiteral(42)]),
+              isConst: false),
+          expectation: ""
+              "(invoke-static \"package:foo/bar.dart::@methods::foo\""
+              " () ((int 42)) ())",
+          serializationState: new SerializationState(null),
+          deserializationState: new DeserializationState(null, component.root));
+    }(),
+    () {
+      Procedure factoryConstructor = new Procedure(
+          new Name("foo"), ProcedureKind.Factory, new FunctionNode(null),
+          isStatic: true, isConst: true);
+      Class klass =
+          new Class(name: "A", procedures: <Procedure>[factoryConstructor]);
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          classes: <Class>[klass]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase(
+          name: ""
+              "/* suppose A { const A(); const factory A.foo() = A; } */"
+              " const A.foo()",
+          node: new StaticInvocation.byReference(
+              factoryConstructor.reference, new Arguments([]),
+              isConst: true),
+          expectation: ""
+              "(invoke-const-static"
+              " \"package:foo/bar.dart::A::@factories::foo\""
+              " () () ())",
+          serializationState: new SerializationState(null),
+          deserializationState: new DeserializationState(null, component.root));
+    }(),
+    () {
       Field field = new Field(new Name("field"), type: const DynamicType());
       Class klass = new Class(name: "A", fields: <Field>[field]);
       Library library = new Library(
