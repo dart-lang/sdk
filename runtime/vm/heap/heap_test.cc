@@ -267,14 +267,12 @@ ISOLATE_UNIT_TEST_CASE(FindObject) {
   for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
     const String& obj = String::Handle(String::New("x", spaces[space]));
     {
-      HeapIterationScope iteration(thread);
       NoSafepointScope no_safepoint;
       FindOnly find_only(obj.raw());
       EXPECT(obj.raw() == heap->FindObject(&find_only));
     }
   }
   {
-    HeapIterationScope iteration(thread);
     NoSafepointScope no_safepoint;
     FindNothing find_nothing;
     EXPECT(Object::null() == heap->FindObject(&find_nothing));

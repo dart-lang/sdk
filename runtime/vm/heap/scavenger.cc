@@ -447,6 +447,13 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   resolved_top_ = top_;
   end_ = to_->end();
 
+  // Throw out the old information about the from space
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = isolate->mutator_thread();
+    mutator_thread->set_top(top_);
+    mutator_thread->set_end(end_);
+  }
+
   return from;
 }
 
@@ -454,10 +461,13 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   // All objects in the to space have been copied from the from space at this
   // moment.
 
-  // Ensure the mutator thread will fail the next allocation. This will force
-  // mutator to allocate a new TLAB
-  Thread* mutator_thread = isolate->mutator_thread();
-  ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
+  // Ensure the mutator thread now has the up-to-date top_ and end_ of the
+  // semispace
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* thread = isolate->mutator_thread();
+    thread->set_top(top_);
+    thread->set_end(end_);
+  }
 
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
@@ -836,45 +846,11 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
-  MonitorLocker ml(isolate->threads_lock(), false);
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-         (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  Thread* current = heap_->isolate()->thread_registry()->active_list();
-  while (current != NULL) {
-    if (current->HasActiveTLAB()) {
-      heap_->MakeTLABIterable(current);
-    }
-    current = current->next();
-  }
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
-    heap_->MakeTLABIterable(mutator_thread);
-  }
-}
-
-void Scavenger::MakeNewSpaceIterable() const {
+void Scavenger::FlushTLS() const {
   ASSERT(heap_ != NULL);
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-         (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  if (!scavenging_) {
-    MakeAllTLABsIterable(heap_->isolate());
-  }
-}
-
-void Scavenger::AbandonAllTLABs(Isolate* isolate) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
-  MonitorLocker ml(isolate->threads_lock(), false);
-  Thread* current = isolate->thread_registry()->active_list();
-  while (current != NULL) {
-    heap_->AbandonRemainingTLAB(current);
-    current = current->next();
-  }
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    mutator_thread->heap()->new_space()->set_top(mutator_thread->top());
   }
 }
 
@@ -882,7 +858,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  MakeNewSpaceIterable();
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -893,7 +869,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
-  MakeNewSpaceIterable();
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -908,7 +884,7 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
 
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
-  MakeNewSpaceIterable();
+  FlushTLS();
   uword cur = FirstObjectStart();
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
@@ -922,26 +898,6 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
     ASSERT(cur == top_);
   }
   return Object::null();
-}
-
-uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  ASSERT(heap_ != Dart::vm_isolate()->heap());
-  ASSERT(!scavenging_);
-  MutexLocker ml(&space_lock_);
-  uword result = top_;
-  intptr_t remaining = end_ - top_;
-  if (remaining < size) {
-    return 0;
-  }
-  ASSERT(to_->Contains(result));
-  ASSERT((result & kObjectAlignmentMask) == object_alignment_);
-  top_ += size;
-  ASSERT(to_->Contains(top_) || (top_ == to_->end()));
-  ASSERT(result < top_);
-  thread->set_top(result);
-  thread->set_end(top_);
-  return result;
 }
 
 void Scavenger::Scavenge() {
@@ -969,13 +925,6 @@ void Scavenger::Scavenge() {
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
 
-  AbandonAllTLABs(isolate);
-
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
-  }
-
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -984,7 +933,7 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  MakeNewSpaceIterable();
+  FlushTLS();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
@@ -1092,6 +1041,11 @@ void Scavenger::Evacuate() {
 
   // Forces the next scavenge to promote all the objects in the new space.
   survivor_end_ = top_;
+
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    survivor_end_ = mutator_thread->top();
+  }
 
   Scavenge();
 
