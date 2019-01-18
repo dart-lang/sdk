@@ -132,6 +132,30 @@ void test() {
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
+    () {
+      Field field = new Field(new Name("field"), type: const DynamicType());
+      Class klass = new Class(name: "A", fields: <Field>[field]);
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          classes: <Class>[klass]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+
+      VariableDeclaration x =
+          new VariableDeclaration("x", type: const DynamicType());
+      return new TestCase(
+          name: "/* suppose A {dynamic field;} A x; */ x.{A::field}",
+          node: new DirectPropertyGet.byReference(
+              new VariableGet(x), field.reference),
+          expectation: ""
+              "(get-direct-prop (get-var \"x^0\" _)"
+              " \"package:foo/bar.dart::A::@fields::field\")",
+          serializationState: new SerializationState(
+              new SerializationEnvironment(null)..add(x, "x^0")),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null)..add("x^0", x),
+              component.root));
+    }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =
