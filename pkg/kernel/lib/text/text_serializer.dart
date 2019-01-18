@@ -101,6 +101,7 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitStaticGet(StaticGet _) => "get-static";
   String visitStaticSet(StaticSet _) => "set-static";
   String visitDirectPropertyGet(DirectPropertyGet _) => "get-direct-prop";
+  String visitDirectPropertySet(DirectPropertySet _) => "set-direct-prop";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -590,6 +591,24 @@ DirectPropertyGet wrapDirectPropertyGet(
       tuple.first, tuple.second.getReference());
 }
 
+TextSerializer<DirectPropertySet> directPropertySetSerializer = new Wrapped(
+    unwrapDirectPropertySet,
+    wrapDirectPropertySet,
+    new Tuple3Serializer(expressionSerializer, const CanonicalNameSerializer(),
+        expressionSerializer));
+
+Tuple3<Expression, CanonicalName, Expression> unwrapDirectPropertySet(
+    DirectPropertySet expression) {
+  return new Tuple3(expression.receiver,
+      expression.targetReference.canonicalName, expression.value);
+}
+
+DirectPropertySet wrapDirectPropertySet(
+    Tuple3<Expression, CanonicalName, Expression> tuple) {
+  return new DirectPropertySet.byReference(
+      tuple.first, tuple.second.getReference(), tuple.third);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -799,6 +818,7 @@ void initializeSerializers() {
     "get-static",
     "set-static",
     "get-direct-prop",
+    "set-direct-prop",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -838,6 +858,7 @@ void initializeSerializers() {
     staticGetSerializer,
     staticSetSerializer,
     directPropertyGetSerializer,
+    directPropertySetSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
