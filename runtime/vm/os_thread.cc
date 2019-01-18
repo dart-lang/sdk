@@ -29,7 +29,7 @@ OSThread::OSThread()
 #if defined(DEBUG)
       join_id_(kInvalidThreadJoinId),
 #endif
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
       trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
       name_(NULL),
@@ -75,11 +75,11 @@ OSThread::~OSThread() {
   RemoveThreadFromList(this);
   delete log_;
   log_ = NULL;
-  if (FLAG_support_timeline) {
-    if (Timeline::recorder() != NULL) {
-      Timeline::recorder()->FinishBlock(timeline_block_);
-    }
+#if defined(SUPPORT_TIMELINE)
+  if (Timeline::recorder() != NULL) {
+    Timeline::recorder()->FinishBlock(timeline_block_);
   }
+#endif
   timeline_block_ = NULL;
   delete timeline_block_lock_;
   free(name_);

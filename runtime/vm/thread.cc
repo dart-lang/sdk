@@ -106,7 +106,7 @@ Thread::Thread(Isolate* isolate)
       interpreter_(nullptr),
 #endif
       next_(NULL) {
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
   dart_stream_ = Timeline::GetDartStream();
   ASSERT(dart_stream_ != NULL);
 #endif

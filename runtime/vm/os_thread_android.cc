@@ -187,7 +187,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   return gettid();
 }
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return GetCurrentThreadId();
 }

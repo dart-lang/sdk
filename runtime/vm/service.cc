@@ -3527,6 +3527,7 @@ static const MethodParameter* set_vm_timeline_flags_params[] = {
     NULL,
 };
 
+#if defined(SUPPORT_TIMELINE)
 static bool HasStream(const char** recorded_streams, const char* stream) {
   while (*recorded_streams != NULL) {
     if ((strstr(*recorded_streams, "all") != NULL) ||
@@ -3537,12 +3538,13 @@ static bool HasStream(const char** recorded_streams, const char* stream) {
   }
   return false;
 }
+#endif
 
 static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
-  if (!FLAG_support_timeline) {
-    PrintSuccess(js);
-    return true;
-  }
+#if !defined(SUPPORT_TIMELINE)
+  PrintSuccess(js);
+  return true;
+#else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
@@ -3562,6 +3564,7 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 
   return true;
+#endif
 }
 
 static const MethodParameter* get_vm_timeline_flags_params[] = {
@@ -3569,16 +3572,17 @@ static const MethodParameter* get_vm_timeline_flags_params[] = {
 };
 
 static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
-  if (!FLAG_support_timeline) {
-    JSONObject obj(js);
-    obj.AddProperty("type", "TimelineFlags");
-    return true;
-  }
+#if !defined(SUPPORT_TIMELINE)
+  JSONObject obj(js);
+  obj.AddProperty("type", "TimelineFlags");
+  return true;
+#else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
   Timeline::PrintFlagsToJSON(js);
   return true;
+#endif
 }
 
 static const MethodParameter* clear_vm_timeline_params[] = {

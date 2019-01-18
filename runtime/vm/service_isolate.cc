@@ -313,9 +313,9 @@ class RunServiceTask : public ThreadPool::Task {
  public:
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
-#ifndef PRODUCT
+#if defined(SUPPORT_TIMELINE)
     TimelineDurationScope tds(Timeline::GetVMStream(), "ServiceIsolateStartup");
-#endif  // !PRODUCT
+#endif  // SUPPORT_TIMELINE
     char* error = NULL;
     Isolate* isolate = NULL;
 

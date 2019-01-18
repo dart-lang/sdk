@@ -44,7 +44,7 @@ bool BytecodeMetadataHelper::HasBytecode(intptr_t node_offset) {
 }
 
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadMetadata");
   // This increases bytecode reading time by ~7%, so only keep it around for
@@ -310,10 +310,8 @@ void BytecodeMetadataHelper::ReadTypeParametersDeclaration(
 
 void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                                               const ObjectPool& pool) {
-#if !defined(PRODUCT)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                            "BytecodeMetadataHelper::ReadConstantPool");
-#endif  // !defined(PRODUCT)
+  TIMELINE_DURATION(Thread::Current(), Compiler,
+                    "BytecodeMetadataHelper::ReadConstantPool");
 
   // These enums and the code below reading the constant pool from kernel must
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
@@ -638,10 +636,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
 }
 
 RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
-#if !defined(PRODUCT)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                            "BytecodeMetadataHelper::ReadBytecode");
-#endif  // !defined(PRODUCT)
+  TIMELINE_DURATION(Thread::Current(), Compiler,
+                    "BytecodeMetadataHelper::ReadBytecode");
   intptr_t size = helper_->ReadUInt();
   intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), sizeof(KBCInstr));
   const uint8_t* data = helper_->reader_.BufferAt(offset);
@@ -659,10 +655,8 @@ RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                                  bool has_exceptions_table) {
-#if !defined(PRODUCT)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                            "BytecodeMetadataHelper::ReadExceptionsTable");
-#endif  // !defined(PRODUCT)
+  TIMELINE_DURATION(Thread::Current(), Compiler,
+                    "BytecodeMetadataHelper::ReadExceptionsTable");
 
   const intptr_t try_block_count =
       has_exceptions_table ? helper_->reader_.ReadListLength() : 0;

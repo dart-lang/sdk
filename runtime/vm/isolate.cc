@@ -496,7 +496,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
-#ifndef PRODUCT
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(
       thread, Timeline::GetIsolateStream(),
       message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
@@ -1359,16 +1359,16 @@ const char* Isolate::MakeRunnable() {
     ASSERT(this == state->isolate());
     Run();
   }
-#ifndef PRODUCT
-  if (FLAG_support_timeline) {
-    TimelineStream* stream = Timeline::GetIsolateStream();
-    ASSERT(stream != NULL);
-    TimelineEvent* event = stream->StartEvent();
-    if (event != NULL) {
-      event->Instant("Runnable");
-      event->Complete();
-    }
+#if defined(SUPPORT_TIMELINE)
+  TimelineStream* stream = Timeline::GetIsolateStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Instant("Runnable");
+    event->Complete();
   }
+#endif
+#ifndef PRODUCT
   if (FLAG_support_service && !Isolate::IsVMInternalIsolate(this) &&
       Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
@@ -1812,15 +1812,15 @@ void Isolate::LowLevelShutdown() {
   // Fail fast if anybody tries to post any more messages to this isolate.
   delete message_handler();
   set_message_handler(NULL);
-  if (FLAG_support_timeline) {
-    // Before analyzing the isolate's timeline blocks- reclaim all cached
-    // blocks.
-    Timeline::ReclaimCachedBlocksFromThreads();
-  }
+#if defined(SUPPORT_TIMELINE)
+  // Before analyzing the isolate's timeline blocks- reclaim all cached
+  // blocks.
+  Timeline::ReclaimCachedBlocksFromThreads();
+#endif
 
 // Dump all timing data for the isolate.
-#ifndef PRODUCT
-  if (FLAG_support_timeline && FLAG_timing) {
+#if defined(SUPPORT_TIMELINE) && !defined(PRODUCT)
+  if (FLAG_timing) {
     TimelinePauseTrace tpt;
     tpt.Print();
   }

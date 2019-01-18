@@ -4729,6 +4729,14 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
 #endif
     }
 
+    if (name.Equals(Symbols::DartDeveloperTimeline())) {
+#ifdef SUPPORT_TIMELINE
+      return Symbols::True().raw();
+#else
+      return Symbols::False().raw();
+#endif
+    }
+
     const String& prefix = Symbols::DartLibrary();
     if (name.StartsWith(prefix)) {
       const String& library_name =
@@ -5655,9 +5663,7 @@ DART_EXPORT bool Dart_IsReloading() {
 }
 
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
+#if defined(SUPPORT_TIMELINE)
   const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
   const bool compiler_enabled =
       (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
@@ -5678,6 +5684,7 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   Timeline::SetStreamGCEnabled(gc_enabled);
   Timeline::SetStreamIsolateEnabled(isolate_enabled);
   Timeline::SetStreamVMEnabled(vm_enabled);
+#endif
 }
 
 static void StartStreamToConsumer(Dart_StreamConsumer consumer,
@@ -5758,18 +5765,17 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
 DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
     Dart_EmbedderTimelineStartRecording start_recording,
     Dart_EmbedderTimelineStopRecording stop_recording) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
+#if defined(SUPPORT_TIMELINE)
   Timeline::set_start_recording_cb(start_recording);
   Timeline::set_stop_recording_cb(stop_recording);
+#endif
 }
 
 DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
                                              void* user_data) {
-  if (!FLAG_support_timeline) {
-    return false;
-  }
+#if defined(PRODUCT)
+  return false;
+#else
   // To support various embedders, it must be possible to call this function
   // from a thread for which we have not entered an Isolate and set up a Thread
   // TLS object. Therefore, a Zone may not be available, a StackZone cannot be
@@ -5793,6 +5799,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
   }
   FinishStreamToConsumer(consumer, user_data, "timeline");
   return success;
+#endif
 }
 
 DART_EXPORT void Dart_TimelineEvent(const char* label,
@@ -5802,9 +5809,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     intptr_t argument_count,
                                     const char** argument_names,
                                     const char** argument_values) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
+#if defined(SUPPORT_TIMELINE)
   if (type < Dart_Timeline_Event_Begin) {
     return;
   }
@@ -5861,6 +5866,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     event->CopyArgument(i, argument_names[i], argument_values[i]);
   }
   event->Complete();
+#endif
 }
 #endif  // defined(PRODUCT)
 
@@ -6019,8 +6025,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   ASSERT(FLAG_load_deferred_eagerly);
   CHECK_NULL(callback);
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteAppAOTSnapshot"));
+  TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
   AssemblyImageWriter image_writer(T, callback, callback_data, NULL, NULL);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
@@ -6052,8 +6057,7 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   API_TIMELINE_DURATION(T);
   CHECK_NULL(callback);
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteVMAOTSnapshot"));
+  TIMELINE_DURATION(T, Isolate, "WriteVMAOTSnapshot");
   AssemblyImageWriter image_writer(T, callback, callback_data, NULL, NULL);
   uint8_t* vm_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
@@ -6108,8 +6112,7 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   }
   const void* shared_instructions_image = shared_instructions;
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteAppAOTSnapshot"));
+  TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
                                   ApiReallocate, 2 * MB /* initial_size */,
                                   /*shared_objects=*/nullptr,
@@ -6220,8 +6223,7 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteCoreJITSnapshot"));
+  TIMELINE_DURATION(T, Isolate, "WriteCoreJITSnapshot");
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
                                   ApiReallocate, 2 * MB /* initial_size */,
                                   /*shared_objects=*/nullptr,
@@ -6289,8 +6291,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
     DumpTypeArgumentsTable(I);
   }
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteAppJITSnapshot"));
+  TIMELINE_DURATION(T, Isolate, "WriteAppJITSnapshot");
   BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
                                        ApiReallocate, 2 * MB /* initial_size */,
                                        /*shared_objects=*/nullptr,

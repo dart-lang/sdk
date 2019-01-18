@@ -1300,8 +1300,7 @@ RawError* Object::Init(Isolate* isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const bool is_kernel = (kernel_buffer != NULL);
 #endif
-  NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                                           "Object::Init");)
+  TIMELINE_DURATION(thread, Isolate, "Object::Init");
 
 #if defined(DART_NO_SNAPSHOT)
   bool bootstrapping =

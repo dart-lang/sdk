@@ -2202,10 +2202,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  if (!FLAG_support_timeline) {
-    __ LoadObject(EAX, Bool::False());
-    __ ret();
-  }
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadObject(EAX, Bool::False());
+  __ ret();
+#else
   Label true_label;
   // Load TimelineStream*.
   __ movl(EAX, Address(THR, Thread::dart_stream_offset()));
@@ -2220,6 +2220,7 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ Bind(&true_label);
   __ LoadObject(EAX, Bool::True());
   __ ret();
+#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
