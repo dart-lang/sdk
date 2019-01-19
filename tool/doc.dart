@@ -81,8 +81,6 @@ String get enumerateStyleRules => rules
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
 
-List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
-
 Future<void> fetchBadgeInfo() async {
   var pedantic = await fetchConfig(
       'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml');
@@ -392,6 +390,12 @@ class OptionsSample {
 linter:
   rules:
 ''');
+
+    var sortedRules = rules
+        .where((r) => r.maturity != Maturity.deprecated)
+        .map((r) => r.name)
+        .toList()
+          ..sort();
     for (String rule in sortedRules) {
       sb.write('    - $rule\n');
     }
