@@ -99,12 +99,6 @@ class Analyzer {
   void register(LintRule lint) {
     Registry.ruleRegistry.register(lint);
   }
-
-  /// Register this [lint] with the analyzer's rule registry and mark it as a
-  /// a default.
-  void registerDefault(LintRule lint) {
-    Registry.ruleRegistry.registerDefault(lint);
-  }
 }
 
 class ErrorWatchingSink implements IOSink {
