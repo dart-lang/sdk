@@ -79,7 +79,7 @@ showCodeDistribution(AllInfo info,
 
   if (showLibrarySizes) {
     print(' --- Results per library ---');
-    var totals = {};
+    var totals = <LibraryInfo, int>{};
     var longest = 0;
     reported.forEach((info) {
       var size = info.size;
@@ -87,17 +87,17 @@ showCodeDistribution(AllInfo info,
         info = info.parent;
       }
       if (info == null) return;
-      var name = info.name;
-      totals.putIfAbsent(name, () => 0);
-      totals[name] += size;
-      longest = math.max(longest, name.length);
+      LibraryInfo lib = info;
+      totals.putIfAbsent(lib, () => 0);
+      totals[lib] += size;
+      longest = math.max(longest, '${lib.uri}'.length);
     });
 
     _showLibHeader(longest + 1);
     var reportedByLibrary = totals.keys.toList();
     reportedByLibrary.sort((a, b) => totals[b] - totals[a]);
-    reportedByLibrary.forEach((name) {
-      _showLib(name, totals[name], realTotal, longest + 1);
+    reportedByLibrary.forEach((info) {
+      _showLib('${info.uri}', totals[info], realTotal, longest + 1);
     });
   }
 

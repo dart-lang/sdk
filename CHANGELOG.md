@@ -1,3 +1,7 @@
+## 0.5.17
+
+* Make `live_code_size_analysis` print library URIs and not library names.
+
 ## 0.5.16
 
 * Split out IO dependency from `util.dart`, so all other utilities can be used
