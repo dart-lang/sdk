@@ -639,15 +639,6 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 }
 
 bool Heap::Verify(MarkExpectation mark_expectation) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // We cannot simply walk the heap pages which contain instructions, because
-  // they also contain trampolines inserted during AOT compilation time.
-  const bool have_bare_trampolines =
-      FLAG_precompiled_mode && FLAG_use_bare_instructions;
-  if (have_bare_trampolines) {
-    return true;
-  }
-#endif
   HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }

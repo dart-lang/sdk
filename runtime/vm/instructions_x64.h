@@ -157,6 +157,8 @@ class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
 // allow testing of trampolines on X64 we have it nonetheless)
 class PcRelativeTrampolineJumpPattern : public ValueObject {
  public:
+  static const int kLengthInBytes = 5;
+
   explicit PcRelativeTrampolineJumpPattern(uword pattern_start)
       : pattern_start_(pattern_start) {}
 
@@ -181,8 +183,6 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
   }
 
  private:
-  static const int kLengthInBytes = 5;
-
   uword pattern_start_;
 };
 

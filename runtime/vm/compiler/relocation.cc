@@ -20,6 +20,8 @@ DEFINE_FLAG(bool,
             false,
             "Generate always trampolines (for testing purposes).");
 
+// The trampolines will have a 1-word object header in front of them.
+const intptr_t kOffsetInTrampoline = kWordSize;
 const intptr_t kTrampolineSize = OS::kMaxPreferredCodeAlignment;
 
 CodeRelocator::CodeRelocator(Thread* thread,
@@ -382,7 +384,8 @@ void CodeRelocator::ResolveTrampoline(
       FindDestinationInText(callee, unresolved_trampoline->offset_into_target);
   const int32_t distance = destination_text - trampoline_text_offset;
 
-  PcRelativeTrampolineJumpPattern pattern(trampoline_start);
+  PcRelativeTrampolineJumpPattern pattern(trampoline_start +
+                                          kOffsetInTrampoline);
   pattern.Initialize();
   pattern.set_distance(distance);
   ASSERT(pattern.distance() == distance);
@@ -396,6 +399,20 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
          forward_distance < PcRelativeCallPattern::kUpperCallingRange;
 }
 
+static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
+                                  intptr_t trampoline_length) {
+  uint32_t tags = 0;
+  tags = RawObject::SizeTag::update(trampoline_length, tags);
+  tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
+  tags = RawObject::OldBit::update(true, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+  tags = RawObject::NewBit::update(false, tags);
+
+  auto header_word = reinterpret_cast<uintptr_t*>(trampoline_bytes);
+  *header_word = tags;
+}
+
 void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
   while (!all_unresolved_calls_.IsEmpty()) {
     UnresolvedCall* unresolved_call = all_unresolved_calls_.First();
@@ -407,7 +424,8 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
     const intptr_t future_boundary =
         next_text_offset_ + max_instructions_size_ +
         kTrampolineSize *
-            (unresolved_calls_by_destination_.Length() + max_calls_);
+            (unresolved_calls_by_destination_.Length() + max_calls_) +
+        kOffsetInTrampoline;
     if (IsTargetInRangeFor(unresolved_call, future_boundary) &&
         !FLAG_always_generate_trampolines_for_testing) {
       break;
@@ -440,12 +458,16 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
       // buffer.
       auto trampoline_bytes = new uint8_t[kTrampolineSize];
       memset(trampoline_bytes, 0x00, kTrampolineSize);
+      ASSERT((kOffsetInTrampoline +
+              PcRelativeTrampolineJumpPattern::kLengthInBytes) <
+             kTrampolineSize);
       auto unresolved_trampoline = new UnresolvedTrampoline{
           unresolved_call->callee,
           unresolved_call->offset_into_target,
           trampoline_bytes,
-          next_text_offset_,
+          next_text_offset_ + kOffsetInTrampoline,
       };
+      MarkAsFreeListElement(trampoline_bytes, kTrampolineSize);
       AddTrampolineToText(callee, trampoline_bytes, kTrampolineSize);
       EnqueueUnresolvedTrampoline(unresolved_trampoline);
       trampoline_text_offset = unresolved_trampoline->text_offset;
