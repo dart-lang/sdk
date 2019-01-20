@@ -30,14 +30,12 @@ main() {
 ''');
     await assertHasAssist('''
 main() {
-// start
   try {
     print(0);
     print(1);
   } on Exception catch (e) {
     // TODO
   }
-// end
 }
 ''');
     assertLinkedGroup(0, ['Exception']);

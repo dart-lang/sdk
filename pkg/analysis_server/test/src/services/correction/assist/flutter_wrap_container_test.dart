@@ -24,7 +24,7 @@ class FlutterWrapContainerTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 main() {
-  return /*caret*/new Container();
+  return /*caret*/Container();
 }
 ''');
     await assertNoAssist();
@@ -35,13 +35,13 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 main() {
-  /*caret*/new Text('a');
+  /*caret*/Text('a');
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 main() {
-  /*caret*/Container(child: new Text('a'));
+  Container(child: Text('a'));
 }
 ''');
   }

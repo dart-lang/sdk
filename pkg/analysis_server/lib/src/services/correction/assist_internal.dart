@@ -1625,7 +1625,7 @@ class AssistProcessor {
               }
               builder.writeln('  @override');
               builder.writeln('  $stateName createState() {');
-              builder.writeln('    return new $stateName();');
+              builder.writeln('    return $stateName();');
               builder.writeln('  }');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
@@ -1817,8 +1817,8 @@ class AssistProcessor {
       return;
     }
 
-    // child: new ThisWidget(child: ourChild)
-    // children: [foo, new ThisWidget(child: ourChild), bar]
+    // child: ThisWidget(child: ourChild)
+    // children: [foo, ThisWidget(child: ourChild), bar]
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       var childExpression = childArgument.expression;
@@ -2608,7 +2608,6 @@ class AssistProcessor {
         builder.write('[');
         builder.write(eol);
         builder.write(indentArg);
-        builder.write('new ');
         builder.addSimpleLinkedEdit('WIDGET', 'widget');
         builder.write('(');
         builder.write(eol);

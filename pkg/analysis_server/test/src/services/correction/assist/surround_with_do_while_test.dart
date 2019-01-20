@@ -30,12 +30,10 @@ main() {
 ''');
     await assertHasAssist('''
 main() {
-// start
   do {
     print(0);
     print(1);
   } while (condition);
-// end
 }
 ''');
     assertLinkedGroup(0, ['condition);']);

@@ -26,13 +26,13 @@ import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
   main() {
-    return new Column(children: [
-      new Text('aaa'),
+    return Column(children: [
+      Text('aaa'),
 // start
-      new Text('bbb'),
-      new Text('ccc'),
+      Text('bbb'),
+      Text('ccc'),
 // end
-      new Text('ddd'),
+      Text('ddd'),
     ]);
   }
 }
@@ -42,17 +42,15 @@ import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
   main() {
-    return new Column(children: [
-      new Text('aaa'),
-// start
+    return Column(children: [
+      Text('aaa'),
       Row(
         children: <Widget>[
-          new Text('bbb'),
-          new Text('ccc'),
+          Text('bbb'),
+          Text('ccc'),
         ],
       ),
-// end
-      new Text('ddd'),
+      Text('ddd'),
     ]);
   }
 }

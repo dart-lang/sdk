@@ -30,12 +30,10 @@ main() {
 ''');
     await assertHasAssist('''
 main() {
-// start
   for (var item in iterable) {
     print(0);
     print(1);
   }
-// end
 }
 ''');
     assertLinkedGroup(0, ['item']);

@@ -32,15 +32,13 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 build() {
-  return new Container(
-    child: new Row(
-// start
+  return Container(
+    child: Row(
       children: [/*caret*/
-        new Text('111'),
-        new Text('222'),
-        new Container(),
+        Text('111'),
+        Text('222'),
+        Container(),
       ],
-// end
     ),
   );
 }
@@ -48,19 +46,17 @@ build() {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 build() {
-  return new Container(
-    child: new Row(
-// start
+  return Container(
+    child: Row(
       children: [
-        new widget(
-          children: [/*caret*/
-            new Text('111'),
-            new Text('222'),
-            new Container(),
+        widget(
+          children: [
+            Text('111'),
+            Text('222'),
+            Container(),
           ],
         ),
       ],
-// end
     ),
   );
 }
@@ -73,13 +69,13 @@ build() {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 build() {
-  return new Container(
-    child: new Row(
+  return Container(
+    child: Row(
       children: [/*caret*/
 // start
-        new Transform(),
-        new Object(),
-        new AspectRatio(),
+        Transform(),
+        Object(),
+        AspectRatio(),
 // end
       ],
     ),
@@ -95,17 +91,15 @@ build() {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return new Container(
-// start
-      child: new /*caret*/DefaultTextStyle(
-        child: new Row(
+    return Container(
+      child: /*caret*/DefaultTextStyle(
+        child: Row(
           children: <Widget>[
-            new Container(
+            Container(
             ),
           ],
         ),
       ),
-// end
     );
   }
 }
@@ -114,19 +108,17 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return new Container(
-// start
+    return Container(
       child: widget(
-        child: new /*caret*/DefaultTextStyle(
-          child: new Row(
+        child: DefaultTextStyle(
+          child: Row(
             children: <Widget>[
-              new Container(
+              Container(
               ),
             ],
           ),
         ),
       ),
-// end
     );
   }
 }
@@ -139,17 +131,15 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
-    return new Container(\r
-// start\r
-      child: new /*caret*/DefaultTextStyle(\r
-        child: new Row(\r
+    return Container(\r
+      child: /*caret*/DefaultTextStyle(\r
+        child: Row(\r
           children: <Widget>[\r
-            new Container(\r
+            Container(\r
             ),\r
           ],\r
         ),\r
       ),\r
-// end\r
     );\r
   }\r
 }\r
@@ -158,19 +148,17 @@ class FakeFlutter {\r
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
-    return new Container(\r
-// start\r
+    return Container(\r
       child: widget(\r
-        child: new /*caret*/DefaultTextStyle(\r
-          child: new Row(\r
+        child: DefaultTextStyle(\r
+          child: Row(\r
             children: <Widget>[\r
-              new Container(\r
+              Container(\r
               ),\r
             ],\r
           ),\r
         ),\r
       ),\r
-// end\r
     );\r
   }\r
 }\r
@@ -198,7 +186,7 @@ abstract class Foo extends Widget {
 }
 
 main(Foo foo) {
-  return widget(child: foo./*caret*/bar);
+  return widget(child: foo.bar);
 }
 ''');
   }
@@ -224,7 +212,7 @@ abstract class Foo extends Widget {
 }
 
 main(Foo foo) {
-  return /*caret*/widget(child: foo.bar);
+  return widget(child: foo.bar);
 }
 ''');
   }
@@ -236,9 +224,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
   var obj;
-// start
-    return new Row(children: [/*caret*/ new Container()]);
-// end
+    return Row(children: [/*caret*/ Container()]);
   }
 }
 ''');
@@ -251,9 +237,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-// start
-    return /*caret*/new Container();
-// end
+    return /*caret*/Container();
   }
 }
 ''');
@@ -261,9 +245,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-// start
-    return /*caret*/widget(child: new Container());
-// end
+    return widget(child: Container());
   }
 }
 ''');
@@ -275,7 +257,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return new ClipRect./*caret*/rect();
+    return ClipRect./*caret*/rect();
   }
 }
 ''');
@@ -283,7 +265,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return widget(child: new ClipRect./*caret*/rect());
+    return widget(child: ClipRect.rect());
   }
 }
 ''');
@@ -295,7 +277,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    var container = new Container();
+    var container = Container();
     return /*caret*/container;
   }
 }
@@ -304,8 +286,8 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    var container = new Container();
-    return /*caret*/widget(child: container);
+    var container = Container();
+    return widget(child: container);
   }
 }
 ''');

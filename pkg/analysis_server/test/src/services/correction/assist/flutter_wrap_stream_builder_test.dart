@@ -40,17 +40,17 @@ main() {
 import 'package:flutter/widgets.dart';
 
 main() {
-  /*caret*/new Text('a');
+  /*caret*/Text('a');
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 
 main() {
-  /*caret*/StreamBuilder<Object>(
+  StreamBuilder<Object>(
     stream: null,
     builder: (context, snapshot) {
-      return new Text('a');
+      return Text('a');
     }
   );
 }
