@@ -20,19 +20,21 @@
 *   Improved dart2js compilation of `element.attributes.remove(name)` to
     generate `element.removeAttribute(name)`, so that there is no performance
     reason to migrate to the above methods.
+*   Fixed a number of `dart:html` P1 bugs:
 
-[35655]: https://github.com/dart-lang/sdk/issues/35655
-
-*   Fixed a number of 'dart:html' P1 bugs:
-
-    *   Fixed HTML API's with callback typedef to correctly convert Dart function to JS function.
-    *   HttpStatus constants exposed in dart:html
-    *   Expose DomName ondblclick and dblclickEvent for Angular analyzer.
-    *   Fixed removeAll on classes Set should be Iterable<Object> to match Set's removeAll not Iterable<E>.
-    *   Fixed a number of DataTransferItem, Entry, FileEntry and DiretoryEntry returning NativeJavaScriptObject needed type registered in DDC.
-        This fixes handling drag/drop of files/directories.
+    *   Fixed HTML API's with callback typedef to correctly convert Dart
+        function to JS function (Issue [35484]).
+    *   HttpStatus constants exposed in `dart:html` (Issue [34318]).
+    *   Expose DomName `ondblclick` and `dblclickEvent` for Angular analyzer.
+    *   Fixed `removeAll` on `classes`; `elements` parameter should be
+        `Iterable<Object>` to match Set's `removeAll` not `Iterable<E>` (Issue
+        [30278]).
+    *   Fixed a number of methods on DataTransferItem, Entry, FileEntry and
+        DirectoryEntry which previously returned NativeJavaScriptObject.  This
+        fixes handling drag/drop of files/directories (Issue [35510]).
     *   Added ability to allow local file access from Chrome browser in ddb.
 
+[35655]: https://github.com/dart-lang/sdk/issues/35655
 [30278]: https://github.com/dart-lang/sdk/issues/30278
 [34318]: https://github.com/dart-lang/sdk/issues/34318
 [35484]: https://github.com/dart-lang/sdk/issues/35484
@@ -78,7 +80,9 @@
 
 ### Dart VM
 
-In previous releases it was possible to violate static types using dart:mirrors but this bug is fixed now. Meaning that the code below would run without any TypeErrors and print "impossible" output.
+In previous releases it was possible to violate static types using
+`dart:mirrors` but this bug is fixed now. Meaning that the code below would run
+without any TypeErrors and print "impossible" output.
 
 ```dart
 import 'dart:mirrors';
@@ -136,7 +140,7 @@ See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more detai
       Common front-end. On large apps, the fix can cut down 2/3 of the time
       spent on this task.
 
-    * We fixed a bug in how inferred types were miscategorized (#35311). The old
+    * We fixed a bug in how inferred types were miscategorized (Issue [35311]). The old
       behavior was unsound and could produce broken programs. The fix may cause
       more code to be pulled into the main output unit.
 
@@ -176,6 +180,8 @@ See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more detai
           detected.
 
         * `--new-deferred-split`: enables the new algorithm.
+
+[35311]: https://github.com/dart-lang/sdk/issues/35311
 
 #### dartdoc
 
