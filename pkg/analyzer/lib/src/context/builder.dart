@@ -483,11 +483,6 @@ class ContextBuilder {
       if (builderOptions.argResults != null) {
         applyAnalysisOptionFlags(options, builderOptions.argResults,
             verbosePrint: verbosePrint);
-        // If lints turned on but none specified, then enable default lints
-        if (options.lint && options.lintRules.isEmpty) {
-          options.lintRules = Registry.ruleRegistry.defaultRules;
-          verbose('Using default lint rules');
-        }
       }
     } else {
       verbose('Using default analysis options');

@@ -111,26 +111,6 @@ const Map<String, LibraryInfo> libraries = const {
     fail('Incomplete test');
   }
 
-  void test_cmdline_lint_default() {
-    _defineMockLintRules();
-    ArgParser argParser = new ArgParser();
-    defineAnalysisArguments(argParser);
-    ArgResults argResults = argParser.parse(['--$lintsFlag']);
-    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
-
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.lint = true;
-    expected.lintRules = Registry.ruleRegistry.defaultRules;
-
-    String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath);
-
-    AnalysisOptions options = builder.getAnalysisOptions(path);
-    _expectEqualOptions(options, expected);
-  }
-
   void test_cmdline_lint_defined() {
     _defineMockLintRules();
     ArgParser argParser = new ArgParser();
@@ -941,9 +921,9 @@ environment:
 
   _defineMockLintRules() {
     _mockLintRule = new _MockLintRule('mock_lint_rule');
-    Registry.ruleRegistry.registerDefault(_mockLintRule);
+    Registry.ruleRegistry.register(_mockLintRule);
     _mockLintRule2 = new _MockLintRule('mock_lint_rule2');
-    Registry.ruleRegistry.registerDefault(_mockLintRule2);
+    Registry.ruleRegistry.register(_mockLintRule2);
     _mockLintRule3 = new _MockLintRule('mock_lint_rule3');
     Registry.ruleRegistry.register(_mockLintRule3);
     _mockPublicMemberApiDocs = new _MockLintRule('public_member_api_docs');
