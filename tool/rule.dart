@@ -123,7 +123,7 @@ const _details = r'''
 
 ''';
 
-class $className extends LintRule implements NodeLintRuleWithContext {
+class $className extends LintRule implements NodeLintRule {
   $className() : super(
           name: '$ruleName',
             description: _desc,
