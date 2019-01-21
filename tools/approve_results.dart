@@ -427,7 +427,7 @@ ${parser.usage}""");
   for (final bot in bots) {
     if (options["preapprove"] != null &&
         changelistBuilds[bot]["status"] != "COMPLETED") {
-      stderr.writeln("error: The try run for $bot isn't complete yet" +
+      stderr.writeln("error: The try run for $bot isn't complete yet: " +
           changelistBuilds[bot]["status"]);
       anyIncomplete = true;
     }
