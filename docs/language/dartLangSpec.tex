@@ -732,10 +732,10 @@ and likely to cause bugs or inconveniences.
 A static warning must be reported by a Dart compiler before the associated code is executed.
 
 \LMHash{}%
-When this specification says that a \Index{run-time error} occurs,
+When this specification says that a \Index{dynamic error} occurs,
 it means that a corresponding error object is thrown.
 When it says that a \Index{dynamic type error} occurs,
-it represents a failed run-time type check,
+it represents a failed type check at run time,
 and the object which is thrown implements \code{TypeError}.
 
 \LMHash{}%
@@ -944,6 +944,7 @@ It is a compile-time error if a final instance variable
 that has been initialized by means of an initializing formal of a constructor $k$
 is also initialized in the initializer list of $k$ (\ref{initializerLists}).
 
+%% TODO(eernst): Not quite true, because of special lookup for assignment!
 A static final variable $v$ does not induce a setter,
 so unless a setter named \code{$v$=} is in scope
 it is a compile-time error to assign to $v$.
@@ -956,6 +957,7 @@ $v$ can be initialized in its declaration or in initializer lists,
 but initialization and assignment is not the same thing.
 When the receiver has type \DYNAMIC{}
 such an assignment is not a compile-time error,
+% This error can occur because the receiver is dynamic.
 but if there is no setter it will cause a dynamic error.
 }
 
@@ -1002,8 +1004,9 @@ will throw.
 }
 
 \LMHash{}%
-It is a dynamic type error if $o$ is not the null object (\ref{null})
-and the dynamic type of $o$ is not
+% This error can occur due to implicit casts, and
+% for instance variables also when a setter is called dynamically.
+It is a dynamic type error if the dynamic type of $o$ is not
 a subtype of the actual type of the variable $v$
 (\ref{actualTypeOfADeclaration}).
 
@@ -2710,10 +2713,15 @@ The type of the constructor is defined in terms of its formal parameters, includ
 }
 
 \LMHash{}%
-Initializing formals are executed during the execution of generative constructors detailed below.
-Executing an initializing formal \code{\THIS{}.\id} causes the instance variable \id{} of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
-%% TODO(eernst): This should be a compile-time error -- check, revise if true!
-unless \id{} is a final variable that has already been initialized, in which case a run-time error occurs.
+Initializing formals are executed during
+the execution of generative constructors detailed below.
+Executing an initializing formal \code{\THIS{}.\id}
+causes the instance variable \id{} of the immediately surrounding class
+to be assigned the value of the corresponding actual parameter,
+% This can occur due to a failing implicit cast.
+unless the assigned value has a dynamic type
+which is not a subtype of the declared type of the instance variable \id{},
+in which case a dynamic error occurs.
 
 \commentary{
 The above rule allows initializing formals to be used as optional parameters:
@@ -2821,10 +2829,14 @@ $e_i,\ i \in 1 .. p+q$,
 must be a potentially constant expression (\ref{constantConstructors}).
 
 \LMHash{}%
-It is a dynamic type error if an actual argument passed in an invocation of a redirecting generative constructor $k$
+% This error can occur due to a failed implicit cast.
+It is a dynamic type error if an actual argument passed
+in an invocation of a redirecting generative constructor $k$
 is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of $k$.
-It is a dynamic type error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
+% This error can occur due to a failed implicit cast.
+It is a dynamic type error if an actual argument passed
+to the redirectee $k'$ of a redirecting generative constructor
 is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of the redirectee.
@@ -3014,9 +3026,9 @@ proceeds as follows:
 \LMHash{}%
 First, the expression $e$ is evaluated to an object $o$.
 Then, the instance variable $v$ of $i$ is bound to $o$.
-It is a dynamic type error if $o$ is not the null object
-(\ref{null})
-and the dynamic type of $o$ is not a subtype of the actual type
+% This error can occur due to an implicit cast.
+It is a dynamic type error if the dynamic type of $o$ is not
+a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of the instance variable $v$.
 
@@ -3079,6 +3091,7 @@ otherwise the return type is \code{$M$<$T_1, \ldots,\ T_n$>} where $T_1, \ldots,
 It is a compile-time error if $M$ is not the name of the immediately enclosing class.
 
 \LMHash{}%
+% This error can occur due to an implicit cast.
 It is a dynamic type error if a factory returns a non-null object
 whose type is not a subtype of its actual
 (\ref{actualTypeOfADeclaration})
@@ -3165,12 +3178,15 @@ is not a subtype match for the formal parameter list of the redirectee.
 
 \rationale{
 We require a subtype match
-(rather than the more forgiving assignable match which is used with a generative redirecting constructor),
-because a factory redirecting constructor $k$ always invokes its redirectee $k'$
-with exactly the same actual arguments that $k$ received.
+(rather than the more forgiving assignable match
+which is used with a generative redirecting constructor),
+because a factory redirecting constructor $k$ always invokes
+its redirectee $k'$ with
+exactly the same actual arguments that $k$ received.
 This means that a downcast on an actual argument
 ``between'' $k$ and $k'$
-would either be unused because the actual argument has the type required by $k'$,
+would either be unused because the actual argument has
+the type required by $k'$,
 or it would amount to a dynamic error which is simply delayed a single step.
 }
 
@@ -3232,6 +3248,7 @@ assume that $k$ is a redirecting factory constructor
 and $k'$ is the redirectee of $k$.
 
 \LMHash{}%
+% This error can occur due to an implicit cast.
 It is a dynamic type error if an actual argument passed in an invocation of $k$
 is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of $k$.
@@ -3444,7 +3461,7 @@ The scope of the \EXTENDS{} and \WITH{} clauses of a class $C$ is the type-param
 \LMHash{}%
 It is a compile-time error if the type in the \EXTENDS{} clause of a class $C$ is
 a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
-an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+an enumerated type (\ref{enums}),
 a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
@@ -3634,7 +3651,7 @@ The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope
 \LMHash{}%
 It is a compile-time error if an element in the type list of the \IMPLEMENTS{} clause of a class $C$ is
 a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
-an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+an enumerated type (\ref{enums}),
 a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 It is a compile-time error if two elements in the type list of the \IMPLEMENTS{} clause of a class $C$ specifies the same type $T$.
@@ -4241,7 +4258,7 @@ The mixin application may be used to extend a class per section \ref{classes};
 alternatively, a class may be defined as a mixin application as described in this section.
 It is a compile-time error if an element in the type list of the \WITH{} clause of a mixin application is
 a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
-an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+an enumerated type (\ref{enums}),
 a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
@@ -4326,9 +4343,11 @@ fields, $C_q$ is also a const constructor.
 If the mixin application class declares interfaces, the resulting class also implements those interfaces.
 
 \LMHash{}%
-It is a compile-time error if $S$ is an enumerated type (\ref{enums}) or a malformed type.
-It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is an enumerated type (\ref{enums}) or a malformed type.
-It is a compile-time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$).
+It is a compile-time error if $S$ is an enumerated type (\ref{enums}).
+It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$)
+is an enumerated type (\ref{enums}).
+It is a compile-time error if a well formed mixin cannot be derived from $M$
+(respectively, from each of $M_1, \ldots, M_k$).
 
 \commentary{%
 Note that \VOID{} is a reserved word,
@@ -4642,10 +4661,14 @@ and
 \LMHash{}%
 Type parameters are declared in the type parameter scope of a class or function.
 The type parameters of a generic $G$ are in scope in the bounds of all of the type parameters of $G$.
-The type parameters of a generic class declaration $G$ are also in scope in the \EXTENDS{} and \IMPLEMENTS{} clauses of $G$ (if these exist) and in the body of $G$.
-However, a type parameter of a generic class is considered to be a malformed type when referenced by a static member.
+The type parameters of a generic class declaration $G$ are also in scope in
+the \EXTENDS{} and \IMPLEMENTS{} clauses of $G$ (if these exist) and in the body of $G$.
 
-\commentary{
+\commentary{%
+However, a type parameter of a generic class
+is considered to be a malformed type
+when referenced by a static member
+(\ref{staticTypes}).
 The scopes associated with the type parameters of a generic function are described in (\ref{formalParameters}).
 }
 
@@ -5991,7 +6014,9 @@ The reserved word \NULL{} evaluates to the \Index{null object}.
 
 \LMHash{}%
 The null object is the sole instance of the built-in class \code{Null}.
-Attempting to instantiate \code{Null} causes a run-time error.
+% The following can be a consequence of the declaration of `Null`,
+% but we don't spell that out, we just require that it is an error.
+Attempting to instantiate \code{Null} causes a compile-time error.
 It is a compile-time error for a class to extend, mix in or implement \code{Null}.
 The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
 \commentary{As such, it does not override the \code{==} operator inherited
@@ -6457,7 +6482,8 @@ The number of elements in a list is its size.
 A list has an associated set of indices.
 An empty list has an empty set of indices.
 A non-empty list has the index set $\{0, \ldots, n - 1\}$ where $n$ is the size of the list.
-It is a run-time error to attempt to access a list using an index that is not a member of its set of indices.
+It is a dynamic error to attempt to access a list
+using an index that is not a member of its set of indices.
 
 \LMHash{}%
 If a list literal begins with the reserved word \CONST{}, it is a
@@ -6468,6 +6494,7 @@ Otherwise, it is a
 and it is evaluated at run time.
 Only run-time list literals can be mutated
 after they are created.
+% This error can occur because being constant is a dynamic property, here.
 Attempting to mutate a constant list literal will result in a dynamic error.
 
 \LMHash{}%
@@ -6525,9 +6552,11 @@ The objects created by list literals do not override
 the \code{==} operator inherited from the \code{Object} class.
 
 \commentary{
-Note that this document does not specify an order in which the elements are set.
-This allows for parallel assignments into the list if an implementation so desires.
-The order can only be observed (and may not be relied upon):
+Note that this document does not specify an order
+in which the elements are set.
+This allows for parallel assignments into the list
+if an implementation so desires.
+The order can only be observed as follows (and may not be relied upon):
 if element $i$ is not a subtype of the element type of the list,
 a dynamic type error will occur when $a[i]$ is assigned $o_{i-1}$.
 }
@@ -6605,6 +6634,7 @@ Otherwise, it is a
 \IndexCustom{run-time map literal}{literal!map!run-time}
 and it is evaluated at run time.
 Only run-time map literals can be mutated after they are created.
+% This error can occur because being constant is a dynamic property, here.
 Attempting to mutate a constant map literal will result in a dynamic error.
 
 \LMHash{}%
@@ -6739,6 +6769,7 @@ Otherwise, it is a
 \IndexCustom{run-time set literal}{literal!set!run-time}
 and it is evaluated at run time.
 Only run-time set literals can be mutated after they are created.
+% This error can occur because being constant is a dynamic property, here.
 Attempting to mutate a constant set literal will result in a dynamic error.
 
 \LMHash{}%
@@ -7190,9 +7221,7 @@ the type $T$ in an instance creation expression of one of the forms
 \code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
 \noindent
-is malformed (\ref{staticTypes}),
-is malbounded (\ref{parameterizedTypes}),
-or is an enumerated type (\ref{enums}).
+is an enumerated type (\ref{enums}).
 
 
 \subsubsection{New}
@@ -7306,6 +7335,7 @@ is evaluated, yielding the evaluated actual argument part
 
 \noindent
 \commentary{Note that the non-generic case is covered by letting $m = 0$.}
+% This error can occur due to an implicit cast.
 If for any
 $j \in 1 .. n + k$
 the run-time type of $o_j$ is not a subtype of
@@ -7314,7 +7344,10 @@ a dynamic type error occurs.
 
 \LMHash{}%
 \Case{Non-loaded deferred constructors}
-If $T$ is a deferred type with prefix $p$, then if $p$ has not been successfully loaded, a dynamic error occurs.
+% This error can occur because being-loaded is a dynamic property.
+If $T$ is a deferred type with prefix $p$,
+then if $p$ has not been successfully loaded,
+a dynamic error occurs.
 \EndCase
 
 \LMHash{}%
@@ -7581,7 +7614,10 @@ However, such calls have the semantic effect of creating a new isolate with its 
 
 \LMHash{}%
 An isolate's memory is finite, as is the space available to its thread's call stack.
-It is possible for a running isolate to exhaust its memory or stack, resulting in a run-time error that cannot be effectively caught, which will force the isolate to be suspended.
+% This error can occur because memory usage is a dynamic property.
+It is possible for a running isolate to exhaust its memory or stack,
+resulting in a dynamic error that cannot be effectively caught,
+which will force the isolate to be suspended.
 
 \commentary{
 As discussed in section \ref{errorsAndWarnings}, the handling of a suspended isolate is the responsibility of the embedder.
@@ -8098,15 +8134,18 @@ All of these remaining parameters are necessarily optional and thus have default
 
 \LMHash{}%
 % Check the type arguments.
+% This error can occur due to covariance and due to dynamic invocation.
 It is a dynamic type error if $t_i$ is not a subtype of the actual bound
 (\ref{actualTypeOfADeclaration})
 of the $i$th type argument of $f$, for actual type arguments $t_1, \ldots, t_r$.
 % Check the types of positional arguments.
+% This error can occur due to implicit casts, covariance, and dynamic calls.
 It is a dynamic type error if $o_i$ is not the null object (\ref{null})
 and the actual type
 (\ref{actualTypeOfADeclaration})
 of $p_i$ is not a supertype of the dynamic type of $o_i, i \in 1 .. m$.
 % Check the types of named arguments.
+% This error can occur due to implicit casts, covariance, and dynamic calls.
 It is a dynamic type error if $o_{m+j}$ is
 not the null object and the actual type
 (\ref{actualTypeOfADeclaration})
@@ -9776,8 +9815,9 @@ a compile-time error has occurred.
 Otherwise, the assignment is equivalent to the assignment \code{\THIS{}.$v$ = $e$}.
 
 \LMHash{}%
-It is a dynamic type error if $o$ is not the null object (\ref{null})
-and the dynamic type of $o$ is not a subtype of the actual type
+% This error can occur due to implicit casts.
+It is a dynamic type error if the dynamic type of $o$
+is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of $v$.
 \EndCase
@@ -9818,6 +9858,7 @@ proceeds as follows:
 The expression $e_1$ is evaluated to an object $o_1$.
 Then, the expression $e_2$ is evaluated to an object $o_2$.
 Then, the setter \code{$v$=} is looked up (\ref{lookup}) in $o_1$ with respect to the current library.
+% This error can occur due to implicit casts and dynamic calls.
 It is a dynamic type error if the dynamic type of $o_2$
 is not a subtype of the actual parameter type of said setter
 (\ref{actualTypeOfADeclaration}).
@@ -9878,6 +9919,7 @@ when no concrete setter named \code{$v$=} exists in $S_{static}$.
 The value of the assignment expression is $o$.
 
 \LMHash{}%
+% This error can occur due to implicit casts and mixin+covariance.
 It is a dynamic type error if $o$ is not the null object (\ref{null})
 and the dynamic type of $o$ is
 not a subtype of the actual type of the formal parameter of \code{$v$=}
@@ -10155,7 +10197,8 @@ Evaluation of a conditional expression $c$ of the form $e_1 ? e_2 : e_3$ proceed
 
 \LMHash{}%
 First, $e_1$ is evaluated to an object $o_1$.
-It is a run-time error if the run-time type of $o_1$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o_1$ is not \code{bool}.
 If $r$ is \TRUE, then the value of $c$ is the result of evaluating the expression $e_2$.
 Otherwise the value of $c$ is the result of evaluating the expression $e_3$.
 
@@ -10218,16 +10261,20 @@ A \Index{logical boolean expression} is either an equality expression (\ref{equa
 
 \LMHash{}%
 Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ to a value $o_1$.
-It is a run-time error if the run-time type of $o_1$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o_1$ is not \code{bool}.
 If $o_1$ is \TRUE, the result of evaluating $b$ is \TRUE, otherwise $e_2$ is evaluated to an object $o_2$.
-It is a run-time error if the run-time type of $o_2$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o_2$ is not \code{bool}.
 Otherwise the result of evaluating $b$ is $o_2$.
 
 \LMHash{}%
 Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ producing an object $o_1$.
-It is a run-time error if the run-time type of $o_1$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o_1$ is not \code{bool}.
 If $o_1$ is \FALSE, the result of evaluating $b$ is \FALSE, otherwise $e_2$ is evaluated to an object $o_2$.
-It is a run-time error if the run-time type of $o_2$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o_2$ is not \code{bool}.
 Otherwise the result of evaluating $b$ is $o_2$.
 
 \LMHash{}%
@@ -10975,9 +11022,8 @@ Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
 \LMHash{}%
 The expression $e$ is evaluated to a value $v$.
-% TODO(eernst): https://github.com/dart-lang/sdk/issues/34521.
-Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs.
-Otherwise, if the dynamic type of $v$ is a subtype of $T$, the is-expression evaluates to \TRUE.
+If the dynamic type of $v$ is a subtype of $T$,
+the is-expression evaluates to \TRUE.
 Otherwise it evaluates to \FALSE.
 
 \commentary{
@@ -11044,9 +11090,8 @@ The \Index{cast expression} ensures that an object is a member of a type.
 
 \LMHash{}%
 The expression $e$ is evaluated to a value $v$.
-%% TODO(eernst): https://github.com/dart-lang/sdk/issues/34521
-Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs.
-It is a dynamic type error if $o$ is not the null object (\ref{null})
+% This error can occur, by design of `as`.
+It is a dynamic type error if $o$ is not the null object (\ref{null}),
 and the dynamic type of $o$ is not a subtype of $T$.
 Otherwise $e$ evaluates to $v$.
 
@@ -11348,6 +11393,7 @@ proceeds as follows:
 \LMHash{}%
 The expression $e$ is evaluated to an object $o$.
 Then, the variable $v$ is set to $o$.
+% This error can occur due to implicit casts.
 A dynamic type error occurs
 if the dynamic type of $o$ is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
@@ -11463,7 +11509,8 @@ Execution of an if statement of the form \code{\IF{} ($b$) $s_1$ \ELSE{} $s_2$} 
 
 \LMHash{}%
 First, the expression $b$ is evaluated to an object $o$.
-It is a run-time error if the run-time type of $o$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \TRUE{}, then the block statement $s_1$ is executed, otherwise the block statement $s_2$ is executed.
 
 \LMHash{}%
@@ -11525,7 +11572,8 @@ If this is the first iteration of the for loop, let $v'$ be $v$.
 Otherwise, let $v'$ be the variable $v''$ created in the previous execution of step \ref{allocateFreshVar}.
 \item
 The expression $[v'/v]c$ is evaluated to a value $o$.
-It is a run-time error if the run-time type of $o$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \FALSE{}, the for loop completes normally.
 Otherwise, execution continues at step \ref{beginIteration}.
 \item
@@ -11613,6 +11661,7 @@ proceeds as follows:
 
 \LMHash{}%
 The expression $e$ is evaluated to an object $o$.
+% This error can occur due to implicit casts and null.
 It is a dynamic type error if $o$ is not an instance of a class that implements \code{Stream}.
 It is a compile-time error if $D$ is empty and \id{} is a final variable.
 
@@ -11698,7 +11747,8 @@ Execution of a while statement of the form \code{\WHILE{} ($e$) $s$;} proceeds a
 
 \LMHash{}%
 The expression $e$ is evaluated to an object $o$.
-It is a run-time error if the run-time type of $o$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 
 \LMHash{}%
 If $o$ is \FALSE{}, then execution of the while statement completes normally (\ref{statementCompletion}).
@@ -11735,7 +11785,8 @@ If that execution continues with no label, or to a label (\ref{labels}) that pre
 
 \LMHash{}%
 Then, the expression $e$ is evaluated to an object $o$.
-It is a run-time error if the run-time type of $o$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \FALSE{}, execution of the do statement completes normally (\ref{statementCompletion}).
 If $o$ is \TRUE{}, then the do statement is re-executed.
 
@@ -11845,7 +11896,9 @@ proceeds as follows:
 
 \LMHash{}%
 The statement \code{\VAR{} \id{} = $e$;} is evaluated, where \id{} is a fresh variable.
-It is a run-time error if the value of $e$ is
+% This error can occur due to implicit casts and standard subsumption.
+%% TODO(eernst): But why couldn't $e$ be an instance of a subtype?!
+It is a dynamic error if the value of $e$ is
 not an instance of the same class as the constants $e_1, \ldots, e_n$.
 
 \commentary{
@@ -11872,7 +11925,8 @@ against the value of a variable \id{} proceeds as follows:
 
 \LMHash{}%
 The expression \code{$e_k$ == \id} is evaluated to an object $o$.
-It is a run-time error if the run-time type of $o$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \FALSE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$, and if $k = n$, then the \DEFAULT{} clause's statements are executed (\ref{case-execute}).
 If $o$ is \TRUE{}, let $h$ be the smallest number such that $h \ge k$ and $s_h$ is non-empty.
 If no such $h$ exists, let $h = n + 1$.
@@ -11893,7 +11947,8 @@ against the value of a variable \id{} proceeds as follows:
 
 \LMHash{}%
 The expression \code{$e_k$ == \id} is evaluated to an object $o$.
-It is a run-time error if the run-time type of $o$ is not \code{bool}.
+% This error can occur due to implicit casts and null.
+It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \FALSE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
 If $o$ is \TRUE{}, let $h$ be the smallest integer such that $h \ge k$ and $s_h$ is non-empty.
 If such a $h$ exists, the case statements $s_h$ are executed (\ref{case-execute}).
@@ -12099,8 +12154,7 @@ Otherwise if execution of $b$ threw (\ref{statementCompletion}), the \TRY{} stat
 Otherwise the \TRY{} statement completes in the same way as the execution of $b$.
 
 \LMHash{}%
-If $T_1$ is a malformed or deferred type (\ref{staticTypes}), then performing a match causes a run-time error.
-It is a compile-time error if $T_i$, $1 \le i \le n$ is a deferred or malformed type.
+It is a compile-time error if $T_i$, $1 \le i \le n$ is a deferred type.
 
 
 \subsubsection{\ON{}-\CATCH{} clauses}
@@ -12335,8 +12389,10 @@ Let $U$ be the run-time type of $r$.
 \begin{itemize}
 \item
   If the body of $f$ is marked \ASYNC{} (\ref{functions})
+  % This error can occur due to implicit casts.
   it is a dynamic type error if \code{Future<$U$>} is not a subtype of $T$.
 \item
+  % This error can occur due to implicit casts.
   Otherwise, it is a dynamic type error if $U$ is not a subtype of $T$.
 \end{itemize}
 
@@ -12522,16 +12578,30 @@ First, the expression $e$ is evaluated to an object $o$.
 \LMHash{}%
 If the immediately enclosing function $m$ is marked \code{\SYNC*} (\ref{functions}), then:
 \begin{enumerate}
-\item It is a dynamic type error if the class of $o$ does not implement \code{Iterable}.
-Otherwise
-\item The method \code{iterator} is invoked upon $o$ returning an object $i$.
-\item \label{moveNext} The \code{moveNext} method of $i$ is invoked on it with no arguments.
-If \code{moveNext} returns \FALSE{} execution of $s$ is complete.
-Otherwise
-\item The getter \code{current} is invoked on $i$.
-If the invocation throws (\ref{evaluation}), execution of $s$ throws the same exception object and stack trace (\ref{statementCompletion}).
-Otherwise, the result $x$ of the getter invocation is added to the iterable associated with $m$.
-Execution of the function $m$ immediately enclosing $s$ is suspended until the nullary method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$, at which point execution of $s$ continues at \ref{moveNext}.
+\item
+  % This error can occur due to implicit casts.
+  It is a dynamic type error
+  if the class of $o$ does not implement \code{Iterable}.
+  Otherwise
+\item
+  The method \code{iterator} is invoked upon $o$ returning an object $i$.
+\item
+  \label{moveNext} The \code{moveNext} method of $i$ is invoked on it
+  with no arguments.
+  If \code{moveNext} returns \FALSE{} execution of $s$ is complete.
+  Otherwise
+\item
+  The getter \code{current} is invoked on $i$.
+  If the invocation throws
+  (\ref{evaluation}),
+  execution of $s$ throws the same exception object and stack trace
+  (\ref{statementCompletion}).
+  Otherwise, the result $x$ of the getter invocation is added to
+  the iterable associated with $m$.
+  Execution of the function $m$ immediately enclosing $s$ is suspended
+  until the nullary method \code{moveNext()} is invoked
+  upon the iterator used to initiate the current invocation of $m$,
+  at which point execution of $s$ continues at \ref{moveNext}.
 \item
 The current call to \code{moveNext()} returns \TRUE.
 \end{enumerate}
@@ -12539,32 +12609,50 @@ The current call to \code{moveNext()} returns \TRUE.
 \LMHash{}%
 If $m$ is marked \code{\ASYNC*} (\ref{functions}), then:
 \begin{itemize}
-\item It is a dynamic type error if the class of $o$ does not implement \code{Stream}.
+\item
+  % This error can occur due to implicit casts.
+  It is a dynamic type error if the class of $o$
+  does not implement \code{Stream}.
 Otherwise
-\item The nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused.
-\item The $o$ stream is listened to, creating a subscription $s$, and for each event $x$, or error $e$ with stack trace $t$, of $s$:
+\item
+  The nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}),
+  if any, is paused.
+\item
+  The $o$ stream is listened to, creating a subscription $s$,
+  and for each event $x$, or error $e$ with stack trace $t$, of $s$:
 \begin{itemize}
 \item
-If the stream $u$ associated with $m$ has been paused, then execution of $m$ is suspended until $u$ is resumed or canceled.
+  If the stream $u$ associated with $m$ has been paused,
+  then execution of $m$ is suspended until $u$ is resumed or canceled.
 \item
-If the stream $u$ associated with $m$ has been canceled,
-then $s$ is canceled by evaluating \code{\AWAIT{} v.cancel()} where $v$ is a fresh variable referencing the stream subscription $s$.
-Then, if the cancel completed normally, the stream execution of $s$ returns without a value (\ref{statementCompletion}).
+  If the stream $u$ associated with $m$ has been canceled,
+  then $s$ is canceled by evaluating \code{\AWAIT{} v.cancel()}
+  where $v$ is a fresh variable referencing the stream subscription $s$.
+  Then, if the cancel completed normally,
+  the stream execution of $s$ returns without a value
+  (\ref{statementCompletion}).
 \item
-Otherwise, $x$, or $e$ with $t$, are added to the stream associated with $m$ in the order they appear in $o$.
-The function $m$ may suspend.
+  Otherwise, $x$, or $e$ with $t$, are added to
+  the stream associated with $m$ in the order they appear in $o$.
+  The function $m$ may suspend.
 \end{itemize}
-\item If the stream $o$ is done, execution of $s$ completes normally.
+\item
+  If the stream $o$ is done, execution of $s$ completes normally.
 \end{itemize}
 
 \LMHash{}%
-It is a compile-time error if a yield-each statement appears in a function that is not a generator function.
+It is a compile-time error if a yield-each statement appears
+in a function that is not a generator function.
 
 \LMHash{}%
-Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
-It is a compile-time error if $T$ may not be assigned to the declared return type of $f$.
-If $f$ is synchronous it is a compile-time error if $T$ may not be assigned to \code{Iterable}.
-If $f$ is asynchronous it is a compile-time error if $T$ may not be assigned to \code{Stream}.
+Let $T$ be the static type of $e$ and let $f$ be
+the immediately enclosing function.
+It is a compile-time error if $T$ may not be assigned to
+the declared return type of $f$.
+If $f$ is synchronous it is a compile-time error
+if $T$ may not be assigned to \code{Iterable}.
+If $f$ is asynchronous it is a compile-time error
+if $T$ may not be assigned to \code{Stream}.
 
 
 \subsection{Assert}
@@ -12602,6 +12690,7 @@ execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
 
 \LMHash{}%
 The expression $c$ is evaluated to an object $r$.
+% This error can occur due to implicit casts and null.
 It is a dynamic type error if $r$ is not of type \code{bool}.
 \commentary{
 Hence it is a compile-time error if that situation arises during evaluation of an assertion in a \CONST{} constructor invocation.
@@ -12801,14 +12890,26 @@ This method returns a future $f$.
 When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary} combinator clause.
 When $I'$ executes without error, $f$ completes successfully.
 If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
-\item For every top level function $f$ named \id{} in the imported library $B$, a corresponding method named \id{} with the same signature as $f$.
-Calling the method results in a run-time error.
-\item For every top level getter $g$ named \id{} in $B$, a corresponding getter named \id{} with the same signature as $g$.
-Calling the method results in a run-time error.
-\item For every top level setter $s$ named \id{} in $B$, a corresponding setter named \id{} with the same signature as $s$.
-Calling the method results in a run-time error.
-\item For every type $T$ named \id{} in $B$, a corresponding getter named \id{} with return type \code{Type}.
-Calling the method results in a run-time error.
+\item
+  For every top level function $f$ named \id{} in the imported library $B$,
+  a corresponding method named \id{} with the same signature as $f$.
+  % This error can occur because being-loaded is a dynamic property.
+  Calling the method results in a dynamic error.
+\item
+  For every top level getter $g$ named \id{} in $B$,
+  a corresponding getter named \id{} with the same signature as $g$.
+  % This error can occur because being-loaded is a dynamic property.
+  Calling the method results in a dynamic error.
+\item
+  For every top level setter $s$ named \id{} in $B$,
+  a corresponding setter named \id{} with the same signature as $s$.
+  % This error can occur because being-loaded is a dynamic property.
+  Calling the method results in a dynamic error.
+\item
+  For every type $T$ named \id{} in $B$,
+  a corresponding getter named \id{} with return type \code{Type}.
+  % This error can occur because being-loaded is a dynamic property.
+  Calling the method results in a dynamic error.
 \end{itemize}
 
 \rationale{
@@ -13391,19 +13492,20 @@ A type $T$ is \Index{malformed} if{}f:
 \item
   $T$ has the form \id{} or the form \code{\metavar{prefix}.\id},
   and in the enclosing lexical scope,
-  the name \id{} (respectively \code{\metavar{prefix}.\id}) does not denote a type.
-
+  the name \id{} (respectively \code{\metavar{prefix}.\id})
+  does not denote a type.
 \item
   $T$ denotes a type variable in the enclosing lexical scope,
   but occurs in the signature or body of a static member.
-
-\item $T$ is a parameterized type of the form \code{$G$<$S_1, \ldots,\ S_n$>},
+\item
+  $T$ is a parameterized type of the form \code{$G$<$S_1, \ldots,\ S_n$>},
   and $G$ is malformed,
   or $G$ is not a generic type,
-  or $G$ is a generic type, but it declares $n'$ type parameters and $n' \not= n$,
+  or $G$ is a generic type,
+  but it declares $n'$ type parameters and $n' \not= n$,
   or $S_j$ is malformed for some $j \in 1 .. n$.
-
-\item $T$ is a function type of the form
+\item
+  $T$ is a function type of the form
 
   \code{$T_0$ \FUNCTION{}<$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$>}
 
@@ -13420,24 +13522,20 @@ A type $T$ is \Index{malformed} if{}f:
   where each $x_j$ which is not a named parameter may be omitted,
   and $T_j$ is malformed for some $j \in 0 .. n$,
   or $B_j$ is malformed for some $j \in 1 .. m$.
-
 \item
   $T$ denotes declarations that were imported from multiple imports clauses.
 \end{itemize}
 
 \LMHash{}%
-Any use of a malformed type gives rise to a compile-time error.
-A malformed type is then interpreted as \DYNAMIC{} by the static type checker unless explicitly specified otherwise.
-
-\rationale{
-This ensures that the developer is spared a series of cascading errors as the malformed type interacts with other types.
-}
+Any occurrence of a malformed type in a library is a compile-time error.
 
 \LMHash{}%
 A type $T$ is \IndexCustom{deferred}{type!deferred}
 if{}f it is of the form $p.T$ where $p$ is a deferred prefix.
-It is a compile-time error to use a deferred type in a type annotation, type test, type cast or as a type parameter.
-However, all other compile-time errors must be issued under the assumption that all deferred libraries have successfully been loaded.
+It is a compile-time error to use a deferred type
+in a type annotation, type test, type cast or as a type parameter.
+However, all other compile-time errors must be issued
+under the assumption that all deferred libraries have successfully been loaded.
 
 % Now, when passed to a generic, p.T also has to be treated as dynamic - otherwise we have to fail immediately. Where do we say that? And how does this fit with idea that as a type object it fails? Should we say that the accessor on p returns dynamic instead of failing? Do we distinguish its use in a constructor vs its use in an annotation? It's not that we evaluate type objects in constructor args - these cannot represent parameterized types.
 
@@ -13720,7 +13818,10 @@ demonstrating that Dart subtyping can be decided efficiently.}
 \LMHash{}%
 %% TODO(eernst): Introduce these specialized intersection types
 %% in a suitable location where type promotion is specified.
-Types of the form $X \& S$ arise during static analysis due to type promotion
+Types of the form
+\IndexCustom{$X \& S$}{type!of the form $X \& S$}%
+\IndexExtraEntry{\&@$X \& S$}
+arise during static analysis due to type promotion
 (\ref{typePromotion}).
 They never occur during execution,
 they are never a type argument of another type,

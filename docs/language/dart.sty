@@ -133,6 +133,11 @@
 \newcommand{\IndexCustom}[2]{%
   \leavevmode\marginpar{\ensuremath{\diamond}}\emph{#1}\index{#2}}
 
+% Used when one concept should have >1 entry in the index. Does not add
+% the diamond in the margin and shows no text where the command occurs.
+% Intended to be used immediately after another \Index... command.
+\newcommand{\IndexExtraEntry}[1]{\index{#1}}
+
 % Used for a defining occurrence of a phrase, adding it to the index.
 \newcommand{\Index}[1]{\IndexCustom{#1}{#1}}
 
