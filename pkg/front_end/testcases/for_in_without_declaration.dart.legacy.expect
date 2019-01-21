@@ -50,6 +50,10 @@ library;
 //     for (var x, y in <int>[]) {
 //          ^^^
 //
+// pkg/front_end/testcases/for_in_without_declaration.dart:46:10: Warning: Setter not found: 'constant'.
+//     for (constant in []) {}
+//          ^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -143,6 +147,10 @@ class C extends self::Super {
           core::print(y);
         }
       }
+    }
+    const core::int constant = 0;
+    for (final dynamic #t18 in <dynamic>[]) {
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#constant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t18]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
     }
   }
 }

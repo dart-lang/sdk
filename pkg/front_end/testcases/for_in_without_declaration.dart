@@ -42,6 +42,8 @@ class C extends Super {
       print(x);
       print(y);
     }
+    const int constant = 0;
+    for (constant in []) {}
   }
 }
 

@@ -50,6 +50,10 @@ library;
 //     for (var x, y in <int>[]) {
 //          ^^^
 //
+// pkg/front_end/testcases/for_in_without_declaration.dart:46:10: Error: Setter not found: 'constant'.
+//     for (constant in []) {}
+//          ^^^^^^^^
+//
 // pkg/front_end/testcases/for_in_without_declaration.dart:37:10: Error: The setter 'unresolved' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
@@ -173,6 +177,12 @@ Try correcting the name to the name of an existing setter, or defining a setter 
           core::print(y);
         }
       }
+    }
+    const core::int constant = 0;
+    for (final dynamic #t21 in <dynamic>[]) {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:46:10: Error: Setter not found: 'constant'.
+    for (constant in []) {}
+         ^^^^^^^^";
     }
   }
 }
