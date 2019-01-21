@@ -69,8 +69,7 @@ defineTests() {
         await cli.run(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
         expect(collectingOut.trim(),
             startsWith('1 file analyzed, 0 issues found, in'));
-        // TODO(pq): re-enable w/ analyzer >=0.33.1 https://github.com/dart-lang/linter/issues/1195
-      }, skip: true);
+      });
     });
     group('p4', () {
       IOSink currentOut = outSink;
@@ -802,8 +801,7 @@ defineTests() {
               '1 file analyzed, 3 issues found',
             ]));
         expect(exitCode, 1);
-        // TODO(pq): re-enable w/ analyzer >=0.33.1 https://github.com/dart-lang/linter/issues/1195
-      }, skip: true);
+      });
     });
 
     group('examples', () {
