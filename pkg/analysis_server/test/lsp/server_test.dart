@@ -40,19 +40,13 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   test_shutdown_initialized() async {
     await initialize();
-    final request = makeRequest(Method.shutdown, null);
-    final response = await channel.sendRequestToServer(request);
-    expect(response.id, equals(request.id));
-    expect(response.error, isNull);
-    expect(response.result, isNull);
+    final response = await sendShutdown();
+    expect(response, isNull);
   }
 
   test_shutdown_uninitialized() async {
-    final request = makeRequest(Method.shutdown, null);
-    final response = await channel.sendRequestToServer(request);
-    expect(response.id, equals(request.id));
-    expect(response.error, isNull);
-    expect(response.result, isNull);
+    final response = await sendShutdown();
+    expect(response, isNull);
   }
 
   test_unknownNotifications_logError() async {

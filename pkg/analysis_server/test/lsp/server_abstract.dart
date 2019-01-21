@@ -669,6 +669,16 @@ mixin LspAnalysisServerTestMixin
         new ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
   }
 
+  Future<Null> sendShutdown() {
+    final request = makeRequest(Method.shutdown, null);
+    return expectSuccessfulResponseTo(request);
+  }
+
+  void sendExit() {
+    final request = makeRequest(Method.exit, null);
+    sendRequestToServer(request);
+  }
+
   FutureOr<void> sendNotificationToServer(NotificationMessage notification);
 
   Future<ResponseMessage> sendRequestToServer(RequestMessage request);
