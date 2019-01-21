@@ -197,6 +197,13 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
       }
       final name = result["name"];
       final test = new Test(bot, name, result, approvedResult, flakiness);
+      final dropApproval =
+          test.matches ? options["failures-only"] : options["successes-only"];
+      if (dropApproval && !test.isApproved) {
+        if (approvedResult == null) continue;
+        result.clear();
+        result.addAll(approvedResult);
+      }
       tests.add(test);
     }
     // If preapproving and the CL has introduced new tests, add the new tests
@@ -222,11 +229,16 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
 
 main(List<String> args) async {
   final parser = new ArgParser();
+  parser.addFlag("automated-approver",
+      help: "Record the approval as done by an automated process.",
+      negatable: false);
   parser.addMultiOption("bot",
       abbr: "b",
       help: "Select the bots matching the glob pattern [option is repeatable]",
       splitCommas: false);
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
+  parser.addFlag("failures-only",
+      help: "Approve failures only.", negatable: false);
   parser.addFlag("list",
       abbr: "l", help: "List the available bots.", negatable: false);
   parser.addFlag("no",
@@ -235,6 +247,8 @@ main(List<String> args) async {
       negatable: false);
   parser.addOption("preapprove",
       abbr: "p", help: "Preapprove the new failures in a gerrit CL.");
+  parser.addFlag("successes-only",
+      help: "Approve successes only.", negatable: false);
   parser.addFlag("verbose",
       abbr: "v", help: "Describe asynchronous operations.", negatable: false);
   parser.addFlag("yes",
@@ -602,9 +616,11 @@ ${parser.usage}""");
   print("");
 
   // Log who approved these results.
-  final username = Platform.environment["LOGNAME"] ??
-      Platform.environment["USER"] ??
-      Platform.environment["USERNAME"];
+  final username =
+      (options["automated-approver"] ? "automatic-approval" : null) ??
+          Platform.environment["LOGNAME"] ??
+          Platform.environment["USER"] ??
+          Platform.environment["USERNAME"];
   if (username == null || username == "") {
     stderr.writeln("error: Your identity could not be established. "
         "Please set one of the LOGNAME, USER, USERNAME environment variables.");
