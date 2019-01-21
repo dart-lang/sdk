@@ -72,9 +72,8 @@ class _Visitor extends SimpleAstVisitor {
         expression = condition.leftOperand;
       }
 
-      // lint only if local variable is subject to avoid side effects
-      if (expression != null &&
-          expression is SimpleIdentifier &&
+      // lint only if local variable is the subject to avoid side effects
+      if (expression is SimpleIdentifier &&
           expression.staticElement is LocalVariableElement) {
         Expression exp = condition.operator.type == TokenType.EQ_EQ
             ? node.elseExpression

@@ -7,7 +7,7 @@
 var v;
 
 m() {
-  var a;
+  var a, b;
   a == null ? null : a.b; // LINT
   a == null ? null : a.b(); // LINT
   a == null ? null : a.b.c; // LINT
@@ -24,6 +24,9 @@ m() {
   null != a ? a.b() : null; // LINT
   null != a ? a.b.c : null; // LINT
   null != a ? a.b.c() : null; // LINT
+  a == null ? b : a; // OK
+  a == null ? b.c : null; // OK
+  a.b != null ? a.b : null; // OK
 
   // lint only for local vars
   v == null ? null : v.b; // OK
