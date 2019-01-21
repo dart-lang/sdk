@@ -22,3 +22,6 @@ static method test() → dynamic {
   ^^^" in let final core::Object #t2 = new self::C::•().missing() in null;
 }
 static method main() → dynamic {}
+
+library;
+import self as self2;

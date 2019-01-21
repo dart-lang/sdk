@@ -37,3 +37,16 @@ Try changing the type of the left hand side, or casting the right hand side to '
 static method main() → dynamic {
   self::foo();
 }
+
+library;
+import self as inf;
+import "./infer_type_regardless_of_declaration_order_or_cycles.dart" as self;
+
+import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles.dart";
+
+class B extends self::A {
+  synthetic constructor •() → inf::B
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {}

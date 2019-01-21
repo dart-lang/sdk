@@ -32,3 +32,6 @@ Try correcting the name to the name of an existing method, or defining a method 
               ^^^^^^^" in null;
 }
 static method main() → dynamic {}
+
+library;
+import self as self2;

@@ -48,3 +48,44 @@ static method main() → dynamic {
   core::print(new self::C::•<dynamic>().foo());
   core::print(new self::C2::•<dynamic>().foo());
 }
+
+library test.mixin_library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/mixin_library.dart:16:18: Warning: Superclass has no method named 'foo'.
+//   foo() => super.foo() + f();
+//                  ^^^
+//
+import self as mix;
+import "dart:core" as core;
+
+class Mixin<T extends core::Object = dynamic> extends core::Object {
+  field dynamic x = mix::f();
+  field dynamic y = null;
+  field dynamic z = null;
+  field mix::Mixin::T t = null;
+  synthetic constructor •() → mix::Mixin<mix::Mixin::T>
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return super.foo().+(mix::f());
+  method g(mix::Mixin::T a) → mix::Mixin::T
+    return null;
+  method h() → dynamic
+    return mix::V();
+  method l() → dynamic
+    return mix::_private();
+  method _privateMethod() → dynamic
+    return 49;
+  method publicMethod() → dynamic
+    return this.{mix::Mixin::_privateMethod}();
+}
+static method f() → dynamic
+  return 2;
+static method V() → dynamic
+  return 87;
+static method _private() → dynamic
+  return 117;
+static method foo(dynamic m) → dynamic
+  return m._privateMethod();

@@ -13,3 +13,12 @@ static method foo() → iss::A
   ;
 static method main() → dynamic
   ;
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → iss::A
+    ;
+}

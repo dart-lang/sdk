@@ -5,3 +5,12 @@ additionalExports = (hel::main)
 
 
 export "org-dartlang-testcase:///hello.dart";
+
+
+library;
+import self as hel;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("Hello, World!");
+}

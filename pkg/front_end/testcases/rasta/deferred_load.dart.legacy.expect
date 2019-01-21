@@ -1,8 +1,18 @@
 library;
 import self as self;
-import "dart:core" as core;
+import "dart:async" as asy;
+
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::•(null, #loadLibrary, <dynamic>[], <dynamic, dynamic>{}, null);
-  throw new core::NoSuchMethodError::•(null, #lib.loadLibrary, <dynamic>[], <dynamic, dynamic>{}, null);
+  self::__loadLibrary_lib;
+  LoadLibrary(lib);
 }
+static method __loadLibrary_lib() → asy::Future<dynamic>
+  return LoadLibrary(lib);
+
+library deferred_lib;
+import self as self2;
+
+static method foo() → dynamic
+  return null;

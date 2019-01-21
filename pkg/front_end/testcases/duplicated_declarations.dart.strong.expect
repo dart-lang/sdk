@@ -520,3 +520,6 @@ static method useAnotherEnum() → dynamic {
     \"AnotherEnum.values\": AnotherEnum.values,
                                       ^^^^^^"};
 }
+
+library;
+import self as self2;

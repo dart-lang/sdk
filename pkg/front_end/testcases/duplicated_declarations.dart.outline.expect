@@ -439,3 +439,6 @@ static method foo() → dynamic
   ;
 static method useAnotherEnum() → dynamic
   ;
+
+library;
+import self as self2;

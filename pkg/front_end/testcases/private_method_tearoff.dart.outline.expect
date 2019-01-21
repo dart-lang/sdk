@@ -17,3 +17,16 @@ class Baz extends self::Foo {
 }
 static method main() → dynamic
   ;
+
+library;
+import self as pri;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pri::Bar
+    ;
+  method _f() → void
+    ;
+}
+static method baz(pri::Bar bar) → void
+  ;

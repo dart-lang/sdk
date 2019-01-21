@@ -20,3 +20,17 @@ class Baz extends self::Foo {
 static method main() → dynamic {
   pri::baz(new self::Foo::•());
 }
+
+library;
+import self as pri;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pri::Bar
+    : super core::Object::•()
+    ;
+  method _f() → void {}
+}
+static method baz(pri::Bar bar) → void {
+  core::print("${bar.{pri::Bar::_f}.{core::Object::runtimeType}}");
+}

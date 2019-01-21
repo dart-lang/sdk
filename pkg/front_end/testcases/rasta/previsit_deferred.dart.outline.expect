@@ -7,3 +7,9 @@ static method main() → dynamic
   ;
 static method test() → dynamic
   ;
+
+library deferred_lib;
+import self as self2;
+
+static method foo() → dynamic
+  ;

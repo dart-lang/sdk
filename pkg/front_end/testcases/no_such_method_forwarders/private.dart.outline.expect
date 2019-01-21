@@ -27,3 +27,15 @@ class Baz extends self::Foo implements pri::Fisk {
 }
 static method main() → dynamic
   ;
+
+library private_module;
+import self as pri;
+import "dart:core" as core;
+
+abstract class Fisk extends core::Object {
+  synthetic constructor •() → pri::Fisk
+    ;
+  abstract method _hest() → void;
+}
+static method main() → dynamic
+  ;

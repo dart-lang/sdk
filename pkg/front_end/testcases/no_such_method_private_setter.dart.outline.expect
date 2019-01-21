@@ -15,3 +15,15 @@ class Foo extends core::Object implements no_::Bar {
 }
 static method main() → dynamic
   ;
+
+library;
+import self as no_;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  field core::int _x;
+  synthetic constructor •() → no_::Bar
+    ;
+}
+static method baz(no_::Bar bar) → void
+  ;

@@ -12,3 +12,6 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+library;
+import self as self2;

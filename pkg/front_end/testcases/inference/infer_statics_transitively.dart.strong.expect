@@ -12,3 +12,30 @@ static method foo() → dynamic {
   i = self::m1;
 }
 static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+import "./infer_statics_transitively_b.dart" as inf2;
+import "./infer_statics_transitively.dart" as self;
+
+import "org-dartlang-testcase:///infer_statics_transitively.dart";
+import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
+
+class A extends core::Object {
+  static final field core::int a2 = inf2::b1;
+  synthetic constructor •() → inf::A
+    : super core::Object::•()
+    ;
+}
+static final field core::int a1 = self::m2;
+static method main() → dynamic {}
+
+library;
+import self as inf2;
+import "dart:core" as core;
+
+static final field core::int b1 = 2;
+static method main() → dynamic {
+  inf2::b1;
+}

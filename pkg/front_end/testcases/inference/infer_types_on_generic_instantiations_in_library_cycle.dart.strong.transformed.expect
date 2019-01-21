@@ -41,3 +41,18 @@ Try changing the type of the left hand side, or casting the right hand side to '
   core::String z = new self::B::•<core::String>().{self::B::m}(null, null).{self::A::value};
 }
 static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+import "./infer_types_on_generic_instantiations_in_library_cycle.dart" as self;
+
+import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle.dart";
+
+abstract class I<E extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → inf::I<inf::I::E>
+    : super core::Object::•()
+    ;
+  abstract method m(dynamic a, (dynamic, core::int) → core::String f) → self::A<inf::I::E>;
+}
+static method main() → dynamic {}

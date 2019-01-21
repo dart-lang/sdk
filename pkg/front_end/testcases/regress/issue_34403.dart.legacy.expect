@@ -132,3 +132,18 @@ static method main() → dynamic {
   const dynamic f4 = const iss::F::foo<core::String>();
   f4.toString();
 }
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class E<T extends core::Object = dynamic> extends core::Object {
+  constructor bar() → iss::E<iss::E::T>
+    : super core::Object::•()
+    ;
+}
+class F<T extends core::Object = dynamic> extends core::Object {
+  const constructor foo() → iss::F<iss::F::T>
+    : super core::Object::•()
+    ;
+}

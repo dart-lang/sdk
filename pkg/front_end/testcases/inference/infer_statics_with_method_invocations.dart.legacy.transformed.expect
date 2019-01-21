@@ -18,3 +18,10 @@ class T extends core::Object {
   }
 }
 static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+static method m3(core::String a, core::String b, [dynamic a1 = null, dynamic a2 = null]) → dynamic {}
+static method main() → dynamic {}

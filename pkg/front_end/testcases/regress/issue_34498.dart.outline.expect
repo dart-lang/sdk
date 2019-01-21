@@ -50,3 +50,12 @@ class C<T extends core::Object = dynamic> extends core::Object {
 static final field self::A a;
 static method main() → dynamic
   ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class MyClass extends core::Object {
+  synthetic constructor •() → self2::MyClass
+    ;
+}

@@ -58,3 +58,33 @@ class C<T extends core::Object = dynamic> extends core::Object { // from org-dar
 }
 static method main() → dynamic
   ;
+
+library test.qualified.lib;
+import self as lib;
+import "dart:core" as core;
+import "./qualified.dart" as self;
+
+import "org-dartlang-testcase:///qualified.dart" as main;
+
+typedef VoidFunction = () → void;
+class C<T extends core::Object = dynamic> extends self::C<lib::C::T> {
+  static field dynamic _redirecting# = <dynamic>[lib::C::b];
+  constructor •() → lib::C<lib::C::T>
+    ;
+  constructor a() → lib::C<lib::C::T>
+    ;
+  static factory b<T extends core::Object = dynamic>() → lib::C<lib::C::b::T>
+    let dynamic #redirecting_factory = lib::C::a in let lib::C::b::T #typeArg0 = null in invalid-expression;
+}
+class Supertype extends core::Object {
+  synthetic constructor •() → lib::Supertype
+    ;
+  method supertypeMethod() → dynamic
+    ;
+}
+abstract class Mixin extends core::Object {
+  synthetic constructor •() → lib::Mixin
+    ;
+  method foo() → dynamic
+    ;
+}

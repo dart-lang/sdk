@@ -13,3 +13,6 @@ import "org-dartlang-malformed-uri:?dart_%3Acore";
 
 static method main() → dynamic
   ;
+
+library;
+import self as self2;

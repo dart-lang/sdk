@@ -216,15 +216,20 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
         (context as dynamic).componentToDiagnostics[component];
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    Library library = component.libraries
-        .firstWhere((Library library) => library.importUri.scheme != "dart");
+    Iterable<Library> libraries = component.libraries.where(
+        ((Library library) =>
+            library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package"));
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
     messages.clear();
-    new Printer(buffer)
-      ..writeProblemsAsJson("Problems in component", component.problemsAsJson)
-      ..writeLibraryFile(library);
+    Printer printer = new Printer(buffer)
+      ..writeProblemsAsJson("Problems in component", component.problemsAsJson);
+    libraries.forEach((Library library) {
+      printer.writeLibraryFile(library);
+      printer.endLine();
+    });
     String actual = "$buffer";
     String binariesPath = relativizeUri(platformBinariesLocation);
     if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
