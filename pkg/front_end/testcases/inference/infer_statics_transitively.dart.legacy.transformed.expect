@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "./infer_statics_transitively_a.dart" as inf;
 
+import "org-dartlang-testcase:///infer_statics_transitively_a.dart";
+
 static final field dynamic m1 = inf::a1;
 static final field dynamic m2 = inf::A::a2;
 static method foo() → dynamic {

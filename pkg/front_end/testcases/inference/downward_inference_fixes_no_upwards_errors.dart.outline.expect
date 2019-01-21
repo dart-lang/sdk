@@ -1,6 +1,8 @@
 library test;
 import self as self;
 
+import "dart:math";
+
 static method f() → dynamic
   ;
 static method main() → dynamic

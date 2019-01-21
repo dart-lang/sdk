@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "./infer_types_on_generic_instantiations_in_library_cycle.dart" as test;
 
+import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle.dart";
+
 abstract class I<E extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::E>
     : super core::Object::•()

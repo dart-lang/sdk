@@ -2,6 +2,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is_on2.dart";
+
 class A extends core::Object {
   static field core::int x = 2;
   synthetic constructor •() → self::A

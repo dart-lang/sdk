@@ -86,6 +86,8 @@ import self as self;
 import "dart:core" as core;
 import "./issue_34403_lib.dart" as iss;
 
+import "org-dartlang-testcase:///issue_34403_lib.dart" as p;
+
 class C<T extends core::Object = dynamic> extends core::Object {
   constructor bar() → self::C<self::C::T>
     : super core::Object::•()

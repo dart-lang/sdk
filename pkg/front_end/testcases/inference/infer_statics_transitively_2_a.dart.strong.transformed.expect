@@ -4,6 +4,9 @@ import "dart:core" as core;
 import "./infer_statics_transitively_b.dart" as inf;
 import "./infer_statics_transitively.dart" as test;
 
+import "org-dartlang-testcase:///infer_statics_transitively.dart";
+import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
+
 class A extends core::Object {
   static final field core::int a2 = inf::b1;
   synthetic constructor •() → self::A

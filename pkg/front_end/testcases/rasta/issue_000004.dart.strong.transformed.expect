@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
 
+import "package:expect/expect.dart";
+
 static field dynamic global;
 static method fact4() → dynamic {
   core::int f = 1;

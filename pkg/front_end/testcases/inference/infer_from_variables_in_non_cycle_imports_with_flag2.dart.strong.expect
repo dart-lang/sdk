@@ -16,6 +16,8 @@ import self as self;
 import "dart:core" as core;
 import "./infer_from_variables_in_non_cycle_imports_with_flag2_a.dart" as inf;
 
+import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_flag2_a.dart";
+
 class B extends core::Object {
   static field core::int y = inf::A::x;
   synthetic constructor •() → self::B

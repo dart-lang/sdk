@@ -25,6 +25,9 @@ import self as self;
 import "dart:core" as core;
 import "./qualified_lib.dart" as lib;
 
+import "org-dartlang-testcase:///qualified_lib.dart" as lib;
+
+part qualified_part.dart;
 class Bad extends core::Object {
   method method() → invalid-type
     ;

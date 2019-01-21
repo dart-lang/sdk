@@ -11,6 +11,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
 static method main() → dynamic {}
 static method test(dynamic x) → dynamic {
   core::print(x is invalid-type);

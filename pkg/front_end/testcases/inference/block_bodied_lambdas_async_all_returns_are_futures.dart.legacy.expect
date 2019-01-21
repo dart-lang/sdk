@@ -4,6 +4,9 @@ import "dart:async" as asy;
 import "dart:math" as math;
 import "dart:core" as core;
 
+import "dart:async";
+import "dart:math";
+
 static method test() → dynamic {
   dynamic f = () → asy::Future<dynamic> async {
     if(math::Random::•().nextBool()) {

@@ -37,6 +37,9 @@ import "dart:async" as asy;
 import "dart:core" as core;
 import "dart:collection" as col;
 
+import "dart:async";
+import "dart:collection";
+
 static method main() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic> :return_value;

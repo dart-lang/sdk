@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "./private_method_tearoff_lib.dart" as pri;
 
+import "org-dartlang-testcase:///private_method_tearoff_lib.dart";
+
 class Foo extends core::Object implements pri::Bar {
   synthetic constructor •() → self::Foo
     ;

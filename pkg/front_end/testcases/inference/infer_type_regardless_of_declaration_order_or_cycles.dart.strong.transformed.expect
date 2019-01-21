@@ -11,6 +11,8 @@ import self as self;
 import "./infer_type_regardless_of_declaration_order_or_cycles_b.dart" as inf;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles_b.dart";
+
 class C extends inf::B {
   synthetic constructor •() → self::C
     : super inf::B::•()

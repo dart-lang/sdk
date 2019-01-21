@@ -8,5 +8,7 @@ library test;
 //
 import self as self;
 
+import "dart:_foreign_helper";
+
 static method main() → dynamic
   ;

@@ -2,6 +2,8 @@ library;
 import self as self;
 import "dart:async" as asy;
 
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
 static method main() → dynamic {
   self::__loadLibrary_lib;
   LoadLibrary(lib);

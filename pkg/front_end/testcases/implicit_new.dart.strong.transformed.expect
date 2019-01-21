@@ -13,6 +13,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///implicit_new.dart" as prefix;
+
 class Foo extends core::Object {
   synthetic constructor •() → self::Foo
     : super core::Object::•()

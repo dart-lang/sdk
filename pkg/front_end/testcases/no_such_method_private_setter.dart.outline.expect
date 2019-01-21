@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "./no_such_method_private_setter_lib.dart" as no_;
 
+import "org-dartlang-testcase:///no_such_method_private_setter_lib.dart";
+
 class Foo extends core::Object implements no_::Bar {
   synthetic constructor •() → self::Foo
     ;

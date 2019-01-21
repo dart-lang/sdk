@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
+import "dart:collection";
+
 class A<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T>
     ;

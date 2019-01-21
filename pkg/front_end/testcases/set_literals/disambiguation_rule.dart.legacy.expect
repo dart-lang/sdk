@@ -4,6 +4,9 @@ import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
 
+import "dart:async";
+import "dart:collection";
+
 static method main() → dynamic async {
   core::Map<core::int, core::bool> m = <dynamic, dynamic>{};
   core::Set<core::int> s = <dynamic, dynamic>{};

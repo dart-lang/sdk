@@ -3,6 +3,8 @@ import self as self;
 import "./deferred_lib.dart" as def;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
 static method main() → dynamic {}
 static method test() → dynamic {
   let final dynamic #t1 = CheckLibraryIsLoaded(lib) in def::x = self::m2() as{TypeError} core::int;

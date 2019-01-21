@@ -2,6 +2,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "dart:async";
+
 class Node extends core::Object {
   final field core::List<self::Node> nested;
   final field core::String name;

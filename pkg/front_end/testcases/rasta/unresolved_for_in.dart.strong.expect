@@ -95,6 +95,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "dart:collection" as collection;
+
 typedef VoidFunction = () → void;
 class Fisk extends core::Object {
   synthetic constructor •() → self::Fisk

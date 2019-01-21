@@ -3,6 +3,9 @@ import self as self;
 import "dart:core" as core;
 import "dart:math" as math;
 
+import "dart:math" as math;
+import "dart:math";
+
 class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()

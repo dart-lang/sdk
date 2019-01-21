@@ -18,6 +18,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+import "dart:async";
+
 static method make(core::int x) → asy::Future<core::int>
   return asy::Future::•<core::int>(() → core::int => x);
 static method test() → dynamic {

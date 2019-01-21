@@ -1,5 +1,7 @@
 library;
 import self as self;
 
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
 static method main() → dynamic
   ;

@@ -351,6 +351,14 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+
+part duplicated_declarations_part.dart;
 typedef Typedef = () → void;
 typedef OldTypedef = () → void;
 class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart

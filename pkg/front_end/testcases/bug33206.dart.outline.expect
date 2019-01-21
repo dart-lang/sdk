@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+import "dart:async";
+
 class X extends core::Object {
   final field dynamic x;
   final field dynamic y;

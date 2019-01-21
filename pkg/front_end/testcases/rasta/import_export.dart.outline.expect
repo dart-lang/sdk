@@ -1,5 +1,7 @@
 library;
 import self as self;
 
+import "org-dartlang-testcase:///export.dart";
+
 static method main() → dynamic
   ;

@@ -9,6 +9,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///issue_32200.dart" as self;
+
 class Foo extends core::Object {
   field invalid-type self = null;
   synthetic constructor •() → self::Foo

@@ -380,9 +380,13 @@ class Printer extends Visitor<Null> {
     }
     endLine(';');
 
-    writeProblemsAsJson("Problems in library", library.problemsAsJson);
+    LibraryImportTable imports = new LibraryImportTable(library);
+    Printer inner = createInner(imports, library.enclosingComponent?.metadata);
+    inner.writeStandardLibraryContent(library,
+        outerPrinter: this, importsToPrint: imports);
+  }
 
-    var imports = new LibraryImportTable(library);
+  void printLibraryImportTable(LibraryImportTable imports) {
     for (var library in imports.importedLibraries) {
       var importPath = imports.getImportPath(library);
       if (importPath == "") {
@@ -394,47 +398,63 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
+  }
 
-    // TODO(scheglov): Do we want to print dependencies? dartbug.com/30224
-    if (library.additionalExports.isNotEmpty) {
-      write('additionalExports = (');
-      bool isFirst = true;
-      for (var reference in library.additionalExports) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          write(', ');
-        }
-        var node = reference.node;
-        if (node is Class) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name);
-        } else if (node is Field) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name.name);
-        } else if (node is Procedure) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name.name);
-        } else if (node is Typedef) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name);
-        } else {
-          throw new UnimplementedError('${node.runtimeType}');
-        }
+  void writeStandardLibraryContent(Library library,
+      {Printer outerPrinter, LibraryImportTable importsToPrint}) {
+    outerPrinter ??= this;
+    outerPrinter.writeProblemsAsJson(
+        "Problems in library", library.problemsAsJson);
+
+    if (importsToPrint != null) {
+      outerPrinter.printLibraryImportTable(importsToPrint);
+    }
+
+    writeAdditionalExports(library.additionalExports);
+    endLine();
+    library.dependencies.forEach(writeNode);
+    if (library.dependencies.isNotEmpty) endLine();
+    library.parts.forEach(writeNode);
+    library.typedefs.forEach(writeNode);
+    library.classes.forEach(writeNode);
+    library.fields.forEach(writeNode);
+    library.procedures.forEach(writeNode);
+  }
+
+  void writeAdditionalExports(List<Reference> additionalExports) {
+    if (additionalExports.isEmpty) return;
+    write('additionalExports = (');
+    bool isFirst = true;
+    for (Reference reference in additionalExports) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        write(', ');
+      }
+      var node = reference.node;
+      if (node is Class) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name);
+      } else if (node is Field) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name.name);
+      } else if (node is Procedure) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name.name);
+      } else if (node is Typedef) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name);
+      } else {
+        throw new UnimplementedError('${node.runtimeType}');
       }
       endLine(')');
     }
 
     endLine();
-    var inner = createInner(imports, library.enclosingComponent?.metadata);
-    library.typedefs.forEach(inner.writeNode);
-    library.classes.forEach(inner.writeNode);
-    library.fields.forEach(inner.writeNode);
-    library.procedures.forEach(inner.writeNode);
   }
 
   void writeComponentFile(Component component) {
@@ -468,12 +488,8 @@ class Printer extends Visitor<Null> {
       writeWord(prefix);
       endLine(' {');
       ++inner.indentation;
-      writeProblemsAsJson("Problems in library", library.problemsAsJson);
-      library.dependencies.forEach(inner.writeNode);
-      library.typedefs.forEach(inner.writeNode);
-      library.classes.forEach(inner.writeNode);
-      library.fields.forEach(inner.writeNode);
-      library.procedures.forEach(inner.writeNode);
+
+      inner.writeStandardLibraryContent(library);
       --inner.indentation;
       endLine('}');
     }
@@ -1396,6 +1412,14 @@ class Printer extends Visitor<Null> {
     writeWord(node.import.name);
     writeSymbol(')');
     state = WORD;
+  }
+
+  visitLibraryPart(LibraryPart node) {
+    writeAnnotationList(node.annotations);
+    writeIndentation();
+    writeWord('part');
+    writeWord(node.partUri);
+    endLine(";");
   }
 
   visitLibraryDependency(LibraryDependency node) {

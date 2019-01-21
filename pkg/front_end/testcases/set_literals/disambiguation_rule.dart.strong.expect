@@ -37,6 +37,9 @@ import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
 
+import "dart:async";
+import "dart:collection";
+
 static method main() → dynamic async {
   core::Map<core::int, core::bool> m = <core::int, core::bool>{};
   core::Set<core::int> s = let final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>() in #t1;

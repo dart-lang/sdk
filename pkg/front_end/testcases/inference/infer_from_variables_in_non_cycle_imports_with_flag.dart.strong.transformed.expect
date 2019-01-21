@@ -16,6 +16,8 @@ import self as self;
 import "./infer_from_variables_in_non_cycle_imports_with_flag_a.dart" as inf;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_flag_a.dart";
+
 static field core::int y = inf::x;
 static method test1() → dynamic {
   inf::x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag.dart:13:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.

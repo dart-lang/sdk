@@ -2,6 +2,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "package:expect/expect.dart";
+
 class A<N extends core::Object = dynamic, S extends core::Object = dynamic, U extends core::Object = dynamic> extends core::Object {
   final field core::List<self::A::U> field;
   constructor •(self::A::N n, self::A::S s) → self::A<self::A::N, self::A::S, self::A::U>
