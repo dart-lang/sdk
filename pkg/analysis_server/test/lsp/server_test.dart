@@ -100,7 +100,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await initialize();
     final notification =
         makeNotification(new Method.fromJson(r'$/randomNotification'), null);
-    final firstError = channel.errorNotificationsFromServer.first;
+    final firstError = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.

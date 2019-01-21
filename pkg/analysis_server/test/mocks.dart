@@ -65,31 +65,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     return _closed.future;
   }
 
-  /**
-   * A stream of [NotificationMessage]s from the server that may be errors.
-   */
-  Stream<lsp.NotificationMessage> get errorNotificationsFromServer {
-    return notificationsFromServer.where(_isErrorNotification);
-  }
-
-  /**
-   * A stream of [NotificationMessage]s from the server.
-   */
-  Stream<lsp.NotificationMessage> get notificationsFromServer {
-    return _serverToClient.stream
-        .where((m) => m is lsp.NotificationMessage)
-        .cast<lsp.NotificationMessage>();
-  }
-
-  /**
-   * A stream of [RequestMessage]s from the server.
-   */
-  Stream<lsp.RequestMessage> get requestsFromServer {
-    return _serverToClient.stream
-        .where((m) => m is lsp.RequestMessage)
-        .cast<lsp.RequestMessage>();
-  }
-
   Stream<lsp.Message> get serverToClient => _serverToClient.stream;
 
   @override
@@ -223,15 +198,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   T _convertJson<T>(
       lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
     return constructor(jsonDecode(jsonEncode(message.toJson())));
-  }
-
-  /// Checks whether a notification is likely an error from the server (for
-  /// example a window/showMessage). This is useful for tests that want to
-  /// ensure no errors come from the server in response to notifications (which
-  /// don't have their own responses).
-  bool _isErrorNotification(lsp.NotificationMessage notification) {
-    return notification.method == Method.window_logMessage ||
-        notification.method == Method.window_showMessage;
   }
 }
 
