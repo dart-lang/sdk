@@ -1333,7 +1333,9 @@ class KernelLibraryBuilder
     super.includePart(part, usedParts);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
-    if (part.target.problemsAsJson != null) {
+    // Check that the targets are different. This is not normally a problem
+    // but is for patch files.
+    if (target != part.target && part.target.problemsAsJson != null) {
       target.problemsAsJson ??= <String>[];
       target.problemsAsJson.addAll(part.target.problemsAsJson);
     }
