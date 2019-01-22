@@ -5793,7 +5793,7 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).reg() == RCX);
     __ SmiUntag(RCX);
 
-    // Deoptimize if shift count is > 63 or negative.
+    // Deoptimize if shift count is > 63 or negative (or not a smi).
     if (!IsShiftCountInRange()) {
       ASSERT(CanDeoptimize());
       Label* deopt =
