@@ -6,13 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Prefer a 8-hex integer(0xFFFFFFFF) to instantiate Color.';
+const _desc =
+    r'Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color.';
 
 const _details = r'''
 
-Prefer a 8-hex integer(0xFFFFFFFF) to instantiate Color. Colors have four 8-bit
-channels, which adds up to 32 bits, so Colors are described using a 32 bit
-integer.
+Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color. Colors
+have four 8-bit channels, which adds up to 32 bits, so Colors are described
+using a 32 bit integer.
 
 **BAD:**
 ```
