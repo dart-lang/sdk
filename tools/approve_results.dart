@@ -253,6 +253,11 @@ main(List<String> args) async {
       abbr: "v", help: "Describe asynchronous operations.", negatable: false);
   parser.addFlag("yes",
       abbr: "y", help: "Approve the results.", negatable: false);
+  parser.addOption("table",
+      abbr: "T",
+      help: "Select table format.",
+      allowed: ["markdown", "indent"],
+      defaultsTo: "markdown");
 
   final options = parser.parse(args);
   if ((options["preapprove"] == null &&
@@ -507,26 +512,38 @@ ${parser.usage}""");
   int longestBot = "BOT/CONFIG".length;
   int longestTest = "TEST".length;
   int longestResult = "RESULT".length;
+  int longestExpected = "EXPECTED".length;
   for (final test in unapprovedTests) {
     unapprovedBots.add(test.bot);
     final botDisplayName = getBotDisplayName(test.bot, test.configuration);
     longestBot = max(longestBot, botDisplayName.length);
-    if (!test.matches) {
-      longestTest = max(longestTest, test.name.length);
-      longestResult = max(longestResult, test.result.length);
-    }
+    longestTest = max(longestTest, test.name.length);
+    longestResult = max(longestResult, test.result.length);
+    longestExpected = max(longestExpected, test.expected.length);
   }
   longestTest = min(longestTest, 120); // Some tests names are extremely long.
 
   // Table of lists that now succeed.
   if (fixedTests.isNotEmpty) {
     print("The following tests are now succeeding:\n");
-    print("${'BOT/CONFIG'.padRight(longestBot)}  "
-        "TEST");
+    if (options["table"] == "markdown") {
+      print("| ${'BOT/CONFIG'.padRight(longestBot)} "
+          "| ${'TEST'.padRight(longestTest)} |");
+      print("| ${'-' * longestBot} "
+          "| ${'-' * longestTest} |");
+    } else if (options["table"] == "indent") {
+      print("${'BOT/CONFIG'.padRight(longestBot)}  "
+          "TEST");
+    }
     for (final test in fixedTests) {
       final botDisplayName = getBotDisplayName(test.bot, test.configuration);
-      print("${botDisplayName.padRight(longestBot)}  "
-          "${test.name}");
+      if (options["table"] == "markdown") {
+        print("| ${botDisplayName.padRight(longestBot)} "
+            "| ${test.name.padRight(longestTest)} |");
+      } else if (options["table"] == "indent") {
+        print("${botDisplayName.padRight(longestBot)}  "
+            "${test.name}");
+      }
     }
     print("");
   }
@@ -534,16 +551,34 @@ ${parser.usage}""");
   /// Table of lists that now fail.
   if (brokenTests.isNotEmpty) {
     print("The following tests are now failing:\n");
-    print("${'BOT'.padRight(longestBot)}  "
-        "${'TEST'.padRight(longestTest)}  "
-        "${'RESULT'.padRight(longestResult)}  "
-        "EXPECTED");
+    if (options["table"] == "markdown") {
+      print("| ${'BOT'.padRight(longestBot)} "
+          "| ${'TEST'.padRight(longestTest)} "
+          "| ${'RESULT'.padRight(longestResult)} "
+          "| ${'EXPECTED'.padRight(longestExpected)} | ");
+      print("| ${'-' * longestBot} "
+          "| ${'-' * longestTest} "
+          "| ${'-' * longestResult} "
+          "| ${'-' * longestExpected} | ");
+    } else if (options["table"] == "indent") {
+      print("${'BOT'.padRight(longestBot)}  "
+          "${'TEST'.padRight(longestTest)}  "
+          "${'RESULT'.padRight(longestResult)}  "
+          "EXPECTED");
+    }
     for (final test in brokenTests) {
       final botDisplayName = getBotDisplayName(test.bot, test.configuration);
-      print("${botDisplayName.padRight(longestBot)}  "
-          "${test.name.padRight(longestTest)}  "
-          "${test.result.padRight(longestResult)}  "
-          "${test.expected}");
+      if (options["table"] == "markdown") {
+        print("| ${botDisplayName.padRight(longestBot)} "
+            "| ${test.name.padRight(longestTest)} "
+            "| ${test.result.padRight(longestResult)} "
+            "| ${test.expected.padRight(longestExpected)} |");
+      } else if (options["table"] == "indent") {
+        print("${botDisplayName.padRight(longestBot)}  "
+            "${test.name.padRight(longestTest)}  "
+            "${test.result.padRight(longestResult)}  "
+            "${test.expected}");
+      }
     }
     print("");
   }
