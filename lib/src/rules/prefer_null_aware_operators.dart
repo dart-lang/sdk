@@ -8,12 +8,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Prefer using null aware operator.';
+const _desc = r'Prefer using null aware operators.';
 
 const _details = r'''
 
-Prefer using null aware operator instead of null check in conditional
-expression.
+Prefer using null aware operators instead of null checks in conditional
+expressions.
 
 **BAD:**
 ```
