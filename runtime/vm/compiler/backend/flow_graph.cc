@@ -1813,8 +1813,36 @@ static void UnboxPhi(PhiInstr* phi) {
       break;
   }
 
-  if ((unboxed == kTagged) && phi->Type()->IsInt() &&
-      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
+  // If all the inputs are unboxed, leave the Phi unboxed.
+  if ((unboxed == kTagged) && phi->Type()->IsInt()) {
+    bool should_unbox = true;
+    Representation new_representation = kTagged;
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      Definition* input = phi->InputAt(i)->definition();
+      if (input->representation() != kUnboxedInt64 &&
+          input->representation() != kUnboxedInt32 &&
+          input->representation() != kUnboxedUint32 && !(input == phi)) {
+        should_unbox = false;
+        break;
+      }
+
+      if (new_representation == kTagged) {
+        new_representation = input->representation();
+      } else if (new_representation != input->representation()) {
+        new_representation = kNoRepresentation;
+      }
+    }
+    if (should_unbox) {
+      unboxed = new_representation != kNoRepresentation
+                    ? new_representation
+                    : RangeUtils::Fits(phi->range(),
+                                       RangeBoundary::kRangeBoundaryInt32)
+                          ? kUnboxedInt32
+                          : kUnboxedInt64;
+    }
+  }
+
+  if ((unboxed == kTagged) && phi->Type()->IsInt()) {
     // Conservatively unbox phis that:
     //   - are proven to be of type Int;
     //   - fit into 64bits range;
@@ -1824,9 +1852,7 @@ static void UnboxPhi(PhiInstr* phi) {
     bool should_unbox = false;
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
       Definition* input = phi->InputAt(i)->definition();
-      if (input->IsBox() &&
-          RangeUtils::Fits(input->range(),
-                           RangeBoundary::kRangeBoundaryInt64)) {
+      if (input->IsBox()) {
         should_unbox = true;
       } else if (!input->IsConstant()) {
         should_unbox = false;
