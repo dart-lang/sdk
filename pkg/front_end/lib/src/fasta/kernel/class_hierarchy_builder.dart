@@ -29,12 +29,7 @@ import '../names.dart' show noSuchMethodName;
 import '../scope.dart' show Scope;
 
 import 'kernel_builder.dart'
-    show
-        Declaration,
-        LibraryBuilder,
-        KernelClassBuilder,
-        KernelNamedTypeBuilder,
-        KernelTypeBuilder;
+    show Declaration, LibraryBuilder, KernelClassBuilder, KernelTypeBuilder;
 
 int compareDeclarations(Declaration a, Declaration b) {
   return ClassHierarchy.compareMembers(a.target, b.target);
@@ -75,11 +70,43 @@ class ClassHierarchyBuilder {
 
   final KernelClassBuilder objectClass;
 
+  ClassHierarchyBuilder(this.objectClass);
+
+  ClassHierarchyNode getNodeFromClass(KernelClassBuilder cls) {
+    return nodes[cls] ??= new ClassHierarchyNodeBuilder(this, cls).build();
+  }
+
+  ClassHierarchyNode getNodeFromType(KernelTypeBuilder type) {
+    Declaration declaration = type.declaration;
+    return declaration is KernelClassBuilder
+        ? getNodeFromClass(declaration)
+        : null;
+  }
+
+  static ClassHierarchyBuilder build(
+      KernelClassBuilder objectClass, List<KernelClassBuilder> classes) {
+    ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(objectClass);
+    for (int i = 0; i < classes.length; i++) {
+      KernelClassBuilder cls = classes[i];
+      hierarchy.nodes[cls] =
+          new ClassHierarchyNodeBuilder(hierarchy, cls).build();
+    }
+    return hierarchy;
+  }
+}
+
+class ClassHierarchyNodeBuilder {
+  final ClassHierarchyBuilder hierarchy;
+
+  final KernelClassBuilder cls;
+
   bool hasNoSuchMethod = false;
 
   List<Declaration> abstractMembers = null;
 
-  ClassHierarchyBuilder(this.objectClass);
+  ClassHierarchyNodeBuilder(this.hierarchy, this.cls);
+
+  KernelClassBuilder get objectClass => hierarchy.objectClass;
 
   /// When merging `aList` and `bList`, [a] (from `aList`) and [b] (from
   /// `bList`) each have the same name.
@@ -224,33 +251,27 @@ class ClassHierarchyBuilder {
     }
   }
 
-  void add(KernelClassBuilder cls) {
-    assert(!hasNoSuchMethod);
-    assert(abstractMembers == null);
+  ClassHierarchyNode build() {
     if (cls.isPatch) {
       // TODO(ahe): What about patch classes. Have we injected patched members
       // into the class-builder's scope?
-      return;
+      return null;
     }
     ClassHierarchyNode supernode;
     if (objectClass != cls) {
-      supernode = getNode(cls.supertype);
+      supernode = hierarchy.getNodeFromType(cls.supertype);
       if (supernode == null) {
-        supernode = nodes[objectClass];
-        if (supernode == null) {
-          add(objectClass);
-          supernode = nodes[objectClass];
-        }
+        supernode = hierarchy.getNodeFromClass(objectClass);
       }
       assert(supernode != null);
     }
 
     Scope scope = cls.scope;
     if (cls.isMixinApplication) {
-      Declaration mixin = getDeclaration(cls.mixedInType);
+      Declaration mixin = cls.mixedInType.declaration;
       while (mixin.isNamedMixinApplication) {
         KernelClassBuilder named = mixin;
-        mixin = getDeclaration(named.mixedInType);
+        mixin = named.mixedInType.declaration;
       }
       if (mixin is KernelClassBuilder) {
         scope = mixin.scope;
@@ -340,7 +361,8 @@ class ClassHierarchyBuilder {
         }
         for (int i = 0; i < directInterfaces.length; i++) {
           addInterface(interfaces, superclasses, directInterfaces[i]);
-          ClassHierarchyNode interfaceNode = getNode(directInterfaces[i]);
+          ClassHierarchyNode interfaceNode =
+              hierarchy.getNodeFromType(directInterfaces[i]);
           if (interfaceNode != null) {
             List<KernelTypeBuilder> types = interfaceNode.superclasses;
             for (int i = 0; i < types.length; i++) {
@@ -377,7 +399,14 @@ class ClassHierarchyBuilder {
         merge(cls, classMembers, interfaceSetters, MergeKind.accessors);
       }
     }
-    nodes[cls] = new ClassHierarchyNode(
+    if (abstractMembers != null && !cls.isAbstract) {
+      if (!hasNoSuchMethod) {
+        reportMissingMembers(cls);
+      } else {
+        installNsmHandlers(cls);
+      }
+    }
+    return new ClassHierarchyNode(
       cls,
       classMembers,
       classSetters,
@@ -386,21 +415,11 @@ class ClassHierarchyBuilder {
       superclasses,
       interfaces,
     );
-
-    if (abstractMembers != null && !cls.isAbstract) {
-      if (!hasNoSuchMethod) {
-        reportMissingMembers(cls);
-      } else {
-        installNsmHandlers(cls);
-      }
-    }
-    hasNoSuchMethod = false;
-    abstractMembers = null;
   }
 
   KernelTypeBuilder addInterface(List<KernelTypeBuilder> interfaces,
       List<KernelTypeBuilder> superclasses, KernelTypeBuilder type) {
-    ClassHierarchyNode node = getNode(type);
+    ClassHierarchyNode node = hierarchy.getNodeFromType(type);
     if (node == null) return null;
     int depth = node.depth;
     int myDepth = superclasses.length;
@@ -430,7 +449,8 @@ class ClassHierarchyBuilder {
     memberLists[0] = supernode.interfaceMembers;
     setterLists[0] = supernode.interfaceSetters;
     for (int i = 0; i < interfaces.length; i++) {
-      ClassHierarchyNode interfaceNode = getNode(interfaces[i]);
+      ClassHierarchyNode interfaceNode =
+          hierarchy.getNodeFromType(interfaces[i]);
       if (interfaceNode == null) {
         memberLists[i + 1] = null;
         setterLists[i + 1] = null;
@@ -551,29 +571,6 @@ class ClassHierarchyBuilder {
 
   void installNsmHandlers(KernelClassBuilder cls) {
     // TOOD(ahe): Implement this.
-  }
-
-  ClassHierarchyNode getNode(KernelTypeBuilder type) {
-    Declaration declaration = getDeclaration(type);
-    if (declaration is KernelClassBuilder) {
-      ClassHierarchyNode node = nodes[declaration];
-      if (node == null) {
-        bool savedHasNoSuchMethod = hasNoSuchMethod;
-        hasNoSuchMethod = false;
-        List<Declaration> savedAbstractMembers = abstractMembers;
-        abstractMembers = null;
-        add(declaration);
-        hasNoSuchMethod = savedHasNoSuchMethod;
-        abstractMembers = savedAbstractMembers;
-        node = nodes[declaration];
-      }
-      return node;
-    }
-    return null;
-  }
-
-  Declaration getDeclaration(KernelTypeBuilder type) {
-    return type is KernelNamedTypeBuilder ? type.declaration : null;
   }
 
   List<Declaration> merge(KernelClassBuilder cls, List<Declaration> aList,

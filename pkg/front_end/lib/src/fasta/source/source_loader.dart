@@ -928,14 +928,10 @@ class SourceLoader<L> extends Loader<L> {
 
   ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    ticker.logMs("Building class hierarchy");
-    ClassHierarchyBuilder classHierarchyBuilder =
-        new ClassHierarchyBuilder(objectClass);
-    for (int i = 0; i < sourceClasses.length; i++) {
-      classHierarchyBuilder.add(sourceClasses[i]);
-    }
+    ClassHierarchyBuilder hierarchy =
+        ClassHierarchyBuilder.build(objectClass, sourceClasses);
     ticker.logMs("Built class hierarchy");
-    return classHierarchyBuilder;
+    return hierarchy;
   }
 
   void createTypeInferenceEngine() {
