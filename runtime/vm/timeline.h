@@ -453,7 +453,7 @@ class TimelineEvent {
 
 #ifdef SUPPORT_TIMELINE
 #define TIMELINE_DURATION(thread, stream, name)                                \
-  TimelineDurationScope(thread, Timeline::Get##stream##Stream(), name);
+  TimelineDurationScope tds(thread, Timeline::Get##stream##Stream(), name);
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
   TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
   if (tds.enabled()) {                                                         \
