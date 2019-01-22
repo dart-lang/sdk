@@ -109,6 +109,12 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitDirectMethodInvocation(DirectMethodInvocation _) {
     return "invoke-direct-method";
   }
+
+  String visitConstructorInvocation(ConstructorInvocation expression) {
+    return expression.isConst
+        ? "invoke-const-constructor"
+        : "invoke-constructor";
+  }
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -664,6 +670,37 @@ DirectMethodInvocation wrapDirectMethodInvocation(
       tuple.first, tuple.second.getReference(), tuple.third);
 }
 
+TextSerializer<ConstructorInvocation> constructorInvocationSerializer =
+    new Wrapped(
+        unwrapConstructorInvocation,
+        wrapConstructorInvocation,
+        new Tuple2Serializer(
+            const CanonicalNameSerializer(), argumentsSerializer));
+
+Tuple2<CanonicalName, Arguments> unwrapConstructorInvocation(
+    ConstructorInvocation expression) {
+  return new Tuple2(
+      expression.targetReference.canonicalName, expression.arguments);
+}
+
+ConstructorInvocation wrapConstructorInvocation(
+    Tuple2<CanonicalName, Arguments> tuple) {
+  return new ConstructorInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: false);
+}
+
+TextSerializer<ConstructorInvocation> constConstructorInvocationSerializer =
+    new Wrapped(unwrapConstructorInvocation, wrapConstConstructorInvocation,
+        Tuple2Serializer(const CanonicalNameSerializer(), argumentsSerializer));
+
+ConstructorInvocation wrapConstConstructorInvocation(
+    Tuple2<CanonicalName, Arguments> tuple) {
+  return new ConstructorInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: true);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -877,6 +914,8 @@ void initializeSerializers() {
     "invoke-static",
     "invoke-const-static",
     "invoke-direct-method",
+    "invoke-constructor",
+    "invoke-const-constructor",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -920,6 +959,8 @@ void initializeSerializers() {
     staticInvocationSerializer,
     constStaticInvocationSerializer,
     directMethodInvocationSerializer,
+    constructorInvocationSerializer,
+    constConstructorInvocationSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",

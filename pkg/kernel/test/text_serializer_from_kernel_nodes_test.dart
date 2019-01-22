@@ -256,6 +256,49 @@ void test() {
               new DeserializationEnvironment(null)..add("x^0", x),
               component.root));
     }(),
+    () {
+      Constructor constructor =
+          new Constructor(new FunctionNode(null), name: new Name("foo"));
+      Class klass =
+          new Class(name: "A", constructors: <Constructor>[constructor]);
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          classes: <Class>[klass]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase(
+          name: "/* suppose A {A.foo();} */ new A()",
+          node: new ConstructorInvocation.byReference(
+              constructor.reference, new Arguments([])),
+          expectation: ""
+              "(invoke-constructor"
+              " \"package:foo/bar.dart::A::@constructors::foo\""
+              " () () ())",
+          serializationState: new SerializationState(null),
+          deserializationState: new DeserializationState(null, component.root));
+    }(),
+    () {
+      Constructor constructor = new Constructor(new FunctionNode(null),
+          name: new Name("foo"), isConst: true);
+      Class klass =
+          new Class(name: "A", constructors: <Constructor>[constructor]);
+      Library library = new Library(
+          new Uri(scheme: "package", path: "foo/bar.dart"),
+          classes: <Class>[klass]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase(
+          name: "/* suppose A {const A.foo();} */ const A()",
+          node: new ConstructorInvocation.byReference(
+              constructor.reference, new Arguments([]),
+              isConst: true),
+          expectation: ""
+              "(invoke-const-constructor"
+              " \"package:foo/bar.dart::A::@constructors::foo\""
+              " () () ())",
+          serializationState: new SerializationState(null),
+          deserializationState: new DeserializationState(null, component.root));
+    }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =
