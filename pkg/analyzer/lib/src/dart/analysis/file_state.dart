@@ -510,6 +510,15 @@ class FileState {
     //   Flush exported top-level declarations of all files.
     if (apiSignatureChanged) {
       _libraryCycle?.invalidate();
+
+      // If this is a part, invalidate the libraries.
+      var libraries = _fsState._partToLibraries[this];
+      if (libraries != null) {
+        for (var library in libraries) {
+          library.libraryCycle?.invalidate();
+        }
+      }
+
       for (FileState file in _fsState._uriToFile.values) {
         file._exportedTopLevelDeclarations = null;
       }
