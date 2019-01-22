@@ -819,8 +819,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitInvalidExpression(InvalidExpression node) {
-    // Invalid expressions are always distinct, we do not canonicalize them.
-    return new UnevaluatedConstant(node);
+    throw new _AbortCurrentEvaluation(node.message);
   }
 
   visitMethodInvocation(MethodInvocation node) {
