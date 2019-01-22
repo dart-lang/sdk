@@ -4903,7 +4903,7 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   }
 
   @override
-  Token get beginToken => forKeyword;
+  Token get beginToken => awaitKeyword ?? forKeyword;
 
   @override
   Statement get body => _body;
