@@ -8,11 +8,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Prefer null aware operator.';
+const _desc = r'Prefer using null aware operator.';
 
 const _details = r'''
 
-Prefer null aware operator instead of null check in conditional expression.
+Prefer using null aware operator instead of null check in conditional
+expression.
 
 **BAD:**
 ```
@@ -26,10 +27,10 @@ v = a?.b;
 
 ''';
 
-class PreferNullAwareOperator extends LintRule implements NodeLintRule {
-  PreferNullAwareOperator()
+class PreferNullAwareOperators extends LintRule implements NodeLintRule {
+  PreferNullAwareOperators()
       : super(
-            name: 'prefer_null_aware_operator',
+            name: 'prefer_null_aware_operators',
             description: _desc,
             details: _details,
             group: Group.style);

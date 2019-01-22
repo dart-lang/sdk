@@ -102,7 +102,7 @@ import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/prefer_iterable_whereType.dart';
 import 'package:linter/src/rules/prefer_mixin.dart';
-import 'package:linter/src/rules/prefer_null_aware_operator.dart';
+import 'package:linter/src/rules/prefer_null_aware_operators.dart';
 import 'package:linter/src/rules/prefer_single_quotes.dart';
 import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
 import 'package:linter/src/rules/prefer_void_to_null.dart';
@@ -241,7 +241,7 @@ void registerLintRules() {
     ..register(new PreferIsEmpty())
     ..register(new PreferIsNotEmpty())
     ..register(new PreferMixin())
-    ..register(new PreferNullAwareOperator())
+    ..register(new PreferNullAwareOperators())
     ..register(new PreferSingleQuotes())
     ..register(new PreferTypingUninitializedVariables())
     ..register(new PreferVoidToNull())
