@@ -122,9 +122,9 @@ class ExperimentStatus {
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
           set_literals ?? IsEnabledByDefault.set_literals,
           non_nullable ?? IsEnabledByDefault.non_nullable,
-          spread_collections ?? IsEnabledByDefault.spread_collections,
           control_flow_collections ??
               IsEnabledByDefault.control_flow_collections,
+          spread_collections ?? IsEnabledByDefault.spread_collections,
         ];
 
   /// Decodes the strings given in [flags] into a representation of the set of
@@ -146,6 +146,9 @@ class ExperimentStatus {
   /// Current state for the flag "constant-update-2018"
   bool get constant_update_2018 => _enableFlags[0];
 
+  /// Current state for the flag "control_flow_collections"
+  bool get control_flow_collections => _enableFlags[3];
+
   /// Current state for the flag "non-nullable"
   bool get non_nullable => _enableFlags[2];
 
@@ -153,10 +156,7 @@ class ExperimentStatus {
   bool get set_literals => _enableFlags[1];
 
   /// Current state for the flag "spread_collections"
-  bool get spread_collections => _enableFlags[3];
-
-  /// Current state for the flag "control_flow_collections"
-  bool get control_flow_collections => _enableFlags[4];
+  bool get spread_collections => _enableFlags[4];
 
   /// Queries whether the given [feature] is enabled or disabled.
   bool isEnabled(ExperimentalFeature feature) => feature.isExpired
