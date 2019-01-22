@@ -190,6 +190,14 @@ deps = {
       "https://boringssl.googlesource.com/boringssl.git" +
       "@" + Var("boringssl_rev"),
 
+  Var("dart_root") + "/third_party/gsutil": {
+      "packages": [{
+          "package": "infra/gsutil",
+          "version": "version:4.34",
+      }],
+      "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/third_party/root_certificates":
       Var("dart_git") + "root_certificates.git" +
       "@" + Var("root_certificates_rev"),
@@ -448,20 +456,6 @@ hooks = [
       "--extract",
       "-s",
       Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-    ],
-  },
-  {
-    "name": "gsutil",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/gsutil.tar.gz.sha1",
     ],
   },
   {
