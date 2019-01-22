@@ -44,14 +44,14 @@ def BuildDartdocAPIDocs(dirname):
                           'dart-sdk')
   dart_exe =  os.path.join(dart_sdk, 'bin', 'dart')
   dartdoc_dart = os.path.join(bot_utils.DART_DIR,
-                              'third_party', 'pkg' , 'dartdoc' , 'bin' , 
+                              'third_party', 'pkg', 'dartdoc', 'bin',
                               'dartdoc.dart')
   footer_file = os.path.join(bot_utils.DART_DIR,
                               'tools', 'bots', 'dartdoc_footer.html')
   url = 'https://api.dartlang.org/stable'
   with bot.BuildStep('Build API docs by dartdoc'):
     bot_utils.run([dart_exe, dartdoc_dart,
-                  '--sdk-docs','--output', dirname, '--footer' , footer_file,
+                  '--sdk-docs', '--output', dirname, '--footer', footer_file,
                   '--rel-canonical-prefix=' + url])
 
 def CreateUploadVersionFile():
@@ -172,7 +172,7 @@ def GsutilExists(gsu_path):
       throw_on_error=False)
   # If the returncode is nonzero and we can find a specific error message,
   # we know there are no objects with a prefix of [gsu_path].
-  missing = (returncode and 'CommandException: No such object' in stderr)
+  missing = (returncode and 'CommandException: One or more URLs matched no objects.' in stderr)
   # Either the returncode has to be zero or the object must be missing,
   # otherwise throw an exception.
   if not missing and returncode:

@@ -136,7 +136,6 @@
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
-      "third_party/gsutil/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/observatory_pub_packages/packages/",
