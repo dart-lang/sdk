@@ -8,7 +8,7 @@
 
 abstract_members: TypeCheckError
 accessors: TextSerializationFailure # Was: RuntimeError
-ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
+ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 annotation_eof: TextSerializationFailure # Was: Pass
 annotation_on_enum_values: TextSerializationFailure # Was: Pass
 annotation_top: TextSerializationFailure # Was: Pass
