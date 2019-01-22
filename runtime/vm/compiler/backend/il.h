@@ -3101,8 +3101,10 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     // The Token::Kind we have does unfortunately not encode whether the call is
     // a dyn: call or not.
     if (auto static_call = this->AsStaticCall()) {
+      ASSERT(static_call->ic_data() != nullptr);
       return static_call->ic_data()->target_name();
     } else if (auto instance_call = this->AsInstanceCall()) {
+      ASSERT(instance_call->ic_data() != nullptr);
       return instance_call->ic_data()->target_name();
     } else {
       UNREACHABLE();
