@@ -205,11 +205,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitClassTypeAlias(ClassTypeAlias node) => visitTypeAlias(node);
 
-//  @override
+  @override
   R visitCollectionForElement(CollectionForElement node) =>
       visitForElement<CollectionElement>(node);
 
-//  @override
+  @override
   R visitCollectionIfElement(CollectionIfElement node) =>
       visitIfElement<CollectionElement>(node);
 
@@ -308,11 +308,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   R visitForEachParts(ForEachParts node) => visitNode(node);
 
-//  @override
+  @override
   R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
       visitForEachParts(node);
 
-//  @override
+  @override
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
       visitForEachParts(node);
 
@@ -328,18 +328,18 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   R visitForParts(ForParts node) => visitNode(node);
 
-//  @override
+  @override
   R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
       visitForParts(node);
 
-//  @override
+  @override
   R visitForPartsWithExpression(ForPartsWithExpression node) =>
       visitForParts(node);
 
   @override
   R visitForStatement(ForStatement node) => visitStatement(node);
 
-//  @override
+  @override
   R visitForStatement2(ForStatement2 node) => visitStatement(node);
 
   R visitFunctionBody(FunctionBody node) => visitNode(node);
@@ -430,21 +430,21 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => visitTypedLiteral(node);
 
-//  @override
+  @override
   R visitListLiteral2(ListLiteral2 node) => visitTypedLiteral(node);
 
   R visitLiteral(Literal node) => visitExpression(node);
 
-//  @override
+  @override
   R visitMapForElement(MapForElement node) => visitForElement<MapElement>(node);
 
-//  @override
+  @override
   R visitMapIfElement(MapIfElement node) => visitIfElement<MapElement>(node);
 
   @override
   R visitMapLiteral(MapLiteral node) => visitTypedLiteral(node);
 
-//  @override
+  @override
   R visitMapLiteral2(MapLiteral2 node) => visitTypedLiteral(node);
 
   @override
@@ -529,7 +529,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => visitTypedLiteral(node);
 
-//  @override
+  @override
   R visitSetLiteral2(SetLiteral2 node) => visitTypedLiteral(node);
 
   @override
@@ -549,7 +549,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitSingleStringLiteral(SingleStringLiteral node) =>
       visitStringLiteral(node);
 
-//  @override
+  @override
   R visitSpreadElement(SpreadElement node) => visitNode(node);
 
   R visitStatement(Statement node) => visitNode(node);
@@ -751,13 +751,13 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitCollectionForElement(CollectionForElement node) {
     node.visitChildren(this);
     return null;
   }
 
-//  @override
+  @override
   R visitCollectionIfElement(CollectionIfElement node) {
     node.visitChildren(this);
     return null;
@@ -907,13 +907,13 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
-//  @override
+  @override
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     node.visitChildren(this);
     return null;
@@ -931,13 +931,13 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     node.visitChildren(this);
     return null;
   }
 
-//  @override
+  @override
   R visitForPartsWithExpression(ForPartsWithExpression node) {
     node.visitChildren(this);
     return null;
@@ -949,7 +949,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitForStatement2(ForStatement2 node) {
     node.visitChildren(this);
     return null;
@@ -1093,19 +1093,19 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitListLiteral2(ListLiteral2 node) {
     node.visitChildren(this);
     return null;
   }
 
-//  @override
+  @override
   R visitMapForElement(MapForElement node) {
     node.visitChildren(this);
     return null;
   }
 
-//  @override
+  @override
   R visitMapIfElement(MapIfElement node) {
     node.visitChildren(this);
     return null;
@@ -1117,7 +1117,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitMapLiteral2(MapLiteral2 node) {
     node.visitChildren(this);
     return null;
@@ -1250,7 +1250,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitSetLiteral2(SetLiteral2 node) {
     node.visitChildren(this);
     return null;
@@ -1280,7 +1280,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-//  @override
+  @override
   R visitSpreadElement(SpreadElement node) {
     node.visitChildren(this);
     return null;
@@ -1473,10 +1473,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitClassTypeAlias(ClassTypeAlias node) => null;
 
-//  @override
+  @override
   R visitCollectionForElement(CollectionForElement node) => null;
 
-//  @override
+  @override
   R visitCollectionIfElement(CollectionIfElement node) => null;
 
   @override
@@ -1551,10 +1551,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) => null;
 
-//  @override
+  @override
   R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) => null;
 
-//  @override
+  @override
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) => null;
 
   @override
@@ -1563,16 +1563,16 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFormalParameterList(FormalParameterList node) => null;
 
-//  @override
+  @override
   R visitForPartsWithDeclarations(ForPartsWithDeclarations node) => null;
 
-//  @override
+  @override
   R visitForPartsWithExpression(ForPartsWithExpression node) => null;
 
   @override
   R visitForStatement(ForStatement node) => null;
 
-//  @override
+  @override
   R visitForStatement2(ForStatement2 node) => null;
 
   @override
@@ -1647,19 +1647,19 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => null;
 
-//  @override
+  @override
   R visitListLiteral2(ListLiteral2 node) => null;
 
-//  @override
+  @override
   R visitMapForElement(MapForElement node) => null;
 
-//  @override
+  @override
   R visitMapIfElement(MapIfElement node) => null;
 
   @override
   R visitMapLiteral(MapLiteral node) => null;
 
-//  @override
+  @override
   R visitMapLiteral2(MapLiteral2 node) => null;
 
   @override
@@ -1727,7 +1727,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => null;
 
-//  @override
+  @override
   R visitSetLiteral2(SetLiteral2 node) => null;
 
   @override
@@ -1742,7 +1742,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) => null;
 
-//  @override
+  @override
   R visitSpreadElement(SpreadElement node) => null;
 
   @override
@@ -1871,10 +1871,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitClassTypeAlias(ClassTypeAlias node) => _throw(node);
 
-//  @override
+  @override
   R visitCollectionForElement(CollectionForElement node) => _throw(node);
 
-//  @override
+  @override
   R visitCollectionIfElement(CollectionIfElement node) => _throw(node);
 
   @override
@@ -1950,11 +1950,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
 
-//  @override
+  @override
   R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
       _throw(node);
 
-//  @override
+  @override
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
       _throw(node);
 
@@ -1964,17 +1964,17 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFormalParameterList(FormalParameterList node) => _throw(node);
 
-//  @override
+  @override
   R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
       _throw(node);
 
-//  @override
+  @override
   R visitForPartsWithExpression(ForPartsWithExpression node) => _throw(node);
 
   @override
   R visitForStatement(ForStatement node) => _throw(node);
 
-//  @override
+  @override
   R visitForStatement2(ForStatement2 node) => _throw(node);
 
   @override
@@ -2050,19 +2050,19 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => _throw(node);
 
-//  @override
+  @override
   R visitListLiteral2(ListLiteral2 node) => _throw(node);
 
-//  @override
+  @override
   R visitMapForElement(MapForElement node) => _throw(node);
 
-//  @override
+  @override
   R visitMapIfElement(MapIfElement node) => _throw(node);
 
   @override
   R visitMapLiteral(MapLiteral node) => _throw(node);
 
-//  @override
+  @override
   R visitMapLiteral2(MapLiteral2 node) => _throw(node);
 
   @override
@@ -2130,7 +2130,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => _throw(node);
 
-//  @override
+  @override
   R visitSetLiteral2(SetLiteral2 node) => _throw(node);
 
   @override
@@ -2145,7 +2145,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
 
-//  @override
+  @override
   R visitSpreadElement(SpreadElement node) => _throw(node);
 
   @override
@@ -2378,6 +2378,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitCollectionForElement(CollectionForElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitCollectionForElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitCollectionIfElement(CollectionIfElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitCollectionIfElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitComment(Comment node) {
     stopwatch.start();
     T result = _baseVisitor.visitComment(node);
@@ -2570,6 +2586,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForEachPartsWithDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForEachPartsWithIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitForEachStatement(ForEachStatement node) {
     stopwatch.start();
     T result = _baseVisitor.visitForEachStatement(node);
@@ -2586,9 +2618,33 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForPartsWithDeclarations(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForPartsWithExpression(ForPartsWithExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForPartsWithExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitForStatement(ForStatement node) {
     stopwatch.start();
     T result = _baseVisitor.visitForStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForStatement2(ForStatement2 node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForStatement2(node);
     stopwatch.stop();
     return result;
   }
@@ -2778,9 +2834,41 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitListLiteral2(ListLiteral2 node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitListLiteral2(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMapForElement(MapForElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMapForElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMapIfElement(MapIfElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMapIfElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitMapLiteral(MapLiteral node) {
     stopwatch.start();
     T result = _baseVisitor.visitMapLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMapLiteral2(MapLiteral2 node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMapLiteral2(node);
     stopwatch.stop();
     return result;
   }
@@ -2955,6 +3043,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitSetLiteral2(SetLiteral2 node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSetLiteral2(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
     T result = _baseVisitor.visitShowCombinator(node);
@@ -2982,6 +3078,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitSimpleStringLiteral(SimpleStringLiteral node) {
     stopwatch.start();
     T result = _baseVisitor.visitSimpleStringLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSpreadElement(SpreadElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSpreadElement(node);
     stopwatch.stop();
     return result;
   }
@@ -3219,10 +3323,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
 
-//  @override
+  @override
   R visitCollectionForElement(CollectionForElement node) => visitNode(node);
 
-//  @override
+  @override
   R visitCollectionIfElement(CollectionIfElement node) => visitNode(node);
 
   @override
@@ -3299,11 +3403,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
 
-//  @override
+  @override
   R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
       visitNode(node);
 
-//  @override
+  @override
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
       visitNode(node);
 
@@ -3313,17 +3417,17 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFormalParameterList(FormalParameterList node) => visitNode(node);
 
-//  @override
+  @override
   R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
       visitNode(node);
 
-//  @override
+  @override
   R visitForPartsWithExpression(ForPartsWithExpression node) => visitNode(node);
 
   @override
   R visitForStatement(ForStatement node) => visitNode(node);
 
-//  @override
+  @override
   R visitForStatement2(ForStatement2 node) => visitNode(node);
 
   @override
@@ -3400,19 +3504,19 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => visitNode(node);
 
-//  @override
+  @override
   R visitListLiteral2(ListLiteral2 node) => visitNode(node);
 
-//  @override
+  @override
   R visitMapForElement(MapForElement node) => visitNode(node);
 
-//  @override
+  @override
   R visitMapIfElement(MapIfElement node) => visitNode(node);
 
   @override
   R visitMapLiteral(MapLiteral node) => visitNode(node);
 
-//  @override
+  @override
   R visitMapLiteral2(MapLiteral2 node) => visitNode(node);
 
   @override
@@ -3486,7 +3590,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => visitNode(node);
 
-//  @override
+  @override
   R visitSetLiteral2(SetLiteral2 node) => visitNode(node);
 
   @override
@@ -3501,7 +3605,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
 
-//  @override
+  @override
   R visitSpreadElement(SpreadElement node) => visitNode(node);
 
   @override

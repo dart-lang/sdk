@@ -620,6 +620,10 @@ abstract class AstVisitor<R> {
 
   R visitClassTypeAlias(ClassTypeAlias node);
 
+  R visitCollectionForElement(CollectionForElement node);
+
+  R visitCollectionIfElement(CollectionIfElement node);
+
   R visitComment(Comment node);
 
   R visitCommentReference(CommentReference node);
@@ -668,11 +672,21 @@ abstract class AstVisitor<R> {
 
   R visitFieldFormalParameter(FieldFormalParameter node);
 
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
+
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node);
+
   R visitForEachStatement(ForEachStatement node);
 
   R visitFormalParameterList(FormalParameterList node);
 
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node);
+
+  R visitForPartsWithExpression(ForPartsWithExpression node);
+
   R visitForStatement(ForStatement node);
+
+  R visitForStatement2(ForStatement2 node);
 
   R visitFunctionDeclaration(FunctionDeclaration node);
 
@@ -720,7 +734,15 @@ abstract class AstVisitor<R> {
 
   R visitListLiteral(ListLiteral node);
 
+  R visitListLiteral2(ListLiteral2 node);
+
+  R visitMapForElement(MapForElement node);
+
+  R visitMapIfElement(MapIfElement node);
+
   R visitMapLiteral(MapLiteral node);
+
+  R visitMapLiteral2(MapLiteral2 node);
 
   R visitMapLiteralEntry(MapLiteralEntry node);
 
@@ -765,6 +787,8 @@ abstract class AstVisitor<R> {
 
   R visitSetLiteral(SetLiteral node);
 
+  R visitSetLiteral2(SetLiteral2 node);
+
   R visitShowCombinator(ShowCombinator node);
 
   R visitSimpleFormalParameter(SimpleFormalParameter node);
@@ -772,6 +796,8 @@ abstract class AstVisitor<R> {
   R visitSimpleIdentifier(SimpleIdentifier node);
 
   R visitSimpleStringLiteral(SimpleStringLiteral node);
+
+  R visitSpreadElement(SpreadElement node);
 
   R visitStringInterpolation(StringInterpolation node);
 

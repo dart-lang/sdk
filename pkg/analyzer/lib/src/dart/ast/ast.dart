@@ -2101,8 +2101,7 @@ class CollectionForElementImpl extends CollectionElementImpl
   Token get endToken => _body.endToken;
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionForElement(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionForElement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2169,8 +2168,7 @@ class CollectionIfElementImpl extends CollectionElementImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionIfElement(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionIfElement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4749,9 +4747,8 @@ class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) =>
-//      visitor.visitForEachPartsWithDeclaration(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4793,9 +4790,8 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) =>
-//      visitor.visitForEachPartsWithIdentifier(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithIdentifier(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5260,9 +5256,8 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) =>
-//      visitor.visitForPartsWithDeclarations(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithDeclarations(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5307,9 +5302,8 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) =>
-//      visitor.visitForPartsWithExpression(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5360,8 +5354,7 @@ class ForStatement2Impl extends StatementImpl
   Token get endToken => _body.endToken;
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7868,8 +7861,7 @@ class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
   Token get endToken => rightBracket;
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral2(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral2(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8034,8 +8026,7 @@ class MapForElementImpl extends CollectionElementImpl
   Token get endToken => _body.endToken;
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapForElement(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapForElement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8102,8 +8093,7 @@ class MapIfElementImpl extends MapElementImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapIfElement(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapIfElement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8173,8 +8163,7 @@ class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
   NodeList<MapElement> get entries => _entries;
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10365,8 +10354,7 @@ class SetLiteral2Impl extends TypedLiteralImpl implements SetLiteral2 {
   Token get endToken => rightBracket;
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10904,10 +10892,9 @@ class SpreadElementImpl extends AstNodeImpl
   }
 
   @override
-//  E accept<E>(AstVisitor<E> visitor) {
-//    return visitor.visitSpreadElement(this);
-//  }
-  E accept<E>(AstVisitor<E> visitor) => throw new UnsupportedError('');
+  E accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitSpreadElement(this);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
