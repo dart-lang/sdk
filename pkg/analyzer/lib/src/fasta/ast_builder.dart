@@ -868,7 +868,7 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    if (enableSpreadCollections) {
+    if (enableControlFlowCollections || enableSpreadCollections) {
       List<CollectionElement> elements = popTypedList(count);
       TypeArgumentList typeArguments = pop();
       push(ast.listLiteral2(
@@ -942,7 +942,7 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralSet");
 
-    if (enableSpreadCollections) {
+    if (enableControlFlowCollections || enableSpreadCollections) {
       List<CollectionElement> elements =
           popTypedList(count) ?? <CollectionElement>[];
       TypeArgumentList typeArguments = pop();
@@ -968,7 +968,7 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralMap");
 
-    if (enableSpreadCollections) {
+    if (enableControlFlowCollections || enableSpreadCollections) {
       List<MapElement> entries = <MapElement>[];
       popTypedList(count)?.forEach((entry) {
         if (entry is MapElement) {

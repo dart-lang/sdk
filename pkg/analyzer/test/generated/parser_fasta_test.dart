@@ -33,6 +33,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest_Fasta);
+    defineReflectiveTests(CollectionLiteralParserTest);
     defineReflectiveTests(ComplexParserTest_Fasta);
     defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
@@ -40,7 +41,6 @@ main() {
     defineReflectiveTests(NNBDParserTest_Fasta);
     defineReflectiveTests(RecoveryParserTest_Fasta);
     defineReflectiveTests(SimpleParserTest_Fasta);
-    defineReflectiveTests(CollectionLiteralParserTest);
     defineReflectiveTests(StatementParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
@@ -120,6 +120,39 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
         expectedEndOffset: expectedEndOffset,
         parseSetLiterals: true,
         parseSpreadCollections: true);
+  }
+
+  @failingTest
+  void test_listLiteral_for() {
+    ListLiteral2 list = parseCollectionLiteral('[1, for (var x in list) 2]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+  }
+
+  @failingTest
+  void test_listLiteral_forSpread() {
+    ListLiteral2 list =
+        parseCollectionLiteral('[1, for (var x in list) ...[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+  }
+
+  @failingTest
+  void test_listLiteral_if() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) 2]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+  }
+
+  @failingTest
+  void test_listLiteral_ifSpread() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) ...[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
   }
 
   void test_listLiteral_spread() {
@@ -1002,10 +1035,13 @@ class FastaParserTestCase
       List<ExpectedError> errors,
       int expectedEndOffset,
       bool parseSetLiterals = false,
-      bool parseSpreadCollections = false}) {
+      bool parseSpreadCollections = false,
+      bool parseControlFlowCollections = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
     _parserProxy.fastaParser.enableSetLiterals = parseSetLiterals;
     _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
+    _parserProxy.astBuilder.enableControlFlowCollections =
+        parseControlFlowCollections;
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;
