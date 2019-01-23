@@ -498,6 +498,7 @@ G:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
+    G.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -505,7 +506,6 @@ G:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-    G.foo
 
 H:
   superclasses:
@@ -517,6 +517,7 @@ H:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
+    G.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -524,13 +525,12 @@ H:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-    G.foo
   interfaceMembers:
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    Foo.foo
+    G.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -538,7 +538,6 @@ H:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    G.foo
 
 Bar:
   superclasses:

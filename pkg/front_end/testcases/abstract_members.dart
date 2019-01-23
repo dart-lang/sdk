@@ -76,10 +76,10 @@ class Foo {
 }
 
 class G {
-  void set foo(_) {}
+  Object get foo => null;
 }
 
-// This class should have an error, the setter G.foo conflicts with the method
+// This class should have an error, the getter G.foo conflicts with the method
 // Foo.foo.
 abstract class H extends G implements Foo {}
 

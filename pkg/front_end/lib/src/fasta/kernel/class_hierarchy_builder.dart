@@ -651,9 +651,13 @@ class ClassHierarchyNode {
   ///
   /// In addition to the members of [classMembers] this also contains members
   /// from interfaces.
+  ///
+  /// This may be null, in which case [classMembers] is the interface members.
   final List<Declaration> interfaceMembers;
 
   /// Similar to [interfaceMembers] but for setters.
+  ///
+  /// This may be null, in which case [classSetters] is the interface setters.
   final List<Declaration> interfaceSetters;
 
   /// All superclasses of [cls] excluding itself. The classes are sorted by
