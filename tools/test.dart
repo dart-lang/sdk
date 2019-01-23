@@ -48,9 +48,10 @@ String simpleShellSingleQuote(String string) {
 }
 
 /// Runs a process and exits likewise if the process exits non-zero.
-Future<ProcessResult> runProcess(
-    String executable, List<String> arguments) async {
-  final processResult = await Process.run(executable, arguments);
+Future<ProcessResult> runProcess(String executable, List<String> arguments,
+    {bool runInShell = false}) async {
+  final processResult =
+      await Process.run(executable, arguments, runInShell: runInShell);
   if (processResult.exitCode != 0) {
     final command =
         ([executable]..addAll(arguments)).map(simpleShellSingleQuote).join(" ");
@@ -63,9 +64,10 @@ Future<ProcessResult> runProcess(
 /// Runs a process and exits likewise if the process exits non-zero, but let the
 /// child process inherit out stdio handles.
 Future<ProcessResult> runProcessInheritStdio(
-    String executable, List<String> arguments) async {
+    String executable, List<String> arguments,
+    {bool runInShell = false}) async {
   final process = await Process.start(executable, arguments,
-      mode: ProcessStartMode.inheritStdio);
+      mode: ProcessStartMode.inheritStdio, runInShell: runInShell);
   final exitCode = await process.exitCode;
   final processResult = new ProcessResult(process.pid, exitCode, "", "");
   if (processResult.exitCode != 0) {
@@ -138,7 +140,8 @@ Future<String> findMergeBase(
     return commit;
   }
   final arguments = ["merge-base", "$remote/$branch", "HEAD"];
-  final result = await Process.run("git", arguments);
+  final result =
+      await Process.run("git", arguments, runInShell: Platform.isWindows);
   if (result.exitCode != 0) {
     throw new Exception("Failed to run: git ${arguments.join(' ')}\n"
         "stdout:\n${result.stdout}\n"
@@ -273,7 +276,9 @@ ${parser.usage}""");
       print("".padLeft(80, "="));
       print("$stepName: Running tests");
       print("".padLeft(80, "="));
-      await runProcessInheritStdio("tools/test.py", fullArguments);
+      await runProcessInheritStdio(
+          "python", ["tools/test.py"]..addAll(fullArguments),
+          runInShell: Platform.isWindows);
       stepResultsPaths.add("${stepDirectory.path}/results.json");
       stepLogsPaths.add("${stepDirectory.path}/logs.json");
       // Find the list of tests to deflake.
@@ -309,7 +314,9 @@ ${parser.usage}""");
             "--test-list=$deflakeListPath",
           ])
           ..addAll(options.rest);
-        await runProcessInheritStdio("tools/test.py", deflakeArguments);
+        await runProcessInheritStdio(
+            "python", ["tools/test.py"]..addAll(deflakeArguments),
+            runInShell: Platform.isWindows);
         deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
       }
       // Update the flakiness information based on what we've learned.
