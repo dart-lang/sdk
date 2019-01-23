@@ -43,6 +43,30 @@ abstract class B extends A {
     assertSuperExpression(invocation.target);
   }
 
+  test_error_abstractSuperMemberReference_mixin_implements() async {
+    addTestFile(r'''
+class A {
+  void foo(int _) {}
+}
+
+mixin M implements A {
+  void bar() {
+    super.foo(0);
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+
+    var invocation = findNode.methodInvocation('foo(0)');
+    assertMethodInvocation(
+      invocation,
+      findElement.method('foo', of: 'A'),
+      '(int) → void',
+    );
+    assertSuperExpression(invocation.target);
+  }
+
   test_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
     addTestFile('''
 class A {
