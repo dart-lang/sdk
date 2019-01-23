@@ -29,6 +29,7 @@ main() {
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
+    defineReflectiveTests(WriteOverrideTest);
   });
 }
 
@@ -871,464 +872,6 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('mixin M on A { }'));
   }
 
-  test_writeOverride_getter_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  int get zero;
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'zero',
-      expected: '''
-  @override
-  // TODO: implement zero
-  int get zero => null;
-''',
-      displayText: 'zero => …',
-      selection: new SourceRange(111, 4),
-    );
-  }
-
-  test_writeOverride_getter_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  int get zero => 0;
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'zero',
-      expected: '''
-  @override
-  // TODO: implement zero
-  int get zero => super.zero;
-''',
-      displayText: 'zero => …',
-      selection: new SourceRange(107, 10),
-    );
-  }
-
-  test_writeOverride_method_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  A add(A a);
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'add',
-      expected: '''
-  @override
-  A add(A a) {
-    // TODO: implement add
-    return null;
-  }
-''',
-      displayText: 'add(A a) { … }',
-      selection: new SourceRange(111, 12),
-    );
-  }
-
-  test_writeOverride_method_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  A add(A a) => null;
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'add',
-      expected: '''
-  @override
-  A add(A a) {
-    // TODO: implement add
-    return super.add(a);
-  }
-''',
-      displayText: 'add(A a) { … }',
-      selection: new SourceRange(110, 20),
-    );
-  }
-
-  test_writeOverride_method_functionTypeAlias_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-typedef int F(int left, int right);
-abstract class A {
-  void perform(F f);
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'perform',
-      expected: '''
-  @override
-  void perform(F f) {
-    // TODO: implement perform
-  }
-''',
-      displayText: 'perform(F f) { … }',
-    );
-  }
-
-  test_writeOverride_method_functionTypeAlias_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-typedef int F(int left, int right);
-class A {
-  void perform(F f) {}
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'perform',
-      expected: '''
-  @override
-  void perform(F f) {
-    // TODO: implement perform
-    super.perform(f);
-  }
-''',
-      displayText: 'perform(F f) { … }',
-      selection: new SourceRange(158, 17),
-    );
-  }
-
-  test_writeOverride_method_functionTypedParameter_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  forEach(int f(double p1, String p2));
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'forEach',
-      expected: '''
-  @override
-  forEach(int Function(double p1, String p2) f) {
-    // TODO: implement forEach
-    return null;
-  }
-''',
-      displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(176, 12),
-    );
-  }
-
-  test_writeOverride_method_functionTypedParameter_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  forEach(int f(double p1, String p2)) {}
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'forEach',
-      expected: '''
-  @override
-  forEach(int Function(double p1, String p2) f) {
-    // TODO: implement forEach
-    return super.forEach(f);
-  }
-''',
-      displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(169, 24),
-    );
-  }
-
-  test_writeOverride_method_generic_noBounds_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  List<T> get<T>(T key);
-}
-class B implements A {
-}
-''',
-      nameToOverride: 'get',
-      expected: '''
-  @override
-  List<T> get<T>(T key) {
-    // TODO: implement get
-    return null;
-  }
-''',
-      displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(136, 12),
-    );
-  }
-
-  test_writeOverride_method_generic_noBounds_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  List<T> get<T>(T key) {}
-}
-class B implements A {
-}
-''',
-      nameToOverride: 'get',
-      expected: '''
-  @override
-  List<T> get<T>(T key) {
-    // TODO: implement get
-    return super.get(key);
-  }
-''',
-      displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(129, 22),
-    );
-  }
-
-  test_writeOverride_method_generic_withBounds_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A<K1, V1> {
-  List<T> get<T extends V1>(K1 key);
-}
-class B<K2, V2> implements A<K2, V2> {
-}
-''',
-      nameToOverride: 'get',
-      expected: '''
-  @override
-  List<T> get<T extends V2>(K2 key) {
-    // TODO: implement get
-    return null;
-  }
-''',
-      displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(184, 12),
-    );
-  }
-
-  test_writeOverride_method_generic_withBounds_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A<K1, V1> {
-  List<T> get<T extends V1>(K1 key) {
-    return null;
-  }
-}
-class B<K2, V2> implements A<K2, V2> {
-}
-''',
-      nameToOverride: 'get',
-      expected: '''
-  @override
-  List<T> get<T extends V2>(K2 key) {
-    // TODO: implement get
-    return super.get(key);
-  }
-''',
-      displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(197, 22),
-    );
-  }
-
-  test_writeOverride_method_genericFunctionTypedParameter_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  int foo(T Function<T>() fn);
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'foo',
-      expected: '''
-  @override
-  int foo(T Function<T>() fn) {
-    // TODO: implement foo
-    return null;
- }
-''',
-      displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(145, 12),
-    );
-  }
-
-  test_writeOverride_method_genericFunctionTypedParameter_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  int foo(T Function<T>() fn) => 0;
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'foo',
-      expected: '''
-  @override
-  int foo(T Function<T>() fn) {
-    // TODO: implement foo
-    return super.foo(fn);
- }
-''',
-      displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(141, 21),
-    );
-  }
-
-  test_writeOverride_method_nullAsTypeArgument_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  List<Null> foo();
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'foo',
-      expected: '''
-  @override
-  List<Null> foo() {
-    // TODO: implement foo
-    return null;
- }
-''',
-      displayText: 'foo() { … }',
-      selection: new SourceRange(123, 12),
-    );
-  }
-
-  test_writeOverride_method_nullAsTypeArgument_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  List<Null> foo() => null
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'foo',
-      expected: '''
-  @override
-  List<Null> foo() {
-    // TODO: implement foo
-    return super.foo();
- }
-''',
-      displayText: 'foo() { … }',
-      selection: new SourceRange(121, 19),
-    );
-  }
-
-  test_writeOverride_method_returnVoid_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  void test();
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'test',
-      expected: '''
-  @override
-  void test() {
-    // TODO: implement test
-  }
-''',
-      displayText: 'test() { … }',
-      selection: new SourceRange(109, 0),
-    );
-  }
-
-  test_writeOverride_method_voidAsTypeArgument_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  List<void> foo();
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'foo',
-      expected: '''
-  @override
-  List<void> foo() {
-    // TODO: implement foo
-    return null;
-  }
-''',
-      displayText: 'foo() { … }',
-      selection: new SourceRange(123, 12),
-    );
-  }
-
-  test_writeOverride_method_voidAsTypeArgument_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  List<void> foo() => null;
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'foo',
-      expected: '''
-  @override
-  List<void> foo() {
-    // TODO: implement foo
-    return super.foo();
-  }
-''',
-      displayText: 'foo() { … }',
-      selection: new SourceRange(122, 19),
-    );
-  }
-
-  test_writeOverride_setter_abstract() async {
-    await _assertWriteOverride(
-      content: '''
-abstract class A {
-  set value(int value);
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'value=',
-      expected: '''
-  @override
-  void set value(int value) {
-    // TODO: implement value
-  }
-''',
-      displayText: 'value(int value) { … }',
-      selection: new SourceRange(133, 0),
-    );
-  }
-
-  test_writeOverride_setter_concrete() async {
-    await _assertWriteOverride(
-      content: '''
-class A {
-  set value(int value) {}
-}
-class B extends A {
-}
-''',
-      nameToOverride: 'value=',
-      expected: '''
-  @override
-  void set value(int value) {
-    // TODO: implement value
-    super.value = value;
-  }
-''',
-      displayText: 'value(int value) { … }',
-      selection: new SourceRange(131, 20),
-    );
-  }
-
   test_writeParameter() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
@@ -1948,54 +1491,6 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  /**
-   * Assuming that the [content] being edited defines a class named `A` whose
-   * member with the given [nameToOverride] to be overridden and has
-   * `class B extends A {...}` to which an inherited method is to be added,
-   * assert that the text of the overridden member matches the [expected] text
-   * (modulo white space). Assert that the generated display text matches the
-   * given [displayText]. If a [selection] is provided, assert that the
-   * generated selection range matches it.
-   */
-  _assertWriteOverride({
-    String content,
-    String nameToOverride,
-    String expected,
-    String displayText,
-    SourceRange selection,
-  }) async {
-    String path = convertPath('/home/test/lib/test.dart');
-    addSource(path, content);
-
-    TypeSystem typeSystem = await session.typeSystem;
-    var b = await _getClassElement(path, 'B');
-    var inherited = new InheritanceManager2(typeSystem).getInherited(
-      b.type,
-      new Name(null, nameToOverride),
-    );
-
-    StringBuffer displayBuffer =
-        displayText != null ? new StringBuffer() : null;
-
-    DartChangeBuilderImpl builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 2, (EditBuilder builder) {
-        ExecutableElement element = inherited.element as ExecutableElement;
-        (builder as DartEditBuilder).writeOverride(
-          inherited,
-          displayTextBuffer: displayBuffer,
-          invokeSuper: !element.isAbstract,
-        );
-      });
-    });
-    SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace(expected));
-    expect(displayBuffer?.toString(), displayText);
-    if (selection != null) {
-      expect(builder.selectionRange, selection);
-    }
-  }
-
   Future<void> _assertWriteType(String typeCode, {String declarations}) async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = (declarations ?? '') + '$typeCode v;';
@@ -2560,5 +2055,585 @@ import 'aaa.dart';
       resultCode = edit.apply(resultCode);
     }
     expect(resultCode, expectedCode);
+  }
+}
+
+@reflectiveTest
+class WriteOverrideTest extends AbstractContextTest with BuilderTestMixin {
+  test_getter_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  int get zero;
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'zero',
+      expected: '''
+  @override
+  // TODO: implement zero
+  int get zero => null;
+''',
+      displayText: 'zero => …',
+      selection: new SourceRange(111, 4),
+    );
+  }
+
+  test_getter_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  int get zero => 0;
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'zero',
+      invokeSuper: true,
+      expected: '''
+  @override
+  // TODO: implement zero
+  int get zero => super.zero;
+''',
+      displayText: 'zero => …',
+      selection: new SourceRange(107, 10),
+    );
+  }
+
+  test_method_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  A add(A a);
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'add',
+      expected: '''
+  @override
+  A add(A a) {
+    // TODO: implement add
+    return null;
+  }
+''',
+      displayText: 'add(A a) { … }',
+      selection: new SourceRange(111, 12),
+    );
+  }
+
+  test_method_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  A add(A a) => null;
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'add',
+      invokeSuper: true,
+      expected: '''
+  @override
+  A add(A a) {
+    // TODO: implement add
+    return super.add(a);
+  }
+''',
+      displayText: 'add(A a) { … }',
+      selection: new SourceRange(110, 20),
+    );
+  }
+
+  test_method_functionTypeAlias_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+typedef int F(int left, int right);
+abstract class A {
+  void perform(F f);
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'perform',
+      expected: '''
+  @override
+  void perform(F f) {
+    // TODO: implement perform
+  }
+''',
+      displayText: 'perform(F f) { … }',
+    );
+  }
+
+  test_method_functionTypeAlias_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+typedef int F(int left, int right);
+class A {
+  void perform(F f) {}
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'perform',
+      invokeSuper: true,
+      expected: '''
+  @override
+  void perform(F f) {
+    // TODO: implement perform
+    super.perform(f);
+  }
+''',
+      displayText: 'perform(F f) { … }',
+      selection: new SourceRange(158, 17),
+    );
+  }
+
+  test_method_functionTypedParameter_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  forEach(int f(double p1, String p2));
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'forEach',
+      expected: '''
+  @override
+  forEach(int Function(double p1, String p2) f) {
+    // TODO: implement forEach
+    return null;
+  }
+''',
+      displayText: 'forEach(int Function(double p1, String p2) f) { … }',
+      selection: new SourceRange(176, 12),
+    );
+  }
+
+  test_method_functionTypedParameter_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  forEach(int f(double p1, String p2)) {}
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'forEach',
+      invokeSuper: true,
+      expected: '''
+  @override
+  forEach(int Function(double p1, String p2) f) {
+    // TODO: implement forEach
+    return super.forEach(f);
+  }
+''',
+      displayText: 'forEach(int Function(double p1, String p2) f) { … }',
+      selection: new SourceRange(169, 24),
+    );
+  }
+
+  test_method_generic_noBounds_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  List<T> get<T>(T key);
+}
+class B implements A {
+}
+''',
+      nameToOverride: 'get',
+      expected: '''
+  @override
+  List<T> get<T>(T key) {
+    // TODO: implement get
+    return null;
+  }
+''',
+      displayText: 'get<T>(T key) { … }',
+      selection: new SourceRange(136, 12),
+    );
+  }
+
+  test_method_generic_noBounds_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  List<T> get<T>(T key) {}
+}
+class B implements A {
+}
+''',
+      nameToOverride: 'get',
+      invokeSuper: true,
+      expected: '''
+  @override
+  List<T> get<T>(T key) {
+    // TODO: implement get
+    return super.get(key);
+  }
+''',
+      displayText: 'get<T>(T key) { … }',
+      selection: new SourceRange(129, 22),
+    );
+  }
+
+  test_method_generic_withBounds_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A<K1, V1> {
+  List<T> get<T extends V1>(K1 key);
+}
+class B<K2, V2> implements A<K2, V2> {
+}
+''',
+      nameToOverride: 'get',
+      expected: '''
+  @override
+  List<T> get<T extends V2>(K2 key) {
+    // TODO: implement get
+    return null;
+  }
+''',
+      displayText: 'get<T extends V2>(K2 key) { … }',
+      selection: new SourceRange(184, 12),
+    );
+  }
+
+  test_method_generic_withBounds_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A<K1, V1> {
+  List<T> get<T extends V1>(K1 key) {
+    return null;
+  }
+}
+class B<K2, V2> implements A<K2, V2> {
+}
+''',
+      nameToOverride: 'get',
+      invokeSuper: true,
+      expected: '''
+  @override
+  List<T> get<T extends V2>(K2 key) {
+    // TODO: implement get
+    return super.get(key);
+  }
+''',
+      displayText: 'get<T extends V2>(K2 key) { … }',
+      selection: new SourceRange(197, 22),
+    );
+  }
+
+  test_method_genericFunctionTypedParameter_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  int foo(T Function<T>() fn);
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'foo',
+      expected: '''
+  @override
+  int foo(T Function<T>() fn) {
+    // TODO: implement foo
+    return null;
+ }
+''',
+      displayText: 'foo(T Function<T>() fn) { … }',
+      selection: new SourceRange(145, 12),
+    );
+  }
+
+  test_method_genericFunctionTypedParameter_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  int foo(T Function<T>() fn) => 0;
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'foo',
+      invokeSuper: true,
+      expected: '''
+  @override
+  int foo(T Function<T>() fn) {
+    // TODO: implement foo
+    return super.foo(fn);
+ }
+''',
+      displayText: 'foo(T Function<T>() fn) { … }',
+      selection: new SourceRange(141, 21),
+    );
+  }
+
+  test_method_nullAsTypeArgument_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  List<Null> foo();
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'foo',
+      expected: '''
+  @override
+  List<Null> foo() {
+    // TODO: implement foo
+    return null;
+ }
+''',
+      displayText: 'foo() { … }',
+      selection: new SourceRange(123, 12),
+    );
+  }
+
+  test_method_nullAsTypeArgument_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  List<Null> foo() => null
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'foo',
+      invokeSuper: true,
+      expected: '''
+  @override
+  List<Null> foo() {
+    // TODO: implement foo
+    return super.foo();
+ }
+''',
+      displayText: 'foo() { … }',
+      selection: new SourceRange(121, 19),
+    );
+  }
+
+  test_method_returnVoid_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  void test();
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'test',
+      expected: '''
+  @override
+  void test() {
+    // TODO: implement test
+  }
+''',
+      displayText: 'test() { … }',
+      selection: new SourceRange(109, 0),
+    );
+  }
+
+  test_method_voidAsTypeArgument_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  List<void> foo();
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'foo',
+      expected: '''
+  @override
+  List<void> foo() {
+    // TODO: implement foo
+    return null;
+  }
+''',
+      displayText: 'foo() { … }',
+      selection: new SourceRange(123, 12),
+    );
+  }
+
+  test_method_voidAsTypeArgument_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  List<void> foo() => null;
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'foo',
+      invokeSuper: true,
+      expected: '''
+  @override
+  List<void> foo() {
+    // TODO: implement foo
+    return super.foo();
+  }
+''',
+      displayText: 'foo() { … }',
+      selection: new SourceRange(122, 19),
+    );
+  }
+
+  test_mixin_method_of_interface() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  void foo(int a) {}
+}
+
+mixin M implements A {
+}
+''',
+      nameToOverride: 'foo',
+      targetMixinName: 'M',
+      expected: '''
+  @override
+  void foo(int a) {
+    // TODO: implement foo
+  }
+''',
+      displayText: 'foo(int a) { … }',
+      selection: new SourceRange(113, 0),
+    );
+  }
+
+  test_mixin_method_of_superclassConstraint() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  void foo(int a) {}
+}
+
+mixin M on A {
+}
+''',
+      nameToOverride: 'foo',
+      targetMixinName: 'M',
+      invokeSuper: true,
+      expected: '''
+  @override
+  void foo(int a) {
+    // TODO: implement foo
+    super.foo(a);
+  }
+''',
+      displayText: 'foo(int a) { … }',
+      selection: new SourceRange(110, 13),
+    );
+  }
+
+  test_setter_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  set value(int value);
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'value=',
+      expected: '''
+  @override
+  void set value(int value) {
+    // TODO: implement value
+  }
+''',
+      displayText: 'value(int value) { … }',
+      selection: new SourceRange(133, 0),
+    );
+  }
+
+  test_setter_concrete() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  set value(int value) {}
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'value=',
+      invokeSuper: true,
+      expected: '''
+  @override
+  void set value(int value) {
+    // TODO: implement value
+    super.value = value;
+  }
+''',
+      displayText: 'value(int value) { … }',
+      selection: new SourceRange(131, 20),
+    );
+  }
+
+  /**
+   * Assuming that the [content] being edited defines a class named `A` whose
+   * member with the given [nameToOverride] to be overridden and has
+   * `class B extends A {...}` to which an inherited method is to be added,
+   * assert that the text of the overridden member matches the [expected] text
+   * (modulo white space). Assert that the generated display text matches the
+   * given [displayText]. If a [selection] is provided, assert that the
+   * generated selection range matches it.
+   */
+  _assertWriteOverride({
+    String content,
+    String nameToOverride,
+    String expected,
+    String displayText,
+    SourceRange selection,
+    String targetClassName = 'B',
+    String targetMixinName,
+    bool invokeSuper = false,
+  }) async {
+    String path = convertPath('/home/test/lib/test.dart');
+    addSource(path, content);
+
+    ClassElement targetElement;
+    {
+      var unitResult = await driver.getUnitElement(path);
+      if (targetMixinName != null) {
+        targetElement = unitResult.element.mixins
+            .firstWhere((e) => e.name == targetMixinName);
+      } else {
+        targetElement = unitResult.element.types
+            .firstWhere((e) => e.name == targetClassName);
+      }
+    }
+
+    TypeSystem typeSystem = await session.typeSystem;
+    var inherited = new InheritanceManager2(typeSystem).getInherited(
+      targetElement.type,
+      new Name(null, nameToOverride),
+    );
+
+    StringBuffer displayBuffer =
+        displayText != null ? new StringBuffer() : null;
+
+    DartChangeBuilderImpl builder = newBuilder();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 2, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeOverride(
+          inherited,
+          displayTextBuffer: displayBuffer,
+          invokeSuper: invokeSuper,
+        );
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace(expected));
+    expect(displayBuffer?.toString(), displayText);
+    if (selection != null) {
+      expect(builder.selectionRange, selection);
+    }
   }
 }

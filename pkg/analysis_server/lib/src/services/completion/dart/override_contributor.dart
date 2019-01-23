@@ -9,9 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -33,30 +31,29 @@ class OverrideContributor implements DartCompletionContributor {
     if (targetId == null) {
       return const <CompletionSuggestion>[];
     }
-    ClassDeclaration classDecl =
-        targetId.thisOrAncestorOfType<ClassDeclaration>();
+    var classDecl = targetId.thisOrAncestorOfType<ClassOrMixinDeclaration>();
     if (classDecl == null) {
       return const <CompletionSuggestion>[];
     }
 
-    // TODO(brianwilkerson) Consider making the type system visible from the
-    // request.result.
-    var inheritance = new InheritanceManager2(
-        await request.result.libraryElement.session.typeSystem);
+    var inheritance = new InheritanceManager2(request.result.typeSystem);
 
     // Generate a collection of inherited members
-    ClassElement classElem = classDecl.declaredElement;
-    var interface = inheritance.getInterface(classElem.type).map;
-    var namesToOverride = _namesToOverride(classElem, interface.keys);
+    var classElem = classDecl.declaredElement;
+    var interface = inheritance.getInterface(classElem.type);
+    var interfaceMap = interface.map;
+    var namesToOverride =
+        _namesToOverride(classElem.librarySource.uri, interface);
 
     // Build suggestions
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (Name name in namesToOverride) {
-      FunctionType signature = interface[name];
+      FunctionType signature = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
       if (signature.returnType != null) {
-        CompletionSuggestion suggestion =
-            await _buildSuggestion(request, targetId, signature);
+        var invokeSuper = interface.isSuperImplemented(name);
+        var suggestion =
+            await _buildSuggestion(request, targetId, signature, invokeSuper);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -66,41 +63,26 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return a template for an override of the given [signature]. If selected,
-   * the template will replace [targetId].
+   * Build a suggestion to replace [targetId] in the given [request] with an
+   * override of the given [signature].
    */
-  Future<DartChangeBuilder> _buildReplacementText(
-      ResolvedUnitResult result,
+  Future<CompletionSuggestion> _buildSuggestion(
+      DartCompletionRequest request,
       SimpleIdentifier targetId,
       FunctionType signature,
-      StringBuffer displayTextBuffer) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    DartChangeBuilder builder = new DartChangeBuilder(result.session);
-    await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
-        ExecutableElement element = signature.element;
+      bool invokeSuper) async {
+    var displayTextBuffer = new StringBuffer();
+    var builder = new DartChangeBuilder(request.result.session);
+    await builder.addFileEdit(request.result.path, (builder) {
+      builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           signature,
           displayTextBuffer: displayTextBuffer,
-          invokeSuper: !element.isAbstract,
+          invokeSuper: invokeSuper,
         );
       });
     });
-    return builder;
-  }
 
-  /**
-   * Build a suggestion to replace [targetId] in the given [unit]
-   * with an override of the given [signature].
-   */
-  Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
-      SimpleIdentifier targetId, FunctionType signature) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    StringBuffer displayTextBuffer = new StringBuffer();
-    DartChangeBuilder builder = await _buildReplacementText(
-        request.result, targetId, signature, displayTextBuffer);
     String replacement = builder.sourceChange.edits[0].edits[0].replacement;
     String completion = replacement.trim();
     String overrideAnnotation = '@override';
@@ -139,7 +121,7 @@ class OverrideContributor implements DartCompletionContributor {
    */
   SimpleIdentifier _getTargetId(CompletionTarget target) {
     AstNode node = target.containingNode;
-    if (node is ClassDeclaration) {
+    if (node is ClassOrMixinDeclaration) {
       Object entity = target.entity;
       if (entity is FieldDeclaration) {
         return _getTargetIdFromVarList(entity.fields);
@@ -175,17 +157,6 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return `true` if the given [classElement] directly declares a member with
-   * the given [memberName].
-   */
-  bool _hasMember(ClassElement classElement, String memberName) {
-    return classElement.getField(memberName) != null ||
-        classElement.getGetter(memberName) != null ||
-        classElement.getMethod(memberName) != null ||
-        classElement.getSetter(memberName) != null;
-  }
-
-  /**
    * Return `true` if the given [node] has an `override` annotation.
    */
   bool _hasOverride(AstNode node) {
@@ -202,16 +173,14 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return a list containing the subset of [interfaceNames] that are not
-   * defined yet in the given [classElement].
+   * Return the list of names that belong to the [interface] of a class, but
+   * are not yet declared in the class.
    */
-  List<Name> _namesToOverride(
-      ClassElement classElement, Iterable<Name> interfaceNames) {
-    var libraryUri = classElement.library.source.uri;
+  List<Name> _namesToOverride(Uri libraryUri, Interface interface) {
     var namesToOverride = <Name>[];
-    for (var name in interfaceNames) {
+    for (var name in interface.map.keys) {
       if (name.isAccessibleFor(libraryUri)) {
-        if (!_hasMember(classElement, name.name)) {
+        if (!interface.declared.containsKey(name)) {
           namesToOverride.add(name);
         }
       }

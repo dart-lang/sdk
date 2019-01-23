@@ -450,6 +450,11 @@ class Interface {
     this._superImplemented,
     this.conflicts,
   );
+
+  /// Return `true` if the [name] is implemented in the supertype.
+  bool isSuperImplemented(Name name) {
+    return _superImplemented.last.containsKey(name);
+  }
 }
 
 /// A public name, or a private name qualified by a library URI.
