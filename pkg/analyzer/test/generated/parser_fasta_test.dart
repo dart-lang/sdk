@@ -1899,14 +1899,15 @@ mixin A {
  */
 @reflectiveTest
 class NNBDParserTest_Fasta extends FastaParserTestCase {
-  parseNNBDCompilationUnit(String code, {List<ExpectedError> errors}) {
+  CompilationUnit parseNNBDCompilationUnit(String code,
+      {List<ExpectedError> errors}) {
     createParser('''
 @pragma('analyzer:non-nullable') library nnbd.parser.test;
 $code
 ''');
     _parserProxy.astBuilder.enableNonNullable = true;
     CompilationUnit unit = _parserProxy.parseCompilationUnit2();
-    assertNoErrors();
+    assertErrors(errors: errors);
     return unit;
   }
 
@@ -1938,12 +1939,34 @@ $code
     parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
   }
 
+  void test_binary_expression_statement() {
+    final unit = parseNNBDCompilationUnit('D? foo(X? x) { X ?? x2; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    BinaryExpression expression = statement.expression;
+    SimpleIdentifier lhs = expression.leftOperand;
+    expect(lhs.name, 'X');
+    expect(expression.operator.lexeme, '??');
+    SimpleIdentifier rhs = expression.rightOperand;
+    expect(rhs.name, 'x2');
+  }
+
   void test_conditional() {
     parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
   }
 
   void test_conditional_complex() {
     parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
+  }
+
+  void test_conditional_error() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
+        errors: [
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 78, 1),
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 99, 1),
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 99, 1),
+        ]);
   }
 
   void test_conditional_simple() {
