@@ -281,6 +281,10 @@ ${parser.usage}""");
     return;
   }
 
+  // Locate gsutil.py.
+  gsutilPy =
+      Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
+
   // Load the list of bots according to the test matrix.
   final testMatrixPath =
       Platform.script.resolve("bots/test_matrix.json").toFilePath();

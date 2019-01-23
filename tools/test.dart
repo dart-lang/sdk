@@ -207,6 +207,10 @@ ${parser.usage}""");
     return;
   }
 
+  // Locate gsutil.py.
+  gsutilPy =
+      Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
+
   final builder = options["builder"];
 
   // Find out where the current HEAD branched.
