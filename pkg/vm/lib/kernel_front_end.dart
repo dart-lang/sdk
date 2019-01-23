@@ -27,6 +27,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         StandardFileSystem,
         getMessageUri,
         kernelForProgram,
+        parseExperimentalFlags,
         printDiagnosticMessage;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -107,6 +108,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Drop AST for members with bytecode', defaultsTo: false);
   args.addFlag('use-future-bytecode-format',
       help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
+  args.addMultiOption('enable-experiment',
+      help: 'Comma separated list of experimental features to enable.');
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -148,6 +151,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
+  final List<String> experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
@@ -187,6 +191,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..linkedDependencies = linkedDependencies
     ..packagesFileUri = packagesUri
+    ..experimentalFlags = parseExperimentalFlags(experimentalFlags, print)
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }

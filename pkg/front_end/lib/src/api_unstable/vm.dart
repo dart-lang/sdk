@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export '../api_prototype/compiler_options.dart' show CompilerOptions;
+export '../api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags;
 
 export '../api_prototype/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
