@@ -2422,6 +2422,61 @@ because this is an invocation of a function object
 \end{dartCode}
 
 
+\subsubsection{The Operator `=='}
+\LMLabel{theOperatorEqualsEquals}
+
+\LMHash{}%
+The operator \lit{==} is used implicitly in certain situations,
+and in particular constant expressions
+(\ref{constants})
+give rise to constraints on that operator.
+In order to specify these constraints just once we introduce the notion of a
+% Neither \syntax nor \lit works, so we fall back to `\code{==}'.
+\IndexCustom{primitive operator `\code{==}'}{%
+  operator `\code{==}'!primitive}:
+
+\begin{itemize}
+\item Every instance of type \code{int} and \code{String}
+  has a primitive operator \lit{==}.
+\item Every instance of type \code{Symbol}
+  which was originally obtained by evaluation of a literal symbol or
+  a constant invocation of a constructor of the \code{Symbol} class
+  has a primitive operator \lit{==}.
+\item Every instance of type \code{Type}
+  which was originally obtained by evaluating a constant type literal
+  (\ref{dynamicTypeSystem})
+  has a primitive operator \lit{==}.
+\item An instance $o$ has a primitive operator \lit{==}
+  if the dynamic type of $o$ is a class $C$,
+  and $C$ has a primitive operator \lit{==}.
+\item The class \code{Object} has a primitive operator \lit{==}.
+\item A class $C$ has a primitive operator \lit{==}
+  if it does not have an implementation of the operator \lit{==}
+  that overrides the one inherited from \code{Object}.
+  \commentary{%
+  In particular, the following have a primitive operator \lit{==}:
+  The null object (\ref{null}),
+  function objects obtained by function closurization of
+  a static method or a top-level function
+  (\ref{functionClosurization}),
+  instances of type \code{bool}
+  (\ref{booleans}),
+  and instances obtained by evaluation of a list literal
+  (\ref{lists}),
+  a map literal
+  (\ref{maps}), or
+  a set literal
+  (\ref{sets}).
+  }
+\end{itemize}
+
+\LMHash{}%
+When we say that the operator \lit{==} of a given instance or class
+\IndexCustom{is not primitive}{operator `\code{==}'!is not primitive},
+it means that it is not true that said instance or class
+has a primitive operator \lit{==}.
+
+
 \subsection{Getters}
 \LMLabel{getters}
 
@@ -5880,17 +5935,28 @@ including whether it's potentially constant or constant.
 
 \LMHash{}%
 % New in 2.1.
-A constant type expression is one of:
+A
+\Index{constant type expression}
+is one of:
 \begin{itemize}
-\item An simple or qualified identifier denoting a type declaration (a type alias, class or mixin declaration) that is not qualified by a deferred prefix,
-optionally followed by type arguments of the form
-\code{<$T_1$,\ \ldots,\ $T_n$>}
-where $T_1$, \ldots{}, $T_n$ are constant type expressions.
-\item A type of the form \code{FutureOr<$T$>} where $T$ is a constant type expression.
-\item A function type
-\code{$R$ Function<\metavar{typeParameters}>(\metavar{argumentTypes})}
-(where $R$ and \code{<\metavar{typeParameters}>} may be omitted)
-and where $R$, \metavar{typeParameters} and \metavar{argumentTypes} (if present) contain only constant type expressions.
+\item An simple or qualified identifier
+  denoting a type declaration (a type alias, class or mixin declaration)
+  that is not qualified by a deferred prefix,
+  optionally followed by type arguments of the form
+  \code{<$T_1$,\ \ldots,\ $T_n$>}
+  where $T_1$, \ldots{}, $T_n$ are constant type expressions.
+\item A type of the form \code{FutureOr<$T$>}
+  where $T$ is a constant type expression.
+\item
+  %% TODO(eernst): This does not allow for type variables introduced by
+  %% the type itself. `Function<X>(X)` could be a constant type expression,
+  %% but that is not covered by the current rules: `X` is a type variable,
+  %% and they are never allowed.
+  A function type
+  \code{$R$ Function<\metavar{typeParameters}>(\metavar{argumentTypes})}
+  (where $R$ and \code{<\metavar{typeParameters}>} may be omitted)
+  and where $R$, \metavar{typeParameters} and \metavar{argumentTypes}
+  (if present) contain only constant type expressions.
 \item The type \VOID{}.
 \item The type \DYNAMIC{}.
 \end{itemize}
@@ -6019,8 +6085,8 @@ The null object is the sole instance of the built-in class \code{Null}.
 Attempting to instantiate \code{Null} causes a compile-time error.
 It is a compile-time error for a class to extend, mix in or implement \code{Null}.
 The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
-\commentary{As such, it does not override the \code{==} operator inherited
-from the \code{Object} class.}
+In particular, the \code{Null} class does not override the \lit{==} operator
+inherited from the \code{Object} class.
 
 \LMHash{}%
 The static type of \NULL{} is the \code{Null} type.
@@ -6135,7 +6201,7 @@ It is a compile-time error for a class to extend, mix in or implement \code{doub
 It is a compile-time error for any class other than \code{int} and \code{double} to extend, mix in or implement \code{num}.
 
 \LMHash{}%
-The instances of \code{int} and \code{double} all override the \code{==} operator inherited from the \code{Object} class.
+The instances of \code{int} and \code{double} all override the \lit{==} operator inherited from the \code{Object} class.
 
 \subsection{Booleans}
 \LMLabel{booleans}
@@ -6156,10 +6222,11 @@ They are the \IndexCustom{boolean literals}{literal!boolean}.
 Both \NoIndex{true} and \NoIndex{false} are instances of
 the built-in class \code{bool},
 and there are no other objects that implement \code{bool}.
-It is a compile-time error for a class to extend, mix in or implement \code{bool}.
+It is a compile-time error for a class to
+extend, mix in or implement \code{bool}.
 
 \LMHash{}%
-The \code{bool} class does not override the \code{==} operator inherited from
+The \code{bool} class does not override the \lit{==} operator inherited from
 the \code{Object} class.
 
 \LMHash{}%
@@ -6353,7 +6420,7 @@ It is a compile-time error if a non-raw string literal contains a character sequ
 \LMHash{}%
 All string literals evaluate to instances of the built-in class \code{String}.
 It is a compile-time error for a class to extend, mix in or implement \code{String}.
-The \code{String} class overrides the \code{==} operator inherited from
+The \code{String} class overrides the \lit{==} operator inherited from
 the \code{Object} class.
 The static type of a string literal is \code{String}.
 
@@ -6416,7 +6483,7 @@ All occurrences of \code{\#\id} evaluate to the same instance
 \commentary{(symbol instances are canonicalized)},
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is equal
-(according to the \code{==} operator \ref{equality}) to that instance.
+(according to the \lit{==} operator \ref{equality}) to that instance.
 
 \LMHash{}%
 A symbol literal \code{\#$\id.\id_2\ldots\id_n$}
@@ -6425,7 +6492,7 @@ evaluates to an instance of \code{Symbol} representing that particular sequence 
 All occurrences of \code{\#$\id.\id_2\ldots\id_n$} with the same sequence of identifiers
 evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
-or to a \code{Symbol} instance that is \code{==} to that instance.
+or to a \code{Symbol} instance that is \lit{==} to that instance.
 \commentary{This kind of symbol literal denotes the name of a library declaration. Library names are not subject to library privacy, even
 if some of its identifiers begin with an underscore.}
 
@@ -6434,18 +6501,18 @@ A symbol literal \code{\#\metavar{operator}} evaluates to an instance of \code{S
 representing that particular operator name.
 All occurrences of \code{\#\metavar{operator}} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
-or to a \code{Symbol} instance that is \code{==} to that instance.
+or to a \code{Symbol} instance that is \lit{==} to that instance.
 
 \LMHash{}%
 A symbol literal \code{\#\_\id}, evaluates to an instance of \code{Symbol}
 representing the private identifier \code{\_\id} of the containing library.
 All occurrences of \code{\#\_\id} \emph{in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
-or to a \code{Symbol} instance that is \code{==} to that instance.
+or to a \code{Symbol} instance that is \lit{==} to that instance.
 
 \LMHash{}%
 The objects created by symbol literals all override
-the \code{==} operator inherited from the \code{Object} class.
+the \lit{==} operator inherited from the \code{Object} class.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not.
@@ -6499,7 +6566,6 @@ Attempting to mutate a constant list literal will result in a dynamic error.
 
 \LMHash{}%
 It is a compile-time error if an element of a constant list literal is not a constant expression.
-% Need 'free': `const <Function(Function<X>(X))>[]` is OK, but `X` is not free.
 It is a compile-time error if the type argument of a constant list literal is
 not a constant type expression.
 \rationale{
@@ -6549,7 +6615,7 @@ The result of the evaluation is $a$.
 
 \LMHash{}%
 The objects created by list literals do not override
-the \code{==} operator inherited from the \code{Object} class.
+the \lit{==} operator inherited from the \code{Object} class.
 
 \commentary{
 Note that this document does not specify an order
@@ -6638,21 +6704,16 @@ Only run-time map literals can be mutated after they are created.
 Attempting to mutate a constant map literal will result in a dynamic error.
 
 \LMHash{}%
-It is a compile-time error if either a key or a value of an entry in a constant map literal is not a constant expression.
-It is a compile-time error if the key of an entry in a constant map literal is an instance of
-a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
-unless the key is a string or an integer,
-the key expression evaluates to an instance of the built-in
-class \code{Symbol} which was originally obtained by evaluation of a
-literal symbol or
-a constant invocation of a constructor of the \code{Symbol} class,
-or to an object implementing the built-in class \code{Type}
-which was originally obtained by evaluating a constant type literal
-(\ref{dynamicTypeSystem}).
-% Needs 'free': `const <int, Function(Function<X>(X))>{}` is OK, but
-% `X` is not free.
+It is a compile-time error if
+either a key or a value of an entry in a constant map literal
+is not a constant expression.
+It is a compile-time error if
+the operator \lit{==} of the key of an entry in a constant map literal
+is not primitive
+(\ref{theOperatorEqualsEquals}).
 It is a compile-time error if a type argument of a constant map literal
-is not a constant type expression \ref{constants}.
+is not a constant type expression
+(\ref{constants}).
 
 \LMHash{}%
 The value of a constant map literal
@@ -6680,7 +6741,7 @@ In other words, constant map literals are canonicalized.
 
 \LMHash{}%
 It is a compile-time error if two keys of a constant map literal are equal
-according to their \code{==} operator (\ref{equality}).
+according to their \lit{==} operator (\ref{equality}).
 
 \LMHash{}%
 A run-time map literal
@@ -6702,7 +6763,7 @@ The result of the evaluation is $m$.
 
 \LMHash{}%
 The objects created by map literals do not override
-the \code{==} operator inherited from the \code{Object} class.
+the \lit{==} operator inherited from the \code{Object} class.
 
 \LMHash{}%
 A run-time map literal
@@ -6773,21 +6834,18 @@ Only run-time set literals can be mutated after they are created.
 Attempting to mutate a constant set literal will result in a dynamic error.
 
 \LMHash{}%
-It is a compile-time error if an element expression in a constant set literal is not a constant expression.
-It is a compile-time error if the element object in a constant set literal is an instance of
-a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
-unless the element is a string or an integer,
-the element expression evaluates to an instance of the built-in
-class \code{Symbol} which was originally obtained by evaluation of a
-literal symbol or
-a constant invocation of a constructor of the \code{Symbol} class,
-or to an object implementing the built-in class \code{Type}
-which was originally obtained by evaluating a constant type literal
-(\ref{dynamicTypeSystem}).
+It is a compile-time error if an element expression in a constant set literal
+is not a constant expression.
+It is a compile-time error if
+the operator \lit{==} of an element expression in a constant map literal
+is not primitive
+(\ref{theOperatorEqualsEquals}).
 It is a compile-time error if the type argument of a constant set literal
-is not a constant type expression \ref{constants}.
+is not a constant type expression
+(\ref{constants}).
 It is a compile-time error if two elements of a constant set literal are equal
-according to their \code{==} operator (\ref{equality}).
+according to their \lit{==} operator
+(\ref{equality}).
 
 \LMHash{}%
 The value of a constant set literal with element expressions
@@ -6831,7 +6889,7 @@ The result of the evaluation is $s$.
 
 \LMHash{}%
 The objects created by set literals do not override
-the \code{==} operator inherited from the \code{Object} class.
+the \lit{==} operator inherited from the \code{Object} class.
 
 \LMHash{}%
 A set literal is ordered: iterating over the elements of the sets
@@ -8342,7 +8400,7 @@ using the current bindings of type variables, if any.
 There does not exist a function type $F'$ which is a proper subtype of $F$
 such that $C$ is a subtype of $F'$.
 If $f$ denotes a static method or top-level function,
-class $C$ does not override the \code{==} operator
+class $C$ does not override the \lit{==} operator
 inherited from the \code{Object} class.
 
 \commentary{%
@@ -8521,7 +8579,7 @@ respectively the two evaluations of that expression.
 In the case where the actual values of the type arguments
 are the same for both evaluations,
 it is guaranteed that $o_1$ and $o_2$ are equal
-according to operator \syntax{`=='}.
+according to operator \lit{==}.
 However, it is unspecified whether
 \code{identical($o_1$, $o_2$)} evaluates to \TRUE{} or \FALSE{}.
 
@@ -9722,7 +9780,7 @@ and assume that the invocations returned
 the instances $o_1$ respectively $o_2$.
 %
 It is then guaranteed that $o_1$ and $o_2$ are equal
-according to operator \syntax{`=='}.
+according to operator \lit{==}.
 It is unspecified whether
 \code{identical($o_1$, $o_2$)}
 evaluates to \TRUE{} or \FALSE{}.
@@ -10351,7 +10409,7 @@ Otherwise,
 \end{itemize}
 
 \commentary{
-As a result of the above definition, user defined \code{==} methods can assume that their argument is non-null, and avoid the standard boiler-plate prelude:
+As a result of the above definition, user defined \lit{==} methods can assume that their argument is non-null, and avoid the standard boiler-plate prelude:
 
 \code{if (identical(\NULL{}, arg)) return \FALSE{};}
 
@@ -11849,25 +11907,23 @@ Note that the values of the expressions are known at compile time, and are indep
 }
 
 \LMHash{}%
-It is a compile-time error if the class $C$ has an implementation of
-the operator \code{==} other than the one inherited from \code{Object},
-unless the expression evaluates to a string or an integer,
-the expression evaluates to an instance of the built-in
-class \code{Symbol} which was initially obtained by evaluation of a
-literal symbol or
-a constant invocation of a constructor of the \code{Symbol} class,
-or to an object implementing the built-in class \code{Type}
-which was originally created by evaluating a constant type literal
-(\ref{dynamicTypeSystem}).
+It is a compile-time error if the operator \lit{==} of class $C$
+is not primitive
+(\ref{theOperatorEqualsEquals}).
 
 \rationale{
-The prohibition on user defined equality allows us to implement the switch efficiently for user defined types.
-We could formulate matching in terms of identity instead with the same efficiency.
-However, if a type defines an equality operator, programmers would find it quite surprising that equal objects did not match.
+The prohibition on user defined equality allows us to
+implement the switch efficiently for user defined types.
+We could formulate matching in terms of identity instead,
+with the same efficiency.
+However, if a type defines an equality operator,
+programmers would presumably find it quite surprising
+if equal objects did not match.
 }
 
 \commentary{
-The \SWITCH{} statement should only be used in very limited situations (e.g., interpreters or scanners).
+The \SWITCH{} statement should only be used in
+very limited situations (e.g., interpreters or scanners).
 }
 
 \LMHash{}%
@@ -13321,7 +13377,7 @@ A \Index{configurable URI} $c$ of the form
 \item{} Let $u$ be \metavar{uri}.
 \item{} For each of the following configuration URIs of the form \code{\IF{} ($\metavar{test}_i$) $\metavar{uri}_i$}, in source order, do the following.
 \begin{itemize}
-  \item{} If $\metavar{test}_i$ is \code{\metavar{ids}} with no \code{==} clause, it is
+  \item{} If $\metavar{test}_i$ is \code{\metavar{ids}} with no \lit{==} clause, it is
   equivalent to \code{\metavar{ids} == "true"}.
   \item{} If $\metavar{test}_i$ is \code{\metavar{ids} == \metavar{string}},
   then create a string, \metavar{key}, from \metavar{ids}
@@ -13612,9 +13668,9 @@ and the actual types of declarations
 
 \LMHash{}%
 When types are reified as instances of the built-in class \code{Type},
-those objects override the \code{==} operator
+those objects override the \lit{==} operator
 inherited from the \code{Object} class, so that
-two \code{Type} objects are equal according to operator \syntax{`=='}
+two \code{Type} objects are equal according to operator \lit{==}
 if{}f the corresponding types are subtypes of each other.
 
 \commentary{
@@ -14565,7 +14621,7 @@ even though \DYNAMIC{} is not a class.
 
 \commentary{
 This \code{Type} object must compare equal to the corresponding \code{Type}
-objects for \code{Object} and \VOID{} according to operator `\code{==}'
+objects for \code{Object} and \VOID{} according to operator \lit{==}
 (\ref{dynamicTypeSystem}).
 }
 
@@ -14804,7 +14860,7 @@ which also implies that any object can be
 the value of an expression of type \VOID.
 %
 Consequently, any instance of type \code{Type} which reifies the type \VOID{}
-must compare equal (according to the \code{==} operator \ref{equality})
+must compare equal (according to the \lit{==} operator \ref{equality})
 to any instance of \code{Type} which reifies the type \code{Object}
 (\ref{dynamicTypeSystem}).
 It is not guaranteed that \code{identical(\VOID, Object)} evaluates to true.
