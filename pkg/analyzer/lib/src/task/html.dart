@@ -37,12 +37,6 @@ final ListResultDescriptor<AnalysisError> HTML_DOCUMENT_ERRORS =
  */
 class DartScript implements Source {
   /**
-   * An empty list of scripts.
-   */
-  @deprecated
-  static final List<DartScript> EMPTY_LIST = const <DartScript>[];
-
-  /**
    * The source containing this script.
    */
   final Source source;

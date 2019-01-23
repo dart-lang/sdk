@@ -444,12 +444,6 @@ abstract class AssignmentExpression extends Expression
  */
 abstract class AstNode implements SyntacticEntity {
   /**
-   * An empty list of AST nodes.
-   */
-  @deprecated
-  static const List<AstNode> EMPTY_LIST = const <AstNode>[];
-
-  /**
    * A comparator that can be used to sort AST nodes in lexical order. In other
    * words, `compare` will return a negative value if the offset of the first
    * node is less than the offset of the second node, zero (0) if the nodes have
@@ -2688,12 +2682,6 @@ abstract class ExportDirective extends NamespaceDirective {}
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class Expression implements CollectionElement {
-  /**
-   * An empty list of expressions.
-   */
-  @deprecated
-  static const List<Expression> EMPTY_LIST = const <Expression>[];
-
   /**
    * Return the best parameter element information available for this
    * expression. If type propagation was able to find a better parameter element

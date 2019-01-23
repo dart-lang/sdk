@@ -526,12 +526,6 @@ abstract class ResultDescriptor<V> {
  */
 class TargetedResult {
   /**
-   * An empty list of results.
-   */
-  @deprecated
-  static final List<TargetedResult> EMPTY_LIST = const <TargetedResult>[];
-
-  /**
    * The target with which the result is associated.
    */
   final AnalysisTarget target;

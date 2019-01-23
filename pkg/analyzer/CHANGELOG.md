@@ -1,11 +1,11 @@
-## 
-
+## 0.35.0
 * Added support in the AST structure for the control_flow_collections and
   spread_collections experiments. This includes adding new visitor methods to
   `AstVisitor`, which will need to be implemented by any classes that implement
   `AstVisitor` directly. Concrete implementations were added to other visitor
   classes (such as `RecursiveAstVisitor`) so that clients that extend those
   other classes will not be impacted.
+* Removed `EMPTY_LIST` constants.  Please use `const <...>[]` instead.
 
 ## 0.34.2
 * Removed support for the `@checked` annotation.  Please use the `covariant`
