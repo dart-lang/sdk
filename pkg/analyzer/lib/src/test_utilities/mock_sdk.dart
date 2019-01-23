@@ -435,6 +435,7 @@ T max<T extends num>(T a, T b) => null;
 external double cos(num radians);
 external double sin(num radians);
 external double sqrt(num radians);
+external double tan(num radians);
 class Random {
   bool nextBool() => true;
   double nextDouble() => 2.0;

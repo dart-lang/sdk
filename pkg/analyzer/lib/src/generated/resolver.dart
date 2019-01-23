@@ -338,8 +338,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (element?.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
-        _errorReporter.reportErrorForNode(HintCode.INVALID_SEALED_ANNOTATION,
-            node.parent, [node.element.name]);
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_SEALED_ANNOTATION, node, [node.element.name]);
       }
     }
     super.visitAnnotation(node);
@@ -3382,26 +3382,31 @@ class ImportsVerifier {
     }
   }
 
-  /// Report an [HintCode.UNUSED_SHOWN_NAME] hint for each unused shown name.
+  /// Use the error [reporter] to report an [HintCode.UNUSED_SHOWN_NAME] hint
+  /// for each unused shown name.
   ///
-  /// Only call this method after all of the compilation units have been visited
-  /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///        [HintCode.UNUSED_SHOWN_NAME] hints
+  /// This method should only be invoked after all of the compilation units have
+  /// been visited by this visitor.
   void generateUnusedShownNameHints(ErrorReporter reporter) {
     _unusedShownNamesMap.forEach(
         (ImportDirective importDirective, List<SimpleIdentifier> identifiers) {
       if (_unusedImports.contains(importDirective)) {
-        // This import is actually wholly unused, not just one or more shown names from it.
-        // This is then an "unused import", rather than unused shown names.
+        // The whole import is unused, not just one or more shown names from it,
+        // so an "unused_import" hint will be generated, making it unnecessary
+        // to generate hints for the individual names.
         return;
       }
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+        List<SimpleIdentifier> duplicateNames =
+            _duplicateShownNamesMap[importDirective];
+        if (duplicateNames == null || !duplicateNames.contains(identifier)) {
+          // Only generate a hint if we won't also generate a
+          // "duplicate_shown_name" hint for the same identifier.
+          reporter.reportErrorForNode(
+              HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+        }
       }
     });
   }
