@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N flutter_color_instantiation`
+// test w/ `pub run test -N use_full_hex_values_for_flutter_colors`
 
 library dart.ui;
 

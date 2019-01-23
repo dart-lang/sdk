@@ -28,10 +28,11 @@ Color(0x00000001);
 
 ''';
 
-class FlutterColorInstantiation extends LintRule implements NodeLintRule {
-  FlutterColorInstantiation()
+class UseFullHexValuesForFlutterColors extends LintRule
+    implements NodeLintRule {
+  UseFullHexValuesForFlutterColors()
       : super(
-            name: 'flutter_color_instantiation',
+            name: 'use_full_hex_values_for_flutter_colors',
             description: _desc,
             details: _details,
             group: Group.style);

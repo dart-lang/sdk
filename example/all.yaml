@@ -53,7 +53,6 @@ linter:
     - empty_constructor_bodies
     - empty_statements
     - file_names
-    - flutter_color_instantiation
     - flutter_style_todos
     - hash_and_equals
     - implementation_imports
@@ -130,6 +129,7 @@ linter:
     - unnecessary_statements
     - unnecessary_this
     - unrelated_type_equality_checks
+    - use_full_hex_values_for_flutter_colors
     - use_function_type_syntax_for_parameters
     - use_rethrow_when_possible
     - use_setters_to_change_properties
