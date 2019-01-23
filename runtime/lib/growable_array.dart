@@ -150,7 +150,6 @@ class _GrowableList<T> extends ListBase<T> {
 
   void _setIndexed(int index, T value) native "GrowableList_setIndexed";
 
-  @pragma("vm:entry-point")
   void add(T value) {
     var len = length;
     if (len == _capacity) {

@@ -214,10 +214,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
   P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")   \
-  D(support_rr, bool, false, "Support running within RR.")                     \
-  P(verify_entry_points, bool, false,                                          \
-    "Throw API error on invalid member access throuh native API. See "         \
-    "entry_point_pragma.md")
+  D(support_rr, bool, false, "Support running within RR.")
 
 // List of VM-global (i.e. non-isolate specific) flags.
 //
