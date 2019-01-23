@@ -31,6 +31,8 @@ import '../scope.dart' show Scope;
 import 'kernel_builder.dart'
     show Declaration, LibraryBuilder, KernelClassBuilder, KernelTypeBuilder;
 
+import 'types.dart' show Types;
+
 int compareDeclarations(Declaration a, Declaration b) {
   return ClassHierarchy.compareMembers(a.target, b.target);
 }
@@ -70,7 +72,11 @@ class ClassHierarchyBuilder {
 
   final KernelClassBuilder objectClass;
 
-  ClassHierarchyBuilder(this.objectClass);
+  Types types;
+
+  ClassHierarchyBuilder(this.objectClass) {
+    types = new Types(this);
+  }
 
   ClassHierarchyNode getNodeFromClass(KernelClassBuilder cls) {
     return nodes[cls] ??= new ClassHierarchyNodeBuilder(this, cls).build();
