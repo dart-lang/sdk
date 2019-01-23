@@ -39,6 +39,8 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
+import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/transformations/constants.dart' as constants
@@ -53,6 +55,10 @@ import '../crash.dart' show withCrashReporting;
 import '../dill/dill_target.dart' show DillTarget;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+
+import '../fasta_codes.dart' show Message, LocatedMessage;
+
+import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
@@ -753,7 +759,11 @@ class KernelTarget extends TargetImplementation {
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(
-        component, loader.coreTypes, loader.hierarchy, loader.libraries,
+        component,
+        loader.coreTypes,
+        loader.hierarchy,
+        loader.libraries,
+        new KernelDiagnosticReporter(loader),
         logger: (String msg) => ticker.logMs(msg));
   }
 
@@ -817,4 +827,16 @@ Constructor defaultSuperConstructor(Class cls) {
     }
   }
   return null;
+}
+
+class KernelDiagnosticReporter
+    extends DiagnosticReporter<Message, LocatedMessage> {
+  final Loader<Library> loader;
+
+  KernelDiagnosticReporter(this.loader);
+
+  void report(Message message, int charOffset, int length, Uri fileUri,
+      {List<LocatedMessage> context}) {
+    loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+  }
 }

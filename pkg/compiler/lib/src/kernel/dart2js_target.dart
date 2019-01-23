@@ -74,8 +74,12 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
-  void performModularTransformationsOnLibraries(ir.Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<ir.Library> libraries,
+  void performModularTransformationsOnLibraries(
+      ir.Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<ir.Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 
   @override

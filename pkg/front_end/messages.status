@@ -173,6 +173,10 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
+FfiAnnotationMissing/analyzerCode : Fail
+FfiTypeInvalid/analyzerCode: Fail
+FfiTypeMismatch/analyzerCode: Fail
+FfiTypeOpaque/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail

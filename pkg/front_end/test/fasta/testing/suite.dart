@@ -18,7 +18,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart'
+    show TargetFlags, DiagnosticReporter;
 
 import 'package:testing/testing.dart'
     show
@@ -423,12 +424,16 @@ class TestVmTarget extends VmTarget {
   String get name => "vm";
 
   @override
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (enabled) {
       super.performModularTransformationsOnLibraries(
-          component, coreTypes, hierarchy, libraries,
+          component, coreTypes, hierarchy, libraries, diagnosticReporter,
           logger: logger);
     }
   }
