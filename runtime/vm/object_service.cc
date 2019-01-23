@@ -798,7 +798,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* qualified_name = QualifiedName();
   const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
-  const bool is_stub = IsStubCode() || IsAllocationStubCode();
+  const bool is_stub =
+      IsStubCode() || IsAllocationStubCode() || IsTypeTestStubCode();
   if (is_stub) {
     jsobj.AddProperty("kind", "Stub");
   } else {

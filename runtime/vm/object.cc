@@ -929,13 +929,13 @@ void Object::FinishInit(Isolate* isolate) {
   // The type testing stubs we initialize in AbstractType objects for the
   // canonical type of kDynamicCid/kVoidCid need to be set in this
   // method, which is called after StubCode::InitOnce().
-  Instructions& instr = Instructions::Handle();
+  Code& code = Code::Handle();
 
-  instr = TypeTestingStubGenerator::DefaultCodeForType(*dynamic_type_);
-  dynamic_type_->SetTypeTestingStub(instr);
+  code = TypeTestingStubGenerator::DefaultCodeForType(*dynamic_type_);
+  dynamic_type_->SetTypeTestingStub(code);
 
-  instr = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
-  void_type_->SetTypeTestingStub(instr);
+  code = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
+  void_type_->SetTypeTestingStub(code);
 }
 
 void Object::Cleanup() {
@@ -14454,6 +14454,10 @@ const char* Code::Name() const {
     String& cls_name = String::Handle(zone, Class::Cast(obj).ScrubbedName());
     ASSERT(!cls_name.IsNull());
     return zone->PrintToString("[Stub] Allocate %s", cls_name.ToCString());
+  } else if (obj.IsAbstractType()) {
+    // Type test stub.
+    return zone->PrintToString("[Stub] Type Test %s",
+                               AbstractType::Cast(obj).ToCString());
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
@@ -14477,14 +14481,18 @@ const char* Code::QualifiedName() const {
   return Name();
 }
 
+bool Code::IsStubCode() const {
+  return owner() == Object::null();
+}
+
 bool Code::IsAllocationStubCode() const {
   const Object& obj = Object::Handle(owner());
   return obj.IsClass();
 }
 
-bool Code::IsStubCode() const {
+bool Code::IsTypeTestStubCode() const {
   const Object& obj = Object::Handle(owner());
-  return obj.IsNull();
+  return obj.IsAbstractType();
 }
 
 bool Code::IsFunctionCode() const {
@@ -16669,16 +16677,16 @@ const char* AbstractType::ToCString() const {
   return "AbstractType";
 }
 
-void AbstractType::SetTypeTestingStub(const Instructions& instr) const {
-  if (instr.IsNull()) {
+void AbstractType::SetTypeTestingStub(const Code& stub) const {
+  if (stub.IsNull()) {
     // This only happens during bootstrapping when creating Type objects before
     // we have the instructions.
     ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
   } else {
-    StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_,
-                    instr.EntryPoint());
+    StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
   }
+  StorePointer(&raw_ptr()->type_test_stub_, stub.raw());
 }
 
 RawType* Type::NullType() {
@@ -17321,8 +17329,8 @@ RawType* Type::New(const Class& clazz,
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
 
-  result.SetTypeTestingStub(Instructions::Handle(
-      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
+  result.SetTypeTestingStub(
+      Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 
@@ -17423,7 +17431,7 @@ RawTypeRef* TypeRef::InstantiateFrom(
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
 
-  instantiated_type_ref.SetTypeTestingStub(Instructions::Handle(
+  instantiated_type_ref.SetTypeTestingStub(Code::Handle(
       TypeTestingStubGenerator::DefaultCodeForType(instantiated_type_ref)));
   return instantiated_type_ref.raw();
 }
@@ -17491,8 +17499,8 @@ RawTypeRef* TypeRef::New(const AbstractType& type) {
   const TypeRef& result = TypeRef::Handle(Z, TypeRef::New());
   result.set_type(type);
 
-  result.SetTypeTestingStub(Instructions::Handle(
-      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
+  result.SetTypeTestingStub(
+      Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 
@@ -17697,8 +17705,8 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.StoreNonPointer(&result.raw_ptr()->type_state_,
                          RawTypeParameter::kAllocated);
 
-  result.SetTypeTestingStub(Instructions::Handle(
-      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
+  result.SetTypeTestingStub(
+      Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 

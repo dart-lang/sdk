@@ -1527,7 +1527,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   type_usage_info->BuildTypeUsageInformation();
 
   TypeTestingStubGenerator type_testing_stubs;
-  Instructions& instr = Instructions::Handle();
+  Code& code = Code::Handle();
   for (intptr_t i = 0; i < types.length(); i++) {
     const AbstractType& type = types.At(i);
 
@@ -1538,8 +1538,8 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     }
 
     if (type_usage_info->IsUsedInTypeTest(type)) {
-      instr = type_testing_stubs.OptimizedCodeForType(type);
-      type.SetTypeTestingStub(instr);
+      code = type_testing_stubs.OptimizedCodeForType(type);
+      type.SetTypeTestingStub(code);
 
       // Ensure we retain the type.
       AddType(type);

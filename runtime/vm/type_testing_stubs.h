@@ -38,8 +38,8 @@ class TypeTestingStubGenerator {
   // During bootstrapping it will return `null` for a whitelisted set of types,
   // otherwise it will return a default stub which tail-calls
   // subtypingtest/runtime code.
-  static RawInstructions* DefaultCodeForType(const AbstractType& type,
-                                             bool lazy_specialize = true);
+  static RawCode* DefaultCodeForType(const AbstractType& type,
+                                     bool lazy_specialize = true);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void SpecializeStubFor(Thread* thread, const AbstractType& type);
@@ -49,12 +49,12 @@ class TypeTestingStubGenerator {
 
   // Creates new stub for [type] (and registers the tuple in object store
   // array) or returns default stub.
-  RawInstructions* OptimizedCodeForType(const AbstractType& type);
+  RawCode* OptimizedCodeForType(const AbstractType& type);
 
  private:
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  RawInstructions* BuildCodeForType(const Type& type);
+  RawCode* BuildCodeForType(const Type& type);
   static void BuildOptimizedTypeTestStub(Assembler* assembler,
                                          HierarchyInfo* hi,
                                          const Type& type,
@@ -120,42 +120,6 @@ class TypeTestingStubGenerator {
 
   TypeTestingStubNamer namer_;
   ObjectStore* object_store_;
-  GrowableObjectArray& array_;
-  Instructions& instr_;
-};
-
-// It is assumed that the caller ensures, while this object lives there is no
-// other access to [Isolate::Current()->object_store()->type_testing_stubs()].
-class TypeTestingStubFinder {
- public:
-  TypeTestingStubFinder();
-
-  // When serializing an AOT snapshot via our clustered snapshot writer, we
-  // write out references to the [Instructions] object for all the
-  // [AbstractType] objects we encounter.
-  //
-  // This method is used for this mapping of stub entrypoint addresses to the
-  // corresponding [Instructions] object.
-  RawInstructions* LookupByAddresss(uword entry_point) const;
-
-  // When generating an AOT snapshot as an assembly file (i.e. ".S" file) we
-  // need to generate labels for the type testing stubs.
-  //
-  // This method maps stub entrypoint addresses to meaningful names.
-  const char* StubNameFromAddresss(uword entry_point) const;
-
- private:
-  // Sorts the tuples in [array_] according to entrypoint.
-  void SortTableForFastLookup();
-
-  // Returns the tuple index where [entry_point] was found.
-  intptr_t LookupInSortedArray(uword entry_point) const;
-
-  TypeTestingStubNamer namer_;
-  GrowableObjectArray& array_;
-  AbstractType& type_;
-  Code& code_;
-  Instructions& instr_;
 };
 
 template <typename T>

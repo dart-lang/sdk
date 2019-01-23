@@ -17,7 +17,6 @@
 #include "vm/object.h"
 #include "vm/raw_object_fields.h"
 #include "vm/snapshot.h"
-#include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 #include "vm/version.h"
 
@@ -368,7 +367,6 @@ class Serializer : public ThreadStackResource {
   void DumpCombinedCodeStatistics();
 
  private:
-  TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;

@@ -271,14 +271,16 @@ void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
 }
 
 void SnapshotReader::RunDelayedTypePostprocessing() {
-  if (types_to_postprocess_.Length() > 0) {
-    AbstractType& type = AbstractType::Handle();
-    Instructions& instr = Instructions::Handle();
-    for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
-      type ^= types_to_postprocess_.At(i);
-      instr = TypeTestingStubGenerator::DefaultCodeForType(type);
-      type.SetTypeTestingStub(instr);
-    }
+  if (types_to_postprocess_.Length() == 0) {
+    return;
+  }
+
+  AbstractType& type = AbstractType::Handle();
+  Code& code = Code::Handle();
+  for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
+    type ^= types_to_postprocess_.At(i);
+    code = TypeTestingStubGenerator::DefaultCodeForType(type);
+    type.SetTypeTestingStub(code);
   }
 }
 
@@ -1069,16 +1071,16 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
-  // Now check if it is an object from the VM isolate. These objects are shared
-  // by all isolates.
-  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
-    return true;
-  }
-
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
   if ((cid == kCodeCid) || (cid == kBytecodeCid)) {
     WriteVMIsolateObject(kNullObject);
+    return true;
+  }
+
+  // Now check if it is an object from the VM isolate. These objects are shared
+  // by all isolates.
+  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
     return true;
   }
 

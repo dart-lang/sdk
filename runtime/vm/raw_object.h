@@ -2020,13 +2020,9 @@ class RawAbstractType : public RawInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  // Note: we don't handle this field in GC in any special way.
-  // Instead we rely on two things:
-  //   (1) GC not moving code objects and
-  //   (2) lifetime of optimized stubs exceeding that of types;
-  // Practically (2) means that optimized stubs never die because
-  // canonical types to which they are attached never die.
   uword type_test_stub_entry_point_;  // Accessed from generated code.
+  RawCode* type_test_stub_;  // Must be the last field, since subclasses use it
+                             // in their VISIT_FROM.
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2039,7 +2035,7 @@ class RawType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  VISIT_FROM(RawObject*, type_class_id_)
+  VISIT_FROM(RawObject*, type_test_stub_)
   RawSmi* type_class_id_;
   RawTypeArguments* arguments_;
   RawSmi* hash_;
@@ -2060,7 +2056,7 @@ class RawTypeRef : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
 
-  VISIT_FROM(RawObject*, type_)
+  VISIT_FROM(RawObject*, type_test_stub_)
   RawAbstractType* type_;  // The referenced type.
   VISIT_TO(RawObject*, type_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -2070,7 +2066,7 @@ class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  VISIT_FROM(RawObject*, name_)
+  VISIT_FROM(RawObject*, type_test_stub_)
   RawString* name_;
   RawSmi* hash_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.

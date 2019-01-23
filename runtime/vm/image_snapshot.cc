@@ -375,7 +375,7 @@ void AssemblyImageWriter::Finalize() {
 #endif
 }
 
-static void EnsureIdentifier(char* label) {
+static void EnsureAssemblerIdentifier(char* label) {
   for (char c = *label; c != '\0'; c = *++label) {
     if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
         ((c >= '0') && (c <= '9'))) {
@@ -437,7 +437,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   ObjectStore* object_store = Isolate::Current()->object_store();
 
-  TypeTestingStubFinder tts;
+  TypeTestingStubNamer tts;
   intptr_t text_offset = 0;
 
   ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
@@ -511,37 +511,34 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
-    if (code.IsNull()) {
-      const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
-      assembly_stream_.Print("Precompiled_%s:\n", name);
-    } else {
-      owner = code.owner();
-      if (owner.IsNull()) {
-        const char* name = StubCode::NameOfStub(insns.EntryPoint());
-        if (name != nullptr) {
-          assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
-        } else {
-          if (name == nullptr) {
-            name = NameOfStubIsolateSpecificStub(object_store, code);
-          }
-          if (name == nullptr) {
-            name = tts.StubNameFromAddresss(insns.EntryPoint());
-          }
-          assembly_stream_.Print("Precompiled__%s:\n", name);
-        }
-      } else if (owner.IsClass()) {
-        str = Class::Cast(owner).Name();
-        const char* name = str.ToCString();
-        EnsureIdentifier(const_cast<char*>(name));
-        assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
-                               i);
-      } else if (owner.IsFunction()) {
-        const char* name = Function::Cast(owner).ToQualifiedCString();
-        EnsureIdentifier(const_cast<char*>(name));
-        assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+    ASSERT(!code.IsNull());
+    owner = code.owner();
+    if (owner.IsNull()) {
+      const char* name = StubCode::NameOfStub(insns.EntryPoint());
+      if (name != nullptr) {
+        assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
       } else {
-        UNREACHABLE();
+        if (name == nullptr) {
+          name = NameOfStubIsolateSpecificStub(object_store, code);
+        }
+        ASSERT(name != nullptr);
+        assembly_stream_.Print("Precompiled__%s:\n", name);
       }
+    } else if (owner.IsClass()) {
+      str = Class::Cast(owner).Name();
+      const char* name = str.ToCString();
+      EnsureAssemblerIdentifier(const_cast<char*>(name));
+      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
+                             i);
+    } else if (owner.IsAbstractType()) {
+      const char* name = tts.StubNameForType(AbstractType::Cast(owner));
+      assembly_stream_.Print("Precompiled_%s:\n", name);
+    } else if (owner.IsFunction()) {
+      const char* name = Function::Cast(owner).ToQualifiedCString();
+      EnsureAssemblerIdentifier(const_cast<char*>(name));
+      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+    } else {
+      UNREACHABLE();
     }
 
 #ifdef DART_PRECOMPILER

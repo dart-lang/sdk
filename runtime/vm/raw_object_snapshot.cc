@@ -128,9 +128,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   }
 
   // Fill in the type testing stub.
-  Instructions& instr = *reader->InstructionsHandle();
-  instr = TypeTestingStubGenerator::DefaultCodeForType(type);
-  type.SetTypeTestingStub(instr);
+  Code& code = *reader->CodeHandle();
+  code = TypeTestingStubGenerator::DefaultCodeForType(type);
+  type.SetTypeTestingStub(code);
 
   return type.raw();
 }
@@ -203,9 +203,9 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
                      kAsReference);
 
   // Fill in the type testing stub.
-  Instructions& instr = *reader->InstructionsHandle();
-  instr = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
-  type_ref.SetTypeTestingStub(instr);
+  Code& code = *reader->CodeHandle();
+  code = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
+  type_ref.SetTypeTestingStub(code);
 
   return type_ref.raw();
 }
@@ -259,9 +259,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_parameterized_class(*reader->ClassHandle());
 
   // Fill in the type testing stub.
-  Instructions& instr = *reader->InstructionsHandle();
-  instr = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
-  type_parameter.SetTypeTestingStub(instr);
+  Code& code = *reader->CodeHandle();
+  code = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
+  type_parameter.SetTypeTestingStub(code);
 
   return type_parameter.raw();
 }

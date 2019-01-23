@@ -5019,16 +5019,9 @@ class Code : public Object {
   }
 
   RawObject* owner() const { return raw_ptr()->owner_; }
-
-  void set_owner(const Function& function) const {
-    ASSERT(function.IsOld());
-    StorePointer(&raw_ptr()->owner_,
-                 reinterpret_cast<RawObject*>(function.raw()));
-  }
-
-  void set_owner(const Class& cls) {
-    ASSERT(cls.IsOld());
-    StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(cls.raw()));
+  void set_owner(const Object& owner) const {
+    ASSERT(owner.IsFunction() || owner.IsClass() || owner.IsAbstractType());
+    StorePointer(&raw_ptr()->owner_, owner.raw());
   }
 
   // We would have a VisitPointers function here to traverse all the
@@ -5093,8 +5086,9 @@ class Code : public Object {
 #endif
   }
 
-  bool IsAllocationStubCode() const;
   bool IsStubCode() const;
+  bool IsAllocationStubCode() const;
+  bool IsTypeTestStubCode() const;
   bool IsFunctionCode() const;
 
   void DisableDartCode() const;
@@ -6319,8 +6313,9 @@ class AbstractType : public Instance {
   uword type_test_stub_entry_point() const {
     return raw_ptr()->type_test_stub_entry_point_;
   }
+  RawCode* type_test_stub() const { return raw_ptr()->type_test_stub_; }
 
-  void SetTypeTestingStub(const Instructions& instr) const;
+  void SetTypeTestingStub(const Code& stub) const;
 
  private:
   // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
