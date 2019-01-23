@@ -43,6 +43,7 @@ import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/ast_remover.dart' show ASTRemover;
+import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode/gen_bytecode.dart' show generateBytecode;
 
 import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
@@ -106,6 +107,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Emit source positions in bytecode', defaultsTo: false);
   args.addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false);
+  args.addFlag('show-bytecode-size-stat',
+      help: 'Show bytecode size breakdown.', defaultsTo: false);
   args.addFlag('use-future-bytecode-format',
       help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
   args.addMultiOption('enable-experiment',
@@ -151,6 +154,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
+  final bool showBytecodeSizeStat = options['show-bytecode-size-stat'];
   final List<String> experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
@@ -214,10 +218,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return compileTimeErrorExitCode;
   }
 
+  if (showBytecodeSizeStat && !splitOutputByPackages) {
+    BytecodeSizeStatistics.reset();
+  }
+
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink);
   printer.writeComponentFile(component);
   await sink.close();
+
+  if (showBytecodeSizeStat && !splitOutputByPackages) {
+    BytecodeSizeStatistics.dump();
+  }
 
   if (depfile != null) {
     await writeDepfile(fileSystem, component, outputFileName, depfile);
@@ -233,6 +245,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
       dropAST: dropAST,
+      showBytecodeSizeStat: showBytecodeSizeStat,
     );
   }
 
@@ -587,6 +600,7 @@ Future writeOutputSplitByPackages(
   bool genBytecode: false,
   bool emitBytecodeSourcePositions: false,
   bool dropAST: false,
+  bool showBytecodeSizeStat: false,
   bool useFutureBytecodeFormat: false,
 }) async {
   // Package sharing: make the encoding not depend on the order in which parts
@@ -610,6 +624,10 @@ Future writeOutputSplitByPackages(
 
   final List<String> packages = packagesSet.toList();
   packages.add('main'); // Make sure main package is last.
+
+  if (showBytecodeSizeStat) {
+    BytecodeSizeStatistics.reset();
+  }
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
@@ -652,6 +670,10 @@ Future writeOutputSplitByPackages(
       await sink.close();
     }
   });
+
+  if (showBytecodeSizeStat) {
+    BytecodeSizeStatistics.dump();
+  }
 
   final IOSink packagesList = new File('$outputFileName-packages').openWrite();
   for (String package in packages) {
