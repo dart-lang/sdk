@@ -45,7 +45,6 @@ Component transformComponent(
   transformLibraries(
       component.libraries, backend, coreTypes, typeEnvironment, errorReporter,
       keepFields: keepFields,
-      legacyMode: legacyMode,
       enableAsserts: enableAsserts,
       evaluateAnnotations: evaluateAnnotations);
   return component;
@@ -58,7 +57,6 @@ void transformLibraries(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     {bool keepFields: false,
-    bool legacyMode: false,
     bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool enableAsserts: false}) {
@@ -70,8 +68,7 @@ void transformLibraries(
       coreTypes,
       typeEnvironment,
       enableAsserts,
-      errorReporter,
-      legacyMode: legacyMode);
+      errorReporter);
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
@@ -95,11 +92,9 @@ class ConstantsTransformer extends Transformer {
       this.coreTypes,
       this.typeEnvironment,
       bool enableAsserts,
-      ErrorReporter errorReporter,
-      {bool legacyMode: false})
+      ErrorReporter errorReporter)
       : constantEvaluator = new ConstantEvaluator(
-            backend, typeEnvironment, coreTypes, enableAsserts, errorReporter,
-            legacyMode: legacyMode);
+            backend, typeEnvironment, coreTypes, enableAsserts, errorReporter);
 
   // Transform the library/class members:
 
@@ -373,7 +368,6 @@ class ConstantEvaluator extends RecursiveVisitor {
   final ConstantsBackend backend;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
-  final bool legacyMode;
   final bool enableAsserts;
   final ErrorReporter errorReporter;
 
@@ -392,8 +386,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   EvaluationEnvironment env;
 
   ConstantEvaluator(this.backend, this.typeEnvironment, this.coreTypes,
-      this.enableAsserts, this.errorReporter,
-      {this.legacyMode: false})
+      this.enableAsserts, this.errorReporter)
       : canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{};
 
@@ -1324,7 +1317,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
     if (result != null) {
       return canonicalize(result is int
-          ? new IntConstant(_wrapAroundInteger(result))
+          ? new IntConstant(result.toSigned(64))
           : new DoubleConstant(result as double));
     }
 
@@ -1340,13 +1333,6 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
 
     throw new Exception("Unexpected binary numeric operation '$op'.");
-  }
-
-  int _wrapAroundInteger(int value) {
-    if (!legacyMode) {
-      return value.toSigned(64);
-    }
-    return value;
   }
 
   Library libraryOf(TreeNode node) {

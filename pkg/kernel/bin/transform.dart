@@ -100,8 +100,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       final VmConstantsBackend backend =
           new VmConstantsBackend(defines, coreTypes);
       component = constants.transformComponent(
-          component, backend, const constants.SimpleErrorReporter(),
-          legacyMode: true);
+          component, backend, const constants.SimpleErrorReporter());
       break;
     case 'treeshake':
       component = treeshaker.transformComponent(coreTypes, hierarchy, component,
