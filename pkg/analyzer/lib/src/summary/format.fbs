@@ -6,6 +6,23 @@
 // To regenerate the file, use the script "pkg/analyzer/tool/generate_files".
 
 
+/// Enum of declaration kinds in available files.
+enum AvailableDeclarationKind : byte {
+  CLASS,
+
+  CLASS_TYPE_ALIAS,
+
+  ENUM,
+
+  FUNCTION,
+
+  FUNCTION_TYPE_ALIAS,
+
+  MIXIN,
+
+  VARIABLE
+}
+
 /// Enum used to indicate the kind of an entity reference.
 enum EntityRefKind : byte {
   /// The entity represents a named type.
@@ -843,6 +860,48 @@ table AnalysisDriverUnlinkedUnit {
 
   /// Unlinked information for the unit.
   unit:UnlinkedUnit (id: 1);
+}
+
+/// Information about a single declaration.
+table AvailableDeclaration {
+  /// The kind of the declaration.
+  kind:AvailableDeclarationKind (id: 1);
+
+  /// The name of the declaration.
+  name:string (id: 0);
+}
+
+/// Information about an available, even if not yet imported file.
+table AvailableFile {
+  /// Declarations of the file.
+  declarations:[AvailableDeclaration] (id: 3);
+
+  /// Exports directives of the file.
+  exports:[AvailableFileExport] (id: 1);
+
+  /// Is `true` if this file is a library.
+  isLibrary:bool (id: 0);
+
+  /// URIs of `part` directives.
+  parts:[string] (id: 2);
+}
+
+/// Information about an export directive.
+table AvailableFileExport {
+  /// Combinators contained in this export directive.
+  combinators:[AvailableFileExportCombinator] (id: 1);
+
+  /// URI of the exported library.
+  uri:string (id: 0);
+}
+
+/// Information about a `show` or `hide` combinator in an export directive.
+table AvailableFileExportCombinator {
+  /// List of names which are hidden.  Empty if this is a `show` combinator.
+  hides:[string] (id: 1);
+
+  /// List of names which are shown.  Empty if this is a `hide` combinator.
+  shows:[string] (id: 0);
 }
 
 /// Information about an element code range.

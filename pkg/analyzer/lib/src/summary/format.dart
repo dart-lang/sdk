@@ -14,6 +14,22 @@ import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 
 import 'idl.dart' as idl;
 
+class _AvailableDeclarationKindReader
+    extends fb.Reader<idl.AvailableDeclarationKind> {
+  const _AvailableDeclarationKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.AvailableDeclarationKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
+    return index < idl.AvailableDeclarationKind.values.length
+        ? idl.AvailableDeclarationKind.values[index]
+        : idl.AvailableDeclarationKind.CLASS;
+  }
+}
+
 class _EntityRefKindReader extends fb.Reader<idl.EntityRefKind> {
   const _EntityRefKindReader() : super();
 
@@ -2089,6 +2105,586 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
         "referencedNames": referencedNames,
         "subtypedNames": subtypedNames,
         "unit": unit,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableDeclarationBuilder extends Object
+    with _AvailableDeclarationMixin
+    implements idl.AvailableDeclaration {
+  idl.AvailableDeclarationKind _kind;
+  String _name;
+
+  @override
+  idl.AvailableDeclarationKind get kind =>
+      _kind ??= idl.AvailableDeclarationKind.CLASS;
+
+  /// The kind of the declaration.
+  void set kind(idl.AvailableDeclarationKind value) {
+    this._kind = value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  /// The name of the declaration.
+  void set name(String value) {
+    this._name = value;
+  }
+
+  AvailableDeclarationBuilder({idl.AvailableDeclarationKind kind, String name})
+      : _kind = kind,
+        _name = name;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_name;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    fbBuilder.startTable();
+    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
+      fbBuilder.addUint8(1, _kind.index);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AvailableDeclarationReader
+    extends fb.TableReader<_AvailableDeclarationImpl> {
+  const _AvailableDeclarationReader();
+
+  @override
+  _AvailableDeclarationImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AvailableDeclarationImpl(bc, offset);
+}
+
+class _AvailableDeclarationImpl extends Object
+    with _AvailableDeclarationMixin
+    implements idl.AvailableDeclaration {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableDeclarationImpl(this._bc, this._bcOffset);
+
+  idl.AvailableDeclarationKind _kind;
+  String _name;
+
+  @override
+  idl.AvailableDeclarationKind get kind {
+    _kind ??= const _AvailableDeclarationKindReader()
+        .vTableGet(_bc, _bcOffset, 1, idl.AvailableDeclarationKind.CLASS);
+    return _kind;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _name;
+  }
+}
+
+abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (kind != idl.AvailableDeclarationKind.CLASS)
+      _result["kind"] = kind.toString().split('.')[1];
+    if (name != '') _result["name"] = name;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "kind": kind,
+        "name": name,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableFileBuilder extends Object
+    with _AvailableFileMixin
+    implements idl.AvailableFile {
+  List<AvailableDeclarationBuilder> _declarations;
+  List<AvailableFileExportBuilder> _exports;
+  bool _isLibrary;
+  List<String> _parts;
+
+  @override
+  List<AvailableDeclarationBuilder> get declarations =>
+      _declarations ??= <AvailableDeclarationBuilder>[];
+
+  /// Declarations of the file.
+  void set declarations(List<AvailableDeclarationBuilder> value) {
+    this._declarations = value;
+  }
+
+  @override
+  List<AvailableFileExportBuilder> get exports =>
+      _exports ??= <AvailableFileExportBuilder>[];
+
+  /// Exports directives of the file.
+  void set exports(List<AvailableFileExportBuilder> value) {
+    this._exports = value;
+  }
+
+  @override
+  bool get isLibrary => _isLibrary ??= false;
+
+  /// Is `true` if this file is a library.
+  void set isLibrary(bool value) {
+    this._isLibrary = value;
+  }
+
+  @override
+  List<String> get parts => _parts ??= <String>[];
+
+  /// URIs of `part` directives.
+  void set parts(List<String> value) {
+    this._parts = value;
+  }
+
+  AvailableFileBuilder(
+      {List<AvailableDeclarationBuilder> declarations,
+      List<AvailableFileExportBuilder> exports,
+      bool isLibrary,
+      List<String> parts})
+      : _declarations = declarations,
+        _exports = exports,
+        _isLibrary = isLibrary,
+        _parts = parts;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _declarations?.forEach((b) => b.flushInformative());
+    _exports?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addBool(this._isLibrary == true);
+    if (this._exports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exports.length);
+      for (var x in this._exports) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._parts == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parts.length);
+      for (var x in this._parts) {
+        signature.addString(x);
+      }
+    }
+    if (this._declarations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._declarations.length);
+      for (var x in this._declarations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "UICF");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_declarations;
+    fb.Offset offset_exports;
+    fb.Offset offset_parts;
+    if (!(_declarations == null || _declarations.isEmpty)) {
+      offset_declarations = fbBuilder
+          .writeList(_declarations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_exports == null || _exports.isEmpty)) {
+      offset_exports = fbBuilder
+          .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_parts == null || _parts.isEmpty)) {
+      offset_parts = fbBuilder
+          .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_declarations != null) {
+      fbBuilder.addOffset(3, offset_declarations);
+    }
+    if (offset_exports != null) {
+      fbBuilder.addOffset(1, offset_exports);
+    }
+    if (_isLibrary == true) {
+      fbBuilder.addBool(0, true);
+    }
+    if (offset_parts != null) {
+      fbBuilder.addOffset(2, offset_parts);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AvailableFile readAvailableFile(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AvailableFileReader().read(rootRef, 0);
+}
+
+class _AvailableFileReader extends fb.TableReader<_AvailableFileImpl> {
+  const _AvailableFileReader();
+
+  @override
+  _AvailableFileImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AvailableFileImpl(bc, offset);
+}
+
+class _AvailableFileImpl extends Object
+    with _AvailableFileMixin
+    implements idl.AvailableFile {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableFileImpl(this._bc, this._bcOffset);
+
+  List<idl.AvailableDeclaration> _declarations;
+  List<idl.AvailableFileExport> _exports;
+  bool _isLibrary;
+  List<String> _parts;
+
+  @override
+  List<idl.AvailableDeclaration> get declarations {
+    _declarations ??= const fb.ListReader<idl.AvailableDeclaration>(
+            const _AvailableDeclarationReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.AvailableDeclaration>[]);
+    return _declarations;
+  }
+
+  @override
+  List<idl.AvailableFileExport> get exports {
+    _exports ??= const fb.ListReader<idl.AvailableFileExport>(
+            const _AvailableFileExportReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.AvailableFileExport>[]);
+    return _exports;
+  }
+
+  @override
+  bool get isLibrary {
+    _isLibrary ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 0, false);
+    return _isLibrary;
+  }
+
+  @override
+  List<String> get parts {
+    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _parts;
+  }
+}
+
+abstract class _AvailableFileMixin implements idl.AvailableFile {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (declarations.isNotEmpty)
+      _result["declarations"] =
+          declarations.map((_value) => _value.toJson()).toList();
+    if (exports.isNotEmpty)
+      _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (isLibrary != false) _result["isLibrary"] = isLibrary;
+    if (parts.isNotEmpty) _result["parts"] = parts;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "declarations": declarations,
+        "exports": exports,
+        "isLibrary": isLibrary,
+        "parts": parts,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableFileExportBuilder extends Object
+    with _AvailableFileExportMixin
+    implements idl.AvailableFileExport {
+  List<AvailableFileExportCombinatorBuilder> _combinators;
+  String _uri;
+
+  @override
+  List<AvailableFileExportCombinatorBuilder> get combinators =>
+      _combinators ??= <AvailableFileExportCombinatorBuilder>[];
+
+  /// Combinators contained in this export directive.
+  void set combinators(List<AvailableFileExportCombinatorBuilder> value) {
+    this._combinators = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /// URI of the exported library.
+  void set uri(String value) {
+    this._uri = value;
+  }
+
+  AvailableFileExportBuilder(
+      {List<AvailableFileExportCombinatorBuilder> combinators, String uri})
+      : _combinators = combinators,
+        _uri = uri;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _combinators?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._uri ?? '');
+    if (this._combinators == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._combinators.length);
+      for (var x in this._combinators) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_combinators;
+    fb.Offset offset_uri;
+    if (!(_combinators == null || _combinators.isEmpty)) {
+      offset_combinators = fbBuilder
+          .writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    fbBuilder.startTable();
+    if (offset_combinators != null) {
+      fbBuilder.addOffset(1, offset_combinators);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(0, offset_uri);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AvailableFileExportReader
+    extends fb.TableReader<_AvailableFileExportImpl> {
+  const _AvailableFileExportReader();
+
+  @override
+  _AvailableFileExportImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AvailableFileExportImpl(bc, offset);
+}
+
+class _AvailableFileExportImpl extends Object
+    with _AvailableFileExportMixin
+    implements idl.AvailableFileExport {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableFileExportImpl(this._bc, this._bcOffset);
+
+  List<idl.AvailableFileExportCombinator> _combinators;
+  String _uri;
+
+  @override
+  List<idl.AvailableFileExportCombinator> get combinators {
+    _combinators ??= const fb.ListReader<idl.AvailableFileExportCombinator>(
+            const _AvailableFileExportCombinatorReader())
+        .vTableGet(
+            _bc, _bcOffset, 1, const <idl.AvailableFileExportCombinator>[]);
+    return _combinators;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _uri;
+  }
+}
+
+abstract class _AvailableFileExportMixin implements idl.AvailableFileExport {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (combinators.isNotEmpty)
+      _result["combinators"] =
+          combinators.map((_value) => _value.toJson()).toList();
+    if (uri != '') _result["uri"] = uri;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "combinators": combinators,
+        "uri": uri,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableFileExportCombinatorBuilder extends Object
+    with _AvailableFileExportCombinatorMixin
+    implements idl.AvailableFileExportCombinator {
+  List<String> _hides;
+  List<String> _shows;
+
+  @override
+  List<String> get hides => _hides ??= <String>[];
+
+  /// List of names which are hidden.  Empty if this is a `show` combinator.
+  void set hides(List<String> value) {
+    this._hides = value;
+  }
+
+  @override
+  List<String> get shows => _shows ??= <String>[];
+
+  /// List of names which are shown.  Empty if this is a `hide` combinator.
+  void set shows(List<String> value) {
+    this._shows = value;
+  }
+
+  AvailableFileExportCombinatorBuilder({List<String> hides, List<String> shows})
+      : _hides = hides,
+        _shows = shows;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._shows == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._shows.length);
+      for (var x in this._shows) {
+        signature.addString(x);
+      }
+    }
+    if (this._hides == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._hides.length);
+      for (var x in this._hides) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_hides;
+    fb.Offset offset_shows;
+    if (!(_hides == null || _hides.isEmpty)) {
+      offset_hides = fbBuilder
+          .writeList(_hides.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_shows == null || _shows.isEmpty)) {
+      offset_shows = fbBuilder
+          .writeList(_shows.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_hides != null) {
+      fbBuilder.addOffset(1, offset_hides);
+    }
+    if (offset_shows != null) {
+      fbBuilder.addOffset(0, offset_shows);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AvailableFileExportCombinatorReader
+    extends fb.TableReader<_AvailableFileExportCombinatorImpl> {
+  const _AvailableFileExportCombinatorReader();
+
+  @override
+  _AvailableFileExportCombinatorImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _AvailableFileExportCombinatorImpl(bc, offset);
+}
+
+class _AvailableFileExportCombinatorImpl extends Object
+    with _AvailableFileExportCombinatorMixin
+    implements idl.AvailableFileExportCombinator {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableFileExportCombinatorImpl(this._bc, this._bcOffset);
+
+  List<String> _hides;
+  List<String> _shows;
+
+  @override
+  List<String> get hides {
+    _hides ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _hides;
+  }
+
+  @override
+  List<String> get shows {
+    _shows ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _shows;
+  }
+}
+
+abstract class _AvailableFileExportCombinatorMixin
+    implements idl.AvailableFileExportCombinator {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (hides.isNotEmpty) _result["hides"] = hides;
+    if (shows.isNotEmpty) _result["shows"] = shows;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "hides": hides,
+        "shows": shows,
       };
 
   @override
