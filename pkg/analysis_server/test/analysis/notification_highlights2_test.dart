@@ -16,102 +16,13 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
+    defineReflectiveTests(HighlightsWithControlFlowCollectionsTest);
     defineReflectiveTests(HighlightTypeTest);
   });
 }
 
 @reflectiveTest
-class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
-  List<HighlightRegion> regions;
-
-  Completer _resultsAvailable = new Completer();
-
-  void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
-    for (HighlightRegion region in regions) {
-      if (region.offset == offset &&
-          region.length == length &&
-          region.type == type) {
-        return;
-      }
-    }
-    fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
-        '${regions.join('\n')}');
-  }
-
-  void assertHasRegion(HighlightRegionType type, String search,
-      [int length = -1]) {
-    int offset = findOffset(search);
-    length = findRegionLength(search, length);
-    assertHasRawRegion(type, offset, length);
-  }
-
-  void assertHasStringRegion(HighlightRegionType type, String str) {
-    int offset = findOffset(str);
-    int length = str.length;
-    assertHasRawRegion(type, offset, length);
-  }
-
-  void assertNoRawRegion(HighlightRegionType type, int offset, int length) {
-    for (HighlightRegion region in regions) {
-      if (region.offset == offset &&
-          region.length == length &&
-          region.type == type) {
-        fail(
-            'Not expected to find (offset=$offset; length=$length; type=$type) in\n'
-            '${regions.join('\n')}');
-      }
-    }
-  }
-
-  void assertNoRegion(HighlightRegionType type, String search,
-      [int length = -1]) {
-    int offset = findOffset(search);
-    length = findRegionLength(search, length);
-    assertNoRawRegion(type, offset, length);
-  }
-
-  int findRegionLength(String search, int length) {
-    if (length == -1) {
-      length = 0;
-      while (length < search.length) {
-        int c = search.codeUnitAt(length);
-        if (length == 0 && c == '@'.codeUnitAt(0)) {
-          length++;
-          continue;
-        }
-        if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
-            c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
-          break;
-        }
-        length++;
-      }
-    }
-    return length;
-  }
-
-  Future prepareHighlights() {
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
-    return _resultsAvailable.future;
-  }
-
-  void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = new AnalysisHighlightsParams.fromNotification(notification);
-      if (params.file == testFile) {
-        regions = params.regions;
-        _resultsAvailable.complete(null);
-      }
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    server.options.useAnalysisHighlight2 = true;
-    createProject();
-  }
-
+class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
   test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {
@@ -791,6 +702,17 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  test_KEYWORD_ifElse_statement() async {
+    addTestFile('''
+f(a, b) {
+  if (a < b) {} else {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
   test_KEYWORD_mixin() async {
     addTestFile('''
 mixin M {}
@@ -1122,12 +1044,261 @@ class A {
     assertHasRegion(type, 'unresolved(2)');
     assertHasRegion(type, 'unresolved(3)');
   }
+}
+
+class HighlightsTestSupport extends AbstractAnalysisTest {
+  List<HighlightRegion> regions;
+
+  Completer _resultsAvailable = new Completer();
+
+  void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
+    for (HighlightRegion region in regions) {
+      if (region.offset == offset &&
+          region.length == length &&
+          region.type == type) {
+        return;
+      }
+    }
+    fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
+        '${regions.join('\n')}');
+  }
+
+  void assertHasRegion(HighlightRegionType type, String search,
+      [int length = -1]) {
+    int offset = findOffset(search);
+    length = findRegionLength(search, length);
+    assertHasRawRegion(type, offset, length);
+  }
+
+  void assertHasStringRegion(HighlightRegionType type, String str) {
+    int offset = findOffset(str);
+    int length = str.length;
+    assertHasRawRegion(type, offset, length);
+  }
+
+  void assertNoRawRegion(HighlightRegionType type, int offset, int length) {
+    for (HighlightRegion region in regions) {
+      if (region.offset == offset &&
+          region.length == length &&
+          region.type == type) {
+        fail(
+            'Not expected to find (offset=$offset; length=$length; type=$type) in\n'
+            '${regions.join('\n')}');
+      }
+    }
+  }
+
+  void assertNoRegion(HighlightRegionType type, String search,
+      [int length = -1]) {
+    int offset = findOffset(search);
+    length = findRegionLength(search, length);
+    assertNoRawRegion(type, offset, length);
+  }
+
+  int findRegionLength(String search, int length) {
+    if (length == -1) {
+      length = 0;
+      while (length < search.length) {
+        int c = search.codeUnitAt(length);
+        if (length == 0 && c == '@'.codeUnitAt(0)) {
+          length++;
+          continue;
+        }
+        if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
+            c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
+            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+          break;
+        }
+        length++;
+      }
+    }
+    return length;
+  }
+
+  Future prepareHighlights() {
+    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    return _resultsAvailable.future;
+  }
+
+  void processNotification(Notification notification) {
+    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
+      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      if (params.file == testFile) {
+        regions = params.regions;
+        _resultsAvailable.complete(null);
+      }
+    }
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    server.options.useAnalysisHighlight2 = true;
+    createProject();
+  }
 
   void _addLibraryForTestPart() {
     newFile(join(testFolder, 'my_lib.dart'), content: '''
 library lib;
 part 'test.dart';
     ''');
+  }
+}
+
+@reflectiveTest
+class HighlightsWithControlFlowCollectionsTest extends HighlightsTestSupport {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+
+  @failingTest
+  test_KEYWORD_awaitForIn_list() async {
+    addTestFile('''
+f(a) async {
+  return [await for(var b in a) b];
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'await');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
+  }
+
+  @failingTest
+  test_KEYWORD_awaitForIn_map() async {
+    addTestFile('''
+f(a, b) async {
+  return {await for(var b in a) b};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'await');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
+  }
+
+  @failingTest
+  test_KEYWORD_awaitForIn_set() async {
+    addTestFile('''
+f(a, b) async {
+  return {await for(var b in a) b};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'await');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
+  }
+
+  test_KEYWORD_const_list() async {
+    addTestFile('''
+var v = const [];
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  test_KEYWORD_const_map() async {
+    addTestFile('''
+var v = const {0 : 1};
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  test_KEYWORD_const_set() async {
+    addTestFile('''
+var v = const {0};
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  test_KEYWORD_if_list() async {
+    addTestFile('''
+f(a, b) {
+  return [if (a < b) 'a'];
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+  }
+
+  @failingTest
+  test_KEYWORD_if_map() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a' : 1};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+  }
+
+  @failingTest
+  test_KEYWORD_if_set() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a'};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+  }
+
+  @failingTest
+  test_KEYWORD_ifElse_list() async {
+    addTestFile('''
+f(a, b) {
+  return [if (a < b) 'a' else 'b'];
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
+  @failingTest
+  test_KEYWORD_ifElse_map() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a' : 1 else 'b' : 2};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
+  @failingTest
+  test_KEYWORD_ifElse_set() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a' else 'b'};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
+  test_LITERAL_LIST() async {
+    addTestFile('var V = <int>[1, 2, 3];');
+    await prepareHighlights();
+    assertHasStringRegion(HighlightRegionType.LITERAL_LIST, '<int>[1, 2, 3]');
+  }
+
+  test_LITERAL_MAP() async {
+    addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
+    await prepareHighlights();
+    assertHasStringRegion(HighlightRegionType.LITERAL_MAP,
+        "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
   }
 }
 
