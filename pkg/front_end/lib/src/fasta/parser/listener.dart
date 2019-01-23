@@ -1074,7 +1074,18 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstExpression");
   }
 
-  /// Called after the parser has parsed an expression that starts with
+  /// Called before parsing an `if` control flow list, set, or map entry.
+  void beginIfControlFlow(Token ifToken) {}
+
+  /// Called after parsing an `if` control flow list, set, or map entry.
+  /// Substructures:
+  /// - if conditional expression
+  /// - expression
+  void endIfControlFlow(Token token) {
+    logEvent("IfControlFlow");
+  }
+
+  /// Called after parsing a list, set, or map entry that starts with
   /// one of the spread collection tokens `...` or `...?`.  Substructures:
   /// - expression
   void handleSpreadExpression(Token spreadToken) {

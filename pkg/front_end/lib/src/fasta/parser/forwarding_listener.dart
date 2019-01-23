@@ -214,6 +214,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginIfControlFlow(Token ifToken) {
+    listener?.beginIfControlFlow(ifToken);
+  }
+
+  @override
   void beginIfStatement(Token token) {
     listener?.beginIfStatement(token);
   }
@@ -633,6 +638,11 @@ class ForwardingListener implements Listener {
   @override
   void endHide(Token hideKeyword) {
     listener?.endHide(hideKeyword);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    listener?.endIfControlFlow(token);
   }
 
   @override

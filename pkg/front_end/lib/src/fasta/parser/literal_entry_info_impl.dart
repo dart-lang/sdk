@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import '../../scanner/token.dart';
 import '../fasta_codes.dart' show templateUnexpectedToken;
 import 'identifier_context.dart';
@@ -44,10 +48,52 @@ class IfCondition extends LiteralEntryInfo {
   Token parse(Token token, Parser parser) {
     final ifToken = token.next;
     assert(optional('if', ifToken));
-    // TODO(danrubel): implement `if` control flow collection entries
-    parser.reportRecoverableErrorWithToken(ifToken, templateUnexpectedToken);
-    parser.ensureIdentifier(ifToken, IdentifierContext.expression);
-    return ifToken;
+    parser.listener.beginIfControlFlow(ifToken);
+    return parser.ensureParenthesizedCondition(ifToken);
+  }
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    Token next = token.next;
+    if (optional('...', next) || optional('...?', next)) {
+      return const IfSpread();
+    }
+    // TODO(danrubel): nested control flow structures
+    return const IfEntry();
+  }
+}
+
+/// A step for parsing a spread collection
+/// as the `if` control flow's then-expression.
+class IfSpread extends SpreadOperator {
+  const IfSpread();
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    // TODO(danrubel): handle `else'
+    return const IfComplete();
+  }
+}
+
+/// A step for parsing a literal list, set, or map entry
+/// as the `if` control flow's then-expression.
+class IfEntry extends LiteralEntryInfo {
+  const IfEntry() : super(true);
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    // TODO(danrubel): handle `else'
+    return const IfComplete();
+  }
+}
+
+class IfComplete extends LiteralEntryInfo {
+  const IfComplete() : super(false);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    parser.listener.endIfControlFlow(token);
+    return token;
   }
 }
 

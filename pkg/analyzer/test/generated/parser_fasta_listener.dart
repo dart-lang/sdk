@@ -251,6 +251,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginIfControlFlow(Token ifToken) {
+    super.beginIfControlFlow(ifToken);
+    begin('IfControlFlow');
+  }
+
+  @override
   void beginLocalFunctionDeclaration(Token token) {
     super.beginLocalFunctionDeclaration(token);
     begin('LocalFunctionDeclaration');
@@ -786,6 +792,12 @@ class ForwardingTestListener extends ForwardingListener {
   void endHide(Token hideKeyword) {
     end('Hide');
     super.endHide(hideKeyword);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    end('IfControlFlow');
+    super.endIfControlFlow(token);
   }
 
   @override

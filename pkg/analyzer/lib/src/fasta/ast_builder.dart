@@ -277,6 +277,31 @@ class AstBuilder extends StackListener {
     scriptTag = ast.scriptTag(token);
   }
 
+  void beginIfControlFlow(Token ifToken) {
+    push(ifToken);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    CollectionElement thenElement = pop();
+    ParenthesizedExpression condition = pop();
+    Token ifToken = pop();
+    if (enableControlFlowCollections) {
+      push(ast.collectionIfElement(
+          ifKeyword: ifToken,
+          leftParenthesis: condition.leftParenthesis,
+          condition: condition.expression,
+          rightParenthesis: condition.rightParenthesis,
+          thenElement: thenElement,
+          elseKeyword: null,
+          elseElement: null));
+    } else {
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+      push(thenElement);
+    }
+  }
+
   @override
   void handleSpreadExpression(Token spreadToken) {
     if (enableSpreadCollections) {

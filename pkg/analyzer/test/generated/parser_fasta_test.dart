@@ -119,7 +119,8 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
         errors: errors,
         expectedEndOffset: expectedEndOffset,
         parseSetLiterals: true,
-        parseSpreadCollections: true);
+        parseSpreadCollections: true,
+        parseControlFlowCollections: true);
   }
 
   @failingTest
@@ -139,20 +140,30 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(first.value, 1);
   }
 
-  @failingTest
   void test_listLiteral_if() {
     ListLiteral2 list = parseCollectionLiteral('[1, if (true) 2]');
     expect(list.elements, hasLength(2));
     IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
+
+    CollectionIfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
   }
 
-  @failingTest
   void test_listLiteral_ifSpread() {
     ListLiteral2 list = parseCollectionLiteral('[1, if (true) ...[2]]');
     expect(list.elements, hasLength(2));
     IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
+
+    CollectionIfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
   }
 
   void test_listLiteral_spread() {
