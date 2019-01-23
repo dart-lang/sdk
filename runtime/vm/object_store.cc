@@ -220,6 +220,8 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
   ASSERT(!cls.IsNull());
   set_pragma_class(cls);
+  set_pragma_name(Field::Handle(cls.LookupField(Symbols::name())));
+  set_pragma_options(Field::Handle(cls.LookupField(Symbols::options())));
 
   cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
   ASSERT(!cls.IsNull());

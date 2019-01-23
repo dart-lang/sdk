@@ -59,6 +59,8 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_string_string)                               \
   RW(Class, compiletime_error_class)                                           \
   RW(Class, pragma_class)                                                      \
+  RW(Field, pragma_name)                                                       \
+  RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \

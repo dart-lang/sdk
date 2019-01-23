@@ -224,3 +224,6 @@ io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
+
+[ $arch == simdbc64 || $compiler != dartk && $compiler != dartkb ]
+io/entrypoints_verification_test: Skip # Test expects JIT mode (script is in wrong directory on SIMDBC64 builders).

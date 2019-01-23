@@ -329,8 +329,11 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_unique_dynamic_targets(Array::null_array());
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
+      Field& null_field = Field::Handle(Z);
       I->object_store()->set_future_class(null_class);
       I->object_store()->set_pragma_class(null_class);
+      I->object_store()->set_pragma_name(null_field);
+      I->object_store()->set_pragma_options(null_field);
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_symbol_class(null_class);
       I->object_store()->set_compiletime_error_class(null_class);
@@ -978,54 +981,22 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   }
 }
 
-enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
-
 // Adds all values annotated with @pragma('vm:entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
-  auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
+  auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
   auto& field = Field::Handle(Z);
   auto& metadata = Array::Handle(Z);
-  auto& pragma = Object::Handle(Z);
-  auto& pragma_options = Object::Handle(Z);
-  auto& pragma_name_field = Field::Handle(Z, cls.LookupField(Symbols::name()));
-  auto& pragma_options_field =
-      Field::Handle(Z, cls.LookupField(Symbols::options()));
+  auto& reusable_object_handle = Object::Handle(Z);
+  auto& reusable_field_handle = Field::Handle(Z);
 
   // Lists of fields which need implicit getter/setter/static final getter
   // added.
   auto& implicit_getters = GrowableObjectArray::Handle(Z);
   auto& implicit_setters = GrowableObjectArray::Handle(Z);
   auto& implicit_static_getters = GrowableObjectArray::Handle(Z);
-
-  // Local function allows easy reuse of handles above.
-  auto metadata_defines_entrypoint = [&]() {
-    for (intptr_t i = 0; i < metadata.Length(); i++) {
-      pragma = metadata.At(i);
-      if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
-        continue;
-      }
-      if (Instance::Cast(pragma).GetField(pragma_name_field) !=
-          Symbols::vm_entry_point().raw()) {
-        continue;
-      }
-      pragma_options = Instance::Cast(pragma).GetField(pragma_options_field);
-      if (pragma_options.raw() == Bool::null() ||
-          pragma_options.raw() == Bool::True().raw()) {
-        return EntryPointPragma::kAlways;
-        break;
-      }
-      if (pragma_options.raw() == Symbols::Get().raw()) {
-        return EntryPointPragma::kGetterOnly;
-      }
-      if (pragma_options.raw() == Symbols::Set().raw()) {
-        return EntryPointPragma::kSetterOnly;
-      }
-    }
-    return EntryPointPragma::kNever;
-  };
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1036,7 +1007,9 @@ void Precompiler::AddAnnotatedRoots() {
       // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
         metadata ^= lib.GetMetadata(cls);
-        if (metadata_defines_entrypoint() == EntryPointPragma::kAlways) {
+        if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                 &reusable_object_handle) ==
+            EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
       }
@@ -1051,7 +1024,9 @@ void Precompiler::AddAnnotatedRoots() {
         if (field.has_pragma()) {
           metadata ^= lib.GetMetadata(field);
           if (metadata.IsNull()) continue;
-          EntryPointPragma pragma = metadata_defines_entrypoint();
+          EntryPointPragma pragma =
+              FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                   &reusable_object_handle);
           if (pragma == EntryPointPragma::kNever) continue;
 
           AddField(field);
@@ -1076,7 +1051,9 @@ void Precompiler::AddAnnotatedRoots() {
         if (function.has_pragma()) {
           metadata ^= lib.GetMetadata(function);
           if (metadata.IsNull()) continue;
-          if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
+          if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                   &reusable_object_handle) !=
+              EntryPointPragma::kAlways) {
             continue;
           }
 
