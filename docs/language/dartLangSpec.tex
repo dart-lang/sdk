@@ -2032,71 +2032,72 @@ An operator declaration is identified using the built-in identifier (\ref{identi
 
 \LMHash{}%
 The following names are allowed for user-defined operators:
-\syntax{`<'},
-\syntax{`>'},
-\syntax{`<='},
-\syntax{`>='},
-\syntax{`=='},
-\syntax{`-'},
-\syntax{`+'},
-\syntax{`/'},
-\syntax{`~'},
-\syntax{`*'},
-\syntax{`\%'},
-\syntax{`|'},
-\syntax{`^'},
-\syntax{`\&'},
-\syntax{`\ltlt'},
-\syntax{`\gtgt'},
-\syntax{`\gtgtgt'},
-\syntax{`[]='},
-\syntax{`[]'},
-\syntax{`~'}.
+\lit{<},
+\lit{>},
+\lit{<=},
+\lit{>=},
+\lit{==},
+\lit{-},
+\lit{+},
+\lit{/},
+\lit{\~{}/},
+\lit{*},
+\lit{\%},
+\lit{|},
+\lit{\^},
+\lit{\&},
+\lit{\ltlt},
+\lit{\gtgt},
+\lit{\gtgtgt},
+\lit{[]=},
+\lit{[]},
+\lit{\~{}}.
 
 \LMHash{}%
 It is a compile-time error if the arity of the user-declared operator
-\syntax{`[]='} is not 2.
+\lit{[]=} is not 2.
 It is a compile-time error if the arity of a user-declared operator with one of the names:
-\syntax{`<'},
-\syntax{`>'},
-\syntax{`<='},
-\syntax{`>='},
-\syntax{`=='},
-\syntax{`-'},
-\syntax{`+'},
-\syntax{`~/'},
-\syntax{`/'},
-\syntax{`*'},
-\syntax{`\%'},
-\syntax{`|'},
-\syntax{`^'},
-\syntax{`\&'},
-\syntax{`\ltlt'},
-\syntax{`\gtgt'},
-\syntax{`\gtgtgt'},
-\syntax{`[]'}
+\lit{<},
+\lit{>},
+\lit{<=},
+\lit{>=},
+\lit{==},
+\lit{-},
+\lit{+},
+\lit{\~{}/},
+\lit{/},
+\lit{*},
+\lit{\%},
+\lit{|},
+\lit{\^},
+\lit{\&},
+\lit{\ltlt},
+\lit{\gtgt},
+\lit{\gtgtgt},
+\lit{[]}
 is not 1.
 It is a compile-time error if the arity of the user-declared operator
-\syntax{`-'}
+\lit{-}
 is not 0 or 1.
 
 \commentary{
-The \syntax{`-'} operator is unique
+The \lit{-} operator is unique
 in that two overloaded versions are permitted.
 If the operator has no arguments, it denotes unary minus.
 If it has an argument, it denotes binary subtraction.
 }
 
 \LMHash{}%
-The name of the unary operator \syntax{`-'} is \code{unary-}.
+The name of the unary operator \lit{-} is \code{unary-}.
 
 \rationale{
-This device allows the two methods to be distinguished for purposes of method lookup, override and reflection.
+This device allows the two methods to be distinguished
+for purposes of method lookup, override and reflection.
 }
 
 \LMHash{}%
 It is a compile-time error if the arity of the user-declared operator
-\syntax{`~'}
+\lit{\~{}}
 is not 0.
 
 \LMHash{}%
@@ -2104,25 +2105,26 @@ It is a compile-time error to declare an optional parameter in an operator.
 
 \LMHash{}%
 It is a static warning if the return type of a user-declared operator
-\syntax{`[]='}
+\lit{[]=}
 is explicitly declared and not \VOID{}.
 
 \commentary{
 If no return type is specified for a user-declared operator
-\syntax{`[]='},
+\lit{[]=},
 its return type is \VOID{} (\ref{typeOfAFunction}).
 }
 
 \rationale{
 The return type is \VOID{} because
 a return statement in an implementation of operator
-\syntax{`[]='}
+\lit{[]=}
 does not return a value.
-Consider a non-throwing evaluation of an expression $e$ of the form \code{$e_1$[$e_2$] = $e_3$},
+Consider a non-throwing evaluation of an expression $e$ of the form
+\code{$e_1$[$e_2$] = $e_3$},
 and assume that the evaluation of $e_3$ yields an instance $o$.
 $e$ will then evaluate to $o$,
 and even if the executed body of operator
-\syntax{`[]='}
+\lit{[]=}
 completes with a value $o'$,
 that is, if $o'$ is returned, that value is simply ignored.
 The rationale for this behavior is that assignments should be guaranteed to evaluate to the assigned value.
@@ -3030,9 +3032,10 @@ Otherwise, $k$ is not redirecting.
 Execution then proceeds as follows:
 
 \LMHash{}%
-The instance variable declarations of the immediately enclosing class are visited in the order they appear in the program text.
+The instance variable declarations of the immediately enclosing class
+are visited in the order they appear in the program text.
 For each such declaration $d$, if $d$ has the form
-\code{\syntax{finalConstVarOrType} $v$ = $e$; }
+\code{\synt{finalConstVarOrType} $v$ = $e$; }
 then $e$ is evaluated to an object $o$
 and the instance variable $v$ of $i$ is bound to $o$.
 
@@ -4087,7 +4090,7 @@ where methods and setters use the function type of the member signature.
 \Case{Methods and setters}
 In this case $M_0$ consists of setter signatures only,
 or method signatures only,
-because the name \id{} in the former case always end in \syntax{`='},
+because the name \id{} in the former case always ends in \lit{=},
 which is never true in the latter case.
 
 \LMHash{}%
@@ -4225,6 +4228,7 @@ with respect to $L$
 (\ref{combinedMemberSignatures}).
 It is a compile-time error
 if the computation of said combined member signature fails.
+
 
 \subsubsection{Correct Member Overrides}
 \LMLabel{correctMemberOverrides}
@@ -4627,7 +4631,7 @@ yielding the type
 $[T_1/X_1, \ldots, T_s/X_s]F$.
 
 \commentary{%
-Note that the type alias syntax without \syntax{`='}
+Note that the type alias syntax without \lit{=}
 can only express function types,
 and it cannot express the type of a generic function.
 When such a type alias is generic,
@@ -5430,6 +5434,7 @@ as the type in an \synt{onPart},
 etc.
 }
 
+
 \subsubsection{The Instantiation to Bound Algorithm}
 \LMLabel{theInstantiationToBoundAlgorithm}
 
@@ -6203,6 +6208,7 @@ It is a compile-time error for any class other than \code{int} and \code{double}
 \LMHash{}%
 The instances of \code{int} and \code{double} all override the \lit{==} operator inherited from the \code{Object} class.
 
+
 \subsection{Booleans}
 \LMLabel{booleans}
 
@@ -6342,8 +6348,15 @@ This can be expressed by writing smaller strings separated by whitespace, as sho
 \end{grammar}
 
 \LMHash{}%
-Multiline strings are delimited by either matching triples of single quotes or matching triples of double quotes.
-If the first line of a multiline string consists solely of the whitespace characters defined by the production \synt{WHITESPACE} (\ref{lexicalRules}), possibly prefixed by \syntax{`\\'}, then that line is ignored, including the line break at its end.
+Multiline strings are delimited by either
+matching triples of single quotes or
+matching triples of double quotes.
+If the first line of a multiline string consists solely of
+the whitespace characters defined by the production \synt{WHITESPACE}
+(\ref{lexicalRules}),
+possibly prefixed by \syntax{`\\'},
+then that line is ignored,
+including the line break at its end.
 
 \rationale{
 The idea is to ignore a whitespace-only first line of a multiline string, where whitespace is defined as tabs, spaces and the final line break.
@@ -6358,42 +6371,60 @@ These can be represented directly, but since for most characters prefixing by ba
 Strings support escape sequences for special characters.
 The escapes are:
 \begin{itemize}
-\item \syntax{`\\n'} for newline, equivalent to \syntax{`\\x0A'}.
-\item \syntax{`\\r'} for carriage return, equivalent to \syntax{`\\x0D'}.
-\item \syntax{`\\f'} for form feed, equivalent to \syntax{`\\x0C'}.
-\item \syntax{`\\b'} for backspace, equivalent to \syntax{`\\x08'}.
-\item \syntax{`\\t'} for tab, equivalent to \syntax{`\\x09'}.
-\item \syntax{`\\v'} for vertical tab, equivalent to \syntax{`\\x0B'}.
-\item \syntax{`\\x' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$}, equivalent to
+\item
+  \syntax{`\\n'} for newline, equivalent to \syntax{`\\x0A'}.
+\item
+  \syntax{`\\r'} for carriage return, equivalent to \syntax{`\\x0D'}.
+\item
+  \syntax{`\\f'} for form feed, equivalent to \syntax{`\\x0C'}.
+\item
+  \syntax{`\\b'} for backspace, equivalent to \syntax{`\\x08'}.
+\item
+  \syntax{`\\t'} for tab, equivalent to \syntax{`\\x09'}.
+\item
+  \syntax{`\\v'} for vertical tab, equivalent to \syntax{`\\x0B'}.
+\item
+  \syntax{`\\x' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$}, equivalent to
 
-\syntax{`\\u{' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ `}'}.
-\item \syntax{`\\u' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ <HEX\_DIGIT>$_3$ <HEX\_DIGIT>$_4$},
-equivalent to
+  \syntax{`\\u{' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ `}'}.
+\item
+  \syntax{`\\u' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ <HEX\_DIGIT>$_3$ <HEX\_DIGIT>$_4$},
+  equivalent to
 
-\noindent
-\syntax{`\\u{' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ <HEX\_DIGIT>$_3$ <HEX\_DIGIT>$_4$ `}'}.
-\item \syntax{`\\u{' <HEX\_DIGIT\_SEQUENCE> `}'} is the Unicode code point represented by the
-\syntax{<HEX\_DIGIT\_SEQUENCE>}.
-It is a compile-time error if the value of the
-\syntax{<HEX\_DIGIT\_SEQUENCE>}
-is not a valid Unicode code point.
-\item \syntax{`$'} indicating the beginning of an interpolated expression.
-\item Otherwise, \syntax{`\\'$k$} indicates the character $k$ for any $k$ not in
-\syntax{$\{$`n', `r', `f', `b', `t', `v', `x', `u'$\}$}.
+  \noindent
+  \syntax{`\\u{' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ <HEX\_DIGIT>$_3$ <HEX\_DIGIT>$_4$ `}'}.
+\item
+  \syntax{`\\u{' <HEX\_DIGIT\_SEQUENCE> `}'} is
+  the Unicode code point represented by the
+  \syntax{<HEX\_DIGIT\_SEQUENCE>}.
+  It is a compile-time error if the value of the
+  \syntax{<HEX\_DIGIT\_SEQUENCE>}
+  is not a valid Unicode code point.
+\item
+  \lit{\$} indicating the beginning of an interpolated expression.
+\item
+  Otherwise, \syntax{`\\$k$'} indicates the character $k$ for
+  any $k$ not in \syntax{$\{$`n', `r', `f', `b', `t', `v', `x', `u'$\}$}.
 \end{itemize}
 
 \LMHash{}%
-Any string may be prefixed with the character \syntax{`r'},
+Any string may be prefixed with the character \lit{r},
 indicating that it is a \Index{raw string},
 in which case no escapes or interpolations are recognized.
 
 \LMHash{}%
-Line breaks in a multiline string are represented by the \syntax{<NEWLINE>} production.
+Line breaks in a multiline string are represented by
+the \syntax{<NEWLINE>} production.
 A line break introduces a single newline character into the string value.
 
 \LMHash{}%
-It is a compile-time error if a non-raw string literal contains a character sequence of the form \syntax{`\\x'} that is not followed by a sequence of two hexadecimal digits.
-It is a compile-time error if a non-raw string literal contains a character sequence of the form \syntax{`\\u'} that is not followed by either a sequence of four hexadecimal digits, or by curly brace delimited sequence of hexadecimal digits.
+It is a compile-time error if a non-raw string literal contains
+a character sequence of the form \syntax{`\\x'} that is not followed by
+a sequence of two hexadecimal digits.
+It is a compile-time error if a non-raw string literal contains
+a character sequence of the form \syntax{`\\u'} that is not followed by
+either a sequence of four hexadecimal digits,
+or by curly brace delimited sequence of hexadecimal digits.
 
 \begin{grammar}
 <stringContentDQ> ::= \~{}( `\\' | `"' | `$' | <NEWLINE> )
@@ -6419,7 +6450,8 @@ It is a compile-time error if a non-raw string literal contains a character sequ
 
 \LMHash{}%
 All string literals evaluate to instances of the built-in class \code{String}.
-It is a compile-time error for a class to extend, mix in or implement \code{String}.
+It is a compile-time error for a class to
+extend, mix in or implement \code{String}.
 The \code{String} class overrides the \lit{==} operator inherited from
 the \code{Object} class.
 The static type of a string literal is \code{String}.
@@ -6429,7 +6461,10 @@ The static type of a string literal is \code{String}.
 \LMLabel{stringInterpolation}
 
 \LMHash{}%
-It is possible to embed expressions within non-raw string literals, such that these expressions are evaluated, and the resulting values are converted into strings and concatenated with the enclosing string.
+It is possible to embed expressions within non-raw string literals,
+such that these expressions are evaluated,
+and the resulting values are converted into strings and
+concatenated with the enclosing string.
 This process is known as \Index{string interpolation}.
 
 \begin{grammar}
@@ -6438,14 +6473,17 @@ This process is known as \Index{string interpolation}.
 \end{grammar}
 
 \commentary{
-The reader will note that the expression inside the interpolation could itself include strings, which could again be interpolated recursively.
+The reader will note that the expression inside the interpolation
+could itself include strings,
+which could again be interpolated recursively.
 }
 
 \LMHash{}%
-An unescaped \syntax{`$'} character in a string signifies the beginning of an interpolated expression.
-The \syntax{`$'} sign may be followed by either:
+An unescaped \lit{\$} character in a string signifies
+the beginning of an interpolated expression.
+The \lit{\$} sign may be followed by either:
 \begin{itemize}
-\item A single identifier \id{} that must not contain the \syntax{`$'} character.
+\item A single identifier \id{} that does not contain the \lit{\$} character.
 \item An expression $e$ delimited by curly braces.
 \end{itemize}
 
@@ -6532,6 +6570,7 @@ The fact that symbols are easy to type and can often act as convenient substitut
 \LMHash{}%
 The static type of a symbol literal is \code{Symbol}.
 
+
 \subsection{Lists}
 \LMLabel{lists}
 
@@ -6601,16 +6640,19 @@ A run-time list literal
 is evaluated as follows:
 \begin{itemize}
 \item
-First, the expressions $e_1, \ldots, e_n$ are evaluated in order they appear in the program, producing objects $o_1, \ldots, o_n$.
-\item A fresh instance (\ref{generativeConstructors}) $a$, of size $n$, whose class implements the built-in class
-\code{List<$E$>}
-is allocated.
+  First, the expressions $e_1, \ldots, e_n$ are evaluated
+  in order they appear in the program,
+  producing objects $o_1, \ldots, o_n$.
 \item
-The operator \syntax{`[]='} is invoked on $a$ with first argument $i$ and second argument
-%The $i$th element of $a$ is set to
-$o_{i+1}, 0 \le i < n$.
+  A fresh instance (\ref{generativeConstructors}) $a$, of size $n$,
+  whose class implements the built-in class \code{List<$E$>}
+  is allocated.
 \item
-The result of the evaluation is $a$.
+  The operator \lit{[]=} is invoked on $a$ with
+  first argument $i$ and second argument
+  $o_{i+1}, 0 \le i < n$.
+\item
+  The result of the evaluation is $a$.
 \end{itemize}
 
 \LMHash{}%
@@ -6749,16 +6791,20 @@ A run-time map literal
 is evaluated as follows:
 \begin{itemize}
 \item
-For each $i \in 1 .. n$ in numeric order,
-first the expression $k_i$ is evaluated producing object $u_i$,
-and then $e_i$ is evaluated producing object $o_i$.
-This produces all the objects $u_1, o_1, \ldots, u_n, o_n$.
-\item A fresh instance (\ref{generativeConstructors}) $m$
-whose class implements the built-in class \code{Map<$K, V$>}, is allocated.
+  For each $i \in 1 .. n$ in numeric order,
+  first the expression $k_i$ is evaluated producing object $u_i$,
+  and then $e_i$ is evaluated producing object $o_i$.
+  This produces all the objects $u_1, o_1, \ldots, u_n, o_n$.
 \item
-The operator \syntax{`[]='} is invoked on $m$ with first argument $u_i$ and second argument $o_i$ for each $i \in 1 .. n$.
+  A fresh instance (\ref{generativeConstructors}) $m$
+  whose class implements the built-in class \code{Map<$K, V$>},
+  is allocated.
 \item
-The result of the evaluation is $m$.
+  The operator \lit{[]=} is invoked on $m$
+  with first argument $u_i$ and second argument $o_i$
+  for each $i \in 1 .. n$.
+\item
+  The result of the evaluation is $m$.
 \end{itemize}
 
 \LMHash{}%
@@ -6773,11 +6819,13 @@ is evaluated as
 \code{<\DYNAMIC{}, \DYNAMIC{}>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
 
 \LMHash{}%
-A map literal is ordered: iterating over the keys and/or values of the maps always happens in the
- order the keys appeared in the source code.
+A map literal is ordered:
+iterating over the keys and/or values of the maps
+always happens in the order the keys appeared in the source code.
 
 \commentary{
-Of course, if a key repeats, the order is defined by first occurrence, but the value is defined by the last.
+Of course, if a key repeats, the order is defined by first occurrence,
+but the value is defined by the last.
 }
 
 \LMHash{}%
@@ -6906,6 +6954,7 @@ or the form
 \code{<$E$>\{$e_1, \ldots, e_n$\}}
 is
 \code{Set<$E$>}.
+
 
 \subsection{Throw}
 \LMLabel{throw}
@@ -7841,10 +7890,13 @@ Actual argument lists have the following syntax:
 \end{grammar}
 
 \LMHash{}%
-Argument lists allow an optional trailing comma after the last argument (\syntax{`,'?}).
-An argument list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma.
+Argument lists allow an optional trailing comma after the last argument
+(\syntax{`,'?}).
+An argument list with such a trailing comma is equivalent in all ways to
+the same parameter list without the trailing comma.
 All argument lists in this specification are shown without a trailing comma,
-but the rules and semantics apply equally to the corresponding argument list with a trailing comma.
+but the rules and semantics apply equally to
+the corresponding argument list with a trailing comma.
 
 \LMHash{}%
 Let $L$ be an argument list of the form
@@ -7864,15 +7916,18 @@ and let $\parameterList{P}$ be the formal parameter list
 \code{($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$])}
 
 \noindent
-where each parameter may be marked \COVARIANT{} (\commentary{not shown, but allowed}).
+where each parameter may be marked \COVARIANT{}
+(\commentary{not shown, but allowed}).
 
 \LMHash{}%
 We say that $\argumentList{S}$ is
 a \Index{subtype match} for $\parameterList{P}$
-if{}f $p = 0$, $n \leq m \leq n+k$, and $S_i$ is a subtype of $T_i$ for all $i \in 1 .. m$.
+if{}f $p = 0$, $n \leq m \leq n+k$, and $S_i$ is
+a subtype of $T_i$ for all $i \in 1 .. m$.
 We say that $\argumentList{S}$ is
 an \Index{assignable match} for $\parameterList{P}$
-if{}f $p = 0$, $n \leq m \leq n+k$, and $S_i$ is assignable to $T_i$ for all $i \in 1 .. m$.
+if{}f $p = 0$, $n \leq m \leq n+k$, and $S_i$ is
+assignable to $T_i$ for all $i \in 1 .. m$.
 
 \LMHash{}%
 Let $\argumentList{S}$ be the static argument list type
@@ -7885,7 +7940,8 @@ and let $\parameterList{P}$ be the formal parameter list
 \code{($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\})}
 
 \noindent
-where each parameter may be marked \COVARIANT{} (\commentary{not shown, but allowed}).
+where each parameter may be marked \COVARIANT{}
+(\commentary{not shown, but allowed}).
 
 \LMHash{}%
 We say that $\argumentList{S}$ is
@@ -10579,6 +10635,7 @@ However, invocations of the operators \code{*} and \code{\%} of class \code{int}
 The static type of an expression $e_1 * e_2$ where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}, and \code{double} if the static type of $e_2$ is \code{double}.
 The static type of an expression $e_1 \% e_2$ where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}, and \code{double} if the static type of $e_2$ is \code{double}.
 
+
 \subsection{Unary Expressions}
 \LMLabel{unaryExpressions}
 
@@ -11263,22 +11320,24 @@ A block statement introduces a new scope, which is nested in the lexically enclo
 
 \LMHash{}%
 An \Index{expression statement} consists of an expression that does not
-begin with a \syntax{`{'} character.
+begin with a \lit{\{} character.
 
 \begin{grammar}
 <expressionStatement> ::= <expression>? `;'
 \end{grammar}
 
 \LMHash{}%
-The expression of an expression statement is not allowed to begin with a \syntax{`\{'}.
+The expression of an expression statement is not allowed
+to begin with a \lit{\{}.
 \commentary{
 This means that if some source text could otherwise be parsed as an expression
-followed by a \syntax{`;'}, then this grammar production does not apply
-when the expression starts with a \syntax{`\{'}.
+followed by a \lit{;}, then this grammar production does not apply
+when the expression starts with a \lit{\{}.
 }
 \rationale{
 The restriction resolves an ambiguity while parsing where a
-\syntax{`\{'} can start either a block (\ref{blocks}) or a map literal (\ref{maps}).
+\lit{\{} can start either a block (\ref{blocks}) or
+a map literal (\ref{maps}).
 By disallowing the latter from starting an expression statement,
 the parser does not need to look further ahead
 before deciding that it is parsing a block statement.
@@ -12858,8 +12917,9 @@ A library may optionally begin with a \Index{script tag}.
 Script tags are intended for use with scripts (\ref{scripts}).
 A script tag can be used to identify the interpreter of the script to whatever computing environment the script is embedded in.
 The script tag must appear before any whitespace or comments.
-A script tag begins with \syntax{`#!'} and ends at the end of the line.
-Any characters that follow \syntax{`#!'} in the script tag are ignored by the Dart implementation.
+A script tag begins with \lit{\#!} and ends at the end of the line.
+Any characters that follow \lit{\#!} in the script tag are ignored by
+the Dart implementation.
 
 \LMHash{}%
 Libraries are units of privacy.
@@ -13711,6 +13771,7 @@ and it is not qualified by a deferred prefix.
 \commentary{
 A constant type literal is a constant expression (\ref{constants}).
 }
+
 
 \subsection{Type Aliases}
 \LMLabel{typedef}
@@ -15015,6 +15076,7 @@ However, in the examples that are not errors
 the usage of \code{x} in the loop body is constrained,
 because it has type \VOID.%
 }
+
 
 \subsubsection{Void Soundness}
 \LMLabel{voidSoundness}
