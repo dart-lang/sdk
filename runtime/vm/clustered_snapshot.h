@@ -518,6 +518,11 @@ class Deserializer : public ThreadStackResource {
   void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
+  RawApiError* VerifyVersion();
+  RawApiError* VerifyFeatures(Isolate* isolate);
+  RawApiError* ReadFeatures(const char** features, intptr_t* features_length);
+
+  RawApiError* BuildApiError(const char* message);
 
   void Prepare();
   void Deserialize();
@@ -628,6 +633,8 @@ class FullSnapshotReader {
                      const uint8_t* shared_instructions,
                      Thread* thread);
   ~FullSnapshotReader() {}
+
+  RawApiError* InitializeGlobalVMFlagsFromSnapshot();
 
   RawApiError* ReadVMSnapshot();
   RawApiError* ReadIsolateSnapshot();

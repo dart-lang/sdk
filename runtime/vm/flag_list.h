@@ -216,4 +216,14 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")   \
   D(support_rr, bool, false, "Support running within RR.")
 
+// List of VM-global (i.e. non-isolate specific) flags.
+//
+// The value used for those flags at snapshot generation time needs to be the
+// same as during runtime.
+//
+// Usage:
+//   P(name, command-line-flag-name)
+#define VM_GLOBAL_FLAG_LIST(V)                                                 \
+  V(use_bare_instructions, FLAG_use_bare_instructions)
+
 #endif  // RUNTIME_VM_FLAG_LIST_H_

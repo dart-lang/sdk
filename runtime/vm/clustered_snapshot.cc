@@ -5007,6 +5007,15 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
     }
   }
 
+  RawApiError* error = VerifyVersion();
+  if (error != ApiError::null()) {
+    return error;
+  }
+
+  return VerifyFeatures(isolate);
+}
+
+RawApiError* Deserializer::VerifyVersion() {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -5019,10 +5028,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
     Utils::SNPrint(message_buffer, kMessageBufferSize,
                    "No full snapshot version found, expected '%s'",
                    expected_version);
-    // This can also fail while bringing up the VM isolate, so make sure to
-    // allocate the error message in old space.
-    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
-    return ApiError::New(msg, Heap::kOld);
+    return BuildApiError(message_buffer);
   }
 
   const char* version = reinterpret_cast<const char*>(CurrentBufferAddress());
@@ -5036,41 +5042,64 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
                    (Snapshot::IsFull(kind_)) ? "full" : "script",
                    expected_version, actual_version);
     free(actual_version);
-    // This can also fail while bringing up the VM isolate, so make sure to
-    // allocate the error message in old space.
-    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
-    return ApiError::New(msg, Heap::kOld);
+    return BuildApiError(message_buffer);
   }
   Advance(version_len);
 
+  return ApiError::null();
+}
+
+RawApiError* Deserializer::VerifyFeatures(Isolate* isolate) {
   const char* expected_features =
       Dart::FeaturesString(isolate, (isolate == NULL), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
-  const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
-  ASSERT(features != NULL);
-  intptr_t buffer_len = Utils::StrNLen(features, PendingBytes());
-  if ((buffer_len != expected_len) ||
+  const char* features = nullptr;
+  intptr_t features_length = 0;
+
+  RawApiError* error = ReadFeatures(&features, &features_length);
+  if (error != ApiError::null()) {
+    return error;
+  }
+
+  if (features_length != expected_len ||
       strncmp(features, expected_features, expected_len)) {
     const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
-    char* actual_features =
-        Utils::StrNDup(features, buffer_len < 1024 ? buffer_len : 1024);
+    char* actual_features = Utils::StrNDup(
+        features, features_length < 1024 ? features_length : 1024);
     Utils::SNPrint(message_buffer, kMessageBufferSize,
                    "Snapshot not compatible with the current VM configuration: "
                    "the snapshot requires '%s' but the VM has '%s'",
                    actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
-    // This can also fail while bringing up the VM isolate, so make sure to
-    // allocate the error message in old space.
-    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
-    return ApiError::New(msg, Heap::kOld);
+    return BuildApiError(message_buffer);
   }
   free(const_cast<char*>(expected_features));
-  Advance(expected_len + 1);
   return ApiError::null();
+}
+
+RawApiError* Deserializer::ReadFeatures(const char** features,
+                                        intptr_t* features_length) {
+  const char* cursor = reinterpret_cast<const char*>(CurrentBufferAddress());
+  const intptr_t length = Utils::StrNLen(cursor, PendingBytes());
+  if (length == PendingBytes()) {
+    return BuildApiError(
+        "The features string in the snapshot was not '\\0'-terminated.");
+  }
+  *features = cursor;
+  *features_length = length;
+  Advance(length + 1);
+  return ApiError::null();
+}
+
+RawApiError* Deserializer::BuildApiError(const char* message) {
+  // This can also fail while bringing up the VM isolate, so make sure to
+  // allocate the error message in old space.
+  const String& msg = String::Handle(String::New(message, Heap::kOld));
+  return ApiError::New(msg, Heap::kOld);
 }
 
 RawInstructions* Deserializer::ReadInstructions() {
@@ -5573,6 +5602,55 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
     shared_data_image_ = Snapshot::SetupFromBuffer(shared_data)->DataImage();
   }
   shared_instructions_image_ = shared_instructions;
+}
+
+RawApiError* FullSnapshotReader::InitializeGlobalVMFlagsFromSnapshot() {
+  Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
+                            instructions_image_, NULL, NULL);
+
+  deserializer.SkipHeader();
+
+  RawApiError* error = deserializer.VerifyVersion();
+  if (error != ApiError::null()) {
+    return error;
+  }
+
+  const char* features = nullptr;
+  intptr_t features_length = 0;
+  error = deserializer.ReadFeatures(&features, &features_length);
+  if (error != ApiError::null()) {
+    return error;
+  }
+
+  ASSERT(features[features_length] == '\0');
+  const char* cursor = features;
+  while (*cursor != '\0') {
+    while (*cursor == ' ') {
+      cursor++;
+    }
+
+    const char* end = strstr(cursor, " ");
+    if (end == nullptr) {
+      end = features + features_length;
+    }
+#define CHECK_FLAG(name, flag)                                                 \
+  if (strncmp(cursor, #name, end - cursor) == 0) {                             \
+    flag = true;                                                               \
+    cursor = end;                                                              \
+    continue;                                                                  \
+  }                                                                            \
+  if (strncmp(cursor, "no-" #name, end - cursor) == 0) {                       \
+    flag = false;                                                              \
+    cursor = end;                                                              \
+    continue;                                                                  \
+  }
+    VM_GLOBAL_FLAG_LIST(CHECK_FLAG)
+#undef CHECK_FLAG
+
+    cursor = end;
+  }
+
+  return ApiError::null();
 }
 
 RawApiError* FullSnapshotReader::ReadVMSnapshot() {

@@ -251,6 +251,13 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         return strdup("Invalid vm isolate snapshot seen");
       }
       FullSnapshotReader reader(snapshot, instructions_snapshot, NULL, NULL, T);
+
+      // We are initializing the VM. We will take the VM-global flags used
+      // during snapshot generation time also at runtime (this avoids the need
+      // for the embedder to pass the same flags used during snapshot generation
+      // also to the runtime).
+      reader.InitializeGlobalVMFlagsFromSnapshot();
+
       const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
@@ -723,22 +730,25 @@ const char* Dart::FeaturesString(Isolate* isolate,
   buffer.AddString("release");
 #endif
 
-#define ADD_FLAG(name, isolate_flag, flag)                                     \
+#define ADD_FLAG(name, value)                                                  \
   do {                                                                         \
-    const bool name = (isolate != NULL) ? isolate->name() : flag;              \
-    buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
+    buffer.AddString(value ? (" " #name) : (" no-" #name));                    \
   } while (0);
 
+#define ADD_ISOLATE_FLAG(name, isolate_flag, flag)                             \
+  do {                                                                         \
+    const bool value = (isolate != NULL) ? isolate->name() : flag;             \
+    ADD_FLAG(#name, value);                                                    \
+  } while (0);
+
+  VM_GLOBAL_FLAG_LIST(ADD_FLAG);
   if (Snapshot::IncludesCode(kind)) {
     // enabling assertions affects deopt ids.
-    ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    if (kind == Snapshot::kFullAOT) {
-      ADD_FLAG(use_bare_instructions, use_bare_instructions,
-               FLAG_use_bare_instructions);
-    }
+    ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
-      ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
-      ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
+      ADD_ISOLATE_FLAG(use_field_guards, use_field_guards,
+                       FLAG_use_field_guards);
+      ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
 
 // Generated code must match the host architecture and ABI.
@@ -782,6 +792,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
   if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
     buffer.AddString(" dwarf-stack-traces");
   }
+#undef ADD_ISOLATE_FLAG
 #undef ADD_FLAG
 
   return buffer.Steal();
