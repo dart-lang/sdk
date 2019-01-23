@@ -62,6 +62,26 @@ main() {}
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
 
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new EditOrganizeDirectivesParams('test.dart').toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        new EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
+            .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
   Future test_OK_remove_duplicateImports_withSamePrefix() {
     addTestFile('''
 library lib;

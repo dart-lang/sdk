@@ -105,6 +105,26 @@ analyzer:
     _verifyPriorityFiles(sampleFile);
   }
 
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request =
+        new AnalysisSetPriorityFilesParams(['test.dart']).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request = new AnalysisSetPriorityFilesParams(
+        [convertPath('/foo/../bar/test.dart')]).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
   test_sentToPlugins() async {
     addTestFile('');
     // set priority files
