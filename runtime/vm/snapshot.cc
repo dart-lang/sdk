@@ -187,9 +187,9 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 RawSmi* BaseReader::ReadAsSmi() {
-  intptr_t value = Read<int32_t>();
-  ASSERT((value & kSmiTagMask) == kSmiTag);
-  return reinterpret_cast<RawSmi*>(value);
+  RawSmi* value = Read<RawSmi*>();
+  ASSERT((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag);
+  return value;
 }
 
 intptr_t BaseReader::ReadSmiValue() {
