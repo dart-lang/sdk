@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -95,26 +94,6 @@ bar() {
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
       _isSyntacticErrorWithSingleFix(errorFixes[1]);
     }
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetFixesParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        new EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
-            .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   test_overlayOnlyFile() async {

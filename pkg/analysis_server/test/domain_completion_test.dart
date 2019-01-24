@@ -19,7 +19,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
-import 'mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -547,27 +546,6 @@ class B extends A {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request =
-        new CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request = new CompletionGetSuggestionsParams(
-            convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   test_invocation() {

@@ -14,7 +14,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -59,28 +58,6 @@ class UpdateContentTest extends AbstractAnalysisTest {
       expect(e.response.id, id);
       expect(e.response.error.code, RequestErrorCode.INVALID_OVERLAY_CHANGE);
     }
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new AnalysisUpdateContentParams(
-      {'test.dart': AddContentOverlay('')},
-    ).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request = new AnalysisUpdateContentParams(
-      {convertPath('/foo/../bar/test.dart'): AddContentOverlay('')},
-    ).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   test_multiple_contexts() async {

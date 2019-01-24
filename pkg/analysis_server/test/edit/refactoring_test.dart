@@ -352,32 +352,6 @@ main() {
 ''');
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetRefactoringParams(
-            RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetRefactoringParams(
-            RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-            convertPath('/foo/../bar/test.dart'),
-            0,
-            0,
-            true)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
   test_names() async {
     addTestFile('''
 class TreeItem {}
@@ -925,27 +899,6 @@ class MyWidget extends StatelessWidget {
     await waitForTasksFinished();
     await getRefactoringsForString('new Text');
     expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetAvailableRefactoringsParams('test.dart', 0, 0)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetAvailableRefactoringsParams(
-            convertPath('/foo/../bar/test.dart'), 0, 0)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   Future test_rename_hasElement_class() {

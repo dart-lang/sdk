@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -27,27 +26,6 @@ class StatementCompletionTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     handler = new EditDomainHandler(server);
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request =
-        new EditGetStatementCompletionParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetStatementCompletionParams(
-            convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   test_plainEnterFromStart() async {

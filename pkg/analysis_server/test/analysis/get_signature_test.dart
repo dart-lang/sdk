@@ -11,7 +11,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -130,6 +129,13 @@ main() {
     expect(result.error, isNotNull);
     expect(result.error.code,
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+  }
+
+  test_error_file_invalid_path() async {
+    var result = await prepareRawSignatureAt(0, file: ':\\/?*');
+    expect(result.error, isNotNull);
+    expect(
+        result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
   test_error_file_not_analyzed() async {
@@ -399,26 +405,6 @@ main() {
     expect(result.name, equals("one"));
     expect(result.dartdoc, equals("one doc"));
     expect(result.parameters, hasLength(0));
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new AnalysisGetSignatureParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        new AnalysisGetSignatureParams(convertPath('/foo/../bar/test.dart'), 0)
-            .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   test_method_instance() async {

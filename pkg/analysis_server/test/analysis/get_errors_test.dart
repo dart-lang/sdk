@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -94,24 +93,6 @@ main() {
       expect(error.location.file, testFile);
       expect(error.location.startLine, 2);
     }
-  }
-
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = _createGetErrorsRequest('test.dart');
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
-  }
-
-  test_invalidFilePathFormat_notNormalized() async {
-    var request = _createGetErrorsRequest(convertPath('/foo/../bar/test.dart'));
-    var response = await waitResponse(request);
-    expect(
-      response,
-      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
-    );
   }
 
   test_noErrors() async {

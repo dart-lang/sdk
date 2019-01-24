@@ -346,12 +346,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     });
   }
 
-  /// Return `true` if the [path] is both absolute and normalized.
-  bool isAbsoluteAndNormalized(String path) {
-    var pathContext = resourceProvider.pathContext;
-    return pathContext.isAbsolute(path) && pathContext.normalize(path) == path;
-  }
-
   /// Return `true` if analysis is complete.
   bool isAnalysisComplete() {
     return !analysisDriverScheduler.isAnalyzing;
@@ -381,16 +375,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
-  }
-
-  /// If the [path] is not a valid file path, that is absolute and normalized,
-  /// send an error response, and return `true`. If OK then return `false`.
-  bool sendResponseErrorIfInvalidFilePath(Request request, String path) {
-    if (!isAbsoluteAndNormalized(path)) {
-      sendResponse(Response.invalidFilePathFormat(request, path));
-      return true;
-    }
-    return false;
   }
 
   /// Sends a `server.error` notification.

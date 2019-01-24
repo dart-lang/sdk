@@ -47,11 +47,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Future<void> getErrors(Request request) async {
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
     ResolvedUnitResult result = await server.getResolvedUnit(file);
 
     if (result?.state != ResultState.VALID) {
@@ -75,14 +70,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new AnalysisGetHoverParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
 
     // Prepare the resolved units.
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
     CompilationUnit unit = result?.unit;
 
     // Prepare the hovers.
@@ -106,17 +96,12 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Future<void> getImportedElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetImportedElementsParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
+    AnalysisGetImportedElementsParams params =
+        new AnalysisGetImportedElementsParams.fromRequest(request);
     //
     // Prepare the resolved unit.
     //
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
     if (result?.state != ResultState.VALID) {
       server.sendResponse(new Response.getImportedElementsInvalidFile(request));
       return;
@@ -174,10 +159,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     String file = params.file;
     int offset = params.offset;
     int length = params.length;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
 
     AnalysisDriver driver = server.getAnalysisDriver(file);
     if (driver == null) {
@@ -261,14 +242,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Future<void> getSignature(Request request) async {
     var params = new AnalysisGetSignatureParams.fromRequest(request);
-    var file = params.file;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
 
     // Prepare the resolved units.
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
 
     if (result?.state != ResultState.VALID) {
       server.sendResponse(new Response.getSignatureInvalidFile(request));
@@ -412,12 +388,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Response setPriorityFiles(Request request) {
     var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
 
-    for (var file in params.files) {
-      if (!server.isAbsoluteAndNormalized(file)) {
-        return Response.invalidFilePathFormat(request, file);
-      }
-    }
-
     if (server.options.enableUXExperiment1) {
       // If this experiment is enabled, set the analysis root to be the
       // containing directory.
@@ -475,15 +445,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response setSubscriptions(Request request) {
     var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
-
-    for (var fileList in params.subscriptions.values) {
-      for (var file in fileList) {
-        if (!server.isAbsoluteAndNormalized(file)) {
-          return Response.invalidFilePathFormat(request, file);
-        }
-      }
-    }
-
     // parse subscriptions
     Map<AnalysisService, Set<String>> subMap = mapMap(params.subscriptions,
         valueCallback: (List<String> subscriptions) => subscriptions.toSet());
@@ -505,13 +466,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response updateContent(Request request) {
     var params = new AnalysisUpdateContentParams.fromRequest(request);
-
-    for (var file in params.files.keys) {
-      if (!server.isAbsoluteAndNormalized(file)) {
-        return Response.invalidFilePathFormat(request, file);
-      }
-    }
-
     server.updateContent(request.id, params.files);
     //
     // Forward the request to the plugins.
