@@ -284,8 +284,8 @@ void FlowGraph::MergeBlocks() {
       merged->Add(successor->postorder_number());
       changed = true;
       if (FLAG_trace_optimization) {
-        OS::PrintErr("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
-                     successor->block_id());
+        THR_Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
+                  successor->block_id());
       }
     }
     // The new block inherits the block id of the last successor to maintain
@@ -696,25 +696,25 @@ void LivenessAnalysis::Analyze() {
 }
 
 static void PrintBitVector(const char* tag, BitVector* v) {
-  OS::PrintErr("%s:", tag);
+  THR_Print("%s:", tag);
   for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
-    OS::PrintErr(" %" Pd "", it.Current());
+    THR_Print(" %" Pd "", it.Current());
   }
-  OS::PrintErr("\n");
+  THR_Print("\n");
 }
 
 void LivenessAnalysis::Dump() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
-    OS::PrintErr("block @%" Pd " -> ", block->block_id());
+    THR_Print("block @%" Pd " -> ", block->block_id());
 
     Instruction* last = block->last_instruction();
     for (intptr_t j = 0; j < last->SuccessorCount(); j++) {
       BlockEntryInstr* succ = last->SuccessorAt(j);
-      OS::PrintErr(" @%" Pd "", succ->block_id());
+      THR_Print(" @%" Pd "", succ->block_id());
     }
-    OS::PrintErr("\n");
+    THR_Print("\n");
 
     PrintBitVector("  live out", live_out_[i]);
     PrintBitVector("  kill", kill_[i]);
