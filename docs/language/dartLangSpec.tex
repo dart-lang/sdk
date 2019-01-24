@@ -1587,8 +1587,10 @@ and the dynamic type of the corresponding function object.
 
 \LMHash{}%
 In this specification,
-the notation used to denote the type of a function follows
-the syntax of the language, except that \EXTENDS{} is abbreviated to
+the notation used to denote the type of a function,
+that is, a \Index{function type},
+follows the syntax of the language,
+except that \EXTENDS{} is abbreviated to
 \FunctionTypeExtends.
 This means that every function type is of one of the forms
 \FunctionTypePositionalStd{T_0}
@@ -1773,10 +1775,10 @@ Classes may be defined by class declarations as described below, or via mixin ap
   \alt <constructorSignature> (<redirection> | <initializers>)?
   \alt \EXTERNAL{} <constantConstructorSignature>
   \alt \EXTERNAL{} <constructorSignature>
-  \alt ((\EXTERNAL{} \STATIC{}?))? <getterSignature>
-  \alt ((\EXTERNAL{} \STATIC{}?))? <setterSignature>
+  \alt (\EXTERNAL{} \STATIC{}?)? <getterSignature>
+  \alt (\EXTERNAL{} \STATIC{}?)? <setterSignature>
   \alt \EXTERNAL{}? <operatorSignature>
-  \alt ((\EXTERNAL{} \STATIC{}?))? <functionSignature>
+  \alt (\EXTERNAL{} \STATIC{}?)? <functionSignature>
   \alt \STATIC{} (\FINAL{} | \CONST{}) <type>? <staticFinalDeclarationList>
   \alt \FINAL{} <type>? <initializedIdentifierList>
   \alt (\STATIC{} | \COVARIANT{})? (\VAR{} | <type>) <initializedIdentifierList>
@@ -2698,8 +2700,10 @@ A \Index{constructor name} always begins with the name of its immediately enclos
 It is a compile-time error if the name of a constructor is not a constructor name.
 
 \LMHash{}%
-The \Index{function type of a constructor} $k$ is the function type whose
-return type is the class that contains the declaration of $k$,
+The
+\IndexCustom{function type of a constructor}{function type!of a constructor}
+$k$ is the function type
+whose return type is the class that contains the declaration of $k$,
 and whose formal parameter types, optionality, and names of named parameters
 correspond to the declaration of $k$.
 
@@ -3404,7 +3408,7 @@ However, the following constructors are disallowed:
 \CLASS{} D \{
   \FINAL{} w;
   \CONST{} D.makeList(p): w = \CONST{} [p]; // \comment{compile-time error}
-  \CONST{} D.makeMap(p): w = \CONST{} \{``help'': q\}; // \comment{compile-time error}
+  \CONST{} D.makeMap(p): w = \CONST{} \{"help": q\}; // \comment{compile-time error}
   \CONST{} D.makeC(p): w = \CONST{} C(p, 12); // \comment{compile-time error}
 \}
 \end{dartCode}
@@ -4590,7 +4594,7 @@ where $m$ is derived from \synt{metadata},
 $T$ is a type,
 and \code{$S$?} is a type or the empty string.
 Let $S'$ be \code{$S$?} if it is a type, otherwise let $S'$ be \DYNAMIC.
-The associated function type of $D$, call it $F$, is, respectively:
+The associated type of $D$, call it $F$, is, respectively:
 
 \begin{itemize}
 \item $T$
@@ -6515,7 +6519,7 @@ a valid declaration name or a valid library name in a Dart program.
 
 \LMHash{}%
 A symbol literal \code{\#\id} where \id{} is an identifier
-that does not begin with an underscore ('\code{\_}'),
+that does not begin with an underscore (`\code{\_}'),
 evaluates to an instance of \code{Symbol} representing the identifier \id.
 All occurrences of \code{\#\id} evaluate to the same instance
 \commentary{(symbol instances are canonicalized)},
@@ -8563,7 +8567,8 @@ In this situation a compile-time error occurs
 except when the following step succeeds:
 
 \LMHash{}%
-\Index{Generic function type instantiation}:
+\IndexCustom{Generic function type instantiation}{%
+  generic function type instantiation}:
 Type inference is applied to $G$ with context type $F$,
 and it succeeds, yielding the actual type argument list
 \List{T}{1}{s}.
@@ -10201,7 +10206,7 @@ and then $a$ evaluates to $r$.
 \Case{\code{$C$?.$v$ ??= $e_2$}}
 A compound assignment of the form \code{$C$?.$v$ ??= $e_2$}
 where $C$ is a type literal
-that may or may not be be qualified by an import prefix
+that may or may not be qualified by an import prefix
 is equivalent to the expression \code{$C$.$v$ ??= $e$}.
 \EndCase
 
@@ -11062,7 +11067,7 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 If no such declaration exists in the lexical scope, let $d$ be the declaration of the inherited member named \id{} if it exists.
 
 \begin{itemize}
-\item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is \code{'.'}.
+\item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is `\code{.}'.
 \item If $d$ is a class or type alias $T$, the value of $e$ is an object implementing the class \code{Type} which reifies $T$.
 \item If $d$ is a type parameter $T$, then the value of $e$ is the value of the actual type argument corresponding to $T$ that was passed to the generative constructor that created the current binding of \THIS{}.
 If, however, $e$ occurs inside a static member, a compile-time error occurs.
@@ -13371,7 +13376,7 @@ First, $S$ is compiled as a library as specified above.
 Then, the top-level function defined by \code{main}
 in the exported namespace of $S$ is invoked (\ref{functionInvocation})
 as follows:
-If \code{main} can be be called with with two positional arguments,
+If \code{main} can be called with with two positional arguments,
 it is invoked with the following two actual arguments:
 \begin{enumerate}
 \item An object whose run-time type implements \code{List<String>}.
