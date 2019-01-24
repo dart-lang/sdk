@@ -158,27 +158,27 @@ deps = {
     "@" + Var("clang_format_scripts_rev"),
 
   Var("dart_root") + "/tools/sdks": {
-      "packages": [
-          {
-              "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.1.1-dev.1.0",
-          },
-      ],
+      "packages": [{
+          "package": "dart/dart-sdk/${{platform}}",
+          "version": "version:2.1.1-dev.1.0",
+      }],
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/d8": {
-      "packages": [
-          {
-              "package": "dart/d8",
-              "version": "version:6.9.427.23+1",
-          },
-      ],
+      "packages": [{
+          "package": "dart/d8",
+          "version": "version:6.9.427.23+1",
+      }],
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/tests/co19_2/src":
-      Var("dart_git") + "co19.git" +
-      "@" + Var("co19_2_rev"),
+  Var("dart_root") + "/tests/co19_2/src": {
+      "packages": [{
+          "package": "dart/third_party/co19",
+          "version": "git_revision:" + Var("co19_2_rev"),
+      }],
+      "dep_type": "cipd",
+  },
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
