@@ -158,27 +158,27 @@ deps = {
     "@" + Var("clang_format_scripts_rev"),
 
   Var("dart_root") + "/tools/sdks": {
-      "packages": [
-          {
-              "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.1.1-dev.1.0",
-          },
-      ],
+      "packages": [{
+          "package": "dart/dart-sdk/${{platform}}",
+          "version": "version:2.1.1-dev.1.0",
+      }],
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/d8": {
-      "packages": [
-          {
-              "package": "dart/d8",
-              "version": "version:6.9.427.23+1",
-          },
-      ],
+      "packages": [{
+          "package": "dart/d8",
+          "version": "version:6.9.427.23+1",
+      }],
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/tests/co19_2/src":
-      Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
-      "@" + Var("co19_2_rev"),
+  Var("dart_root") + "/tests/co19_2/src": {
+      "packages": [{
+          "package": "dart/third_party/co19",
+          "version": "git_revision:" + Var("co19_2_rev"),
+      }],
+      "dep_type": "cipd",
+  },
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
@@ -189,6 +189,14 @@ deps = {
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
       "@" + Var("boringssl_rev"),
+
+  Var("dart_root") + "/third_party/gsutil": {
+      "packages": [{
+          "package": "infra/gsutil",
+          "version": "version:4.34",
+      }],
+      "dep_type": "cipd",
+  },
 
   Var("dart_root") + "/third_party/root_certificates":
       Var("dart_git") + "root_certificates.git" +
@@ -448,20 +456,6 @@ hooks = [
       "--extract",
       "-s",
       Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-    ],
-  },
-  {
-    "name": "gsutil",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/gsutil.tar.gz.sha1",
     ],
   },
   {
