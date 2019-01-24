@@ -172,14 +172,13 @@ See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more detai
       }
       ```
 
-    * Because the new implementation might require you to inspect and fix
-      your app, we exposed two temporary flags:
+  Because the new implementation might require you to inspect and fix
+  your app, we exposed two temporary flags:
 
-        * `--report-invalid-deferred-types`: when provided, we will run
-          both the old and new algorithm and report where the issue was
-          detected.
+    * `--report-invalid-deferred-types`: when provided, we will run both the
+      old and new algorithm and report where the issue was detected.
 
-        * `--new-deferred-split`: enables the new algorithm.
+    * `--new-deferred-split`: enables the new algorithm.
 
 [35311]: https://github.com/dart-lang/sdk/issues/35311
 
