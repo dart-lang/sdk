@@ -669,6 +669,7 @@ issue34899: TypeCheckError
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass
+many_errors: VerificationError
 map: TextSerializationFailure # Was: Pass
 metadata_enum: TextSerializationFailure # Was: Pass
 metadata_named_mixin_application: TextSerializationFailure # Was: Pass

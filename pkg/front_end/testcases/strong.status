@@ -73,6 +73,7 @@ instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError #
 invalid_type: TypeCheckError
 invocations: RuntimeError
 issue34899: TypeCheckError
+many_errors: VerificationError
 micro: RuntimeError
 mixin_application_override: TypeCheckError
 optional: TypeCheckError
