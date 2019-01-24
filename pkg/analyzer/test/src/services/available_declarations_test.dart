@@ -378,7 +378,7 @@ class C {}
 ''');
 
     var context = tracker.addContext(testAnalysisContext);
-    context.setDependencies(['/home/aaa/lib']);
+    context.setDependencies([convertPath('/home/aaa/lib')]);
 
     await _doAllTrackerWork();
 
