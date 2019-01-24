@@ -45,7 +45,7 @@ import '../fasta_codes.dart'
         templateSwitchExpressionNotAssignable,
         templateWebLiteralCannotBeRepresentedExactly;
 
-import '../problems.dart' show unhandled, unsupported;
+import '../problems.dart' show getFileUri, unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -1389,6 +1389,25 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
         break;
       }
     }
+  }
+
+  @override
+  accept(ExpressionVisitor v) {
+    // This is designed to throw an exception during serialization. It can also
+    // lead to exceptions during transformations, but we have to accept a
+    // [Transformer] as this is used to implement `replaceChild`.
+    if (v is Transformer) return super.accept(v);
+    unsupported("accept", fileOffset, getFileUri(this));
+  }
+
+  @override
+  accept1(ExpressionVisitor1 v, arg) {
+    unsupported("accept1", fileOffset, getFileUri(this));
+  }
+
+  @override
+  visitChildren(Visitor v) {
+    unsupported("visitChildren", fileOffset, getFileUri(this));
   }
 }
 

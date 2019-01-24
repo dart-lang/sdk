@@ -76,10 +76,14 @@ abstract class AbstractClass extends core::Object {
     : super core::Object::•()
     ;
 }
-external static method foo(core::String x) → dynamic
+external static method foo(core::String x) → dynamic {
   invalid-expression "pkg/front_end/testcases/many_errors.dart:13:24: Error: An external or native method can't have a body.
 external foo(String x) {
                        ^";
+  {
+    return x.length;
+  }
+}
 static method m() → dynamic {
   throw invalid-expression "pkg/front_end/testcases/many_errors.dart:28:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.

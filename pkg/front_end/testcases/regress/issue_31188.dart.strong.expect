@@ -29,9 +29,8 @@ library;
 // ^^^^
 //
 import self as self;
-import "dart:core" as core;
 
-static field invalid-type T = let final dynamic #t1 = core::Map<dynamic, dynamic> in invalid-expression "pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The method '<' isn't defined for the class 'Type'.
+static field invalid-type T = invalid-expression "pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The method '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
 type T = Map<A, B>

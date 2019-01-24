@@ -19,7 +19,7 @@ library;
 //   const A.named2() : x = new Object();
 //                          ^^^
 //
-// pkg/front_end/testcases/many_errors.dart:10:24: Warning: 'x' is a final instance variable that has already been initialized.
+// pkg/front_end/testcases/many_errors.dart:10:24: Error: 'x' is a final instance variable that has already been initialized.
 //   const A.named2() : x = new Object();
 //                        ^
 // pkg/front_end/testcases/many_errors.dart:6:9: Context: 'x' was initialized here.
@@ -43,6 +43,12 @@ library;
 // Try using a constructor or factory that is 'const'.
 //   const AbstractClass.id();
 //         ^
+//
+// pkg/front_end/testcases/many_errors.dart:29:28: Error: The getter 'b' isn't defined for the class 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/many_errors.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
+//   (new C()?.b ??= new B()).b;
+//                            ^
 //
 import self as self;
 import "dart:core" as core;
@@ -81,7 +87,7 @@ external static method foo(core::String x) → dynamic {
 external foo(String x) {
                        ^";
   {
-    return x.length;
+    return x.{core::String::length};
   }
 }
 static method m() → dynamic {
@@ -89,6 +95,10 @@ static method m() → dynamic {
 Try using a constructor or factory that is 'const'.
   const AbstractClass.id();
         ^";
-  (let final dynamic #t3 = new self::C::•() in #t3.==(null) ? null : let final dynamic #t4 = #t3.b in #t4.==(null) ? #t3.b = new self::B::•() : #t4).b;
+  invalid-expression "pkg/front_end/testcases/many_errors.dart:29:28: Error: The getter 'b' isn't defined for the class 'B'.
+ - 'B' is from 'pkg/front_end/testcases/many_errors.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
+  (new C()?.b ??= new B()).b;
+                           ^";
 }
 static method main() → dynamic {}

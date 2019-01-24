@@ -41,7 +41,7 @@ class C extends core::Object {
     : super core::Object::•() {}
 }
 static method main() → dynamic {
-  let final core::Type #t1 = self::C in invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The method '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The method '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
   C<

@@ -4,6 +4,8 @@
 
 library fasta.problems;
 
+import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
+
 import 'compiler_context.dart' show CompilerContext;
 
 import 'messages.dart'
@@ -71,4 +73,12 @@ dynamic unsupported(String operation, int charOffset, Uri uri) {
       templateInternalProblemUnsupported.withArguments(operation),
       charOffset,
       uri);
+}
+
+Uri getFileUri(TreeNode node) {
+  do {
+    if (node is FileUriNode) return node.fileUri;
+    node = node.parent;
+  } while (node is TreeNode);
+  return null;
 }

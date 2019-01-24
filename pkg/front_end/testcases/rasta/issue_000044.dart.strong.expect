@@ -80,11 +80,11 @@ Try removing the return type.
   static factory good() → self::C
     let dynamic #redirecting_factory = self::C::constant in invalid-expression;
   method notEvenAConstructor(dynamic a) → self::C
-    return (let final dynamic #t1 = this in invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: The getter 'h' isn't defined for the class 'C'.
+    return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: The getter 'h' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
   C notEvenAConstructor(a) = h;
-                             ^") as{TypeError} self::C;
+                             ^" as{TypeError} self::C;
 }
 static method b(dynamic c) → invalid-type
   return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.

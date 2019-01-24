@@ -24,7 +24,6 @@ dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 expressions: RuntimeError
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 fallthrough: ExpectationFileMismatch
-for_in_without_declaration: TypeCheckError
 incomplete_field_formal_parameter: RuntimeError
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
@@ -73,7 +72,6 @@ instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError #
 invalid_type: TypeCheckError
 invocations: RuntimeError
 issue34899: TypeCheckError
-many_errors: VerificationError
 micro: RuntimeError
 mixin_application_override: TypeCheckError
 optional: TypeCheckError

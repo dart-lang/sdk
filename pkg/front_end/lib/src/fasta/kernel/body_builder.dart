@@ -862,8 +862,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       builder.body = body;
     } else {
       if (body != null) {
-        builder.body =
-            wrapInProblemStatement(body, fasta.messageExternalMethodWithBody);
+        builder.body = new Block(<Statement>[
+          new ExpressionStatementJudgment(desugarSyntheticExpression(
+              buildProblem(fasta.messageExternalMethodWithBody, body.fileOffset,
+                  noLength)))
+            ..fileOffset = body.fileOffset,
+          body,
+        ])
+          ..fileOffset = body.fileOffset;
       }
     }
     Member target = builder.target;
@@ -1118,7 +1124,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Change this to a null check.
       int offset = builder.body?.fileOffset ?? builder.charOffset;
       constructor.initializers.add(buildInvalidInitializer(
-          buildProblem(fasta.messageConstructorNotSync, offset, noLength),
+          desugarSyntheticExpression(
+              buildProblem(fasta.messageConstructorNotSync, offset, noLength)),
           offset));
     }
     if (needsImplicitSuperInitializer) {
@@ -4466,16 +4473,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(ahe): The following doesn't make sense to Analyzer AST.
     Declaration constructor =
         library.loader.getAbstractClassInstantiationError();
-    return forest.throwExpression(
-        null,
-        buildStaticInvocation(
-            constructor.target,
-            forest.arguments(<Expression>[
-              forest.literalString(className, null)..fileOffset = charOffset
-            ], noLocation)
-              ..fileOffset = charOffset,
-            charOffset: charOffset))
-      ..fileOffset = charOffset;
+    Expression invocation = buildStaticInvocation(
+        constructor.target,
+        forest.arguments(<Expression>[
+          forest.literalString(className, null)..fileOffset = charOffset
+        ], noLocation)
+          ..fileOffset = charOffset,
+        charOffset: charOffset);
+    if (invocation is shadow.SyntheticExpressionJudgment) {
+      invocation = desugarSyntheticExpression(invocation);
+    }
+    return forest.throwExpression(null, invocation)..fileOffset = charOffset;
   }
 
   Statement buildProblemStatement(Message message, int charOffset,
@@ -4570,20 +4578,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             ]);
         Declaration constructor =
             library.loader.getDuplicatedFieldInitializerError();
+        Expression invocation = buildStaticInvocation(
+            constructor.target,
+            forest.arguments(<Expression>[
+              forest.literalString(name, null)..fileOffset = assignmentOffset
+            ], noLocation)
+              ..fileOffset = assignmentOffset,
+            charOffset: assignmentOffset);
+        if (invocation is shadow.SyntheticExpressionJudgment) {
+          invocation = desugarSyntheticExpression(invocation);
+        }
         return new ShadowInvalidFieldInitializer(
             builder.field,
             expression,
-            new VariableDeclaration.forValue(forest.throwExpression(
-                null,
-                buildStaticInvocation(
-                    constructor.target,
-                    forest.arguments(<Expression>[
-                      forest.literalString(name, null)
-                        ..fileOffset = assignmentOffset
-                    ], noLocation)
-                      ..fileOffset = assignmentOffset,
-                    charOffset: assignmentOffset))
-              ..fileOffset = assignmentOffset))
+            new VariableDeclaration.forValue(
+                forest.throwExpression(null, invocation)
+                  ..fileOffset = assignmentOffset))
           ..fileOffset = assignmentOffset;
       } else {
         if (!legacyMode &&

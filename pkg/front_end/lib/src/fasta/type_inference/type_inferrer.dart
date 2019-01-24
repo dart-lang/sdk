@@ -769,14 +769,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       expression.parent.replaceChild(
           expression,
-          new Let(
-              new VariableDeclaration.forValue(receiver)
-                ..fileOffset = receiver.fileOffset,
-              helper.desugarSyntheticExpression(helper.buildProblem(
-                  errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset,
-                  length)))
-            ..fileOffset = fileOffset);
+          helper.desugarSyntheticExpression(helper.buildProblem(
+              errorTemplate.withArguments(name.name, receiverType),
+              fileOffset,
+              length)));
     }
     return interfaceMember;
   }

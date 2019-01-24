@@ -92,7 +92,7 @@ external: TextSerializationFailure # Was: Pass
 fallthrough: ExpectationFileMismatch
 fibonacci: TextSerializationFailure # Was: Pass
 for_in_scope: TextSerializationFailure # Was: Pass
-for_in_without_declaration: TypeCheckError
+for_in_without_declaration: TextSerializationFailure
 function_in_field: TextSerializationFailure # Was: Pass
 functions: TextSerializationFailure # Was: Pass
 function_type_assignments: TextSerializationFailure # Was: Pass
@@ -669,7 +669,7 @@ issue34899: TypeCheckError
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass
-many_errors: VerificationError
+many_errors: TextSerializationFailure
 map: TextSerializationFailure # Was: Pass
 metadata_enum: TextSerializationFailure # Was: Pass
 metadata_named_mixin_application: TextSerializationFailure # Was: Pass
@@ -850,7 +850,6 @@ regress/issue_31181: TextSerializationFailure # Was: Pass
 regress/issue_31183: TextSerializationFailure # Was: Pass
 regress/issue_31184: TextSerializationFailure # Was: Pass
 regress/issue_31185: TextSerializationFailure # Was: Pass
-regress/issue_31188: TextSerializationFailure # Was: Pass
 regress/issue_31190: TextSerializationFailure # Was: Pass
 regress/issue_31192: TextSerializationFailure # Was: Pass
 regress/issue_31198: TextSerializationFailure # Was: Pass
