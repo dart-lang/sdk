@@ -10,6 +10,7 @@ import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_required_param_test.dart' as invalid_required_param;
+import 'undefined_getter.dart' as undefined_getter;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unused_field_test.dart' as unused_field;
 import 'unused_import_test.dart' as unused_import;
@@ -25,6 +26,7 @@ main() {
     division_optimization.main();
     invalid_assignment.main();
     invalid_required_param.main();
+    undefined_getter.main();
     unnecessary_cast.main();
     unused_field.main();
     unused_import.main();

@@ -625,7 +625,7 @@ class Dart2TypeSystem extends TypeSystem {
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
+      if (isSubtypeOf(to, from.bound ?? DynamicTypeImpl.instance)) {
         return new TypeParameterMember(from.element, null, to).type;
       }
     }
