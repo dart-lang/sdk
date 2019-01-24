@@ -35,6 +35,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, write_protect_code);
+
 uword VirtualMemory::page_size_ = 0;
 
 void VirtualMemory::Init() {
@@ -44,6 +46,14 @@ void VirtualMemory::Init() {
 VirtualMemory* VirtualMemory::Allocate(intptr_t size,
                                        bool is_executable,
                                        const char* name) {
+  // When FLAG_write_protect_code is active, the VM allocates code
+  // memory with !is_executable, and later changes to executable via
+  // VirtualMemory::Protect, which requires ZX_RIGHT_EXECUTE on the
+  // underlying VMO. Conservatively assume all memory needs to be
+  // executable in this mode.
+  // TODO(mdempsky): Make into parameter.
+  const bool can_prot_exec = FLAG_write_protect_code;
+
   ASSERT(Utils::IsAligned(size, page_size_));
   zx_handle_t vmo = ZX_HANDLE_INVALID;
   zx_status_t status = zx_vmo_create(size, 0u, &vmo);
@@ -57,8 +67,8 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
-  if (is_executable) {
-    // Add ZX_PERM_EXECUTE permission to VMO, so it can be mapped
+  if (is_executable || can_prot_exec) {
+    // Add ZX_RIGHT_EXECUTE permission to VMO, so it can be mapped
     // into memory as executable.
     status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
     if (status != ZX_OK) {
@@ -88,6 +98,9 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
                                               const char* name) {
+  // See explanation in VirtualMemory::Allocate above.
+  const bool can_prot_exec = FLAG_write_protect_code;
+
   ASSERT(Utils::IsAligned(size, page_size_));
   ASSERT(Utils::IsAligned(alignment, page_size_));
   intptr_t allocated_size = size + alignment;
@@ -105,8 +118,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
-  if (is_executable) {
-    // Add ZX_PERM_EXECUTE permission to VMO, so it can be mapped
+  if (is_executable || can_prot_exec) {
+    // Add ZX_RIGHT_EXECUTE permission to VMO, so it can be mapped
     // into memory as executable.
     status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
     if (status != ZX_OK) {
