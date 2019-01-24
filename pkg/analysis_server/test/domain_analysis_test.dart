@@ -105,8 +105,9 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setPriorityFiles_invalid() {
-    var request = new AnalysisSetPriorityFilesParams(['/project/lib.dart'])
-        .toRequest('0');
+    var request = new AnalysisSetPriorityFilesParams(
+      [convertPath('/project/lib.dart')],
+    ).toRequest('0');
     var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
   }
