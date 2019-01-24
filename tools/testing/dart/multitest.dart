@@ -12,9 +12,8 @@
 /// lines of the file, and all of the multitest lines containing that key, in
 /// the same order as in the source file. The new test is expected to pass if
 /// the error type listed is 'ok', and to fail if the error type is 'syntax
-/// error', 'compile-time error', 'runtime error', 'static type warning',
-/// 'dynamic type error', or 'checked mode compile-time error'. The type error
-/// tests fail only in checked mode. There is also a test created from only the
+/// error', 'compile-time error', 'runtime error', or 'static type warning'.
+/// There is also a test created from only the
 /// untagged lines of the file, with key "none", which is expected to pass. This
 /// library extracts these tests, writes them into a temporary directory, and
 /// passes them to the test runner. These tests may be referred to in the status
@@ -64,13 +63,10 @@
 /// eee //# 10: ok
 /// fff
 /// ```
-///
-/// Note that it is possible to indicate more than one acceptable outcome in
-/// the case of dynamic and static type warnings
-///
+//////
 /// ```dart
 /// aaa
-/// ddd //# 07: static type warning, dynamic type error
+/// ddd //# 07: static type warning
 /// fff
 /// ```
 import "dart:async";
@@ -89,9 +85,9 @@ final _multitestOutcomes = [
   'compile-time error',
   'runtime error',
   // TODO(rnystrom): Remove these after Dart 1.0 tests are removed.
-  'static type warning',
-  'dynamic type error',
-  'checked mode compile-time error'
+  'static type warning', // This is still a valid analyzer test
+  'dynamic type error', // This is now a no-op
+  'checked mode compile-time error' // This is now a no-op
 ].toSet();
 
 // Note: This function is called directly by:
@@ -222,24 +218,17 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       var hasSyntaxError = outcome.contains('syntax error');
       var hasCompileError =
           hasSyntaxError || outcome.contains('compile-time error');
-      var isNegativeIfChecked = outcome.contains('dynamic type error');
-      var hasCompileErrorIfChecked =
-          outcome.contains('checked mode compile-time error');
 
-      if (hotReload) {
-        if (hasCompileError || hasCompileErrorIfChecked) {
-          // Running a test that expects a compilation error with hot reloading
-          // is redundant with a regular run of the test.
-          continue;
-        }
+      if (hotReload && hasCompileError) {
+        // Running a test that expects a compilation error with hot reloading
+        // is redundant with a regular run of the test.
+        continue;
       }
 
       doTest(multitestFilename, filePath,
           hasSyntaxError: hasSyntaxError,
           hasCompileError: hasCompileError,
           hasRuntimeError: hasRuntimeError,
-          isNegativeIfChecked: isNegativeIfChecked,
-          hasCompileErrorIfChecked: hasCompileErrorIfChecked,
           hasStaticWarning: hasStaticWarning,
           multitestKey: key);
     }
