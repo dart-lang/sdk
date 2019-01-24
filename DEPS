@@ -82,9 +82,7 @@ vars = {
   "dart_style_tag": "1.2.2",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.28.0",
-  "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
   "fixnum_tag": "0.10.9",
-  "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.7",
   "html_tag" : "0.13.3+2",
   "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
@@ -109,11 +107,9 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.4",
   "path_tag": "1.6.2",
-  "platform_rev": "c368ca95775a4ec8d0b60899ce51299a9fbda399", # 2.2.0
   "plugin_tag": "f5b4b0e32d1406d62daccea030ba6457d14b1c47",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "process_rev": "b8d73f0bad7be5ab5130baf10cd042aae4366d7c", # 3.0.5
   "protobuf_tag": "0.9.0",
   "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
   "pub_semver_tag": "1.4.2",
@@ -248,12 +244,8 @@ deps = {
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
-  Var("dart_root") + "/third_party/pkg/file":
-      Var("dart_git") + "file.dart.git" + "@" + Var("file_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
-  Var("dart_root") + "/third_party/pkg/func":
-      Var("dart_git") + "func.git" + "@" + Var("func_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_tag"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -306,14 +298,10 @@ deps = {
       + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
-  Var("dart_root") + "/third_party/pkg/platform":
-      Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/plugin":
       Var("dart_git") + "plugin.git" + "@" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
-  Var("dart_root") + "/third_party/pkg/process":
-      Var("dart_git") + "process.dart.git" + "@" + Var("process_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
       Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
