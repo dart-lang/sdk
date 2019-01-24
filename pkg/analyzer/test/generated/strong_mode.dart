@@ -15,23 +15,13 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:front_end/src/base/errors.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/find_node.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(StrongModeLocalInferenceTest);
-    defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
-    defineReflectiveTests(StrongModeTypePropagationTest);
-  });
-}
-
 /// Strong mode static analyzer local type inference tests
-@reflectiveTest
-class StrongModeLocalInferenceTest extends ResolverTestCase {
+abstract class StrongModeLocalInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
 
   Asserter<DartType> _isDynamic;
@@ -2812,124 +2802,6 @@ class B<T2, U2> {
   }
 }
 
-/// Strong mode static analyzer end to end tests
-@reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
-    with StrongModeStaticTypeAnalyzer2TestCases {
-  void setUp() {
-    super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    resetWith(options: options);
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_nestedCaptureBounds() {
-    // https://github.com/dart-lang/sdk/issues/30236
-    return super.test_genericMethod_nestedCaptureBounds();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_tearoff_instantiated() {
-    return super.test_genericMethod_tearoff_instantiated();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_class_error_extension_malbounded() {
-    return super.test_instantiateToBounds_class_error_extension_malbounded();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_class_error_instantiation_malbounded() {
-    return super
-        .test_instantiateToBounds_class_error_instantiation_malbounded();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_generic_function_error_malbounded() {
-    return super.test_instantiateToBounds_generic_function_error_malbounded();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_class_error_recursion() {
-    return super.test_notInstantiatedBound_class_error_recursion();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_class_error_recursion_less_direct() {
-    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_class_error_recursion_typedef() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_class_error_recursion_typedef();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_argument() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_class_argument();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_argument2() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_class_argument2();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_direct() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_class_direct();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_indirect() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_class_indirect();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_functionType() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_functionType();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_typedef_argument() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_typedef_argument();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_typedef_argument2() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_typedef_argument2();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_typedef_direct() {
-    // Does not work with the task model
-    return super.test_notInstantiatedBound_error_typedef_direct();
-  }
-}
-
 /// Test cases for [StrongModeStaticTypeAnalyzer2Test]
 mixin StrongModeStaticTypeAnalyzer2TestCases
     implements StaticTypeAnalyzer2TestShared {
@@ -4441,8 +4313,7 @@ main() {
   }
 }
 
-@reflectiveTest
-class StrongModeTypePropagationTest extends ResolverTestCase {
+abstract class StrongModeTypePropagationTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();

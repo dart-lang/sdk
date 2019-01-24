@@ -9,12 +9,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantDriverTest);
-    defineReflectiveTests(ConstantTaskTest);
   });
 }
 
@@ -151,6 +149,3 @@ class C extends B {
     ]);
   }
 }
-
-@reflectiveTest
-class ConstantTaskTest extends TaskResolutionTest with ConstantMixin {}

@@ -8,12 +8,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GenericTypeAliasDriverResolutionTest);
-    defineReflectiveTests(GenericTypeAliasTaskResolutionTest);
   });
 }
 
@@ -151,7 +149,3 @@ typedef F<T extends A> = B<T> Function<U extends B>(T a, U b);
     assertElementTypeString(u.bound, 'B');
   }
 }
-
-@reflectiveTest
-class GenericTypeAliasTaskResolutionTest extends TaskResolutionTest
-    with GenericTypeAliasResolutionMixin {}

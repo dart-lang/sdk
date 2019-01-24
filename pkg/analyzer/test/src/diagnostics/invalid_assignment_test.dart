@@ -9,13 +9,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidAssignmentTest);
     defineReflectiveTests(InvalidAssignmentTest_Driver);
   });
 }
 
-@reflectiveTest
-class InvalidAssignmentTest extends ResolverTestCase {
+abstract class InvalidAssignmentTest extends ResolverTestCase {
   test_instanceVariable() async {
     await assertErrorsInCode(r'''
 class A {

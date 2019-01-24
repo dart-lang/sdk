@@ -10,13 +10,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnusedShownNameTest);
     defineReflectiveTests(UnusedShownNameTest_Driver);
   });
 }
 
-@reflectiveTest
-class UnusedShownNameTest extends ResolverTestCase {
+abstract class UnusedShownNameTest extends ResolverTestCase {
   test_unreferenced() async {
     Source source = addSource(r'''
 library L;

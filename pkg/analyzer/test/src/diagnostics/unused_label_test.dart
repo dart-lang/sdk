@@ -9,13 +9,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnusedLabelTest);
     defineReflectiveTests(UnusedLabelTest_Driver);
   });
 }
 
-@reflectiveTest
-class UnusedLabelTest extends ResolverTestCase {
+abstract class UnusedLabelTest extends ResolverTestCase {
   test_unused_inSwitch() async {
     await assertErrorsInCode(r'''
 f(x) {

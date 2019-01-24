@@ -7,21 +7,15 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopTypeInferenceDriverResolutionTest);
-    defineReflectiveTests(TopTypeInferenceTaskResolutionTest);
   });
 }
 
 @reflectiveTest
 class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest
-    with TopTypeInstanceMixin {}
-
-@reflectiveTest
-class TopTypeInferenceTaskResolutionTest extends TaskResolutionTest
     with TopTypeInstanceMixin {}
 
 mixin TopTypeInstanceMixin implements ResolutionTest {

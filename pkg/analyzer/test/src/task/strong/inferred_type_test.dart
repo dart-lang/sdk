@@ -16,7 +16,6 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InferredTypeTest);
     defineReflectiveTests(InferredTypeTest_Driver);
     defineReflectiveTests(InferredTypeTest_SetLiterals);
   });

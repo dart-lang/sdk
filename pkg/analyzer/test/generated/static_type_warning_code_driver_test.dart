@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'static_type_warning_code_test.dart';
+import 'static_type_warning_code.dart';
 
 main() {
   defineReflectiveSuite(() {

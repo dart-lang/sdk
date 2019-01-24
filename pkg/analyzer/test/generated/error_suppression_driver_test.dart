@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'error_suppression_test.dart';
+import 'error_suppression.dart';
 
 main() {
   defineReflectiveSuite(() {

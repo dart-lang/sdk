@@ -45,9 +45,7 @@ main() {
     defineReflectiveTests(LibraryScopeTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
-    defineReflectiveTests(StrictModeTest);
     defineReflectiveTests(TypeOverrideManagerTest);
-    defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
   });
@@ -166,6 +164,8 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ErrorResolverTest extends ResolverTestCase {
   test_breakLabelOnSwitchMember() async {
@@ -596,8 +596,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
  * The class `StrictModeTest` contains tests to ensure that the correct errors and warnings
  * are reported when the analysis engine is run in strict mode.
  */
-@reflectiveTest
-class StrictModeTest extends ResolverTestCase {
+abstract class StrictModeTest extends ResolverTestCase {
   fail_for() async {
     Source source = addSource(r'''
 int f(List<int> list) {
@@ -810,8 +809,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
   }
 }
 
-@reflectiveTest
-class TypePropagationTest extends ResolverTestCase {
+abstract class TypePropagationTest extends ResolverTestCase {
   fail_propagatedReturnType_functionExpression() async {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = r'''

@@ -7,7 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'checked_mode_compile_time_error_code_test.dart';
+import 'checked_mode_compile_time_error_code.dart';
 import 'resolver_test_case.dart';
 
 main() {

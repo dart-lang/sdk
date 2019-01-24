@@ -45,6 +45,8 @@ main() {
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ClassElementImplTest extends EngineTestCase {
   @deprecated
@@ -1000,6 +1002,8 @@ class CompilationUnitElementImplTest extends EngineTestCase {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ElementAnnotationImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
@@ -1194,6 +1198,8 @@ class ElementLocationImplTest extends EngineTestCase {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class FieldElementImplTest extends EngineTestCase {
   @deprecated
@@ -3800,6 +3806,8 @@ class LibraryElementImplTest extends EngineTestCase {
 @reflectiveTest
 class LocalVariableElementImplTest extends EngineTestCase {}
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {
   @deprecated
@@ -3867,6 +3875,8 @@ abstract class A {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class MethodMemberTest extends EngineTestCase {
   /**
@@ -3911,6 +3921,8 @@ class B<S> extends A<S> {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ParameterElementImplTest extends EngineTestCase {
   @deprecated
@@ -4044,6 +4056,8 @@ class TestElementResynthesizer extends ElementResynthesizer {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class TopLevelVariableElementImplTest extends ResolverTestCase {
   void test_computeConstantValue() {

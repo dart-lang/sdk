@@ -49,6 +49,8 @@ void _fail(String message) {
   fail(message);
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ElementResolverCodeTest extends ResolverTestCase {
   test_annotation_class_namedConstructor() async {

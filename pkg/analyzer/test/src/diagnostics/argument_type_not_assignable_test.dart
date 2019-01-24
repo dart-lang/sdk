@@ -9,13 +9,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ArgumentTypeNotAssignableTest);
     defineReflectiveTests(ArgumentTypeNotAssignableTest_Driver);
   });
 }
 
-@reflectiveTest
-class ArgumentTypeNotAssignableTest extends ResolverTestCase {
+abstract class ArgumentTypeNotAssignableTest extends ResolverTestCase {
   test_functionType() async {
     await assertErrorsInCode(r'''
 m() {

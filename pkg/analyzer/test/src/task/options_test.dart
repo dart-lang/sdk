@@ -17,8 +17,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/task/api/general.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,7 +30,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextConfigurationTest);
     defineReflectiveTests(ErrorCodeValuesTest);
-    defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
     defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
     defineReflectiveTests(OptionsFileValidatorTest);
     defineReflectiveTests(OptionsProviderTest);
@@ -261,190 +258,6 @@ class ErrorProcessorMatcher extends Matcher {
     return o is ErrorProcessor &&
         o.code.toUpperCase() == required.code.toUpperCase() &&
         o.severity == required.severity;
-  }
-}
-
-@reflectiveTest
-class GenerateNewOptionsErrorsTaskTest extends AbstractContextTest {
-  Source source;
-
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
-
-  LineInfo lineInfo(String source) =>
-      GenerateOptionsErrorsTask.computeLineInfo(source);
-
-  @override
-  setUp() {
-    super.setUp();
-    source = newSource(optionsFilePath);
-  }
-
-  test_buildInputs() {
-    Map<String, TaskInput> inputs =
-        GenerateOptionsErrorsTask.buildInputs(source);
-    expect(inputs, isNotNull);
-    expect(inputs.keys,
-        unorderedEquals([GenerateOptionsErrorsTask.CONTENT_INPUT_NAME]));
-  }
-
-  test_compute_lineInfo() {
-    expect(lineInfo('foo\nbar').getLocation(4).lineNumber, 2);
-    expect(lineInfo('foo\nbar').getLocation(4).columnNumber, 1);
-    expect(lineInfo('foo\r\nbar').getLocation(5).lineNumber, 2);
-    expect(lineInfo('foo\r\nbar').getLocation(5).columnNumber, 1);
-    expect(lineInfo('foo\rbar').getLocation(4).lineNumber, 2);
-    expect(lineInfo('foo\rbar').getLocation(4).columnNumber, 1);
-    expect(lineInfo('foo').getLocation(0).lineNumber, 1);
-    expect(lineInfo('foo').getLocation(0).columnNumber, 1);
-    expect(lineInfo('').getLocation(1).lineNumber, 1);
-  }
-
-  test_constructor() {
-    GenerateOptionsErrorsTask task =
-        new GenerateOptionsErrorsTask(context, source);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, source);
-  }
-
-  test_createTask() {
-    GenerateOptionsErrorsTask task =
-        GenerateOptionsErrorsTask.createTask(context, source);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, source);
-  }
-
-  test_description() {
-    GenerateOptionsErrorsTask task =
-        new GenerateOptionsErrorsTask(null, source);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = GenerateOptionsErrorsTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
-  @failingTest
-  test_perform_bad_yaml() {
-    // We have lost the ability to detect this kind of error.
-    String code = r'''
-:
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    expect(errors[0].errorCode, AnalysisOptionsErrorCode.PARSE_ERROR);
-  }
-
-  test_perform_include() {
-    newSource('/other_options.yaml', '');
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(0));
-  }
-
-  test_perform_include_bad_value() {
-    newSource('/other_options.yaml', '''
-analyzer:
-  errors:
-    unused_local_variable: ftw
-''');
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.errorCode, AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING);
-    expect(error.source, target.source);
-    expect(error.offset, 10);
-    expect(error.length, 18);
-    expect(error.message, contains('other_options.yaml(47..49)'));
-  }
-
-  @failingTest
-  test_perform_include_bad_yaml() {
-    // We have lost the ability to detect this kind of error.
-    newSource('/other_options.yaml', ':');
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.errorCode, AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR);
-    expect(error.source, target.source);
-    expect(error.offset, 10);
-    expect(error.length, 18);
-    expect(error.message, contains('other_options.yaml(0..0)'));
-  }
-
-  test_perform_include_missing() {
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.errorCode, AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND);
-    expect(error.offset, 10);
-    expect(error.length, 18);
-  }
-
-  test_perform_OK() {
-    String code = r'''
-analyzer:
-  strong-mode: true
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    expect(outputs[ANALYSIS_OPTIONS_ERRORS], hasLength(1));
-    expect(outputs[ANALYSIS_OPTIONS_ERRORS].first.errorCode,
-        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED);
-
-    LineInfo lineInfo = outputs[LINE_INFO];
-    expect(lineInfo, isNotNull);
-    expect(lineInfo.getLocation(1).lineNumber, 1);
-    expect(lineInfo.getLocation(10).lineNumber, 2);
-  }
-
-  test_perform_unsupported_analyzer_option() {
-    String code = r'''
-analyzer:
-  not_supported: true
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    expect(errors[0].errorCode,
-        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
   }
 }
 

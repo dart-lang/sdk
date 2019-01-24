@@ -7,12 +7,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
 import '../dart/resolution/resolution.dart';
-import '../dart/resolution/task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstConstructorWithMixinWithFieldTest_DriverTest);
-    defineReflectiveTests(ConstConstructorWithMixinWithFieldTest_TaskTest);
   });
 }
 
@@ -139,7 +137,3 @@ class X extends Object with M {
 @reflectiveTest
 class ConstConstructorWithMixinWithFieldTest_DriverTest
     extends DriverResolutionTest with ConstConstructorWithMixinWithFieldMixin {}
-
-@reflectiveTest
-class ConstConstructorWithMixinWithFieldTest_TaskTest extends TaskResolutionTest
-    with ConstConstructorWithMixinWithFieldMixin {}

@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'non_error_resolver_test.dart';
+import 'non_error_resolver.dart';
 import 'resolver_test_case.dart';
 
 main() {

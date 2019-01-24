@@ -8,13 +8,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseOfVoidResultTest);
     defineReflectiveTests(UseOfVoidResultTest_Driver);
   });
 }
 
-@reflectiveTest
-class UseOfVoidResultTest extends ResolverTestCase {
+abstract class UseOfVoidResultTest extends ResolverTestCase {
   test_implicitReturnValue() async {
     await assertNoErrorsInCode(r'''
 f() {}

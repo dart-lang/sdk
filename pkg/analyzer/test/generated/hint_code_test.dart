@@ -18,7 +18,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CrossPackageHintCodeTest);
-    defineReflectiveTests(HintCodeTest);
   });
 }
 

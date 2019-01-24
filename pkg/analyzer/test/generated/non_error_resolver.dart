@@ -13,60 +13,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
-
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(NonErrorResolverTest);
-  });
-}
-
-@reflectiveTest
-class NonErrorResolverTest extends NonErrorResolverTestBase {
-  @override
-  @failingTest // Does not work with old task model
-  test_infer_mixin_new_syntax() {
-    return super.test_infer_mixin_new_syntax();
-  }
-
-  @override
-  @failingTest
-  test_infer_mixin_with_substitution_functionType_new_syntax() {
-    return super.test_infer_mixin_with_substitution_functionType_new_syntax();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_infer_mixin_with_substitution_new_syntax() {
-    return super.test_infer_mixin_with_substitution_new_syntax();
-  }
-
-  @override
-  @failingTest // Fails with the old task model
-  test_issue_32394() {
-    return super.test_issue_32394();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_mixin_of_mixin_type_argument_inference_cascaded_mixin() {
-    return super.test_mixin_of_mixin_type_argument_inference_cascaded_mixin();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_mixinInference_with_actual_mixins() {
-    return super.test_mixinInference_with_actual_mixins();
-  }
-
-  @override
-  @failingTest
-  test_null_callOperator() {
-    return super.test_null_callOperator();
-  }
-}
 
 class NonErrorResolverTestBase extends ResolverTestCase {
   @override

@@ -178,7 +178,7 @@ class AnalysisDriver {
     }
     try {
       WorkItem workItem =
-          new WorkItem(context, target, taskDescriptor, result, 0, null);
+          new WorkItem._(context, target, taskDescriptor, result, 0, null);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -645,8 +645,9 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor, this.spawningResult,
+  WorkItem._(this.context, this.target, this.descriptor, this.spawningResult,
       this.level, this.workOrder) {
+    _checkInternalUseOfTaskModel();
     AnalysisTarget actualTarget =
         identical(target, AnalysisContextTarget.request)
             ? new AnalysisContextTarget(context)
@@ -762,8 +763,8 @@ class WorkItem {
               // inputs.
               builder.currentValueNotAvailable();
             } else {
-              return new WorkItem(context, inputTarget, descriptor, inputResult,
-                  level + 1, workOrder);
+              return new WorkItem._(context, inputTarget, descriptor,
+                  inputResult, level + 1, workOrder);
             }
           } on AnalysisException catch (exception, stackTrace) {
             this.exception = new CaughtException(exception, stackTrace);
@@ -791,6 +792,13 @@ class WorkItem {
 
   @override
   String toString() => 'Run $descriptor on $target';
+
+  static void _checkInternalUseOfTaskModel() {
+    if (!StackTrace.current.toString().contains('/analyzer/test/')) {
+      throw new StateError(
+          'The analyzer task model is no longer supported.  Please use the AnalysisSession API.');
+    }
+  }
 }
 
 /**

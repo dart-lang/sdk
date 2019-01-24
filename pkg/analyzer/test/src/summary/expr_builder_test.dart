@@ -28,6 +28,8 @@ main() {
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ExprBuilderTest extends ResynthesizeTestStrategyTwoPhase
     with ExprBuilderTestCases, ExprBuilderTestHelpers {}

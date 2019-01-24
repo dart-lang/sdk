@@ -9,13 +9,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CanBeNullAfterNullAwareTest);
     defineReflectiveTests(CanBeNullAfterNullAwareTest_Driver);
   });
 }
 
-@reflectiveTest
-class CanBeNullAfterNullAwareTest extends ResolverTestCase {
+abstract class CanBeNullAfterNullAwareTest extends ResolverTestCase {
   test_afterCascade() async {
     await assertErrorsInCode(r'''
 m(x) {

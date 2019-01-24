@@ -6,7 +6,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
-import 'strong_mode_test.dart';
+import 'strong_mode.dart';
 
 main() {
   defineReflectiveSuite(() {

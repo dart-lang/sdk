@@ -35,7 +35,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
-    defineReflectiveTests(StaticTypeAnalyzer2Test);
     defineReflectiveTests(StaticTypeAnalyzer3Test);
     defineReflectiveTests(StaticTypeAnalyzerWithSetLiteralsTest);
   });
@@ -74,8 +73,7 @@ void useSet(Set<int> s) {
 /**
  * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
  */
-@reflectiveTest
-class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+abstract class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_FunctionExpressionInvocation_block() async {
     String code = r'''
 main() {

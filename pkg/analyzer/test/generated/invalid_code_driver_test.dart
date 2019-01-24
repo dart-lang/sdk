@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'invalid_code_test.dart';
+import 'invalid_code.dart';
 
 main() {
   defineReflectiveSuite(() {

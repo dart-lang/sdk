@@ -9,15 +9,12 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeprecatedMemberUseFromSamePackageTest);
     defineReflectiveTests(DeprecatedMemberUseFromSamePackageTest_Driver);
-    defineReflectiveTests(DeprecatedMemberUseTest);
     defineReflectiveTests(DeprecatedMemberUseTest_Driver);
   });
 }
 
-@reflectiveTest
-class DeprecatedMemberUseTest extends ResolverTestCase {
+abstract class DeprecatedMemberUseTest extends ResolverTestCase {
   /// Write a pubspec file at [root], so that BestPracticesVerifier can see that
   /// [root] is the root of a BasicWorkspace, and a BasicWorkspacePackage.
   void newBasicPackage(String root) {
@@ -94,8 +91,7 @@ class DeprecatedMemberUseTest_Driver extends DeprecatedMemberUseTest {
   bool get enableNewAnalysisDriver => true;
 }
 
-@reflectiveTest
-class DeprecatedMemberUseFromSamePackageTest extends ResolverTestCase {
+abstract class DeprecatedMemberUseFromSamePackageTest extends ResolverTestCase {
   test_methodInvocation_contructor() async {
     assertErrorsInCode(r'''
 class A {

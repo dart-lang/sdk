@@ -9,15 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(StaticTypeWarningCodeTest);
-    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
-  });
-}
-
-@reflectiveTest
-class StaticTypeWarningCodeTest extends ResolverTestCase {
+abstract class StaticTypeWarningCodeTest extends ResolverTestCase {
   fail_undefinedEnumConstant() async {
     // We need a way to set the parseEnum flag in the parser to true.
     await assertErrorsInCode(r'''
@@ -1720,8 +1712,7 @@ Stream<int> f() sync* {
   }
 }
 
-@reflectiveTest
-class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
+abstract class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();

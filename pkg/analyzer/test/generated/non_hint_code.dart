@@ -5,18 +5,10 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(NonHintCodeTest);
-  });
-}
-
-@reflectiveTest
-class NonHintCodeTest extends ResolverTestCase {
+abstract class NonHintCodeTest extends ResolverTestCase {
   @override
   void reset() {
     super.resetWith(packages: [

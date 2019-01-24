@@ -6,18 +6,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ErrorSuppressionTest);
-  });
-}
-
-@reflectiveTest
-class ErrorSuppressionTest extends ResolverTestCase {
+abstract class ErrorSuppressionTest extends ResolverTestCase {
   String get ignoredCode => 'const_initialized_with_non_constant_value';
 
   List<ErrorCode> get reportedCodes => [
