@@ -71,6 +71,21 @@ class CollectionElementTest {
     );
   }
 
+  test_ifElse() {
+    parseEntry(
+      'before if (true) 2 else 5',
+      [
+        'beginIfControlFlow if',
+        'handleLiteralBool true',
+        'handleParenthesizedCondition (',
+        'handleLiteralInt 2',
+        'handleElseControlFlow else',
+        'handleLiteralInt 5',
+        'endIfElseControlFlow 5',
+      ],
+    );
+  }
+
   test_ifSpreadQ() {
     parseEntry(
       'before if (true) ...?[2]',
@@ -83,6 +98,29 @@ class CollectionElementTest {
         'handleLiteralList 1, [, null, ]',
         'handleSpreadExpression ...?',
         'endIfControlFlow ]',
+      ],
+    );
+  }
+
+  test_ifElseSpreadQ() {
+    parseEntry(
+      'before if (true) ...?[2] else ... const {5}',
+      [
+        'beginIfControlFlow if',
+        'handleLiteralBool true',
+        'handleParenthesizedCondition (',
+        'handleNoTypeArguments [',
+        'handleLiteralInt 2',
+        'handleLiteralList 1, [, null, ]',
+        'handleSpreadExpression ...?',
+        'handleElseControlFlow else',
+        'beginConstLiteral {',
+        'handleNoTypeArguments {',
+        'handleLiteralInt 5',
+        'handleLiteralSet 1, {, const, }',
+        'endConstLiteral ',
+        'handleSpreadExpression ...',
+        'endIfElseControlFlow }',
       ],
     );
   }
@@ -302,6 +340,16 @@ class TestInfoListener implements Listener {
   }
 
   @override
+  void endIfElseControlFlow(Token token) {
+    calls.add('endIfElseControlFlow $token');
+  }
+
+  @override
+  void handleElseControlFlow(Token elseToken) {
+    calls.add('handleElseControlFlow $elseToken');
+  }
+
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     calls.add('handleIdentifier $token $context');
   }
@@ -333,6 +381,12 @@ class TestInfoListener implements Listener {
   @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     calls.add('handleLiteralMapEntry $colon, $endToken');
+  }
+
+  @override
+  void handleLiteralSet(
+      int count, Token beginToken, Token constKeyword, Token token) {
+    calls.add('handleLiteralSet $count, $beginToken, $constKeyword, $token');
   }
 
   @override

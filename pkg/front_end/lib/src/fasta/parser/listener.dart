@@ -1077,12 +1077,25 @@ class Listener implements UnescapeErrorListener {
   /// Called before parsing an `if` control flow list, set, or map entry.
   void beginIfControlFlow(Token ifToken) {}
 
+  /// Called before parsing the `else` portion of an `if` control flow list,
+  /// set, or map entry.
+  void handleElseControlFlow(Token elseToken) {}
+
   /// Called after parsing an `if` control flow list, set, or map entry.
   /// Substructures:
   /// - if conditional expression
   /// - expression
   void endIfControlFlow(Token token) {
     logEvent("IfControlFlow");
+  }
+
+  /// Called after parsing an if-else control flow list, set, or map entry.
+  /// Substructures:
+  /// - if conditional expression
+  /// - then expression
+  /// - else expression
+  void endIfElseControlFlow(Token token) {
+    logEvent("IfElseControlFlow");
   }
 
   /// Called after parsing a list, set, or map entry that starts with

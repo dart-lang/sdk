@@ -3528,6 +3528,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void endIfElseControlFlow(Token token) {
+    debugEvent("IfElseControlFlow");
+    // TODO(danrubel) implement control flow support
+    pop(); // else entry
+    var entry = pop(); // then entry
+    pop(); // parenthesized expression
+    Token ifToken = pop();
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+  }
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     debugEvent("SpreadExpression");
     // TODO(danrubel) implement spread expression support

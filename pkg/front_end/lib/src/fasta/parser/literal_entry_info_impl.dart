@@ -70,7 +70,9 @@ class IfSpread extends SpreadOperator {
 
   @override
   LiteralEntryInfo computeNext(Token token) {
-    // TODO(danrubel): handle `else'
+    if (optional('else', token.next)) {
+      return const IfElse();
+    }
     return const IfComplete();
   }
 }
@@ -82,8 +84,52 @@ class IfEntry extends LiteralEntryInfo {
 
   @override
   LiteralEntryInfo computeNext(Token token) {
-    // TODO(danrubel): handle `else'
+    if (optional('else', token.next)) {
+      return const IfElse();
+    }
     return const IfComplete();
+  }
+}
+
+/// A step for parsing the `else` portion of an `if` control flow.
+class IfElse extends LiteralEntryInfo {
+  const IfElse() : super(false);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    Token elseToken = token.next;
+    assert(optional('else', elseToken));
+    parser.listener.handleElseControlFlow(elseToken);
+    return elseToken;
+  }
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    assert(optional('else', token));
+    Token next = token.next;
+    if (optional('...', next) || optional('...?', next)) {
+      return const ElseSpread();
+    }
+    // TODO(danrubel): nested control flow structures
+    return const ElseEntry();
+  }
+}
+
+class ElseSpread extends SpreadOperator {
+  const ElseSpread();
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return const IfElseComplete();
+  }
+}
+
+class ElseEntry extends LiteralEntryInfo {
+  const ElseEntry() : super(true);
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return const IfElseComplete();
   }
 }
 
@@ -93,6 +139,16 @@ class IfComplete extends LiteralEntryInfo {
   @override
   Token parse(Token token, Parser parser) {
     parser.listener.endIfControlFlow(token);
+    return token;
+  }
+}
+
+class IfElseComplete extends LiteralEntryInfo {
+  const IfElseComplete() : super(false);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    parser.listener.endIfElseControlFlow(token);
     return token;
   }
 }

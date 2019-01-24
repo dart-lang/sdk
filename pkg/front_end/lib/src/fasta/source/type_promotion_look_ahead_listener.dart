@@ -383,6 +383,12 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
+  void endIfElseControlFlow(Token token) {
+    // TODO(danrubel) add support for if control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     // TODO(danrubel) add support for spread collections
     // but for now this is ignored and an error reported in the body builder.

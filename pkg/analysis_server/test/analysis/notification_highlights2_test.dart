@@ -1230,7 +1230,6 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
   }
 
-  @failingTest
   test_KEYWORD_if_map() async {
     addTestFile('''
 f(a, b) {
@@ -1241,7 +1240,6 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
   }
 
-  @failingTest
   test_KEYWORD_if_set() async {
     addTestFile('''
 f(a, b) {
@@ -1252,7 +1250,6 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
   }
 
-  @failingTest
   test_KEYWORD_ifElse_list() async {
     addTestFile('''
 f(a, b) {
@@ -1264,7 +1261,6 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  @failingTest
   test_KEYWORD_ifElse_map() async {
     addTestFile('''
 f(a, b) {
@@ -1276,7 +1272,6 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  @failingTest
   test_KEYWORD_ifElse_set() async {
     addTestFile('''
 f(a, b) {

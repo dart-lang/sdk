@@ -646,6 +646,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endIfElseControlFlow(Token token) {
+    listener?.endIfElseControlFlow(token);
+  }
+
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     listener?.endIfStatement(ifToken, elseToken);
   }
@@ -978,6 +983,11 @@ class ForwardingListener implements Listener {
   @override
   void endImplicitCreationExpression(Token token) {
     listener?.endImplicitCreationExpression(token);
+  }
+
+  @override
+  void handleElseControlFlow(Token elseToken) {
+    listener?.handleElseControlFlow(elseToken);
   }
 
   @override

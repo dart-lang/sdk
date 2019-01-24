@@ -282,19 +282,40 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleElseControlFlow(Token elseToken) {
+    push(elseToken);
+  }
+
+  @override
   void endIfControlFlow(Token token) {
-    CollectionElement thenElement = pop();
+    var thenElement = pop();
     ParenthesizedExpression condition = pop();
     Token ifToken = pop();
+    pushIfControlFlowInfo(ifToken, condition, thenElement, null, null);
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    var elseElement = pop();
+    Token elseToken = pop();
+    var thenElement = pop();
+    ParenthesizedExpression condition = pop();
+    Token ifToken = pop();
+    pushIfControlFlowInfo(
+        ifToken, condition, thenElement, elseToken, elseElement);
+  }
+
+  void pushIfControlFlowInfo(Token ifToken, ParenthesizedExpression condition,
+      var thenElement, Token elseToken, var elseElement) {
     if (enableControlFlowCollections) {
-      push(ast.collectionIfElement(
-          ifKeyword: ifToken,
-          leftParenthesis: condition.leftParenthesis,
-          condition: condition.expression,
-          rightParenthesis: condition.rightParenthesis,
-          thenElement: thenElement,
-          elseKeyword: null,
-          elseElement: null));
+      push(new _ControlFlowInfo(
+          ifToken,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          thenElement,
+          elseToken,
+          elseElement));
     } else {
       handleRecoverableError(
           templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
@@ -894,7 +915,13 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralList");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popTypedList(count);
+      List<CollectionElement> elements = <CollectionElement>[];
+      popTypedList(count)?.forEach((element) {
+        elements.add(element is _EntryInfo
+            ? element.asCollectionElement(ast)
+            : element as CollectionElement);
+      });
+
       TypeArgumentList typeArguments = pop();
       push(ast.listLiteral2(
         constKeyword: constKeyword,
@@ -968,8 +995,13 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralSet");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements =
-          popTypedList(count) ?? <CollectionElement>[];
+      List<CollectionElement> elements = <CollectionElement>[];
+      popTypedList(count)?.forEach((element) {
+        elements.add(element is _EntryInfo
+            ? element.asCollectionElement(ast)
+            : element as CollectionElement);
+      });
+
       TypeArgumentList typeArguments = pop();
       push(ast.setLiteral2(
         constKeyword: constKeyword,
@@ -996,9 +1028,9 @@ class AstBuilder extends StackListener {
     if (enableControlFlowCollections || enableSpreadCollections) {
       List<MapElement> entries = <MapElement>[];
       popTypedList(count)?.forEach((entry) {
-        if (entry is MapElement) {
-          entries.add(entry);
-        }
+        entries.add(entry is _EntryInfo
+            ? entry.asMapElement(ast)
+            : entry as MapElement);
       });
 
       TypeArgumentList typeArguments = pop();
@@ -3121,4 +3153,59 @@ class _ConstructorNameWithInvalidTypeArgs {
   final TypeArgumentList invalidTypeArgs;
 
   _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
+}
+
+abstract class _EntryInfo {
+  CollectionElement asCollectionElement(AstFactory ast);
+  MapElement asMapElement(AstFactory ast);
+}
+
+class _ControlFlowInfo implements _EntryInfo {
+  final Token ifToken;
+  final Token leftParenthesis;
+  final Expression conditionExpression;
+  final Token rightParenthesis;
+  final thenElement;
+  final Token elseToken;
+  final elseElement;
+
+  _ControlFlowInfo(
+      this.ifToken,
+      this.leftParenthesis,
+      this.conditionExpression,
+      this.rightParenthesis,
+      this.thenElement,
+      this.elseToken,
+      this.elseElement);
+
+  @override
+  CollectionElement asCollectionElement(AstFactory ast) =>
+      ast.collectionIfElement(
+        ifKeyword: ifToken,
+        leftParenthesis: leftParenthesis,
+        condition: conditionExpression,
+        rightParenthesis: rightParenthesis,
+        thenElement: thenElement is _EntryInfo
+            ? thenElement.asCollectionElement(ast)
+            : thenElement as CollectionElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement is _EntryInfo
+            ? elseElement.asCollectionElement(ast)
+            : elseElement as CollectionElement,
+      );
+
+  @override
+  MapElement asMapElement(AstFactory ast) => ast.mapIfElement(
+        ifKeyword: ifToken,
+        leftParenthesis: leftParenthesis,
+        condition: conditionExpression,
+        rightParenthesis: rightParenthesis,
+        thenElement: thenElement is _EntryInfo
+            ? thenElement.asMapElement(ast)
+            : thenElement as MapElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement is _EntryInfo
+            ? elseElement.asMapElement(ast)
+            : elseElement as MapElement,
+      );
 }

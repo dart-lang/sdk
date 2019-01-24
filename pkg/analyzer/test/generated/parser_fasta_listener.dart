@@ -801,6 +801,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endIfElseControlFlow(Token token) {
+    end('IfControlFlow');
+    super.endIfElseControlFlow(token);
+  }
+
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     end('IfStatement');
     super.endIfStatement(ifToken, elseToken);
