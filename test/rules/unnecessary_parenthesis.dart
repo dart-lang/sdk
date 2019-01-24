@@ -14,7 +14,8 @@ main() async {
   print(1); // OK
   print((1)); // LINT
   if (a && b || c && d) true; // OK
-  if ((a && b) || c && d) true; // OK because it may be hard to know all precedence rules
+  // OK because it may be hard to know all of the precedence rules.
+  if ((a && b) || c && d) true; // OK
   (await new Future.value(1)).toString(); // OK
   ('' as String).toString(); // OK
   !(true as bool); // OK
@@ -22,13 +23,22 @@ main() async {
   (a) ? true : false; // LINT
   true ? (a) : false; // LINT
   true ? true : (a); // LINT
-  (true ? [] : [])..add(''); // OK because it's unobvious it the same as without parens
+  // OK because it is unobvious that the space-involving ternary binds tighter
+  // than the cascade.
+  (true ? [] : [])..add(''); // OK
   (a ?? true) ? true : true; // OK
   true ? [] : []..add(''); // OK
   m(p: (1 + 3)); // LINT
+
+  // OK because it is unobvious where cascades fall in precedence.
   a..b = (c..d); // OK
+  a.b = (c..d); // OK
+  a..b = (c.d); // OK
   ((x) => x is bool ? x : false)(a); // OK
   (fn)(a); // LINT
+
+  // OK because unary operators mixed with space-separated tokens may have
+  // unexpected ordering.
   !(const [7].contains(42)); // OK
   !(new List(3).contains(42)); // OK
   !(await Future.value(false)); // OK
