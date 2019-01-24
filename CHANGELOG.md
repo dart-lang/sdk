@@ -1,3 +1,7 @@
+## 2.1.1-dev.3.0
+
+* Cherry-pick 3cb16d20e7810a2a378bb897d939f67c0b380d88 to dev
+
 ## 2.1.1-dev.2.0
 
 ### Core library changes

@@ -2781,6 +2781,32 @@ var b = new B();
     expect(_getTopLevelVarType(result.unit, 'b'), 'B');
   }
 
+  test_part_getResult_changePart_invalidatesLibraryCycle() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+    newFile(a, content: r'''
+import 'dart:async';
+part 'b.dart';
+''');
+    driver.addFile(a);
+
+    // Analyze the library without the part.
+    await driver.getResult(a);
+
+    // Create the part file.
+    // This should invalidate library file state (specifically the library
+    // cycle), so that we can re-link the library, and get new dependencies.
+    newFile(b, content: r'''
+part of 'a.dart';
+Future<int> f;
+''');
+    driver.changeFile(b);
+
+    // This should not crash.
+    var result = await driver.getResult(b);
+    expect(result.errors, isEmpty);
+  }
+
   test_part_getResult_noLibrary() async {
     var c = convertPath('/test/lib/c.dart');
     newFile(c, content: r'''
