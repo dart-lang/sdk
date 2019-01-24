@@ -14,6 +14,18 @@ Language/Metadata/before_param_t09: DartkCrash
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError
 Language/Types/Interface_Types/subtype_t03: RuntimeError
 Language/Types/Interface_Types/subtype_t26: RuntimeError
+LanguageFeatures/Constant_update2018/CastOperator_A03_t01/none: RuntimeError
+LanguageFeatures/Constant_update2018/CastOperator_A03_t03/none: RuntimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t01: RuntimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t02: RuntimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t03/none: RuntimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t06/none: RuntimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t09/none: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t02: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05/none: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06/none: RuntimeError
 LanguageFeatures/Subtyping/static/generated/left_bottom_global_variable_A02_t01: DartkCrash
 LanguageFeatures/Subtyping/static/generated/left_promoted_variable_global_variable_A02_t01: DartkCrash
 LibTest/collection/DoubleLinkedQueue/removeWhere_A02_t02: RuntimeError
@@ -54,20 +66,8 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 [ $compiler == fasta ]
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
-LanguageFeatures/Constant_update2018/NewOperators_A01_t01: Crash
-LanguageFeatures/Constant_update2018/NewOperators_A01_t02: Crash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A02_t02: Crash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t04: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A02_t05: Crash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t07: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: Crash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: Crash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: Crash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: Crash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: Crash
 LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError # Issue 35608
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError # Issue 35608
@@ -228,44 +228,45 @@ Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
-LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A03_t02/none: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A04_t01/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A04_t02/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/none: CompileTimeError, Crash # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A03_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A04_t01/none: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A04_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/none: CompileTimeError
 LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04/none: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A01_t01: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/NewOperators_A01_t02: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/NewOperators_A02_t02: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t03: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t02/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t03: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A01_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t04: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t07: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t03: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t03: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t05/none: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t03/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t04/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01/none: CompileTimeError, Crash # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02/none: CompileTimeError, Crash # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t03/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t04/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02/none: CompileTimeError
 LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
 LanguageFeatures/Control-flow-collections/scoping_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
 LanguageFeatures/Control-flow-collections/static_errors_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
@@ -584,6 +585,12 @@ LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 
 [ $arch == simdbc64 && $compiler == dartk ]
+LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t02: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t05: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t08: Pass
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LibTest/core/List/List_class_A01_t02: Crash # Issue http://dartbug.com/35242
@@ -600,9 +607,7 @@ LibTest/io/HttpClientRequest/headers_A03_t01: RuntimeError, Pass
 LibTest/io/Stdout/writeCharCode_A01_t03: Timeout, Pass
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
-LanguageFeatures/Constant_update2018/NewOperators_A02_t02: Pass
-LanguageFeatures/Constant_update2018/NewOperators_A02_t05: Pass
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: Pass
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
 LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: Pass
 LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: Pass
 LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: Pass
@@ -677,33 +682,7 @@ LibTest/isolate/Isolate/ping_A03_t02: RuntimeError, Pass
 LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash, Pass
 
 [ $arch != simdbc64 && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-LanguageFeatures/Constant_update2018/CastOperator_A01_t01: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A02_t01: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/02: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/03: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A04_t01: Pass
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03: DartkCrash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A01_t01: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A01_t02: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t05: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02: Pass
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
 LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
 LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
@@ -1277,17 +1256,6 @@ Language/Types/Interface_Types/subtype_t26: RuntimeError
 Language/Types/Type_Declarations/Typedef/dynamic_param_type_t02: RuntimeError
 Language/Variables/constant_initialization_t03: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/01: Pass
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/02: Pass
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/03: Pass
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04/01: Pass
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04/02: Pass
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04/03: Pass
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: Pass
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05/01: Pass
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05/none: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/01: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/01: Pass
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
