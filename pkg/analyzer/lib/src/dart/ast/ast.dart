@@ -4244,7 +4244,10 @@ abstract class ExpressionImpl extends AstNodeImpl
     AstNode child = this;
     while (child is Expression ||
         child is ArgumentList ||
-        child is MapLiteralEntry) {
+        child is MapLiteralEntry ||
+        child is SpreadElement ||
+        child is IfElement ||
+        child is ForElement) {
       AstNode parent = child.parent;
       if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
