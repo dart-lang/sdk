@@ -22,6 +22,7 @@ dart/data_uri_import_test/none: SkipByDesign
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
+dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
 [ $mode == debug ]
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
@@ -109,6 +110,9 @@ dart/spawn_shutdown_test: SkipByDesign # VM Shutdown test
 
 [ $runtime != dart_precompiled  || $system == android ]
 dart/bare_instructions_trampolines_test: SkipByDesign # This test is for VM AOT only (android fails due to listing interfaces).
+
+[ $mode == debug || $runtime != dart_precompiled  || $system == android ]
+dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.

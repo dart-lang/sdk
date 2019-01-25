@@ -4810,7 +4810,8 @@ Deserializer::Deserializer(Thread* thread,
                            const uint8_t* data_buffer,
                            const uint8_t* instructions_buffer,
                            const uint8_t* shared_data_buffer,
-                           const uint8_t* shared_instructions_buffer)
+                           const uint8_t* shared_instructions_buffer,
+                           intptr_t offset)
     : ThreadStackResource(thread),
       heap_(thread->isolate()->heap()),
       zone_(thread->zone()),
@@ -4827,6 +4828,7 @@ Deserializer::Deserializer(Thread* thread,
         new (zone_) ImageReader(data_buffer, instructions_buffer,
                                 shared_data_buffer, shared_instructions_buffer);
   }
+  stream_.SetPosition(offset);
 }
 
 Deserializer::~Deserializer() {
@@ -4953,39 +4955,43 @@ DeserializationCluster* Deserializer::ReadCluster() {
   return NULL;
 }
 
-RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
-  if (image_reader_ != NULL) {
-    RawApiError* error = image_reader_->VerifyAlignment();
-    if (error != ApiError::null()) {
-      return error;
-    }
+RawApiError* Deserializer::VerifyImageAlignment() {
+  if (image_reader_ != nullptr) {
+    return image_reader_->VerifyAlignment();
   }
-
-  RawApiError* error = VerifyVersion();
-  if (error != ApiError::null()) {
-    return error;
-  }
-
-  return VerifyFeatures(isolate);
+  return ApiError::null();
 }
 
-RawApiError* Deserializer::VerifyVersion() {
+char* SnapshotHeaderReader::VerifyVersionAndFeatures(Isolate* isolate,
+                                                     intptr_t* offset) {
+  char* error = VerifyVersion();
+  if (error == nullptr) {
+    error = VerifyFeatures(isolate);
+  }
+  if (error == nullptr) {
+    *offset = stream_.Position();
+  }
+  return error;
+}
+
+char* SnapshotHeaderReader::VerifyVersion() {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
-  if (PendingBytes() < version_len) {
+  if (stream_.PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
     char message_buffer[kMessageBufferSize];
     Utils::SNPrint(message_buffer, kMessageBufferSize,
                    "No full snapshot version found, expected '%s'",
                    expected_version);
-    return BuildApiError(message_buffer);
+    return BuildError(message_buffer);
   }
 
-  const char* version = reinterpret_cast<const char*>(CurrentBufferAddress());
+  const char* version =
+      reinterpret_cast<const char*>(stream_.AddressOfCurrentPosition());
   ASSERT(version != NULL);
   if (strncmp(version, expected_version, version_len)) {
     const intptr_t kMessageBufferSize = 256;
@@ -4996,14 +5002,14 @@ RawApiError* Deserializer::VerifyVersion() {
                    (Snapshot::IsFull(kind_)) ? "full" : "script",
                    expected_version, actual_version);
     free(actual_version);
-    return BuildApiError(message_buffer);
+    return BuildError(message_buffer);
   }
-  Advance(version_len);
+  stream_.Advance(version_len);
 
-  return ApiError::null();
+  return nullptr;
 }
 
-RawApiError* Deserializer::VerifyFeatures(Isolate* isolate) {
+char* SnapshotHeaderReader::VerifyFeatures(Isolate* isolate) {
   const char* expected_features =
       Dart::FeaturesString(isolate, (isolate == NULL), kind_);
   ASSERT(expected_features != NULL);
@@ -5012,8 +5018,8 @@ RawApiError* Deserializer::VerifyFeatures(Isolate* isolate) {
   const char* features = nullptr;
   intptr_t features_length = 0;
 
-  RawApiError* error = ReadFeatures(&features, &features_length);
-  if (error != ApiError::null()) {
+  auto error = ReadFeatures(&features, &features_length);
+  if (error != nullptr) {
     return error;
   }
 
@@ -5029,27 +5035,35 @@ RawApiError* Deserializer::VerifyFeatures(Isolate* isolate) {
                    actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
-    return BuildApiError(message_buffer);
+    return BuildError(message_buffer);
   }
   free(const_cast<char*>(expected_features));
-  return ApiError::null();
+  return nullptr;
 }
 
-RawApiError* Deserializer::ReadFeatures(const char** features,
-                                        intptr_t* features_length) {
-  const char* cursor = reinterpret_cast<const char*>(CurrentBufferAddress());
-  const intptr_t length = Utils::StrNLen(cursor, PendingBytes());
-  if (length == PendingBytes()) {
-    return BuildApiError(
+char* SnapshotHeaderReader::ReadFeatures(const char** features,
+                                         intptr_t* features_length) {
+  const char* cursor =
+      reinterpret_cast<const char*>(stream_.AddressOfCurrentPosition());
+  const intptr_t length = Utils::StrNLen(cursor, stream_.PendingBytes());
+  if (length == stream_.PendingBytes()) {
+    return BuildError(
         "The features string in the snapshot was not '\\0'-terminated.");
   }
   *features = cursor;
   *features_length = length;
-  Advance(length + 1);
-  return ApiError::null();
+  stream_.Advance(length + 1);
+  return nullptr;
 }
 
-RawApiError* Deserializer::BuildApiError(const char* message) {
+char* SnapshotHeaderReader::BuildError(const char* message) {
+  return strdup(message);
+}
+
+RawApiError* FullSnapshotReader::ConvertToApiError(char* message) {
+  // The [message] was constructed with [BuildError] and needs to be freed.
+  free(message);
+
   // This can also fail while bringing up the VM isolate, so make sure to
   // allocate the error message in old space.
   const String& msg = String::Handle(String::New(message, Heap::kOld));
@@ -5568,21 +5582,19 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
   shared_instructions_image_ = shared_instructions;
 }
 
-RawApiError* FullSnapshotReader::InitializeGlobalVMFlagsFromSnapshot() {
-  Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, NULL, NULL);
+char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
+    const Snapshot* snapshot) {
+  SnapshotHeaderReader header_reader(snapshot);
 
-  deserializer.SkipHeader();
-
-  RawApiError* error = deserializer.VerifyVersion();
-  if (error != ApiError::null()) {
+  char* error = header_reader.VerifyVersion();
+  if (error != nullptr) {
     return error;
   }
 
   const char* features = nullptr;
   intptr_t features_length = 0;
-  error = deserializer.ReadFeatures(&features, &features_length);
-  if (error != ApiError::null()) {
+  error = header_reader.ReadFeatures(&features, &features_length);
+  if (error != nullptr) {
     return error;
   }
 
@@ -5614,18 +5626,24 @@ RawApiError* FullSnapshotReader::InitializeGlobalVMFlagsFromSnapshot() {
     cursor = end;
   }
 
-  return ApiError::null();
+  return nullptr;
 }
 
 RawApiError* FullSnapshotReader::ReadVMSnapshot() {
+  SnapshotHeaderReader header_reader(kind_, buffer_, size_);
+
+  intptr_t offset = 0;
+  char* error =
+      header_reader.VerifyVersionAndFeatures(/*isolate=*/NULL, &offset);
+  if (error != nullptr) {
+    return ConvertToApiError(error);
+  }
+
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, NULL, NULL);
-
-  deserializer.SkipHeader();
-
-  RawApiError* error = deserializer.VerifyVersionAndFeatures(/*isolate=*/NULL);
-  if (error != ApiError::null()) {
-    return error;
+                            instructions_image_, NULL, NULL, offset);
+  RawApiError* api_error = deserializer.VerifyImageAlignment();
+  if (api_error != ApiError::null()) {
+    return api_error;
   }
 
   if (Snapshot::IncludesCode(kind_)) {
@@ -5643,16 +5661,20 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
 }
 
 RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
+  SnapshotHeaderReader header_reader(kind_, buffer_, size_);
+  intptr_t offset = 0;
+  char* error =
+      header_reader.VerifyVersionAndFeatures(thread_->isolate(), &offset);
+  if (error != nullptr) {
+    return ConvertToApiError(error);
+  }
+
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, shared_data_image_,
-                            shared_instructions_image_);
-
-  deserializer.SkipHeader();
-
-  RawApiError* error =
-      deserializer.VerifyVersionAndFeatures(thread_->isolate());
-  if (error != ApiError::null()) {
-    return error;
+                            shared_instructions_image_, offset);
+  RawApiError* api_error = deserializer.VerifyImageAlignment();
+  if (api_error != ApiError::null()) {
+    return api_error;
   }
 
   if (Snapshot::IncludesCode(kind_)) {

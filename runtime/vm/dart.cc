@@ -135,6 +135,27 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return strdup("VM already initialized or flags not initialized.");
   }
+
+  const Snapshot* snapshot = nullptr;
+  if (vm_isolate_snapshot != nullptr) {
+    snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
+    if (snapshot == nullptr) {
+      return strdup("Invalid vm isolate snapshot seen");
+    }
+  }
+
+  // We are initializing the VM. We will take the VM-global flags used
+  // during snapshot generation time also at runtime (this avoids the need
+  // for the embedder to pass the same flags used during snapshot generation
+  // also to the runtime).
+  if (snapshot != nullptr) {
+    char* error =
+        SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(snapshot);
+    if (error != nullptr) {
+      return error;
+    }
+  }
+
 #if defined(DEBUG)
   // Turn on verify_gc_contains if any of the other GC verification flag
   // is turned on.
@@ -216,10 +237,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #if defined(SUPPORT_TIMELINE)
       TimelineDurationScope tds(Timeline::GetVMStream(), "VMIsolateSnapshot");
 #endif
-      const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
-      if (snapshot == NULL) {
-        return strdup("Invalid vm isolate snapshot seen");
-      }
+      ASSERT(snapshot != nullptr);
       vm_snapshot_kind_ = snapshot->kind();
 
       if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
@@ -251,13 +269,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         return strdup("Invalid vm isolate snapshot seen");
       }
       FullSnapshotReader reader(snapshot, instructions_snapshot, NULL, NULL, T);
-
-      // We are initializing the VM. We will take the VM-global flags used
-      // during snapshot generation time also at runtime (this avoids the need
-      // for the embedder to pass the same flags used during snapshot generation
-      // also to the runtime).
-      reader.InitializeGlobalVMFlagsFromSnapshot();
-
       const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
