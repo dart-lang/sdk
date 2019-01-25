@@ -8,7 +8,7 @@
 #include "vm/os.h"
 
 #include <android/log.h>   // NOLINT
-#include <endian.h>        // NOLINT
+#include <errno.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
 #include <sys/resource.h>  // NOLINT
