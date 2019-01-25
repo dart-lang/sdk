@@ -37,6 +37,7 @@ enum MessageKind {
   CYCLIC_COMPILE_TIME_CONSTANTS,
   DIRECTLY_THROWING_NSM,
   EQUAL_MAP_ENTRY_KEY,
+  EQUAL_SET_ENTRY,
   EXTRANEOUS_MODIFIER,
   EXTRANEOUS_MODIFIER_REPLACE,
   FORIN_NOT_ASSIGNABLE,
@@ -430,6 +431,16 @@ class C<T> {
             """
 main() {
   var m = const {'foo': 1, 'foo': 2};
+}"""
+          ]),
+
+      MessageKind.EQUAL_SET_ENTRY: const MessageTemplate(
+          MessageKind.EQUAL_SET_ENTRY, "An entry appears twice in the set.",
+          howToFix: "Try removing one of the entries.",
+          examples: const [
+            """
+main() {
+  var m = const {'foo', 'bar', 'foo'};
 }"""
           ]),
 
