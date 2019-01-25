@@ -684,12 +684,14 @@ ${parser.usage}""");
     final futures = <Future>[];
     for (final String bot in unapprovedBots) {
       Map<String, dynamic> approveData(Test test) {
-        final data = new Map<String, dynamic>.from(test.resultData);
-        if (!test.isApproved) {
+        if (test.isApproved) {
+          return test.approvedResultData;
+        } else {
+          final data = new Map<String, dynamic>.from(test.resultData);
           data["approver"] = username;
           data["approved_at"] = now;
+          return data;
         }
-        return data;
       }
 
       final dataList = testsForBots[bot].map(approveData).toList();
