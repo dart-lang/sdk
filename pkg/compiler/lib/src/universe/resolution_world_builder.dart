@@ -640,13 +640,13 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     void _process(
         Map<String, Set<MemberUsage>> memberMap,
         EnumSet<MemberUse> action(MemberUsage usage),
-        bool shouldBeRemove(MemberUsage usage)) {
+        bool shouldBeRemoved(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
         if (selector.appliesUnnamed(usage.entity) &&
             _selectorConstraintsStrategy.appliedUnnamed(
                 dynamicUse, usage.entity, this)) {
           memberUsed(usage.entity, action(usage));
-          return true;
+          return shouldBeRemoved(usage);
         }
         return false;
       });
@@ -848,7 +848,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     map[memberName] = new Set<MemberUsage>();
     Set<MemberUsage> remaining = new Set<MemberUsage>();
     for (MemberUsage usage in members) {
-      if (!updateUsage(usage)) remaining.add(usage);
+      if (!updateUsage(usage)) {
+        remaining.add(usage);
+      }
     }
     map[memberName].addAll(remaining);
   }

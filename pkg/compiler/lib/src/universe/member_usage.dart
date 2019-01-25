@@ -332,12 +332,17 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
       return MemberUses.NONE;
     }
     bool alreadyHasInvoke = hasInvoke;
-    _parameterUsage.invoke(callStructure);
+    bool hasPartialChange = _parameterUsage.invoke(callStructure);
+    EnumSet<MemberUse> result;
     if (alreadyHasInvoke) {
-      return MemberUses.NONE;
+      result = MemberUses.NONE;
+    } else {
+      result = _pendingUse
+          .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
     }
-    return _pendingUse
-        .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
+    return hasPartialChange
+        ? result.union(MemberUses.PARTIAL_USE_ONLY)
+        : result;
   }
 
   @override
@@ -467,12 +472,17 @@ class ParameterTrackingConstructorUsage extends MemberUsage {
       return MemberUses.NONE;
     }
     bool alreadyHasInvoke = hasInvoke;
-    _parameterUsage.invoke(callStructure);
+    bool hasPartialChange = _parameterUsage.invoke(callStructure);
+    EnumSet<MemberUse> result;
     if (alreadyHasInvoke) {
-      return MemberUses.NONE;
+      result = MemberUses.NONE;
+    } else {
+      result = _pendingUse
+          .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
     }
-    return _pendingUse
-        .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
+    return hasPartialChange
+        ? result.union(MemberUses.PARTIAL_USE_ONLY)
+        : result;
   }
 
   @override
@@ -495,7 +505,22 @@ class ParameterTrackingConstructorUsage extends MemberUsage {
 }
 
 /// Enum class for the possible kind of use of [MemberEntity] objects.
-enum MemberUse { NORMAL, CLOSURIZE_INSTANCE, CLOSURIZE_STATIC }
+enum MemberUse {
+  /// Read or write of a field, or invocation of a method.
+  NORMAL,
+
+  /// Tear-off of an instance method.
+  CLOSURIZE_INSTANCE,
+
+  /// Tear-off of a static method.
+  CLOSURIZE_STATIC,
+
+  /// Invocation that provides previously unprovided optional parameters.
+  ///
+  /// This is used to check that no partial use is missed by the enqueuer, as
+  /// asserted through the `Enqueuery.checkEnqueuerConsistency` method.
+  PARTIAL_USE
+}
 
 /// Common [EnumSet]s used for [MemberUse].
 class MemberUses {
@@ -510,6 +535,8 @@ class MemberUses {
       const EnumSet<MemberUse>.fixed(3);
   static const EnumSet<MemberUse> ALL_STATIC =
       const EnumSet<MemberUse>.fixed(5);
+  static const EnumSet<MemberUse> PARTIAL_USE_ONLY =
+      const EnumSet<MemberUse>.fixed(8);
 }
 
 typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
@@ -685,11 +712,11 @@ class ParameterUsage {
   /// invocation of the method or constructor.
   bool _areAllTypeParametersProvided;
 
-  /// The set of named parameters that have been provided in at least one
+  /// The set of named parameters that have not yet been provided in any
   /// invocation of the method or constructor.
   ///
   /// If all named parameters have been provided this is set to `null`.
-  Set<String> _providedNamedParameters;
+  Set<String> _unprovidedNamedParameters;
 
   ParameterUsage(this._parameterStructure) {
     _hasInvoke = false;
@@ -699,32 +726,41 @@ class ParameterUsage {
         ? null
         : 0;
     if (!_parameterStructure.namedParameters.isEmpty) {
-      _providedNamedParameters =
+      _unprovidedNamedParameters =
           new Set<String>.from(_parameterStructure.namedParameters);
     }
   }
 
-  void invoke(CallStructure callStructure) {
-    if (isFullyUsed) return;
+  bool invoke(CallStructure callStructure) {
+    if (isFullyUsed) return false;
     _hasInvoke = true;
+    bool changed = false;
     if (_providedPositionalParameters != null) {
-      _providedPositionalParameters = Math.max(
+      int newProvidedPositionalParameters = Math.max(
           _providedPositionalParameters, callStructure.positionalArgumentCount);
+      changed |=
+          newProvidedPositionalParameters != _providedPositionalParameters;
+      _providedPositionalParameters = newProvidedPositionalParameters;
       if (_providedPositionalParameters >=
           _parameterStructure.positionalParameters) {
         _providedPositionalParameters = null;
       }
     }
-    if (_providedNamedParameters != null &&
+    if (_unprovidedNamedParameters != null &&
         callStructure.namedArguments.isNotEmpty) {
-      _providedNamedParameters.removeAll(callStructure.namedArguments);
-      if (_providedNamedParameters.isEmpty) {
-        _providedNamedParameters = null;
+      int _providedNamedParametersCount = _unprovidedNamedParameters.length;
+      _unprovidedNamedParameters.removeAll(callStructure.namedArguments);
+      changed |=
+          _providedNamedParametersCount != _unprovidedNamedParameters.length;
+      if (_unprovidedNamedParameters.isEmpty) {
+        _unprovidedNamedParameters = null;
       }
     }
     if (!_areAllTypeParametersProvided && callStructure.typeArgumentCount > 0) {
       _areAllTypeParametersProvided = true;
+      changed = true;
     }
+    return changed;
   }
 
   bool get hasInvoke => _hasInvoke;
@@ -732,13 +768,13 @@ class ParameterUsage {
   bool get isFullyUsed =>
       _hasInvoke &&
       _providedPositionalParameters == null &&
-      _providedNamedParameters == null &&
+      _unprovidedNamedParameters == null &&
       _areAllTypeParametersProvided;
 
   void fullyUse() {
     _hasInvoke = true;
     _providedPositionalParameters = null;
-    _providedNamedParameters = null;
+    _unprovidedNamedParameters = null;
     _areAllTypeParametersProvided = true;
   }
 
@@ -749,10 +785,10 @@ class ParameterUsage {
         _parameterStructure.requiredParameters,
         _providedPositionalParameters ??
             _parameterStructure.positionalParameters,
-        _providedNamedParameters == null
+        _unprovidedNamedParameters == null
             ? _parameterStructure.namedParameters
             : _parameterStructure.namedParameters
-                .where((n) => !_providedNamedParameters.contains(n))
+                .where((n) => !_unprovidedNamedParameters.contains(n))
                 .toList(),
         _areAllTypeParametersProvided ? _parameterStructure.typeParameters : 0);
   }

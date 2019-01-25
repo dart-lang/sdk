@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/member_usage.dart';
@@ -18,7 +19,15 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const ClosedWorldDataComputer(),
+    print('------------------------------------------------------------------');
+    print(' Test with enqueuer checks');
+    print('------------------------------------------------------------------');
+    await checkTests(dataDir, const ClosedWorldDataComputer(false),
+        args: args, testOmit: false, testFrontend: true);
+    print('------------------------------------------------------------------');
+    print(' Test without enqueuer checks');
+    print('------------------------------------------------------------------');
+    await checkTests(dataDir, const ClosedWorldDataComputer(true),
         args: args, testOmit: false, testFrontend: true);
   });
 }
@@ -30,7 +39,14 @@ class Tags {
 }
 
 class ClosedWorldDataComputer extends DataComputer<Features> {
-  const ClosedWorldDataComputer();
+  final bool skipEnqueuerCheck;
+
+  const ClosedWorldDataComputer(this.skipEnqueuerCheck);
+
+  @override
+  void setup() {
+    Enqueuer.skipEnqueuerCheckForTesting = skipEnqueuerCheck;
+  }
 
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
