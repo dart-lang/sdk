@@ -1753,11 +1753,9 @@ Classes may be defined by class declarations as described below, or via mixin ap
 
 \begin{grammar}
 <classDefinition> ::= <metadata> \ABSTRACT{}? \CLASS{} <identifier> <typeParameters>?
-  \gnewline{} <superclass>? <mixins>? <interfaces>?
+  \gnewline{} <superclass>? <interfaces>?
   \gnewline{} `{' (<metadata> <classMemberDefinition>)* `}'
   \alt <metadata> \ABSTRACT{}? \CLASS{} <mixinApplicationClass>
-
-<mixins> ::= \WITH{} <typeNotVoidList>
 
 <typeNotVoidList> ::= <typeNotVoid> (`,' <typeNotVoid>)*
 
@@ -3509,7 +3507,10 @@ It is a compile-time error to specify an \EXTENDS{} clause
 for class \code{Object}.
 
 \begin{grammar}
-<superclass> ::= \EXTENDS{} <typeNotVoid>
+<superclass> ::= \EXTENDS{} <typeNotVoid> <mixins>?
+    \alt <mixins>
+
+<mixins> ::= \WITH{} <typeNotVoidList>
 \end{grammar}
 
 %The superclass clause of a class C is processed within the enclosing scope of the static scope of C.
@@ -4297,33 +4298,16 @@ if{}f the following criteria are all satisfied:
 
 \LMHash{}%
 A mixin describes the difference between a class and its superclass.
-A mixin is always derived from an existing class declaration.
+A mixin is either derived from an existing class declaration
+or introduced by a mixin declaration.
 
 \LMHash{}%
-It is a compile-time error to derive a mixin from a class which explicitly declares a generative constructor.
-It is a compile-time error to derive a mixin from a class which has a superclass other than \code{Object}.
+Mixin application occurs when one or more mixins are mixed into a class declaration via its \WITH{} clause (\ref{mixinApplication}).
+Mixin application may be used to extend a class per section \ref{classes};
+alternatively, a class may be defined as a mixin application as described in the following section.
 
-\rationale{
-This restriction is temporary.
-We expect to remove it in later versions of Dart.
-
-The restriction on constructors simplifies the construction of mixin applications because the process of creating instances is simpler.
-}
-
-
-\subsection{Mixin Application}
-\LMLabel{mixinApplication}
-
-\LMHash{}%
-A mixin may be applied to a superclass, yielding a new class.
-Mixin application occurs when one or more mixins are mixed into a class declaration via its \WITH{} clause.
-The mixin application may be used to extend a class per section \ref{classes};
-alternatively, a class may be defined as a mixin application as described in this section.
-It is a compile-time error if an element in the type list of the \WITH{} clause of a mixin application is
-a type variable (\ref{generics}), a type alias that does not denote a class (\ref{typedef}),
-an enumerated type (\ref{enums}),
-a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
-or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
+\subsection{Mixin Classes}
+\LMLabel{mixinClasses}
 
 \begin{grammar}
 <mixinApplicationClass> ::= \gnewline{}
@@ -4333,26 +4317,207 @@ or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 \end{grammar}
 
 \LMHash{}%
-A mixin application of the form \code{$S$ \WITH{} $M$;} for the name $N$ defines a class $C$ with superclass $S$ and name $N$.
+It is a compile-time error if an element in the type list of the \WITH{} clause of a mixin application is
+a type variable (\ref{generics}),
+a function type (\ref{functionTypes}),
+a type alias that does not denote a class (\ref{typedef}),
+an enumerated type (\ref{enums}),
+a deferred type (\ref{staticTypes}),
+type \DYNAMIC{} (\ref{typeDynamic}),
+type \VOID{} (\ref{typeVoid}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
+If $T$ is a type in a \WITH{} clause, \IndexCustom{the mixin of}{type!mixin of}
+$T$ is either the mixin derived from $T$ if $T$ denotes a class,
+or the mixin introduced by $T$ if $T$ denotes a mixin declaration.
 
 \LMHash{}%
-A mixin application of the form \code{$S$ \WITH{} $M_1,\ \ldots,\ M_k$;} for the name $N$ defines a class $C$ whose superclass is the application of the mixin composition (\ref{mixinComposition}) $M_{k-1} * \ldots * M_1$ to $S$ of a name that is a fresh identifer, and whose name is $N$.
-\rationale{The name of the resulting class is necessary because it is part of the names of the introduced constructors.}
+Let $D$ be a mixin application class declaration of the form
+\begin{normativeDartCode}
+\ABSTRACT? \CLASS{} $N$ = $S$ \WITH{} $M_1$, \ldots{}, $M_n$ \IMPLEMENTS{} $I_1$, \ldots, $I_k$;
+\end{normativeDartCode}
 
 \LMHash{}%
-In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$),
-and it does not declare any static members.
-If any of the instance variables of $M$ (respectively, $M_k$) have initializers,
-they are executed in the instance scope of $M$ (respectively, $M_k$)
-to initialize the corresponding instance variables of $C$.
+It is a compile-time error if $S$ is an enumerated type (\ref{enums}).
+It is a compile-time error if any of $M_1, \ldots, M_k$ is an enumerated type (\ref{enums}).
+It is a compile-time error if a well formed mixin cannot be derived from each of $M_1, \ldots, M_k$.
+
+\LMHash{}%
+The effect of $D$ in library $L$ is to introduce the name $N$ into the scope of $L$, bound to the class (\ref{classes}) defined by the clause \code{$S$ \WITH{} $M_1$, \ldots{}, $M_n$} with name $N$, as described below.
+If $k > 0$ then the class also implements $I_1$, \ldots{}, $I_k$.
+If{}f the class declaration is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is made an abstract class.
+
+\LMHash{}%
+A clause of the form \code{$S$ \WITH{} $M_1$, \ldots{}, $M_n$}
+with name $N$ defines a class as follows:
+
+\LMHash{}%
+If there is only one mixin ($n = 1$), then \code{$S$ \WITH{} $M_1$}
+defines the class yielded by the mixin application (\ref{mixinApplication})
+of the mixin of $M_1$ (\ref{mixinDeclaration}) to the class denoted by
+$S$ with name $N$.
+
+\LMHash{}%
+If there is more than one mixin ($n > 1$), then
+let $X$ be the class defined by \code{$S$ \WITH{} $M_1$, \ldots{}, $M_{n-1}$}
+with name $F$, where $F$ is a fresh name, and make $X$ abstract.
+Then \code{$S$ \WITH{} $M_1$, \ldots{}, $M_n$} defines the class yielded
+by the mixin application of the mixin of $M_n$ to the class $X$ with name $N$.
+
+\LMHash{}%
+In either case, let $K$ be a class declaration with the same constructors, superclass, interfaces and instance members as the defined class.
+It is a compile-time error if the declaration of $K$ would cause a compile-time error.
+% TODO(eernst): Not completely!
+% We do not want super-invocations on covariant implementations
+% to be compile-time errors.
+
+\commentary{
+It is an error, for example, if $M$ contains a member declaration $d$ which overrides a member signature $m$ in the interface of $S$, but which is not a correct override of $m$ (\ref{correctMemberOverrides}).
+}
+
+\subsection{Mixin Declaration}
+\LMLabel{mixinDeclaration}
+
+\LMHash{}%
+A mixin defines zero or more \IndexCustom{mixin member declarations}{mixin!member declaration},
+zero or more \IndexCustom{required superinterfaces}{mixin!required superinterface},
+one \IndexCustom{combined superinterface}{mixin!combined superinterface},
+and zero or more \IndexCustom{implemented interfaces}{mixin!implemented interface}.
+
+\LMHash{}%
+The mixin derived from a class declaration:
+\begin{normativeDartCode}
+\ABSTRACT? \CLASS{} $X$ \IMPLEMENTS{} $I_1$, \ldots{}, $I_k$ \{
+  \metavar{members}
+\}
+\end{normativeDartCode}
+has \code{Object} as required superinterface
+and combined superinterface,
+$I_1$, \ldots, $I_k$ as implemented interfaces,
+and the instance members of \metavar{members} as mixin member declarations.
+If $X$ is generic, so is the mixin.
+
+\LMHash{}%
+A mixin declaration introduces a mixin and provides a scope
+for static member declarations.
+
+\begin{grammar}
+<mixinDeclaration> ::= <metadata> \MIXIN{} <identifier> <typeParameters>?
+  \gnewline{} (\ON{} <typeNotVoidList>)? <interfaces>?
+  \gnewline{} `\{' (<metadata> <classMemberDefinition>)* `\}'
+\end{grammar}
+
+\LMHash{}
+It is a compile-time error to declare a constructor in a mixin-declaration.
+
+\LMHash{}
+A mixin declaration with no \code{\ON{}} clause is equivalent
+to one with the clause \code{\ON{} Object}.
+
+\LMHash{}
+Let $M$ be a \MIXIN{} declaration of the form
+\begin{normativeDartCode}
+\MIXIN{} $N$<\TypeParametersStd> \ON{} \List{T}{1}{n} \IMPLEMENTS{} \List{I}{1}{k} \{
+  \metavar{members}
+\}
+\end{normativeDartCode}
+It is a compile-time error if any of the types $T_1$ through $T_n$
+or $I_1$ through $I_k$ is
+a type variable (\ref{generics}),
+a function type (\ref{functionTypes}),
+a type alias not denoting a class (\ref{typedef}),
+an enumerated type (\ref{enums}),
+a deferred type (\ref{staticTypes}),
+type \DYNAMIC{} (\ref{typeDynamic}),
+type \VOID{} (\ref{typeVoid}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
+
+\LMHash{}%
+Let $M_S$ be the interface declared by the class declaration
+\begin{normativeDartCode}
+abstract \CLASS{} $M_{super}$<$P_1$, \ldots{}, $P_m$> implements $T_1$, $\dots{}$, $T_n$ \{\}
+\end{normativeDartCode}
+where $M_{super}$ is a fresh name.
+It is a compile-time error for the mixin declaration if the $M_S$
+class declaration would cause a compile-time error,
+\commentary{
+that is, if any member is declared by more than one declared superinterface,
+and there is not a most specific signature for that member among the super
+interfaces}.
+The interface $M_S$ is called the
+\Index{superinvocation interface} of the mixin declaration $M$.
+\commentary{
+If the mixin declaration $M$ has only one declared superinterface, $T_1$,
+then the superinvocation interface $M_{super}$ has exactly the same members
+as the interface $T_1$.}
+
+\LMHash{}
+Let $M_I$ be the interface that would be defined by the class declaration
+\begin{normativeDartCode}
+\ABSTRACT{} \CLASS{} $N$<\TypeParametersStd> \IMPLEMENTS{} \List{T}{1}{n}, \List{I}{1}{k} \{
+  $\metavar{members}'$
+\}
+\end{normativeDartCode}
+where $\metavar{members}'$ are the member declarations of
+the mixin declaration $M$ except that all superinvocations are treated
+as if \SUPER{} was a valid expression with static type $M_S$.
+It is a compile-time error for the mixin $M$ if this $N$ class
+declaration would cause a compile-time error, \commentary{that is, if the
+required superinterfaces, the implemented interfaces and the declarations do not
+define a consistent interface, if any member declaration contains a
+compile-time error other than a super-invocation, or if a super-invocation
+is not valid against the interface $M_S$}.
+The interface introduced by the mixin declaration $M$ has the same member
+signatures and superinterfaces as $M_I$.
+
+\LMHash{}%
+The mixin declaration $M$ introduces a mixin
+with the \NoIndex{required superinterface}s $T_1$, \ldots{}, $T_n$,
+the \NoIndex{combined superinterface} $M_S$,
+\NoIndex{implemented interface}s $I_1$, \ldots{}, $I_k$
+and the instance members declared in $M$ as \Index{mixin member declarations}.
+
+\subsection{Mixin Application}
+\LMLabel{mixinApplication}
+
+\LMHash{}%
+A mixin may be applied to a superclass, yielding a new class.
+
+\LMHash{}%
+Let $S$ be a class,
+$M$ be a mixin with \NoIndex{required superinterface}s $T_1$, \ldots, $T_n$,
+\NoIndex{combined superinterface} $M_S$,
+\NoIndex{implemented interfaces} $I_1$, \ldots{}, $I_k$ and
+\metavar{members} as \NoIndex{mixin member declarations},
+and let $N$ be a name.
+
+\LMHash{}%
+It is a compile-time error to apply $M$ to $S$ if $S$ does not implement,
+directly or indirectly, all of $T_1$, \ldots, $T_n$.
+It is a compile-time error if any of \metavar{members} contains a
+super-invocation of a member $m$ \commentary{(for example \code{super.foo},
+\code{super + 2}, or \code{super[1] = 2})}, and $S$ does not have a concrete
+implementation of $m$ which is a valid override of the member $m$ in
+the interface $M_S$. \rationale{We treat super-invocations in mixins as
+interface invocations on the combined superinterface, so we require the
+superclass of a mixin application to have valid implementations of those
+interface members that are actually super-invoked.}
+
+\LMHash{}%
+The mixin application of $M$ to $S$ with name $N$ introduces a new
+class, $C$, with name $N$, superclass $S$,
+implemented interface $I_1$, \ldots{}, $I_k$
+and \metavar{members} as instance members.
+The class $C$ has no static members.
+If $S$ declares any generative constructors, then the application
+introduces generative constructors on $C$ as follows:
 
 \LMHash{}%
 Let $L_C$ be the library containing the mixin application.
 \commentary{That is, the library containing the clause \code{$S$ \WITH{} $M$}
-or the clause \code{$S_0$ \WITH{} $M_1$, \ldots,\ $M_k$, $M$}.}
+or the clause \code{$S_0$ \WITH{} $M_1$, \ldots,\ $M_k$, $M$} giving rise
+to the mixin application.}
 
-Let $N_C$ be the name of the mixin application class $C$,
-let $S$ be the superclass of $C$, and let $S_N$ be the name of $S$.
+Let $S_N$ be the name of $S$.
 
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, $\ldots$, $T_{k}$ $a_{k}$)} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
 
@@ -4362,10 +4527,10 @@ $C_q$($T_{1}$ $a_{1}$, \ldots, $T_{k}$ $a_{k}$): $\SUPER_q$($a_{1}$, $\ldots$, $
 
 \noindent
 where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
-which denote the superclass, by $N_C$, and $\SUPER_q$ is obtained from $S_q$ by
+which denote the superclass, by $N$, and $\SUPER_q$ is obtained from $S_q$ by
 replacing occurrences of $S_N$ which denote the superclass by \SUPER{}.
-If $S_q$ is a generative const constructor, and $M$ does not declare any
-fields, $C_q$ is also a const constructor.
+If $S_q$ is a generative const constructor, and $C$ does not declare any
+instance variables, $C_q$ is also a const constructor.
 
 \LMHash{}%
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d_1$, \ldots , $T_{k+p}$ $a_{k+p}$ = $d_p$])} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
@@ -4377,13 +4542,13 @@ $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d'_{1}$
 
 \noindent
 where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
-which denote the superclass, by $N_C$,
+which denote the superclass, by $N$,
 $\SUPER_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by \SUPER{},
 and $d'_i$, $i \in 1..p$, is a constant expression evaluating
 to the same value as $d_i$.
-If $S_q$ is a generative const constructor, and $M$ does not declare any
-fields, $C_q$ is also a const constructor.
+If $S_q$ is a generative const constructor, and $MC$ does not declare any
+instance variables, $C_q$ is also a const constructor.
 
 \LMHash{}%
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d_1$, \ldots , $T_{k+n}$ $a_{k+n}$ = $d_n$\})} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
@@ -4395,105 +4560,12 @@ $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d'_1$,
 
 \noindent
 where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
-which denote the superclass by $N_C$,
+which denote the superclass by $N$,
 $\SUPER_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by \SUPER{},
 and $d'_i$, $i \in 1..n$, is a constant expression evaluating to the same value as $d_i$.
 If $S_q$ is a generative const constructor, and $M$ does not declare any
 fields, $C_q$ is also a const constructor.
-
-\LMHash{}%
-If the mixin application class declares interfaces, the resulting class also implements those interfaces.
-
-\LMHash{}%
-It is a compile-time error if $S$ is an enumerated type (\ref{enums}).
-It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$)
-is an enumerated type (\ref{enums}).
-It is a compile-time error if a well formed mixin cannot be derived from $M$
-(respectively, from each of $M_1, \ldots, M_k$).
-
-\commentary{%
-Note that \VOID{} is a reserved word,
-which implies that the same restrictions apply for the type \VOID,
-and similar restrictions are specified for other types like
-\code{Null} (\ref{null}) and
-\code{String} (\ref{strings}).%
-}
-
-\LMHash{}%
-Let $K$ be a class declaration with the same constructors, superclass and interfaces as $C$, and the instance members declared by $M$ (respectively $M_1, \ldots, M_k$).
-It is a compile-time error if the declaration of $K$ would cause a compile-time error.
-
-\commentary{
-If, for example,
-$M$ declares an instance member $im$ whose type is at odds with the type of a member of the same name in $S$,
-this will result in a compile-time error just as if we had defined $K$ by means of an ordinary class declaration extending $S$, with a body that included $im$.
-}
-
-\LMHash{}%
-The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form \code{\CLASS{} $C<T_1, \ldots,\ T_n>$ = $M$; } in library $L$ is to introduce the name $C$ into the scope of $L$, bound to the class (\ref{classes}) defined by the mixin application $M$ for the name $C$.
-The name of the class is also set to $C$.
-If{}f the class is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is an abstract class.
-
-\LMHash{}%
-Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}$, e.g., as defined by the class declaration \code{class M extends S$_{static}$ \{ \ldots \}}.
-
-\LMHash{}%
-Let $A$ be an application of $M_A$.
-It is a compile-time error if the superclass of $A$ is not a subtype of $S_{static}$.
-
-\LMHash{}%
-Let $C$ be a class declaration that includes $M_A$ in a with clause.
-It is a compile-time error if $C$ does not implement, directly or indirectly, all the direct superinterfaces of $M$.
-
-
-\subsection{Mixin Composition}
-\LMLabel{mixinComposition}
-
-\rationale{
-Dart does not directly support mixin composition, but the concept is useful when defining how the superclass of a class with a mixin clause is created.
-}
-
-\LMHash{}%
-The \Index{composition of two mixins},
-\code{$M_1$<$T_1, \ldots, T_{k_{M_1}}$>} and
-\code{$M_2$<$U_1, \ldots, U_{k_{M_2}}$>}, written
-\code{$M_1$<$T_1, \ldots, T_{k_{M_1}}$>$ * M_2$<$U_1, \ldots, U_{k_{M_2}}$>}
-defines an anonymous mixin such that for any class
-\code{$S$<$V_1, \ldots, V_{k_S}$>},
-the application of
-
-\code{$M_1$<$T_1, \ldots, T_{k_{M_1}}$> $*$ $M_2$<$U_1, \ldots, U_{k_{M_2}}$>}
-
-to \code{$S$<$V_1, \ldots, V_{k_S}$>} for the name $C$ is equivalent to
-
-\begin{normativeDartCode}
-\ABSTRACT{} \CLASS{} $C<T_1, \ldots, T_{k_{M_1}}, U_1, \ldots, U_{k_{M_2}}, V_1, \ldots, V_{k_S}> = $
-      $Id_2<U_1, \ldots, U_{k_{M_2}}, V_1 \ldots V_{k_S}>$ \WITH{} $M_1 <T_1, \ldots, T_{k_{M_1}}>$;
-\end{normativeDartCode}
-
-where $Id_2$ denotes
-
-\begin{normativeDartCode}
-\ABSTRACT{} \CLASS{} $Id_2<U_1, \ldots, U_{k_{M_2}}, V_1, \ldots, V_{k_S}> =$
-                         $S<V_1, \ldots, V_{k_S}>$ \WITH{} $M_2<U_1, \ldots, U_{k_{M_2}}>$;
-\end{normativeDartCode}
-
-and $Id_2$ is a unique identifier that does not exist anywhere in the program.
-
-\rationale{
-The intermediate classes produced by mixin composition are regarded as abstract because they cannot be instantiated independently.
-They are only introduced as anonymous superclasses of ordinary class declarations and mixin applications.
-Consequently, no errors are raised if a mixin composition includes abstract members, or incompletely implements an interface.
-}
-
-\LMHash{}%
-Mixin composition is associative.
-
-\commentary{
-Note that any subset of $M_1$, $M_2$ and $S$ may or may not be generic.
-For any non-generic declaration, the corresponding type parameters may be elided, and if no type parameters remain in the derived declarations $C$ and/or $Id_2$ then the those declarations need not be generic either.
-}
 
 
 \section{Enums}
