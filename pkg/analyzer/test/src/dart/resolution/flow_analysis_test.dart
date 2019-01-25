@@ -2804,6 +2804,51 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitForStatement2(ForStatement2 node) {
+    ForLoopParts parts = node.forLoopParts;
+    if (parts is ForEachParts) {
+      parts.iterable?.accept(this);
+
+      flow.forEachStatement_bodyBegin(loopAssignedVariables[node]);
+
+      node.body.accept(this);
+
+      flow.forEachStatement_end();
+      return;
+    }
+    VariableDeclarationList variables;
+    Expression initialization;
+    Expression condition;
+    NodeList<Expression> updaters;
+    if (parts is ForPartsWithDeclarations) {
+      variables = parts.variables;
+      condition = parts.condition;
+      updaters = parts.updaters;
+    } else if (parts is ForPartsWithExpression) {
+      initialization = parts.initialization;
+      condition = parts.condition;
+      updaters = parts.updaters;
+    }
+    initialization?.accept(this);
+    variables?.accept(this);
+
+    flow.forStatement_conditionBegin(loopAssignedVariables[node]);
+    if (condition != null) {
+      condition.accept(this);
+    } else {
+      flow.trueLiteral(trueLiteral);
+    }
+
+    flow.forStatement_bodyBegin(node, condition ?? trueLiteral);
+    node.body.accept(this);
+
+    flow.forStatement_updaterBegin();
+    updaters?.accept(this);
+
+    flow.forStatement_end();
+  }
+
+  @override
   void visitFunctionExpression(FunctionExpression node) {
     flow?.functionExpression_begin();
     super.visitFunctionExpression(node);
@@ -3091,6 +3136,36 @@ class _LoopAssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     node.condition?.accept(this);
     node.body.accept(this);
     node.updaters?.accept(this);
+    loopAssignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitForStatement2(ForStatement2 node) {
+    ForLoopParts parts = node.forLoopParts;
+    Expression initialization;
+    VariableDeclarationList variables;
+    Expression iterable;
+    Expression condition;
+    NodeList<Expression> updaters;
+    if (parts is ForPartsWithDeclarations) {
+      variables = parts.variables;
+      condition = parts.condition;
+      updaters = parts.updaters;
+    } else if (parts is ForPartsWithExpression) {
+      initialization = parts.initialization;
+      condition = parts.condition;
+      updaters = parts.updaters;
+    } else if (parts is ForEachParts) {
+      iterable = parts.iterable;
+    }
+    initialization?.accept(this);
+    variables?.accept(this);
+    iterable?.accept(this);
+
+    loopAssignedVariables.beginLoop();
+    condition?.accept(this);
+    node.body.accept(this);
+    updaters?.accept(this);
     loopAssignedVariables.endLoop(node);
   }
 

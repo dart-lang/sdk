@@ -141,7 +141,7 @@ class FlowAnalysis {
     _current = _current.combine(typeSystem, afterIterable);
   }
 
-  void forStatement_bodyBegin(ForStatement node, Expression condition) {
+  void forStatement_bodyBegin(Statement node, Expression condition) {
     _conditionalEnd(condition);
     // Tail of the stack: falseCondition, trueCondition
 
