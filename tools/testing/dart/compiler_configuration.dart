@@ -1096,8 +1096,10 @@ abstract class VMKernelCompilerMixin {
     ];
 
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
-    args.addAll(arguments.where(
-        (name) => name.startsWith('-D') || name.startsWith('--packages=')));
+    args.addAll(arguments.where((name) =>
+        name.startsWith('-D') ||
+        name.startsWith('--packages=') ||
+        name.startsWith('--enable-experiment=')));
 
     final bool causalAsyncStacks =
         !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));

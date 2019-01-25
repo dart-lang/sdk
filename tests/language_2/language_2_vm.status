@@ -28,11 +28,5 @@ large_class_declaration_test: SkipSlow # Uses too much memory.
 [ $arch == ia32 && $mode == release && $runtime == vm ]
 deep_nesting_expression_test/01: Crash, Pass # Issue 31496
 
-[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-set_literals/*: Skip # test.py needs to be fixed to pass options to gen_kernel
-
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # tests/language has the non-strong mode versions of these tests.
-
-[ $compiler == dartkb || $compiler == dartkp ]
-set_literals/*: Skip
