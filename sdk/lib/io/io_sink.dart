@@ -149,32 +149,16 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   _StreamSinkImpl(this._target);
 
-  void _reportClosedSink() {
-    // TODO(29554): this is very brittle and depends on the layout of the
-    // stderr class.
-    if (this == stderr._sink) {
-      // We can't report on stderr anymore (as we would otherwise
-      // have an infinite recursion.
-      throw new StateError("Stderr is closed.");
-    }
-    // TODO(29554): throw a StateError, and don't just report the problem.
-    stderr.writeln("StreamSink is closed and adding to it is an error.");
-    stderr.writeln("  See http://dartbug.com/29554.");
-    stderr.writeln(StackTrace.current);
-  }
-
   void add(T data) {
     if (_isClosed) {
-      _reportClosedSink();
-      return;
+      throw StateError("StreamSink is closed");
     }
     _controller.add(data);
   }
 
   void addError(error, [StackTrace stackTrace]) {
     if (_isClosed) {
-      _reportClosedSink();
-      return;
+      throw StateError("StreamSink is closed");
     }
     _controller.addError(error, stackTrace);
   }

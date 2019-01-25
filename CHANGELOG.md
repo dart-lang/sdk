@@ -43,6 +43,9 @@
 #### `dart:io`
 
 *   Added ability to get and set low level socket options.
+* **Breaking Change:** Adding to a closed `IOSink` now throws a `StateError`.
+
+[29554]: https://github.com/dart-lang/sdk/issues/29554
 
 ### Dart VM
 

@@ -220,17 +220,9 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
 
   bool get _isClosed => _sink == null;
 
-  _reportClosedSink() {
-    // TODO(29554): throw a StateError, and don't just report the problem.
-    Zone.root
-      ..print("Sink is closed and adding to it is an error.")
-      ..print("  See http://dartbug.com/29554.")
-      ..print(StackTrace.current.toString());
-  }
-
   void add(S data) {
     if (_isClosed) {
-      _reportClosedSink();
+      throw StateError("Sink is closed");
     }
     if (_handleData != null) {
       _handleData(data, _sink);
@@ -241,7 +233,7 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
 
   void addError(Object error, [StackTrace stackTrace]) {
     if (_isClosed) {
-      _reportClosedSink();
+      throw StateError("Sink is closed");
     }
     if (_handleError != null) {
       _handleError(error, stackTrace, _sink);

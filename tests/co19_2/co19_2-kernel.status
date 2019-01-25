@@ -1367,7 +1367,6 @@ LibTest/io/HttpClientBasicCredentials/HttpClientBasicCredentials_A01_t01: Runtim
 LibTest/io/HttpClientDigestCredentials/HttpClientDigestCredentials_A01_t01: RuntimeError
 LibTest/io/HttpClientRequest/addStream_A02_t02: RuntimeError
 LibTest/io/HttpClientRequest/add_A03_t01: RuntimeError
-LibTest/io/HttpClientRequest/close_A02_t01: RuntimeError
 LibTest/io/HttpClientRequest/done_A02_t01: RuntimeError, Timeout, Pass
 LibTest/io/HttpClientResponse/certificate_A01_t01: RuntimeError
 LibTest/io/HttpClientResponse/isRedirect_A01_t02: RuntimeError

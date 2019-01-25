@@ -47,7 +47,7 @@ void clientSocketExceptionTest() {
       } catch (ex) {
         wrongExceptionCaught = true;
       }
-      Expect.isFalse(exceptionCaught);
+      Expect.isTrue(exceptionCaught);
       Expect.isFalse(wrongExceptionCaught);
 
       // From here exceptions are expected.
