@@ -183,14 +183,6 @@ abstract class TestSuite {
         : '$buildDir/dart$executableBinarySuffix';
   }
 
-  /// Returns the name of the flutter engine executable.
-  String get flutterEngineBinaryFileName {
-    // Controlled by user with the option "--flutter".
-    var flutterExecutable = configuration.flutterPath;
-    TestUtils.ensureExists(flutterExecutable, configuration);
-    return flutterExecutable;
-  }
-
   String get dartPrecompiledBinaryFileName {
     // Controlled by user with the option "--dart_precompiled".
     var dartExecutable = configuration.dartPrecompiledPath;

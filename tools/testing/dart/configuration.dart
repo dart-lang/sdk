@@ -50,7 +50,6 @@ class TestConfiguration {
       this.firefoxPath,
       this.dartPath,
       this.dartPrecompiledPath,
-      this.flutterPath,
       this.taskCount,
       this.shardCount,
       this.shard,
@@ -128,7 +127,6 @@ class TestConfiguration {
   final String firefoxPath;
   final String dartPath;
   final String dartPrecompiledPath;
-  final String flutterPath;
   final List<String> testList;
 
   final int taskCount;
@@ -285,9 +283,6 @@ class TestConfiguration {
       case Runtime.firefox:
         location = firefoxPath;
         break;
-      case Runtime.flutter:
-        location = flutterPath;
-        break;
       case Runtime.safari:
         location = safariPath;
         break;
@@ -368,17 +363,6 @@ class TestConfiguration {
     if (shard < 1 || shard > shardCount) {
       print("Error: shard index is $shard out of $shardCount shards");
       isValid = false;
-    }
-
-    if (runtime == Runtime.flutter && flutterPath == null) {
-      print("-rflutter requires the flutter engine executable to "
-          "be specified using --flutter");
-      isValid = false;
-    }
-
-    if (runtime == Runtime.flutter && architecture != Architecture.x64) {
-      isValid = false;
-      print("-rflutter is applicable only for --arch=x64");
     }
 
     return isValid;

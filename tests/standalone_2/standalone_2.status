@@ -94,7 +94,7 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 [ $runtime == none && !$strong ]
 io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
 
-[ $system == linux && ($runtime == flutter || $runtime == vm) ]
+[ $runtime == vm && $system == linux ]
 io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 io/http_launch_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 
@@ -159,7 +159,7 @@ fragmentation_test: Skip
 [ $mode == product || $runtime == dart_precompiled ]
 no_assert_test: SkipByDesign
 
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+[ $runtime == dart_precompiled || $runtime == vm ]
 deferred_transitive_import_error_test: Skip
 io/https_client_certificate_test: RuntimeError # Issue 24070 Failures in secure networking while NSS is replaced with BoringSSL
 io/non_utf8_output_test: NonUtf8Output, OK # This test checks that the test runner correctly detects and reports non-utf8 output from a test.

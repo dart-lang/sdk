@@ -44,9 +44,6 @@ abstract class RuntimeConfiguration {
       case Runtime.vm:
         return new StandaloneDartRuntimeConfiguration();
 
-      case Runtime.flutter:
-        return new StandaloneFlutterEngineConfiguration();
-
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
           return new DartPrecompiledAdbRuntimeConfiguration(
@@ -228,27 +225,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       executable = suite.dartVmExecutableFileName;
     }
     return [Command.vm(executable, arguments, environmentOverrides)];
-  }
-}
-
-/// The flutter engine binary, "sky_shell".
-class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
-  List<Command> computeRuntimeCommands(
-      TestSuite suite,
-      CommandArtifact artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      bool isCrashExpected) {
-    String script = artifact.filename;
-    String type = artifact.mimeType;
-    if (script != null &&
-        type != 'application/dart' &&
-        type != 'application/dart-snapshot') {
-      throw "Flutter Engine cannot run files of type '$type'.";
-    }
-    String executable = suite.flutterEngineBinaryFileName;
-    var args = <String>['--non-interactive']..addAll(arguments);
-    return [Command.vm(executable, args, environmentOverrides)];
   }
 }
 

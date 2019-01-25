@@ -104,7 +104,6 @@ spec_parser:   Parse Dart code using the specification parser.''',
         'runtime',
         '''Where the tests should be run.
 vm:               Run Dart code on the standalone Dart VM.
-flutter:          Run Dart code on the Flutter engine.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
 d8:               Run JavaScript from the command line using v8.
 jsshell:          Run JavaScript from the command line using Firefox js-shell.
@@ -236,7 +235,6 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         hide: true),
     new _Option.bool('time', 'Print timing information after running tests.'),
     new _Option('dart', 'Path to dart executable.', hide: true),
-    new _Option('flutter', 'Path to flutter executable.', hide: true),
     new _Option('firefox', 'Path to firefox browser executable.', hide: true),
     new _Option('chrome', 'Path to chrome browser executable.', hide: true),
     new _Option('safari', 'Path to safari browser executable.', hide: true),
@@ -341,7 +339,6 @@ compiler.''',
     'drt',
     'exclude_suite',
     'firefox',
-    'flutter',
     'local_ip',
     'output_directory',
     'progress',
@@ -713,7 +710,6 @@ compiler.''',
                 firefoxPath: data["firefox"] as String,
                 dartPath: data["dart"] as String,
                 dartPrecompiledPath: data["dart_precompiled"] as String,
-                flutterPath: data["flutter"] as String,
                 keepGeneratedFiles: data["keep_generated_files"] as bool,
                 taskCount: data["tasks"] as int,
                 shardCount: data["shards"] as int,
