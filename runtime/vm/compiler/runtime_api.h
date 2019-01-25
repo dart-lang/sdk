@@ -297,8 +297,8 @@ class Isolate : public AllStatic {
 class ClassTable : public AllStatic {
  public:
   static word table_offset();
-  static word ClassOffsetFor(intptr_t cid);
 #if !defined(PRODUCT)
+  static word ClassOffsetFor(intptr_t cid);
   static word StateOffsetFor(intptr_t cid);
   static word TableOffsetFor(intptr_t cid);
   static word CounterOffsetFor(intptr_t cid, bool is_new);

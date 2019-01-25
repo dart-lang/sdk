@@ -194,11 +194,11 @@ word ClassTable::table_offset() {
   return dart::ClassTable::table_offset();
 }
 
+#if !defined(PRODUCT)
 word ClassTable::ClassOffsetFor(intptr_t cid) {
   return dart::ClassTable::ClassOffsetFor(cid);
 }
 
-#if !defined(PRODUCT)
 word ClassTable::StateOffsetFor(intptr_t cid) {
   return dart::ClassTable::StateOffsetFor(cid);
 }

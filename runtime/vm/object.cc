@@ -12173,8 +12173,7 @@ RawObjectPool* ObjectPool::NewFromBuilder(
 }
 
 void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
-  ASSERT(builder->CurrentLength());
-
+  ASSERT(builder->CurrentLength() == 0);
   for (intptr_t i = 0; i < Length(); i++) {
     auto type = TypeAt(i);
     auto patchable = PatchableAt(i);
@@ -12196,7 +12195,6 @@ void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
         UNREACHABLE();
     }
   }
-
   ASSERT(builder->CurrentLength() == Length());
 }
 #endif

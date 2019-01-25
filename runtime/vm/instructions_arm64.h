@@ -18,10 +18,11 @@
 namespace dart {
 
 class Code;
-class ObjectPool;
 class ICData;
-class RawICData;
+class ObjectPool;
 class RawCode;
+class RawICData;
+class RawObject;
 
 class InstructionPattern : public AllStatic {
  public:
