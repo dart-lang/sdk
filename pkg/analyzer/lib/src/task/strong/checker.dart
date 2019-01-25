@@ -579,6 +579,30 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  void visitSetLiteral(SetLiteral node) {
+    DartType type = DynamicTypeImpl.instance;
+    if (node.typeArguments != null) {
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
+      if (targs.length > 0) {
+        type = targs[0].type;
+      }
+    } else {
+      DartType staticType = node.staticType;
+      if (staticType is InterfaceType) {
+        List<DartType> typeArguments = staticType.typeArguments;
+        if (typeArguments != null && typeArguments.length > 0) {
+          type = typeArguments[0];
+        }
+      }
+    }
+    NodeList<Expression> elements = node.elements;
+    for (int i = 0; i < elements.length; i++) {
+      checkArgument(elements[i], type);
+    }
+    super.visitSetLiteral(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.staticElement;
     if (element != null) {
