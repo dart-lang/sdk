@@ -47,8 +47,8 @@ DEFINE_FLAG(charp,
             timeline_streams,
             NULL,
             "Comma separated list of timeline streams to record. "
-            "Valid values: all, API, Compiler, Dart, Debugger, Embedder, "
-            "GC, Isolate, and VM.");
+            "Valid values: all, API, Compiler, CompilerVerbose, Dart, "
+            "Debugger, Embedder, GC, Isolate, and VM.");
 DEFINE_FLAG(charp,
             timeline_recorder,
             "ring",

@@ -64,9 +64,6 @@ struct CompilerPassState {
         precompiler(precompiler),
         inlining_depth(0),
         sinking(NULL),
-#ifndef PRODUCT
-        compiler_timeline(NULL),
-#endif
         call_specializer(NULL),
         speculative_policy(speculative_policy),
         reorder_blocks(false),
@@ -79,8 +76,6 @@ struct CompilerPassState {
   Precompiler* const precompiler;
   int inlining_depth;
   AllocationSinking* sinking;
-
-  NOT_IN_PRODUCT(TimelineStream* compiler_timeline);
 
   // Maps inline_id_to_function[inline_id] -> function. Top scope
   // function has inline_id 0. The map is populated by the inliner.

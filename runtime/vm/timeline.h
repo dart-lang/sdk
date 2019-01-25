@@ -34,6 +34,7 @@ class Zone;
 #define TIMELINE_STREAM_LIST(V)                                                \
   V(API, false)                                                                \
   V(Compiler, false)                                                           \
+  V(CompilerVerbose, false)                                                    \
   V(Dart, false)                                                               \
   V(Debugger, false)                                                           \
   V(Embedder, false)                                                           \

@@ -2295,9 +2295,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   }
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
-#ifndef PRODUCT
-  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
-#endif  // !PRODUCT
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -2323,7 +2320,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 
-        TIMELINE_DURATION(thread(), Compiler, "BuildFlowGraph");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
         flow_graph =
             pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
                                      Compiler::kNoOSRDeoptId, optimized());
@@ -2348,10 +2345,9 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
-      NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
 
       if (optimized()) {
-        TIMELINE_DURATION(thread(), Compiler, "OptimizationPasses");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -2395,12 +2391,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
       {
-        TIMELINE_DURATION(thread(), Compiler, "CompileGraph");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-        TIMELINE_DURATION(thread(), Compiler, "FinalizeCompilation");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);

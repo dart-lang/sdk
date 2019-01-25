@@ -71,7 +71,7 @@ class GCMarker {
   int64_t marked_micros_;
 
   friend class ConcurrentMarkTask;
-  friend class MarkTask;
+  friend class ParallelMarkTask;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 

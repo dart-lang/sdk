@@ -593,8 +593,6 @@ class FunctionDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "Function");
-
     if (kind == Snapshot::kFullAOT) {
       Function& func = Function::Handle(zone);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
@@ -1006,8 +1004,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "Field");
-
     Field& field = Field::Handle(zone);
     if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
@@ -1319,8 +1315,6 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "KernelProgramInfo");
-
     Array& array = Array::Handle(zone);
     KernelProgramInfo& info = KernelProgramInfo::Handle(zone);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -2332,8 +2326,6 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "MegamorphicCache");
-
 #if defined(DART_PRECOMPILED_RUNTIME)
     if (FLAG_use_bare_instructions) {
       // By default, every megamorphic call site will load the target
@@ -2869,8 +2861,6 @@ class TypeDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "Type");
-
     Type& type = Type::Handle(zone);
     Code& stub = Code::Handle(zone);
 
@@ -2969,8 +2959,6 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "TypeRef");
-
     TypeRef& type_ref = TypeRef::Handle(zone);
     Code& stub = Code::Handle(zone);
 
@@ -3065,8 +3053,6 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "TypeParameter");
-
     TypeParameter& type_param = TypeParameter::Handle(zone);
     Code& stub = Code::Handle(zone);
 
@@ -3228,8 +3214,6 @@ class MintDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {}
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TIMELINE_DURATION(Thread::Current(), Isolate, "Mint");
-
     const Class& mint_cls =
         Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
     mint_cls.set_constants(Object::empty_array());
@@ -5101,30 +5085,24 @@ void Deserializer::Deserialize() {
            num_base_objects_, next_ref_index_ - 1);
   }
 
-  {
-    TIMELINE_DURATION(thread(), Isolate, "ReadAlloc");
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i] = ReadCluster();
-      clusters_[i]->ReadAlloc(this);
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i] = ReadCluster();
+    clusters_[i]->ReadAlloc(this);
 #if defined(DEBUG)
-      intptr_t serializers_next_ref_index_ = Read<int32_t>();
-      ASSERT(serializers_next_ref_index_ == next_ref_index_);
+    intptr_t serializers_next_ref_index_ = Read<int32_t>();
+    ASSERT(serializers_next_ref_index_ == next_ref_index_);
 #endif
-    }
   }
 
   // We should have completely filled the ref array.
   ASSERT((next_ref_index_ - 1) == num_objects_);
 
-  {
-    TIMELINE_DURATION(thread(), Isolate, "ReadFill");
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->ReadFill(this);
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i]->ReadFill(this);
 #if defined(DEBUG)
-      int32_t section_marker = Read<int32_t>();
-      ASSERT(section_marker == kSectionMarker);
+    int32_t section_marker = Read<int32_t>();
+    ASSERT(section_marker == kSectionMarker);
 #endif
-    }
   }
 }
 
@@ -5233,11 +5211,8 @@ void Deserializer::ReadVMSnapshot() {
   isolate()->ValidateClassTable();
 #endif
 
-  {
-    TIMELINE_DURATION(thread(), Isolate, "PostLoad");
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->PostLoad(refs, kind_, zone_);
-    }
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i]->PostLoad(refs, kind_, zone_);
   }
 }
 
@@ -5282,11 +5257,8 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   isolate->heap()->Verify();
 #endif
 
-  {
-    TIMELINE_DURATION(thread(), Isolate, "PostLoad");
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->PostLoad(refs, kind_, zone_);
-    }
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i]->PostLoad(refs, kind_, zone_);
   }
 
   // Setup native resolver for bootstrap impl.

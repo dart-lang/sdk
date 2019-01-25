@@ -235,7 +235,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ICData::Init();
     if (vm_isolate_snapshot != NULL) {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "VMIsolateSnapshot");
+      TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
 #endif
       ASSERT(snapshot != nullptr);
       vm_snapshot_kind_ = snapshot->kind();
@@ -599,10 +599,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   ASSERT(I != NULL);
   StackZone zone(T);
   HandleScope handle_scope(T);
-  {
-    TIMELINE_DURATION(T, Isolate, "ObjectStore::Init");
-    ObjectStore::Init(I);
-  }
+  ObjectStore::Init(I);
 
   Error& error = Error::Handle(T->zone());
   error = Object::Init(I, kernel_buffer, kernel_buffer_size);
@@ -613,7 +610,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     // Read the snapshot and setup the initial state.
 #if defined(SUPPORT_TIMELINE)
     TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                              "IsolateSnapshotReader");
+                              "ReadIsolateSnapshot");
 #endif
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);

@@ -556,8 +556,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     return Code::null();
   }
   Zone* const zone = thread()->zone();
-  NOT_IN_PRODUCT(TimelineStream* compiler_timeline =
-                     Timeline::GetCompilerStream());
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -618,7 +616,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           }
         }
 
-        TIMELINE_DURATION(thread(), Compiler, "BuildFlowGraph");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
         flow_graph = pipeline->BuildFlowGraph(
             zone, parsed_function(), ic_data_array, osr_id(), optimized());
       }
@@ -636,18 +634,17 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
-        TIMELINE_DURATION(thread(), Compiler,
+        TIMELINE_DURATION(thread(), CompilerVerbose,
                           "BlockScheduler::AssignEdgeWeights");
         block_scheduler.AssignEdgeWeights();
       }
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
-      NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
       pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks = reorder_blocks;
 
       if (optimized()) {
-        TIMELINE_DURATION(thread(), Compiler, "OptimizationPasses");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -674,12 +671,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array);
       {
-        TIMELINE_DURATION(thread(), Compiler, "CompileGraph");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-        TIMELINE_DURATION(thread(), Compiler, "FinalizeCompilation");
+        TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
         if (thread()->IsMutatorThread()) {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);

@@ -310,7 +310,7 @@ void BytecodeMetadataHelper::ReadTypeParametersDeclaration(
 
 void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                                               const ObjectPool& pool) {
-  TIMELINE_DURATION(Thread::Current(), Compiler,
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeMetadataHelper::ReadConstantPool");
 
   // These enums and the code below reading the constant pool from kernel must
@@ -639,7 +639,7 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
 }
 
 RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
-  TIMELINE_DURATION(Thread::Current(), Compiler,
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeMetadataHelper::ReadBytecode");
   intptr_t size = helper_->ReadUInt();
   intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), sizeof(KBCInstr));
@@ -658,7 +658,7 @@ RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                                  bool has_exceptions_table) {
-  TIMELINE_DURATION(Thread::Current(), Compiler,
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeMetadataHelper::ReadExceptionsTable");
 
   const intptr_t try_block_count =

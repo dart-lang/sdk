@@ -40,7 +40,8 @@ static void TraceStrongModeType(const Instruction* instr,
 }
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
-  TIMELINE_DURATION(flow_graph->thread(), Compiler, "FlowGraphTypePropagator");
+  TIMELINE_DURATION(flow_graph->thread(), CompilerVerbose,
+                    "FlowGraphTypePropagator");
   FlowGraphTypePropagator propagator(flow_graph);
   propagator.Propagate();
 }

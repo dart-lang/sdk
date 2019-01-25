@@ -1116,17 +1116,26 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 }
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
-  Thread* thread = Thread::Current();
-  HANDLESCOPE(thread);
   ASSERT(cls.is_type_finalized());
   if (cls.is_finalized()) {
     return;
   }
+
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
 
-  TIMELINE_DURATION(thread, Compiler, "ClassFinalizer::FinalizeClass");
+#if defined(SUPPORT_TIMELINE)
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "FinalizeClass");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(0, "class", cls.ToCString());
+  }
+#endif  // defined(SUPPORT_TIMELINE)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
