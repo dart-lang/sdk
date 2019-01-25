@@ -247,18 +247,19 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   /**
-   * Return the file with the given [filePath], looking first into directories for
-   * source files, and then in the generated directory
-   * `.dart_tool/build/generated/$projectPackageName/$FILE`. The file in the
-   * workspace root is returned even if it does not exist. Return `null` if the
-   * given [filePath] is not in the workspace [root].
+   * Return the file with the given [filePath], looking first in the generated
+   * directory `.dart_tool/build/generated/$projectPackageName/`, then in
+   * source directories.
+   *
+   * The file in the workspace [root] is returned even if it does not exist.
+   * Return `null` if the given [filePath] is not in the workspace root.
    */
   File findFile(String filePath) {
     path.Context context = provider.pathContext;
     assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
     try {
-      final String builtPath = context.relative(filePath, from: root);
-      final File file = builtFile(builtPath, projectPackageName);
+      final String relativePath = context.relative(filePath, from: root);
+      final File file = builtFile(relativePath, projectPackageName);
 
       if (file.exists) {
         return file;

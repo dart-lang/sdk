@@ -306,8 +306,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
     String libraryPath = _currentLibrary.source.fullName;
-    Workspace workspace = ContextBuilder.createWorkspace(
-        resourceProvider, libraryPath, null /* ContextBuilder */);
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, null /* sdkManager */, null /* contentCache */);
+    Workspace workspace =
+        ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
     _workspacePackage = workspace.findPackageFor(libraryPath);
     _linterContext = LinterContextImpl(null /* allUnits */,
         null /* currentUnit */, declaredVariables, typeProvider, _typeSystem);
