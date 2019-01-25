@@ -19,6 +19,8 @@ import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:convert/convert.dart';
+import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
@@ -52,28 +54,75 @@ class DeclarationsContext {
   /// the root are included into completion, even in 'lib/src' folders.
   final AnalysisContext _analysisContext;
 
-  DeclarationsContext(this._tracker, this._analysisContext) {
-    // TODO(scheglov) add pubspec.yaml dependencies
-  }
-
-  /// Return libraries with declarations that this context can use.
-  List<Library> getLibraries({bool devDependencies = false}) {
-    // TODO(scheglov) implement
-    return [];
-  }
-
-  /// Set the list of additional dependencies for this context.
+  /// Map of path prefixes to lists of files from dependencies (both libraries
+  /// and parts, we don't know at the time when we fill this map) that
+  /// libraries with files paths starting with these prefixes can access.
   ///
-  /// You don't need to use this method for `Pub` contexts, because their
-  /// dependencies will be automatically included.  This method is useful
-  /// for `Bazel` contexts, where dependencies are specified externally,
-  /// in form of `BUILD` files.
+  /// The path prefix keys are sorted so that the longest keys are first.
+  final Map<String, List<String>> _pathPrefixToDependencyFiles = {};
+
+  DeclarationsContext(this._tracker, this._analysisContext);
+
+  /// Return libraries that are available to the file with the given [path].
+  ///
+  /// With `Pub`, files below the `pubspec.yaml` file can access libraries
+  /// of packages listed as `dependencies`, and files in the `test` directory
+  /// can in addition access libraries of packages listed as `dev_dependencies`.
+  ///
+  /// With `Bazel` sets of accessible libraries are specified explicitly by
+  /// the client using [setDependencies].
+  List<int> getLibraries(String path) {
+    // TODO(scheglov) include context libraries
+    for (var pathPrefix in _pathPrefixToDependencyFiles.keys) {
+      if (path.startsWith(pathPrefix)) {
+        var pathList = _pathPrefixToDependencyFiles[pathPrefix];
+        var idList = pathList
+            .map((libPath) => _tracker._pathToFile[libPath])
+            .where((file) => file != null && file.isLibrary)
+            .map((file) => file.id)
+            .toList();
+        return idList;
+      }
+    }
+    return <int>[];
+  }
+
+  /// Set dependencies for path prefixes in this context.
+  ///
+  /// The map [pathPrefixToPathList] specifies the list of paths of libraries
+  /// and directories with libraries that are accessible to the files with
+  /// paths that start with the path that is the key in the map.  The longest
+  /// (so most specific) key will be used, each list of paths is complete, and
+  /// is not combined with any enclosing locations.
+  ///
+  /// For `Pub` packages this method is invoked automatically, because their
+  /// dependencies, described in `pubspec.yaml` files, and can be automatically
+  /// included.  This method is useful for `Bazel` contexts, where dependencies
+  /// are specified externally, in form of `BUILD` files.
+  ///
+  /// New dependencies will replace any previously set dependencies for this
+  /// context.
   ///
   /// Every path in the list must be absolute and normalized.
-  void setDependencies(List<String> pathList) {
-    for (var path in pathList) {
-      var resource = _tracker._resourceProvider.getResource(path);
-      _scheduleDependencyResource(resource);
+  void setDependencies(Map<String, List<String>> pathPrefixToPathList) {
+    var rootFolder = _analysisContext.contextRoot.root;
+    _pathPrefixToDependencyFiles.removeWhere((pathPrefix, _) {
+      return rootFolder.isOrContains(pathPrefix);
+    });
+
+    var sortedPrefixes = pathPrefixToPathList.keys.toList();
+    sortedPrefixes.sort((a, b) {
+      return b.compareTo(a);
+    });
+
+    for (var pathPrefix in sortedPrefixes) {
+      var pathList = pathPrefixToPathList[pathPrefix];
+      var files = <String>[];
+      for (var path in pathList) {
+        var resource = _tracker._resourceProvider.getResource(path);
+        _scheduleDependencyResource(files, resource);
+      }
+      _pathPrefixToDependencyFiles[pathPrefix] = files;
     }
   }
 
@@ -83,6 +132,26 @@ class DeclarationsContext {
       if (parts[i] == 'lib' && parts[i + 1] == 'src') return true;
     }
     return false;
+  }
+
+  List<String> _resolvePackageNamesToLibPaths(List<String> packageNames) {
+    return packageNames
+        .map(_resolvePackageNameToLibPath)
+        .where((path) => path != null)
+        .toList();
+  }
+
+  String _resolvePackageNameToLibPath(String packageName) {
+    try {
+      var uri = Uri.parse('package:$packageName/ref.dart');
+
+      var path = _resolveUri(uri);
+      if (path == null) return null;
+
+      return _tracker._resourceProvider.pathContext.dirname(path);
+    } on FormatException {
+      return null;
+    }
   }
 
   String _resolveUri(Uri uri) {
@@ -102,19 +171,80 @@ class DeclarationsContext {
     }
   }
 
-  void _scheduleDependencyFolder(Folder folder) {
+  void _scheduleDependencyFolder(List<String> files, Folder folder) {
     if (_isLibSrcPath(folder.path)) return;
     try {
-      folder.getChildren().forEach(_scheduleDependencyResource);
+      for (var resource in folder.getChildren()) {
+        _scheduleDependencyResource(files, resource);
+      }
     } on FileSystemException catch (_) {}
   }
 
-  void _scheduleDependencyResource(Resource resource) {
+  void _scheduleDependencyResource(List<String> files, Resource resource) {
     if (resource is File) {
+      files.add(resource.path);
       _tracker._addFile(this, resource.path);
     } else if (resource is Folder) {
-      _scheduleDependencyFolder(resource);
+      _scheduleDependencyFolder(files, resource);
     }
+  }
+
+  /// Traverse the folders of this context, and use `pubspec.yaml` files
+  /// to set dependencies for containing folders.
+  void _setPubspecDependencies() {
+    var pathContext = _tracker._resourceProvider.pathContext;
+    var locationToPathList = <String, List<String>>{};
+
+    void visitFolder(Folder folder) {
+      var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+      if (pubspecFile.exists) {
+        var dependencies = _parsePubspecDependencies(pubspecFile);
+        var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
+        var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
+
+        var packagePath = folder.path;
+        locationToPathList[packagePath] = <String>[]
+          ..addAll(libPaths)
+          ..addAll(devPaths);
+
+        var libPath = pathContext.join(packagePath, 'lib');
+        locationToPathList[libPath] = libPaths;
+      }
+
+      try {
+        for (var resource in folder.getChildren()) {
+          if (resource is Folder) {
+            visitFolder(resource);
+          }
+        }
+      } on FileSystemException {}
+    }
+
+    visitFolder(_analysisContext.contextRoot.root);
+    setDependencies(locationToPathList);
+  }
+
+  static _PubspecDependencies _parsePubspecDependencies(File pubspecFile) {
+    var dependencies = <String>[];
+    var devDependencies = <String>[];
+    try {
+      var fileContent = pubspecFile.readAsStringSync();
+      var document = loadYamlDocument(fileContent);
+      var contents = document.contents;
+      if (contents is YamlMap) {
+        var dependenciesNode = contents.nodes['dependencies'];
+        if (dependenciesNode is YamlMap) {
+          dependencies = dependenciesNode.keys.whereType<String>().toList();
+        }
+
+        var devDependenciesNode = contents.nodes['dev_dependencies'];
+        if (devDependenciesNode is YamlMap) {
+          devDependencies =
+              devDependenciesNode.keys.whereType<String>().toList();
+        }
+      }
+    } catch (e) {}
+    return _PubspecDependencies(dependencies, devDependencies);
   }
 }
 
@@ -156,6 +286,7 @@ class DeclarationsTracker {
     _contexts[analysisContext] = declarationsContext;
 
     declarationsContext._scheduleContextFiles();
+    declarationsContext._setPubspecDependencies();
     return declarationsContext;
   }
 
@@ -315,6 +446,10 @@ class _ExportCombinator {
 }
 
 class _File {
+  /// The version of data format, should be incremented on every format change.
+  static const int DATA_VERSION = 1;
+
+  /// The next value for [id].
   static int _nextId = 0;
 
   final DeclarationsTracker tracker;
@@ -322,8 +457,6 @@ class _File {
   final int id = _nextId++;
   final String path;
   final Uri uri;
-
-  String fileKey;
 
   bool isLibrary = false;
   List<_Export> exports = [];
@@ -345,23 +478,44 @@ class _File {
       modificationStamp = -1;
     }
 
-    var keyBuilder = ApiSignature();
-    keyBuilder.addString(path);
-    keyBuilder.addInt(modificationStamp);
-    fileKey = keyBuilder.toHex() + '.declarations';
+    // When a file changes, its modification stamp changes.
+    String pathKey;
+    {
+      var pathKeyBuilder = ApiSignature();
+      pathKeyBuilder.addInt(DATA_VERSION);
+      pathKeyBuilder.addString(path);
+      pathKeyBuilder.addInt(modificationStamp);
+      pathKey = pathKeyBuilder.toHex() + '.declarations_content';
+    }
 
-    var bytes = tracker._byteStore.get(fileKey);
-    if (bytes == null) {
-      String content;
-      try {
-        content = resource.readAsStringSync();
-      } catch (e) {
-        content = '';
+    // With Bazel multiple workspaces might be copies of the same workspace,
+    // and have files with the same content, but with different paths.
+    // So, we use the content hash to reuse their declarations without parsing.
+    String content;
+    String contentKey;
+    {
+      var contentHashBytes = tracker._byteStore.get(pathKey);
+      if (contentHashBytes == null) {
+        content = _readContent(resource);
+
+        var contentHashBuilder = ApiSignature();
+        contentHashBuilder.addInt(DATA_VERSION);
+        contentHashBuilder.addString(content);
+        contentHashBytes = contentHashBuilder.toByteList();
+
+        tracker._byteStore.put(pathKey, contentHashBytes);
       }
+
+      contentKey = hex.encode(contentHashBytes) + '.declarations';
+    }
+
+    var bytes = tracker._byteStore.get(contentKey);
+    if (bytes == null) {
+      content ??= _readContent(resource);
 
       CompilationUnit unit = _parse(content);
       _buildFileDeclarations(unit);
-      _putFileDeclarationsToByteStore();
+      _putFileDeclarationsToByteStore(contentKey);
     } else {
       _readFileDeclarationsFromBytes(bytes);
     }
@@ -457,7 +611,7 @@ class _File {
     return tracker._getFileByUri(context, absoluteUri);
   }
 
-  void _putFileDeclarationsToByteStore() {
+  void _putFileDeclarationsToByteStore(String contentKey) {
     var builder = idl.AvailableFileBuilder(
       isLibrary: isLibrary,
       exports: exports.map((e) {
@@ -476,7 +630,7 @@ class _File {
       }).toList(),
     );
     var bytes = builder.toBuffer();
-    tracker._byteStore.put(fileKey, bytes);
+    tracker._byteStore.put(contentKey, bytes);
   }
 
   void _readFileDeclarationsFromBytes(List<int> bytes) {
@@ -556,6 +710,14 @@ class _File {
 
     var parser = new Parser(source, errorListener, useFasta: true);
     return parser.parseCompilationUnit(token);
+  }
+
+  static String _readContent(File resource) {
+    try {
+      return resource.readAsStringSync();
+    } catch (e) {
+      return '';
+    }
   }
 
   static Uri _uriFromAst(StringLiteral astUri) {
@@ -654,6 +816,14 @@ class _Part {
   _File file;
 
   _Part(this.uri);
+}
+
+/// Normal and dev dependencies specified in a `pubspec.yaml` file.
+class _PubspecDependencies {
+  final List<String> lib;
+  final List<String> dev;
+
+  _PubspecDependencies(this.lib, this.dev);
 }
 
 class _ScheduledFile {
