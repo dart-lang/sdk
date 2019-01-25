@@ -67,7 +67,7 @@ bool IsOriginalObject(const Object& object) {
 }
 
 const String& AllocateString(const char* buffer) {
-  return String::ZoneHandle(String::New(buffer));
+  return String::ZoneHandle(String::New(buffer, dart::Heap::kOld));
 }
 
 bool HasIntegerValue(const dart::Object& object, int64_t* value) {
