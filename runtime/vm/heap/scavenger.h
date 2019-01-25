@@ -148,12 +148,6 @@ class Scavenger {
     ASSERT(heap_ != Dart::vm_isolate()->heap());
     ASSERT(thread->IsMutatorThread());
     ASSERT(thread->isolate()->IsMutatorThreadScheduled());
-#if defined(DEBUG)
-    if (FLAG_gc_at_alloc) {
-      ASSERT(!scavenging_);
-      Scavenge();
-    }
-#endif
     uword top = thread->top();
     uword end = thread->end();
     uword result = top;

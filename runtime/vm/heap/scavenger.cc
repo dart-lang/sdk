@@ -602,13 +602,7 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
   if (!FLAG_support_service) {
     return;
   }
-  ObjectIdRing* ring = isolate->object_id_ring();
-  if (ring == NULL) {
-    // --gc_at_alloc can get us here before the ring has been initialized.
-    ASSERT(FLAG_gc_at_alloc);
-    return;
-  }
-  ring->VisitPointers(visitor);
+  isolate->object_id_ring()->VisitPointers(visitor);
 #endif  // !PRODUCT
 }
 
