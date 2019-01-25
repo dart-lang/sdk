@@ -66,6 +66,18 @@
     *   `DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE` reports on usage of
         `@deprecated` members declared in the same package.
 
+### Linter
+
+The linter was bumped to `0.1.79` which introduces the following linter improvements to the SDK:
+
+* `unnecessary_parenthesis` updated to play nicer with cascades
+* new lint: `use_full_hex_values_for_flutter_colors`
+* new lint: `prefer_null_aware_operators`
+* miscellaneous documentation fixes
+* removed deprecated lints from the "all options" sample
+* stopped registering "default lints"
+* `hash_and_equals` fixed to respect `hashCode` fields
+
 #### dart2js
 
 * `--fast-startup` is forced on.  The flag is silently ignored and will be
