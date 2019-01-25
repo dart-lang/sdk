@@ -1,3 +1,13 @@
+# 0.1.79
+
+* `unnecessary_parenthesis` updated to play nicer with cascades
+* new lint: `use_full_hex_values_for_flutter_colors`
+* new lint: `prefer_null_aware_operators`
+* miscellaneous documentation fixes
+* removed deprecated lints from the "all options" sample
+* stopped registering "default lints"
+* `hash_and_equals` fixed to respect `hashCode` fields
+
 # 0.1.78
 
 * restored `prefer_final_locals` to ignore loop variables, and
