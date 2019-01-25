@@ -10,14 +10,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+bool limitWidth = false;
+
 void main(List<String> args) {
-  if (args.length != 2) {
+  if (args.length == 3 && args[2] == 'narrow') {
+    limitWidth = true;
+  } else if (args.length != 2) {
     print("""
-Usage: dart ${Platform.script} <old.json> <new.json>
+Usage: dart ${Platform.script} <old.json> <new.json> [narrow]
 
 This tool compares two JSON size reports produced by
 --print-instructions-sizes-to and reports which symbols increased in size
-and which symbols decreased in size.
+and which symbols decreased in size. The optional 'narrow' parameter limits
+the colunm widths.
 """);
     exit(-1);
   }
@@ -171,6 +176,10 @@ class Text {
       : this(value: value, direction: AlignmentDirection.Center);
 
   String render(int width) {
+    if (value.length > width) {
+      // Narrowed column.
+      return value.substring(0, width - 2) + '..';
+    }
     switch (direction) {
       case AlignmentDirection.Left:
         return value.padRight(width);
@@ -217,6 +226,12 @@ class AsciiTable {
       assert(row.columns.length == widths.length);
       for (var i = 0; i < widths.length; i++) {
         widths[i] = math.max(row.columns[i].length, widths[i]);
+      }
+    }
+
+    if (limitWidth) {
+      for (var i = 0; i < widths.length; i++) {
+        widths[i] = math.min(widths[i], 25);
       }
     }
 
