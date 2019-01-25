@@ -4554,8 +4554,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]
    */
-  bool _checkForNullableDereference(Expression expression,
-      {bool allowNullableDereference = false}) {
+  bool _checkForNullableDereference(Expression expression) {
     if (expression == null ||
         !_options.experimentStatus.non_nullable ||
         (expression.staticType as TypeImpl).nullability !=
