@@ -29,12 +29,14 @@ void VirtualMemory::Init() {
   page_size_ = getpagesize();
 }
 
-static void unmap(void* address, intptr_t size) {
+static void unmap(uword start, uword end) {
+  ASSERT(start <= end);
+  uword size = end - start;
   if (size == 0) {
     return;
   }
 
-  if (munmap(address, size) != 0) {
+  if (munmap(reinterpret_cast<void*>(start), size) != 0) {
     int error = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
@@ -43,47 +45,26 @@ static void unmap(void* address, intptr_t size) {
   }
 }
 
-VirtualMemory* VirtualMemory::Allocate(intptr_t size,
-                                       bool is_executable,
-                                       const char* name) {
-  ASSERT(Utils::IsAligned(size, page_size_));
-  int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
-  void* address = mmap(NULL, size, prot, MAP_PRIVATE | MAP_ANON, -1, 0);
-  if (address == MAP_FAILED) {
-    return NULL;
-  }
-  MemoryRegion region(address, size);
-  return new VirtualMemory(region, region);
-}
-
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
                                               const char* name) {
   ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
-  intptr_t allocated_size = size + alignment;
-  int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
+  const intptr_t allocated_size = size + alignment - page_size_;
+  const int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
   void* address =
       mmap(NULL, allocated_size, prot, MAP_PRIVATE | MAP_ANON, -1, 0);
   if (address == MAP_FAILED) {
     return NULL;
   }
 
-  uword base = reinterpret_cast<uword>(address);
-  uword aligned_base = Utils::RoundUp(base, alignment);
-  ASSERT(base <= aligned_base);
+  const uword base = reinterpret_cast<uword>(address);
+  const uword aligned_base = Utils::RoundUp(base, alignment);
 
-  if (base != aligned_base) {
-    uword extra_leading_size = aligned_base - base;
-    unmap(reinterpret_cast<void*>(base), extra_leading_size);
-    allocated_size -= extra_leading_size;
-  }
-
-  if (allocated_size != size) {
-    uword extra_trailing_size = allocated_size - size;
-    unmap(reinterpret_cast<void*>(aligned_base + size), extra_trailing_size);
-  }
+  unmap(base, aligned_base);
+  unmap(aligned_base + size, base + allocated_size);
 
   MemoryRegion region(reinterpret_cast<void*>(aligned_base), size);
   return new VirtualMemory(region, region);
@@ -91,13 +72,14 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 
 VirtualMemory::~VirtualMemory() {
   if (vm_owns_region()) {
-    unmap(reserved_.pointer(), reserved_.size());
+    unmap(reserved_.start(), reserved_.end());
   }
 }
 
 bool VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
-  unmap(address, size);
+  const uword start = reinterpret_cast<uword>(address);
+  unmap(start, start + size);
   return true;
 }
 
