@@ -865,14 +865,29 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
     assert(optional('for', forKeyword));
     assert(optional('(', leftParen));
     assert(optional(';', leftSeparator));
-    debugEvent("ForStatement");
+    assert(updateExpressionCount >= 0);
 
+    push(forKeyword);
+    push(leftParen);
+    push(leftSeparator);
+    push(updateExpressionCount);
+  }
+
+  @override
+  void endForStatement(Token endToken) {
+    debugEvent("ForStatement");
     Statement body = pop();
+
+    int updateExpressionCount = pop();
+    Token leftSeparator = pop();
+    Token leftParen = pop();
+    Token forKeyword = pop();
+
     List<Expression> updates = popTypedList(updateExpressionCount);
     Statement conditionStatement = pop();
     Object initializerPart = pop();
@@ -1276,15 +1291,30 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
     assert(optionalOrNull('await', awaitToken));
     assert(optional('for', forToken));
     assert(optional('(', leftParenthesis));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
+
+    push(awaitToken ?? NullValue.AwaitToken);
+    push(forToken);
+    push(leftParenthesis);
+    push(inKeyword);
+  }
+
+  @override
+  void endForIn(Token endToken) {
     debugEvent("ForInExpression");
 
     Statement body = pop();
+
+    Token inKeyword = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
     Expression iterator = pop();
     Object variableOrDeclaration = pop();
     if (variableOrDeclaration is VariableDeclarationStatement) {

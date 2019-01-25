@@ -564,9 +564,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParen,
-      Token inKeyword, Token endToken) {
-    listener?.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
+  void endForIn(Token endToken) {
+    listener?.endForIn(endToken);
   }
 
   @override
@@ -580,10 +579,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
-    listener?.endForStatement(
-        forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
+  void endForStatement(Token endToken) {
+    listener?.endForStatement(endToken);
   }
 
   @override
@@ -1217,6 +1214,20 @@ class ForwardingListener implements Listener {
   @override
   void handleForInitializerLocalVariableDeclaration(Token token) {
     listener?.handleForInitializerLocalVariableDeclaration(token);
+  }
+
+  @override
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
+    listener?.handleForInLoopParts(
+        awaitToken, forToken, leftParenthesis, inKeyword);
+  }
+
+  @override
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
+    listener?.handleForLoopParts(
+        forKeyword, leftParen, leftSeparator, updateExpressionCount);
   }
 
   @override

@@ -704,10 +704,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParen,
-      Token inKeyword, Token endToken) {
+  void endForIn(Token endToken) {
     end('ForStatement');
-    super.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
+    super.endForIn(endToken);
   }
 
   @override
@@ -723,11 +722,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void endForStatement(Token endToken) {
     end('ForStatement');
-    super.endForStatement(
-        forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
+    super.endForStatement(endToken);
   }
 
   @override

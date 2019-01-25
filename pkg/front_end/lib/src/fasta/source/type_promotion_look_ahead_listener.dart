@@ -541,9 +541,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
-    debugEvent("ForIn", awaitToken);
+  void endForIn(Token endToken) {
+    debugEvent("ForIn", endToken);
   }
 
   @override
@@ -574,10 +573,15 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
-    debugEvent("ForStatement", forKeyword);
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
+    debugEvent("handleForLoopParts", forKeyword);
     state.discard(updateExpressionCount);
+  }
+
+  @override
+  void endForStatement(Token endToken) {
+    debugEvent("ForStatement", endToken);
   }
 
   @override

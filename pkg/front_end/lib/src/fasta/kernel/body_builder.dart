@@ -2241,10 +2241,24 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
+    push(forKeyword);
+    push(leftParen);
+    push(leftSeparator);
+    push(updateExpressionCount);
+  }
+
+  @override
+  void endForStatement(Token endToken) {
     debugEvent("ForStatement");
     Statement body = popStatement();
+
+    int updateExpressionCount = pop();
+    Token leftSeparator = pop();
+    Token leftParen = pop();
+    Token forKeyword = pop();
+
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
     Object variableOrExpression = pop();
@@ -3829,10 +3843,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
+    push(awaitToken ?? NullValue.AwaitToken);
+    push(forToken);
+    push(inKeyword);
+  }
+
+  @override
+  void endForIn(Token endToken) {
     debugEvent("ForIn");
     Statement body = popStatement();
+
+    Token inKeyword = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
     Expression expression = popForValue();
     Object lvalue = pop();
     exitLocalScope();

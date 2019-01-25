@@ -63,6 +63,7 @@ class ForEachStatementTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN
               ],

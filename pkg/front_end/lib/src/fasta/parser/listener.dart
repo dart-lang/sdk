@@ -323,8 +323,13 @@ class Listener implements UnescapeErrorListener {
   /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
 
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  /// Marks the end of parsing the control structure of a for statement
+  /// or for control flow entry up to and including the closing parenthesis.
+  /// `for` `(` initialization `;` condition `;` updaters `)`
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {}
+
+  void endForStatement(Token endToken) {
     logEvent("ForStatement");
   }
 
@@ -334,9 +339,14 @@ class Listener implements UnescapeErrorListener {
     logEvent("ForStatementBody");
   }
 
+  /// Marks the end of parsing the control structure of a for-in statement
+  /// or for control flow entry up to and including the closing parenthesis.
+  /// `for` `(` (type)? identifier `in` iterator `)`
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {}
+
   // One of the two possible corresponding end events for [beginForStatement].
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void endForIn(Token endToken) {
     logEvent("ForIn");
   }
 
