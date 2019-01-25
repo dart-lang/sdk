@@ -26405,7 +26405,21 @@ class ServiceWorker extends EventTarget implements AbstractWorker {
 
   final String state;
 
-  void postMessage(Object message, [List<Object> transfer]) native;
+  void postMessage(/*any*/ message, [List<Object> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+
+  @JSName('postMessage')
+  void _postMessage_1(message, List<Object> transfer) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
@@ -32274,7 +32288,21 @@ class Worker extends EventTarget implements AbstractWorker {
   static bool get supported =>
       JS('bool', '(typeof window.Worker != "undefined")');
 
-  void postMessage(Object message, [List<Object> transfer]) native;
+  void postMessage(/*any*/ message, [List<Object> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+
+  @JSName('postMessage')
+  void _postMessage_1(message, List<Object> transfer) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 
   void terminate() native;
 
