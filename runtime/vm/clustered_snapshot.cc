@@ -5061,12 +5061,13 @@ char* SnapshotHeaderReader::BuildError(const char* message) {
 }
 
 RawApiError* FullSnapshotReader::ConvertToApiError(char* message) {
-  // The [message] was constructed with [BuildError] and needs to be freed.
-  free(message);
-
   // This can also fail while bringing up the VM isolate, so make sure to
   // allocate the error message in old space.
   const String& msg = String::Handle(String::New(message, Heap::kOld));
+
+  // The [message] was constructed with [BuildError] and needs to be freed.
+  free(message);
+
   return ApiError::New(msg, Heap::kOld);
 }
 
