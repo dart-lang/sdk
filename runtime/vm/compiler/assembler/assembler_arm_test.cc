@@ -12,6 +12,7 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
+namespace compiler {
 
 #define __ assembler->
 
@@ -262,11 +263,11 @@ ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
     __ mov(R2, Operand(SP));
-    __ str(R0, Address(SP, (-kWordSize * 30), Address::PreIndex));
-    __ vldrs(S0, Address(R2, (-kWordSize * 30)));
+    __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+    __ vldrs(S0, Address(R2, (-target::kWordSize * 30)));
     __ vadds(S0, S0, S0);
-    __ vstrs(S0, Address(R2, (-kWordSize * 30)));
-    __ ldr(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
+    __ vstrs(S0, Address(R2, (-target::kWordSize * 30)));
+    __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   }
   __ bx(LR);
 }
@@ -286,11 +287,11 @@ ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
     __ mov(R2, Operand(SP));
     // Expressing __str(R0, Address(SP, (-kWordSize * 32), Address::PreIndex));
     // as:
-    __ mov(R1, Operand(kWordSize));
+    __ mov(R1, Operand(target::kWordSize));
     __ str(R0, Address(SP, R1, LSL, 5, Address::NegPreIndex));
-    __ vldrs(S0, Address(R2, (-kWordSize * 32)));
+    __ vldrs(S0, Address(R2, (-target::kWordSize * 32)));
     __ vadds(S0, S0, S0);
-    __ vstrs(S0, Address(R2, (-kWordSize * 32)));
+    __ vstrs(S0, Address(R2, (-target::kWordSize * 32)));
     // Expressing __ldr(R0, Address(SP, (kWordSize * 32), Address::PostIndex));
     // as:
     __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
@@ -313,13 +314,13 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
     __ LoadImmediate(R0, Utils::Low32Bits(value));
     __ LoadImmediate(R1, Utils::High32Bits(value));
     __ mov(R2, Operand(SP));
-    __ str(R0, Address(SP, (-kWordSize * 30), Address::PreIndex));
-    __ str(R1, Address(R2, (-kWordSize * 29)));
-    __ vldrd(D0, Address(R2, (-kWordSize * 30)));
+    __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+    __ str(R1, Address(R2, (-target::kWordSize * 29)));
+    __ vldrd(D0, Address(R2, (-target::kWordSize * 30)));
     __ vaddd(D0, D0, D0);
-    __ vstrd(D0, Address(R2, (-kWordSize * 30)));
-    __ ldr(R1, Address(R2, (-kWordSize * 29)));
-    __ ldr(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
+    __ vstrd(D0, Address(R2, (-target::kWordSize * 30)));
+    __ ldr(R1, Address(R2, (-target::kWordSize * 29)));
+    __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   }
   __ bx(LR);
 }
@@ -1082,8 +1083,8 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
 
   __ mov(R1, Operand(0x11));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrh(R0, Address(R2, (-kWordSize * 30)));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrh(R0, Address(R2, (-target::kWordSize * 30)));
   __ cmp(R0, Operand(0x11));
   __ b(&Test1, EQ);
   __ mov(R0, Operand(1));
@@ -1091,8 +1092,8 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ Bind(&Test1);
 
   __ mov(R0, Operand(0x22));
-  __ strh(R0, Address(R2, (-kWordSize * 30)));
-  __ ldrh(R1, Address(R2, (-kWordSize * 30)));
+  __ strh(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldrh(R1, Address(R2, (-target::kWordSize * 30)));
   __ cmp(R1, Operand(0x22));
   __ b(&Test2, EQ);
   __ mov(R0, Operand(1));
@@ -1100,7 +1101,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ Bind(&Test2);
 
   __ mov(R0, Operand(0));
-  __ AddImmediate(R2, (-kWordSize * 30));
+  __ AddImmediate(R2, (-target::kWordSize * 30));
   __ strh(R0, Address(R2));
   __ ldrh(R1, Address(R2));
   __ cmp(R1, Operand(0));
@@ -1111,7 +1112,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
 
   __ mov(R0, Operand(0));
   __ Bind(&Done);
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1124,9 +1125,9 @@ ASSEMBLER_TEST_RUN(Ldrh, test) {
 ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrsb(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrsb(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1139,9 +1140,9 @@ ASSEMBLER_TEST_RUN(Ldrsb, test) {
 ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrb(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrb(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1154,9 +1155,9 @@ ASSEMBLER_TEST_RUN(Ldrb, test) {
 ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrsh(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrsh(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1169,9 +1170,9 @@ ASSEMBLER_TEST_RUN(Ldrsh, test) {
 ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrh(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrh(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1183,12 +1184,12 @@ ASSEMBLER_TEST_RUN(Ldrh1, test) {
 
 ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ mov(IP, Operand(SP));
-  __ sub(SP, SP, Operand(kWordSize * 30));
+  __ sub(SP, SP, Operand(target::kWordSize * 30));
   __ strd(R2, R3, SP, 0);
-  __ strd(R0, R1, IP, (-kWordSize * 28));
-  __ ldrd(R2, R3, IP, (-kWordSize * 28));
+  __ strd(R0, R1, IP, (-target::kWordSize * 28));
+  __ ldrd(R2, R3, IP, (-target::kWordSize * 28));
   __ ldrd(R0, R1, SP, 0);
-  __ add(SP, SP, Operand(kWordSize * 30));
+  __ add(SP, SP, Operand(target::kWordSize * 30));
   __ sub(R0, R0, Operand(R2));
   __ add(R1, R1, Operand(R3));
   __ bx(LR);
@@ -1215,12 +1216,12 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ Push(R0);  // Make room, so we can decrement after.
   __ stm(DA_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   __ str(R2, Address(SP));                 // Should be a free slot.
-  __ ldr(R9, Address(SP, 1 * kWordSize));  // R0.  R9 = +1.
-  __ ldr(IP, Address(SP, 2 * kWordSize));  // R1.
+  __ ldr(R9, Address(SP, 1 * target::kWordSize));  // R0.  R9 = +1.
+  __ ldr(IP, Address(SP, 2 * target::kWordSize));  // R1.
   __ sub(R9, R9, Operand(IP));             // -R1. R9 = -6.
-  __ ldr(IP, Address(SP, 3 * kWordSize));  // R2.
+  __ ldr(IP, Address(SP, 3 * target::kWordSize));  // R2.
   __ add(R9, R9, Operand(IP));             // +R2. R9 = +5.
-  __ ldr(IP, Address(SP, 4 * kWordSize));  // R3.
+  __ ldr(IP, Address(SP, 4 * target::kWordSize));  // R3.
   __ sub(R9, R9, Operand(IP));             // -R3. R9 = -26.
   __ ldm(IB_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   // Same operations again. But this time from the restore registers.
@@ -1245,9 +1246,9 @@ ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
+  __ mov(R1, Operand(target::kWordSize));
   __ str(R2, Address(SP, R1, LSL, 1, Address::NegOffset));
-  __ ldr(R0, Address(SP, (-kWordSize * 2), Address::Offset));
+  __ ldr(R0, Address(SP, (-target::kWordSize * 2), Address::Offset));
   __ bx(LR);
 }
 
@@ -1259,8 +1260,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
-  __ str(R2, Address(SP, (-kWordSize * 32), Address::Offset));
+  __ mov(R1, Operand(target::kWordSize));
+  __ str(R2, Address(SP, (-target::kWordSize * 32), Address::Offset));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::NegOffset));
   __ bx(LR);
 }
@@ -1273,9 +1274,9 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize * 2));
+  __ mov(R1, Operand(target::kWordSize * 2));
   __ str(R2, Address(SP, R1, LSR, 1, Address::NegOffset));
-  __ ldr(R0, Address(SP, -kWordSize, Address::Offset));
+  __ ldr(R0, Address(SP, -target::kWordSize, Address::Offset));
   __ bx(LR);
 }
 
@@ -1287,8 +1288,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize * 2));
-  __ str(R2, Address(SP, -kWordSize, Address::Offset));
+  __ mov(R1, Operand(target::kWordSize * 2));
+  __ str(R2, Address(SP, -target::kWordSize, Address::Offset));
   __ ldr(R0, Address(SP, R1, LSR, 1, Address::NegOffset));
   __ bx(LR);
 }
@@ -1301,10 +1302,10 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
+  __ mov(R1, Operand(target::kWordSize));
   __ mov(R3, Operand(SP));
   __ str(R2, Address(SP, R1, LSL, 5, Address::NegPreIndex));
-  __ ldr(R0, Address(R3, (-kWordSize * 32), Address::Offset));
+  __ ldr(R0, Address(R3, (-target::kWordSize * 32), Address::Offset));
   __ mov(SP, Operand(R3));
   __ bx(LR);
 }
@@ -1317,8 +1318,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
-  __ str(R2, Address(SP, (-kWordSize * 32), Address::PreIndex));
+  __ mov(R1, Operand(target::kWordSize));
+  __ str(R2, Address(SP, (-target::kWordSize * 32), Address::PreIndex));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
   __ bx(LR);
 }
@@ -3845,6 +3846,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Ret();
 }
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

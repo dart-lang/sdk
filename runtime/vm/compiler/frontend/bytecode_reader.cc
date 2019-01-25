@@ -478,7 +478,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         // InstanceField constant occupies 2 entries.
         // The first entry is used for field offset.
         obj = Smi::New(field.Offset() / kWordSize);
-        pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, obj);
         ++i;
         ASSERT(i < obj_count);
@@ -562,8 +563,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kNativeEntry: {
         name = ReadString();
         obj = NativeEntry(function, name);
-        pool.SetTypeAt(i, ObjectPool::kNativeEntryData,
-                       ObjectPool::kNotPatchable);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeEntryData,
+                       ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, obj);
         continue;
       }
@@ -620,7 +621,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         array ^= pool.ObjectAt(arg_desc_index);
         // InterfaceCall constant occupies 2 entries.
         // The first entry is used for selector name.
-        pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, name);
         ++i;
         ASSERT(i < obj_count);
@@ -630,7 +632,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
       default:
         UNREACHABLE();
     }
-    pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+    pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                   ObjectPool::Patchability::kNotPatchable);
     pool.SetObjectAt(i, obj);
   }
 }

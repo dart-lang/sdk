@@ -4,6 +4,7 @@
 
 #include "vm/thread_state.h"
 
+#include "vm/handles_impl.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -36,6 +37,50 @@ bool ThreadState::ZoneIsOwnedByThread(Zone* zone) const {
     current = current->previous();
   }
   return false;
+}
+
+bool ThreadState::IsValidZoneHandle(Dart_Handle object) const {
+  Zone* zone = this->zone();
+  while (zone != NULL) {
+    if (zone->handles()->IsValidZoneHandle(reinterpret_cast<uword>(object))) {
+      return true;
+    }
+    zone = zone->previous();
+  }
+  return false;
+}
+
+intptr_t ThreadState::CountZoneHandles() const {
+  intptr_t count = 0;
+  Zone* zone = this->zone();
+  while (zone != NULL) {
+    count += zone->handles()->CountZoneHandles();
+    zone = zone->previous();
+  }
+  ASSERT(count >= 0);
+  return count;
+}
+
+bool ThreadState::IsValidScopedHandle(Dart_Handle object) const {
+  Zone* zone = this->zone();
+  while (zone != NULL) {
+    if (zone->handles()->IsValidScopedHandle(reinterpret_cast<uword>(object))) {
+      return true;
+    }
+    zone = zone->previous();
+  }
+  return false;
+}
+
+intptr_t ThreadState::CountScopedHandles() const {
+  intptr_t count = 0;
+  Zone* zone = this->zone();
+  while (zone != NULL) {
+    count += zone->handles()->CountScopedHandles();
+    zone = zone->previous();
+  }
+  ASSERT(count >= 0);
+  return count;
 }
 
 }  // namespace dart

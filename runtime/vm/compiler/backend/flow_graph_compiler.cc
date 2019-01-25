@@ -80,7 +80,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
     if (it.CurrentLocation().IsInvalid() &&
         it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot(
-          compiler_frame_layout.FrameSlotForVariableIndex(-*stack_height)));
+          compiler::target::frame_layout.FrameSlotForVariableIndex(
+              -*stack_height)));
       (*stack_height)++;
     }
   }
@@ -356,7 +357,8 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
 #if defined(DART_PRECOMPILER)
 static intptr_t LocationToStackIndex(const Location& src) {
   ASSERT(src.HasStackIndex());
-  return -compiler_frame_layout.VariableIndexForFrameSlot(src.stack_index());
+  return -compiler::target::frame_layout.VariableIndexForFrameSlot(
+      src.stack_index());
 }
 
 static CatchEntryMove CatchEntryMoveFor(Assembler* assembler,
@@ -369,7 +371,7 @@ static CatchEntryMove CatchEntryMoveFor(Assembler* assembler,
       return CatchEntryMove();
     }
     const intptr_t pool_index =
-        assembler->object_pool_wrapper().FindObject(src.constant());
+        assembler->object_pool_builder().FindObject(src.constant());
     return CatchEntryMove::FromSlot(CatchEntryMove::SourceKind::kConstant,
                                     pool_index, dst_index);
   }
@@ -1073,7 +1075,7 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.scope_id = 0;
     info.begin_pos = TokenPosition::kMinSource;
     info.end_pos = TokenPosition::kMinSource;
-    info.set_index(compiler_frame_layout.FrameSlotForVariable(
+    info.set_index(compiler::target::frame_layout.FrameSlotForVariable(
         parsed_function().current_context_var()));
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }

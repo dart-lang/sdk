@@ -89,10 +89,8 @@ static void DeterministicModeHandler(bool value) {
     FLAG_random_seed = 0x44617274;  // "Dart"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     FLAG_load_deferred_eagerly = true;
-    FLAG_print_stop_message = false;  // Embedds addresses in instructions.
 #else
     COMPILE_ASSERT(FLAG_load_deferred_eagerly);
-    COMPILE_ASSERT(!FLAG_print_stop_message);
 #endif
   }
 }

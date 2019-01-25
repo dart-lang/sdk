@@ -127,7 +127,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label stack_ok;
   __ Comment("Stack Check");
   const intptr_t fp_sp_dist =
-      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      (compiler::target::frame_layout.first_local_from_fp + 1 -
+       compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ sub(R2, SP, Operand(FP));
@@ -282,9 +283,8 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(
-      kWord, result, FP,
-      compiler_frame_layout.FrameOffsetInBytesForVariable(&local()));
+  __ LoadFromOffset(kWord, result, FP,
+                    compiler::target::FrameOffsetInBytesForVariable(&local()));
 }
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(Zone* zone,
@@ -297,9 +297,8 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ StoreToOffset(
-      kWord, value, FP,
-      compiler_frame_layout.FrameOffsetInBytesForVariable(&local()));
+  __ StoreToOffset(kWord, value, FP,
+                   compiler::target::FrameOffsetInBytesForVariable(&local()));
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -967,9 +966,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ LoadImmediate(R1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadNativeEntry(
-      R9, &label,
-      link_lazily() ? ObjectPool::kPatchable : ObjectPool::kNotPatchable);
+  __ LoadNativeEntry(R9, &label,
+                     link_lazily()
+                         ? compiler::ObjectPoolBuilderEntry::kPatchable
+                         : compiler::ObjectPoolBuilderEntry::kNotPatchable);
   if (link_lazily()) {
     compiler->GeneratePatchableCall(token_pos(), *stub,
                                     RawPcDescriptors::kOther, locs());
@@ -2965,21 +2965,22 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      (compiler::target::frame_layout.first_local_from_fp + 1 -
+       compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
-      __ StoreToOffset(kWord, kExceptionObjectReg, FP,
-                       compiler_frame_layout.FrameOffsetInBytesForVariable(
-                           raw_exception_var_));
+      __ StoreToOffset(
+          kWord, kExceptionObjectReg, FP,
+          compiler::target::FrameOffsetInBytesForVariable(raw_exception_var_));
     }
     if (raw_stacktrace_var_ != nullptr) {
-      __ StoreToOffset(kWord, kStackTraceObjectReg, FP,
-                       compiler_frame_layout.FrameOffsetInBytesForVariable(
-                           raw_stacktrace_var_));
+      __ StoreToOffset(
+          kWord, kStackTraceObjectReg, FP,
+          compiler::target::FrameOffsetInBytesForVariable(raw_stacktrace_var_));
     }
   }
 }
@@ -3029,11 +3030,9 @@ class CheckStackOverflowSlowPath
     compiler->pending_deoptimization_env_ = env;
 
     if (using_shared_stub) {
-      uword entry_point_offset =
-          instruction()->locs()->live_registers()->FpuRegisterCount() > 0
-              ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
-              : Thread::
-                    stack_overflow_shared_without_fpu_regs_entry_point_offset();
+      const uword entry_point_offset =
+          Thread::stack_overflow_shared_stub_entry_point_offset(
+              instruction()->locs()->live_registers()->FpuRegisterCount() > 0);
       __ ldr(LR, Address(THR, entry_point_offset));
       __ blx(LR);
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);

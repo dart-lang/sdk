@@ -198,7 +198,7 @@ void Precompiler::DoCompileAll() {
       // Since we keep the object pool until the end of AOT compilation, it
       // will hang on to its entries until the very end. Therefore we have
       // to use handles which survive that long, so we use [zone_] here.
-      global_object_pool_wrapper_.InitializeWithZone(zone_);
+      global_object_pool_builder_.InitializeWithZone(zone_);
     }
 
     {
@@ -238,50 +238,50 @@ void Precompiler::DoCompileAll() {
         const Code& code = StubCode::InterpretCall();
         const ObjectPool& stub_pool = ObjectPool::Handle(code.object_pool());
 
-        global_object_pool_wrapper()->Reset();
-        global_object_pool_wrapper()->InitializeFrom(stub_pool);
+        global_object_pool_builder()->Reset();
+        stub_pool.CopyInto(global_object_pool_builder());
 
         // We have two global code objects we need to re-generate with the new
         // global object pool, namely the
         //   - megamorphic miss handler code and the
         //   - build method extractor code
         MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_wrapper());
+            isolate_, global_object_pool_builder());
 
         auto& stub_code = Code::Handle();
 
         stub_code =
-            StubCode::GetBuildMethodExtractorStub(global_object_pool_wrapper());
+            StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
 
         stub_code =
             StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
-                global_object_pool_wrapper());
+                global_object_pool_builder());
         I->object_store()->set_null_error_stub_with_fpu_regs_stub(stub_code);
 
         stub_code =
             StubCode::BuildIsolateSpecificNullErrorSharedWithoutFPURegsStub(
-                global_object_pool_wrapper());
+                global_object_pool_builder());
         I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
 
         stub_code =
             StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
-                global_object_pool_wrapper());
+                global_object_pool_builder());
         I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
             stub_code);
 
         stub_code =
             StubCode::BuildIsolateSpecificStackOverflowSharedWithoutFPURegsStub(
-                global_object_pool_wrapper());
+                global_object_pool_builder());
         I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
             stub_code);
 
         stub_code = StubCode::BuildIsolateSpecificWriteBarrierWrappersStub(
-            global_object_pool_wrapper());
+            global_object_pool_builder());
         I->object_store()->set_write_barrier_wrappers_stub(stub_code);
 
         stub_code = StubCode::BuildIsolateSpecificArrayWriteBarrierStub(
-            global_object_pool_wrapper());
+            global_object_pool_builder());
         I->object_store()->set_array_write_barrier_stub(stub_code);
       }
 
@@ -303,10 +303,10 @@ void Precompiler::DoCompileAll() {
         // Now we generate the actual object pool instance and attach it to the
         // object store. The AOT runtime will use it from there in the enter
         // dart code stub.
-        const auto& pool =
-            ObjectPool::Handle(global_object_pool_wrapper()->MakeObjectPool());
+        const auto& pool = ObjectPool::Handle(
+            ObjectPool::NewFromBuilder(*global_object_pool_builder()));
         I->object_store()->set_global_object_pool(pool);
-        global_object_pool_wrapper()->Reset();
+        global_object_pool_builder()->Reset();
 
         if (FLAG_print_gop) {
           THR_Print("Global object pool:\n");
@@ -527,7 +527,7 @@ void Precompiler::CollectCallbackFields() {
 
 void Precompiler::ProcessFunction(const Function& function) {
   const intptr_t gop_offset =
-      FLAG_use_bare_instructions ? global_object_pool_wrapper()->CurrentLength()
+      FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
 
   if (!function.HasCode()) {
@@ -594,9 +594,10 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   String& selector = String::Handle(Z);
   if (FLAG_use_bare_instructions) {
     for (intptr_t i = gop_offset;
-         i < global_object_pool_wrapper()->CurrentLength(); i++) {
-      const auto& wrapper_entry = global_object_pool_wrapper()->EntryAt(i);
-      if (wrapper_entry.type() == ObjectPool::kTaggedObject) {
+         i < global_object_pool_builder()->CurrentLength(); i++) {
+      const auto& wrapper_entry = global_object_pool_builder()->EntryAt(i);
+      if (wrapper_entry.type() ==
+          compiler::ObjectPoolBuilderEntry::kTaggedObject) {
         const auto& entry = *wrapper_entry.obj_;
         AddCalleesOfHelper(entry, &selector, &cls);
       }
@@ -605,7 +606,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
     const auto& pool = ObjectPool::Handle(Z, code.object_pool());
     auto& entry = Object::Handle(Z);
     for (intptr_t i = 0; i < pool.Length(); i++) {
-      if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
+      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
         entry = pool.ObjectAt(i);
         AddCalleesOfHelper(entry, &selector, &cls);
       }
@@ -881,7 +882,7 @@ void Precompiler::AddField(const Field& field) {
         }
         const intptr_t gop_offset =
             FLAG_use_bare_instructions
-                ? global_object_pool_wrapper()->CurrentLength()
+                ? global_object_pool_builder()->CurrentLength()
                 : 0;
         ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
         const Function& initializer =
@@ -2032,7 +2033,9 @@ void Precompiler::SwitchICCalls() {
 
     void SwitchPool(const ObjectPool& pool) {
       for (intptr_t i = 0; i < pool.Length(); i++) {
-        if (pool.TypeAt(i) != ObjectPool::kTaggedObject) continue;
+        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
         entry_ = pool.ObjectAt(i);
         if (entry_.IsICData()) {
           // The only IC calls generated by precompilation are for switchable
@@ -2372,12 +2375,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
 
-      ObjectPoolWrapper object_pool;
-      ObjectPoolWrapper* active_object_pool_wrapper =
+      ObjectPoolBuilder object_pool;
+      ObjectPoolBuilder* active_object_pool_builder =
           FLAG_use_bare_instructions
-              ? precompiler_->global_object_pool_wrapper()
+              ? precompiler_->global_object_pool_builder()
               : &object_pool;
-      Assembler assembler(active_object_pool_wrapper, use_far_branches);
+      Assembler assembler(active_object_pool_builder, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {

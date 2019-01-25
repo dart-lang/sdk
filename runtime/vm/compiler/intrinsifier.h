@@ -12,13 +12,18 @@
 namespace dart {
 
 // Forward declarations.
+namespace compiler {
 class Assembler;
 class Label;
+}  // namespace compiler
 class FlowGraphCompiler;
 class Function;
 class TargetEntryInstr;
 class ParsedFunction;
 class FlowGraph;
+
+using compiler::Assembler;
+using compiler::Label;
 
 class Intrinsifier : public AllStatic {
  public:

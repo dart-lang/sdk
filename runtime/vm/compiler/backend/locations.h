@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/bitmap.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/log.h"
 
@@ -17,7 +18,6 @@ class ConstantInstr;
 class Definition;
 class PairLocation;
 class Value;
-struct FrameLayout;
 
 enum Representation {
   kNoRepresentation,

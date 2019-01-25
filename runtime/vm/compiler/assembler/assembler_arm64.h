@@ -13,17 +13,19 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/class_id.h"
 #include "vm/constants_arm64.h"
 #include "vm/hash_map.h"
-#include "vm/longjump.h"
-#include "vm/object.h"
 #include "vm/simulator.h"
 
 namespace dart {
 
 // Forward declarations.
+class FlowGraphCompiler;
 class RuntimeEntry;
 class RegisterSet;
+
+namespace compiler {
 
 class Immediate : public ValueObject {
  public:
@@ -426,7 +428,7 @@ class Operand : public ValueObject {
 
 class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches = false);
   ~Assembler() {}
 
@@ -445,7 +447,7 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {
-      add(SP, SP, Operand(stack_elements * kWordSize));
+      add(SP, SP, Operand(stack_elements * target::kWordSize));
     }
   }
 
@@ -497,7 +499,7 @@ class Assembler : public AssemblerBase {
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }
-  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
+  static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
   // Addition and subtraction.
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
@@ -1256,19 +1258,19 @@ class Assembler : public AssemblerBase {
   }
   void Push(Register reg) {
     ASSERT(reg != PP);  // Only push PP with TagAndPushPP().
-    str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
+    str(reg, Address(SP, -1 * target::kWordSize, Address::PreIndex));
   }
   void Pop(Register reg) {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
-    ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+    ldr(reg, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   }
   void PushPair(Register low, Register high) {
     ASSERT((low != PP) && (high != PP));
-    stp(low, high, Address(SP, -2 * kWordSize, Address::PairPreIndex));
+    stp(low, high, Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
   }
   void PopPair(Register low, Register high) {
     ASSERT((low != PP) && (high != PP));
-    ldp(low, high, Address(SP, 2 * kWordSize, Address::PairPostIndex));
+    ldp(low, high, Address(SP, 2 * target::kWordSize, Address::PairPostIndex));
   }
   void PushFloat(VRegister reg) {
     fstrs(reg, Address(SP, -1 * kFloatSize, Address::PreIndex));
@@ -1291,16 +1293,17 @@ class Assembler : public AssemblerBase {
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP, PP, Operand(kHeapObjectTag));
-    str(TMP, Address(SP, -1 * kWordSize, Address::PreIndex));
+    str(TMP, Address(SP, -1 * target::kWordSize, Address::PreIndex));
   }
   void TagAndPushPPAndPcMarker() {
     COMPILE_ASSERT(CODE_REG != TMP2);
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP2, PP, Operand(kHeapObjectTag));
-    stp(TMP2, CODE_REG, Address(SP, -2 * kWordSize, Address::PairPreIndex));
+    stp(TMP2, CODE_REG,
+        Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
   }
   void PopAndUntagPP() {
-    ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
+    ldr(PP, Address(SP, 1 * target::kWordSize, Address::PostIndex));
     sub(PP, PP, Operand(kHeapObjectTag));
     // The caller of PopAndUntagPP() must explicitly allow use of popped PP.
     set_constant_pool_allowed(false);
@@ -1353,15 +1356,16 @@ class Assembler : public AssemblerBase {
 
   void Branch(const Code& code,
               Register pp,
-              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
+              ObjectPoolBuilderEntry::Patchability patchable =
+                  ObjectPoolBuilderEntry::kNotPatchable);
   void BranchPatchable(const Code& code);
 
-  void BranchLink(
-      const Code& code,
-      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
+  void BranchLink(const Code& code,
+                  ObjectPoolBuilderEntry::Patchability patchable =
+                      ObjectPoolBuilderEntry::kNotPatchable);
 
   void BranchLinkPatchable(const Code& code) {
-    BranchLink(code, ObjectPool::kPatchable);
+    BranchLink(code, ObjectPoolBuilderEntry::kPatchable);
   }
   void BranchLinkToRuntime();
 
@@ -1481,7 +1485,7 @@ class Assembler : public AssemblerBase {
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       ObjectPool::Patchability patchable);
+                       ObjectPoolBuilderEntry::Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
@@ -1538,11 +1542,9 @@ class Assembler : public AssemblerBase {
 
   void MonomorphicCheckedEntry();
 
-  void UpdateAllocationStats(intptr_t cid, Heap::Space space);
+  void UpdateAllocationStats(intptr_t cid);
 
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     Register size_reg,
-                                     Heap::Space space);
+  void UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
@@ -1761,8 +1763,7 @@ class Assembler : public AssemblerBase {
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
     if (!CanEncodeImm19BranchOffset(imm)) {
       ASSERT(!use_far_branches());
-      Thread::Current()->long_jump_base()->Jump(1,
-                                                Object::branch_offset_error());
+      BailoutWithBranchOffsetError();
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
     const int32_t off = (((imm32 >> 2) << kImm19Shift) & kImm19Mask);
@@ -1777,8 +1778,7 @@ class Assembler : public AssemblerBase {
   int32_t EncodeImm14BranchOffset(int64_t imm, int32_t instr) {
     if (!CanEncodeImm14BranchOffset(imm)) {
       ASSERT(!use_far_branches());
-      Thread::Current()->long_jump_base()->Jump(1,
-                                                Object::branch_offset_error());
+      BailoutWithBranchOffsetError();
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
     const int32_t off = (((imm32 >> 2) << kImm14Shift) & kImm14Mask);
@@ -2239,13 +2239,20 @@ class Assembler : public AssemblerBase {
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
 
-  friend class FlowGraphCompiler;
+  friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;
-  std::function<void()> invoke_array_write_barrier_;
+  std::function<void()> generate_invoke_array_write_barrier_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
+
+}  // namespace compiler
+
+using compiler::Address;
+using compiler::FieldAddress;
+using compiler::Immediate;
+using compiler::Operand;
 
 }  // namespace dart
 

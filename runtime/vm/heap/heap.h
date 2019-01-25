@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_HEAP_HEAP_H_
 #define RUNTIME_VM_HEAP_HEAP_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/flags.h"

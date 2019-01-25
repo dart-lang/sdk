@@ -597,7 +597,7 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
     store_type_args += B->LoadArgDescriptor();
     store_type_args += B->LoadNativeField(Slot::ArgumentsDescriptor_count());
     store_type_args += B->LoadFpRelativeSlot(
-        kWordSize * (1 + compiler_frame_layout.param_end_from_fp));
+        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
     store_type_args +=
         B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
     store_type_args += B->Drop();
@@ -1364,7 +1364,7 @@ void BytecodeFlowGraphBuilder::BuildCompareIntLe() {
 }
 
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
-  if (object_pool.TypeAt(index) != ObjectPool::kTaggedObject) {
+  if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
     return false;
   }
   RawObject* entry = object_pool.ObjectAt(index);

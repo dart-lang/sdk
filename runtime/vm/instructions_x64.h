@@ -7,18 +7,12 @@
 #define RUNTIME_VM_INSTRUCTIONS_X64_H_
 
 #ifndef RUNTIME_VM_INSTRUCTIONS_H_
-#error Do not include instructions_ia32.h directly; use instructions.h instead.
+#error "Do not include instructions_x64.h directly; use instructions.h instead."
 #endif
 
 #include "vm/allocation.h"
-#include "vm/object.h"
 
 namespace dart {
-
-// Forward declarations.
-class RawClass;
-class Immediate;
-class RawObject;
 
 intptr_t IndexFromPPLoadDisp8(uword start);
 intptr_t IndexFromPPLoadDisp32(uword start);

@@ -6,14 +6,10 @@
 #define RUNTIME_VM_BITMAP_H_
 
 #include "vm/allocation.h"
-#include "vm/isolate.h"
+#include "vm/thread_state.h"
 #include "vm/zone.h"
 
 namespace dart {
-
-// Forward declarations.
-class RawStackMap;
-class StackMap;
 
 // BitmapBuilder is used to build a bitmap. The implementation is optimized
 // for a dense set of small bit maps without a fixed upper bound (e.g: a
@@ -23,7 +19,8 @@ class BitmapBuilder : public ZoneAllocated {
   BitmapBuilder()
       : length_(0),
         data_size_in_bytes_(kInitialSizeInBytes),
-        data_(Thread::Current()->zone()->Alloc<uint8_t>(kInitialSizeInBytes)) {
+        data_(ThreadState::Current()->zone()->Alloc<uint8_t>(
+            kInitialSizeInBytes)) {
     memset(data_, 0, kInitialSizeInBytes);
   }
 

@@ -16,12 +16,14 @@
 #include "vm/constants_x64.h"
 #include "vm/constants_x86.h"
 #include "vm/hash_map.h"
-#include "vm/object.h"
+#include "vm/pointer_tagging.h"
 
 namespace dart {
 
 // Forward declarations.
-class RuntimeEntry;
+class FlowGraphCompiler;
+
+namespace compiler {
 
 class Immediate : public ValueObject {
  public:
@@ -278,7 +280,7 @@ class FieldAddress : public Address {
 
 class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches = false);
 
   ~Assembler() {}
@@ -686,7 +688,7 @@ class Assembler : public AssemblerBase {
   void LoadUniqueObject(Register dst, const Object& obj);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       ObjectPool::Patchability patchable);
+                       ObjectPoolBuilderEntry::Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
@@ -694,7 +696,7 @@ class Assembler : public AssemblerBase {
   void Jmp(const Code& code, Register pp = PP);
   void J(Condition condition, const Code& code, Register pp);
   void CallPatchable(const Code& code,
-                     Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+                     CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void Call(const Code& stub_entry);
   void CallToRuntime();
 
@@ -702,10 +704,9 @@ class Assembler : public AssemblerBase {
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void CallWithEquivalence(
-      const Code& code,
-      const Object& equivalence,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+  void CallWithEquivalence(const Code& code,
+                           const Object& equivalence,
+                           CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
@@ -774,8 +775,6 @@ class Assembler : public AssemblerBase {
   void LeaveCallRuntimeFrame();
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
-  void CallRuntimeSavingRegisters(const RuntimeEntry& entry,
-                                  intptr_t argument_count);
 
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.
@@ -871,14 +870,10 @@ class Assembler : public AssemblerBase {
 
   void MonomorphicCheckedEntry();
 
-  void UpdateAllocationStats(intptr_t cid, Heap::Space space);
+  void UpdateAllocationStats(intptr_t cid);
 
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     Register size_reg,
-                                     Heap::Space space);
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     intptr_t instance_size,
-                                     Heap::Space space);
+  void UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg);
+  void UpdateAllocationStatsWithSize(intptr_t cid, intptr_t instance_size);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
@@ -940,14 +935,12 @@ class Assembler : public AssemblerBase {
                                            Register array,
                                            Register index);
 
-  static Address VMTagAddress() {
-    return Address(THR, Thread::vm_tag_offset());
-  }
+  static Address VMTagAddress();
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }
-  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
+  static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
  private:
   bool constant_pool_allowed_;
@@ -1046,14 +1039,9 @@ class Assembler : public AssemblerBase {
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   void MoveImmediate(const Address& dst, const Immediate& imm);
 
-  void ComputeCounterAddressesForCid(intptr_t cid,
-                                     Heap::Space space,
-                                     Address* count_address,
-                                     Address* size_address);
-
-  friend class FlowGraphCompiler;
+  friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;
-  std::function<void()> invoke_array_write_barrier_;
+  std::function<void()> generate_invoke_array_write_barrier_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
@@ -1105,6 +1093,13 @@ inline void Assembler::EmitFixup(AssemblerFixup* fixup) {
 inline void Assembler::EmitOperandSizeOverride() {
   EmitUint8(0x66);
 }
+
+}  // namespace compiler
+
+using compiler::Address;
+using compiler::FieldAddress;
+using compiler::Immediate;
+using compiler::Label;
 
 }  // namespace dart
 

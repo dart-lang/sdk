@@ -1647,20 +1647,10 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
     // Format(instr, "brk 'imm16");
     SimulatorDebugger dbg(this);
     int32_t imm = instr->Imm16Field();
-    if (imm == Instr::kStopMessageCode) {
-      const char* message = "Stop messages not enabled";
-      if (FLAG_print_stop_message) {
-        message = *reinterpret_cast<const char**>(
-            reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
-      }
-      set_pc(get_pc() + Instr::kInstrSize);
-      dbg.Stop(instr, message);
-    } else {
-      char buffer[32];
-      snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
-      set_pc(get_pc() + Instr::kInstrSize);
-      dbg.Stop(instr, buffer);
-    }
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
+    set_pc(get_pc() + Instr::kInstrSize);
+    dbg.Stop(instr, buffer);
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 2)) {
     // Format(instr, "hlt 'imm16");

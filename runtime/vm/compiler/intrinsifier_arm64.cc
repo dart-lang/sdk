@@ -127,7 +127,6 @@ static int GetScaleFactor(intptr_t size) {
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ ldr(R0, Address(THR, Thread::top_offset()));                              \
                                                                                \
   /* R2: allocation size. */                                                   \
@@ -146,7 +145,7 @@ static int GetScaleFactor(intptr_t size) {
   /* next object start and initialize the object. */                           \
   __ str(R1, Address(THR, Thread::top_offset()));                              \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));            \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2));                   \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -2009,7 +2008,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ ldr(R0, Address(THR, Thread::top_offset()));
 
   // length_reg: allocation size.
@@ -2028,7 +2026,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(THR, Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.

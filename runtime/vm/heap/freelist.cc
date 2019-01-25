@@ -270,7 +270,7 @@ void FreeList::PrintSmall() const {
     OS::PrintErr(
         "small %3d [%8d bytes] : "
         "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
-        i, i * kObjectAlignment, list_length,
+        i, static_cast<int>(i * kObjectAlignment), list_length,
         list_bytes / static_cast<double>(KB),
         small_bytes / static_cast<double>(KB));
   }

@@ -692,15 +692,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += LoadLocal(parsed_function()->current_context_var());
       body += B->LoadNativeField(
           Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
-      body += B->StoreFpRelativeSlot(kWordSize *
-                                     compiler_frame_layout.param_end_from_fp);
+      body += B->StoreFpRelativeSlot(
+          kWordSize * compiler::target::frame_layout.param_end_from_fp);
     } else {
       body += LoadLocal(parsed_function()->current_context_var());
       body += B->LoadNativeField(
           Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
       body += B->StoreFpRelativeSlot(
-          kWordSize *
-          (compiler_frame_layout.param_end_from_fp + function.NumParameters()));
+          kWordSize * (compiler::target::frame_layout.param_end_from_fp +
+                       function.NumParameters()));
     }
   }
 
@@ -804,8 +804,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(argument_count);
     loop_body += LoadLocal(index);
     loop_body += B->SmiBinaryOp(Token::kSUB, /*truncate=*/true);
-    loop_body += B->LoadFpRelativeSlot(kWordSize *
-                                       compiler_frame_layout.param_end_from_fp);
+    loop_body += B->LoadFpRelativeSlot(
+        kWordSize * compiler::target::frame_layout.param_end_from_fp);
     loop_body += StoreIndexed(kArrayCid);
 
     // ++i

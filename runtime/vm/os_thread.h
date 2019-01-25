@@ -44,12 +44,11 @@ class BaseThread {
 
  private:
   explicit BaseThread(bool is_os_thread) : is_os_thread_(is_os_thread) {}
-  ~BaseThread() {}
+  virtual ~BaseThread() {}
 
   bool is_os_thread_;
 
   friend class ThreadState;
-  friend class Thread;
   friend class OSThread;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseThread);

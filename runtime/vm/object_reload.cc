@@ -101,7 +101,7 @@ void ObjectPool::ResetICDatas(Zone* zone) const {
   Object& object = Object::Handle(zone);
   for (intptr_t i = 0; i < Length(); i++) {
     ObjectPool::EntryType entry_type = TypeAt(i);
-    if (entry_type != ObjectPool::kTaggedObject) {
+    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
       continue;
     }
     object = ObjectAt(i);

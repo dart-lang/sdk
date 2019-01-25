@@ -10,7 +10,6 @@
 
 namespace dart {
 
-class ObjectPoolWrapper;
 
 class TypeTestingStubNamer {
  public:

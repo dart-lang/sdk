@@ -4537,7 +4537,7 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
   const String& function_name = check_null->function_name();
   const intptr_t name_index =
-      compiler->assembler()->object_pool_wrapper().FindObject(function_name);
+      compiler->assembler()->object_pool_builder().FindObject(function_name);
   compiler->AddNullCheck(compiler->assembler()->CodeSize(),
                          check_null->token_pos(), name_index);
 }

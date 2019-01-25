@@ -12,17 +12,12 @@
 namespace dart {
 
 // Forward declaration.
-class Array;
 class Code;
-class ExternalLabel;
-class Function;
 class ICData;
 class RawArray;
 class RawCode;
 class RawFunction;
-class RawICData;
 class RawObject;
-class String;
 
 // Stack-allocated class to create a scope where the specified region
 // [address, address + size] has write access enabled. This is used

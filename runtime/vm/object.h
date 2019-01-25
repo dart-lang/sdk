@@ -5,12 +5,19 @@
 #ifndef RUNTIME_VM_OBJECT_H_
 #define RUNTIME_VM_OBJECT_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include <tuple>
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
+#include "vm/code_entry_kind.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -29,6 +36,10 @@
 namespace dart {
 
 // Forward declarations.
+namespace compiler {
+class Assembler;
+}
+
 namespace kernel {
 class Program;
 class TreeNode;
@@ -39,7 +50,6 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class Api;
 class ArgumentsDescriptor;
-class Assembler;
 class Closure;
 class Code;
 class DeoptInstr;
@@ -4052,26 +4062,15 @@ class KernelProgramInfo : public Object {
 // with it which is stored in-inline after all the entries.
 class ObjectPool : public Object {
  public:
-  enum EntryType {
-    kTaggedObject,
-    kImmediate,
-    kNativeFunction,
-    kNativeFunctionWrapper,
-    kNativeEntryData,
-  };
-
-  enum Patchability {
-    kPatchable,
-    kNotPatchable,
-  };
-
-  class TypeBits : public BitField<uint8_t, EntryType, 0, 7> {};
-  class PatchableBit
-      : public BitField<uint8_t, Patchability, TypeBits::kNextBit, 1> {};
+  using EntryType = compiler::ObjectPoolBuilderEntry::EntryType;
+  using Patchability = compiler::ObjectPoolBuilderEntry::Patchability;
+  using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
+  using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
-    explicit Entry(const Object* obj) : obj_(obj), type_(kTaggedObject) {}
+    explicit Entry(const Object* obj)
+        : obj_(obj), type_(EntryType::kTaggedObject) {}
     Entry(uword value, EntryType info) : raw_value_(value), type_(info) {}
     union {
       const Object* obj_;
@@ -4109,23 +4108,23 @@ class ObjectPool : public Object {
   }
 
   RawObject* ObjectAt(intptr_t index) const {
-    ASSERT((TypeAt(index) == kTaggedObject) ||
-           (TypeAt(index) == kNativeEntryData));
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kNativeEntryData));
     return EntryAddr(index)->raw_obj_;
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
-    ASSERT((TypeAt(index) == kTaggedObject) ||
-           (TypeAt(index) == kNativeEntryData) ||
-           (TypeAt(index) == kImmediate && obj.IsSmi()));
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kNativeEntryData) ||
+           (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
   uword RawValueAt(intptr_t index) const {
-    ASSERT(TypeAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     return EntryAddr(index)->raw_value_;
   }
   void SetRawValueAt(intptr_t index, uword raw_value) const {
-    ASSERT(TypeAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
@@ -4150,7 +4149,11 @@ class ObjectPool : public Object {
                                  (len * kBytesPerElement));
   }
 
+  static RawObjectPool* NewFromBuilder(
+      const compiler::ObjectPoolBuilder& builder);
   static RawObjectPool* New(intptr_t len);
+
+  void CopyInto(compiler::ObjectPoolBuilder* builder) const;
 
   // Returns the pool index from the offset relative to a tagged RawObjectPool*,
   // adjusting for the tag-bit.
@@ -4731,12 +4734,7 @@ class Code : public Object {
     return OFFSET_OF(RawCode, instructions_);
   }
 
-  enum class EntryKind {
-    kNormal,
-    kUnchecked,
-    kMonomorphic,
-    kMonomorphicUnchecked,
-  };
+  using EntryKind = CodeEntryKind;
 
   static intptr_t entry_point_offset(EntryKind kind = EntryKind::kNormal) {
     switch (kind) {
@@ -4755,9 +4753,9 @@ class Code : public Object {
 
   static intptr_t function_entry_point_offset(EntryKind kind) {
     switch (kind) {
-      case Code::EntryKind::kNormal:
+      case EntryKind::kNormal:
         return Function::entry_point_offset();
-      case Code::EntryKind::kUnchecked:
+      case EntryKind::kUnchecked:
         return Function::unchecked_entry_point_offset();
       default:
         ASSERT(false && "Invalid entry kind.");
@@ -5050,13 +5048,13 @@ class Code : public Object {
   // `Object::set_object_pool()`.
   static RawCode* FinalizeCode(const Function& function,
                                FlowGraphCompiler* compiler,
-                               Assembler* assembler,
+                               compiler::Assembler* assembler,
                                PoolAttachment pool_attachment,
                                bool optimized = false,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
                                FlowGraphCompiler* compiler,
-                               Assembler* assembler,
+                               compiler::Assembler* assembler,
                                PoolAttachment pool_attachment,
                                bool optimized,
                                CodeStatistics* stats = nullptr);

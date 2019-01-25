@@ -147,7 +147,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Print live ranges after allocation.")                                     \
   R(print_stacktrace_at_api_error, false, bool, false,                         \
     "Attempt to print a native stack trace when an API error is created.")     \
-  C(print_stop_message, false, false, bool, false, "Print stop message.")      \
   D(print_variable_descriptors, bool, false,                                   \
     "Print variable descriptors in disassembly.")                              \
   R(profiler, false, bool, false, "Enable the profiler.")                      \

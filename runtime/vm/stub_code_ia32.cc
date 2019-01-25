@@ -381,13 +381,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EAX);
   const intptr_t saved_exception_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EAX);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EDX);
   // Result in EAX is preserved as part of pushing all registers below.
 
@@ -447,14 +447,18 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
-    __ movl(EBX, Address(EBP, compiler_frame_layout.first_local_from_fp *
-                                  kWordSize));
+    __ movl(EBX,
+            Address(EBP, compiler::target::frame_layout.first_local_from_fp *
+                             kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into EBX.
-    __ movl(EBX, Address(EBP, compiler_frame_layout.first_local_from_fp *
-                                  kWordSize));
-    __ movl(ECX, Address(EBP, (compiler_frame_layout.first_local_from_fp - 1) *
-                                  kWordSize));
+    __ movl(EBX,
+            Address(EBP, compiler::target::frame_layout.first_local_from_fp *
+                             kWordSize));
+    __ movl(
+        ECX,
+        Address(EBP, (compiler::target::frame_layout.first_local_from_fp - 1) *
+                         kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
@@ -628,7 +632,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EBX: allocation size.
 
   const intptr_t cid = kArrayCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ movl(EAX, Address(THR, Thread::top_offset()));
   __ addl(EBX, EAX);
   __ j(CARRY, &slow_case);
@@ -646,7 +649,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ movl(Address(THR, Thread::top_offset()), EBX);
   __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -864,7 +867,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // EDX: number of context variables.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     __ movl(EAX, Address(THR, Thread::top_offset()));
     __ addl(EBX, EAX);
     // Check if the allocation fits into the remaining space.
@@ -893,7 +895,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ subl(EBX, EAX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
+    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI));
 
     // Calculate the size tag.
     // EAX: new object.
@@ -1142,7 +1144,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     __ movl(EAX, Address(THR, Thread::top_offset()));
     __ leal(EBX, Address(EAX, instance_size));
     // Check if the allocation fits into the remaining space.
@@ -1155,7 +1156,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address(THR, Thread::top_offset()), EBX);
-    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX, space));
+    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX));
 
     // EAX: new object start (untagged).
     // EBX: next object start.

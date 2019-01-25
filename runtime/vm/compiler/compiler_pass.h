@@ -52,6 +52,7 @@ class Function;
 class Precompiler;
 class SpeculativeInliningPolicy;
 class TimelineStream;
+class Thread;
 
 struct CompilerPassState {
   CompilerPassState(Thread* thread,

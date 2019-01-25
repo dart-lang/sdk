@@ -12142,12 +12142,64 @@ RawObjectPool* ObjectPool::New(intptr_t len) {
     result ^= raw;
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
-      result.SetTypeAt(i, ObjectPool::kImmediate, ObjectPool::kPatchable);
+      result.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
+                       ObjectPool::Patchability::kPatchable);
     }
   }
 
   return result.raw();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+RawObjectPool* ObjectPool::NewFromBuilder(
+    const compiler::ObjectPoolBuilder& builder) {
+  const intptr_t len = builder.CurrentLength();
+  if (len == 0) {
+    return Object::empty_object_pool().raw();
+  }
+  const ObjectPool& result = ObjectPool::Handle(ObjectPool::New(len));
+  for (intptr_t i = 0; i < len; i++) {
+    auto entry = builder.EntryAt(i);
+    auto type = entry.type();
+    auto patchable = entry.patchable();
+    result.SetTypeAt(i, type, patchable);
+    if (type == EntryType::kTaggedObject) {
+      result.SetObjectAt(i, *entry.obj_);
+    } else {
+      result.SetRawValueAt(i, entry.raw_value_);
+    }
+  }
+  return result.raw();
+}
+
+void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
+  ASSERT(builder->CurrentLength());
+
+  for (intptr_t i = 0; i < Length(); i++) {
+    auto type = TypeAt(i);
+    auto patchable = PatchableAt(i);
+    switch (type) {
+      case compiler::ObjectPoolBuilderEntry::kTaggedObject: {
+        compiler::ObjectPoolBuilderEntry entry(&Object::ZoneHandle(ObjectAt(i)),
+                                               patchable);
+        builder->AddObject(entry);
+        break;
+      }
+      case compiler::ObjectPoolBuilderEntry::kImmediate:
+      case compiler::ObjectPoolBuilderEntry::kNativeFunction:
+      case compiler::ObjectPoolBuilderEntry::kNativeFunctionWrapper: {
+        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable);
+        builder->AddObject(entry);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  ASSERT(builder->CurrentLength() == Length());
+}
+#endif
 
 const char* ObjectPool::ToCString() const {
   Zone* zone = Thread::Current()->zone();
@@ -12159,13 +12211,14 @@ void ObjectPool::DebugPrint() const {
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
     THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
-    if ((TypeAt(i) == kTaggedObject) || (TypeAt(i) == kNativeEntryData)) {
+    if ((TypeAt(i) == EntryType::kTaggedObject) ||
+        (TypeAt(i) == EntryType::kNativeEntryData)) {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
-    } else if (TypeAt(i) == kNativeFunction) {
+    } else if (TypeAt(i) == EntryType::kNativeFunction) {
       THR_Print("0x%" Px " (native function)\n", RawValueAt(i));
-    } else if (TypeAt(i) == kNativeFunctionWrapper) {
+    } else if (TypeAt(i) == EntryType::kNativeFunctionWrapper) {
       THR_Print("0x%" Px " (native function wrapper)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
@@ -14226,6 +14279,19 @@ class CodeCommentsWrapper final : public CodeComments {
   const Code::Comments& comments_;
   String& string_;
 };
+
+static const Code::Comments& CreateCommentsFrom(
+    compiler::Assembler* assembler) {
+  const auto& comments = assembler->comments();
+  Code::Comments& result = Code::Comments::New(comments.length());
+
+  for (intptr_t i = 0; i < comments.length(); i++) {
+    result.SetPCOffsetAt(i, comments[i]->pc_offset());
+    result.SetCommentAt(i, comments[i]->comment());
+  }
+
+  return result;
+}
 #endif
 
 RawCode* Code::FinalizeCode(const char* name,
@@ -14242,7 +14308,10 @@ RawCode* Code::FinalizeCode(const char* name,
   ASSERT(assembler != NULL);
   const auto object_pool =
       pool_attachment == PoolAttachment::kAttachPool
-          ? &ObjectPool::Handle(assembler->MakeObjectPool())
+          ? &ObjectPool::Handle(assembler->HasObjectPoolBuilder()
+                                    ? ObjectPool::NewFromBuilder(
+                                          assembler->object_pool_builder())
+                                    : ObjectPool::empty_object_pool().raw())
           : nullptr;
 
   // Allocate the Code and Instructions objects.  Code is allocated first
@@ -14251,7 +14320,7 @@ RawCode* Code::FinalizeCode(const char* name,
   intptr_t pointer_offset_count = assembler->CountPointerOffsets();
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
 #ifdef TARGET_ARCH_IA32
-  assembler->set_code_object(code);
+  assembler->GetSelfHandle() = code.raw();
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
       assembler->CodeSize(), assembler->has_single_entry_point(),
@@ -14314,7 +14383,7 @@ RawCode* Code::FinalizeCode(const char* name,
 #endif
 
 #ifndef PRODUCT
-  const Code::Comments& comments = assembler->GetCodeComments();
+  const Code::Comments& comments = CreateCommentsFrom(assembler);
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   CodeCommentsWrapper comments_wrapper(comments);

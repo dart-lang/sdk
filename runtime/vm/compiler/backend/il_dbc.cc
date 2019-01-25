@@ -332,14 +332,14 @@ EMIT_NATIVE_CODE(PushArgument, 1) {
 EMIT_NATIVE_CODE(LoadLocal, 0) {
   ASSERT(!compiler->is_optimizing());
   const intptr_t slot_index =
-      compiler_frame_layout.FrameSlotForVariable(&local());
+      compiler::target::frame_layout.FrameSlotForVariable(&local());
   __ Push(LocalVarIndex(0, slot_index));
 }
 
 EMIT_NATIVE_CODE(StoreLocal, 0) {
   ASSERT(!compiler->is_optimizing());
   const intptr_t slot_index =
-      compiler_frame_layout.FrameSlotForVariable(&local());
+      compiler::target::frame_layout.FrameSlotForVariable(&local());
   if (HasTemp()) {
     __ StoreLocal(LocalVarIndex(0, slot_index));
   } else {
@@ -984,13 +984,13 @@ EMIT_NATIVE_CODE(NativeCall,
 
   const ExternalLabel trampoline_label(reinterpret_cast<uword>(trampoline));
   const intptr_t trampoline_kidx =
-      __ object_pool_wrapper().FindNativeFunctionWrapper(
-          &trampoline_label, ObjectPool::kPatchable);
+      __ object_pool_builder().FindNativeFunctionWrapper(
+          &trampoline_label, ObjectPool::Patchability::kPatchable);
   const ExternalLabel label(reinterpret_cast<uword>(function));
-  const intptr_t target_kidx = __ object_pool_wrapper().FindNativeFunction(
-      &label, ObjectPool::kPatchable);
+  const intptr_t target_kidx = __ object_pool_builder().FindNativeFunction(
+      &label, ObjectPool::Patchability::kPatchable);
   const intptr_t argc_tag_kidx =
-      __ object_pool_wrapper().FindImmediate(static_cast<uword>(argc_tag));
+      __ object_pool_builder().FindImmediate(static_cast<uword>(argc_tag));
   __ NativeCall(trampoline_kidx, target_kidx, argc_tag_kidx);
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
@@ -1199,13 +1199,13 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
       __ MoveSpecial(
-          LocalVarIndex(0, compiler_frame_layout.FrameSlotForVariable(
+          LocalVarIndex(0, compiler::target::frame_layout.FrameSlotForVariable(
                                raw_exception_var_)),
           Simulator::kExceptionSpecialIndex);
     }
     if (raw_stacktrace_var_ != nullptr) {
       __ MoveSpecial(
-          LocalVarIndex(0, compiler_frame_layout.FrameSlotForVariable(
+          LocalVarIndex(0, compiler::target::frame_layout.FrameSlotForVariable(
                                raw_stacktrace_var_)),
           Simulator::kStackTraceSpecialIndex);
     }

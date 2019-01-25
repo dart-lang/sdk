@@ -125,7 +125,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
     FLAG_load_deferred_eagerly = true;
-    FLAG_print_stop_message = false;
     FLAG_use_osr = false;
 #endif
   }
@@ -667,8 +666,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
-      ObjectPoolWrapper object_pool_wrapper;
-      Assembler assembler(&object_pool_wrapper, use_far_branches);
+      ObjectPoolBuilder object_pool_builder;
+      Assembler assembler(&object_pool_builder, use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,

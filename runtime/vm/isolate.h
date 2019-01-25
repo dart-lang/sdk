@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_ISOLATE_H_
 #define RUNTIME_VM_ISOLATE_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"

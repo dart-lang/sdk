@@ -82,7 +82,6 @@ Thread::Thread(Isolate* isolate)
       api_top_scope_(NULL),
       no_callback_scope_depth_(0),
 #if defined(DEBUG)
-      top_handle_scope_(NULL),
       no_safepoint_scope_depth_(0),
 #endif
       reusable_handles_(),
@@ -856,50 +855,6 @@ intptr_t Thread::CountLocalHandles() const {
     scope = scope->previous();
   }
   return total;
-}
-
-bool Thread::IsValidZoneHandle(Dart_Handle object) const {
-  Zone* zone = this->zone();
-  while (zone != NULL) {
-    if (zone->handles()->IsValidZoneHandle(reinterpret_cast<uword>(object))) {
-      return true;
-    }
-    zone = zone->previous();
-  }
-  return false;
-}
-
-intptr_t Thread::CountZoneHandles() const {
-  intptr_t count = 0;
-  Zone* zone = this->zone();
-  while (zone != NULL) {
-    count += zone->handles()->CountZoneHandles();
-    zone = zone->previous();
-  }
-  ASSERT(count >= 0);
-  return count;
-}
-
-bool Thread::IsValidScopedHandle(Dart_Handle object) const {
-  Zone* zone = this->zone();
-  while (zone != NULL) {
-    if (zone->handles()->IsValidScopedHandle(reinterpret_cast<uword>(object))) {
-      return true;
-    }
-    zone = zone->previous();
-  }
-  return false;
-}
-
-intptr_t Thread::CountScopedHandles() const {
-  intptr_t count = 0;
-  Zone* zone = this->zone();
-  while (zone != NULL) {
-    count += zone->handles()->CountScopedHandles();
-    zone = zone->previous();
-  }
-  ASSERT(count >= 0);
-  return count;
 }
 
 int Thread::ZoneSizeInBytes() const {

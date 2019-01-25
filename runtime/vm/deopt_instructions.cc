@@ -1057,12 +1057,12 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
       materializations_() {}
 
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
-  return assembler_->object_pool_wrapper().FindObject(obj);
+  return assembler_->object_pool_builder().FindObject(obj);
 }
 
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  intptr_t index = -compiler_frame_layout.VariableIndexForFrameSlot(
+  intptr_t index = -compiler::target::frame_layout.VariableIndexForFrameSlot(
       source_loc.stack_index());
   return index < 0 ? index + num_args_
                    : index + num_args_ + kDartFrameFixedSize;

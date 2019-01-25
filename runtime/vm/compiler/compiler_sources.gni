@@ -29,6 +29,7 @@ compiler_sources = [
   "assembler/disassembler_kbc.cc",
   "assembler/disassembler_kbc.h",
   "assembler/disassembler_x86.cc",
+  "assembler/object_pool_builder.h",
   "backend/block_scheduler.cc",
   "backend/block_scheduler.h",
   "backend/branch_optimizer.cc",
@@ -119,6 +120,8 @@ compiler_sources = [
   "method_recognizer.h",
   "relocation.cc",
   "relocation.h",
+  "runtime_api.cc",
+  "runtime_api.h",
 ]
 
 compiler_sources_tests = [

@@ -232,7 +232,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     intptr_t index = ObjectPool::IndexFromOffset(offset);
     const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
     if (!pool.IsNull()) {
-      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+      if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
         *obj = pool.ObjectAt(index);
         return true;
       }
@@ -331,7 +331,8 @@ RawCode* BareSwitchableCallPattern::target() const {
 }
 
 void BareSwitchableCallPattern::SetTarget(const Code& target) const {
-  ASSERT(object_pool_.TypeAt(target_pool_index_) == ObjectPool::kImmediate);
+  ASSERT(object_pool_.TypeAt(target_pool_index_) ==
+         ObjectPool::EntryType::kImmediate);
   object_pool_.SetRawValueAt(target_pool_index_,
                              target.MonomorphicEntryPoint());
 }

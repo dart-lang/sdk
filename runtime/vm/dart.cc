@@ -95,8 +95,8 @@ static void CheckOffsets() {
 #if defined(TARGET_ARCH_ARM)
   // These offsets are embedded in precompiled instructions. We need simarm
   // (compiler) and arm (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 28);
-  CHECK_OFFSET(Thread::object_null_offset(), 88);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 36);
+  CHECK_OFFSET(Thread::object_null_offset(), 96);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 20);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
@@ -104,8 +104,8 @@ static void CheckOffsets() {
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 56);
-  CHECK_OFFSET(Thread::object_null_offset(), 168);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 72);
+  CHECK_OFFSET(Thread::object_null_offset(), 184);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 40);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));

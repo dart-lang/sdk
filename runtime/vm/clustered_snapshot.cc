@@ -1633,8 +1633,8 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     uint8_t* entry_bits = pool->ptr()->entry_bits();
     for (intptr_t i = 0; i < length; i++) {
       auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
-      if ((entry_type == ObjectPool::kTaggedObject) ||
-          (entry_type == ObjectPool::kNativeEntryData)) {
+      if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
+          (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
     }
@@ -1665,7 +1665,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
         s->Write<uint8_t>(entry_bits[j]);
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
-          case ObjectPool::kTaggedObject: {
+          case ObjectPool::EntryType::kTaggedObject: {
 #if !defined(TARGET_ARCH_DBC)
             if ((entry.raw_obj_ == StubCode::CallNoScopeNative().raw()) ||
                 (entry.raw_obj_ == StubCode::CallAutoScopeNative().raw())) {
@@ -1679,11 +1679,11 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->WriteElementRef(entry.raw_obj_, j);
             break;
           }
-          case ObjectPool::kImmediate: {
+          case ObjectPool::EntryType::kImmediate: {
             s->Write<intptr_t>(entry.raw_value_);
             break;
           }
-          case ObjectPool::kNativeEntryData: {
+          case ObjectPool::EntryType::kNativeEntryData: {
             RawObject* raw = entry.raw_obj_;
             RawTypedData* raw_data = reinterpret_cast<RawTypedData*>(raw);
             // kNativeEntryData object pool entries are for linking natives for
@@ -1699,8 +1699,8 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->WriteElementRef(raw, j);
             break;
           }
-          case ObjectPool::kNativeFunction:
-          case ObjectPool::kNativeFunctionWrapper: {
+          case ObjectPool::EntryType::kNativeFunction:
+          case ObjectPool::EntryType::kNativeFunctionWrapper: {
             // Write nothing. Will initialize with the lazy link entry.
             break;
           }
@@ -1746,21 +1746,21 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
         pool->ptr()->entry_bits()[j] = entry_bits;
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits)) {
-          case ObjectPool::kNativeEntryData:
-          case ObjectPool::kTaggedObject:
+          case ObjectPool::EntryType::kNativeEntryData:
+          case ObjectPool::EntryType::kTaggedObject:
             entry.raw_obj_ = d->ReadRef();
             break;
-          case ObjectPool::kImmediate:
+          case ObjectPool::EntryType::kImmediate:
             entry.raw_value_ = d->Read<intptr_t>();
             break;
-          case ObjectPool::kNativeFunction: {
+          case ObjectPool::EntryType::kNativeFunction: {
             // Read nothing. Initialize with the lazy link entry.
             uword new_entry = NativeEntry::LinkNativeCallEntry();
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
             break;
           }
 #if defined(TARGET_ARCH_DBC)
-          case ObjectPool::kNativeFunctionWrapper: {
+          case ObjectPool::EntryType::kNativeFunctionWrapper: {
             // Read nothing. Initialize with the lazy link entry.
             uword new_entry = NativeEntry::BootstrapNativeCallWrapperEntry();
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
@@ -5715,12 +5715,13 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     auto& entry = Object::Handle(zone);
     auto& smi = Smi::Handle(zone);
     for (intptr_t i = 0; i < pool.Length(); i++) {
-      if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
+      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
         entry = pool.ObjectAt(i);
         if (entry.raw() == StubCode::UnlinkedCall().raw()) {
           smi = Smi::FromAlignedAddress(
               StubCode::UnlinkedCall().MonomorphicEntryPoint());
-          pool.SetTypeAt(i, ObjectPool::kImmediate, ObjectPool::kPatchable);
+          pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
+                         ObjectPool::Patchability::kPatchable);
           pool.SetObjectAt(i, smi);
         }
       }

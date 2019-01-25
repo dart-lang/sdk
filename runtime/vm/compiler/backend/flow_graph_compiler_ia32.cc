@@ -806,7 +806,7 @@ void FlowGraphCompiler::CompileGraph() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+      args_desc_slot = compiler::target::frame_layout.FrameSlotForVariable(
           parsed_function().arg_desc_var());
     }
 
@@ -818,7 +818,7 @@ void FlowGraphCompiler::CompileGraph() {
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
-          compiler_frame_layout.FrameSlotForVariableIndex(-i);
+          compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : EAX;
       __ movl(Address(EBP, slot_index * kWordSize), value_reg);
     }

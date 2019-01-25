@@ -10,12 +10,18 @@
 #error Do not include instructions_arm64.h directly; use instructions.h instead.
 #endif
 
+#include "vm/allocation.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_arm64.h"
-#include "vm/native_entry.h"
-#include "vm/object.h"
-#include "vm/reverse_pc_lookup_cache.h"
+#include "vm/native_function.h"
 
 namespace dart {
+
+class Code;
+class ObjectPool;
+class ICData;
+class RawICData;
+class RawCode;
 
 class InstructionPattern : public AllStatic {
  public:

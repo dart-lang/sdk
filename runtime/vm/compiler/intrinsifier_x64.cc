@@ -114,7 +114,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ movq(RAX, Address(THR, Thread::top_offset()));                            \
   __ movq(RCX, RAX);                                                           \
                                                                                \
@@ -133,7 +132,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movq(Address(THR, Thread::top_offset()), RCX);                            \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));           \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));                  \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1965,7 +1964,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andq(RDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ movq(RAX, Address(THR, Thread::top_offset()));
 
   // RDI: allocation size.
@@ -1984,7 +1982,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(THR, Thread::top_offset()), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
