@@ -1662,14 +1662,6 @@ class GenericInferrer {
 }
 
 /**
- * A type system that implements the type semantics for strong mode.
- */
-@deprecated
-class StrongTypeSystemImpl extends Dart2TypeSystem {
-  StrongTypeSystemImpl(TypeProvider typeProvider) : super(typeProvider);
-}
-
-/**
  * The interface `TypeSystem` defines the behavior of an object representing
  * the type system.  This provides a common location to put methods that act on
  * types but may need access to more global data structures, and it paves the

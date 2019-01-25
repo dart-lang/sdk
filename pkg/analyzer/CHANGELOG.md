@@ -8,6 +8,7 @@
 * Removed `EMPTY_LIST` constants.  Please use `const <...>[]` instead.
 * Disabled support for the task model.  Please use the new `AnalysisSession`
   API.
+* Removed `StrongTypeSystemImpl`.  Please use `Dart2TypeSystem` instead.
 
 ## 0.34.2
 * Removed support for the `@checked` annotation.  Please use the `covariant`
