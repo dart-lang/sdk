@@ -750,6 +750,8 @@ const char* Dart::FeaturesString(Isolate* isolate,
                        FLAG_use_field_guards);
       ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
+    buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
+                                              : " no-causal_async_stacks");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)
