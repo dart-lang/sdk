@@ -5044,7 +5044,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     bool heuristicSayGoodToGo() {
-      // Don't inline recursively
+      // Don't inline recursively, directly or indirectly.
+      if (function == targetElement) return false;
       if (_inliningStack.any((entry) => entry.function == function)) {
         return false;
       }
