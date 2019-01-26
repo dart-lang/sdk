@@ -285,6 +285,15 @@ class Heap {
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
+  intptr_t CalculateTLABSize() {
+    // Inspired by V8 tlab size. More than threshold for old space allocation,
+    // less then minimal(initial) new semi-space.
+    const intptr_t size = 512 * KB;
+    return Utils::RoundDown(size, kObjectAlignment);
+  }
+  void MakeTLABIterable(Thread* thread);
+  void AbandonRemainingTLAB(Thread* thread);
+
  private:
   class GCStats : public ValueObject {
    public:

@@ -4123,6 +4123,7 @@ static const MethodParameter* get_object_by_address_params[] = {
 };
 
 static RawObject* GetObjectHelper(Thread* thread, uword addr) {
+  HeapIterationScope iteration(thread);
   Object& object = Object::Handle(thread->zone());
 
   {

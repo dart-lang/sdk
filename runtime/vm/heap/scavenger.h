@@ -11,6 +11,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/heap/spaces.h"
+#include "vm/lockers.h"
 #include "vm/raw_object.h"
 #include "vm/ring_buffer.h"
 #include "vm/virtual_memory.h"
@@ -126,6 +127,8 @@ class Scavenger {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
+  uword TryAllocateNewTLAB(Thread* thread, intptr_t size);
+
   uword AllocateGC(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
@@ -139,7 +142,7 @@ class Scavenger {
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
     top_ += size;
-    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+    ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
     return result;
   }
 
@@ -158,7 +161,7 @@ class Scavenger {
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
     top += size;
-    ASSERT(to_->Contains(top) || (top == to_->end()));
+    ASSERT((to_->Contains(top)) || (top == to_->end()));
     thread->set_top(top);
     return result;
   }
@@ -215,7 +218,10 @@ class Scavenger {
   void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
-  void FlushTLS() const;
+  void MakeNewSpaceIterable() const;
+  int64_t FreeSpaceInWords(Isolate* isolate) const;
+  void MakeAllTLABsIterable(Isolate* isolate) const;
+  void AbandonAllTLABs(Isolate* isolate);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -316,6 +322,9 @@ class Scavenger {
   intptr_t external_size_;
 
   bool failed_to_promote_;
+
+  // Protects new space during the allocation of new TLABs
+  Mutex space_lock_;
 
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;
