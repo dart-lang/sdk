@@ -214,7 +214,7 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeOverride(
     FunctionType signature, {
     StringBuffer displayTextBuffer,
-    bool invokeSuper: true,
+    bool invokeSuper: false,
   });
 
   /**
