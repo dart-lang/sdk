@@ -99,6 +99,7 @@ class AssistProcessor {
     await _addProposal_convertToIsNot_onNot();
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToFieldParameter();
+    await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
     await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
@@ -1263,6 +1264,36 @@ class AssistProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.CONVERT_TO_NORMAL_PARAMETER);
+    }
+  }
+
+  Future<void> _addProposal_convertToMultilineString() async {
+    var node = this.node;
+    if (node is InterpolationElement) {
+      node = (node as InterpolationElement).parent;
+    }
+    if (node is SingleStringLiteral) {
+      SingleStringLiteral literal = node;
+      if (!literal.isMultiline) {
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (builder) {
+          var newQuote = literal.isSingleQuoted ? "'''" : '"""';
+          builder.addReplacement(
+            SourceRange(literal.offset + (literal.isRaw ? 1 : 0), 1),
+            (builder) {
+              builder.writeln(newQuote);
+            },
+          );
+          builder.addSimpleReplacement(
+            SourceRange(literal.end - 1, 1),
+            newQuote,
+          );
+        });
+        _addAssistFromBuilder(
+          changeBuilder,
+          DartAssistKind.CONVERT_TO_MULTILINE_STRING,
+        );
+      }
     }
   }
 

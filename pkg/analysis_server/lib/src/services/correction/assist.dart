@@ -77,6 +77,10 @@ class DartAssistKind {
       "Convert to field formal parameter");
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
+  static const CONVERT_TO_MULTILINE_STRING = const AssistKind(
+      'dart.assist.convert.toMultilineString',
+      30,
+      "Convert to multiline string");
   static const CONVERT_TO_NORMAL_PARAMETER = const AssistKind(
       'dart.assist.convert.toConstructorNormalParameter',
       30,
