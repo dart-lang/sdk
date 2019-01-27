@@ -97,6 +97,7 @@ vars = {
   "json_rpc_2_tag": "2.0.9",
   "linter_tag": "0.1.79",
   "logging_tag": "0.11.3+2",
+  "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
@@ -175,6 +176,10 @@ deps = {
       }],
       "dep_type": "cipd",
   },
+
+  Var("dart_root") + "/third_party/markupsafe":
+      Var("chromium_git") + "/chromium/src/third_party/markupsafe.git" +
+      "@" + Var("markupsafe_rev"),
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +

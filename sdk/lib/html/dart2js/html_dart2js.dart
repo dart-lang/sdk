@@ -20477,6 +20477,10 @@ class MessageEvent extends Event {
 
   final String origin;
 
+  @Unstable()
+  @Creates('JSExtendableArray')
+  final List<MessagePort> ports;
+
   EventTarget get source => _convertNativeToDart_EventTarget(this._get_source);
   @JSName('source')
   @Creates('Null')
