@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
@@ -54,12 +55,23 @@ class DeclarationsContext {
   /// the root are included into completion, even in 'lib/src' folders.
   final AnalysisContext _analysisContext;
 
-  /// Map of path prefixes to lists of files from dependencies (both libraries
-  /// and parts, we don't know at the time when we fill this map) that
-  /// libraries with files paths starting with these prefixes can access.
+  /// Packages in the analysis context.
+  ///
+  /// Packages are sorted so that inner packages are before outer.
+  final List<_Package> _packages = [];
+
+  /// The list of paths of all files inside the context.
+  final List<String> _contextPathList = [];
+
+  /// The list of paths of all SDK libraries.
+  final List<String> _sdkLibraryPathList = [];
+
+  /// Map of path prefixes to lists of paths of files from dependencies
+  /// (both libraries and parts, we don't know at the time when we fill this
+  /// map) that libraries with paths starting with these prefixes can access.
   ///
   /// The path prefix keys are sorted so that the longest keys are first.
-  final Map<String, List<String>> _pathPrefixToDependencyFiles = {};
+  final Map<String, List<String>> _pathPrefixToDependencyPathList = {};
 
   DeclarationsContext(this._tracker, this._analysisContext);
 
@@ -71,20 +83,49 @@ class DeclarationsContext {
   ///
   /// With `Bazel` sets of accessible libraries are specified explicitly by
   /// the client using [setDependencies].
-  List<int> getLibraries(String path) {
-    // TODO(scheglov) include context libraries
-    for (var pathPrefix in _pathPrefixToDependencyFiles.keys) {
+  Libraries getLibraries(String path) {
+    var sdkLibraries = <Library>[];
+    _addLibrariesWithPaths(sdkLibraries, _sdkLibraryPathList);
+
+    var dependencyLibraries = <Library>[];
+    for (var pathPrefix in _pathPrefixToDependencyPathList.keys) {
       if (path.startsWith(pathPrefix)) {
-        var pathList = _pathPrefixToDependencyFiles[pathPrefix];
-        var idList = pathList
-            .map((libPath) => _tracker._pathToFile[libPath])
-            .where((file) => file != null && file.isLibrary)
-            .map((file) => file.id)
-            .toList();
-        return idList;
+        var pathList = _pathPrefixToDependencyPathList[pathPrefix];
+        _addLibrariesWithPaths(dependencyLibraries, pathList);
+        break;
       }
     }
-    return <int>[];
+
+    _Package package;
+    for (var candidatePackage in _packages) {
+      if (candidatePackage.contains(path)) {
+        package = candidatePackage;
+        break;
+      }
+    }
+
+    var contextPathList = <String>[];
+    if (package != null) {
+      var containingFolder = package.folderInRootContaining(path);
+      if (containingFolder != null) {
+        for (var contextPath in _contextPathList) {
+          // `lib/` can see only libraries in `lib/`.
+          // `test/` can see libraries in `lib/` and in `test/`.
+          if (package.containsInLib(contextPath) ||
+              containingFolder.contains(contextPath)) {
+            contextPathList.add(contextPath);
+          }
+        }
+      }
+    } else {
+      // Not in a package, include all libraries of the context.
+      contextPathList = _contextPathList;
+    }
+
+    var contextLibraries = <Library>[];
+    _addLibrariesWithPaths(contextLibraries, contextPathList);
+
+    return Libraries(sdkLibraries, dependencyLibraries, contextLibraries);
   }
 
   /// Set dependencies for path prefixes in this context.
@@ -106,7 +147,7 @@ class DeclarationsContext {
   /// Every path in the list must be absolute and normalized.
   void setDependencies(Map<String, List<String>> pathPrefixToPathList) {
     var rootFolder = _analysisContext.contextRoot.root;
-    _pathPrefixToDependencyFiles.removeWhere((pathPrefix, _) {
+    _pathPrefixToDependencyPathList.removeWhere((pathPrefix, _) {
       return rootFolder.isOrContains(pathPrefix);
     });
 
@@ -122,8 +163,66 @@ class DeclarationsContext {
         var resource = _tracker._resourceProvider.getResource(path);
         _scheduleDependencyResource(files, resource);
       }
-      _pathPrefixToDependencyFiles[pathPrefix] = files;
+      _pathPrefixToDependencyPathList[pathPrefix] = files;
     }
+  }
+
+  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList) {
+    for (var path in pathList) {
+      var file = _tracker._pathToFile[path];
+      if (file != null && file.isLibrary) {
+        var library = _tracker._idToLibrary[file.id];
+        if (library != null) {
+          libraries.add(library);
+        }
+      }
+    }
+  }
+
+  /// Traverse the folders of this context and fill [_packages];  use
+  /// `pubspec.yaml` files to set `Pub` dependencies.
+  void _findPackages() {
+    var pathContext = _tracker._resourceProvider.pathContext;
+    var pubPathPrefixToPathList = <String, List<String>>{};
+
+    void visitFolder(Folder folder) {
+      var buildFile = folder.getChildAssumingFile('BUILD');
+      var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+      if (buildFile.exists) {
+        _packages.add(_Package(folder));
+      } else if (pubspecFile.exists) {
+        var dependencies = _parsePubspecDependencies(pubspecFile);
+        var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
+        var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
+
+        var packagePath = folder.path;
+        pubPathPrefixToPathList[packagePath] = <String>[]
+          ..addAll(libPaths)
+          ..addAll(devPaths);
+
+        var libPath = pathContext.join(packagePath, 'lib');
+        pubPathPrefixToPathList[libPath] = libPaths;
+
+        _packages.add(_Package(folder));
+      }
+
+      try {
+        for (var resource in folder.getChildren()) {
+          if (resource is Folder) {
+            visitFolder(resource);
+          }
+        }
+      } on FileSystemException {}
+    }
+
+    visitFolder(_analysisContext.contextRoot.root);
+    setDependencies(pubPathPrefixToPathList);
+
+    _packages.sort((a, b) {
+      var aRoot = a.root.path;
+      var bRoot = b.root.path;
+      return bRoot.compareTo(aRoot);
+    });
   }
 
   bool _isLibSrcPath(String path) {
@@ -167,6 +266,7 @@ class DeclarationsContext {
   void _scheduleContextFiles() {
     var contextFiles = _analysisContext.contextRoot.analyzedFiles();
     for (var path in contextFiles) {
+      _contextPathList.add(path);
       _tracker._addFile(this, path);
     }
   }
@@ -189,39 +289,17 @@ class DeclarationsContext {
     }
   }
 
-  /// Traverse the folders of this context, and use `pubspec.yaml` files
-  /// to set dependencies for containing folders.
-  void _setPubspecDependencies() {
-    var pathContext = _tracker._resourceProvider.pathContext;
-    var locationToPathList = <String, List<String>>{};
-
-    void visitFolder(Folder folder) {
-      var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (pubspecFile.exists) {
-        var dependencies = _parsePubspecDependencies(pubspecFile);
-        var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
-        var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
-
-        var packagePath = folder.path;
-        locationToPathList[packagePath] = <String>[]
-          ..addAll(libPaths)
-          ..addAll(devPaths);
-
-        var libPath = pathContext.join(packagePath, 'lib');
-        locationToPathList[libPath] = libPaths;
+  void _scheduleSdkLibraries() {
+    // ignore: deprecated_member_use_from_same_package
+    var sdk = _analysisContext.currentSession.sourceFactory.dartSdk;
+    for (var uriStr in sdk.uris) {
+      var uri = Uri.parse(uriStr);
+      var path = _resolveUri(uri);
+      if (path != null) {
+        _sdkLibraryPathList.add(path);
+        _tracker._addFile(this, path);
       }
-
-      try {
-        for (var resource in folder.getChildren()) {
-          if (resource is Folder) {
-            visitFolder(resource);
-          }
-        }
-      } on FileSystemException {}
     }
-
-    visitFolder(_analysisContext.contextRoot.root);
-    setDependencies(locationToPathList);
   }
 
   static _PubspecDependencies _parsePubspecDependencies(File pubspecFile) {
@@ -257,6 +335,7 @@ class DeclarationsTracker {
   final Map<AnalysisContext, DeclarationsContext> _contexts = {};
   final Map<String, _File> _pathToFile = {};
   final Map<Uri, _File> _uriToFile = {};
+  final Map<int, Library> _idToLibrary = {};
 
   final _changesController = _StreamController<LibraryChange>();
 
@@ -286,7 +365,8 @@ class DeclarationsTracker {
     _contexts[analysisContext] = declarationsContext;
 
     declarationsContext._scheduleContextFiles();
-    declarationsContext._setPubspecDependencies();
+    declarationsContext._scheduleSdkLibraries();
+    declarationsContext._findPackages();
     return declarationsContext;
   }
 
@@ -325,6 +405,7 @@ class DeclarationsTracker {
       file.uri,
       file.exportedDeclarations,
     );
+    _idToLibrary[file.id] = library;
     _changesController.add(
       LibraryChange._([library], []),
     );
@@ -385,6 +466,14 @@ class DeclarationsTracker {
   }
 }
 
+class Libraries {
+  final List<Library> sdk;
+  final List<Library> dependencies;
+  final List<Library> context;
+
+  Libraries(this.sdk, this.dependencies, this.context);
+}
+
 /// A library with declarations.
 class Library {
   /// The unique identifier of a library with the given [path].
@@ -400,6 +489,11 @@ class Library {
   final List<Declaration> declarations;
 
   Library._(this.id, this.path, this.uri, this.declarations);
+
+  @override
+  String toString() {
+    return '(uri: $uri, path: $path)';
+  }
 }
 
 /// A change to the set of libraries and their declarations.
@@ -607,7 +701,7 @@ class _File {
 
   /// Return the [_File] for the given [relative] URI, maybe `null`.
   _File _fileForRelativeUri(DeclarationsContext context, Uri relative) {
-    var absoluteUri = uri.resolveUri(relative);
+    var absoluteUri = resolveRelativeUri(uri, relative);
     return tracker._getFileByUri(context, absoluteUri);
   }
 
@@ -807,6 +901,42 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       hashCode: (e) => e.name.hashCode,
       equals: (a, b) => a.name == b.name,
     );
+  }
+}
+
+/// Information about a package: `Pub` or `Bazel`.
+class _Package {
+  final Folder root;
+  final Folder lib;
+
+  _Package(this.root) : lib = root.getChildAssumingFolder('lib');
+
+  /// Return `true` if the [path] is anywhere in the [root] of the package.
+  ///
+  /// Note, that this method does not check if the are nested packages, that
+  /// might actually contain the [path].
+  bool contains(String path) {
+    return root.contains(path);
+  }
+
+  /// Return `true` if the [path] is in the `lib` folder of this package.
+  bool containsInLib(String path) {
+    return lib.contains(path);
+  }
+
+  /// Return the direct child folder of the root, that contains the [path].
+  ///
+  /// So, we can know if the [path] is in `lib/`, or `test/`, or `bin/`.
+  Folder folderInRootContaining(String path) {
+    try {
+      var children = root.getChildren();
+      for (var folder in children) {
+        if (folder is Folder && folder.contains(path)) {
+          return folder;
+        }
+      }
+    } on FileSystemException {}
+    return null;
   }
 }
 

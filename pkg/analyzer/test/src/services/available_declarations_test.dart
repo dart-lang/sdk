@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,9 +26,15 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisContext testAnalysisContext;
 
-  void addTestPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('/home/test/.packages');
-    var packagesContent = packagesFile.readAsStringSync();
+  void addDotPackagesDependency(String path, String name, String rootPath) {
+    var packagesFile = getFile(path);
+
+    String packagesContent;
+    try {
+      packagesContent = packagesFile.readAsStringSync();
+    } catch (_) {
+      packagesContent = '';
+    }
 
     // Ignore if there is already the same package dependency.
     if (packagesContent.contains('$name:file://')) {
@@ -40,6 +47,10 @@ class AbstractContextTest with ResourceProviderMixin {
     packagesFile.writeAsStringSync(packagesContent);
 
     createAnalysisContexts();
+  }
+
+  void addTestPackageDependency(String name, String rootPath) {
+    addDotPackagesDependency('/home/test/.packages', name, rootPath);
   }
 
   /// Create all analysis contexts in `/home`.
@@ -66,8 +77,8 @@ class AbstractContextTest with ResourceProviderMixin {
     new MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
-    newFile('/home/test/.packages', content: r'''
-test:file:///home/test/lib
+    newFile('/home/test/.packages', content: '''
+test:${toUri('/home/test/lib')}
 ''');
 
     createAnalysisContexts();
@@ -245,133 +256,309 @@ mixin B {}
     ], uriStr: 'package:test/test.dart');
   }
 
-  test_getLibraries_pub() async {
-    newFile('/home/aaa/lib/a.dart', content: r'''
-class A {}
-''');
-    newFile('/home/aaa/lib/src/a2.dart', content: r'''
-class A2 {}
-''');
+  test_getLibraries_bazel() async {
+    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
+    newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
 
-    newFile('/home/bbb/lib/b.dart', content: r'''
-class B {}
-''');
-    newFile('/home/bbb/lib/src/b2.dart', content: r'''
-class B2 {}
-''');
+    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
+    newFile('/home/bbb/lib/src/b2.dart', content: 'class B2 {}');
 
-    addTestPackageDependency('aaa', '/home/aaa');
-    addTestPackageDependency('bbb', '/home/bbb');
+    newFile('/home/material_button/BUILD', content: '');
+    newFile(
+      '/home/material_button/lib/button.dart',
+      content: 'class MaterialButton {}',
+    );
+    newFile(
+      '/home/material_button/test/button_test.dart',
+      content: 'class MaterialButtonTest {}',
+    );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
-name: test
+    newFile('/home/material_button/testing/BUILD', content: '');
+    newFile(
+      '/home/material_button/testing/lib/material_button_po.dart',
+      content: 'class MaterialButtonPO {}',
+    );
 
-dependencies:
-  aaa: any
+    var packagesFilePath = '/home/material_button/.packages';
+    addDotPackagesDependency(packagesFilePath, 'aaa', '/home/aaa');
+    addDotPackagesDependency(packagesFilePath, 'bbb', '/home/bbb');
+    addDotPackagesDependency(
+      packagesFilePath,
+      'material_button',
+      '/home/material_button',
+    );
+    addDotPackagesDependency(
+      packagesFilePath,
+      'material_button_testing',
+      '/home/material_button/testing',
+    );
 
-dev_dependencies:
-  bbb: any
-''');
-
-    newFile('/home/test/lib/test.dart', content: '');
-    var context = tracker.addContext(testAnalysisContext);
-
+    var analysisContext = analysisContextCollection.contextFor(
+      convertPath('/home/material_button'),
+    );
+    var context = tracker.addContext(analysisContext);
+    context.setDependencies({
+      convertPath('/home/material_button'): [convertPath('/home/aaa/lib')],
+      convertPath('/home/material_button/testing'): [
+        convertPath('/home/bbb/lib'),
+        convertPath('/home/material_button/lib'),
+      ],
+    });
     await _doAllTrackerWork();
-
-    var aUri = 'package:aaa/a.dart';
-    var bUri = 'package:bbb/b.dart';
 
     _assertLibraryDeclarations([
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: aUri);
+    ], uriStr: 'package:aaa/a.dart');
+    _assertNoLibrary('package:aaa/src/a2.dart');
+
     _assertLibraryDeclarations([
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: bUri);
+    ], uriStr: 'package:bbb/b.dart');
+    _assertNoLibrary('package:bbb/src/b2.dart');
 
-    // package/lib can see only regular dependencies
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('MaterialButton'),
+    ], uriStr: 'package:material_button/button.dart');
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('MaterialButtonTest'),
+    ], uriStr: toUri('/home/material_button/test/button_test.dart').toString());
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('MaterialButtonPO'),
+    ], uriStr: 'package:material_button_testing/material_button_po.dart');
+
     {
-      var path = convertPath('/home/test/lib/a.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(idList, isNot(contains(uriToLibrary[bUri].id)));
+      var path = convertPath('/home/material_button/lib/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: ['package:aaa/a.dart'],
+        only: true,
+      );
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:material_button/button.dart',
+        ],
+        only: true,
+      );
     }
 
-    // package/bin can see regular and dev dependencies
     {
-      var path = convertPath('/home/test/bin/b.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(idList, contains(uriToLibrary[bUri].id));
+      var path = convertPath('/home/material_button/test/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: ['package:aaa/a.dart'],
+        only: true,
+      );
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:material_button/button.dart',
+          toUri('/home/material_button/test/button_test.dart').toString(),
+        ],
+        only: true,
+      );
     }
 
-    // package/test can see regular and dev dependencies
     {
-      var path = convertPath('/home/test/test/c.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(idList, contains(uriToLibrary[bUri].id));
+      var path = convertPath('/home/material_button/testing/lib/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: [
+          'package:bbb/b.dart',
+          'package:material_button/button.dart',
+        ],
+        only: true,
+      );
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:material_button_testing/material_button_po.dart',
+        ],
+        only: true,
+      );
     }
   }
 
-  test_getLibraries_pub_inner() async {
-    newFile('/home/aaa/lib/a.dart', content: r'''
-class A {}
-''');
-    newFile('/home/bbb/lib/b.dart', content: r'''
-class B {}
-''');
+  test_getLibraries_pub() async {
+    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
+    newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
 
-    addTestPackageDependency('aaa', '/home/aaa');
-    addTestPackageDependency('bbb', '/home/bbb');
+    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
+    newFile('/home/bbb/lib/src/b2.dart', content: 'class B2 {}');
+
+    newFile('/home/ccc/lib/c.dart', content: 'class C {}');
+    newFile('/home/ccc/lib/src/c2.dart', content: 'class C2 {}');
 
     newFile('/home/test/pubspec.yaml', content: r'''
 name: test
-
 dependencies:
   aaa: any
-
 dev_dependencies:
   bbb: any
 ''');
+    newFile('/home/test/lib/t.dart', content: 'class T {}');
+    newFile('/home/test/lib/src/t2.dart', content: 'class T2 {}');
+    newFile('/home/test/bin/t3.dart', content: 'class T3 {}');
+    newFile('/home/test/test/t4.dart', content: 'class T4 {}');
 
-    newFile('/home/test/examples/basic/pubspec.yaml', content: r'''
-name: basic
-
+    newFile('/home/test/samples/basic/pubspec.yaml', content: r'''
+name: test
 dependencies:
-  bbb: any
+  ccc: any
+  test: any
 ''');
+    newFile('/home/test/samples/basic/lib/s.dart', content: 'class S {}');
 
-    newFile('/home/test/lib/test.dart', content: '');
-    newFile('/home/test/examples/basic/lib/basic.dart', content: '');
+    addTestPackageDependency('aaa', '/home/aaa');
+    addTestPackageDependency('bbb', '/home/bbb');
+    addTestPackageDependency('ccc', '/home/ccc');
+    addTestPackageDependency('basic', '/home/test/samples/basic');
 
     var context = tracker.addContext(testAnalysisContext);
-
     await _doAllTrackerWork();
-
-    var aUri = 'package:aaa/a.dart';
-    var bUri = 'package:bbb/b.dart';
 
     _assertLibraryDeclarations([
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: aUri);
+    ], uriStr: 'package:aaa/a.dart');
+    _assertNoLibrary('package:aaa/src/a2.dart');
+
     _assertLibraryDeclarations([
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: bUri);
+    ], uriStr: 'package:bbb/b.dart');
+    _assertNoLibrary('package:bbb/src/b2.dart');
 
-    // package/lib can see package:aaa
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('C'),
+    ], uriStr: 'package:ccc/c.dart');
+    _assertNoLibrary('package:ccc/src/c2.dart');
+
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('T'),
+    ], uriStr: 'package:test/t.dart');
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('T2'),
+    ], uriStr: 'package:test/src/t2.dart');
+
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('S'),
+    ], uriStr: 'package:basic/s.dart');
+
     {
-      var path = convertPath('/home/test/lib/a.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(idList, isNot(contains(uriToLibrary[bUri].id)));
+      var path = convertPath('/home/test/lib/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: ['package:aaa/a.dart'],
+        only: true,
+      );
+      // Note, no `bin/` or `test/` libraries.
+      // Note, has `lib/src` library.
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:test/t.dart',
+          'package:test/src/t2.dart',
+        ],
+        only: true,
+      );
     }
 
-    // examples/basic can see package:bbb
     {
-      var path = convertPath('/home/test/examples/basic/lib/basic.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, isNot(contains(uriToLibrary[aUri].id)));
-      expect(idList, contains(uriToLibrary[bUri].id));
+      var path = convertPath('/home/test/bin/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: [
+          'package:aaa/a.dart',
+          'package:bbb/b.dart',
+        ],
+        only: true,
+      );
+      // Note, no `test/` libraries.
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:test/t.dart',
+          'package:test/src/t2.dart',
+          toUri('/home/test/bin/t3.dart').toString(),
+        ],
+        only: true,
+      );
+    }
+
+    {
+      var path = convertPath('/home/test/test/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: [
+          'package:aaa/a.dart',
+          'package:bbb/b.dart',
+        ],
+        only: true,
+      );
+      // Note, no `bin/` libraries.
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:test/t.dart',
+          'package:test/src/t2.dart',
+          toUri('/home/test/test/t4.dart').toString(),
+        ],
+        only: true,
+      );
+    }
+
+    {
+      var path = convertPath('/home/test/samples/basic/lib/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.sdk,
+        uriList: ['dart:core', 'dart:async'],
+      );
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: [
+          'package:ccc/c.dart',
+          'package:test/t.dart',
+        ],
+        only: true,
+      );
+      // Note, no `package:test` libraries.
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:basic/s.dart',
+        ],
+        only: true,
+      );
     }
   }
 
@@ -391,9 +578,9 @@ class B {}
     addTestPackageDependency('aaa', '/home/aaa');
     addTestPackageDependency('bbb', '/home/bbb');
 
-    newFile('/home/test/lib/test.dart', content: r'''
-class C {}
-''');
+    newFile('/home/test/lib/t.dart', content: 'class T {}');
+    newFile('/home/test/lib/src/t2.dart', content: 'class T2 {}');
+    newFile('/home/test/test/t3.dart', content: 'class T3 {}');
 
     var context = tracker.addContext(testAnalysisContext);
     context.setDependencies({
@@ -406,32 +593,67 @@ class C {}
 
     await _doAllTrackerWork();
 
-    var aUri = 'package:aaa/a.dart';
-    var bUri = 'package:bbb/b.dart';
-
     _assertLibraryDeclarations([
       _ExpectedDeclaration.class_('A1'),
       _ExpectedDeclaration.class_('A2'),
-    ], uriStr: aUri);
+    ], uriStr: 'package:aaa/a.dart');
     _assertNoLibrary('package:aaa/src/a2.dart');
     _assertLibraryDeclarations([
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: bUri);
+    ], uriStr: 'package:bbb/b.dart');
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('T'),
+    ], uriStr: 'package:test/t.dart');
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('T2'),
+    ], uriStr: 'package:test/src/t2.dart');
+    _assertLibraryDeclarations([
+      _ExpectedDeclaration.class_('T3'),
+    ], uriStr: toUri('/home/test/test/t3.dart').toString());
 
-    // package/lib can see only regular dependencies
+    // `lib/` is configured to see `package:aaa`.
     {
-      var path = convertPath('/home/test/lib/a.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(idList, isNot(contains(uriToLibrary[bUri].id)));
+      var path = convertPath('/home/test/lib/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: ['package:aaa/a.dart'],
+        only: true,
+      );
+      // Not in a package, so all context files are visible.
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:test/t.dart',
+          'package:test/src/t2.dart',
+          toUri('/home/test/test/t3.dart').toString(),
+        ],
+        only: true,
+      );
     }
 
-    // package/bin can see regular and dev dependencies
+    // `test/` is configured to see `package:aaa` and `package:bbb`.
     {
-      var path = convertPath('/home/test/bin/b.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(idList, contains(uriToLibrary[bUri].id));
+      var path = convertPath('/home/test/bin/_.dart');
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: [
+          'package:aaa/a.dart',
+          'package:bbb/b.dart',
+        ],
+        only: true,
+      );
+      // Not in a package, so all context files are visible.
+      _assertHasLibraries(
+        libraries.context,
+        uriList: [
+          'package:test/t.dart',
+          'package:test/src/t2.dart',
+          toUri('/home/test/test/t3.dart').toString(),
+        ],
+        only: true,
+      );
     }
   }
 
@@ -468,9 +690,12 @@ class C {}
     // The package can see package:aaa, but not package:bbb
     {
       var path = convertPath('/home/test/lib/a.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, contains(uriToLibrary[aUri].id));
-      expect(uriToLibrary[bUri], isNull);
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: ['package:aaa/a.dart'],
+        only: true,
+      );
     }
 
     context.setDependencies({
@@ -488,9 +713,12 @@ class C {}
     // The package can see package:bbb, but not package:aaa
     {
       var path = convertPath('/home/test/lib/a.dart');
-      var idList = context.getLibraries(path);
-      expect(idList, isNot(contains(uriToLibrary[aUri].id)));
-      expect(idList, contains(uriToLibrary[bUri].id));
+      var libraries = context.getLibraries(path);
+      _assertHasLibraries(
+        libraries.dependencies,
+        uriList: ['package:bbb/b.dart'],
+        only: true,
+      );
     }
   }
 
@@ -619,18 +847,22 @@ class A {}
     expect(library, isNotNull);
     expect(library.declarations, hasLength(expectedDeclarations.length));
     for (var expected in expectedDeclarations) {
-      expect(
-        library.declarations,
-        contains(predicate((Declaration d) {
-          return d.name == expected.name && d.kind == expected.kind;
-        })),
-        reason: '$expected',
-      );
+      _asyncHasDeclaration(library, expected);
     }
   }
 
   void _assertNoLibrary(String uriStr) {
     expect(uriToLibrary, isNot(contains(uriStr)));
+  }
+
+  void _asyncHasDeclaration(Library library, _ExpectedDeclaration expected) {
+    expect(
+      library.declarations,
+      contains(predicate((Declaration d) {
+        return d.name == expected.name && d.kind == expected.kind;
+      })),
+      reason: '$expected',
+    );
   }
 
   void _createTracker() {
@@ -662,6 +894,16 @@ class A {}
   static Future pumpEventQueue([int times = 5000]) {
     if (times == 0) return new Future.value();
     return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+  }
+
+  static void _assertHasLibraries(List<Library> libraries,
+      {@required List<String> uriList, bool only = false}) {
+    var actualUriList = libraries.map((lib) => lib.uri.toString()).toList();
+    if (only) {
+      expect(actualUriList, unorderedEquals(uriList));
+    } else {
+      expect(actualUriList, containsAll(uriList));
+    }
   }
 }
 
