@@ -1177,6 +1177,108 @@ ClosureBytecode {
 ]  method foo(generic-covariant-impl self::D::T t) → dynamic {
     return () → self::D::T => t;
   }
+[@vm.bytecode=
+Bytecode {
+  Entry                3
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  Allocate             CP#5
+  StoreLocal           r2
+  Push                 r2
+  Push                 FP[-5]
+  LoadTypeArgumentsField CP#6
+  StoreFieldTOS        CP#7
+  Push                 r2
+  PushNull
+  StoreFieldTOS        CP#9
+  Push                 r2
+  PushConstant         CP#11
+  StoreFieldTOS        CP#12
+  Push                 r2
+  PushConstant         CP#0
+  StoreFieldTOS        CP#14
+  Push                 r2
+  Push                 r0
+  StoreFieldTOS        CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ClosureFunction 1
+  [4] = EndClosureFunctionScope
+  [5] = Class dart:core::_Closure
+  [6] = TypeArgumentsField #lib::D
+  [7] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [8] = Reserved
+  [9] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [10] = Reserved
+  [11] = EmptyTypeArguments
+  [12] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [13] = Reserved
+  [14] = InstanceField dart:core::_Closure::_function (field)
+  [15] = Reserved
+  [16] = ArgDesc num-args 1, num-type-args 0, names []
+  [17] = ICData dynamic target-name 'call', arg-desc CP#16
+  [18] = EndClosureFunctionScope
+}
+Closure #lib::D::bar::<anonymous closure> () -> dart:core::Null
+ClosureBytecode {
+  EntryFixed           1, 4
+  CheckStack           0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  Allocate             CP#5
+  StoreLocal           r3
+  Push                 r3
+  Push                 r0
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#6
+  StoreFieldTOS        CP#7
+  Push                 r3
+  PushNull
+  StoreFieldTOS        CP#9
+  Push                 r3
+  PushConstant         CP#11
+  StoreFieldTOS        CP#12
+  Push                 r3
+  PushConstant         CP#3
+  StoreFieldTOS        CP#14
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  DynamicCall          1, CP#17
+  Drop1
+  PushNull
+  ReturnTOS
+
+}
+
+Closure #lib::D::bar::Closure/0::inner () -> dart:core::Null
+ClosureBytecode {
+  EntryFixed           1, 2
+  CheckStack           0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  PushNull
+  ReturnTOS
+
+}
+]  method bar() → dynamic {
+    return () → core::Null {
+      function inner() → core::Null {}
+      [@vm.call-site-attributes.metadata=receiverType:() → dart.core::Null] inner.call();
+    };
+  }
 }
 [@vm.bytecode=
 Bytecode {
