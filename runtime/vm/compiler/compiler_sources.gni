@@ -41,6 +41,8 @@ compiler_sources = [
   "backend/compile_type.h",
   "backend/flow_graph.cc",
   "backend/flow_graph.h",
+  "backend/flow_graph_checker.cc",
+  "backend/flow_graph_checker.h",
   "backend/flow_graph_compiler.cc",
   "backend/flow_graph_compiler.h",
   "backend/flow_graph_compiler_arm.cc",

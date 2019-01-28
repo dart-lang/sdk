@@ -9,6 +9,7 @@
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
+#include "vm/compiler/backend/flow_graph_checker.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -177,6 +178,9 @@ void CompilerPass::Run(CompilerPassState* state) const {
       repeat = DoBody(state);
       DEBUG_ASSERT(state->flow_graph->VerifyUseLists());
       thread->CheckForSafepoint();
+#if defined(DEBUG)
+      FlowGraphChecker(state->flow_graph).Check();
+#endif
     }
     PrintGraph(state, kTraceAfter, round);
   }
