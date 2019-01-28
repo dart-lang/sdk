@@ -192,7 +192,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
   final List<int> sdkSummaryData =
       await new File.fromUri(platformUri).readAsBytes();
 
-  List<int> newestWholeComponent;
+  List<int> newestWholeComponentData;
+  Component newestWholeComponent;
   MemoryFileSystem fs;
   Map<String, String> sourceFiles;
   CompilerOptions options;
@@ -208,8 +209,11 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     }
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
     bool expectInitializeFromDill = false;
-    if (newestWholeComponent != null && newestWholeComponent.isNotEmpty) {
-      fs.entityForUri(initializeFrom).writeAsBytesSync(newestWholeComponent);
+    if (newestWholeComponentData != null &&
+        newestWholeComponentData.isNotEmpty) {
+      fs
+          .entityForUri(initializeFrom)
+          .writeAsBytesSync(newestWholeComponentData);
       expectInitializeFromDill = true;
     }
     if (world["expectInitializeFromDill"] != null) {
@@ -256,7 +260,12 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
 
     Uri entry = base.resolve(world["entry"]);
     if (brandNewWorld) {
-      compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+      if (world["fromComponent"] == true) {
+        compiler = new TestIncrementalCompiler.fromComponent(
+            options, entry, newestWholeComponent);
+      } else {
+        compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+      }
     }
 
     List<Uri> invalidated = new List<Uri>();
@@ -275,7 +284,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
         world, gotError, formattedErrors, gotWarning, formattedWarnings);
     util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-    newestWholeComponent = serializeComponent(component);
+    newestWholeComponentData = serializeComponent(component);
+    newestWholeComponent = component;
     print("*****\n\ncomponent:\n${componentToString(component)}\n\n\n");
     if (component.libraries.length != world["expectedLibraryCount"]) {
       throw "Expected ${world["expectedLibraryCount"]} libraries, "
@@ -316,7 +326,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
       List<int> thisWholeComponent = serializeComponent(component2);
       print("*****\n\ncomponent2:\n${componentToString(component2)}\n\n\n");
-      checkIsEqual(newestWholeComponent, thisWholeComponent);
+      checkIsEqual(newestWholeComponentData, thisWholeComponent);
     }
   }
 }
@@ -479,6 +489,13 @@ class TestIncrementalCompiler extends IncrementalCompiler {
             new CompilerContext(
                 new ProcessedOptions(options: options, inputs: [entryPoint])),
             initializeFrom);
+
+  TestIncrementalCompiler.fromComponent(CompilerOptions options,
+      this.entryPoint, Component componentToInitializeFrom)
+      : super.fromComponent(
+            new CompilerContext(
+                new ProcessedOptions(options: options, inputs: [entryPoint])),
+            componentToInitializeFrom);
 
   @override
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
