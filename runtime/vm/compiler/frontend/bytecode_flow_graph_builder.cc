@@ -508,10 +508,10 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
   PrologueBuilder prologue_builder(parsed_function(), B->last_used_block_id_,
                                    B->IsCompiledForOsr(), B->IsInlining());
 
-  B->last_used_block_id_ = prologue_builder.last_used_block_id();
-
   copy_args_prologue += prologue_builder.BuildOptionalParameterHandling(
       throw_no_such_method_, temp_var);
+
+  B->last_used_block_id_ = prologue_builder.last_used_block_id();
 
   JoinEntryInstr* prologue_exit = B->BuildJoinEntry();
   copy_args_prologue += B->Goto(prologue_exit);
