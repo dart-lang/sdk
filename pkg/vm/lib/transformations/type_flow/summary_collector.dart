@@ -1629,8 +1629,8 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   @override
   Type visitInstanceConstant(InstanceConstant constant) {
-    final resultType =
-        summaryCollector._entryPointsListener.addAllocatedClass(constant.klass);
+    final resultType = summaryCollector._entryPointsListener
+        .addAllocatedClass(constant.classNode);
     constant.fieldValues.forEach((Reference fieldReference, Constant value) {
       summaryCollector._entryPointsListener
           .addDirectFieldAccess(fieldReference.asField, typeFor(value));

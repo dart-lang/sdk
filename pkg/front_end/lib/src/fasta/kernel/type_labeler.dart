@@ -240,10 +240,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitInstanceConstant(InstanceConstant node) {
-    new InterfaceType(node.klass, node.typeArguments).accept(this);
+    new InterfaceType(node.classNode, node.typeArguments).accept(this);
     result.add(" {");
     bool first = true;
-    for (Field field in node.klass.fields) {
+    for (Field field in node.classNode.fields) {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");

@@ -221,7 +221,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       constant.entries.forEach(writeConstantReference);
     } else if (constant is InstanceConstant) {
       writeByte(ConstantTag.InstanceConstant);
-      writeClassReference(constant.klass);
+      writeClassReference(constant.classNode);
       writeUInt30(constant.typeArguments.length);
       constant.typeArguments.forEach(writeDartType);
       writeUInt30(constant.fieldValues.length);

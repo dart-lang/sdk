@@ -47,6 +47,13 @@
 
 [29554]: https://github.com/dart-lang/sdk/issues/29554
 
+### Other library changes
+
+#### `package:kernel`
+
+*   **Breaking change:** The `klass` getter on the `InstanceConstant` class in
+    the Kernel AST API has been renamed to `classNode` for consistency.
+
 ### Dart VM
 
 ### Tool Changes

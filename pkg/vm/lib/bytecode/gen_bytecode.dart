@@ -3040,10 +3040,10 @@ class ConstantEmitter extends ConstantVisitor<int> {
 
   @override
   int visitInstanceConstant(InstanceConstant node) => cp.addInstance(
-      node.klass,
-      hasInstantiatorTypeArguments(node.klass)
+      node.classNode,
+      hasInstantiatorTypeArguments(node.classNode)
           ? cp.addTypeArgumentsForInstanceAllocation(
-              node.klass, node.typeArguments)
+              node.classNode, node.typeArguments)
           : cp.addNull(),
       node.fieldValues.map<Field, int>((Reference fieldRef, Constant value) =>
           new MapEntry(fieldRef.asField, value.accept(this))));

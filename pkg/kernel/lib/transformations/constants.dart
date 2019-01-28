@@ -566,7 +566,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
         // Special case the dart:core's Symbol class here and convert it to a
         // [SymbolConstant].  For invalid values we report a compile-time error.
-        if (result.klass == coreTypes.internalSymbolClass) {
+        if (result.classNode == coreTypes.internalSymbolClass) {
           // The dart:_internal's Symbol class has only the name field.
           assert(coreTypes.internalSymbolClass.fields
                   .where((f) => !f.isStatic)

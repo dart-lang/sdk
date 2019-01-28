@@ -1959,8 +1959,8 @@ class Printer extends Visitor<Null> {
     final String name = syntheticNames.nameConstant(node);
     write('  $name = ');
     final sb = new StringBuffer();
-    sb.write('${node.klass}');
-    if (!node.klass.typeParameters.isEmpty) {
+    sb.write('${node.classNode}');
+    if (!node.classNode.typeParameters.isEmpty) {
       sb.write('<');
       sb.write(node.typeArguments.map((type) => type.toString()).join(', '));
       sb.write('>');

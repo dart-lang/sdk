@@ -5306,7 +5306,7 @@ class InstanceConstant extends Constant {
 
   InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
 
-  Class get klass => classReference.asClass;
+  Class get classNode => classReference.asClass;
 
   visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
@@ -5354,7 +5354,7 @@ class InstanceConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) =>
-      new InterfaceType(klass, typeArguments);
+      new InterfaceType(classNode, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
