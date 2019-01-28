@@ -724,6 +724,10 @@ override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 override: TextSerializationFailure # Was: Pass
 part_as_entry_point_lib: TextSerializationFailure # Was: Pass
 part_as_entry_point: TextSerializationFailure # Was: Pass
+part_not_part_of: TextSerializationFailure
+part_not_part_of_same_named_library: TextSerializationFailure
+part_part_of_different_unnamed_library: TextSerializationFailure
+part_part_of_differently_named_library: TextSerializationFailure
 prefer_baseclass: TextSerializationFailure # Was: Pass
 private_method_tearoff_lib: TextSerializationFailure # Was: Pass
 private_method_tearoff: TextSerializationFailure # Was: Pass

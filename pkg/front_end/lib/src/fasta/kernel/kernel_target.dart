@@ -805,6 +805,7 @@ class KernelTarget extends TargetImplementation {
           KernelLibraryBuilder part = library.loader.read(patch, -1,
               origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
+          first.partOffsets.add(-1);
           part.partOfUri = first.uri;
         }
       }

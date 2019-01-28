@@ -1329,8 +1329,9 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(covariant KernelLibraryBuilder part, Set<Uri> usedParts) {
-    super.includePart(part, usedParts);
+  void includePart(
+      covariant KernelLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
+    super.includePart(part, usedParts, partOffset);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
     // Check that the targets are different. This is not normally a problem
