@@ -3437,20 +3437,25 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
       entry->UnuseAllInputs();  // Entry block is not in the graph.
       if (last != NULL) {
         BlockEntryInstr* link = call->GetBlock();
-        Instruction* exit = last->GetBlock();
+        BlockEntryInstr* exit = last->GetBlock();
         if (link != exit) {
           // Dominance relation and SSA are updated incrementally when
           // conditionals are inserted. But succ/pred and ordering needs
           // to be redone. TODO(ajcbik): do this incrementally too.
+          for (intptr_t i = 0, n = link->dominated_blocks().length(); i < n;
+               ++i) {
+            exit->AddDominatedBlock(link->dominated_blocks()[i]);
+          }
           link->ClearDominatedBlocks();
           for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n;
                ++i) {
             link->AddDominatedBlock(entry->dominated_blocks()[i]);
           }
-          while (exit->next()) {
-            exit = exit->next();
+          Instruction* scan = exit;
+          while (scan->next() != nullptr) {
+            scan = scan->next();
           }
-          exit->LinkTo(call);
+          scan->LinkTo(call);
           flow_graph->DiscoverBlocks();
         } else {
           last->LinkTo(call);
