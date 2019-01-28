@@ -42,12 +42,23 @@ main() {
     await assertNoAssistAt('abc');
   }
 
-  test_doubleQuoted_interpolation() async {
+  test_doubleQuoted_interpolation_expressionElement() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
   var c = 'c';
-  print("a $b-${c} d");
+  print("a $b - ${c} d");
+}
+""");
+    await assertNoAssistAt(r'c}');
+  }
+
+  test_doubleQuoted_interpolation_stringElement_begin() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b - ${c} d");
 }
 """);
     await assertHasAssistAt('"a ', r'''
@@ -55,7 +66,25 @@ main() {
   var b = 'b';
   var c = 'c';
   print("""
-a $b-${c} d""");
+a $b - ${c} d""");
+}
+''');
+  }
+
+  test_doubleQuoted_interpolation_stringElement_middle() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b - ${c} d");
+}
+""");
+    await assertHasAssistAt('- ', r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""
+a $b - ${c} d""");
 }
 ''');
   }
@@ -88,12 +117,23 @@ abc''');
 """);
   }
 
-  test_singleQuoted_interpolation() async {
+  test_singleQuoted_interpolation_expressionElement() async {
     await resolveTestUnit(r"""
 main() {
   var b = 'b';
   var c = 'c';
-  print('a $b-${c} d');
+  print('a $b - ${c} d');
+}
+""");
+    await assertNoAssistAt(r'c}');
+  }
+
+  test_singleQuoted_interpolation_stringElement_begin() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b - ${c} d');
 }
 """);
     await assertHasAssistAt("'a ", r"""
@@ -101,7 +141,25 @@ main() {
   var b = 'b';
   var c = 'c';
   print('''
-a $b-${c} d''');
+a $b - ${c} d''');
+}
+""");
+  }
+
+  test_singleQuoted_interpolation_stringElement_middle() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b - ${c} d');
+}
+""");
+    await assertHasAssistAt("- ", r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''
+a $b - ${c} d''');
 }
 """);
   }
