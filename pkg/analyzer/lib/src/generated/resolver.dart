@@ -2616,6 +2616,64 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitForStatement2(ForStatement2 node) {
+    bool outerBreakValue = _enclosingBlockContainsBreak;
+    _enclosingBlockContainsBreak = false;
+    ForLoopParts parts = node.forLoopParts;
+    try {
+      if (parts is ForEachParts) {
+        bool iterableExits = _nodeExits(parts.iterable);
+        // Discard whether the for-each body exits; since the for-each iterable
+        // may be empty, execution may never enter the body, so it doesn't matter
+        // if it exits or not.  We still must visit the body, to accurately
+        // manage `_enclosingBlockBreaksLabel`.
+        _nodeExits(node.body);
+        return iterableExits;
+      }
+      VariableDeclarationList variables;
+      Expression initialization;
+      Expression condition;
+      NodeList<Expression> updaters;
+      if (parts is ForPartsWithDeclarations) {
+        variables = parts.variables;
+        condition = parts.condition;
+        updaters = parts.updaters;
+      } else if (parts is ForPartsWithExpression) {
+        initialization = parts.initialization;
+        condition = parts.condition;
+        updaters = parts.updaters;
+      }
+      if (variables != null &&
+          _visitVariableDeclarations(variables.variables)) {
+        return true;
+      }
+      if (initialization != null && _nodeExits(initialization)) {
+        return true;
+      }
+      if (condition != null && _nodeExits(condition)) {
+        return true;
+      }
+      if (_visitExpressions(updaters)) {
+        return true;
+      }
+      bool blockReturns = _nodeExits(node.body);
+      // TODO(jwren) Do we want to take all constant expressions into account?
+      // If for(; true; ) (or for(;;)), and the body doesn't return or the body
+      // doesn't have a break, then return true.
+      bool implicitOrExplictTrue =
+          condition == null || (condition is BooleanLiteral && condition.value);
+      if (implicitOrExplictTrue) {
+        if (blockReturns || !_enclosingBlockContainsBreak) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      _enclosingBlockContainsBreak = outerBreakValue;
+    }
+  }
+
+  @override
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
       false;
 
@@ -4970,6 +5028,22 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitForStatement2(ForStatement2 node) {
+    _overrideManager.enterScope();
+    try {
+      super.visitForStatement2(node);
+    } finally {
+      _overrideManager.exitScope();
+    }
+  }
+
+  @override
+  void visitForStatement2InScope(ForStatement2 node) {
+    throw new UnsupportedError('Implement this');
+    visitStatementInScope(node.body);
+  }
+
+  @override
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
@@ -4982,8 +5056,6 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       _overrideManager.exitScope();
     }
-    // TODO(brianwilkerson) If the loop can only be exited because the condition
-    // is false, then propagateFalseState(condition);
   }
 
   @override
@@ -5191,6 +5263,29 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitListLiteral2(ListLiteral2 node) {
+    InterfaceType listT;
+
+    if (node.typeArguments != null) {
+      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
+      if (targs.length == 1 && !targs[0].isDynamic) {
+        listT = typeProvider.listType.instantiate([targs[0]]);
+      }
+    } else {
+      listT = typeAnalyzer.inferListType2(node, downwards: true);
+    }
+    if (listT != null) {
+      for (CollectionElement element in node.elements) {
+        _pushCollectionTypesDown(element, listT);
+      }
+      InferenceContext.setType(node, listT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitListLiteral2(node);
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
     InterfaceType mapT;
     if (node.typeArguments != null) {
@@ -5222,6 +5317,54 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.clearType(node);
     }
     super.visitMapLiteral(node);
+  }
+
+  @override
+  void visitMapLiteral2(MapLiteral2 node) {
+    InterfaceType mapT;
+    if (node.typeArguments != null) {
+      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
+      if (targs.length == 2 && targs.any((t) => !t.isDynamic)) {
+        mapT = typeProvider.mapType.instantiate([targs[0], targs[1]]);
+      }
+    } else {
+      mapT = typeAnalyzer.inferMapType2(node, downwards: true);
+      if (mapT != null &&
+          node.typeArguments == null &&
+          node.entries.isEmpty &&
+          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
+          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
+        // The node is really an empty set literal with no type arguments, so
+        // don't try to visit the replaced map literal.
+        return;
+      }
+    }
+    if (mapT != null) {
+      DartType kType = mapT.typeArguments[0];
+      DartType vType = mapT.typeArguments[1];
+
+      void pushTypesDown(MapElement element) {
+        if (element is MapForElement) {
+          pushTypesDown(element.body);
+        } else if (element is MapIfElement) {
+          pushTypesDown(element.thenElement);
+          pushTypesDown(element.elseElement);
+        } else if (element is MapLiteralEntry) {
+          InferenceContext.setType(element.key, kType);
+          InferenceContext.setType(element.value, vType);
+        } else if (element is SpreadElement) {
+          InferenceContext.setType(element.expression, mapT);
+        }
+      }
+
+      for (MapElement element in node.entries) {
+        pushTypesDown(element);
+      }
+      InferenceContext.setType(node, mapT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitMapLiteral2(node);
   }
 
   @override
@@ -5382,6 +5525,32 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.clearType(node);
     }
     super.visitSetLiteral(node);
+  }
+
+  @override
+  void visitSetLiteral2(SetLiteral2 node) {
+    InterfaceType setT;
+
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (typeArguments.length == 1) {
+        DartType elementType = typeArguments.arguments[0].type;
+        if (!elementType.isDynamic) {
+          setT = typeProvider.setType.instantiate([elementType]);
+        }
+      }
+    } else {
+      setT = typeAnalyzer.inferSetType2(node, downwards: true);
+    }
+    if (setT != null) {
+      for (CollectionElement element in node.elements) {
+        _pushCollectionTypesDown(element, setT);
+      }
+      InferenceContext.setType(node, setT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitSetLiteral2(node);
   }
 
   @override
@@ -5950,6 +6119,20 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void _pushCollectionTypesDown(
+      CollectionElement element, ParameterizedType collectionType) {
+    if (element is CollectionForElement) {
+      _pushCollectionTypesDown(element.body, collectionType);
+    } else if (element is CollectionIfElement) {
+      _pushCollectionTypesDown(element.thenElement, collectionType);
+      _pushCollectionTypesDown(element.elseElement, collectionType);
+    } else if (element is Expression) {
+      InferenceContext.setType(element, collectionType.typeArguments[0]);
+    } else if (element is SpreadElement) {
+      InferenceContext.setType(element.expression, collectionType);
+    }
+  }
+
   /// Given an [argumentList] and the [parameters] related to the element that
   /// will be invoked using those arguments, compute the list of parameters that
   /// correspond to the list of arguments.
@@ -6395,6 +6578,30 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       nameScope = outerNameScope;
       _implicitLabelScope = outerImplicitScope;
     }
+  }
+
+  @override
+  void visitForStatement2(ForStatement2 node) {
+    Scope outerNameScope = nameScope;
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    try {
+      nameScope = new EnclosedScope(nameScope);
+      _implicitLabelScope = _implicitLabelScope.nest(node);
+      visitForStatement2InScope(node);
+    } finally {
+      nameScope = outerNameScope;
+      _implicitLabelScope = outerImplicitScope;
+    }
+  }
+
+  /// Visit the given [node] after it's scope has been created. This replaces
+  /// the normal call to the inherited visit method so that ResolverVisitor can
+  /// intervene when type propagation is enabled.
+  void visitForStatement2InScope(ForStatement2 node) {
+    // TODO(brianwilkerson) Investigate the possibility of removing the
+    //  visit...InScope methods now that type propagation is no longer done.
+    node.forLoopParts?.accept(this);
+    visitStatementInScope(node.body);
   }
 
   /// Visit the given statement after it's scope has been created. This replaces

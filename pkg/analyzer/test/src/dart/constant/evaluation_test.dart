@@ -934,8 +934,8 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     // The expected type ought to be `List<int>`, but type inference isn't yet
     // implemented.
-    expect(result.type,
-        typeProvider.listType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
     expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -944,10 +944,8 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.listType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
     expect(result.toListValue().map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -956,10 +954,8 @@ const c = [1, if (1 < 0) 2 else 3, 4];
 const c = [1, if (1 < 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.listType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
     expect(result.toListValue().map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -968,10 +964,8 @@ const c = [1, if (1 < 0) 2, 3];
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.listType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
     expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -980,10 +974,8 @@ const c = [1, if (1 > 0) 2 else 3, 4];
 const c = [1, if (1 > 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.listType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
     expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -992,10 +984,8 @@ const c = [1, if (1 > 0) 2, 3];
 const c = [1, ...[2, 3], 4];
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.listType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
     expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
@@ -1006,12 +996,10 @@ const c = [1, ...[2, 3], 4];
 const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
     expect(
         result.type,
         typeProvider.mapType
-            .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]));
+            .instantiate([typeProvider.intType, typeProvider.intType]));
     Map<DartObject, DartObject> value = result.toMapValue();
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c']));
@@ -1023,12 +1011,10 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
     expect(
         result.type,
         typeProvider.mapType
-            .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]));
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
     Map<DartObject, DartObject> value = result.toMapValue();
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'c', 'd']));
@@ -1040,12 +1026,10 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
     expect(
         result.type,
         typeProvider.mapType
-            .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]));
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
     Map<DartObject, DartObject> value = result.toMapValue();
     expect(
         value.keys.map((e) => e.toStringValue()), unorderedEquals(['a', 'c']));
@@ -1057,12 +1041,10 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
     expect(
         result.type,
         typeProvider.mapType
-            .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]));
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
     Map<DartObject, DartObject> value = result.toMapValue();
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'd']));
@@ -1074,12 +1056,10 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
     expect(
         result.type,
         typeProvider.mapType
-            .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]));
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
     Map<DartObject, DartObject> value = result.toMapValue();
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c']));
@@ -1091,12 +1071,10 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `Map<String, int>`, but type inference
-    // isn't yet implemented.
     expect(
         result.type,
         typeProvider.mapType
-            .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]));
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
     Map<DartObject, DartObject> value = result.toMapValue();
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c', 'd']));
@@ -1111,10 +1089,8 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.setType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -1123,10 +1099,8 @@ const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.setType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -1135,10 +1109,8 @@ const c = {1, if (1 < 0) 2 else 3, 4};
 const c = {1, if (1 < 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.setType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -1147,10 +1119,8 @@ const c = {1, if (1 < 0) 2, 3};
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.setType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -1159,10 +1129,8 @@ const c = {1, if (1 > 0) 2 else 3, 4};
 const c = {1, if (1 > 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.setType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -1171,10 +1139,8 @@ const c = {1, if (1 > 0) 2, 3};
 const c = {1, ...{2, 3}, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
-    // The expected type ought to be `Set<int>`, but type inference isn't yet
-    // implemented.
-    expect(result.type,
-        typeProvider.setType.instantiate([typeProvider.dynamicType]));
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 }
