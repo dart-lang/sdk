@@ -4,10 +4,10 @@
 
 part of "kernel_shadow_ast.dart";
 
-class InferenceVistor extends BodyVisitor1<void, DartType> {
+class InferenceVisitor extends BodyVisitor1<void, DartType> {
   final ShadowTypeInferrer inferrer;
 
-  InferenceVistor(this.inferrer);
+  InferenceVisitor(this.inferrer);
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
