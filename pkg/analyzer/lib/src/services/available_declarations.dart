@@ -339,6 +339,9 @@ class DeclarationsTracker {
 
   final _changesController = _StreamController<LibraryChange>();
 
+  /// The list of changed file paths.
+  final List<String> _changedPaths = [];
+
   /// The list of files scheduled for processing.  It may include parts and
   /// libraries, but parts are ignored when we detect them.
   final List<_ScheduledFile> _scheduledFiles = [];
@@ -350,7 +353,9 @@ class DeclarationsTracker {
 
   /// Return `true` if there is scheduled work to do, as a result of adding
   /// new contexts, or changes to files.
-  bool get hasWork => _scheduledFiles.isNotEmpty;
+  bool get hasWork {
+    return _changedPaths.isNotEmpty || _scheduledFiles.isNotEmpty;
+  }
 
   /// Add the [analysisContext], so that its libraries are reported via the
   /// [changes] stream, and return the [DeclarationsContext] that can be used
@@ -370,7 +375,7 @@ class DeclarationsTracker {
     return declarationsContext;
   }
 
-  /// The file with the given [path] was changed - updated or added.
+  /// The file with the given [path] was changed - added, updated, or removed.
   ///
   /// The [path] must be absolute and normalized.
   ///
@@ -378,7 +383,7 @@ class DeclarationsTracker {
   /// be invoked to send updates to [changes] that reflect changes to the
   /// library of the file, and other libraries that export it.
   void changeFile(String path) {
-    // TODO(scheglov) implement
+    _changedPaths.add(path);
   }
 
   /// Do a single piece of work.
@@ -387,28 +392,34 @@ class DeclarationsTracker {
   /// This would mean that all previous changes have been processed, and
   /// updates scheduled to be delivered via the [changes] stream.
   void doWork() {
-    if (_scheduledFiles.isEmpty) return;
-
-    var scheduledFile = _scheduledFiles.removeLast();
-    var file = _getFileByPath(scheduledFile.context, scheduledFile.path);
-
-    if (!file.isLibrary) return;
-
-    if (file.exportedDeclarations == null) {
-      new _LibraryWalker().walkLibrary(file);
-      assert(file.exportedDeclarations != null);
+    if (_changedPaths.isNotEmpty) {
+      var path = _changedPaths.removeLast();
+      _performChangeFile(path);
+      return;
     }
 
-    var library = Library._(
-      file.id,
-      file.path,
-      file.uri,
-      file.exportedDeclarations,
-    );
-    _idToLibrary[file.id] = library;
-    _changesController.add(
-      LibraryChange._([library], []),
-    );
+    if (_scheduledFiles.isNotEmpty) {
+      var scheduledFile = _scheduledFiles.removeLast();
+      var file = _getFileByPath(scheduledFile.context, scheduledFile.path);
+
+      if (!file.isLibrary) return;
+
+      if (file.exportedDeclarations == null) {
+        new _LibraryWalker().walkLibrary(file);
+        assert(file.exportedDeclarations != null);
+      }
+
+      var library = Library._(
+        file.id,
+        file.path,
+        file.uri,
+        file.exportedDeclarations,
+      );
+      _idToLibrary[file.id] = library;
+      _changesController.add(
+        LibraryChange._([library], []),
+      );
+    }
   }
 
   /// The [analysisContext] is being disposed, it does not need declarations.
@@ -420,20 +431,20 @@ class DeclarationsTracker {
     });
   }
 
-  /// The file with the given [path] was removed.
-  ///
-  /// The [path] must be absolute and normalized.
-  ///
-  /// Usually causes [hasWork] to return `true`, so that [doWork] should
-  /// be invoked to send updates to [changes] that reflect removing of the
-  /// file, its defining library, other libraries that export it.
-  void removeFile(String path) {
-    // TODO(scheglov) implement
-  }
-
   void _addFile(DeclarationsContext context, String path) {
     if (path.endsWith('.dart')) {
       _scheduledFiles.add(_ScheduledFile(context, path));
+    }
+  }
+
+  /// Compute exported declarations for the given [libraries].
+  void _computeExportedDeclarations(Set<_File> libraries) {
+    var walker = new _LibraryWalker();
+    for (var library in libraries) {
+      if (library.isLibrary && library.exportedDeclarations == null) {
+        walker.walkLibrary(library);
+        assert(library.exportedDeclarations != null);
+      }
     }
   }
 
@@ -463,6 +474,64 @@ class DeclarationsTracker {
       }
     }
     return file;
+  }
+
+  /// Recursively invalidate exported declarations of the given [library]
+  /// and libraries that export it.
+  void _invalidateExportedDeclarations(Set<_File> libraries, _File library) {
+    if (libraries.add(library)) {
+      library.exportedDeclarations = null;
+      for (var exporter in library.directExporters) {
+        _invalidateExportedDeclarations(libraries, exporter);
+      }
+    }
+  }
+
+  void _performChangeFile(String path) {
+    DeclarationsContext containingContext;
+    for (var context in _contexts.values) {
+      var uri = context._restoreUri(path);
+      if (uri != null) {
+        containingContext = context;
+        break;
+      }
+    }
+    if (containingContext == null) return;
+
+    var file = _getFileByPath(containingContext, path);
+    if (file == null) return;
+
+    var isLibrary = file.isLibrary;
+    var library = isLibrary ? file : file.library;
+
+    if (isLibrary) {
+      file.refresh(containingContext);
+    } else {
+      file.refresh(containingContext);
+      library.refresh(containingContext);
+    }
+
+    var invalidatedLibraries = Set<_File>();
+    _invalidateExportedDeclarations(invalidatedLibraries, library);
+    _computeExportedDeclarations(invalidatedLibraries);
+
+    var changedLibraries = <Library>[];
+    var removedLibraries = <int>[];
+    for (var library in invalidatedLibraries) {
+      if (library.exists) {
+        changedLibraries.add(Library._(
+          library.id,
+          library.path,
+          library.uri,
+          library.exportedDeclarations,
+        ));
+      } else {
+        removedLibraries.add(library.id);
+      }
+    }
+    _changesController.add(
+      LibraryChange._(changedLibraries, removedLibraries),
+    );
   }
 }
 
@@ -552,9 +621,16 @@ class _File {
   final String path;
   final Uri uri;
 
+  bool exists = false;
   bool isLibrary = false;
   List<_Export> exports = [];
   List<_Part> parts = [];
+
+  /// If this file is a part, the containing library.
+  _File library;
+
+  /// If this file is a library, libraries that export it.
+  List<_File> directExporters = [];
 
   List<Declaration> fileDeclarations = [];
   List<Declaration> libraryDeclarations = [];
@@ -568,8 +644,10 @@ class _File {
     int modificationStamp;
     try {
       modificationStamp = resource.modificationStamp;
+      exists = true;
     } catch (e) {
       modificationStamp = -1;
+      exists = false;
     }
 
     // When a file changes, its modification stamp changes.
@@ -623,6 +701,15 @@ class _File {
     }
     exports.removeWhere((e) => e.file == null);
     parts.removeWhere((e) => e.file == null);
+
+    // Set back pointers.
+    for (var export in exports) {
+      export.file.directExporters.add(this);
+    }
+    for (var part in parts) {
+      part.file.library = this;
+      part.file.isLibrary = false;
+    }
 
     // Compute library declarations.
     if (isLibrary) {

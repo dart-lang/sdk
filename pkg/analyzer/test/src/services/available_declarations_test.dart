@@ -100,6 +100,384 @@ class AvailableDeclarationsTest extends AbstractContextTest {
     _createTracker();
   }
 
+  test_changeFile_added_exported() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+    var d = convertPath('/home/test/lib/d.dart');
+
+    newFile(a, content: r'''
+export 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+export 'c.dart';
+class B {}
+''');
+    newFile(d, content: r'''
+class D {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasNoLibrary('package:test/c.dart');
+    _assertHasLibrary('package:test/d.dart', declarations: [
+      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+    ]);
+
+    newFile(c, content: r'''
+class C {}
+''');
+    tracker.changeFile(c);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/d.dart', declarations: [
+      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_added_library() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
+class A {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+    ]);
+    _assertHasNoLibrary('package:test/b.dart');
+
+    newFile(b, content: r'''
+class B {}
+''');
+    tracker.changeFile(b);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_added_part() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A {}
+''');
+    newFile(c, content: r'''
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+    ]);
+    _assertHasNoLibrary('package:test/b.dart');
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+
+    newFile(b, content: r'''
+part of 'a.dart';
+class B {}
+''');
+    tracker.changeFile(b);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasNoLibrary('package:test/b.dart');
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_deleted_exported() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+    var d = convertPath('/home/test/lib/d.dart');
+
+    newFile(a, content: r'''
+export 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+export 'c.dart';
+class B {}
+''');
+    newFile(c, content: r'''
+class C {}
+''');
+    newFile(d, content: r'''
+class D {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/d.dart', declarations: [
+      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+    ]);
+
+    deleteFile(c);
+    tracker.changeFile(c);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasNoLibrary('package:test/c.dart');
+    _assertHasLibrary('package:test/d.dart', declarations: [
+      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_deleted_library() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: '');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart');
+    _assertHasLibrary('package:test/b.dart');
+
+    deleteFile(a);
+    tracker.changeFile(a);
+    await _doAllTrackerWork();
+
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasLibrary('package:test/b.dart');
+  }
+
+  test_changeFile_deleted_part() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+part of 'a.dart';
+class B {}
+''');
+    newFile(c, content: r'''
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+
+    deleteFile(b);
+    tracker.changeFile(b);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_updated_exported() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+    var d = convertPath('/home/test/lib/d.dart');
+
+    newFile(a, content: r'''
+export 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+export 'c.dart';
+class B {}
+''');
+    newFile(c, content: r'''
+class C {}
+''');
+    newFile(d, content: r'''
+class D {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/d.dart', declarations: [
+      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+    ]);
+
+    newFile(c, content: r'''
+class C2 {}
+''');
+    tracker.changeFile(c);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C2', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration('C2', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C2', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/d.dart', declarations: [
+      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_updated_library() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
+class A {}
+''');
+    newFile(b, content: r'''
+class B {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+
+    newFile(a, content: r'''
+class A2 {}
+''');
+    tracker.changeFile(a);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A2', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+  }
+
+  test_changeFile_updated_part() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+part of 'a.dart';
+class B {}
+''');
+    newFile(c, content: r'''
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+
+    newFile(b, content: r'''
+part of 'a.dart';
+class B2 {}
+''');
+    tracker.changeFile(b);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration('B2', DeclarationKind.CLASS),
+    ]);
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+    ]);
+  }
+
   test_export() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -112,11 +490,11 @@ class C {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_export_combinators_hide() async {
@@ -132,11 +510,11 @@ class D {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('C'),
       _ExpectedDeclaration.class_('D'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_export_combinators_show() async {
@@ -152,10 +530,10 @@ class D {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('D'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_export_cycle() async {
@@ -175,21 +553,21 @@ class C {}
 
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/a.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:test/a.dart');
+    ]);
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/b.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:test/b.dart');
+    ]);
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_export_missing() async {
@@ -200,9 +578,9 @@ class C {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_export_sequence() async {
@@ -221,20 +599,20 @@ class C {}
 
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/a.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: 'package:test/a.dart');
+    ]);
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/b.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:test/b.dart');
+    ]);
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_export_shadowedByLocal() async {
@@ -250,10 +628,10 @@ mixin B {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.mixin('B'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_getLibraries_bazel() async {
@@ -306,25 +684,31 @@ mixin B {}
     });
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:aaa/a.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: 'package:aaa/a.dart');
-    _assertNoLibrary('package:aaa/src/a2.dart');
+    ]);
+    _assertHasNoLibrary('package:aaa/src/a2.dart');
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:bbb/b.dart', declarations: [
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:bbb/b.dart');
-    _assertNoLibrary('package:bbb/src/b2.dart');
+    ]);
+    _assertHasNoLibrary('package:bbb/src/b2.dart');
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:material_button/button.dart', declarations: [
       _ExpectedDeclaration.class_('MaterialButton'),
-    ], uriStr: 'package:material_button/button.dart');
-    _assertLibraryDeclarations([
-      _ExpectedDeclaration.class_('MaterialButtonTest'),
-    ], uriStr: toUri('/home/material_button/test/button_test.dart').toString());
-    _assertLibraryDeclarations([
-      _ExpectedDeclaration.class_('MaterialButtonPO'),
-    ], uriStr: 'package:material_button_testing/material_button_po.dart');
+    ]);
+    _assertHasLibrary(
+      toUri('/home/material_button/test/button_test.dart').toString(),
+      declarations: [
+        _ExpectedDeclaration.class_('MaterialButtonTest'),
+      ],
+    );
+    _assertHasLibrary(
+      'package:material_button_testing/material_button_po.dart',
+      declarations: [
+        _ExpectedDeclaration.class_('MaterialButtonPO'),
+      ],
+    );
 
     {
       var path = convertPath('/home/material_button/lib/_.dart');
@@ -432,31 +816,31 @@ dependencies:
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:aaa/a.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: 'package:aaa/a.dart');
-    _assertNoLibrary('package:aaa/src/a2.dart');
+    ]);
+    _assertHasNoLibrary('package:aaa/src/a2.dart');
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:bbb/b.dart', declarations: [
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:bbb/b.dart');
-    _assertNoLibrary('package:bbb/src/b2.dart');
+    ]);
+    _assertHasNoLibrary('package:bbb/src/b2.dart');
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:ccc/c.dart', declarations: [
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:ccc/c.dart');
-    _assertNoLibrary('package:ccc/src/c2.dart');
+    ]);
+    _assertHasNoLibrary('package:ccc/src/c2.dart');
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/t.dart', declarations: [
       _ExpectedDeclaration.class_('T'),
-    ], uriStr: 'package:test/t.dart');
-    _assertLibraryDeclarations([
+    ]);
+    _assertHasLibrary('package:test/src/t2.dart', declarations: [
       _ExpectedDeclaration.class_('T2'),
-    ], uriStr: 'package:test/src/t2.dart');
+    ]);
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:basic/s.dart', declarations: [
       _ExpectedDeclaration.class_('S'),
-    ], uriStr: 'package:basic/s.dart');
+    ]);
 
     {
       var path = convertPath('/home/test/lib/_.dart');
@@ -593,23 +977,26 @@ class B {}
 
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:aaa/a.dart', declarations: [
       _ExpectedDeclaration.class_('A1'),
       _ExpectedDeclaration.class_('A2'),
-    ], uriStr: 'package:aaa/a.dart');
-    _assertNoLibrary('package:aaa/src/a2.dart');
-    _assertLibraryDeclarations([
+    ]);
+    _assertHasNoLibrary('package:aaa/src/a2.dart');
+    _assertHasLibrary('package:bbb/b.dart', declarations: [
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:bbb/b.dart');
-    _assertLibraryDeclarations([
+    ]);
+    _assertHasLibrary('package:test/t.dart', declarations: [
       _ExpectedDeclaration.class_('T'),
-    ], uriStr: 'package:test/t.dart');
-    _assertLibraryDeclarations([
+    ]);
+    _assertHasLibrary('package:test/src/t2.dart', declarations: [
       _ExpectedDeclaration.class_('T2'),
-    ], uriStr: 'package:test/src/t2.dart');
-    _assertLibraryDeclarations([
-      _ExpectedDeclaration.class_('T3'),
-    ], uriStr: toUri('/home/test/test/t3.dart').toString());
+    ]);
+    _assertHasLibrary(
+      toUri('/home/test/test/t3.dart').toString(),
+      declarations: [
+        _ExpectedDeclaration.class_('T3'),
+      ],
+    );
 
     // `lib/` is configured to see `package:aaa`.
     {
@@ -682,10 +1069,10 @@ class C {}
     });
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary(aUri, declarations: [
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: aUri);
-    _assertNoLibrary(bUri);
+    ]);
+    _assertHasNoLibrary(bUri);
 
     // The package can see package:aaa, but not package:bbb
     {
@@ -703,12 +1090,12 @@ class C {}
     });
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary(aUri, declarations: [
       _ExpectedDeclaration.class_('A'),
-    ], uriStr: aUri);
-    _assertLibraryDeclarations([
+    ]);
+    _assertHasLibrary(bUri, declarations: [
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: bUri);
+    ]);
 
     // The package can see package:bbb, but not package:aaa
     {
@@ -735,7 +1122,7 @@ var myVariable1, myVariable2;
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('MyClass'),
       _ExpectedDeclaration.classTypeAlias('MyClassTypeAlias'),
       _ExpectedDeclaration.enum_('MyEnum'),
@@ -744,7 +1131,7 @@ var myVariable1, myVariable2;
       _ExpectedDeclaration.mixin('MyMixin'),
       _ExpectedDeclaration.variable('myVariable1'),
       _ExpectedDeclaration.variable('myVariable2'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_parts() async {
@@ -764,11 +1151,11 @@ class C {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_publicOnly() async {
@@ -785,10 +1172,10 @@ class _B {}
     tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_readByteStore() async {
@@ -813,11 +1200,11 @@ class C {}
     tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
 
-    _assertLibraryDeclarations([
+    _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
-    ], uriStr: 'package:test/test.dart');
+    ]);
   }
 
   test_removeContext_afterAddContext() async {
@@ -840,22 +1227,7 @@ class A {}
     expect(uriToLibrary, isEmpty);
   }
 
-  void _assertLibraryDeclarations(
-      List<_ExpectedDeclaration> expectedDeclarations,
-      {String uriStr}) {
-    var library = uriToLibrary[uriStr];
-    expect(library, isNotNull);
-    expect(library.declarations, hasLength(expectedDeclarations.length));
-    for (var expected in expectedDeclarations) {
-      _asyncHasDeclaration(library, expected);
-    }
-  }
-
-  void _assertNoLibrary(String uriStr) {
-    expect(uriToLibrary, isNot(contains(uriStr)));
-  }
-
-  void _asyncHasDeclaration(Library library, _ExpectedDeclaration expected) {
+  void _assertHasDeclaration(Library library, _ExpectedDeclaration expected) {
     expect(
       library.declarations,
       contains(predicate((Declaration d) {
@@ -865,11 +1237,32 @@ class A {}
     );
   }
 
+  /// Assert that the current state has the library with the given [uri].
+  ///
+  /// If [declarations] provided, also checks that the library has exactly
+  /// these declarations.
+  void _assertHasLibrary(String uri,
+      {List<_ExpectedDeclaration> declarations}) {
+    var library = uriToLibrary[uri];
+    expect(library, isNotNull);
+    if (declarations != null) {
+      expect(library.declarations, hasLength(declarations.length));
+      for (var expected in declarations) {
+        _assertHasDeclaration(library, expected);
+      }
+    }
+  }
+
+  void _assertHasNoLibrary(String uri) {
+    expect(uriToLibrary, isNot(contains(uri)));
+  }
+
   void _createTracker() {
     uriToLibrary.clear();
 
     tracker = DeclarationsTracker(byteStore, resourceProvider);
     tracker.changes.listen((change) {
+      changes.add(change);
       for (var library in change.changed) {
         var uriStr = library.uri.toString();
         idToLibrary[library.id] = library;
