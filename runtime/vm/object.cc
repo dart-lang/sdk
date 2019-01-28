@@ -2082,14 +2082,14 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
       for (RawObject** slot = from; slot <= to; ++slot) {
         RawObject* value = *slot;
         if (value->IsHeapObject()) {
-          old_obj_->CheckHeapPointerStore(value, thread_);
+          old_obj_->CheckArrayPointerStore(slot, value, thread_);
         }
       }
     } else {
       for (RawObject** slot = from; slot <= to; ++slot) {
         RawObject* value = *slot;
         if (value->IsHeapObject()) {
-          old_obj_->CheckArrayPointerStore(slot, value, thread_);
+          old_obj_->CheckHeapPointerStore(value, thread_);
         }
       }
     }
