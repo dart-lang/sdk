@@ -164,8 +164,7 @@ class _ClassVerifier {
           _checkDeclaredMember(fieldList, libraryUri, fieldElement.setter);
         }
       } else if (member is MethodDeclaration) {
-        _checkDeclaredMember(member, libraryUri, member.declaredElement,
-            methodParameterNodes: member.parameters?.parameters);
+        _checkDeclaredMember(member, libraryUri, member.declaredElement);
       }
     }
 
@@ -249,9 +248,8 @@ class _ClassVerifier {
   void _checkDeclaredMember(
     AstNode node,
     Uri libraryUri,
-    ExecutableElement member, {
-    List<AstNode> methodParameterNodes,
-  }) {
+    ExecutableElement member,
+  ) {
     if (member == null) return;
     if (member.isStatic) return;
 
@@ -276,13 +274,6 @@ class _ClassVerifier {
               superMemberType.element.enclosingElement.name,
               superMemberType.displayName
             ],
-          );
-        }
-        if (methodParameterNodes != null) {
-          _checkForOptionalParametersDifferentDefaultValues(
-            superMemberType.element,
-            member,
-            methodParameterNodes,
           );
         }
       }
@@ -409,84 +400,6 @@ class _ClassVerifier {
                 StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
                 errorElement,
                 [getterName, getterType, setterType, setterName]);
-          }
-        }
-      }
-    }
-  }
-
-  void _checkForOptionalParametersDifferentDefaultValues(
-    ExecutableElement baseExecutable,
-    ExecutableElement derivedExecutable,
-    List<AstNode> derivedParameterNodes,
-  ) {
-    var derivedOptionalNodes = <AstNode>[];
-    var derivedOptionalElements = <ParameterElementImpl>[];
-    var derivedParameterElements = derivedExecutable.parameters;
-    for (var i = 0; i < derivedParameterElements.length; i++) {
-      var parameterElement = derivedParameterElements[i];
-      if (parameterElement.isOptional) {
-        derivedOptionalNodes.add(derivedParameterNodes[i]);
-        derivedOptionalElements.add(parameterElement);
-      }
-    }
-
-    var baseOptionalElements = <ParameterElementImpl>[];
-    var baseParameterElements = baseExecutable.parameters;
-    for (var i = 0; i < baseParameterElements.length; ++i) {
-      var baseParameter = baseParameterElements[i];
-      if (baseParameter.isOptional) {
-        baseOptionalElements.add(baseParameter);
-      }
-    }
-
-    // Stop if no optional parameters.
-    if (baseOptionalElements.isEmpty || derivedOptionalElements.isEmpty) {
-      return;
-    }
-
-    if (derivedOptionalElements[0].isNamed) {
-      for (int i = 0; i < derivedOptionalElements.length; i++) {
-        var derivedElement = derivedOptionalElements[i];
-        var name = derivedElement.name;
-        for (var j = 0; j < baseOptionalElements.length; j++) {
-          var baseParameter = baseOptionalElements[j];
-          if (name == baseParameter.name && baseParameter.initializer != null) {
-            var baseValue = baseParameter.computeConstantValue();
-            var derivedResult = derivedElement.evaluationResult;
-            if (derivedResult.value != baseValue) {
-              reporter.reportErrorForNode(
-                StaticWarningCode
-                    .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-                derivedOptionalNodes[i],
-                [
-                  baseExecutable.enclosingElement.displayName,
-                  baseExecutable.displayName,
-                  name
-                ],
-              );
-            }
-          }
-        }
-      }
-    } else {
-      for (var i = 0;
-          i < derivedOptionalElements.length && i < baseOptionalElements.length;
-          i++) {
-        var baseElement = baseOptionalElements[i];
-        if (baseElement.initializer != null) {
-          var baseValue = baseElement.computeConstantValue();
-          var derivedResult = derivedOptionalElements[i].evaluationResult;
-          if (derivedResult.value != baseValue) {
-            reporter.reportErrorForNode(
-              StaticWarningCode
-                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-              derivedOptionalNodes[i],
-              [
-                baseExecutable.enclosingElement.displayName,
-                baseExecutable.displayName
-              ],
-            );
           }
         }
       }

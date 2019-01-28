@@ -164,12 +164,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     errorListener.assertErrorsWithCodes(expected);
   }
 
-  Future<void> assertErrorsInCode(String code, List<ErrorCode> errors) async {
-    addTestFile(code);
-    await resolveTestFile();
-    assertTestErrors(errors);
-  }
-
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }
@@ -299,12 +293,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));
     assertTypeNull(ref);
-  }
-
-  Future<void> assertNoErrorsInCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   void assertNoTestErrors() {

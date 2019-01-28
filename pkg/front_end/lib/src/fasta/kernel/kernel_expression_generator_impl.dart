@@ -302,7 +302,7 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
+      {int offset,
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false,
@@ -312,17 +312,13 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
     return unsupported(
         "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
     return unsupported(
         "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
   }
@@ -376,7 +372,7 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
+      {int offset,
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false,
@@ -386,17 +382,13 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
     return unsupported(
         "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
     return unsupported(
         "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
   }
