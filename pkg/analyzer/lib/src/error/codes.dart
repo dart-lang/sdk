@@ -4624,6 +4624,9 @@ class StaticWarningCode extends ErrorCode {
           " call that returns void you didn't expect. Also check type parameters"
           ' and variables which, in rare cases, may be void as well.');
 
+  @override
+  final ErrorSeverity errorSeverity;
+
   /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
@@ -4631,13 +4634,12 @@ class StaticWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      this.errorSeverity: ErrorSeverity.ERROR,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
