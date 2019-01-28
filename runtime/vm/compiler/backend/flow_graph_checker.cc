@@ -60,11 +60,13 @@ void FlowGraphChecker::CheckBasicBlocks() {
   }
 
   // Iterate over all basic blocks.
-  const intptr_t max_block_id = flow_graph_->max_block_id();
+  // const intptr_t max_block_id = flow_graph_->max_block_id();
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
-    ASSERT(block->block_id() <= max_block_id);
+    // Re-enable this if possible
+    // https://github.com/dart-lang/sdk/issues/35789
+    // ASSERT(block->block_id() <= max_block_id);
     // Make sure ordering is consistent.
     ASSERT(block->preorder_number() <= block_count);
     ASSERT(block->postorder_number() <= block_count);
