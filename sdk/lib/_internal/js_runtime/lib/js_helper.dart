@@ -3508,7 +3508,7 @@ Future<Null> _loadHunk(String hunkName) {
     JS('', '#.type = "text/javascript"', script);
     JS('', '#.src = #', script, uri);
     if (_cspNonce != null && _cspNonce != '') {
-      JS('', '#.nonce = #', script, _cspNonce);
+      JS('', '#.setAttribute("nonce", #)', script, _cspNonce);
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
