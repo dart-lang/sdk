@@ -37,6 +37,10 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
       return null;
     }
     String filePath = fileUriToNormalizedPath(provider.pathContext, uri);
+    Resource resource = provider.getResource(filePath);
+    if (resource is! File) {
+      return null;
+    }
     File file = workspace.findFile(filePath);
     if (file != null) {
       return file.createSource(actualUri ?? uri);
@@ -213,8 +217,8 @@ class PackageBuildWorkspace extends Workspace {
       return null;
     }
     path.Context context = provider.pathContext;
-    String fullBuiltPath = context.join(
-        root, _dartToolRootName, 'build', 'generated', packageName, builtPath);
+    String fullBuiltPath = context.normalize(context.join(
+        root, _dartToolRootName, 'build', 'generated', packageName, builtPath));
     return provider.getFile(fullBuiltPath);
   }
 
@@ -333,10 +337,11 @@ class PackageBuildWorkspacePackage extends WorkspacePackage {
   PackageBuildWorkspacePackage(this.root, this.workspace);
 
   @override
-  bool contains(String path) {
+  bool contains(String filePath) {
     // There is a 1-1 relationship between PackageBuildWorkspaces and
     // PackageBuildWorkspacePackages. If a file is in a package's workspace,
     // then it is in the package as well.
-    return workspace.findFile(path) != null;
+    return workspace.provider.pathContext.isWithin(workspace.root, filePath) &&
+        workspace.findFile(filePath) != null;
   }
 }
