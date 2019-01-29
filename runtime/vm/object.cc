@@ -104,6 +104,14 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #endif
 #define RAW_NULL kHeapObjectTag
 
+#define CHECK_ERROR(error)                                                     \
+  {                                                                            \
+    RawError* err = (error);                                                   \
+    if (err != Error::null()) {                                                \
+      return err;                                                              \
+    }                                                                          \
+  }
+
 #define DEFINE_SHARED_READONLY_HANDLE(Type, name)                              \
   Type* Object::name##_ = nullptr;
 SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE)
@@ -464,7 +472,7 @@ void Object::Init(Isolate* isolate) {
 
   Heap* heap = isolate->heap();
 
-  // Allocate the read only object handles here.
+// Allocate the read only object handles here.
 #define INITIALIZE_SHARED_READONLY_HANDLE(Type, name)                          \
   name##_ = Type::ReadOnlyHandle();
   SHARED_READONLY_HANDLES_LIST(INITIALIZE_SHARED_READONLY_HANDLE)
@@ -3199,31 +3207,43 @@ static RawObject* ThrowTypeError(const TokenPosition token_pos,
 
 RawObject* Class::InvokeGetter(const String& getter_name,
                                bool throw_nsm_if_absent,
-                               bool respect_reflectable) const {
+                               bool respect_reflectable,
+                               bool check_is_entrypoint) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  const Error& error = Error::Handle(zone, EnsureIsFinalized(thread));
-  if (!error.IsNull()) {
-    return error.raw();
-  }
+  CHECK_ERROR(EnsureIsFinalized(thread));
 
   // Note static fields do not have implicit getters.
   const Field& field = Field::Handle(zone, LookupStaticField(getter_name));
+
+  if (!field.IsNull() && check_is_entrypoint) {
+    CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kGetterOnly));
+  }
+
   if (field.IsNull() || field.IsUninitialized()) {
     const String& internal_getter_name =
         String::Handle(zone, Field::GetterName(getter_name));
     Function& getter =
         Function::Handle(zone, LookupStaticFunction(internal_getter_name));
 
+    if (field.IsNull() && !getter.IsNull() && check_is_entrypoint) {
+      CHECK_ERROR(getter.VerifyEntryPoint());
+    }
+
     if (getter.IsNull() || (respect_reflectable && !getter.is_reflectable())) {
       if (getter.IsNull()) {
         getter = LookupStaticFunction(getter_name);
         if (!getter.IsNull()) {
-          // Looking for a getter but found a regular method: closurize it.
-          const Function& closure_function =
-              Function::Handle(zone, getter.ImplicitClosureFunction());
-          return closure_function.ImplicitStaticClosure();
+          if (check_is_entrypoint) {
+            CHECK_ERROR(EntryPointClosurizationError(getter_name));
+          }
+          if (getter.SafeToClosurize()) {
+            // Looking for a getter but found a regular method: closurize it.
+            const Function& closure_function =
+                Function::Handle(zone, getter.ImplicitClosureFunction());
+            return closure_function.ImplicitStaticClosure();
+          }
         }
       }
       if (throw_nsm_if_absent) {
@@ -3247,7 +3267,8 @@ RawObject* Class::InvokeGetter(const String& getter_name,
 
 RawObject* Class::InvokeSetter(const String& setter_name,
                                const Instance& value,
-                               bool respect_reflectable) const {
+                               bool respect_reflectable,
+                               bool check_is_entrypoint) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -3261,6 +3282,10 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
 
+  if (!field.IsNull() && check_is_entrypoint) {
+    CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kSetterOnly));
+  }
+
   AbstractType& parameter_type = AbstractType::Handle(zone);
   AbstractType& argument_type =
       AbstractType::Handle(zone, value.GetType(Heap::kOld));
@@ -3268,6 +3293,9 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   if (field.IsNull()) {
     const Function& setter =
         Function::Handle(zone, LookupStaticFunction(internal_setter_name));
+    if (!setter.IsNull() && check_is_entrypoint) {
+      CHECK_ERROR(setter.VerifyEntryPoint());
+    }
     const int kNumArgs = 1;
     const Array& args = Array::Handle(zone, Array::New(kNumArgs));
     args.SetAt(0, value);
@@ -3315,31 +3343,30 @@ RawObject* Class::InvokeSetter(const String& setter_name,
 RawObject* Class::Invoke(const String& function_name,
                          const Array& args,
                          const Array& arg_names,
-                         bool respect_reflectable) const {
+                         bool respect_reflectable,
+                         bool check_is_entrypoint) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
-  const Error& error = Error::Handle(zone, EnsureIsFinalized(thread));
-  if (!error.IsNull()) {
-    return error.raw();
-  }
+  CHECK_ERROR(EnsureIsFinalized(thread));
 
   Function& function =
       Function::Handle(zone, LookupStaticFunction(function_name));
 
+  if (!function.IsNull() && check_is_entrypoint) {
+    CHECK_ERROR(function.VerifyEntryPoint());
+  }
+
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const String& getter_name =
-        String::Handle(zone, Field::GetterName(function_name));
-    function = LookupStaticFunction(getter_name);
-    if (!function.IsNull()) {
-      // Invoke the getter.
-      const Object& getter_result = Object::Handle(
-          zone, DartEntry::InvokeFunction(function, Object::empty_array()));
-      if (getter_result.IsError()) {
-        return getter_result.raw();
+    const Object& getter_result = Object::Handle(
+        zone, InvokeGetter(function_name, false, respect_reflectable,
+                           check_is_entrypoint));
+    if (getter_result.raw() != Object::sentinel().raw()) {
+      if (check_is_entrypoint) {
+        CHECK_ERROR(EntryPointClosurizationError(function_name));
       }
       // Make room for the closure (receiver) in the argument list.
       const intptr_t num_args = args.Length();
@@ -7136,6 +7163,14 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
   return result.raw();
 }
 
+bool Function::SafeToClosurize() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return HasImplicitClosureFunction();
+#else
+  return true;
+#endif
+}
+
 RawFunction* Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
   if (implicit_closure_function() != Function::null()) {
@@ -7143,7 +7178,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   // In AOT mode all implicit closures are pre-created.
-  UNREACHABLE();
+  FATAL("Cannot create implicit closure in AOT!");
   return Function::null();
 #else
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
@@ -10706,11 +10741,15 @@ static RawObject* InvokeInstanceFunction(
 
 RawObject* Library::InvokeGetter(const String& getter_name,
                                  bool throw_nsm_if_absent,
-                                 bool respect_reflectable) const {
+                                 bool respect_reflectable,
+                                 bool check_is_entrypoint) const {
   Object& obj = Object::Handle(LookupLocalOrReExportObject(getter_name));
   Function& getter = Function::Handle();
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
+    if (check_is_entrypoint) {
+      CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kGetterOnly));
+    }
     if (!field.IsUninitialized()) {
       return field.StaticValue();
     }
@@ -10727,9 +10766,21 @@ RawObject* Library::InvokeGetter(const String& getter_name,
     obj = LookupLocalOrReExportObject(internal_getter_name);
     if (obj.IsFunction()) {
       getter = Function::Cast(obj).raw();
+      if (check_is_entrypoint) {
+        CHECK_ERROR(getter.VerifyEntryPoint());
+      }
     } else {
       obj = LookupLocalOrReExportObject(getter_name);
-      if (obj.IsFunction()) {
+      // Normally static top-level methods cannot be closurized through the
+      // native API even if they are marked as entry-points, with the one
+      // exception of "main".
+      if (obj.IsFunction() && check_is_entrypoint) {
+        if (!getter_name.Equals(String::Handle(String::New("main"))) ||
+            raw() != Isolate::Current()->object_store()->root_library()) {
+          CHECK_ERROR(EntryPointClosurizationError(getter_name));
+        }
+      }
+      if (obj.IsFunction() && Function::Cast(obj).SafeToClosurize()) {
         // Looking for a getter but found a regular method: closurize it.
         const Function& closure_function =
             Function::Handle(Function::Cast(obj).ImplicitClosureFunction());
@@ -10758,7 +10809,8 @@ RawObject* Library::InvokeGetter(const String& getter_name,
 
 RawObject* Library::InvokeSetter(const String& setter_name,
                                  const Instance& value,
-                                 bool respect_reflectable) const {
+                                 bool respect_reflectable,
+                                 bool check_is_entrypoint) const {
   Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
   const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
@@ -10766,6 +10818,9 @@ RawObject* Library::InvokeSetter(const String& setter_name,
   AbstractType& argument_type = AbstractType::Handle(value.GetType(Heap::kOld));
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
+    if (check_is_entrypoint) {
+      CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kSetterOnly));
+    }
     setter_type ^= field.type();
     if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
         !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
@@ -10792,6 +10847,10 @@ RawObject* Library::InvokeSetter(const String& setter_name,
     setter ^= obj.raw();
   }
 
+  if (!setter.IsNull() && check_is_entrypoint) {
+    CHECK_ERROR(setter.VerifyEntryPoint());
+  }
+
   const int kNumArgs = 1;
   const Array& args = Array::Handle(Array::New(kNumArgs));
   args.SetAt(0, value);
@@ -10815,7 +10874,8 @@ RawObject* Library::InvokeSetter(const String& setter_name,
 RawObject* Library::Invoke(const String& function_name,
                            const Array& args,
                            const Array& arg_names,
-                           bool respect_reflectable) const {
+                           bool respect_reflectable,
+                           bool check_is_entrypoint) const {
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
 
@@ -10825,11 +10885,18 @@ RawObject* Library::Invoke(const String& function_name,
     function ^= obj.raw();
   }
 
+  if (!function.IsNull() && check_is_entrypoint) {
+    CHECK_ERROR(function.VerifyEntryPoint());
+  }
+
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const Object& getter_result =
-        Object::Handle(InvokeGetter(function_name, false));
+    const Object& getter_result = Object::Handle(InvokeGetter(
+        function_name, false, respect_reflectable, check_is_entrypoint));
     if (getter_result.raw() != Object::sentinel().raw()) {
+      if (check_is_entrypoint) {
+        CHECK_ERROR(EntryPointClosurizationError(function_name));
+      }
       // Make room for the closure (receiver) in arguments.
       intptr_t numArgs = args.Length();
       const Array& call_args = Array::Handle(Array::New(numArgs + 1));
@@ -15542,7 +15609,8 @@ const char* UnwindError::ToCString() const {
 }
 
 RawObject* Instance::InvokeGetter(const String& getter_name,
-                                  bool respect_reflectable) const {
+                                  bool respect_reflectable,
+                                  bool check_is_entrypoint) const {
   Zone* zone = Thread::Current()->zone();
 
   Class& klass = Class::Handle(zone, clazz());
@@ -15556,10 +15624,29 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
 
+  if (check_is_entrypoint) {
+    // The getter must correspond to either an entry-point field or a getter
+    // method explicitly marked.
+    Field& field = Field::Handle(zone);
+    if (function.kind() == RawFunction::kImplicitGetter) {
+      field = function.accessor_field();
+    }
+    if (!field.IsNull()) {
+      CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kGetterOnly));
+    } else if (!function.IsNull()) {
+      CHECK_ERROR(function.VerifyEntryPoint());
+    }
+  }
+
   // Check for method extraction when method extractors are not created.
   if (function.IsNull() && !FLAG_lazy_dispatchers) {
     function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
-    if (!function.IsNull()) {
+
+    if (!function.IsNull() && check_is_entrypoint) {
+      CHECK_ERROR(EntryPointClosurizationError(getter_name));
+    }
+
+    if (!function.IsNull() && function.SafeToClosurize()) {
       const Function& closure_function =
           Function::Handle(zone, function.ImplicitClosureFunction());
       return closure_function.ImplicitInstanceClosure(*this);
@@ -15580,7 +15667,8 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
 
 RawObject* Instance::InvokeSetter(const String& setter_name,
                                   const Instance& value,
-                                  bool respect_reflectable) const {
+                                  bool respect_reflectable,
+                                  bool check_is_entrypoint) const {
   Zone* zone = Thread::Current()->zone();
 
   const Class& klass = Class::Handle(zone, clazz());
@@ -15593,6 +15681,20 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
       String::Handle(zone, Field::SetterName(setter_name));
   const Function& setter = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
+
+  if (check_is_entrypoint) {
+    // The setter must correspond to either an entry-point field or a setter
+    // method explicitly marked.
+    Field& field = Field::Handle(zone);
+    if (setter.kind() == RawFunction::kImplicitSetter) {
+      field = setter.accessor_field();
+    }
+    if (!field.IsNull()) {
+      CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kSetterOnly));
+    } else if (!setter.IsNull()) {
+      CHECK_ERROR(setter.VerifyEntryPoint());
+    }
+  }
 
   const int kTypeArgsLen = 0;
   const int kNumArgs = 2;
@@ -15610,11 +15712,16 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
 RawObject* Instance::Invoke(const String& function_name,
                             const Array& args,
                             const Array& arg_names,
-                            bool respect_reflectable) const {
+                            bool respect_reflectable,
+                            bool check_is_entrypoint) const {
   Zone* zone = Thread::Current()->zone();
   Class& klass = Class::Handle(zone, clazz());
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
+
+  if (!function.IsNull() && check_is_entrypoint) {
+    CHECK_ERROR(function.VerifyEntryPoint());
+  }
 
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
@@ -15632,6 +15739,9 @@ RawObject* Instance::Invoke(const String& function_name,
         String::Handle(zone, Field::GetterName(function_name));
     function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
     if (!function.IsNull()) {
+      if (check_is_entrypoint) {
+        CHECK_ERROR(EntryPointClosurizationError(function_name));
+      }
       ASSERT(function.kind() != RawFunction::kMethodExtractor);
       // Invoke the getter.
       const int kNumArgs = 1;
@@ -21431,6 +21541,150 @@ void DumpTypeArgumentsTable(Isolate* isolate) {
       isolate->object_store()->canonical_type_arguments());
   table.Dump();
   table.Release();
+}
+
+EntryPointPragma FindEntryPointPragma(Isolate* I,
+                                      const Array& metadata,
+                                      Field* reusable_field_handle,
+                                      Object* pragma) {
+  for (intptr_t i = 0; i < metadata.Length(); i++) {
+    *pragma = metadata.At(i);
+    if (pragma->clazz() != I->object_store()->pragma_class()) {
+      continue;
+    }
+    *reusable_field_handle = I->object_store()->pragma_name();
+    if (Instance::Cast(*pragma).GetField(*reusable_field_handle) !=
+        Symbols::vm_entry_point().raw()) {
+      continue;
+    }
+    *reusable_field_handle = I->object_store()->pragma_options();
+    *pragma = Instance::Cast(*pragma).GetField(*reusable_field_handle);
+    if (pragma->raw() == Bool::null() || pragma->raw() == Bool::True().raw()) {
+      return EntryPointPragma::kAlways;
+      break;
+    }
+    if (pragma->raw() == Symbols::Get().raw()) {
+      return EntryPointPragma::kGetterOnly;
+    }
+    if (pragma->raw() == Symbols::Set().raw()) {
+      return EntryPointPragma::kSetterOnly;
+    }
+  }
+  return EntryPointPragma::kNever;
+}
+
+DART_WARN_UNUSED_RESULT
+RawError* VerifyEntryPoint(const Library& lib,
+                           const Object& member,
+                           const Object& annotated,
+                           EntryPointPragma kind) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Annotations are discarded in the AOT snapshot, so we can't determine
+  // precisely if this member was marked as an entry-point. Instead, we use
+  // "has_pragma()" as a proxy, since that bit is usually retained.
+  bool is_marked_entrypoint = true;
+  if (annotated.IsClass() && !Class::Cast(annotated).has_pragma()) {
+    is_marked_entrypoint = false;
+  } else if (annotated.IsField() && !Field::Cast(annotated).has_pragma()) {
+    is_marked_entrypoint = false;
+  } else if (annotated.IsFunction() &&
+             !Function::Cast(annotated).has_pragma()) {
+    is_marked_entrypoint = false;
+  }
+#else
+  Object& metadata = Object::Handle(Object::empty_array().raw());
+  if (!annotated.IsNull()) {
+    metadata = lib.GetMetadata(annotated);
+  }
+  if (metadata.IsError()) return Error::RawCast(metadata.raw());
+  ASSERT(!metadata.IsNull() && metadata.IsArray());
+  EntryPointPragma pragma =
+      FindEntryPointPragma(Isolate::Current(), Array::Cast(metadata),
+                           &Field::Handle(), &Object::Handle());
+  const bool is_marked_entrypoint =
+      pragma == kind || pragma == EntryPointPragma::kAlways;
+#endif
+  if (!is_marked_entrypoint) {
+    const char* member_cstring =
+        member.IsFunction()
+            ? Function::Cast(member).ToLibNamePrefixedQualifiedCString()
+            : member.ToCString();
+    char const* error = OS::SCreate(
+        Thread::Current()->zone(),
+        "ERROR: It is illegal to access '%s' through Dart C API.\n"
+        "ERROR: See "
+        "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+        "aot/entry_point_pragma.md\n",
+        member_cstring);
+    OS::PrintErr("%s", error);
+    return ApiError::New(String::Handle(String::New(error)));
+  }
+  return Error::null();
+}
+
+DART_WARN_UNUSED_RESULT
+RawError* EntryPointClosurizationError(const String& getter_name) {
+  if (!FLAG_verify_entry_points) return Error::null();
+
+  char const* error = OS::SCreate(
+      Thread::Current()->zone(),
+      "ERROR: Entry-points do not allow closurizing methods "
+      "(failure to resolve '%s')\n"
+      "ERROR: See "
+      "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+      "aot/entry_point_pragma.md\n",
+      getter_name.ToCString());
+  OS::PrintErr("%s", error);
+  return ApiError::New(String::Handle(String::New(error)));
+}
+
+RawError* Function::VerifyEntryPoint() const {
+  if (!FLAG_verify_entry_points) return Error::null();
+
+  const Class& cls = Class::Handle(Owner());
+  const Library& lib = Library::Handle(cls.library());
+  switch (kind()) {
+    case RawFunction::kRegularFunction:
+    case RawFunction::kGetterFunction:
+    case RawFunction::kSetterFunction:
+    case RawFunction::kConstructor:
+      return dart::VerifyEntryPoint(lib, *this, *this,
+                                    EntryPointPragma::kAlways);
+      break;
+    case RawFunction::kImplicitGetter: {
+      const Field& accessed = Field::Handle(accessor_field());
+      return dart::VerifyEntryPoint(lib, *this, accessed,
+                                    EntryPointPragma::kGetterOnly);
+      break;
+    }
+    case RawFunction::kImplicitSetter: {
+      const Field& accessed = Field::Handle(accessor_field());
+      return dart::VerifyEntryPoint(lib, *this, accessed,
+                                    EntryPointPragma::kSetterOnly);
+      break;
+    }
+    default:
+      return dart::VerifyEntryPoint(lib, *this, Object::Handle(),
+                                    EntryPointPragma::kAlways);
+      break;
+  }
+}
+
+RawError* Field::VerifyEntryPoint(EntryPointPragma pragma) const {
+  if (!FLAG_verify_entry_points) return Error::null();
+  const Class& cls = Class::Handle(Owner());
+  const Library& lib = Library::Handle(cls.library());
+  return dart::VerifyEntryPoint(lib, *this, *this, pragma);
+}
+
+RawError* Class::VerifyEntryPoint() const {
+  if (!FLAG_verify_entry_points) return Error::null();
+  const Library& lib = Library::Handle(library());
+  if (!lib.IsNull()) {
+    return dart::VerifyEntryPoint(lib, *this, *this, EntryPointPragma::kAlways);
+  } else {
+    return Error::null();
+  }
 }
 
 }  // namespace dart

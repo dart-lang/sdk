@@ -1031,6 +1031,9 @@ class Class : public Object {
 
   bool IsPrivate() const;
 
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyEntryPoint() const;
+
   // Returns an array of instance and static fields defined by this class.
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
@@ -1206,13 +1209,16 @@ class Class : public Object {
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
-                    bool respect_reflectable = true) const;
+                    bool respect_reflectable = true,
+                    bool check_is_entrypoint = false) const;
   RawObject* InvokeGetter(const String& selector,
                           bool throw_nsm_if_absent,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
   RawObject* InvokeSetter(const String& selector,
                           const Instance& argument,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
 
   // Evaluate the given expression as if it appeared in a static method of this
   // class and return the resulting value, or an error object if evaluating the
@@ -2226,6 +2232,8 @@ class Function : public Object {
   // It is not the only Code object that points to this function.
   RawCode* CurrentCode() const { return CurrentCodeOf(raw()); }
 
+  bool SafeToClosurize() const;
+
   static RawCode* CurrentCodeOf(const RawFunction* function) {
     return function->ptr()->code_;
   }
@@ -2706,6 +2714,9 @@ class Function : public Object {
     return modifier() != RawFunction::kNoModifier;
   }
 
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyEntryPoint() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
@@ -3068,6 +3079,8 @@ class RedirectionData : public Object {
   friend class HeapProfiler;
 };
 
+enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+
 class Field : public Object {
  public:
   RawField* Original() const;
@@ -3165,6 +3178,9 @@ class Field : public Object {
   RawAbstractType* type() const { return raw_ptr()->type_; }
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
+
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyEntryPoint(EntryPointPragma kind) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawField));
@@ -3640,13 +3656,16 @@ class Library : public Object {
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
-                    bool respect_reflectable = true) const;
+                    bool respect_reflectable = true,
+                    bool check_is_entrypoint = false) const;
   RawObject* InvokeGetter(const String& selector,
                           bool throw_nsm_if_absent,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
   RawObject* InvokeSetter(const String& selector,
                           const Instance& argument,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
 
   // Evaluate the given expression as if it appeared in an top-level method of
   // this library and return the resulting value, or an error object if
@@ -5797,12 +5816,15 @@ class Instance : public Object {
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
-                    bool respect_reflectable = true) const;
+                    bool respect_reflectable = true,
+                    bool check_is_entrypoint = false) const;
   RawObject* InvokeGetter(const String& selector,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
   RawObject* InvokeSetter(const String& selector,
                           const Instance& argument,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
 
   // Evaluate the given expression as if it appeared in an instance method of
   // this instance and return the resulting value, or an error object if
@@ -9383,6 +9405,14 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
 
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
+
+EntryPointPragma FindEntryPointPragma(Isolate* I,
+                                      const Array& metadata,
+                                      Field* reusable_field_handle,
+                                      Object* reusable_object_handle);
+
+DART_WARN_UNUSED_RESULT
+RawError* EntryPointClosurizationError(const String& getter_name);
 
 }  // namespace dart
 

@@ -81,6 +81,7 @@ Uri _packageRoot;
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
 // Embedder sets this to true if we are running on Windows.
+@pragma("vm:entry-point")
 bool _isWindows = false;
 
 // Logging from builtin.dart is prefixed with a '*'.
