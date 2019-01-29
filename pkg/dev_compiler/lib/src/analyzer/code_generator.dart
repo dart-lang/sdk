@@ -6482,14 +6482,11 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
-  } else if (path.isWithin(libraryRoot, uri.toFilePath())) {
+  } else {
     qualifiedPath = path
         .relative(uri.toFilePath(), from: libraryRoot)
-        .replaceAll(path.separator, encodedSeparator);
-  } else {
-    // We don't have a unique name.
-    throw 'Invalid library root. $libraryRoot does not contain '
-        '${uri.toFilePath()}';
+        .replaceAll(path.separator, encodedSeparator)
+        .replaceAll('..', encodedSeparator);
   }
   return pathToJSIdentifier(qualifiedPath);
 }
@@ -6501,10 +6498,6 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
   if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
 
   var filePath = uri.toFilePath();
-  if (!path.isWithin(libraryRoot, filePath)) {
-    throw 'Invalid library root. $libraryRoot does not contain '
-        '${uri.toFilePath()}';
-  }
   // Relative path to the library.
   return path.relative(filePath, from: libraryRoot);
 }
