@@ -3098,14 +3098,10 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   }
 
   RawString* Selector() {
-    // The Token::Kind we have does unfortunately not encode whether the call is
-    // a dyn: call or not.
     if (auto static_call = this->AsStaticCall()) {
-      ASSERT(static_call->ic_data() != nullptr);
-      return static_call->ic_data()->target_name();
+      return static_call->function().name();
     } else if (auto instance_call = this->AsInstanceCall()) {
-      ASSERT(instance_call->ic_data() != nullptr);
-      return instance_call->ic_data()->target_name();
+      return instance_call->function_name().raw();
     } else {
       UNREACHABLE();
     }
