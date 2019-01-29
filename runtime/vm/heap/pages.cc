@@ -1536,7 +1536,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   }
 }
 
-void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
+void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   // Number of pages we can allocate and still be within the desired growth
   // ratio.
   intptr_t growth_in_pages =
@@ -1559,7 +1559,7 @@ void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
 
   if (FLAG_log_growth) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
-              "kB, reason=snapshot\n",
+              "kB, reason=loaded\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords);
   }

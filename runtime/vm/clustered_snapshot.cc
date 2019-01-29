@@ -5249,7 +5249,7 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   }
 
   thread()->isolate()->class_table()->CopySizesFromClassObjects();
-  heap_->old_space()->EvaluateSnapshotLoad();
+  heap_->old_space()->EvaluateAfterLoading();
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();

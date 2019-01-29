@@ -5248,6 +5248,11 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   Isolate* I = T->isolate();
   CHECK_CALLBACK_STATE(T);
 
+  // The kernel loader is about to allocate a bunch of new libraries, classes,
+  // and functions into old space. Force growth, and use of the bump allocator
+  // instead of freelists.
+  BumpAllocateScope bump_allocate_scope(T);
+
   I->DoneLoading();
 
   // TODO(hausner): move the remaining code below (finalization and
@@ -5269,6 +5274,8 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // newly loaded code and trigger one of these breakpoints.
   I->debugger()->NotifyDoneLoading();
 #endif
+
+  I->heap()->old_space()->EvaluateAfterLoading();
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_mirrors) {
