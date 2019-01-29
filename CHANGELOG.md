@@ -47,6 +47,18 @@
 *   **Breaking change:** The `klass` getter on the `InstanceConstant` class in
     the Kernel AST API has been renamed to `classNode` for consistency.
 
+*   **Breaking change:** Updated `Link` implementation to utilize true symbolic
+    links instead of junctions on Windows. Existing junctions will continue to
+    work with the new `Link` implementation, but all new links will create
+    symbolic links.
+    
+    To create a symbolic link, Dart must be run with
+    administrative privileges or Developer Mode must be enabled, otherwise a
+    `FileSystemException` will be raised with errno set to
+    `ERROR_PRIVILEGE_NOT_HELD` (Issue [33966]).
+
+[33966]: https://github.com/dart-lang/sdk/issues/33966
+
 ### Dart VM
 
 ### Tool Changes
