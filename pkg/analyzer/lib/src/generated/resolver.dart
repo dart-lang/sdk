@@ -5040,7 +5040,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitForStatement2InScope(ForStatement2 node) {
     throw new UnsupportedError('Implement this');
-    visitStatementInScope(node.body);
+    visitStatementInScope(node.body); // ignore: dead_code
   }
 
   @override
