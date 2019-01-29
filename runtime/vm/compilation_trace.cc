@@ -320,13 +320,17 @@ TypeFeedbackSaver::TypeFeedbackSaver(WriteStream* stream)
 static char* CompilerFlags() {
   TextBuffer buffer(64);
 
-#define ADD_FLAG(flag) buffer.AddString(FLAG_##flag ? " " #flag : "no " #flag)
+#define ADD_FLAG(flag) buffer.AddString(FLAG_##flag ? " " #flag : " no-" #flag)
   ADD_FLAG(enable_asserts);
   ADD_FLAG(use_field_guards);
   ADD_FLAG(use_osr);
   ADD_FLAG(causal_async_stacks);
   ADD_FLAG(fields_may_be_reset);
 #undef ADD_FLAG
+  buffer.AddString(FLAG_use_bytecode_compiler || FLAG_enable_interpreter
+                       ? " bytecode"
+                       : " no-bytecode");
+
   return buffer.Steal();
 }
 
