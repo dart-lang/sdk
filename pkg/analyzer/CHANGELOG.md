@@ -9,6 +9,19 @@
 * Disabled support for the task model.  Please use the new `AnalysisSession`
   API.
 * Removed `StrongTypeSystemImpl`.  Please use `Dart2TypeSystem` instead.
+* Made ERROR the default severity for StaticWarningCode.  We no longer need to
+  promote warnings to errors in "strong mode" because strong mode is the only
+  mode.
+* Added exact type analysis for set literals (#35742).
+* Bug fixes: #35305, #35750.
+
+## 0.34.3
+* Non-breaking AST changes in support for the control_flow_collections and
+  spread_collections experiments.  Clients who wish to begin adding support for
+  these experiments can depend on this release of the analyzer and begin writing
+  visit methods.  The visit methods won't be added to the AstVisitor base class
+  until 0.35.0.
+* Bug fixes: #35551, #35708, #35723.
 
 ## 0.34.2
 * Removed support for the `@checked` annotation.  Please use the `covariant`
