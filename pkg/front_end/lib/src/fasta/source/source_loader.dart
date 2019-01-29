@@ -1114,6 +1114,8 @@ const String defaultDartCoreSource = """
 import 'dart:_internal';
 import 'dart:async';
 
+export 'dart:async' show Future, Stream;
+
 print(object) {}
 
 class Iterator {}

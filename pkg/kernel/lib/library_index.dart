@@ -141,6 +141,12 @@ class _ClassTable {
       for (var class_ in library.classes) {
         _classes[class_.name] = new _MemberTable(this, class_);
       }
+      for (Reference reference in library.additionalExports) {
+        NamedNode node = reference.node;
+        if (node is Class) {
+          _classes[node.name] = new _MemberTable(this, node);
+        }
+      }
     }
     return _classes;
   }
