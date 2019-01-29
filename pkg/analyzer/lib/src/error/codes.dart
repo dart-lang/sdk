@@ -3899,7 +3899,8 @@ class StaticWarningCode extends ErrorCode {
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
           "Parameters can't override default values, "
           "this method overrides '{0}.{1}' where '{2}' has a different value.",
-          correction: "Try using the same default value in both methods.");
+          correction: "Try using the same default value in both methods.",
+          errorSeverity: ErrorSeverity.WARNING);
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -3914,7 +3915,8 @@ class StaticWarningCode extends ErrorCode {
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
           "Parameters can't override default values, this method overrides "
           "'{0}.{1}' where this positional parameter has a different value.",
-          correction: "Try using the same default value in both methods.");
+          correction: "Try using the same default value in both methods.",
+          errorSeverity: ErrorSeverity.WARNING);
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method

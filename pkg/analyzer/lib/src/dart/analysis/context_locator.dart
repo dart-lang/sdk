@@ -75,7 +75,7 @@ class ContextLocatorImpl implements ContextLocator {
   @override
   List<AnalysisContext> locateContexts(
       {@required List<String> includedPaths,
-      List<String> excludedPaths: null,
+      List<String> excludedPaths: const <String>[],
       String optionsFile: null,
       String packagesFile: null,
       String sdkPath: null}) {

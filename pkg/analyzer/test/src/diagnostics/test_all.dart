@@ -10,6 +10,10 @@ import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_override_different_default_values_named_test.dart'
+    as invalid_override_different_default_values_named;
+import 'invalid_override_different_default_values_positional_test.dart'
+    as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'undefined_getter.dart' as undefined_getter;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
@@ -27,6 +31,8 @@ main() {
     division_optimization.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_override_different_default_values_named.main();
+    invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     undefined_getter.main();
     unnecessary_cast.main();

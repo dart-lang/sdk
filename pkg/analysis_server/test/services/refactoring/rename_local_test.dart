@@ -488,12 +488,12 @@ main() {
     await indexUnit('/home/test/lib/test2.dart', '''
 library test2;
 class A {
-  void foo({int test: 1}) {
+  void foo({int test}) {
     print(test);
   }
 }
 class B extends A {
-  void foo({int test: 2}) {
+  void foo({int test}) {
     print(test);
   }
 }
@@ -506,7 +506,7 @@ main() {
   new C().foo(test: 30);
 }
 class C extends A {
-  void foo({int test: 3}) {
+  void foo({int test}) {
     print(test);
   }
 }
@@ -524,7 +524,7 @@ main() {
   new C().foo(newName: 30);
 }
 class C extends A {
-  void foo({int newName: 3}) {
+  void foo({int newName}) {
     print(newName);
   }
 }
@@ -532,12 +532,12 @@ class C extends A {
     assertFileChangeResult('/home/test/lib/test2.dart', '''
 library test2;
 class A {
-  void foo({int newName: 1}) {
+  void foo({int newName}) {
     print(newName);
   }
 }
 class B extends A {
-  void foo({int newName: 2}) {
+  void foo({int newName}) {
     print(newName);
   }
 }
