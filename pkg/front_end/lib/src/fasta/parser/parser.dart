@@ -5316,8 +5316,8 @@ class Parser {
 
     token = parseForLoopPartsStart(awaitToken, forToken);
     Token identifier = token.next;
-    token = parseForLoopPartsMid(token, forToken);
-    if (looksLikeForInLoopParts(awaitToken, token.next)) {
+    token = parseForLoopPartsMid(token, awaitToken, forToken);
+    if (optional('in', token.next) || optional(':', token.next)) {
       // Process `for ( ... in ... )`
       return parseForInRest(token, awaitToken, forToken, identifier);
     } else {
@@ -5375,7 +5375,7 @@ class Parser {
 
   /// Parse the remainder of the local variable declaration
   /// or an expression if no local variable declaration was found.
-  Token parseForLoopPartsMid(Token token, Token forToken) {
+  Token parseForLoopPartsMid(Token token, Token awaitToken, Token forToken) {
     if (token != forToken.next) {
       token = parseVariablesDeclarationRest(token, false);
       listener.handleForInitializerLocalVariableDeclaration(token);
@@ -5385,29 +5385,38 @@ class Parser {
       token = parseExpression(token);
       listener.handleForInitializerExpressionStatement(token);
     }
+    Token next = token.next;
+    if (optional(';', next)) {
+      if (awaitToken != null) {
+        reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
+      }
+    } else if (!optional('in', next)) {
+      // Recovery
+      if (optional(':', next)) {
+        reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
+      } else if (awaitToken != null) {
+        reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments('in'));
+        token.setNext(
+            new SyntheticKeywordToken(Keyword.IN, next.offset)..setNext(next));
+      }
+    }
     return token;
   }
-
-  /// Return true if the combination of the [awaitToken] and [inKeyword]
-  /// indicate that a for loop is being parsed of the form:
-  /// (`await`)? `for` `(` type? identifier `in`
-  bool looksLikeForInLoopParts(Token awaitToken, Token inKeyword) =>
-      optional('in', inKeyword) ||
-      optional(':', inKeyword) ||
-      (!optional(';', inKeyword) && awaitToken != null);
 
   /// This method parses the portion of the forLoopParts that starts with the
   /// first semicolon (the one that terminates the forInitializerStatement).
   ///
   /// ```
-  /// forLoopParts:
-  ///   forInitializerStatement expression? ';' expressionList? |
-  ///   declaredIdentifier 'in' expression |
-  ///   identifier 'in' expression
+  ///  forLoopParts:
+  ///      localVariableDeclaration ';' expression? ';' expressionList?
+  ///    | expression? ';' expression? ';' expressionList?
+  ///    | localVariableDeclaration 'in' expression
+  ///    | identifier 'in' expression
   /// ;
   /// ```
   Token parseForRest(Token awaitToken, Token token, Token forToken) {
-    token = parseForLoopPartsRest(forToken, awaitToken, token);
+    token = parseForLoopPartsRest(token, forToken, awaitToken);
     listener.beginForStatementBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -5418,14 +5427,11 @@ class Parser {
     return token;
   }
 
-  Token parseForLoopPartsRest(Token forToken, Token awaitToken, Token token) {
+  Token parseForLoopPartsRest(Token token, Token forToken, Token awaitToken) {
     Token leftParenthesis = forToken.next;
     assert(optional('for', forToken));
     assert(optional('(', leftParenthesis));
 
-    if (awaitToken != null) {
-      reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
-    }
     Token leftSeparator = ensureSemicolon(token);
     if (optional(';', leftSeparator.next)) {
       token = parseEmptyStatement(leftSeparator);
@@ -5459,15 +5465,16 @@ class Parser {
   /// keyword.
   ///
   /// ```
-  /// forLoopParts:
-  ///   forInitializerStatement expression? ';' expressionList? |
-  ///   declaredIdentifier 'in' expression |
-  ///   identifier 'in' expression
+  ///  forLoopParts:
+  ///      localVariableDeclaration ';' expression? ';' expressionList?
+  ///    | expression? ';' expression? ';' expressionList?
+  ///    | localVariableDeclaration 'in' expression
+  ///    | identifier 'in' expression
   /// ;
   /// ```
   Token parseForInRest(
       Token token, Token awaitToken, Token forToken, Token identifier) {
-    token = parseForInLoopPartsRest(forToken, token, identifier, awaitToken);
+    token = parseForInLoopPartsRest(token, awaitToken, forToken, identifier);
     listener.beginForInBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -5479,23 +5486,11 @@ class Parser {
   }
 
   Token parseForInLoopPartsRest(
-      Token forToken, Token token, Token identifier, Token awaitToken) {
+      Token token, Token awaitToken, Token forToken, Token identifier) {
+    Token inKeyword = token.next;
     assert(optional('for', forToken));
     assert(optional('(', forToken.next));
-
-    Token inKeyword = token.next;
-    if (!optional('in', inKeyword)) {
-      // Recovery
-      if (optional(':', inKeyword)) {
-        reportRecoverableError(inKeyword, fasta.messageColonInPlaceOfIn);
-      } else {
-        reportRecoverableError(
-            inKeyword, fasta.templateExpectedButGot.withArguments('in'));
-        inKeyword = token.setNext(
-            new SyntheticKeywordToken(Keyword.IN, inKeyword.offset)
-              ..setNext(inKeyword));
-      }
-    }
+    assert(optional('in', inKeyword) || optional(':', inKeyword));
 
     if (!identifier.isIdentifier) {
       reportRecoverableErrorWithToken(

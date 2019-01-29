@@ -15,6 +15,7 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/parser/async_modifier.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
@@ -113,31 +114,61 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   Expression parseCollectionLiteral(String source,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      int expectedEndOffset}) {
+      int expectedEndOffset,
+      bool inAsync = false}) {
     return parseExpression(source,
         codes: codes,
         errors: errors,
         expectedEndOffset: expectedEndOffset,
+        inAsync: inAsync,
         parseSetLiterals: true,
         parseSpreadCollections: true,
         parseControlFlowCollections: true);
   }
 
-  @failingTest
   void test_listLiteral_for() {
-    ListLiteral2 list = parseCollectionLiteral('[1, for (var x in list) 2]');
+    ListLiteral2 list = parseCollectionLiteral(
+      '[1, await for (var x in list) 2]',
+      inAsync: true,
+    );
     expect(list.elements, hasLength(2));
     IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
+
+    CollectionForElement second = list.elements[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithDeclaration forLoopParts = second.forLoopParts;
+    DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
+    expect(forLoopVar.identifier.name, 'x');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
   }
 
-  @failingTest
   void test_listLiteral_forSpread() {
     ListLiteral2 list =
-        parseCollectionLiteral('[1, for (var x in list) ...[2]]');
+        parseCollectionLiteral('[1, for (int x = 0; x < 10; ++x) ...[2]]');
     expect(list.elements, hasLength(2));
     IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
+
+    CollectionForElement second = list.elements[1];
+    expect(second.awaitKeyword, isNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForPartsWithDeclarations forLoopParts = second.forLoopParts;
+    VariableDeclaration forLoopVar = forLoopParts.variables.variables[0];
+    expect(forLoopVar.name.name, 'x');
+    BinaryExpression condition = forLoopParts.condition;
+    IntegerLiteral rightOperand = condition.rightOperand;
+    expect(rightOperand.value, 10);
+    PrefixExpression updater = forLoopParts.updaters[0];
+    SimpleIdentifier updaterOperand = updater.operand;
+    expect(updaterOperand.name, 'x');
   }
 
   void test_listLiteral_if() {
@@ -221,6 +252,52 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(element.spreadOperator.lexeme, '...?');
     ListLiteral2 spreadExpression = element.expression;
     expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_for() {
+    MapLiteral2 map = parseCollectionLiteral('{1:7, await for (y in list) 2:3}',
+        inAsync: true);
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    MapForElement second = map.entries[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithIdentifier forLoopParts = second.forLoopParts;
+    SimpleIdentifier forLoopVar = forLoopParts.identifier;
+    expect(forLoopVar.name, 'y');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+  }
+
+  void test_mapLiteral_forSpread() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    MapForElement second = map.entries[1];
+    expect(second.awaitKeyword, isNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForPartsWithExpression forLoopParts = second.forLoopParts;
+    AssignmentExpression forLoopInit = forLoopParts.initialization;
+    SimpleIdentifier forLoopVar = forLoopInit.leftHandSide;
+    expect(forLoopVar.name, 'x');
+    BinaryExpression condition = forLoopParts.condition;
+    IntegerLiteral rightOperand = condition.rightOperand;
+    expect(rightOperand.value, 10);
+    PrefixExpression updater = forLoopParts.updaters[0];
+    SimpleIdentifier updaterOperand = updater.operand;
+    expect(updaterOperand.name, 'x');
   }
 
   void test_mapLiteral_if() {
@@ -1212,6 +1289,7 @@ class FastaParserTestCase
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
       int expectedEndOffset,
+      bool inAsync = false,
       bool parseSetLiterals = false,
       bool parseSpreadCollections = false,
       bool parseControlFlowCollections = false}) {
@@ -1220,6 +1298,9 @@ class FastaParserTestCase
     _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
     _parserProxy.astBuilder.enableControlFlowCollections =
         parseControlFlowCollections;
+    if (inAsync) {
+      _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
+    }
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;

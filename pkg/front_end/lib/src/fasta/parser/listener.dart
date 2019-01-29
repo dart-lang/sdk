@@ -1084,6 +1084,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstExpression");
   }
 
+  /// Called before parsing a "for" control flow list, set, or map entry.
+  void beginForControlFlow(Token awaitToken, Token forToken) {}
+
+  /// Called after parsing a "for" control flow list, set, or map entry.
+  void endForControlFlow(Token rightParenthesis) {
+    logEvent('endForControlFlow');
+  }
+
+  /// Called after parsing a "for-in" control flow list, set, or map entry.
+  void endForInControlFlow(Token rightParenthesis) {
+    logEvent('endForInControlFlow');
+  }
+
   /// Called before parsing an `if` control flow list, set, or map entry.
   void beginIfControlFlow(Token ifToken) {}
 
@@ -1096,7 +1109,7 @@ class Listener implements UnescapeErrorListener {
   /// - if conditional expression
   /// - expression
   void endIfControlFlow(Token token) {
-    logEvent("IfControlFlow");
+    logEvent("endIfControlFlow");
   }
 
   /// Called after parsing an if-else control flow list, set, or map entry.
@@ -1105,7 +1118,7 @@ class Listener implements UnescapeErrorListener {
   /// - then expression
   /// - else expression
   void endIfElseControlFlow(Token token) {
-    logEvent("IfElseControlFlow");
+    logEvent("endIfElseControlFlow");
   }
 
   /// Called after parsing a list, set, or map entry that starts with

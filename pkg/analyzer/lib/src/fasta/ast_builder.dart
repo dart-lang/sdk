@@ -308,7 +308,7 @@ class AstBuilder extends StackListener {
   void pushIfControlFlowInfo(Token ifToken, ParenthesizedExpression condition,
       var thenElement, Token elseToken, var elseElement) {
     if (enableControlFlowCollections) {
-      push(new _ControlFlowInfo(
+      push(new _IfControlFlowInfo(
           ifToken,
           condition.leftParenthesis,
           condition.expression,
@@ -879,6 +879,66 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endForControlFlow(Token rightParenthesis) {
+    debugEvent("endForControlFlow");
+    var entry = pop();
+
+    int updateExpressionCount = pop();
+    Token leftSeparator = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+
+    List<Expression> updates = popTypedList(updateExpressionCount);
+    Statement conditionStatement = pop();
+    Object initializerPart = pop();
+
+    Expression condition;
+    Token rightSeparator;
+    if (conditionStatement is ExpressionStatement) {
+      condition = conditionStatement.expression;
+      rightSeparator = conditionStatement.semicolon;
+    } else {
+      rightSeparator = (conditionStatement as EmptyStatement).semicolon;
+    }
+
+    ForLoopParts forLoopParts;
+    Expression initializer;
+    if (initializerPart is VariableDeclarationStatement) {
+      forLoopParts = ast.forPartsWithDeclarations(
+        variables: initializerPart.variables,
+        leftSeparator: leftSeparator,
+        condition: condition,
+        rightSeparator: rightSeparator,
+        updaters: updates,
+      );
+    } else {
+      initializer = initializerPart as Expression;
+      forLoopParts = ast.forPartsWithExpression(
+        initialization: initializer,
+        leftSeparator: leftSeparator,
+        condition: condition,
+        rightSeparator: rightSeparator,
+        updaters: updates,
+      );
+    }
+
+    pushForControlFlowInfo(
+        null, forToken, leftParenthesis, forLoopParts, entry);
+  }
+
+  void pushForControlFlowInfo(Token awaitToken, Token forToken,
+      Token leftParenthesis, ForLoopParts forLoopParts, Object entry) {
+    if (enableControlFlowCollections) {
+      push(new _ForControlFlowInfo(awaitToken, forToken, leftParenthesis,
+          forLoopParts, leftParenthesis.endGroup, entry));
+    } else {
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(forToken), forToken, forToken);
+      push(entry);
+    }
+  }
+
+  @override
   void endForStatement(Token endToken) {
     debugEvent("ForStatement");
     Statement body = pop();
@@ -1302,6 +1362,54 @@ class AstBuilder extends StackListener {
     push(forToken);
     push(leftParenthesis);
     push(inKeyword);
+  }
+
+  @override
+  void endForInControlFlow(Token rightParenthesis) {
+    debugEvent("endForInControlFlow");
+    var entry = pop();
+
+    Token inKeyword = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
+    Expression iterator = pop();
+    Object variableOrDeclaration = pop();
+
+    ForLoopParts forLoopParts;
+    if (variableOrDeclaration is VariableDeclarationStatement) {
+      VariableDeclarationList variableList = variableOrDeclaration.variables;
+      forLoopParts = ast.forEachPartsWithDeclaration(
+        loopVariable: ast.declaredIdentifier(
+            variableList.documentationComment,
+            variableList.metadata,
+            variableList.keyword,
+            variableList.type,
+            variableList.variables.first.name),
+        inKeyword: inKeyword,
+        iterable: iterator,
+      );
+    } else {
+      if (variableOrDeclaration is! SimpleIdentifier) {
+        // Parser has already reported the error.
+        if (!leftParenthesis.next.isIdentifier) {
+          parser.rewriter.insertToken(
+              leftParenthesis,
+              new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', leftParenthesis.next.charOffset));
+        }
+        variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next);
+      }
+      forLoopParts = ast.forEachPartsWithIdentifier(
+        identifier: variableOrDeclaration,
+        inKeyword: inKeyword,
+        iterable: iterator,
+      );
+    }
+
+    pushForControlFlowInfo(
+        awaitToken, forToken, leftParenthesis, forLoopParts, entry);
   }
 
   @override
@@ -3190,7 +3298,43 @@ abstract class _EntryInfo {
   MapElement asMapElement(AstFactory ast);
 }
 
-class _ControlFlowInfo implements _EntryInfo {
+class _ForControlFlowInfo implements _EntryInfo {
+  final Token awaitToken;
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final ForLoopParts forLoopParts;
+  final Token rightParenthesis;
+  final entry;
+
+  _ForControlFlowInfo(this.awaitToken, this.forKeyword, this.leftParenthesis,
+      this.forLoopParts, this.rightParenthesis, this.entry);
+
+  @override
+  CollectionElement asCollectionElement(AstFactory ast) {
+    return ast.collectionForElement(
+      awaitKeyword: awaitToken,
+      forKeyword: forKeyword,
+      leftParenthesis: leftParenthesis,
+      forLoopParts: forLoopParts,
+      rightParenthesis: rightParenthesis,
+      body: entry,
+    );
+  }
+
+  @override
+  MapElement asMapElement(AstFactory ast) {
+    return ast.mapForElement(
+      awaitKeyword: awaitToken,
+      forKeyword: forKeyword,
+      leftParenthesis: leftParenthesis,
+      forLoopParts: forLoopParts,
+      rightParenthesis: rightParenthesis,
+      body: entry,
+    );
+  }
+}
+
+class _IfControlFlowInfo implements _EntryInfo {
   final Token ifToken;
   final Token leftParenthesis;
   final Expression conditionExpression;
@@ -3199,7 +3343,7 @@ class _ControlFlowInfo implements _EntryInfo {
   final Token elseToken;
   final elseElement;
 
-  _ControlFlowInfo(
+  _IfControlFlowInfo(
       this.ifToken,
       this.leftParenthesis,
       this.conditionExpression,

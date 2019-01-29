@@ -189,7 +189,8 @@ abstract class AstFactory {
    * literal.
    */
   CollectionForElement collectionForElement(
-      {Token forKeyword,
+      {Token awaitKeyword,
+      Token forKeyword,
       Token leftParenthesis,
       ForLoopParts forLoopParts,
       Token rightParenthesis,
@@ -845,7 +846,8 @@ abstract class AstFactory {
    * Returns a newly created for element that can be part of a map literal.
    */
   MapForElement mapForElement(
-      {Token forKeyword,
+      {Token awaitKeyword,
+      Token forKeyword,
       Token leftParenthesis,
       ForLoopParts forLoopParts,
       Token rightParenthesis,

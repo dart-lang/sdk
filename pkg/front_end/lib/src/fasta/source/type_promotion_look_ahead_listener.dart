@@ -377,6 +377,18 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
+  void endForControlFlow(Token rightParenthesis) {
+    // TODO(danrubel) add support for for control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
+  void endForInControlFlow(Token rightParenthesis) {
+    // TODO(danrubel) add support for for control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
   void endIfControlFlow(Token token) {
     // TODO(danrubel) add support for if control flow collection entries
     // but for now this is ignored and an error reported in the body builder.

@@ -50,7 +50,9 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
   if (optional('if', next)) {
     return ifCondition;
   } else if (optional('for', next)) {
-    return forCondition;
+    return new ForCondition();
+  } else if (optional('await', next) && optional('for', next.next)) {
+    return new ForCondition();
   } else if (optional('...', next) || optional('...?', next)) {
     return spreadOperator;
   }
@@ -59,9 +61,10 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
 
 /// Return `true` if the given [token] should be treated like the start of
 /// a literal entry in a list, set, or map for the purposes of recovery.
-bool looksLikeLiteralEntry(Token next) =>
-    looksLikeExpressionStart(next) ||
-    optional('...', next) ||
-    optional('...?', next) ||
-    optional('if', next) ||
-    optional('for', next);
+bool looksLikeLiteralEntry(Token token) =>
+    looksLikeExpressionStart(token) ||
+    optional('...', token) ||
+    optional('...?', token) ||
+    optional('if', token) ||
+    optional('for', token) ||
+    (optional('await', token) && optional('for', token.next));

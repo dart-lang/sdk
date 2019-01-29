@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/parser/async_modifier.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
@@ -54,6 +55,138 @@ class CollectionElementTest {
         'handleNoTypeArguments ',
         'handleNoArguments ',
         'handleSend x ',
+      ],
+    );
+  }
+
+  test_for() {
+    parseEntry(
+      'before for (var i = 0; i < 10; ++i) 2',
+      [
+        'beginForControlFlow null for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration i var',
+        'handleIdentifier i localVariableDeclaration',
+        'beginInitializedIdentifier i',
+        'beginVariableInitializer =',
+        'handleLiteralInt 0',
+        'endVariableInitializer =',
+        'endInitializedIdentifier i',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration 0',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments <',
+        'handleNoArguments <',
+        'handleSend i <',
+        'beginBinaryExpression <',
+        'handleLiteralInt 10',
+        'endBinaryExpression <',
+        'handleExpressionStatement ;',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend i )',
+        'handleUnaryPrefixAssignmentExpression ++',
+        'handleForInitializerExpressionStatement for ( ; 1',
+        'handleLiteralInt 2',
+        'endForControlFlow 2',
+      ],
+    );
+  }
+
+  test_forIn() {
+    parseEntry(
+      'before await for (var x in y) 2',
+      [
+        'beginForControlFlow await for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration x var',
+        'handleIdentifier x localVariableDeclaration',
+        'beginInitializedIdentifier x',
+        'handleNoVariableInitializer in',
+        'endInitializedIdentifier x',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts await for ( in',
+        'handleLiteralInt 2',
+        'endForInControlFlow 2',
+      ],
+      inAsync: true,
+    );
+  }
+
+  test_forInSpread() {
+    parseEntry(
+      'before for (var x in y) ...[2]',
+      [
+        'beginForControlFlow null for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration x var',
+        'handleIdentifier x localVariableDeclaration',
+        'beginInitializedIdentifier x',
+        'handleNoVariableInitializer in',
+        'endInitializedIdentifier x',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        'handleNoTypeArguments [',
+        'handleLiteralInt 2',
+        'handleLiteralList 1, [, null, ]',
+        'handleSpreadExpression ...',
+        'endForInControlFlow ]',
+      ],
+    );
+  }
+
+  test_forSpreadQ() {
+    parseEntry(
+      'before for (i = 0; i < 10; ++i) ...[2]',
+      [
+        'beginForControlFlow null for',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments =',
+        'handleNoArguments =',
+        'handleSend i =',
+        'handleLiteralInt 0',
+        'handleAssignmentExpression =',
+        'handleForInitializerExpressionStatement 0',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments <',
+        'handleNoArguments <',
+        'handleSend i <',
+        'beginBinaryExpression <',
+        'handleLiteralInt 10',
+        'endBinaryExpression <',
+        'handleExpressionStatement ;',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend i )',
+        'handleUnaryPrefixAssignmentExpression ++',
+        'handleForInitializerExpressionStatement for ( ; 1',
+        'handleNoTypeArguments [',
+        'handleLiteralInt 2',
+        'handleLiteralList 1, [, null, ]',
+        'handleSpreadExpression ...',
+        'endForControlFlow ]',
       ],
     );
   }
@@ -150,14 +283,20 @@ class CollectionElementTest {
   }
 
   void parseEntry(String source, List<String> expectedCalls,
-      {List<ExpectedError> errors, String expectAfter}) {
+      {bool inAsync, List<ExpectedError> errors, String expectAfter}) {
     final start = scanString(source).tokens;
     final listener = new TestInfoListener();
     final parser = new Parser(listener);
+    if (inAsync != null) parser.asyncState = AsyncModifier.Async;
     final lastConsumed = parser.parseListOrSetLiteralEntry(start);
 
     expect(listener.errors, errors);
-    expect(listener.calls, expectedCalls, reason: source);
+    try {
+      expect(listener.calls, expectedCalls, reason: source);
+    } catch (e) {
+      listener.calls.forEach((line) => print("  '$line',"));
+      throw e;
+    }
     if (expectAfter != null) {
       expect(lastConsumed.next.lexeme, expectAfter);
     } else {
@@ -231,6 +370,146 @@ class MapElementTest {
     );
   }
 
+  test_for() {
+    parseEntry(
+      'before for (var i = 0; i < 10; ++i) 2:3',
+      [
+        'beginForControlFlow null for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration i var',
+        'handleIdentifier i localVariableDeclaration',
+        'beginInitializedIdentifier i',
+        'beginVariableInitializer =',
+        'handleLiteralInt 0',
+        'endVariableInitializer =',
+        'endInitializedIdentifier i',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration 0',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments <',
+        'handleNoArguments <',
+        'handleSend i <',
+        'beginBinaryExpression <',
+        'handleLiteralInt 10',
+        'endBinaryExpression <',
+        'handleExpressionStatement ;',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend i )',
+        'handleUnaryPrefixAssignmentExpression ++',
+        'handleForInitializerExpressionStatement for ( ; 1',
+        'handleLiteralInt 2',
+        'handleLiteralInt 3',
+        'handleLiteralMapEntry :, ',
+        'endForControlFlow 3',
+      ],
+    );
+  }
+
+  test_forIn() {
+    parseEntry(
+      'before await for (var x in y) 2:3',
+      [
+        'beginForControlFlow await for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration x var',
+        'handleIdentifier x localVariableDeclaration',
+        'beginInitializedIdentifier x',
+        'handleNoVariableInitializer in',
+        'endInitializedIdentifier x',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts await for ( in',
+        'handleLiteralInt 2',
+        'handleLiteralInt 3',
+        'handleLiteralMapEntry :, ',
+        'endForInControlFlow 3',
+      ],
+      inAsync: true,
+    );
+  }
+
+  test_forInSpread() {
+    parseEntry(
+      'before for (var x in y) ...{2:3}',
+      [
+        'beginForControlFlow null for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration x var',
+        'handleIdentifier x localVariableDeclaration',
+        'beginInitializedIdentifier x',
+        'handleNoVariableInitializer in',
+        'endInitializedIdentifier x',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        'handleNoTypeArguments {',
+        'handleLiteralInt 2',
+        'handleLiteralInt 3',
+        'handleLiteralMapEntry :, }',
+        'handleLiteralMap 1, {, null, }',
+        'handleSpreadExpression ...',
+        'endForInControlFlow }',
+      ],
+    );
+  }
+
+  test_forSpreadQ() {
+    parseEntry(
+      'before for (i = 0; i < 10; ++i) ...?{2:7}',
+      [
+        'beginForControlFlow null for',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments =',
+        'handleNoArguments =',
+        'handleSend i =',
+        'handleLiteralInt 0',
+        'handleAssignmentExpression =',
+        'handleForInitializerExpressionStatement 0',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments <',
+        'handleNoArguments <',
+        'handleSend i <',
+        'beginBinaryExpression <',
+        'handleLiteralInt 10',
+        'endBinaryExpression <',
+        'handleExpressionStatement ;',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend i )',
+        'handleUnaryPrefixAssignmentExpression ++',
+        'handleForInitializerExpressionStatement for ( ; 1',
+        'handleNoTypeArguments {',
+        'handleLiteralInt 2',
+        'handleLiteralInt 7',
+        'handleLiteralMapEntry :, }',
+        'handleLiteralMap 1, {, null, }',
+        'handleSpreadExpression ...?',
+        'endForControlFlow }',
+      ],
+    );
+  }
+
   test_if() {
     parseEntry(
       'before if (true) 2:3',
@@ -299,14 +578,20 @@ class MapElementTest {
   }
 
   void parseEntry(String source, List<String> expectedCalls,
-      {List<ExpectedError> errors, String expectAfter}) {
+      {bool inAsync, List<ExpectedError> errors, String expectAfter}) {
     final start = scanString(source).tokens;
     final listener = new TestInfoListener();
     final parser = new Parser(listener);
+    if (inAsync != null) parser.asyncState = AsyncModifier.Async;
     final lastConsumed = parser.parseMapLiteralEntry(start);
 
     expect(listener.errors, errors);
-    expect(listener.calls, expectedCalls, reason: source);
+    try {
+      expect(listener.calls, expectedCalls, reason: source);
+    } catch (e) {
+      listener.calls.forEach((line) => print("  '$line',"));
+      throw e;
+    }
     if (expectAfter != null) {
       expect(lastConsumed.next.lexeme, expectAfter);
     } else {
@@ -320,8 +605,23 @@ class TestInfoListener implements Listener {
   List<ExpectedError> errors;
 
   @override
+  void beginBinaryExpression(Token token) {
+    calls.add('beginBinaryExpression $token');
+  }
+
+  @override
   void beginConstLiteral(Token token) {
     calls.add('beginConstLiteral $token');
+  }
+
+  @override
+  void beginForControlFlow(Token awaitToken, Token forToken) {
+    calls.add('beginForControlFlow $awaitToken $forToken');
+  }
+
+  @override
+  void beginForInExpression(Token token) {
+    calls.add('beginForInExpression $token');
   }
 
   @override
@@ -330,8 +630,48 @@ class TestInfoListener implements Listener {
   }
 
   @override
+  void beginInitializedIdentifier(Token token) {
+    calls.add('beginInitializedIdentifier $token');
+  }
+
+  @override
+  void beginMetadataStar(Token token) {
+    calls.add('beginMetadataStar $token');
+  }
+
+  @override
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    calls.add('beginVariablesDeclaration $token $varFinalOrConst');
+  }
+
+  @override
+  void beginVariableInitializer(Token token) {
+    calls.add('beginVariableInitializer $token');
+  }
+
+  @override
+  void endBinaryExpression(Token token) {
+    calls.add('endBinaryExpression $token');
+  }
+
+  @override
   void endConstLiteral(Token token) {
     calls.add('endConstLiteral $token');
+  }
+
+  @override
+  void endForControlFlow(Token rightParenthesis) {
+    calls.add('endForControlFlow $rightParenthesis');
+  }
+
+  @override
+  void endForInControlFlow(Token rightParenthesis) {
+    calls.add('endForInControlFlow $rightParenthesis');
+  }
+
+  @override
+  void endForInExpression(Token token) {
+    calls.add('endForInExpression $token');
   }
 
   @override
@@ -345,8 +685,62 @@ class TestInfoListener implements Listener {
   }
 
   @override
+  void endInitializedIdentifier(Token nameToken) {
+    calls.add('endInitializedIdentifier $nameToken');
+  }
+
+  @override
+  void endMetadataStar(int count) {
+    calls.add('endMetadataStar $count');
+  }
+
+  @override
+  void endVariablesDeclaration(int count, Token endToken) {
+    calls.add('endVariablesDeclaration $count $endToken');
+  }
+
+  @override
+  void endVariableInitializer(Token assignmentOperator) {
+    calls.add('endVariableInitializer $assignmentOperator');
+  }
+
+  @override
+  void handleAssignmentExpression(Token token) {
+    calls.add('handleAssignmentExpression $token');
+  }
+
+  @override
   void handleElseControlFlow(Token elseToken) {
     calls.add('handleElseControlFlow $elseToken');
+  }
+
+  @override
+  void handleExpressionStatement(Token token) {
+    calls.add('handleExpressionStatement $token');
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    calls.add('handleForInitializerExpressionStatement $token');
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    calls.add('handleForInitializerLocalVariableDeclaration $token');
+  }
+
+  @override
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
+    calls.add('handleForInLoopParts '
+        '$awaitToken $forToken $leftParenthesis $inKeyword');
+  }
+
+  @override
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
+    calls.add('handleForInitializerExpressionStatement '
+        '$forKeyword $leftParen $leftSeparator $updateExpressionCount');
   }
 
   @override
@@ -400,8 +794,18 @@ class TestInfoListener implements Listener {
   }
 
   @override
+  void handleNoType(Token lastConsumed) {
+    calls.add('handleNoTypeArguments $lastConsumed');
+  }
+
+  @override
   void handleNoTypeArguments(Token token) {
     calls.add('handleNoTypeArguments $token');
+  }
+
+  @override
+  void handleNoVariableInitializer(Token token) {
+    calls.add('handleNoVariableInitializer $token');
   }
 
   @override
@@ -420,6 +824,11 @@ class TestInfoListener implements Listener {
   @override
   void handleSpreadExpression(Token spreadToken) {
     calls.add('handleSpreadExpression $spreadToken');
+  }
+
+  @override
+  void handleUnaryPrefixAssignmentExpression(Token token) {
+    calls.add('handleUnaryPrefixAssignmentExpression $token');
   }
 
   noSuchMethod(Invocation invocation) {

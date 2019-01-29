@@ -147,6 +147,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginForControlFlow(Token awaitToken, Token forToken) {
+    listener?.beginForControlFlow(awaitToken, forToken);
+  }
+
+  @override
   void beginForInBody(Token token) {
     listener?.beginForInBody(token);
   }
@@ -561,6 +566,16 @@ class ForwardingListener implements Listener {
       int count, Token beginToken, Token endToken) {
     listener?.endFields(staticToken, covariantToken, varFinalOrConst, count,
         beginToken, endToken);
+  }
+
+  @override
+  void endForControlFlow(Token rightParenthesis) {
+    listener?.endForControlFlow(rightParenthesis);
+  }
+
+  @override
+  void endForInControlFlow(Token rightParenthesis) {
+    listener?.endForInControlFlow(rightParenthesis);
   }
 
   @override

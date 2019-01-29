@@ -2250,6 +2250,29 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void endForControlFlow(Token rightParenthesis) {
+    debugEvent("endForControlFlow");
+    // TODO(danrubel) implement control flow support
+    var entry = pop();
+
+    int updateExpressionCount = pop();
+    pop(); // left separator
+    pop(); // left parenthesis
+    Token forToken = pop();
+
+    popListForEffect(updateExpressionCount); // updates
+    popStatement(); // condition
+    Object variableOrExpression = pop();
+    buildVariableDeclarations(variableOrExpression); // variables
+
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(forToken),
+        forToken,
+        forToken);
+  }
+
+  @override
   void endForStatement(Token endToken) {
     debugEvent("ForStatement");
     Statement body = popStatement();
@@ -3531,7 +3554,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endIfControlFlow(Token token) {
-    debugEvent("IfControlFlow");
+    debugEvent("endIfControlFlow");
     // TODO(danrubel) implement control flow support
     var entry = pop();
     pop(); // parenthesized expression
@@ -3543,7 +3566,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endIfElseControlFlow(Token token) {
-    debugEvent("IfElseControlFlow");
+    debugEvent("endIfElseControlFlow");
     // TODO(danrubel) implement control flow support
     pop(); // else entry
     var entry = pop(); // then entry
@@ -3848,6 +3871,26 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(awaitToken ?? NullValue.AwaitToken);
     push(forToken);
     push(inKeyword);
+  }
+
+  @override
+  void endForInControlFlow(Token rightParenthesis) {
+    debugEvent("endForInControlFlow");
+    // TODO(danrubel) implement control flow support
+    var entry = pop();
+
+    pop(); // `in` keyword
+    Token forToken = pop();
+    pop(NullValue.AwaitToken); // await token
+
+    popForValue(); // expression
+    pop(); // lvalue
+
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(forToken),
+        forToken,
+        forToken);
   }
 
   @override

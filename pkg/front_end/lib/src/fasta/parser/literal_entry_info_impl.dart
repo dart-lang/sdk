@@ -3,15 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../scanner/token.dart';
-import '../fasta_codes.dart' show templateUnexpectedToken;
-import 'identifier_context.dart';
 import 'literal_entry_info.dart';
 import 'parser.dart';
 import 'util.dart';
-
-/// [forCondition] is the first step for parsing a literal entry
-/// starting with the `for` control flow.
-const LiteralEntryInfo forCondition = const ForCondition();
 
 /// [ifCondition] is the first step for parsing a literal entry
 /// starting with `if` control flow.
@@ -27,16 +21,111 @@ const LiteralEntryInfo spreadOperator = const SpreadOperator();
 
 /// The first step when processing a `for` control flow collection entry.
 class ForCondition extends LiteralEntryInfo {
-  const ForCondition() : super(false);
+  bool inStyle;
+
+  ForCondition() : super(false);
 
   @override
   Token parse(Token token, Parser parser) {
-    final forToken = token.next;
+    Token next = token.next;
+    Token awaitToken;
+    if (optional('await', next)) {
+      awaitToken = token = next;
+      next = token.next;
+    }
+    final forToken = next;
     assert(optional('for', forToken));
-    // TODO(danrubel): implement `for` control flow collection entries
-    parser.reportRecoverableErrorWithToken(forToken, templateUnexpectedToken);
-    parser.ensureIdentifier(forToken, IdentifierContext.expression);
-    return forToken;
+    parser.listener.beginForControlFlow(awaitToken, forToken);
+
+    token = parser.parseForLoopPartsStart(awaitToken, forToken);
+    Token identifier = token.next;
+    token = parser.parseForLoopPartsMid(token, awaitToken, forToken);
+
+    if (optional('in', token.next) || optional(':', token.next)) {
+      // Process `for ( ... in ... )`
+      inStyle = true;
+      token = parser.parseForInLoopPartsRest(
+          token, awaitToken, forToken, identifier);
+    } else {
+      // Process `for ( ... ; ... ; ... )`
+      inStyle = false;
+      token = parser.parseForLoopPartsRest(token, forToken, awaitToken);
+    }
+    return token;
+  }
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    Token next = token.next;
+    if (optional('...', next) || optional('...?', next)) {
+      return inStyle ? const ForInSpread() : const ForSpread();
+    }
+    // TODO(danrubel): nested control flow structures
+    return inStyle ? const ForInEntry() : const ForEntry();
+  }
+}
+
+/// A step for parsing a spread collection
+/// as the "for" control flow's expression.
+class ForSpread extends SpreadOperator {
+  const ForSpread();
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return const ForComplete();
+  }
+}
+
+/// A step for parsing a spread collection
+/// as the "for-in" control flow's expression.
+class ForInSpread extends SpreadOperator {
+  const ForInSpread();
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return const ForInComplete();
+  }
+}
+
+/// A step for parsing a literal list, set, or map entry
+/// as the "for" control flow's expression.
+class ForEntry extends LiteralEntryInfo {
+  const ForEntry() : super(true);
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return const ForComplete();
+  }
+}
+
+/// A step for parsing a literal list, set, or map entry
+/// as the "for-in" control flow's expression.
+class ForInEntry extends LiteralEntryInfo {
+  const ForInEntry() : super(true);
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return const ForInComplete();
+  }
+}
+
+class ForComplete extends LiteralEntryInfo {
+  const ForComplete() : super(false);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    parser.listener.endForControlFlow(token);
+    return token;
+  }
+}
+
+class ForInComplete extends LiteralEntryInfo {
+  const ForInComplete() : super(false);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    parser.listener.endForInControlFlow(token);
+    return token;
   }
 }
 

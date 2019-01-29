@@ -214,6 +214,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginForControlFlow(Token awaitToken, Token forToken) {
+    super.beginForControlFlow(awaitToken, forToken);
+    begin('ForControlFlow');
+  }
+
+  @override
   void beginForInBody(Token token) {
     super.beginForInBody(token);
     begin('ForInBody');
@@ -701,6 +707,18 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endFields(staticToken, covariantToken, varFinalOrConst, count,
         beginToken, endToken);
+  }
+
+  @override
+  void endForControlFlow(Token rightParenthesis) {
+    end('ForControlFlow');
+    super.endForControlFlow(rightParenthesis);
+  }
+
+  @override
+  void endForInControlFlow(Token rightParenthesis) {
+    end('ForControlFlow');
+    super.endForInControlFlow(rightParenthesis);
   }
 
   @override
