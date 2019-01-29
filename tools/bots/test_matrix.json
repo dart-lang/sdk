@@ -491,7 +491,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-android-${mode}-${arch}"
+            "-ndartkp-android-${mode}-${arch}",
+            "-j2"
           ],
           "fileset": "vm-kernel",
           "shards": 15
