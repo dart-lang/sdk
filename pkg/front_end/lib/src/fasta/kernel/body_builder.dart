@@ -2250,7 +2250,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endForControlFlow(Token rightParenthesis) {
+  void endForControlFlow(Token token) {
     debugEvent("endForControlFlow");
     // TODO(danrubel) implement control flow support
     var entry = pop();
@@ -3874,7 +3874,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endForInControlFlow(Token rightParenthesis) {
+  void endForInControlFlow(Token token) {
     debugEvent("endForInControlFlow");
     // TODO(danrubel) implement control flow support
     var entry = pop();

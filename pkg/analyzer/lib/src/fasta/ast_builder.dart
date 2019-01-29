@@ -872,22 +872,6 @@ class AstBuilder extends StackListener {
     assert(optional(';', leftSeparator));
     assert(updateExpressionCount >= 0);
 
-    push(forKeyword);
-    push(leftParen);
-    push(leftSeparator);
-    push(updateExpressionCount);
-  }
-
-  @override
-  void endForControlFlow(Token rightParenthesis) {
-    debugEvent("endForControlFlow");
-    var entry = pop();
-
-    int updateExpressionCount = pop();
-    Token leftSeparator = pop();
-    Token leftParenthesis = pop();
-    Token forToken = pop();
-
     List<Expression> updates = popTypedList(updateExpressionCount);
     Statement conditionStatement = pop();
     Object initializerPart = pop();
@@ -901,8 +885,7 @@ class AstBuilder extends StackListener {
       rightSeparator = (conditionStatement as EmptyStatement).semicolon;
     }
 
-    ForLoopParts forLoopParts;
-    Expression initializer;
+    ForParts forLoopParts;
     if (initializerPart is VariableDeclarationStatement) {
       forLoopParts = ast.forPartsWithDeclarations(
         variables: initializerPart.variables,
@@ -912,9 +895,8 @@ class AstBuilder extends StackListener {
         updaters: updates,
       );
     } else {
-      initializer = initializerPart as Expression;
       forLoopParts = ast.forPartsWithExpression(
-        initialization: initializer,
+        initialization: initializerPart as Expression,
         leftSeparator: leftSeparator,
         condition: condition,
         rightSeparator: rightSeparator,
@@ -922,8 +904,20 @@ class AstBuilder extends StackListener {
       );
     }
 
-    pushForControlFlowInfo(
-        null, forToken, leftParenthesis, forLoopParts, entry);
+    push(forKeyword);
+    push(leftParen);
+    push(forLoopParts);
+  }
+
+  @override
+  void endForControlFlow(Token token) {
+    debugEvent("endForControlFlow");
+    var entry = pop();
+    ForParts forLoopParts = pop();
+    Token leftParen = pop();
+    Token forToken = pop();
+
+    pushForControlFlowInfo(null, forToken, leftParen, forLoopParts, entry);
   }
 
   void pushForControlFlowInfo(Token awaitToken, Token forToken,
@@ -942,44 +936,38 @@ class AstBuilder extends StackListener {
   void endForStatement(Token endToken) {
     debugEvent("ForStatement");
     Statement body = pop();
-
-    int updateExpressionCount = pop();
-    Token leftSeparator = pop();
+    ForParts forLoopParts = pop();
     Token leftParen = pop();
-    Token forKeyword = pop();
+    Token forToken = pop();
 
-    List<Expression> updates = popTypedList(updateExpressionCount);
-    Statement conditionStatement = pop();
-    Object initializerPart = pop();
-
-    VariableDeclarationList variableList;
-    Expression initializer;
-    if (initializerPart is VariableDeclarationStatement) {
-      variableList = initializerPart.variables;
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      push(ast.forStatement2(
+        forKeyword: forToken,
+        leftParenthesis: leftParen,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParen.endGroup,
+        body: body,
+      ));
     } else {
-      initializer = initializerPart as Expression;
+      VariableDeclarationList variableList;
+      Expression initializer;
+      if (forLoopParts is ForPartsWithDeclarations) {
+        variableList = forLoopParts.variables;
+      } else {
+        initializer = (forLoopParts as ForPartsWithExpression).initialization;
+      }
+      push(ast.forStatement(
+          forToken,
+          leftParen,
+          variableList,
+          initializer,
+          forLoopParts.leftSeparator,
+          forLoopParts.condition,
+          forLoopParts.rightSeparator,
+          forLoopParts.updaters,
+          leftParen?.endGroup,
+          body));
     }
-
-    Expression condition;
-    Token rightSeparator;
-    if (conditionStatement is ExpressionStatement) {
-      condition = conditionStatement.expression;
-      rightSeparator = conditionStatement.semicolon;
-    } else {
-      rightSeparator = (conditionStatement as EmptyStatement).semicolon;
-    }
-
-    push(ast.forStatement(
-        forKeyword,
-        leftParen,
-        variableList,
-        initializer,
-        leftSeparator,
-        condition,
-        rightSeparator,
-        updates,
-        leftParen?.endGroup,
-        body));
   }
 
   void handleLiteralList(
@@ -1358,26 +1346,10 @@ class AstBuilder extends StackListener {
     assert(optional('(', leftParenthesis));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
-    push(awaitToken ?? NullValue.AwaitToken);
-    push(forToken);
-    push(leftParenthesis);
-    push(inKeyword);
-  }
-
-  @override
-  void endForInControlFlow(Token rightParenthesis) {
-    debugEvent("endForInControlFlow");
-    var entry = pop();
-
-    Token inKeyword = pop();
-    Token leftParenthesis = pop();
-    Token forToken = pop();
-    Token awaitToken = pop(NullValue.AwaitToken);
-
     Expression iterator = pop();
     Object variableOrDeclaration = pop();
 
-    ForLoopParts forLoopParts;
+    ForEachParts forLoopParts;
     if (variableOrDeclaration is VariableDeclarationStatement) {
       VariableDeclarationList variableList = variableOrDeclaration.variables;
       forLoopParts = ast.forEachPartsWithDeclaration(
@@ -1408,6 +1380,22 @@ class AstBuilder extends StackListener {
       );
     }
 
+    push(awaitToken ?? NullValue.AwaitToken);
+    push(forToken);
+    push(leftParenthesis);
+    push(forLoopParts);
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    debugEvent("endForInControlFlow");
+
+    var entry = pop();
+    ForEachParts forLoopParts = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
     pushForControlFlowInfo(
         awaitToken, forToken, leftParenthesis, forLoopParts, entry);
   }
@@ -1417,48 +1405,38 @@ class AstBuilder extends StackListener {
     debugEvent("ForInExpression");
 
     Statement body = pop();
-
-    Token inKeyword = pop();
+    ForEachParts forLoopParts = pop();
     Token leftParenthesis = pop();
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
 
-    Expression iterator = pop();
-    Object variableOrDeclaration = pop();
-    if (variableOrDeclaration is VariableDeclarationStatement) {
-      VariableDeclarationList variableList = variableOrDeclaration.variables;
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      push(ast.forStatement2(
+        awaitKeyword: awaitToken,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup,
+        body: body,
+      ));
+    } else if (forLoopParts is ForEachPartsWithDeclaration) {
       push(ast.forEachStatementWithDeclaration(
           awaitToken,
           forToken,
           leftParenthesis,
-          ast.declaredIdentifier(
-              variableList.documentationComment,
-              variableList.metadata,
-              variableList.keyword,
-              variableList.type,
-              variableList.variables.first.name),
-          inKeyword,
-          iterator,
+          forLoopParts.loopVariable,
+          forLoopParts.inKeyword,
+          forLoopParts.iterable,
           leftParenthesis?.endGroup,
           body));
     } else {
-      if (variableOrDeclaration is! SimpleIdentifier) {
-        // Parser has already reported the error.
-        if (!leftParenthesis.next.isIdentifier) {
-          parser.rewriter.insertToken(
-              leftParenthesis,
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', leftParenthesis.next.charOffset));
-        }
-        variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next);
-      }
       push(ast.forEachStatementWithReference(
           awaitToken,
           forToken,
           leftParenthesis,
-          variableOrDeclaration,
-          inKeyword,
-          iterator,
+          (forLoopParts as ForEachPartsWithIdentifier).identifier,
+          forLoopParts.inKeyword,
+          forLoopParts.iterable,
           leftParenthesis?.endGroup,
           body));
     }

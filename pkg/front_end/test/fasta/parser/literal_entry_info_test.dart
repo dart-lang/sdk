@@ -660,13 +660,13 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void endForControlFlow(Token rightParenthesis) {
-    calls.add('endForControlFlow $rightParenthesis');
+  void endForControlFlow(Token token) {
+    calls.add('endForControlFlow $token');
   }
 
   @override
-  void endForInControlFlow(Token rightParenthesis) {
-    calls.add('endForInControlFlow $rightParenthesis');
+  void endForInControlFlow(Token token) {
+    calls.add('endForInControlFlow $token');
   }
 
   @override

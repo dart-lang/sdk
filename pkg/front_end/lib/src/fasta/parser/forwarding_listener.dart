@@ -569,13 +569,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endForControlFlow(Token rightParenthesis) {
-    listener?.endForControlFlow(rightParenthesis);
+  void endForControlFlow(Token token) {
+    listener?.endForControlFlow(token);
   }
 
   @override
-  void endForInControlFlow(Token rightParenthesis) {
-    listener?.endForInControlFlow(rightParenthesis);
+  void endForInControlFlow(Token token) {
+    listener?.endForInControlFlow(token);
   }
 
   @override

@@ -710,15 +710,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForControlFlow(Token rightParenthesis) {
+  void endForControlFlow(Token token) {
     end('ForControlFlow');
-    super.endForControlFlow(rightParenthesis);
+    super.endForControlFlow(token);
   }
 
   @override
-  void endForInControlFlow(Token rightParenthesis) {
+  void endForInControlFlow(Token token) {
     end('ForControlFlow');
-    super.endForInControlFlow(rightParenthesis);
+    super.endForInControlFlow(token);
   }
 
   @override

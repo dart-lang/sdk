@@ -1088,12 +1088,12 @@ class Listener implements UnescapeErrorListener {
   void beginForControlFlow(Token awaitToken, Token forToken) {}
 
   /// Called after parsing a "for" control flow list, set, or map entry.
-  void endForControlFlow(Token rightParenthesis) {
+  void endForControlFlow(Token token) {
     logEvent('endForControlFlow');
   }
 
   /// Called after parsing a "for-in" control flow list, set, or map entry.
-  void endForInControlFlow(Token rightParenthesis) {
+  void endForInControlFlow(Token token) {
     logEvent('endForInControlFlow');
   }
 

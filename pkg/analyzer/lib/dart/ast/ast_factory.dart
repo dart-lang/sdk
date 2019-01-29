@@ -596,7 +596,8 @@ abstract class AstFactory {
    * Returns a newly created for statement.
    */
   ForStatement2 forStatement2(
-      {Token forKeyword,
+      {Token awaitKeyword,
+      Token forKeyword,
       Token leftParenthesis,
       ForLoopParts forLoopParts,
       Token rightParenthesis,
