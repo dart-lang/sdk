@@ -4,28 +4,32 @@
 
 import "package:expect/expect.dart" show Expect;
 
-abstract class SubtypeTest<T> {
+abstract class SubtypeTest<T, E> {
   void isSubtype(String subtypeString, String supertypeString,
       {bool legacyMode: false, String typeParameters}) {
-    T subtype = toType(subtypeString);
-    T supertype = toType(supertypeString);
+    E environment = extend(typeParameters);
+    T subtype = toType(subtypeString, environment);
+    T supertype = toType(supertypeString, environment);
     String mode = legacyMode ? " (legacy)" : "";
     Expect.isTrue(isSubtypeImpl(subtype, supertype, legacyMode),
-        "$subtype should be a subtype of $supertype$mode.");
+        "$subtypeString should be a subtype of $supertypeString$mode.");
   }
 
   void isNotSubtype(String subtypeString, String supertypeString,
       {bool legacyMode: false, String typeParameters}) {
-    T subtype = toType(subtypeString);
-    T supertype = toType(supertypeString);
+    E environment = extend(typeParameters);
+    T subtype = toType(subtypeString, environment);
+    T supertype = toType(supertypeString, environment);
     String mode = legacyMode ? " (legacy)" : "";
     Expect.isFalse(isSubtypeImpl(subtype, supertype, legacyMode),
-        "$subtype shouldn't be a subtype of $supertype$mode.");
+        "$subtypeString shouldn't be a subtype of $supertypeString$mode.");
   }
 
-  T toType(String text);
+  T toType(String text, E environment);
 
   bool isSubtypeImpl(T subtype, T supertype, bool legacyMode);
+
+  E extend(String typeParameters);
 
   void run() {
     isSubtype('int', 'num', legacyMode: true);
@@ -68,15 +72,12 @@ abstract class SubtypeTest<T> {
     isNotSubtype('(num) -> (int) -> int', '(num) -> (num) -> num',
         legacyMode: true);
 
-    // TODO(ahe): Remove this as the implementation improves.
-    return;
-
-    // ignore: dead_code
-    isSubtype('(x:num) -> num', '(x:int) -> num',
+    isSubtype('({num x}) -> num', '({int x}) -> num',
         legacyMode: true); // named parameters
-    isSubtype('(num,x:num) -> num', '(int,x:int) -> num', legacyMode: true);
-    isSubtype('(x:num) -> int', '(x:num) -> num', legacyMode: true);
-    isNotSubtype('(x:int) -> int', '(x:num) -> num', legacyMode: true);
+    isSubtype('(num, {num x}) -> num', '(int, {int x}) -> num',
+        legacyMode: true);
+    isSubtype('({num x}) -> int', '({num x}) -> num', legacyMode: true);
+    isNotSubtype('({int x}) -> int', '({num x}) -> num', legacyMode: true);
 
     isSubtype('<E>(E) -> int', '<E>(E) -> num',
         legacyMode: true); // type parameters
@@ -94,26 +95,36 @@ abstract class SubtypeTest<T> {
     isNotSubtype('<E,F>(E) -> (F) -> E', '<F,E>(E) -> (F) -> E',
         legacyMode: true);
 
-    isNotSubtype('<E>(E,num) -> E', '<E:num>(E,E) -> E', legacyMode: true);
-    isNotSubtype('<E:num>(E) -> int', '<E:int>(E) -> int', legacyMode: true);
-    isNotSubtype('<E:num>(E) -> E', '<E:int>(E) -> E', legacyMode: true);
-    isNotSubtype('<E:num>(int) -> E', '<E:int>(int) -> E', legacyMode: true);
-    isSubtype('<E:num>(E) -> E', '<F:num>(F) -> num', legacyMode: true);
-    isSubtype('<E:int>(E) -> E', '<F:int>(F) -> num', legacyMode: true);
-    isSubtype('<E:int>(E) -> E', '<F:int>(F) -> int', legacyMode: true);
+    isNotSubtype('<E>(E,num) -> E', '<E extends num>(E,E) -> E',
+        legacyMode: true);
+    isNotSubtype('<E extends num>(E) -> int', '<E extends int>(E) -> int',
+        legacyMode: true);
+    isNotSubtype('<E extends num>(E) -> E', '<E extends int>(E) -> E',
+        legacyMode: true);
+    isNotSubtype('<E extends num>(int) -> E', '<E extends int>(int) -> E',
+        legacyMode: true);
+    isSubtype('<E extends num>(E) -> E', '<F extends num>(F) -> num',
+        legacyMode: true);
+    isSubtype('<E extends int>(E) -> E', '<F extends int>(F) -> num',
+        legacyMode: true);
+    isSubtype('<E extends int>(E) -> E', '<F extends int>(F) -> int',
+        legacyMode: true);
     isNotSubtype('<E>(int) -> int', '(int) -> int', legacyMode: true);
     isNotSubtype('<E,F>(int) -> int', '<E>(int) -> int', legacyMode: true);
 
-    isSubtype('<E:List<E>>(E) -> E', '<F:List<F>>(F) -> F', legacyMode: true);
-    isNotSubtype('<E:Iterable<E>>(E) -> E', '<F:List<F>>(F) -> F',
+    isSubtype('<E extends List<E>>(E) -> E', '<F extends List<F>>(F) -> F',
         legacyMode: true);
-    isNotSubtype('<E>(E,List<Object>) -> E', '<F:List<F>>(F,F) -> F',
+    isNotSubtype(
+        '<E extends Iterable<E>>(E) -> E', '<F extends List<F>>(F) -> F',
         legacyMode: true);
-    isNotSubtype('<E>(E,List<Object>) -> List<E>', '<F:List<F>>(F,F) -> F',
+    isNotSubtype('<E>(E,List<Object>) -> E', '<F extends List<F>>(F,F) -> F',
         legacyMode: true);
-    isNotSubtype('<E>(E,List<Object>) -> int', '<F:List<F>>(F,F) -> F',
+    isNotSubtype(
+        '<E>(E,List<Object>) -> List<E>', '<F extends List<F>>(F,F) -> F',
         legacyMode: true);
-    isNotSubtype('<E>(E,List<Object>) -> E', '<F:List<F>>(F,F) -> void',
+    isNotSubtype('<E>(E,List<Object>) -> int', '<F extends List<F>>(F,F) -> F',
+        legacyMode: true);
+    isNotSubtype('<E>(E,List<Object>) -> E', '<F extends List<F>>(F,F) -> void',
         legacyMode: true);
 
     isSubtype('int', 'FutureOr<int>');
@@ -130,41 +141,51 @@ abstract class SubtypeTest<T> {
     isNotSubtype('FutureOr<int>', 'num');
 
     // T & B <: T & A if B <: A
-    isSubtype('T & int', 'T & int', legacyMode: true);
-    isSubtype('T & int', 'T & num', legacyMode: true);
-    isSubtype('T & num', 'T & num', legacyMode: true);
-    isNotSubtype('T & num', 'T & int', legacyMode: true);
+    isSubtype('T & int', 'T & int', legacyMode: true, typeParameters: 'T');
+    isSubtype('T & int', 'T & num', legacyMode: true, typeParameters: 'T');
+    isSubtype('T & num', 'T & num', legacyMode: true, typeParameters: 'T');
+    isNotSubtype('T & num', 'T & int', legacyMode: true, typeParameters: 'T');
 
     // T & B <: T extends A if B <: A
     // (Trivially satisfied since promoted bounds are always a isSubtype of the
     // original bound)
-    isSubtype('T & int', 'T', legacyMode: true, typeParameters: 'T: int');
-    isSubtype('T & int', 'T', legacyMode: true, typeParameters: 'T: num');
-    isSubtype('T & num', 'T', legacyMode: true, typeParameters: 'T: num');
+    isSubtype('T & int', 'T',
+        legacyMode: true, typeParameters: 'T extends int');
+    isSubtype('T & int', 'T',
+        legacyMode: true, typeParameters: 'T extends num');
+    isSubtype('T & num', 'T',
+        legacyMode: true, typeParameters: 'T extends num');
 
     // T extends B <: T & A if B <: A
-    isSubtype('T', 'T & int', legacyMode: true, typeParameters: 'T: int');
-    isSubtype('T', 'T & num', legacyMode: true, typeParameters: 'T: int');
-    isSubtype('T', 'T & num', legacyMode: true, typeParameters: 'T: num');
-    isNotSubtype('T', 'T & int', legacyMode: true, typeParameters: 'T: num');
+    isSubtype('T', 'T & int',
+        legacyMode: true, typeParameters: 'T extends int');
+    isSubtype('T', 'T & num',
+        legacyMode: true, typeParameters: 'T extends int');
+    isSubtype('T', 'T & num',
+        legacyMode: true, typeParameters: 'T extends num');
+    isNotSubtype('T', 'T & int',
+        legacyMode: true, typeParameters: 'T extends num');
 
     // T extends A <: T extends A
-    isSubtype('T', 'T', legacyMode: true, typeParameters: 'T: num');
+    isSubtype('T', 'T', legacyMode: true, typeParameters: 'T extends num');
 
     // S & B <: A if B <: A, A is not S (or a promotion thereof)
-    isSubtype('S & int', 'int', legacyMode: true);
-    isSubtype('S & int', 'num', legacyMode: true);
-    isSubtype('S & num', 'num', legacyMode: true);
-    isNotSubtype('S & num', 'int', legacyMode: true);
-    isNotSubtype('S & num', 'T', legacyMode: true);
-    isNotSubtype('S & num', 'T & num', legacyMode: true);
+    isSubtype('S & int', 'int', legacyMode: true, typeParameters: 'S');
+    isSubtype('S & int', 'num', legacyMode: true, typeParameters: 'S');
+    isSubtype('S & num', 'num', legacyMode: true, typeParameters: 'S');
+    isNotSubtype('S & num', 'int', legacyMode: true, typeParameters: 'S');
+    isNotSubtype('S & num', 'T', legacyMode: true, typeParameters: 'S, T');
+    isNotSubtype('S & num', 'T & num',
+        legacyMode: true, typeParameters: 'S, T');
 
     // S extends B <: A if B <: A, A is not S (or a promotion thereof)
-    isSubtype('S', 'int', legacyMode: true, typeParameters: 'S: int');
-    isSubtype('S', 'num', legacyMode: true, typeParameters: 'S: int');
-    isSubtype('S', 'num', legacyMode: true, typeParameters: 'S: num');
-    isNotSubtype('S', 'int', legacyMode: true, typeParameters: 'S: num');
-    isNotSubtype('S', 'T', legacyMode: true, typeParameters: 'S: num');
-    isNotSubtype('S', 'T & num', legacyMode: true, typeParameters: 'S: num');
+    isSubtype('S', 'int', legacyMode: true, typeParameters: 'S extends int');
+    isSubtype('S', 'num', legacyMode: true, typeParameters: 'S extends int');
+    isSubtype('S', 'num', legacyMode: true, typeParameters: 'S extends num');
+    isNotSubtype('S', 'int', legacyMode: true, typeParameters: 'S extends num');
+    isNotSubtype('S', 'T',
+        legacyMode: true, typeParameters: 'S extends num, T');
+    isNotSubtype('S', 'T & num',
+        legacyMode: true, typeParameters: 'S extends num, T');
   }
 }

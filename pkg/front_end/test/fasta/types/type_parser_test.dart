@@ -37,5 +37,9 @@ List<List<Object>>
 List<List<List<Object>>>
 class A<T extends List<Object>>;
 class B<T extends List<List<Object>>>;
+<E>(E) -> int
+S & T
+class C;
+<E>(E) -> int & <E>(E) -> void
 """);
 }

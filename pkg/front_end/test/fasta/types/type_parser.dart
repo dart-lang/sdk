@@ -109,14 +109,25 @@ class ParsedTypedef extends ParsedDeclaration {
 }
 
 class ParsedFunctionType extends ParsedType {
+  final List<ParsedTypeVariable> typeVariables;
+
   final ParsedType returnType;
 
   final ParsedArguments arguments;
 
-  ParsedFunctionType(this.returnType, this.arguments);
+  ParsedFunctionType(this.typeVariables, this.returnType, this.arguments);
 
   String toString() {
-    return "$arguments -> $returnType";
+    StringBuffer sb = new StringBuffer();
+    if (typeVariables.isNotEmpty) {
+      sb.write("<");
+      sb.writeAll(typeVariables, ", ");
+      sb.write(">");
+    }
+    sb.write(arguments);
+    sb.write(" -> ");
+    sb.write(returnType);
+    return "$sb";
   }
 
   R accept<R, A>(Visitor<R, A> visitor, [A a]) {
@@ -150,6 +161,26 @@ class ParsedTypeVariable extends ParsedType {
 
   R accept<R, A>(Visitor<R, A> visitor, [A a]) {
     return visitor.visitTypeVariable(this, a);
+  }
+}
+
+class ParsedIntersectionType extends ParsedType {
+  final ParsedType a;
+
+  final ParsedType b;
+
+  ParsedIntersectionType(this.a, this.b);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(a);
+    sb.write(" & ");
+    sb.write(b);
+    return "$sb";
+  }
+
+  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+    return visitor.visitIntersectionType(this, a);
   }
 }
 
@@ -203,11 +234,14 @@ class Parser {
     peek = peek.next;
   }
 
+  String computeLocation() {
+    return "${source.substring(0, peek.charOffset)}\n>>>"
+        "\n${source.substring(peek.charOffset)}";
+  }
+
   void expect(String string) {
     if (!identical(string, peek.stringValue)) {
-      String error = "${source.substring(0, peek.charOffset)}\n>>>"
-          "\n${source.substring(peek.charOffset)}";
-      throw "Expected `$string`, but got `${peek.lexeme}`\n$error";
+      throw "Expected '$string', but got '${peek.lexeme}'\n${computeLocation()}";
     }
     advance();
   }
@@ -228,20 +262,33 @@ class Parser {
   ParsedType parseType() {
     if (optional("class")) return parseClass();
     if (optional("typedef")) return parseTypedef();
-    if (optional("(")) return parseFunctionType();
-    String name = parseName();
-    List<ParsedType> arguments = <ParsedType>[];
-    if (optional("<")) {
-      advance();
-      arguments.add(parseType());
-      while (optional(",")) {
-        advance();
-        arguments.add(parseType());
+    ParsedType result;
+    do {
+      ParsedType type;
+      if (optional("(") || optional("<")) {
+        type = parseFunctionType();
+      } else {
+        String name = parseName();
+        List<ParsedType> arguments = <ParsedType>[];
+        if (optional("<")) {
+          advance();
+          arguments.add(parseType());
+          while (optional(",")) {
+            advance();
+            arguments.add(parseType());
+          }
+          peek = splitCloser(peek) ?? peek;
+          expect(">");
+        }
+        type = new ParsedInterfaceType(name, arguments);
       }
-      peek = splitCloser(peek);
-      expect(">");
-    }
-    return new ParsedInterfaceType(name, arguments);
+      if (result == null) {
+        result = type;
+      } else {
+        result = new ParsedIntersectionType(result, type);
+      }
+    } while (optionalAdvance("&"));
+    return result;
   }
 
   ParsedType parseReturnType() {
@@ -250,16 +297,17 @@ class Parser {
   }
 
   ParsedFunctionType parseFunctionType() {
+    List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
     ParsedArguments arguments = parseArguments();
     expect("-");
     expect(">");
     ParsedType returnType = parseReturnType();
-    return new ParsedFunctionType(returnType, arguments);
+    return new ParsedFunctionType(typeVariables, returnType, arguments);
   }
 
   String parseName() {
     if (!peek.isIdentifier) {
-      throw "Expected a name, but got `${peek.stringValue}`";
+      throw "Expected a name, but got '${peek.stringValue}'\n${computeLocation()}";
     }
     String result = peek.lexeme;
     advance();
@@ -302,7 +350,7 @@ class Parser {
       do {
         typeVariables.add(parseTypeVariable());
       } while (optionalAdvance(","));
-      peek = splitCloser(peek);
+      peek = splitCloser(peek) ?? peek;
       expect(">");
     }
     return typeVariables;
@@ -366,6 +414,16 @@ List<ParsedType> parse(String text) {
   return types;
 }
 
+List<ParsedTypeVariable> parseTypeVariables(String text) {
+  Parser parser = new Parser(scanString(text).tokens, text);
+  List<ParsedType> result = parser.parseTypeVariablesOpt();
+  if (!parser.atEof) {
+    throw "Expected EOF, but got '${parser.peek.stringValue}'\n"
+        "${parser.computeLocation()}";
+  }
+  return result;
+}
+
 abstract class DefaultAction<R, A> {
   R defaultAction(ParsedType node, A a);
 
@@ -401,6 +459,10 @@ abstract class Visitor<R, A> {
   }
 
   R visitTypeVariable(ParsedTypeVariable node, A a) {
+    return DefaultAction.perform<R, A>(this, node, a);
+  }
+
+  R visitIntersectionType(ParsedIntersectionType node, A a) {
     return DefaultAction.perform<R, A>(this, node, a);
   }
 }

@@ -10,6 +10,7 @@ import "package:kernel/ast.dart"
         FunctionType,
         InterfaceType,
         Library,
+        NamedType,
         Node,
         Supertype,
         TreeNode,
@@ -24,6 +25,7 @@ import "type_parser.dart" as type_parser show parse;
 import "type_parser.dart"
     show
         ParsedClass,
+        ParsedIntersectionType,
         ParsedFunctionType,
         ParsedInterfaceType,
         ParsedType,
@@ -36,7 +38,8 @@ Library parseLibrary(Uri uri, String text,
     {Uri fileUri, KernelEnvironment environment}) {
   fileUri ??= uri;
   environment ??= new KernelEnvironment(uri, fileUri);
-  Library library = new Library(uri, fileUri: fileUri);
+  Library library =
+      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
   for (ParsedType type in type_parser.parse(text)) {
     Node node = environment.kernelFromParsedType(type);
     if (node is Class) {
@@ -145,14 +148,35 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
   FunctionType visitFunctionType(
       ParsedFunctionType node, KernelEnvironment environment) {
-    DartType returnType =
-        node.returnType?.accept<Node, KernelEnvironment>(this, environment);
-    List<DartType> arguments = <DartType>[];
-    for (ParsedType argument in node.arguments.required) {
-      arguments
-          .add(argument.accept<Node, KernelEnvironment>(this, environment));
+    ParameterEnvironment parameterEnvironment =
+        computeTypeParameterEnvironment(node.typeVariables, environment);
+    List<DartType> positionalParameters = <DartType>[];
+    List<NamedType> namedParameters = <NamedType>[];
+    DartType returnType;
+    {
+      KernelEnvironment environment = parameterEnvironment.environment;
+      returnType =
+          node.returnType?.accept<Node, KernelEnvironment>(this, environment);
+      for (ParsedType argument in node.arguments.required) {
+        positionalParameters
+            .add(argument.accept<Node, KernelEnvironment>(this, environment));
+      }
+      List<Object> optional = node.arguments.optional;
+      for (int i = 0; i < optional.length; i++) {
+        ParsedType parsedType = optional[i];
+        DartType type =
+            parsedType.accept<Node, KernelEnvironment>(this, environment);
+        if (node.arguments.optionalAreNamed) {
+          namedParameters.add(new NamedType(optional[++i], type));
+        } else {
+          positionalParameters.add(type);
+        }
+      }
     }
-    return new FunctionType(arguments, returnType);
+    return new FunctionType(positionalParameters, returnType,
+        namedParameters: namedParameters,
+        requiredParameterCount: node.arguments.required.length,
+        typeParameters: parameterEnvironment.parameters);
   }
 
   VoidType visitVoidType(ParsedVoidType node, KernelEnvironment environment) {
@@ -162,6 +186,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
   TypeParameter visitTypeVariable(
       ParsedTypeVariable node, KernelEnvironment environment) {
     throw "not implemented: $node";
+  }
+
+  TypeParameterType visitIntersectionType(
+      ParsedIntersectionType node, KernelEnvironment environment) {
+    TypeParameterType type =
+        node.a.accept<Node, KernelEnvironment>(this, environment);
+    DartType bound = node.b.accept<Node, KernelEnvironment>(this, environment);
+    return new TypeParameterType(type.parameter, bound);
   }
 
   Supertype toSupertype(InterfaceType type) {
