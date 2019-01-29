@@ -404,6 +404,12 @@ class DeclarationsTracker {
 
       if (!file.isLibrary) return;
 
+      if (file.isSent) {
+        return;
+      } else {
+        file.isSent = true;
+      }
+
       if (file.exportedDeclarations == null) {
         new _LibraryWalker().walkLibrary(file);
         assert(file.exportedDeclarations != null);
@@ -420,6 +426,12 @@ class DeclarationsTracker {
         LibraryChange._([library], []),
       );
     }
+  }
+
+  /// Return the context associated with the given [analysisContext], or `null`
+  /// if there is none.
+  DeclarationsContext getContext(AnalysisContext analysisContext) {
+    return _contexts[analysisContext];
   }
 
   /// The [analysisContext] is being disposed, it does not need declarations.
@@ -561,7 +573,7 @@ class Library {
 
   @override
   String toString() {
-    return '(uri: $uri, path: $path)';
+    return '(id: $id, uri: $uri, path: $path)';
   }
 }
 
@@ -635,6 +647,9 @@ class _File {
   List<Declaration> fileDeclarations = [];
   List<Declaration> libraryDeclarations = [];
   List<Declaration> exportedDeclarations;
+
+  /// If `true`, then this library has already been sent to the client.
+  bool isSent = false;
 
   _File(this.tracker, this.path, this.uri);
 

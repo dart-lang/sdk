@@ -478,6 +478,45 @@ class B2 {}
     ]);
   }
 
+  test_changesStream_noDuplicates() async {
+    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
+
+    newFile('/home/bbb/pubspec.yaml', content: r'''
+dependencies:
+  aaa: any
+''');
+    addDotPackagesDependency('/home/bbb/.packages', 'aaa', '/home/aaa');
+    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
+
+    newFile('/home/ccc/pubspec.yaml', content: r'''
+dependencies:
+  aaa: any
+''');
+    addDotPackagesDependency('/home/ccc/.packages', 'aaa', '/home/aaa');
+    newFile('/home/ccc/lib/c.dart', content: 'class C {}');
+
+    createAnalysisContexts();
+
+    var bPath = convertPath('/home/bbb');
+    var cPath = convertPath('/home/ccc');
+
+    var bAnalysisContext = analysisContextCollection.contextFor(bPath);
+    var cAnalysisContext = analysisContextCollection.contextFor(cPath);
+
+    tracker.addContext(bAnalysisContext);
+    tracker.addContext(cAnalysisContext);
+    await _doAllTrackerWork();
+
+    var uniquePathSet = Set<String>();
+    for (var change in changes) {
+      for (var library in change.changed) {
+        if (!uniquePathSet.add(library.path)) {
+          fail('Not unique path: ${library.path}');
+        }
+      }
+    }
+  }
+
   test_export() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -632,6 +671,15 @@ mixin B {}
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.mixin('B'),
     ]);
+  }
+
+  test_getContext() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {}
+class B {}
+''');
+    var addContext = tracker.addContext(testAnalysisContext);
+    expect(tracker.getContext(testAnalysisContext), same(addContext));
   }
 
   test_getLibraries_bazel() async {
@@ -1218,6 +1266,9 @@ class A {}
     // Add the context, and remove it immediately.
     tracker.addContext(testAnalysisContext);
     tracker.removeContext(testAnalysisContext);
+
+    // There is no context.
+    expect(tracker.getContext(testAnalysisContext), isNull);
 
     // There is no work to do.
     expect(tracker.hasWork, isFalse);

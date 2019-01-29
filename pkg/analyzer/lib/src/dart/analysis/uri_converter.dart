@@ -43,5 +43,5 @@ class DriverBasedUriConverter implements UriConverter {
   }
 
   @override
-  String uriToPath(Uri uri) => driver.sourceFactory.forUri2(uri).fullName;
+  String uriToPath(Uri uri) => driver.sourceFactory.forUri2(uri)?.fullName;
 }
