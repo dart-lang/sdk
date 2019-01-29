@@ -33,5 +33,9 @@ typedef MyList<T> List<T>;
 typedef StringList List<String>;
 typedef VoidFunction () -> void;
 typedef GenericFunction<T> () -> T;
+List<List<Object>>
+List<List<List<Object>>>
+class A<T extends List<Object>>;
+class B<T extends List<List<Object>>>;
 """);
 }

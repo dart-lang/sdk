@@ -32,10 +32,11 @@ import "type_parser.dart"
         ParsedVoidType,
         Visitor;
 
-Library parseLibrary(Uri uri, String text, {Uri fileUri}) {
+Library parseLibrary(Uri uri, String text,
+    {Uri fileUri, KernelEnvironment environment}) {
   fileUri ??= uri;
+  environment ??= new KernelEnvironment(uri, fileUri);
   Library library = new Library(uri, fileUri: fileUri);
-  KernelEnvironment environment = new KernelEnvironment(uri, fileUri);
   for (ParsedType type in type_parser.parse(text)) {
     Node node = environment.kernelFromParsedType(type);
     if (node is Class) {
@@ -144,7 +145,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
   FunctionType visitFunctionType(
       ParsedFunctionType node, KernelEnvironment environment) {
-    throw "not implemented: $node";
+    DartType returnType =
+        node.returnType?.accept<Node, KernelEnvironment>(this, environment);
+    List<DartType> arguments = <DartType>[];
+    for (ParsedType argument in node.arguments.required) {
+      arguments
+          .add(argument.accept<Node, KernelEnvironment>(this, environment));
+    }
+    return new FunctionType(arguments, returnType);
   }
 
   VoidType visitVoidType(ParsedVoidType node, KernelEnvironment environment) {

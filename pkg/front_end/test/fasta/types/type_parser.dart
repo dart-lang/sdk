@@ -4,6 +4,9 @@
 
 import "package:front_end/src/fasta/scanner.dart" show scanString, Token;
 
+import "package:front_end/src/fasta/parser/type_info_impl.dart"
+    show splitCloser;
+
 abstract class ParsedType {
   R accept<R, A>(Visitor<R, A> visitor, [A a]);
 }
@@ -136,7 +139,14 @@ class ParsedTypeVariable extends ParsedType {
 
   ParsedTypeVariable(this.name, this.bound);
 
-  String toString() => name;
+  String toString() {
+    if (bound == null) return name;
+    StringBuffer sb = new StringBuffer();
+    sb.write(name);
+    sb.write(" extends ");
+    sb.write(bound);
+    return "$sb";
+  }
 
   R accept<R, A>(Visitor<R, A> visitor, [A a]) {
     return visitor.visitTypeVariable(this, a);
@@ -228,6 +238,7 @@ class Parser {
         advance();
         arguments.add(parseType());
       }
+      peek = splitCloser(peek);
       expect(">");
     }
     return new ParsedInterfaceType(name, arguments);
@@ -291,6 +302,7 @@ class Parser {
       do {
         typeVariables.add(parseTypeVariable());
       } while (optionalAdvance(","));
+      peek = splitCloser(peek);
       expect(">");
     }
     return typeVariables;

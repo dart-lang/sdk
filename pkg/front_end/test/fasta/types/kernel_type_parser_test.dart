@@ -4,13 +4,21 @@
 
 import "package:expect/expect.dart" show Expect;
 
-import "package:kernel/ast.dart" show Component, Library;
+import "package:kernel/ast.dart" show Component, DartType, Library;
 
 import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
 
+import "package:kernel/core_types.dart" show CoreTypes;
+
 import "package:kernel/text/ast_to_text.dart" show Printer;
 
-import "kernel_type_parser.dart" show parseLibrary;
+import "package:kernel/type_environment.dart" show TypeEnvironment;
+
+import "kernel_type_parser.dart" show KernelEnvironment, parseLibrary;
+
+import "shared_type_tests.dart" show SubtypeTest;
+
+import "type_parser.dart" as type_parser show parse;
 
 const String testSdk = """
   class Object;
@@ -23,6 +31,7 @@ const String testSdk = """
   class Future<T>;
   class FutureOr<T>;
   class Null;
+  class Function;
 """;
 
 const String expectedSdk = """
@@ -49,14 +58,39 @@ class FutureOr<T extends self::Object = dynamic> extends self::Object {
 }
 class Null extends self::Object {
 }
+class Function extends self::Object {
+}
 """;
 
 main() {
-  Library library = parseLibrary(Uri.parse("dart:core"), testSdk);
+  Uri uri = Uri.parse("dart:core");
+  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+  Library library = parseLibrary(uri, testSdk, environment: environment);
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
   printer.writeLibraryFile(library);
   Expect.stringEquals(expectedSdk, "$sb");
   Component component = new Component(libraries: <Library>[library]);
-  new ClassHierarchy(component);
+  ClassHierarchy hierarchy = new ClassHierarchy(component);
+  CoreTypes coreTypes = new CoreTypes(component);
+  new KernelSubtypeTest(coreTypes, hierarchy, environment).run();
+}
+
+class KernelSubtypeTest extends SubtypeTest<DartType> {
+  final CoreTypes coreTypes;
+
+  final ClassHierarchy hierarchy;
+
+  final KernelEnvironment environment;
+
+  KernelSubtypeTest(this.coreTypes, this.hierarchy, this.environment);
+
+  DartType toType(String text) {
+    return environment.kernelFromParsedType(type_parser.parse(text).single);
+  }
+
+  bool isSubtypeImpl(DartType subtype, DartType supertype, bool legacyMode) {
+    return new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode)
+        .isSubtypeOf(subtype, supertype);
+  }
 }
