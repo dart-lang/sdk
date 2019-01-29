@@ -38,6 +38,24 @@ f(var y) {
 ''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
+  test_promotedTypeParameter_regress35306() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class C extends D {}
+class D {}
+
+void f<X extends A, Y extends B>(X x) {
+  if (x is Y) {
+    A a = x;
+    B b = x;
+    X x2 = x;
+    Y y = x;
+  }
+}
+''');
+  }
+
   test_staticVariable() async {
     await assertErrorsInCode(r'''
 class A {
@@ -46,6 +64,21 @@ class A {
 f(var y) {
   if (y is String) {
     A.x = y;
+  }
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_typeParameterRecursion_regress35306() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends A {}
+class C extends D {}
+class D {}
+
+void f<X extends A, Y extends B>(X x) {
+  if (x is Y) {
+    D d = x;
   }
 }
 ''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);

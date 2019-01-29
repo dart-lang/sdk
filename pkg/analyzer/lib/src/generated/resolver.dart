@@ -4413,8 +4413,8 @@ class ResolverVisitor extends ScopedVisitor {
     // unrelated types; This case is not addressed in the spec for static types.
     if (currentType == null ||
         allowPrecisionLoss ||
-        !currentType.isMoreSpecificThan(potentialType) ||
-        potentialType.isMoreSpecificThan(currentType)) {
+        !typeSystem.isMoreSpecificThan(currentType, potentialType) ||
+        typeSystem.isMoreSpecificThan(potentialType, currentType)) {
       _overrideManager.setType(element, potentialType);
       return potentialType;
     }
