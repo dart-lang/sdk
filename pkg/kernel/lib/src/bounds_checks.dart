@@ -351,7 +351,10 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   }
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
-    if (argument is FunctionType && argument.typeParameters.length > 0) {
+    if (argument is TypeParameterType && argument.promotedBound != null) {
+      result ??= <TypeArgumentIssue>[];
+      result.add(new TypeArgumentIssue(argument, parameters[i], null));
+    } else if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(argument, parameters[i], null));

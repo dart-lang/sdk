@@ -150,5 +150,6 @@ statements: Crash
 spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 type_variable_as_super: RuntimeError
 type_variable_prefix: RuntimeError
+unsound_promotion: RuntimeError
 void_methods: ExpectationFileMismatch
 warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics

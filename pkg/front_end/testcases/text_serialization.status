@@ -977,6 +977,7 @@ type_variable_uses: TextSerializationFailure # Was: Pass
 undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
 undefined: TextSerializationFailure # Was: Pass
 uninitialized_fields: TextSerializationFailure # Was: Pass
+unsound_promotion: TextSerializationFailure
 unused_methods: TextSerializationFailure # Was: Pass
 var_as_type_name: TextSerializationFailure # Was: Pass
 void_methods: ExpectationFileMismatch
