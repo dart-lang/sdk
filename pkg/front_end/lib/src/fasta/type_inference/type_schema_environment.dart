@@ -151,12 +151,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment {
     }
 
     // SLB(bottom, T) = SLB(T, bottom) = bottom.
-    if (isBottom(type1)) {
-      return type1;
-    }
-    if (isBottom(type2)) {
-      return type2;
-    }
+    if (type1 is BottomType) return type1;
+    if (type2 is BottomType) return type2;
+    if (type1 == nullType) return type1;
+    if (type2 == nullType) return type2;
 
     // Function types have structural lower bounds.
     if (type1 is FunctionType && type2 is FunctionType) {
@@ -224,12 +222,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment {
     }
 
     // SUB(bottom, T) = SUB(T, bottom) = T.
-    if (isBottom(type1)) {
-      return type2;
-    }
-    if (isBottom(type2)) {
-      return type1;
-    }
+    if (type1 is BottomType) return type2;
+    if (type2 is BottomType) return type1;
+    if (type1 == nullType) return type2;
+    if (type2 == nullType) return type1;
 
     if (type1 is TypeParameterType || type2 is TypeParameterType) {
       return _typeParameterStandardUpperBound(type1, type2);
@@ -431,12 +427,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment {
   }
 
   @override
-  bool isBottom(DartType t) {
-    if (t is UnknownType) {
-      return true;
-    } else {
-      return super.isBottom(t);
-    }
+  bool isSubtypeOf(DartType subtype, DartType supertype) {
+    if (subtype is UnknownType) return true;
+    if (subtype == Null && supertype is UnknownType) return true;
+    return super.isSubtypeOf(subtype, supertype);
   }
 
   bool isEmptyContext(DartType context) {
