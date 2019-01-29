@@ -280,7 +280,7 @@ class ClassHierarchyNodeBuilder {
         mixin = named.mixedInType.declaration;
       }
       if (mixin is KernelClassBuilder) {
-        scope = mixin.scope;
+        scope = mixin.scope.computeMixinScope();
       }
     }
 

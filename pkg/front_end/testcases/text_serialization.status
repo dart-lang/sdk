@@ -681,6 +681,7 @@ mixin_conflicts: TextSerializationFailure
 mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
 mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
 mixin_super_repeated: TextSerializationFailure # Was: Pass
+mixin_with_static_member: TextSerializationFailure
 mixin: TextSerializationFailure # Was: Pass
 named_function_scope: TextSerializationFailure # Was: Pass
 named_parameters: TextSerializationFailure # Was: Pass
