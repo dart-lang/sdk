@@ -6,13 +6,6 @@
 
 ### Core library changes
 
-#### `dart:core`
-
-*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator
-    when parsing from a string. (Issue [35576][])
-
-[35576]: https://github.com/dart-lang/sdk/issues/35576
-
 #### `dart:html`
 
 *   Added methods `Element.removeAttribute`, `Element.removeAttributeNS`,
@@ -60,12 +53,6 @@
 
 #### Analyzer
 
-*   New hints added:
-
-    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
-        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
-        const constructor is called in a non-const context (or with `new`).
-
 *   The `DEPRECATED_MEMBER_USE` hint was split into two hints:
 
     *   `DEPRECATED_MEMBER_USE` reports on usage of `@deprecated` members
@@ -85,6 +72,45 @@ The linter was bumped to `0.1.79` which introduces the following linter improvem
 * stopped registering "default lints"
 * `hash_and_equals` fixed to respect `hashCode` fields
 
+
+#### Other Tools
+
+## 2.1.1-dev.3.2
+
+* Cherry-pick 9d25cc93e850d4717cdc9e1c4bd3623e09c16d47 to dev
+
+## 2.1.1-dev.3.1
+
+* Cherry-pick 46080dd886a622c5520895d49c97506ecedb1df8 to dev
+* Cherry-pick fc62cf037343248c5ace87629d8eb1063f9f2428 to dev
+* Cherry-pick 770ab5275ac34af62d7c39da8eac8c56fdc48edb to dev
+* Cherry-pick 957e194735bda4fcf06cdcc68fa80f3290b17d79 to dev
+
+## 2.1.1-dev.3.0
+
+* Cherry-pick 3cb16d20e7810a2a378bb897d939f67c0b380d88 to dev
+
+## 2.1.1-dev.2.0
+
+### Core library changes
+
+#### `dart:core`
+
+*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator
+    when parsing from a string. (Issue [35576][])
+
+[35576]: https://github.com/dart-lang/sdk/issues/35576
+
+### Tool Changes
+
+#### Analyzer
+
+*   New hints added:
+
+    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
+        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
+        const constructor is called in a non-const context (or with `new`).
+
 #### dart2js
 
 * `--fast-startup` is forced on.  The flag is silently ignored and will be
@@ -93,10 +119,6 @@ The linter was bumped to `0.1.79` which introduces the following linter improvem
   The alternative 'full emitter' is no longer available. The generated code for
   `--fast-startup` is optimized to load faster, even though it can be slightly
   larger.
-
-#### Pub
-
-#### Other Tools
 
 ## 2.1.1-dev.1.0
 
