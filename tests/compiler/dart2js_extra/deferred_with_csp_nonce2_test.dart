@@ -20,7 +20,7 @@ main() {
   Expect.equals(1, scripts.length);
   Expect.equals('', scripts.first.nonce ?? '');
   Expect.equals('', scripts.first.getAttribute('nonce') ?? '');
-  scripts.first.nonce = "an-example-nonce-string";
+  scripts.first.setAttribute("nonce", "an-example-nonce-string");
 
   lib.loadLibrary().then((_) {
     print(lib.foo());

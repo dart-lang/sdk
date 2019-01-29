@@ -3353,7 +3353,10 @@ String _cspNonce = _computeCspNonce();
 String _computeCspNonce() {
   var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
   if (currentScript == null) return null;
-  return JS('String', 'String(#.nonce)', currentScript);
+  String nonce = JS('String|Null', '#.nonce', currentScript);
+  return (nonce != null && nonce != '')
+      ? nonce
+      : JS('String|Null', '#.getAttribute("nonce")', currentScript);
 }
 
 /// The 'crossOrigin' value on the current script used for CORS, if any.
@@ -3509,6 +3512,7 @@ Future<Null> _loadHunk(String hunkName) {
     JS('', '#.src = #', script, uri);
     if (_cspNonce != null && _cspNonce != '') {
       JS('', '#.nonce = #', script, _cspNonce);
+      JS('', '#.setAttribute("nonce", #)', script, _cspNonce);
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
