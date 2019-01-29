@@ -1989,6 +1989,14 @@ class AnalysisDriverScheduler {
 
   bool _started = false;
 
+  /**
+   * The optional worker that is invoked when its work priority is higher
+   * than work priorities in drivers.
+   *
+   * Don't use outside of Analyzer and Analysis Server.
+   */
+  SchedulerWorker outOfBandWorker;
+
   AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 
   /**
@@ -2097,6 +2105,17 @@ class AnalysisDriverScheduler {
         if (priority.index > bestPriority.index) {
           bestDriver = driver;
           bestPriority = priority;
+        }
+      }
+
+      if (outOfBandWorker != null) {
+        var workerPriority = outOfBandWorker.workPriority;
+        if (workerPriority != AnalysisDriverPriority.nothing) {
+          if (workerPriority.index > bestPriority.index) {
+            await outOfBandWorker.performWork();
+            _hasWork.notify();
+            continue;
+          }
         }
       }
 
@@ -2260,6 +2279,15 @@ class ExceptionResult {
   final String contextKey;
 
   ExceptionResult(this.path, this.exception, this.contextKey);
+}
+
+/// Worker in [AnalysisDriverScheduler].
+abstract class SchedulerWorker {
+  /// Return the priority of work that this worker needs to perform.
+  AnalysisDriverPriority get workPriority;
+
+  /// Perform a single chunk of work.
+  Future<void> performWork();
 }
 
 /**
