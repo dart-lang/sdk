@@ -925,9 +925,7 @@ class ConstantVisitorWithFlowControlAndSpreadCollectionsTest
 
   bool get enableNewAnalysisDriver => true;
 
-  @failingTest
   test_listLiteral_nested() async {
-    // Fails because we're not yet parsing nested elements.
     CompilationUnit compilationUnit = await resolveSource('''
 const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 ''');
@@ -1082,9 +1080,7 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
         value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3, 4]));
   }
 
-  @failingTest
   test_setLiteral_nested() async {
-    // Fails because we're not yet parsing nested elements.
     CompilationUnit compilationUnit = await resolveSource('''
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');

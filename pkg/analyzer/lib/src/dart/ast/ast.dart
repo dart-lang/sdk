@@ -7987,7 +7987,7 @@ class LocalVariableInfo {
 
 abstract class MapElementImpl extends AstNodeImpl implements MapElement {}
 
-class MapForElementImpl extends CollectionElementImpl
+class MapForElementImpl extends MapElementImpl
     with ForMixin
     implements MapForElement {
   /**

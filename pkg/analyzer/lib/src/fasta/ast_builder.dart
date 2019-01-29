@@ -3288,28 +3288,28 @@ class _ForControlFlowInfo implements _EntryInfo {
       this.forLoopParts, this.rightParenthesis, this.entry);
 
   @override
-  CollectionElement asCollectionElement(AstFactory ast) {
-    return ast.collectionForElement(
-      awaitKeyword: awaitToken,
-      forKeyword: forKeyword,
-      leftParenthesis: leftParenthesis,
-      forLoopParts: forLoopParts,
-      rightParenthesis: rightParenthesis,
-      body: entry,
-    );
-  }
+  CollectionElement asCollectionElement(AstFactory ast) =>
+      ast.collectionForElement(
+        awaitKeyword: awaitToken,
+        forKeyword: forKeyword,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: rightParenthesis,
+        body: entry is _EntryInfo
+            ? entry.asCollectionElement(ast)
+            : entry as CollectionElement,
+      );
 
   @override
-  MapElement asMapElement(AstFactory ast) {
-    return ast.mapForElement(
-      awaitKeyword: awaitToken,
-      forKeyword: forKeyword,
-      leftParenthesis: leftParenthesis,
-      forLoopParts: forLoopParts,
-      rightParenthesis: rightParenthesis,
-      body: entry,
-    );
-  }
+  MapElement asMapElement(AstFactory ast) => ast.mapForElement(
+        awaitKeyword: awaitToken,
+        forKeyword: forKeyword,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: rightParenthesis,
+        body:
+            entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement,
+      );
 }
 
 class _IfControlFlowInfo implements _EntryInfo {

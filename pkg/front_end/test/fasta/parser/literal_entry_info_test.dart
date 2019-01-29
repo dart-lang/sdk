@@ -96,6 +96,143 @@ class CollectionElementTest {
     );
   }
 
+  test_forForFor() {
+    parseEntry(
+      'before for (var i = 0; i < 10; ++i) for (x in y) for (var a in [6]) 2',
+      [
+        // for (var i = 0; i < 10; ++i)
+        'beginForControlFlow null for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration i var',
+        'handleIdentifier i localVariableDeclaration',
+        'beginInitializedIdentifier i',
+        'beginVariableInitializer =',
+        'handleLiteralInt 0',
+        'endVariableInitializer =',
+        'endInitializedIdentifier i',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration 0',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments <',
+        'handleNoArguments <',
+        'handleSend i <',
+        'beginBinaryExpression <',
+        'handleLiteralInt 10',
+        'endBinaryExpression <',
+        'handleExpressionStatement ;',
+        'handleIdentifier i expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend i )',
+        'handleUnaryPrefixAssignmentExpression ++',
+        'handleForInitializerExpressionStatement for ( ; 1',
+        // nested for (x in y)
+        'beginForControlFlow null for',
+        'handleIdentifier x expression',
+        'handleNoTypeArguments in',
+        'handleNoArguments in',
+        'handleSend x in',
+        'handleForInitializerExpressionStatement x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        // nested for (var a in [6])
+        'beginForControlFlow null for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration a var',
+        'handleIdentifier a localVariableDeclaration',
+        'beginInitializedIdentifier a',
+        'handleNoVariableInitializer in',
+        'endInitializedIdentifier a',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration a',
+        'beginForInExpression [',
+        'handleNoTypeArguments [',
+        'handleLiteralInt 6',
+        'handleLiteralList 1, [, null, ]',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        // entry
+        'handleLiteralInt 2',
+        // end nested for
+        'endForInControlFlow 2',
+        // end nested for
+        'endForInControlFlow 2',
+        // end for
+        'endForControlFlow 2',
+      ],
+    );
+  }
+
+  test_forIfForElse() {
+    parseEntry(
+      'before await for (var x in y) if (a) for (b in c) 2 else 7',
+      [
+        // await for (var x in y)
+        'beginForControlFlow await for',
+        'beginMetadataStar var',
+        'endMetadataStar 0',
+        'handleNoTypeArguments var',
+        'beginVariablesDeclaration x var',
+        'handleIdentifier x localVariableDeclaration',
+        'beginInitializedIdentifier x',
+        'handleNoVariableInitializer in',
+        'endInitializedIdentifier x',
+        'endVariablesDeclaration 1 null',
+        'handleForInitializerLocalVariableDeclaration x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts await for ( in',
+        // nested if (a)
+        'beginIfControlFlow if',
+        'handleIdentifier a expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend a )',
+        'handleParenthesizedCondition (',
+        // nested for (b in c)
+        'beginForControlFlow null for',
+        'handleIdentifier b expression',
+        'handleNoTypeArguments in',
+        'handleNoArguments in',
+        'handleSend b in',
+        'handleForInitializerExpressionStatement b',
+        'beginForInExpression c',
+        'handleIdentifier c expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend c )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        // for-if-for-entry
+        'handleLiteralInt 2',
+        // end nested for
+        'endForInControlFlow 2',
+        // nested else
+        'handleElseControlFlow else',
+        // nested if-else-entry
+        'handleLiteralInt 7',
+        // end nested else
+        'endIfElseControlFlow 7',
+        // end for
+        'endForInControlFlow 7',
+      ],
+      inAsync: true,
+    );
+  }
+
   test_forIn() {
     parseEntry(
       'before await for (var x in y) 2',
@@ -214,6 +351,99 @@ class CollectionElementTest {
         'handleLiteralInt 2',
         'handleElseControlFlow else',
         'handleLiteralInt 5',
+        'endIfElseControlFlow 5',
+      ],
+    );
+  }
+
+  test_ifFor() {
+    parseEntry(
+      'before if (true) for (x in y) 2',
+      [
+        // if (true)
+        'beginIfControlFlow if',
+        'handleLiteralBool true',
+        'handleParenthesizedCondition (',
+        // nested for (x in y)
+        'beginForControlFlow null for',
+        'handleIdentifier x expression',
+        'handleNoTypeArguments in',
+        'handleNoArguments in',
+        'handleSend x in',
+        'handleForInitializerExpressionStatement x',
+        'beginForInExpression y',
+        'handleIdentifier y expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend y )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        // if-for-entry
+        'handleLiteralInt 2',
+        // end nested for
+        'endForInControlFlow 2',
+        // end if
+        'endIfControlFlow 2',
+      ],
+    );
+  }
+
+  test_ifForElseIfFor() {
+    parseEntry(
+      'before if (true) for (a in b) 2 else if (c) for (d in e) 5',
+      [
+        // if (true)
+        'beginIfControlFlow if',
+        'handleLiteralBool true',
+        'handleParenthesizedCondition (',
+        // nested for (a in b)
+        'beginForControlFlow null for',
+        'handleIdentifier a expression',
+        'handleNoTypeArguments in',
+        'handleNoArguments in',
+        'handleSend a in',
+        'handleForInitializerExpressionStatement a',
+        'beginForInExpression b',
+        'handleIdentifier b expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend b )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        // if-for-entry
+        'handleLiteralInt 2',
+        // end nested for
+        'endForInControlFlow 2',
+        // else
+        'handleElseControlFlow else',
+        // nested if (c)
+        'beginIfControlFlow if',
+        'handleIdentifier c expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend c )',
+        'handleParenthesizedCondition (',
+        // nested for (d in e)
+        'beginForControlFlow null for',
+        'handleIdentifier d expression',
+        'handleNoTypeArguments in',
+        'handleNoArguments in',
+        'handleSend d in',
+        'handleForInitializerExpressionStatement d',
+        'beginForInExpression e',
+        'handleIdentifier e expression',
+        'handleNoTypeArguments )',
+        'handleNoArguments )',
+        'handleSend e )',
+        'endForInExpression )',
+        'handleForInLoopParts null for ( in',
+        // else-if-for-entry
+        'handleLiteralInt 5',
+        // end nested for
+        'endForInControlFlow 5',
+        // end nested if
+        'endIfControlFlow 5',
+        // end else
         'endIfElseControlFlow 5',
       ],
     );

@@ -57,10 +57,20 @@ class ForCondition extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     Token next = token.next;
-    if (optional('...', next) || optional('...?', next)) {
+    if (optional('for', next) ||
+        (optional('await', next) && optional('for', next.next))) {
+      return new Nested(
+        new ForCondition(),
+        inStyle ? const ForInComplete() : const ForComplete(),
+      );
+    } else if (optional('if', next)) {
+      return new Nested(
+        ifCondition,
+        inStyle ? const ForInComplete() : const ForComplete(),
+      );
+    } else if (optional('...', next) || optional('...?', next)) {
       return inStyle ? const ForInSpread() : const ForSpread();
     }
-    // TODO(danrubel): nested control flow structures
     return inStyle ? const ForInEntry() : const ForEntry();
   }
 }
@@ -144,10 +154,14 @@ class IfCondition extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     Token next = token.next;
-    if (optional('...', next) || optional('...?', next)) {
+    if (optional('for', next) ||
+        (optional('await', next) && optional('for', next.next))) {
+      return new Nested(new ForCondition(), const IfComplete());
+    } else if (optional('if', next)) {
+      return new Nested(ifCondition, const IfComplete());
+    } else if (optional('...', next) || optional('...?', next)) {
       return const IfSpread();
     }
-    // TODO(danrubel): nested control flow structures
     return const IfEntry();
   }
 }
@@ -158,12 +172,7 @@ class IfSpread extends SpreadOperator {
   const IfSpread();
 
   @override
-  LiteralEntryInfo computeNext(Token token) {
-    if (optional('else', token.next)) {
-      return const IfElse();
-    }
-    return const IfComplete();
-  }
+  LiteralEntryInfo computeNext(Token token) => const IfComplete();
 }
 
 /// A step for parsing a literal list, set, or map entry
@@ -172,11 +181,23 @@ class IfEntry extends LiteralEntryInfo {
   const IfEntry() : super(true);
 
   @override
-  LiteralEntryInfo computeNext(Token token) {
-    if (optional('else', token.next)) {
-      return const IfElse();
+  LiteralEntryInfo computeNext(Token token) => const IfComplete();
+}
+
+class IfComplete extends LiteralEntryInfo {
+  const IfComplete() : super(false);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    if (!optional('else', token.next)) {
+      parser.listener.endIfControlFlow(token);
     }
-    return const IfComplete();
+    return token;
+  }
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    return optional('else', token.next) ? const IfElse() : null;
   }
 }
 
@@ -196,10 +217,14 @@ class IfElse extends LiteralEntryInfo {
   LiteralEntryInfo computeNext(Token token) {
     assert(optional('else', token));
     Token next = token.next;
-    if (optional('...', next) || optional('...?', next)) {
+    if (optional('for', next) ||
+        (optional('await', next) && optional('for', next.next))) {
+      return new Nested(new ForCondition(), const IfElseComplete());
+    } else if (optional('if', next)) {
+      return new Nested(ifCondition, const IfElseComplete());
+    } else if (optional('...', next) || optional('...?', next)) {
       return const ElseSpread();
     }
-    // TODO(danrubel): nested control flow structures
     return const ElseEntry();
   }
 }
@@ -219,16 +244,6 @@ class ElseEntry extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     return const IfElseComplete();
-  }
-}
-
-class IfComplete extends LiteralEntryInfo {
-  const IfComplete() : super(false);
-
-  @override
-  Token parse(Token token, Parser parser) {
-    parser.listener.endIfControlFlow(token);
-    return token;
   }
 }
 
@@ -253,5 +268,24 @@ class SpreadOperator extends LiteralEntryInfo {
     token = parser.parseExpression(operator);
     parser.listener.handleSpreadExpression(operator);
     return token;
+  }
+}
+
+class Nested extends LiteralEntryInfo {
+  LiteralEntryInfo nestedStep;
+  final LiteralEntryInfo lastStep;
+
+  Nested(this.nestedStep, this.lastStep) : super(false);
+
+  @override
+  bool get hasEntry => nestedStep.hasEntry;
+
+  @override
+  Token parse(Token token, Parser parser) => nestedStep.parse(token, parser);
+
+  @override
+  LiteralEntryInfo computeNext(Token token) {
+    nestedStep = nestedStep.computeNext(token);
+    return nestedStep != null ? this : lastStep;
   }
 }

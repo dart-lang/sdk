@@ -1121,6 +1121,11 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
+    if (notification.event == SERVER_NOTIFICATION_ERROR) {
+      print('SERVER_NOTIFICATION_ERROR: ${notification.toJson()}');
+      _resultsAvailable.complete(null);
+      fail('SERVER_NOTIFICATION_ERROR');
+    }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = new AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {

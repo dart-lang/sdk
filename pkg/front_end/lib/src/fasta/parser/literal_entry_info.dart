@@ -49,9 +49,8 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
   Token next = token.next;
   if (optional('if', next)) {
     return ifCondition;
-  } else if (optional('for', next)) {
-    return new ForCondition();
-  } else if (optional('await', next) && optional('for', next.next)) {
+  } else if (optional('for', next) ||
+      (optional('await', next) && optional('for', next.next))) {
     return new ForCondition();
   } else if (optional('...', next) || optional('...?', next)) {
     return spreadOperator;

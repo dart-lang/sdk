@@ -148,6 +148,34 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(iterable.name, 'list');
   }
 
+  void test_listLiteral_forIf() {
+    ListLiteral2 list = parseCollectionLiteral(
+      '[1, await for (var x in list) if (c) 2]',
+      inAsync: true,
+    );
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    CollectionForElement second = list.elements[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithDeclaration forLoopParts = second.forLoopParts;
+    DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
+    expect(forLoopVar.identifier.name, 'x');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+
+    CollectionIfElement body = second.body;
+    SimpleIdentifier condition = body.condition;
+    expect(condition.name, 'c');
+    IntegerLiteral thenElement = body.thenElement;
+    expect(thenElement.value, 2);
+  }
+
   void test_listLiteral_forSpread() {
     ListLiteral2 list =
         parseCollectionLiteral('[1, for (int x = 0; x < 10; ++x) ...[2]]');
@@ -198,6 +226,46 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(thenElement.value, 2);
     IntegerLiteral elseElement = second.elseElement;
     expect(elseElement.value, 5);
+  }
+
+  void test_listLiteral_ifElseFor() {
+    ListLiteral2 list =
+        parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    CollectionIfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
+
+    CollectionForElement elseElement = second.elseElement;
+    ForEachPartsWithIdentifier forLoopParts = elseElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'a');
+
+    IntegerLiteral forValue = elseElement.body;
+    expect(forValue.value, 5);
+  }
+
+  void test_listLiteral_ifFor() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) for (a in b) 2]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    CollectionIfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+
+    CollectionForElement thenElement = second.thenElement;
+    ForEachPartsWithIdentifier forLoopParts = thenElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'a');
+
+    IntegerLiteral forValue = thenElement.body;
+    expect(forValue.value, 2);
+    expect(second.elseElement, isNull);
   }
 
   void test_listLiteral_ifSpread() {
@@ -275,6 +343,35 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(iterable.name, 'list');
   }
 
+  void test_mapLiteral_forIf() {
+    MapLiteral2 map = parseCollectionLiteral(
+        '{1:7, await for (y in list) if (c) 2:3}',
+        inAsync: true);
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    MapForElement second = map.entries[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithIdentifier forLoopParts = second.forLoopParts;
+    SimpleIdentifier forLoopVar = forLoopParts.identifier;
+    expect(forLoopVar.name, 'y');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+
+    MapIfElement body = second.body;
+    SimpleIdentifier condition = body.condition;
+    expect(condition.name, 'c');
+    MapLiteralEntry thenElement = body.thenElement;
+    IntegerLiteral thenValue = thenElement.value;
+    expect(thenValue.value, 3);
+  }
+
   void test_mapLiteral_forSpread() {
     MapLiteral2 map =
         parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}');
@@ -332,6 +429,52 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     MapLiteralEntry elseElement = second.elseElement;
     IntegerLiteral elseElementValue = elseElement.value;
     expect(elseElementValue.value, 6);
+  }
+
+  void test_mapLiteral_ifElseFor() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:1, if (true) 2:4 else for (c in d) 5:6}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    MapIfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    MapLiteralEntry thenElement = second.thenElement;
+    IntegerLiteral thenElementValue = thenElement.value;
+    expect(thenElementValue.value, 4);
+
+    MapForElement elseElement = second.elseElement;
+    ForEachPartsWithIdentifier forLoopParts = elseElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'c');
+
+    MapLiteralEntry body = elseElement.body;
+    IntegerLiteral bodyValue = body.value;
+    expect(bodyValue.value, 6);
+  }
+
+  void test_mapLiteral_ifFor() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    MapIfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+
+    MapForElement thenElement = second.thenElement;
+    ForEachPartsWithIdentifier forLoopParts = thenElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'a');
+
+    MapLiteralEntry body = thenElement.body;
+    IntegerLiteral thenElementValue = body.value;
+    expect(thenElementValue.value, 4);
+    expect(second.elseElement, isNull);
   }
 
   void test_mapLiteral_ifSpread() {
