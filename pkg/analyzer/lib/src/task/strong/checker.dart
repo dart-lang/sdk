@@ -164,11 +164,44 @@ class CodeChecker extends RecursiveAstVisitor {
   void checkBoolean(Expression expr) =>
       checkAssignment(expr, typeProvider.boolType);
 
+  void checkCollectionElement(
+      CollectionElement element, DartType expectedType) {
+    if (element is CollectionForElement) {
+      checkCollectionElement(element.body, expectedType);
+    } else if (element is CollectionIfElement) {
+      checkCollectionElement(element.thenElement, expectedType);
+      checkCollectionElement(element.elseElement, expectedType);
+    } else if (element is Expression) {
+      checkAssignment(element, expectedType);
+    } else if (element is SpreadElement) {
+      DartType iterableType =
+          typeProvider.iterableType.instantiate([expectedType]);
+      checkAssignment(element.expression, iterableType);
+    }
+  }
+
   void checkForCast(Expression expr, DartType type) {
     if (expr is ParenthesizedExpression) {
       checkForCast(expr.expression, type);
     } else {
       _checkImplicitCast(expr, type);
+    }
+  }
+
+  void checkMapElement(MapElement element, DartType expectedKeyType,
+      DartType expectedValueType) {
+    if (element is MapForElement) {
+      checkMapElement(element.body, expectedKeyType, expectedValueType);
+    } else if (element is MapIfElement) {
+      checkMapElement(element.thenElement, expectedKeyType, expectedValueType);
+      checkMapElement(element.elseElement, expectedKeyType, expectedValueType);
+    } else if (element is MapLiteralEntry) {
+      checkAssignment(element.key, expectedKeyType);
+      checkAssignment(element.value, expectedValueType);
+    } else if (element is SpreadElement) {
+      DartType mapType = typeProvider.mapType
+          .instantiate([expectedKeyType, expectedValueType]);
+      checkAssignment(element.expression, mapType);
     }
   }
 
@@ -344,6 +377,18 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    _visitForEachParts(node, node.loopVariable?.identifier);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    _visitForEachParts(node, node.identifier);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     var loopVariable = node.identifier ?? node.loopVariable?.identifier;
 
@@ -380,6 +425,22 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
 
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    if (node.condition != null) {
+      checkBoolean(node.condition);
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (node.condition != null) {
+      checkBoolean(node.condition);
+    }
     node.visitChildren(this);
   }
 
@@ -464,6 +525,30 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  void visitListLiteral2(ListLiteral2 node) {
+    DartType type = DynamicTypeImpl.instance;
+    if (node.typeArguments != null) {
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
+      if (targs.length > 0) {
+        type = targs[0].type;
+      }
+    } else {
+      DartType staticType = node.staticType;
+      if (staticType is InterfaceType) {
+        List<DartType> targs = staticType.typeArguments;
+        if (targs != null && targs.length > 0) {
+          type = targs[0];
+        }
+      }
+    }
+    NodeList<CollectionElement> elements = node.elements;
+    for (int i = 0; i < elements.length; i++) {
+      checkCollectionElement(elements[i], type);
+    }
+    super.visitListLiteral2(node);
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
     DartType ktype = DynamicTypeImpl.instance;
     DartType vtype = DynamicTypeImpl.instance;
@@ -496,6 +581,39 @@ class CodeChecker extends RecursiveAstVisitor {
       checkArgument(entry.value, vtype);
     }
     super.visitMapLiteral(node);
+  }
+
+  @override
+  void visitMapLiteral2(MapLiteral2 node) {
+    DartType keyType = DynamicTypeImpl.instance;
+    DartType valueType = DynamicTypeImpl.instance;
+    if (node.typeArguments != null) {
+      NodeList<TypeAnnotation> typeArguments = node.typeArguments.arguments;
+      if (typeArguments.length > 0) {
+        keyType = typeArguments[0].type;
+      }
+      if (typeArguments.length > 1) {
+        valueType = typeArguments[1].type;
+      }
+    } else {
+      DartType staticType = node.staticType;
+      if (staticType is InterfaceType) {
+        List<DartType> typeArguments = staticType.typeArguments;
+        if (typeArguments != null) {
+          if (typeArguments.length > 0) {
+            keyType = typeArguments[0];
+          }
+          if (typeArguments.length > 1) {
+            valueType = typeArguments[1];
+          }
+        }
+      }
+    }
+    NodeList<MapElement> entries = node.entries;
+    for (int i = 0; i < entries.length; i++) {
+      checkMapElement(entries[i], keyType, valueType);
+    }
+    super.visitMapLiteral2(node);
   }
 
   @override
@@ -600,6 +718,30 @@ class CodeChecker extends RecursiveAstVisitor {
       checkArgument(elements[i], type);
     }
     super.visitSetLiteral(node);
+  }
+
+  @override
+  void visitSetLiteral2(SetLiteral2 node) {
+    DartType type = DynamicTypeImpl.instance;
+    if (node.typeArguments != null) {
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
+      if (targs.length > 0) {
+        type = targs[0].type;
+      }
+    } else {
+      DartType staticType = node.staticType;
+      if (staticType is InterfaceType) {
+        List<DartType> typeArguments = staticType.typeArguments;
+        if (typeArguments != null && typeArguments.length > 0) {
+          type = typeArguments[0];
+        }
+      }
+    }
+    NodeList<CollectionElement> elements = node.elements;
+    for (int i = 0; i < elements.length; i++) {
+      checkCollectionElement(elements[i], type);
+    }
+    super.visitSetLiteral2(node);
   }
 
   @override
@@ -1236,6 +1378,52 @@ class CodeChecker extends RecursiveAstVisitor {
   void _validateTopLevelInitializer(String name, Expression n) {
     n.accept(new _TopLevelInitializerValidator(this, name));
   }
+
+  @override
+  void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
+    // Safely handle malformed statements.
+    if (loopVariable == null) {
+      return;
+    }
+    Token awaitKeyword;
+    AstNode parent = node.parent;
+    if (parent is ForStatement2) {
+      awaitKeyword = parent.awaitKeyword;
+    } else if (parent is ForElement) {
+      awaitKeyword = parent.awaitKeyword;
+    } else {
+      throw new StateError(
+          'Unexpected parent of ForEachParts: ${parent.runtimeType}');
+    }
+    // Find the element type of the sequence.
+    var sequenceInterface = awaitKeyword != null
+        ? typeProvider.streamType
+        : typeProvider.iterableType;
+    var iterableType = _getExpressionType(node.iterable);
+    var elementType =
+        rules.mostSpecificTypeArgument(iterableType, sequenceInterface);
+
+    // If the sequence is not an Iterable (or Stream for await for) but is a
+    // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
+    // we'll do a separate cast of the dynamic element to the variable's type.
+    if (elementType == null) {
+      var sequenceType =
+          sequenceInterface.instantiate([DynamicTypeImpl.instance]);
+
+      if (rules.isSubtypeOf(sequenceType, iterableType)) {
+        _recordImplicitCast(node.iterable, sequenceType, from: iterableType);
+        elementType = DynamicTypeImpl.instance;
+      }
+    }
+    // If the sequence doesn't implement the interface at all, [ErrorVerifier]
+    // will report the error, so ignore it here.
+    if (elementType != null) {
+      // Insert a cast from the sequence's element type to the loop variable's
+      // if needed.
+      _checkImplicitCast(loopVariable, _getExpressionType(loopVariable),
+          from: elementType);
+    }
+  }
 }
 
 /// Checks for overriding declarations of fields and methods. This is used to
@@ -1726,9 +1914,23 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   }
 
   @override
+  visitListLiteral2(ListLiteral2 node) {
+    if (node.typeArguments == null) {
+      super.visitListLiteral2(node);
+    }
+  }
+
+  @override
   visitMapLiteral(MapLiteral node) {
     if (node.typeArguments == null) {
       super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  visitMapLiteral2(MapLiteral2 node) {
+    if (node.typeArguments == null) {
+      super.visitMapLiteral2(node);
     }
   }
 
@@ -1765,6 +1967,20 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
       // This operator gives 'bool', no need to validate operands.
     } else {
       node.operand.accept(this);
+    }
+  }
+
+  @override
+  visitSetLiteral(SetLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitSetLiteral(node);
+    }
+  }
+
+  @override
+  visitSetLiteral2(SetLiteral2 node) {
+    if (node.typeArguments == null) {
+      super.visitSetLiteral2(node);
     }
   }
 
