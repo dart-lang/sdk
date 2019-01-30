@@ -978,12 +978,7 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralList");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = <CollectionElement>[];
-      popTypedList(count)?.forEach((element) {
-        elements.add(element is _EntryInfo
-            ? element.asCollectionElement(ast)
-            : element as CollectionElement);
-      });
+      List<CollectionElement> elements = popCollectionElements(count);
 
       TypeArgumentList typeArguments = pop();
       push(ast.listLiteral2(
@@ -1058,12 +1053,7 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralSet");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = <CollectionElement>[];
-      popTypedList(count)?.forEach((element) {
-        elements.add(element is _EntryInfo
-            ? element.asCollectionElement(ast)
-            : element as CollectionElement);
-      });
+      List<CollectionElement> elements = popCollectionElements(count);
 
       TypeArgumentList typeArguments = pop();
       push(ast.setLiteral2(
@@ -1089,13 +1079,7 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralMap");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<MapElement> entries = <MapElement>[];
-      popTypedList(count)?.forEach((entry) {
-        entries.add(entry is _EntryInfo
-            ? entry.asMapElement(ast)
-            : entry as MapElement);
-      });
-
+      List<MapElement> entries = popMapElements(count);
       TypeArgumentList typeArguments = pop();
       push(ast.mapLiteral2(
         constKeyword: constKeyword,
@@ -3153,9 +3137,30 @@ class AstBuilder extends StackListener {
     debugEvent("endElseStatement");
   }
 
+  List<CollectionElement> popCollectionElements(int count) {
+    final elements = new List<CollectionElement>()..length = count;
+    for (int index = count - 1; index >= 0; --index) {
+      var element = pop();
+      elements[index] = element is _EntryInfo
+          ? element.asCollectionElement(ast)
+          : element as CollectionElement;
+    }
+    return elements;
+  }
+
   List popList(int n, List list) {
     if (n == 0) return null;
     return stack.popList(n, list, null);
+  }
+
+  List<MapElement> popMapElements(int count) {
+    final entries = new List<MapElement>()..length = count;
+    for (int index = count - 1; index >= 0; --index) {
+      var entry = pop();
+      entries[index] =
+          entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement;
+    }
+    return entries;
   }
 }
 
