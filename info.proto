@@ -211,31 +211,6 @@ message ParameterInfoPB {
   string declared_type = 3;
 }
 
-/**
- * A measurement entry (practically a source-span location where the
- * measurement was seen).
- */
-message MeasurementEntryPB {
-  string name = 1;
-  repeated int32 values = 2;
-}
-
-/** A scalar measurement. */
-message MeasurementCounterPB {
-  string name = 1;
-  int32 value = 2;
-}
-
-/**
- * A collection of data points for each metric. Used to summarize a single
- * function, a library, a package, or an entire program.
- */
-message MeasurementsPB {
-  string source_file = 1;
-  repeated MeasurementEntryPB entries = 2;
-  repeated MeasurementCounterPB counters = 3;
-}
-
 /** Information about a function or method. */
 message FunctionInfoPB {
   /** Modifiers applied to the function. */
@@ -263,7 +238,7 @@ message FunctionInfoPB {
   string code = 8;
 
   /** Measurements collected for this function. */
-  MeasurementsPB measurements = 9;
+  reserved 9;
 }
 
 /** Information about a closure, also known as a local function. */

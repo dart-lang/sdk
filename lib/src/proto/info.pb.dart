@@ -35,7 +35,7 @@ class DependencyInfoPB extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static DependencyInfoPB _defaultInstance;
   static void $checkItem(DependencyInfoPB v) {
-    if (v is! DependencyInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! DependencyInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get targetId => $_getS(0, '');
@@ -84,7 +84,8 @@ class AllInfoPB_AllInfosEntry extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static AllInfoPB_AllInfosEntry _defaultInstance;
   static void $checkItem(AllInfoPB_AllInfosEntry v) {
-    if (v is! AllInfoPB_AllInfosEntry) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! AllInfoPB_AllInfosEntry)
+      $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get key => $_getS(0, '');
@@ -131,7 +132,7 @@ class AllInfoPB extends $pb.GeneratedMessage {
   static AllInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static AllInfoPB _defaultInstance;
   static void $checkItem(AllInfoPB v) {
-    if (v is! AllInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! AllInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   ProgramInfoPB get program => $_getN(0);
@@ -193,7 +194,7 @@ class InfoPB extends $pb.GeneratedMessage {
   static InfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static InfoPB _defaultInstance;
   static void $checkItem(InfoPB v) {
-    if (v is! InfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! InfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get name => $_getS(0, '');
@@ -354,7 +355,7 @@ class ProgramInfoPB extends $pb.GeneratedMessage {
   static ProgramInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ProgramInfoPB _defaultInstance;
   static void $checkItem(ProgramInfoPB v) {
-    if (v is! ProgramInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! ProgramInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get entrypointId => $_getS(0, '');
@@ -486,7 +487,7 @@ class LibraryInfoPB extends $pb.GeneratedMessage {
   static LibraryInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static LibraryInfoPB _defaultInstance;
   static void $checkItem(LibraryInfoPB v) {
-    if (v is! LibraryInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! LibraryInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get uri => $_getS(0, '');
@@ -524,7 +525,7 @@ class OutputUnitInfoPB extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static OutputUnitInfoPB _defaultInstance;
   static void $checkItem(OutputUnitInfoPB v) {
-    if (v is! OutputUnitInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! OutputUnitInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   List<String> get imports => $_getList(0);
@@ -554,7 +555,7 @@ class ClassInfoPB extends $pb.GeneratedMessage {
   static ClassInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ClassInfoPB _defaultInstance;
   static void $checkItem(ClassInfoPB v) {
-    if (v is! ClassInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! ClassInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   bool get isAbstract => $_get(0, false);
@@ -591,7 +592,7 @@ class ConstantInfoPB extends $pb.GeneratedMessage {
   static ConstantInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ConstantInfoPB _defaultInstance;
   static void $checkItem(ConstantInfoPB v) {
-    if (v is! ConstantInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! ConstantInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get code => $_getS(0, '');
@@ -631,7 +632,7 @@ class FieldInfoPB extends $pb.GeneratedMessage {
   static FieldInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static FieldInfoPB _defaultInstance;
   static void $checkItem(FieldInfoPB v) {
-    if (v is! FieldInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! FieldInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get type => $_getS(0, '');
@@ -700,7 +701,7 @@ class TypedefInfoPB extends $pb.GeneratedMessage {
   static TypedefInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static TypedefInfoPB _defaultInstance;
   static void $checkItem(TypedefInfoPB v) {
-    if (v is! TypedefInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! TypedefInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get type => $_getS(0, '');
@@ -740,7 +741,8 @@ class FunctionModifiersPB extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static FunctionModifiersPB _defaultInstance;
   static void $checkItem(FunctionModifiersPB v) {
-    if (v is! FunctionModifiersPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! FunctionModifiersPB)
+      $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   bool get isStatic => $_get(0, false);
@@ -802,7 +804,7 @@ class ParameterInfoPB extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static ParameterInfoPB _defaultInstance;
   static void $checkItem(ParameterInfoPB v) {
-    if (v is! ParameterInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! ParameterInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get name => $_getS(0, '');
@@ -830,135 +832,6 @@ class ParameterInfoPB extends $pb.GeneratedMessage {
   void clearDeclaredType() => clearField(3);
 }
 
-class MeasurementEntryPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('MeasurementEntryPB',
-      package: const $pb.PackageName('dart2js_info.proto'))
-    ..aOS(1, 'name')
-    ..p<int>(2, 'values', $pb.PbFieldType.P3)
-    ..hasRequiredFields = false;
-
-  MeasurementEntryPB() : super();
-  MeasurementEntryPB.fromBuffer(List<int> i,
-      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
-      : super.fromBuffer(i, r);
-  MeasurementEntryPB.fromJson(String i,
-      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
-      : super.fromJson(i, r);
-  MeasurementEntryPB clone() =>
-      new MeasurementEntryPB()..mergeFromMessage(this);
-  MeasurementEntryPB copyWith(void Function(MeasurementEntryPB) updates) =>
-      super.copyWith((message) => updates(message as MeasurementEntryPB));
-  $pb.BuilderInfo get info_ => _i;
-  static MeasurementEntryPB create() => new MeasurementEntryPB();
-  static $pb.PbList<MeasurementEntryPB> createRepeated() =>
-      new $pb.PbList<MeasurementEntryPB>();
-  static MeasurementEntryPB getDefault() =>
-      _defaultInstance ??= create()..freeze();
-  static MeasurementEntryPB _defaultInstance;
-  static void $checkItem(MeasurementEntryPB v) {
-    if (v is! MeasurementEntryPB) $pb.checkItemFailed(v, _i.messageName);
-  }
-
-  String get name => $_getS(0, '');
-  set name(String v) {
-    $_setString(0, v);
-  }
-
-  bool hasName() => $_has(0);
-  void clearName() => clearField(1);
-
-  List<int> get values => $_getList(1);
-}
-
-class MeasurementCounterPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('MeasurementCounterPB',
-      package: const $pb.PackageName('dart2js_info.proto'))
-    ..aOS(1, 'name')
-    ..a<int>(2, 'value', $pb.PbFieldType.O3)
-    ..hasRequiredFields = false;
-
-  MeasurementCounterPB() : super();
-  MeasurementCounterPB.fromBuffer(List<int> i,
-      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
-      : super.fromBuffer(i, r);
-  MeasurementCounterPB.fromJson(String i,
-      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
-      : super.fromJson(i, r);
-  MeasurementCounterPB clone() =>
-      new MeasurementCounterPB()..mergeFromMessage(this);
-  MeasurementCounterPB copyWith(void Function(MeasurementCounterPB) updates) =>
-      super.copyWith((message) => updates(message as MeasurementCounterPB));
-  $pb.BuilderInfo get info_ => _i;
-  static MeasurementCounterPB create() => new MeasurementCounterPB();
-  static $pb.PbList<MeasurementCounterPB> createRepeated() =>
-      new $pb.PbList<MeasurementCounterPB>();
-  static MeasurementCounterPB getDefault() =>
-      _defaultInstance ??= create()..freeze();
-  static MeasurementCounterPB _defaultInstance;
-  static void $checkItem(MeasurementCounterPB v) {
-    if (v is! MeasurementCounterPB) $pb.checkItemFailed(v, _i.messageName);
-  }
-
-  String get name => $_getS(0, '');
-  set name(String v) {
-    $_setString(0, v);
-  }
-
-  bool hasName() => $_has(0);
-  void clearName() => clearField(1);
-
-  int get value => $_get(1, 0);
-  set value(int v) {
-    $_setSignedInt32(1, v);
-  }
-
-  bool hasValue() => $_has(1);
-  void clearValue() => clearField(2);
-}
-
-class MeasurementsPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('MeasurementsPB',
-      package: const $pb.PackageName('dart2js_info.proto'))
-    ..aOS(1, 'sourceFile')
-    ..pp<MeasurementEntryPB>(2, 'entries', $pb.PbFieldType.PM,
-        MeasurementEntryPB.$checkItem, MeasurementEntryPB.create)
-    ..pp<MeasurementCounterPB>(3, 'counters', $pb.PbFieldType.PM,
-        MeasurementCounterPB.$checkItem, MeasurementCounterPB.create)
-    ..hasRequiredFields = false;
-
-  MeasurementsPB() : super();
-  MeasurementsPB.fromBuffer(List<int> i,
-      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
-      : super.fromBuffer(i, r);
-  MeasurementsPB.fromJson(String i,
-      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
-      : super.fromJson(i, r);
-  MeasurementsPB clone() => new MeasurementsPB()..mergeFromMessage(this);
-  MeasurementsPB copyWith(void Function(MeasurementsPB) updates) =>
-      super.copyWith((message) => updates(message as MeasurementsPB));
-  $pb.BuilderInfo get info_ => _i;
-  static MeasurementsPB create() => new MeasurementsPB();
-  static $pb.PbList<MeasurementsPB> createRepeated() =>
-      new $pb.PbList<MeasurementsPB>();
-  static MeasurementsPB getDefault() => _defaultInstance ??= create()..freeze();
-  static MeasurementsPB _defaultInstance;
-  static void $checkItem(MeasurementsPB v) {
-    if (v is! MeasurementsPB) $pb.checkItemFailed(v, _i.messageName);
-  }
-
-  String get sourceFile => $_getS(0, '');
-  set sourceFile(String v) {
-    $_setString(0, v);
-  }
-
-  bool hasSourceFile() => $_has(0);
-  void clearSourceFile() => clearField(1);
-
-  List<MeasurementEntryPB> get entries => $_getList(1);
-
-  List<MeasurementCounterPB> get counters => $_getList(2);
-}
-
 class FunctionInfoPB extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = new $pb.BuilderInfo('FunctionInfoPB',
       package: const $pb.PackageName('dart2js_info.proto'))
@@ -972,8 +845,6 @@ class FunctionInfoPB extends $pb.GeneratedMessage {
     ..aOS(6, 'sideEffects')
     ..a<int>(7, 'inlinedCount', $pb.PbFieldType.O3)
     ..aOS(8, 'code')
-    ..a<MeasurementsPB>(9, 'measurements', $pb.PbFieldType.OM,
-        MeasurementsPB.getDefault, MeasurementsPB.create)
     ..hasRequiredFields = false;
 
   FunctionInfoPB() : super();
@@ -993,7 +864,7 @@ class FunctionInfoPB extends $pb.GeneratedMessage {
   static FunctionInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static FunctionInfoPB _defaultInstance;
   static void $checkItem(FunctionInfoPB v) {
-    if (v is! FunctionInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! FunctionInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   FunctionModifiersPB get functionModifiers => $_getN(0);
@@ -1047,14 +918,6 @@ class FunctionInfoPB extends $pb.GeneratedMessage {
 
   bool hasCode() => $_has(7);
   void clearCode() => clearField(8);
-
-  MeasurementsPB get measurements => $_getN(8);
-  set measurements(MeasurementsPB v) {
-    setField(9, v);
-  }
-
-  bool hasMeasurements() => $_has(8);
-  void clearMeasurements() => clearField(9);
 }
 
 class ClosureInfoPB extends $pb.GeneratedMessage {
@@ -1080,7 +943,7 @@ class ClosureInfoPB extends $pb.GeneratedMessage {
   static ClosureInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ClosureInfoPB _defaultInstance;
   static void $checkItem(ClosureInfoPB v) {
-    if (v is! ClosureInfoPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! ClosureInfoPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get functionId => $_getS(0, '');
@@ -1117,7 +980,7 @@ class DeferredImportPB extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static DeferredImportPB _defaultInstance;
   static void $checkItem(DeferredImportPB v) {
-    if (v is! DeferredImportPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! DeferredImportPB) $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get prefix => $_getS(0, '');
@@ -1161,7 +1024,8 @@ class LibraryDeferredImportsPB extends $pb.GeneratedMessage {
       _defaultInstance ??= create()..freeze();
   static LibraryDeferredImportsPB _defaultInstance;
   static void $checkItem(LibraryDeferredImportsPB v) {
-    if (v is! LibraryDeferredImportsPB) $pb.checkItemFailed(v, _i.messageName);
+    if (v is! LibraryDeferredImportsPB)
+      $pb.checkItemFailed(v, _i.qualifiedMessageName);
   }
 
   String get libraryUri => $_getS(0, '');

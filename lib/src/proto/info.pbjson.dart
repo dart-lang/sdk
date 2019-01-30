@@ -311,45 +311,6 @@ const ParameterInfoPB$json = const {
   ],
 };
 
-const MeasurementEntryPB$json = const {
-  '1': 'MeasurementEntryPB',
-  '2': const [
-    const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
-    const {'1': 'values', '3': 2, '4': 3, '5': 5, '10': 'values'},
-  ],
-};
-
-const MeasurementCounterPB$json = const {
-  '1': 'MeasurementCounterPB',
-  '2': const [
-    const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
-    const {'1': 'value', '3': 2, '4': 1, '5': 5, '10': 'value'},
-  ],
-};
-
-const MeasurementsPB$json = const {
-  '1': 'MeasurementsPB',
-  '2': const [
-    const {'1': 'source_file', '3': 1, '4': 1, '5': 9, '10': 'sourceFile'},
-    const {
-      '1': 'entries',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.dart2js_info.proto.MeasurementEntryPB',
-      '10': 'entries'
-    },
-    const {
-      '1': 'counters',
-      '3': 3,
-      '4': 3,
-      '5': 11,
-      '6': '.dart2js_info.proto.MeasurementCounterPB',
-      '10': 'counters'
-    },
-  ],
-};
-
 const FunctionInfoPB$json = const {
   '1': 'FunctionInfoPB',
   '2': const [
@@ -381,14 +342,9 @@ const FunctionInfoPB$json = const {
     const {'1': 'side_effects', '3': 6, '4': 1, '5': 9, '10': 'sideEffects'},
     const {'1': 'inlined_count', '3': 7, '4': 1, '5': 5, '10': 'inlinedCount'},
     const {'1': 'code', '3': 8, '4': 1, '5': 9, '10': 'code'},
-    const {
-      '1': 'measurements',
-      '3': 9,
-      '4': 1,
-      '5': 11,
-      '6': '.dart2js_info.proto.MeasurementsPB',
-      '10': 'measurements'
-    },
+  ],
+  '9': const [
+    const {'1': 9, '2': 10},
   ],
 };
 

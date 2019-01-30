@@ -70,33 +70,6 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..declaredType = info.declaredType;
   }
 
-  static MeasurementsPB _convertToMeasurementsPB(Measurements measurements) {
-    final proto = new MeasurementsPB();
-
-    if (measurements.uri != null) {
-      proto.sourceFile = measurements.uri.toString();
-    }
-
-    measurements.entries.forEach((metric, values) {
-      final entryProto = new MeasurementEntryPB()..name = metric.name;
-
-      for (final entry in values) {
-        entryProto.values.add(entry.begin);
-        entryProto.values.add(entry.end);
-      }
-
-      proto.entries.add(entryProto);
-    });
-
-    measurements.counters.forEach((metric, value) {
-      proto.counters.add(new MeasurementCounterPB()
-        ..name = metric.name
-        ..value = value);
-    });
-
-    return proto;
-  }
-
   LibraryInfoPB _convertToLibraryInfoPB(LibraryInfo info) {
     final proto = new LibraryInfoPB()..uri = info.uri.toString();
 
@@ -151,10 +124,6 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
 
     if (info.sideEffects != null) {
       proto.sideEffects = info.sideEffects;
-    }
-
-    if (info.measurements != null) {
-      proto.measurements = _convertToMeasurementsPB(info.measurements);
     }
 
     proto.childrenIds
