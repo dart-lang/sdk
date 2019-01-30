@@ -97,9 +97,12 @@ List<int> serializeProcedure(Procedure procedure) {
     }
 
     fakeClass.parent = fakeLibrary;
-    fakeClass.supertype = new Supertype.byReference(
-        realClass.supertype.className,
-        realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    if (realClass.supertype != null) {
+      // supertype is null for Object.
+      fakeClass.supertype = new Supertype.byReference(
+          realClass.supertype.className,
+          realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    }
 
     // Rebind the type parameters in the procedure.
     procedure = procedure.accept(cloner);
