@@ -329,11 +329,13 @@ class DeclarationsContext {
     // ignore: deprecated_member_use_from_same_package
     var sdk = _analysisContext.currentSession.sourceFactory.dartSdk;
     for (var uriStr in sdk.uris) {
-      var uri = Uri.parse(uriStr);
-      var path = _resolveUri(uri);
-      if (path != null) {
-        _sdkLibraryPathList.add(path);
-        _tracker._addFile(this, path);
+      if (!uriStr.startsWith('dart:_')) {
+        var uri = Uri.parse(uriStr);
+        var path = _resolveUri(uri);
+        if (path != null) {
+          _sdkLibraryPathList.add(path);
+          _tracker._addFile(this, path);
+        }
       }
     }
   }
@@ -606,6 +608,8 @@ class Library {
   final List<Declaration> declarations;
 
   Library._(this.id, this.path, this.uri, this.declarations);
+
+  String get uriStr => '$uri';
 
   @override
   String toString() {
@@ -1038,7 +1042,7 @@ class _File {
 
     var names = <String>[];
     for (var parameter in parameters.parameters) {
-      var name = parameter.identifier.name;
+      var name = parameter.identifier?.name ?? '';
       names.add(name);
     }
     return names;

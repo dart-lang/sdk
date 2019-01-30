@@ -659,7 +659,9 @@ typedef C = void Function();
 
 typedef D = int Function(int p1, [double p2, String p3]);
 
-typedef E = void Function<T extends num, U>();
+typedef E = void Function(int, double, {String});
+
+typedef F = void Function<T extends num, U>();
 ''');
 
     tracker.addContext(testAnalysisContext);
@@ -690,6 +692,11 @@ typedef E = void Function<T extends num, U>();
         requiredParameterCount: 1,
         returnType: 'int');
     _assertDeclaration(library, 'E', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameterNames: ['', '', ''],
+        parameterTypes: ['int', 'double', 'String'],
+        requiredParameterCount: 2,
+        returnType: 'void');
+    _assertDeclaration(library, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS,
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
@@ -1264,6 +1271,20 @@ dependencies:
     }
   }
 
+  test_getLibraries_sdk_excludesPrivate() async {
+    newFile('/home/test/lib/test.dart', content: '');
+
+    var context = tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var path = convertPath('/home/test/lib/_.dart');
+    var libraries = context.getLibraries(path);
+    expect(
+      libraries.sdk.where((library) => library.uriStr.startsWith('dart:_')),
+      isEmpty,
+    );
+  }
+
   test_getLibraries_setDependencies() async {
     newFile('/home/aaa/lib/a.dart', content: r'''
 export 'src/a2.dart' show A2;
@@ -1627,9 +1648,8 @@ class A {}
     tracker.changes.listen((change) {
       changes.add(change);
       for (var library in change.changed) {
-        var uriStr = library.uri.toString();
         idToLibrary[library.id] = library;
-        uriToLibrary[uriStr] = library;
+        uriToLibrary[library.uriStr] = library;
       }
       idToLibrary.removeWhere((uriStr, library) {
         return change.removed.contains(library.id);
@@ -1665,7 +1685,7 @@ class A {}
 
   static void _assertHasLibraries(List<Library> libraries,
       {@required List<String> uriList, bool only = false}) {
-    var actualUriList = libraries.map((lib) => lib.uri.toString()).toList();
+    var actualUriList = libraries.map((lib) => lib.uriStr).toList();
     if (only) {
       expect(actualUriList, unorderedEquals(uriList));
     } else {
