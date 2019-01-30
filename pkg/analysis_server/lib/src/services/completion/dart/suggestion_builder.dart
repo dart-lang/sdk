@@ -7,11 +7,11 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
 
 /**
@@ -46,7 +46,7 @@ CompletionSuggestion createSuggestion(Element element,
       false);
 
   // Attach docs.
-  String doc = removeDartDocDelimiters(element.documentationComment);
+  String doc = getDartDocPlainText(element.documentationComment);
   suggestion.docComplete = doc;
   suggestion.docSummary = getDartDocSummary(doc);
 

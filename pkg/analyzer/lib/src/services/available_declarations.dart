@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -20,19 +21,54 @@ import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/util/comment.dart';
 import 'package:convert/convert.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
-  final String name;
+  final String docComplete;
+  final String docSummary;
+  final String identifier;
+  final bool isAbstract;
+  final bool isConst;
+  final bool isDeprecated;
+  final bool isFinal;
   final DeclarationKind kind;
+  final int locationOffset;
+  final String locationPath;
+  final int locationStartColumn;
+  final int locationStartLine;
+  final List<String> parameterNames;
+  final List<String> parameterTypes;
+  final int requiredParameterCount;
+  final String returnType;
+  final String typeParameters;
 
-  Declaration(this.name, this.kind);
+  Declaration({
+    @required this.docComplete,
+    @required this.docSummary,
+    @required this.identifier,
+    @required this.isAbstract,
+    @required this.isConst,
+    @required this.isDeprecated,
+    @required this.isFinal,
+    @required this.kind,
+    @required this.locationOffset,
+    @required this.locationPath,
+    @required this.locationStartColumn,
+    @required this.locationStartLine,
+    @required this.parameterNames,
+    @required this.parameterTypes,
+    @required this.requiredParameterCount,
+    @required this.returnType,
+    @required this.typeParameters,
+  });
 
   @override
   String toString() {
-    return '($name, $kind)';
+    return '($identifier, $kind)';
   }
 }
 
@@ -602,10 +638,10 @@ class _Export {
     return declarations.where((d) {
       for (var combinator in combinators) {
         if (combinator.shows.isNotEmpty) {
-          if (!combinator.shows.contains(d.name)) return false;
+          if (!combinator.shows.contains(d.identifier)) return false;
         }
         if (combinator.hides.isNotEmpty) {
-          if (combinator.hides.contains(d.name)) return false;
+          if (combinator.hides.contains(d.identifier)) return false;
         }
       }
       return true;
@@ -622,7 +658,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 1;
+  static const int DATA_VERSION = 2;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -743,12 +779,6 @@ class _File {
     libraryDeclarations = null;
     exportedDeclarations = null;
 
-    void addDeclaration(Identifier name, DeclarationKind kind) {
-      if (!Identifier.isPrivateName(name.name)) {
-        fileDeclarations.add(Declaration(name.name, kind));
-      }
-    }
-
     for (var astDirective in unit.directives) {
       if (astDirective is PartOfDirective) {
         isLibrary = false;
@@ -780,22 +810,136 @@ class _File {
       }
     }
 
+    var lineInfo = unit.lineInfo;
+
+    void addDeclaration({
+      @required String docComplete,
+      @required String docSummary,
+      bool isAbstract = false,
+      bool isConst = false,
+      bool isDeprecated = false,
+      bool isFinal = false,
+      @required DeclarationKind kind,
+      @required Identifier name,
+      List<String> parameterNames,
+      List<String> parameterTypes,
+      int requiredParameterCount,
+      String returnType,
+      String typeParameters,
+    }) {
+      if (!Identifier.isPrivateName(name.name)) {
+        var locationOffset = name.offset;
+        var lineLocation = lineInfo.getLocation(locationOffset);
+        fileDeclarations.add(Declaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          identifier: name.name,
+          isAbstract: isAbstract,
+          isConst: isConst,
+          isDeprecated: isDeprecated,
+          isFinal: isFinal,
+          kind: kind,
+          locationOffset: locationOffset,
+          locationPath: path,
+          locationStartColumn: lineLocation.columnNumber,
+          locationStartLine: lineLocation.lineNumber,
+          parameterNames: parameterNames,
+          parameterTypes: parameterTypes,
+          requiredParameterCount: requiredParameterCount,
+          returnType: returnType,
+          typeParameters: typeParameters,
+        ));
+      }
+    }
+
     for (var node in unit.declarations) {
+      String docComplete = null;
+      String docSummary = null;
+      if (node.documentationComment != null) {
+        var rawText = getCommentNodeRawText(node.documentationComment);
+        docComplete = getDartDocPlainText(rawText);
+        docSummary = getDartDocSummary(docComplete);
+      }
+
+      var isDeprecated = _hasDeprecatedAnnotation(node);
+
       if (node is ClassDeclaration) {
-        addDeclaration(node.name, DeclarationKind.CLASS);
+        addDeclaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isAbstract: node.isAbstract,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.CLASS,
+          name: node.name,
+        );
       } else if (node is ClassTypeAlias) {
-        addDeclaration(node.name, DeclarationKind.CLASS_TYPE_ALIAS);
+        addDeclaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.CLASS_TYPE_ALIAS,
+          name: node.name,
+        );
       } else if (node is EnumDeclaration) {
-        addDeclaration(node.name, DeclarationKind.ENUM);
+        addDeclaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.ENUM,
+          name: node.name,
+        );
       } else if (node is FunctionDeclaration) {
-        addDeclaration(node.name, DeclarationKind.FUNCTION);
+        var functionExpression = node.functionExpression;
+        var parameters = functionExpression.parameters;
+        addDeclaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.FUNCTION,
+          name: node.name,
+          parameterNames: _getFormalParameterNames(parameters),
+          parameterTypes: _getFormalParameterTypes(parameters),
+          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
+          returnType: _getTypeAnnotationString(node.returnType),
+          typeParameters: functionExpression.typeParameters?.toSource(),
+        );
       } else if (node is GenericTypeAlias) {
-        addDeclaration(node.name, DeclarationKind.FUNCTION_TYPE_ALIAS);
+        var functionType = node.functionType;
+        var parameters = functionType.parameters;
+        addDeclaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
+          name: node.name,
+          parameterNames: _getFormalParameterNames(parameters),
+          parameterTypes: _getFormalParameterTypes(parameters),
+          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
+          returnType: _getTypeAnnotationString(functionType.returnType),
+          typeParameters: functionType.typeParameters?.toSource(),
+        );
       } else if (node is MixinDeclaration) {
-        addDeclaration(node.name, DeclarationKind.MIXIN);
+        addDeclaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.MIXIN,
+          name: node.name,
+        );
       } else if (node is TopLevelVariableDeclaration) {
+        var isConst = node.variables.isConst;
+        var isFinal = node.variables.isFinal;
         for (var variable in node.variables.variables) {
-          addDeclaration(variable.name, DeclarationKind.VARIABLE);
+          addDeclaration(
+            docComplete: docComplete,
+            docSummary: docSummary,
+            isConst: isConst,
+            isDeprecated: isDeprecated,
+            isFinal: isFinal,
+            kind: DeclarationKind.VARIABLE,
+            name: variable.name,
+            returnType: _getTypeAnnotationString(node.variables.type),
+          );
         }
       }
     }
@@ -822,7 +966,24 @@ class _File {
       parts: parts.map((p) => p.uri.toString()).toList(),
       declarations: fileDeclarations.map((d) {
         var idlKind = _kindToIdl(d.kind);
-        return idl.AvailableDeclarationBuilder(kind: idlKind, name: d.name);
+        return idl.AvailableDeclarationBuilder(
+          docComplete: d.docComplete,
+          docSummary: d.docSummary,
+          identifier: d.identifier,
+          isAbstract: d.isAbstract,
+          isConst: d.isConst,
+          isDeprecated: d.isDeprecated,
+          isFinal: d.isFinal,
+          kind: idlKind,
+          locationOffset: d.locationOffset,
+          locationStartColumn: d.locationStartColumn,
+          locationStartLine: d.locationStartLine,
+          parameterNames: d.parameterNames,
+          parameterTypes: d.parameterTypes,
+          requiredParameterCount: d.requiredParameterCount,
+          returnType: d.returnType,
+          typeParameters: d.typeParameters,
+        );
       }).toList(),
     );
     var bytes = builder.toBuffer();
@@ -850,8 +1011,82 @@ class _File {
 
     fileDeclarations = idlFile.declarations.map((e) {
       var kind = _kindFromIdl(e.kind);
-      return Declaration(e.name, kind);
+      return Declaration(
+        docComplete: e.docComplete,
+        docSummary: e.docSummary,
+        identifier: e.identifier,
+        isAbstract: e.isAbstract,
+        isConst: e.isConst,
+        isDeprecated: e.isDeprecated,
+        isFinal: e.isFinal,
+        kind: kind,
+        locationOffset: e.locationOffset,
+        locationPath: path,
+        locationStartColumn: e.locationStartColumn,
+        locationStartLine: e.locationStartLine,
+        parameterNames: e.parameterNames,
+        parameterTypes: e.parameterTypes,
+        requiredParameterCount: e.requiredParameterCount,
+        returnType: e.returnType,
+        typeParameters: e.typeParameters,
+      );
     }).toList();
+  }
+
+  static List<String> _getFormalParameterNames(FormalParameterList parameters) {
+    if (parameters == null) return const <String>[];
+
+    var names = <String>[];
+    for (var parameter in parameters.parameters) {
+      var name = parameter.identifier.name;
+      names.add(name);
+    }
+    return names;
+  }
+
+  static int _getFormalParameterRequiredCount(FormalParameterList parameters) {
+    if (parameters == null) return null;
+
+    return parameters.parameters
+        .takeWhile((parameter) => parameter.isRequired)
+        .length;
+  }
+
+  static String _getFormalParameterType(FormalParameter parameter) {
+    if (parameter is DefaultFormalParameter) {
+      DefaultFormalParameter defaultFormalParameter = parameter;
+      parameter = defaultFormalParameter.parameter;
+    }
+    if (parameter is SimpleFormalParameter) {
+      return _getTypeAnnotationString(parameter.type);
+    }
+    return '';
+  }
+
+  static List<String> _getFormalParameterTypes(FormalParameterList parameters) {
+    if (parameters == null) return null;
+
+    var types = <String>[];
+    for (var parameter in parameters.parameters) {
+      var type = _getFormalParameterType(parameter);
+      types.add(type);
+    }
+    return types;
+  }
+
+  static String _getTypeAnnotationString(TypeAnnotation typeAnnotation) {
+    return typeAnnotation?.toSource() ?? '';
+  }
+
+  /// Return `true` if the [node] is probably deprecated.
+  static bool _hasDeprecatedAnnotation(AnnotatedNode node) {
+    for (var annotation in node.metadata) {
+      var name = annotation.name;
+      if (name is SimpleIdentifier && name.name == 'deprecated') {
+        return true;
+      }
+    }
+    return false;
   }
 
   static DeclarationKind _kindFromIdl(idl.AvailableDeclarationKind kind) {
@@ -905,7 +1140,10 @@ class _File {
     var token = scanner.tokenize();
 
     var parser = new Parser(source, errorListener, useFasta: true);
-    return parser.parseCompilationUnit(token);
+    var unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = LineInfo(scanner.lineStarts);
+
+    return unit;
   }
 
   static String _readContent(File resource) {
@@ -1000,8 +1238,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
   static Set<Declaration> _newDeclarationSet() {
     return HashSet<Declaration>(
-      hashCode: (e) => e.name.hashCode,
-      equals: (a, b) => a.name == b.name,
+      hashCode: (e) => e.identifier.hashCode,
+      equals: (a, b) => a.identifier == b.identifier,
     );
   }
 }

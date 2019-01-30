@@ -2114,8 +2114,73 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
 class AvailableDeclarationBuilder extends Object
     with _AvailableDeclarationMixin
     implements idl.AvailableDeclaration {
+  String _docComplete;
+  String _docSummary;
+  String _identifier;
+  bool _isAbstract;
+  bool _isConst;
+  bool _isDeprecated;
+  bool _isFinal;
   idl.AvailableDeclarationKind _kind;
-  String _name;
+  int _locationOffset;
+  int _locationStartColumn;
+  int _locationStartLine;
+  List<String> _parameterNames;
+  List<String> _parameterTypes;
+  int _requiredParameterCount;
+  String _returnType;
+  String _typeParameters;
+
+  @override
+  String get docComplete => _docComplete ??= '';
+
+  void set docComplete(String value) {
+    this._docComplete = value;
+  }
+
+  @override
+  String get docSummary => _docSummary ??= '';
+
+  void set docSummary(String value) {
+    this._docSummary = value;
+  }
+
+  @override
+  String get identifier => _identifier ??= '';
+
+  /// The identifier of the declaration, a simple name like `MyClass`, or
+  /// a qualified name of a static member like `MyEnum.value`.
+  void set identifier(String value) {
+    this._identifier = value;
+  }
+
+  @override
+  bool get isAbstract => _isAbstract ??= false;
+
+  void set isAbstract(bool value) {
+    this._isAbstract = value;
+  }
+
+  @override
+  bool get isConst => _isConst ??= false;
+
+  void set isConst(bool value) {
+    this._isConst = value;
+  }
+
+  @override
+  bool get isDeprecated => _isDeprecated ??= false;
+
+  void set isDeprecated(bool value) {
+    this._isDeprecated = value;
+  }
+
+  @override
+  bool get isFinal => _isFinal ??= false;
+
+  void set isFinal(bool value) {
+    this._isFinal = value;
+  }
 
   @override
   idl.AvailableDeclarationKind get kind =>
@@ -2127,16 +2192,98 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
-  String get name => _name ??= '';
+  int get locationOffset => _locationOffset ??= 0;
 
-  /// The name of the declaration.
-  void set name(String value) {
-    this._name = value;
+  void set locationOffset(int value) {
+    assert(value == null || value >= 0);
+    this._locationOffset = value;
   }
 
-  AvailableDeclarationBuilder({idl.AvailableDeclarationKind kind, String name})
-      : _kind = kind,
-        _name = name;
+  @override
+  int get locationStartColumn => _locationStartColumn ??= 0;
+
+  void set locationStartColumn(int value) {
+    assert(value == null || value >= 0);
+    this._locationStartColumn = value;
+  }
+
+  @override
+  int get locationStartLine => _locationStartLine ??= 0;
+
+  void set locationStartLine(int value) {
+    assert(value == null || value >= 0);
+    this._locationStartLine = value;
+  }
+
+  @override
+  List<String> get parameterNames => _parameterNames ??= <String>[];
+
+  void set parameterNames(List<String> value) {
+    this._parameterNames = value;
+  }
+
+  @override
+  List<String> get parameterTypes => _parameterTypes ??= <String>[];
+
+  void set parameterTypes(List<String> value) {
+    this._parameterTypes = value;
+  }
+
+  @override
+  int get requiredParameterCount => _requiredParameterCount ??= 0;
+
+  void set requiredParameterCount(int value) {
+    assert(value == null || value >= 0);
+    this._requiredParameterCount = value;
+  }
+
+  @override
+  String get returnType => _returnType ??= '';
+
+  void set returnType(String value) {
+    this._returnType = value;
+  }
+
+  @override
+  String get typeParameters => _typeParameters ??= '';
+
+  void set typeParameters(String value) {
+    this._typeParameters = value;
+  }
+
+  AvailableDeclarationBuilder(
+      {String docComplete,
+      String docSummary,
+      String identifier,
+      bool isAbstract,
+      bool isConst,
+      bool isDeprecated,
+      bool isFinal,
+      idl.AvailableDeclarationKind kind,
+      int locationOffset,
+      int locationStartColumn,
+      int locationStartLine,
+      List<String> parameterNames,
+      List<String> parameterTypes,
+      int requiredParameterCount,
+      String returnType,
+      String typeParameters})
+      : _docComplete = docComplete,
+        _docSummary = docSummary,
+        _identifier = identifier,
+        _isAbstract = isAbstract,
+        _isConst = isConst,
+        _isDeprecated = isDeprecated,
+        _isFinal = isFinal,
+        _kind = kind,
+        _locationOffset = locationOffset,
+        _locationStartColumn = locationStartColumn,
+        _locationStartLine = locationStartLine,
+        _parameterNames = parameterNames,
+        _parameterTypes = parameterTypes,
+        _requiredParameterCount = requiredParameterCount,
+        _returnType = returnType,
+        _typeParameters = typeParameters;
 
   /**
    * Flush [informative] data recursively.
@@ -2147,21 +2294,117 @@ class AvailableDeclarationBuilder extends Object
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._name ?? '');
+    signature.addString(this._docComplete ?? '');
+    signature.addString(this._docSummary ?? '');
+    signature.addString(this._identifier ?? '');
+    signature.addBool(this._isAbstract == true);
+    signature.addBool(this._isConst == true);
+    signature.addBool(this._isDeprecated == true);
+    signature.addBool(this._isFinal == true);
     signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addInt(this._locationOffset ?? 0);
+    signature.addInt(this._locationStartColumn ?? 0);
+    signature.addInt(this._locationStartLine ?? 0);
+    if (this._parameterNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameterNames.length);
+      for (var x in this._parameterNames) {
+        signature.addString(x);
+      }
+    }
+    if (this._parameterTypes == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameterTypes.length);
+      for (var x in this._parameterTypes) {
+        signature.addString(x);
+      }
+    }
+    signature.addInt(this._requiredParameterCount ?? 0);
+    signature.addString(this._returnType ?? '');
+    signature.addString(this._typeParameters ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_name;
-    if (_name != null) {
-      offset_name = fbBuilder.writeString(_name);
+    fb.Offset offset_docComplete;
+    fb.Offset offset_docSummary;
+    fb.Offset offset_identifier;
+    fb.Offset offset_parameterNames;
+    fb.Offset offset_parameterTypes;
+    fb.Offset offset_returnType;
+    fb.Offset offset_typeParameters;
+    if (_docComplete != null) {
+      offset_docComplete = fbBuilder.writeString(_docComplete);
+    }
+    if (_docSummary != null) {
+      offset_docSummary = fbBuilder.writeString(_docSummary);
+    }
+    if (_identifier != null) {
+      offset_identifier = fbBuilder.writeString(_identifier);
+    }
+    if (!(_parameterNames == null || _parameterNames.isEmpty)) {
+      offset_parameterNames = fbBuilder.writeList(
+          _parameterNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_parameterTypes == null || _parameterTypes.isEmpty)) {
+      offset_parameterTypes = fbBuilder.writeList(
+          _parameterTypes.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_returnType != null) {
+      offset_returnType = fbBuilder.writeString(_returnType);
+    }
+    if (_typeParameters != null) {
+      offset_typeParameters = fbBuilder.writeString(_typeParameters);
     }
     fbBuilder.startTable();
-    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(1, _kind.index);
+    if (offset_docComplete != null) {
+      fbBuilder.addOffset(0, offset_docComplete);
     }
-    if (offset_name != null) {
-      fbBuilder.addOffset(0, offset_name);
+    if (offset_docSummary != null) {
+      fbBuilder.addOffset(1, offset_docSummary);
+    }
+    if (offset_identifier != null) {
+      fbBuilder.addOffset(2, offset_identifier);
+    }
+    if (_isAbstract == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (_isConst == true) {
+      fbBuilder.addBool(4, true);
+    }
+    if (_isDeprecated == true) {
+      fbBuilder.addBool(5, true);
+    }
+    if (_isFinal == true) {
+      fbBuilder.addBool(6, true);
+    }
+    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
+      fbBuilder.addUint8(7, _kind.index);
+    }
+    if (_locationOffset != null && _locationOffset != 0) {
+      fbBuilder.addUint32(8, _locationOffset);
+    }
+    if (_locationStartColumn != null && _locationStartColumn != 0) {
+      fbBuilder.addUint32(9, _locationStartColumn);
+    }
+    if (_locationStartLine != null && _locationStartLine != 0) {
+      fbBuilder.addUint32(10, _locationStartLine);
+    }
+    if (offset_parameterNames != null) {
+      fbBuilder.addOffset(11, offset_parameterNames);
+    }
+    if (offset_parameterTypes != null) {
+      fbBuilder.addOffset(12, offset_parameterTypes);
+    }
+    if (_requiredParameterCount != null && _requiredParameterCount != 0) {
+      fbBuilder.addUint32(13, _requiredParameterCount);
+    }
+    if (offset_returnType != null) {
+      fbBuilder.addOffset(14, offset_returnType);
+    }
+    if (offset_typeParameters != null) {
+      fbBuilder.addOffset(15, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -2184,20 +2427,124 @@ class _AvailableDeclarationImpl extends Object
 
   _AvailableDeclarationImpl(this._bc, this._bcOffset);
 
+  String _docComplete;
+  String _docSummary;
+  String _identifier;
+  bool _isAbstract;
+  bool _isConst;
+  bool _isDeprecated;
+  bool _isFinal;
   idl.AvailableDeclarationKind _kind;
-  String _name;
+  int _locationOffset;
+  int _locationStartColumn;
+  int _locationStartLine;
+  List<String> _parameterNames;
+  List<String> _parameterTypes;
+  int _requiredParameterCount;
+  String _returnType;
+  String _typeParameters;
+
+  @override
+  String get docComplete {
+    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _docComplete;
+  }
+
+  @override
+  String get docSummary {
+    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _docSummary;
+  }
+
+  @override
+  String get identifier {
+    _identifier ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _identifier;
+  }
+
+  @override
+  bool get isAbstract {
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _isAbstract;
+  }
+
+  @override
+  bool get isConst {
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    return _isConst;
+  }
+
+  @override
+  bool get isDeprecated {
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    return _isDeprecated;
+  }
+
+  @override
+  bool get isFinal {
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    return _isFinal;
+  }
 
   @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 1, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 7, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
-  String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
-    return _name;
+  int get locationOffset {
+    _locationOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+    return _locationOffset;
+  }
+
+  @override
+  int get locationStartColumn {
+    _locationStartColumn ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+    return _locationStartColumn;
+  }
+
+  @override
+  int get locationStartLine {
+    _locationStartLine ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
+    return _locationStartLine;
+  }
+
+  @override
+  List<String> get parameterNames {
+    _parameterNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 11, const <String>[]);
+    return _parameterNames;
+  }
+
+  @override
+  List<String> get parameterTypes {
+    _parameterTypes ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 12, const <String>[]);
+    return _parameterTypes;
+  }
+
+  @override
+  int get requiredParameterCount {
+    _requiredParameterCount ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
+    return _requiredParameterCount;
+  }
+
+  @override
+  String get returnType {
+    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
+    return _returnType;
+  }
+
+  @override
+  String get typeParameters {
+    _typeParameters ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 15, '');
+    return _typeParameters;
   }
 }
 
@@ -2205,16 +2552,47 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (docComplete != '') _result["docComplete"] = docComplete;
+    if (docSummary != '') _result["docSummary"] = docSummary;
+    if (identifier != '') _result["identifier"] = identifier;
+    if (isAbstract != false) _result["isAbstract"] = isAbstract;
+    if (isConst != false) _result["isConst"] = isConst;
+    if (isDeprecated != false) _result["isDeprecated"] = isDeprecated;
+    if (isFinal != false) _result["isFinal"] = isFinal;
     if (kind != idl.AvailableDeclarationKind.CLASS)
       _result["kind"] = kind.toString().split('.')[1];
-    if (name != '') _result["name"] = name;
+    if (locationOffset != 0) _result["locationOffset"] = locationOffset;
+    if (locationStartColumn != 0)
+      _result["locationStartColumn"] = locationStartColumn;
+    if (locationStartLine != 0)
+      _result["locationStartLine"] = locationStartLine;
+    if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
+    if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
+    if (requiredParameterCount != 0)
+      _result["requiredParameterCount"] = requiredParameterCount;
+    if (returnType != '') _result["returnType"] = returnType;
+    if (typeParameters != '') _result["typeParameters"] = typeParameters;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
+        "docComplete": docComplete,
+        "docSummary": docSummary,
+        "identifier": identifier,
+        "isAbstract": isAbstract,
+        "isConst": isConst,
+        "isDeprecated": isDeprecated,
+        "isFinal": isFinal,
         "kind": kind,
-        "name": name,
+        "locationOffset": locationOffset,
+        "locationStartColumn": locationStartColumn,
+        "locationStartLine": locationStartLine,
+        "parameterNames": parameterNames,
+        "parameterTypes": parameterTypes,
+        "requiredParameterCount": requiredParameterCount,
+        "returnType": returnType,
+        "typeParameters": typeParameters,
       };
 
   @override

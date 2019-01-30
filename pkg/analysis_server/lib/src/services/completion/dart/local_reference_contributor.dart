@@ -11,12 +11,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -526,7 +526,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .map((Token t) => t.toString())
           .join('\n')
           .replaceAll('\r\n', '\n');
-      String doc = removeDartDocDelimiters(text);
+      String doc = getDartDocPlainText(text);
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }

@@ -517,6 +517,276 @@ dependencies:
     }
   }
 
+  test_declaration_CLASS() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class A {}
+
+abstract class B {}
+
+@deprecated
+class C {}
+
+/// aaa
+///
+/// bbb bbb
+/// ccc ccc
+class D {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'A', DeclarationKind.CLASS);
+    _assertDeclaration(library, 'B', DeclarationKind.CLASS, isAbstract: true);
+    _assertDeclaration(library, 'C', DeclarationKind.CLASS, isDeprecated: true);
+    _assertDeclaration(library, 'D', DeclarationKind.CLASS,
+        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb\nccc ccc');
+  }
+
+  test_declaration_CLASS_TYPE_ALIAS() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+mixin M {}
+
+class A = Object with M;
+
+@deprecated
+class B = Object with M;
+
+/// aaa
+///
+/// bbb bbb
+class C = Object with M;
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'A', DeclarationKind.CLASS_TYPE_ALIAS);
+    _assertDeclaration(library, 'B', DeclarationKind.CLASS_TYPE_ALIAS,
+        isDeprecated: true);
+    _assertDeclaration(library, 'C', DeclarationKind.CLASS_TYPE_ALIAS,
+        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb');
+  }
+
+  test_declaration_ENUM() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+enum A {v}
+
+@deprecated
+enum B {v}
+
+/// aaa
+///
+/// bbb bbb
+enum C {v}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'A', DeclarationKind.ENUM);
+    _assertDeclaration(library, 'B', DeclarationKind.ENUM, isDeprecated: true);
+    _assertDeclaration(library, 'C', DeclarationKind.ENUM,
+        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb');
+  }
+
+  test_declaration_FUNCTION() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+void a() {}
+
+@deprecated
+void b() {}
+
+/// aaa
+///
+/// bbb bbb
+void c() {}
+
+List<String> d(Map<String, int> p1, int p2, {double p3}) {}
+
+void e<T extends num, U>() {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'a', DeclarationKind.FUNCTION,
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'b', DeclarationKind.FUNCTION,
+        isDeprecated: true,
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'c', DeclarationKind.FUNCTION,
+        docSummary: 'aaa',
+        docComplete: 'aaa\n\nbbb bbb',
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'd', DeclarationKind.FUNCTION,
+        parameterNames: ['p1', 'p2', 'p3'],
+        parameterTypes: ['Map<String, int>', 'int', 'double'],
+        requiredParameterCount: 2,
+        returnType: 'List<String>');
+    _assertDeclaration(library, 'e', DeclarationKind.FUNCTION,
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void',
+        typeParameters: '<T extends num, U>');
+  }
+
+  test_declaration_FUNCTION_TYPE_ALIAS() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+typedef A = void Function();
+
+@deprecated
+typedef B = void Function();
+
+/// aaa
+///
+/// bbb bbb
+typedef C = void Function();
+
+typedef D = int Function(int p1, [double p2, String p3]);
+
+typedef E = void Function<T extends num, U>();
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'A', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'B', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        isDeprecated: true,
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'C', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        docSummary: 'aaa',
+        docComplete: 'aaa\n\nbbb bbb',
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'D', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameterNames: ['p1', 'p2', 'p3'],
+        parameterTypes: ['int', 'double', 'String'],
+        requiredParameterCount: 1,
+        returnType: 'int');
+    _assertDeclaration(library, 'E', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void',
+        typeParameters: '<T extends num, U>');
+  }
+
+  test_declaration_location() async {
+    var testPath = newFile('/home/test/lib/test.dart', content: r'''
+class A {}
+
+class B {}
+''').path;
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'A', DeclarationKind.CLASS,
+        locationOffset: r'''
+class A {}
+
+class B {}
+'''
+            .indexOf('A {}'),
+        locationPath: testPath,
+        locationStartColumn: 7,
+        locationStartLine: 1);
+    _assertDeclaration(library, 'B', DeclarationKind.CLASS,
+        locationOffset: r'''
+class A {}
+
+class B {}
+'''
+            .indexOf('B {}'),
+        locationPath: testPath,
+        locationStartColumn: 7,
+        locationStartLine: 3);
+  }
+
+  test_declaration_MIXIN() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+mixin A {}
+
+@deprecated
+mixin B {}
+
+/// aaa
+///
+/// bbb bbb
+/// ccc ccc
+mixin C {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'A', DeclarationKind.MIXIN);
+    _assertDeclaration(library, 'B', DeclarationKind.MIXIN, isDeprecated: true);
+    _assertDeclaration(library, 'C', DeclarationKind.MIXIN,
+        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb\nccc ccc');
+  }
+
+  test_declaration_VARIABLE() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+int a;
+
+@deprecated
+int b;
+
+/// aaa
+///
+/// bbb bbb
+int c;
+
+const d = 0;
+
+final double e = 2.7;
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'a', DeclarationKind.VARIABLE,
+        returnType: 'int');
+    _assertDeclaration(library, 'b', DeclarationKind.VARIABLE,
+        isDeprecated: true, returnType: 'int');
+    _assertDeclaration(library, 'c', DeclarationKind.VARIABLE,
+        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb', returnType: 'int');
+    _assertDeclaration(library, 'd', DeclarationKind.VARIABLE,
+        isConst: true, returnType: '');
+    _assertDeclaration(library, 'e', DeclarationKind.VARIABLE,
+        isFinal: true, returnType: 'double');
+  }
+
   test_export() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -1278,11 +1548,53 @@ class A {}
     expect(uriToLibrary, isEmpty);
   }
 
+  void _assertDeclaration(
+    Library library,
+    String identifier,
+    DeclarationKind kind, {
+    String docComplete,
+    String docSummary,
+    bool isAbstract = false,
+    bool isConst = false,
+    bool isDeprecated = false,
+    bool isFinal = false,
+    int locationOffset,
+    String locationPath,
+    int locationStartColumn,
+    int locationStartLine,
+    List<String> parameterNames,
+    List<String> parameterTypes,
+    int requiredParameterCount,
+    String returnType,
+    String typeParameters,
+  }) {
+    var declaration = _getDeclaration(library, identifier);
+    expect(declaration.docComplete, docComplete);
+    expect(declaration.docSummary, docSummary);
+    expect(declaration.identifier, identifier);
+    expect(declaration.isAbstract, isAbstract);
+    expect(declaration.isConst, isConst);
+    expect(declaration.isDeprecated, isDeprecated);
+    expect(declaration.isFinal, isFinal);
+    expect(declaration.kind, kind);
+    expect(declaration.parameterNames, parameterNames);
+    expect(declaration.parameterTypes, parameterTypes);
+    expect(declaration.requiredParameterCount, requiredParameterCount);
+    expect(declaration.returnType, returnType);
+    expect(declaration.typeParameters, typeParameters);
+    if (locationOffset != null) {
+      expect(declaration.locationOffset, locationOffset);
+      expect(declaration.locationPath, locationPath);
+      expect(declaration.locationStartColumn, locationStartColumn);
+      expect(declaration.locationStartLine, locationStartLine);
+    }
+  }
+
   void _assertHasDeclaration(Library library, _ExpectedDeclaration expected) {
     expect(
       library.declarations,
       contains(predicate((Declaration d) {
-        return d.name == expected.name && d.kind == expected.kind;
+        return d.identifier == expected.identifier && d.kind == expected.kind;
       })),
       reason: '$expected',
     );
@@ -1335,6 +1647,17 @@ class A {}
     await pumpEventQueue();
   }
 
+  Declaration _getDeclaration(Library library, String identifier) {
+    return library.declarations
+        .singleWhere((declaration) => declaration.identifier == identifier);
+  }
+
+  Library _getLibrary(String uriStr) {
+    var library = uriToLibrary[uriStr];
+    expect(library, isNotNull);
+    return library;
+  }
+
   static Future pumpEventQueue([int times = 5000]) {
     if (times == 0) return new Future.value();
     return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
@@ -1351,16 +1674,11 @@ class A {}
   }
 }
 
-//class _ExpectedLibrary {
-//  final Uri uri;
-//  final String path;
-//}
-
 class _ExpectedDeclaration {
-  final String name;
+  final String identifier;
   final DeclarationKind kind;
 
-  _ExpectedDeclaration(this.name, this.kind);
+  _ExpectedDeclaration(this.identifier, this.kind);
 
   _ExpectedDeclaration.class_(String name) : this(name, DeclarationKind.CLASS);
 
@@ -1382,6 +1700,6 @@ class _ExpectedDeclaration {
 
   @override
   String toString() {
-    return '($name, $kind)';
+    return '($identifier, $kind)';
   }
 }

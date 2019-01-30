@@ -285,13 +285,56 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
 
 /// Information about a single declaration.
 abstract class AvailableDeclaration extends base.SummaryClass {
-  /// The kind of the declaration.
+  @Id(0)
+  String get docComplete;
+
   @Id(1)
+  String get docSummary;
+
+  /// The identifier of the declaration, a simple name like `MyClass`, or
+  /// a qualified name of a static member like `MyEnum.value`.
+  @Id(2)
+  String get identifier;
+
+  @Id(3)
+  bool get isAbstract;
+
+  @Id(4)
+  bool get isConst;
+
+  @Id(5)
+  bool get isDeprecated;
+
+  @Id(6)
+  bool get isFinal;
+
+  /// The kind of the declaration.
+  @Id(7)
   AvailableDeclarationKind get kind;
 
-  /// The name of the declaration.
-  @Id(0)
-  String get name;
+  @Id(8)
+  int get locationOffset;
+
+  @Id(9)
+  int get locationStartColumn;
+
+  @Id(10)
+  int get locationStartLine;
+
+  @Id(11)
+  List<String> get parameterNames;
+
+  @Id(12)
+  List<String> get parameterTypes;
+
+  @Id(13)
+  int get requiredParameterCount;
+
+  @Id(14)
+  String get returnType;
+
+  @Id(15)
+  String get typeParameters;
 }
 
 /// Enum of declaration kinds in available files.

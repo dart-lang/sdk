@@ -864,11 +864,40 @@ table AnalysisDriverUnlinkedUnit {
 
 /// Information about a single declaration.
 table AvailableDeclaration {
-  /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 1);
+  docComplete:string (id: 0);
 
-  /// The name of the declaration.
-  name:string (id: 0);
+  docSummary:string (id: 1);
+
+  /// The identifier of the declaration, a simple name like `MyClass`, or
+  /// a qualified name of a static member like `MyEnum.value`.
+  identifier:string (id: 2);
+
+  isAbstract:bool (id: 3);
+
+  isConst:bool (id: 4);
+
+  isDeprecated:bool (id: 5);
+
+  isFinal:bool (id: 6);
+
+  /// The kind of the declaration.
+  kind:AvailableDeclarationKind (id: 7);
+
+  locationOffset:uint (id: 8);
+
+  locationStartColumn:uint (id: 9);
+
+  locationStartLine:uint (id: 10);
+
+  parameterNames:[string] (id: 11);
+
+  parameterTypes:[string] (id: 12);
+
+  requiredParameterCount:uint (id: 13);
+
+  returnType:string (id: 14);
+
+  typeParameters:string (id: 15);
 }
 
 /// Information about an available, even if not yet imported file.
