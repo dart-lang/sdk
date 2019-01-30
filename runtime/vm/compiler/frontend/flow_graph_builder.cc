@@ -278,6 +278,11 @@ void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
     // Update dominator tree.
     call_block->AddDominatedBlock(true_target);
     call_block->AddDominatedBlock(false_block);
+    for (intptr_t i = 0, n = callee_entry->dominated_blocks().length(); i < n;
+         i++) {
+      BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
+      true_target->AddDominatedBlock(block);
+    }
 
   } else {
     Definition* callee_result = JoinReturns(
