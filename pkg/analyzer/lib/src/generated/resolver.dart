@@ -5039,8 +5039,92 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForStatement2InScope(ForStatement2 node) {
-    throw new UnsupportedError('Implement this');
-    visitStatementInScope(node.body); // ignore: dead_code
+    ForLoopParts forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      if (forLoopParts is ForPartsWithDeclarations) {
+        forLoopParts.variables?.accept(this);
+      } else if (forLoopParts is ForPartsWithExpression) {
+        forLoopParts.initialization?.accept(this);
+      }
+      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
+      forLoopParts.condition?.accept(this);
+      _overrideManager.enterScope();
+      try {
+        visitStatementInScope(node.body);
+        forLoopParts.updaters.accept(this);
+      } finally {
+        _overrideManager.exitScope();
+      }
+    } else if (forLoopParts is ForEachParts) {
+      Expression iterable = forLoopParts.iterable;
+      DeclaredIdentifier loopVariable;
+      SimpleIdentifier identifier;
+      if (forLoopParts is ForEachPartsWithDeclaration) {
+        loopVariable = forLoopParts.loopVariable;
+      } else if (forLoopParts is ForEachPartsWithIdentifier) {
+        identifier = forLoopParts.identifier;
+        identifier?.accept(this);
+      }
+
+      DartType valueType;
+      if (loopVariable != null) {
+        TypeAnnotation typeAnnotation = loopVariable.type;
+        valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
+      }
+      if (identifier != null) {
+        Element element = identifier.staticElement;
+        if (element is VariableElement) {
+          valueType = element.type;
+        } else if (element is PropertyAccessorElement) {
+          if (element.parameters.isNotEmpty) {
+            valueType = element.parameters[0].type;
+          }
+        }
+      }
+      if (valueType != null) {
+        InterfaceType targetType = (node.awaitKeyword == null)
+            ? typeProvider.iterableType
+            : typeProvider.streamType;
+        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+      }
+      //
+      // We visit the iterator before the loop variable because the loop variable
+      // cannot be in scope while visiting the iterator.
+      //
+      iterable?.accept(this);
+      loopVariable?.accept(this);
+      Statement body = node.body;
+      if (body != null) {
+        _overrideManager.enterScope();
+        try {
+          if (loopVariable != null && iterable != null) {
+            LocalVariableElement loopElement = loopVariable.declaredElement;
+            if (loopElement != null) {
+              DartType propagatedType = null;
+              if (node.awaitKeyword == null) {
+                propagatedType = _getIteratorElementType(iterable);
+              } else {
+                propagatedType = _getStreamElementType(iterable);
+              }
+              if (propagatedType != null) {
+                overrideVariable(loopElement, propagatedType, true);
+              }
+            }
+          } else if (identifier != null && iterable != null) {
+            Element identifierElement = identifier.staticElement;
+            if (identifierElement is VariableElement) {
+              DartType iteratorElementType = _getIteratorElementType(iterable);
+              overrideVariable(identifierElement, iteratorElementType, true);
+            }
+          }
+          visitStatementInScope(body);
+        } finally {
+          _overrideManager.exitScope();
+        }
+      }
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    }
   }
 
   @override
