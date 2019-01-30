@@ -119,7 +119,7 @@ class A {}
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
-    modifyTestFile('import "${convertAbsolutePathToUri('/foo.dart')}";');
+    modifyTestFile('import "${toUriStr('/foo.dart')}";');
     await prepareAnalyzedFiles();
     assertHasFile(convertPath('/foo.dart'));
   }

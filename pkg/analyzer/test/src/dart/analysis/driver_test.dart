@@ -1116,7 +1116,7 @@ var a = new A();
         await createAnalysisDriver().test.getSummaryStore(a);
 
     // There are at least a.dart and dart:core libraries.
-    String aUri = toUri(a).toString();
+    String aUri = toUriStr(a);
     expect(summaryStore.unlinkedMap.keys, contains(aUri));
     expect(summaryStore.linkedMap.keys, contains(aUri));
     expect(summaryStore.unlinkedMap.keys, contains('dart:core'));
@@ -1158,8 +1158,8 @@ var b = new _B();
     SummaryDataStore summaryStore =
         await createAnalysisDriver().test.getSummaryStore(a);
 
-    String aUri = toUri(a).toString();
-    String bUri = toUri(b).toString();
+    String aUri = toUriStr(a);
+    String bUri = toUriStr(b);
     // There are unlinked units for a.dart and b.dart files.
     expect(summaryStore.hasUnlinkedUnit(aUri), isTrue);
     expect(summaryStore.hasUnlinkedUnit(bUri), isTrue);
@@ -2076,7 +2076,7 @@ var VC = new A<double>();
       ResolvedUnitResult result = await driver.getResult(c);
       expect(
         _getImportSource(result.unit, 0).uri,
-        toUri(convertPath('/test/lib/a.dart')),
+        toUri('/test/lib/a.dart'),
       );
       expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
     }

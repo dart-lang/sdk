@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' hide File;
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
@@ -15,26 +13,6 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
  */
 mixin ResourceProviderMixin {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
-  /// Convert the given [path] to be a valid import uri for this provider's path context.
-  /// The URI will use forward slashes on all platforms and absolute paths on Windows
-  /// will be formatted as /X:/path/file.dart
-  String convertAbsolutePathToUri(String path) {
-    path = convertPath(path);
-
-    // On Windows, absolute import paths are not quite the same as a normal fs path.
-    // C:\test.dart must be imported as one of:
-    //   import "file:///C:/test.dart"
-    //   import "/C:/test.dart"
-    if (Platform.isWindows && resourceProvider.pathContext.isAbsolute(path)) {
-      // The .path on a file Uri is in the form "/C:/test.dart"
-      path = new Uri.file(path).path;
-    }
-
-    // Since this returns a URI for imports, it should always be forward slashes
-    // even for relative paths on Windows.
-    return path.replaceAll(r'\', '/');
-  }
 
   String convertPath(String path) => resourceProvider.convertPath(path);
 
@@ -102,5 +80,9 @@ mixin ResourceProviderMixin {
   Uri toUri(String path) {
     path = convertPath(path);
     return resourceProvider.pathContext.toUri(path);
+  }
+
+  String toUriStr(String path) {
+    return toUri(path).toString();
   }
 }

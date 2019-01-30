@@ -1023,7 +1023,7 @@ class B {}
       _ExpectedDeclaration.class_('MaterialButton'),
     ]);
     _assertHasLibrary(
-      toUri('/home/material_button/test/button_test.dart').toString(),
+      toUriStr('/home/material_button/test/button_test.dart'),
       declarations: [
         _ExpectedDeclaration.class_('MaterialButtonTest'),
       ],
@@ -1072,7 +1072,7 @@ class B {}
         libraries.context,
         uriList: [
           'package:material_button/button.dart',
-          toUri('/home/material_button/test/button_test.dart').toString(),
+          toUriStr('/home/material_button/test/button_test.dart'),
         ],
         only: true,
       );
@@ -1212,7 +1212,7 @@ dependencies:
         uriList: [
           'package:test/t.dart',
           'package:test/src/t2.dart',
-          toUri('/home/test/bin/t3.dart').toString(),
+          toUriStr('/home/test/bin/t3.dart'),
         ],
         only: true,
       );
@@ -1239,7 +1239,7 @@ dependencies:
         uriList: [
           'package:test/t.dart',
           'package:test/src/t2.dart',
-          toUri('/home/test/test/t4.dart').toString(),
+          toUriStr('/home/test/test/t4.dart'),
         ],
         only: true,
       );
@@ -1331,7 +1331,7 @@ class B {}
       _ExpectedDeclaration.class_('T2'),
     ]);
     _assertHasLibrary(
-      toUri('/home/test/test/t3.dart').toString(),
+      toUriStr('/home/test/test/t3.dart'),
       declarations: [
         _ExpectedDeclaration.class_('T3'),
       ],
@@ -1352,7 +1352,7 @@ class B {}
         uriList: [
           'package:test/t.dart',
           'package:test/src/t2.dart',
-          toUri('/home/test/test/t3.dart').toString(),
+          toUriStr('/home/test/test/t3.dart'),
         ],
         only: true,
       );
@@ -1376,7 +1376,7 @@ class B {}
         uriList: [
           'package:test/t.dart',
           'package:test/src/t2.dart',
-          toUri('/home/test/test/t3.dart').toString(),
+          toUriStr('/home/test/test/t3.dart'),
         ],
         only: true,
       );
