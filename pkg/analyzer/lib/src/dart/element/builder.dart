@@ -1179,8 +1179,16 @@ class LocalElementBuilder extends _BaseElementBuilder {
         new LocalVariableElementImpl.forNode(variableName);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
-    ForEachStatement statement = node.parent as ForEachStatement;
-    element.setVisibleRange(statement.offset, statement.length);
+
+    var parent = node.parent;
+    if (parent is ForEachStatement) {
+      var statement = parent;
+      element.setVisibleRange(statement.offset, statement.length);
+    } else if (parent is ForEachPartsWithDeclaration) {
+      var statement = parent.parent;
+      element.setVisibleRange(statement.offset, statement.length);
+    }
+
     element.isConst = node.isConst;
     element.isFinal = node.isFinal;
     if (node.type == null) {
