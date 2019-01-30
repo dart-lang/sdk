@@ -3,7 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Converters and codecs for converting between JSON and [Info] classes.
-part of dart2js_info.info;
+
+import 'dart:collection';
+import 'dart:convert';
+
+import 'package:collection/collection.dart';
+import 'src/util.dart';
+import 'info.dart';
 
 List<String> _toSortedSerializedIds(
         Iterable<Info> infos, Id Function(Info) getId) =>
@@ -250,33 +256,11 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
           parseModifiers(new Map<String, bool>.from(json['modifiers']))
       ..closures = (json['children'] as List)
           .map<ClosureInfo>((c) => parseId(c))
-          .toList()
-      ..measurements = parseMeasurements(json['measurements']);
+          .toList();
   }
 
   ParameterInfo parseParameter(Map json) =>
       new ParameterInfo(json['name'], json['type'], json['declaredType']);
-
-  Measurements parseMeasurements(Map json) {
-    if (json == null) return null;
-    var uri = json['sourceFile'];
-    var res = new Measurements(uri == null ? null : Uri.parse(uri));
-    for (var key in json.keys) {
-      var value = json[key];
-      if (value == null) continue;
-      if (key == 'entries') {
-        value.forEach((metricName, entries) {
-          var metric = new Metric.fromName(metricName);
-          for (var i = 0; i < entries.length; i += 2) {
-            res.record(metric, entries[i], entries[i + 1]);
-          }
-        });
-      } else {
-        res.counters[new Metric.fromName(key)] = value;
-      }
-    }
-    return res;
-  }
 
   FunctionModifiers parseModifiers(Map<String, bool> json) {
     return new FunctionModifiers(
@@ -303,21 +287,21 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     }
     return registry.putIfAbsent(serializedId, () {
       if (serializedId.startsWith('function/')) {
-        return new FunctionInfo._();
+        return new FunctionInfo.internal();
       } else if (serializedId.startsWith('closure/')) {
-        return new ClosureInfo._();
+        return new ClosureInfo.internal();
       } else if (serializedId.startsWith('library/')) {
-        return new LibraryInfo._();
+        return new LibraryInfo.internal();
       } else if (serializedId.startsWith('class/')) {
-        return new ClassInfo._();
+        return new ClassInfo.internal();
       } else if (serializedId.startsWith('field/')) {
-        return new FieldInfo._();
+        return new FieldInfo.internal();
       } else if (serializedId.startsWith('constant/')) {
-        return new ConstantInfo._();
+        return new ConstantInfo.internal();
       } else if (serializedId.startsWith('typedef/')) {
-        return new TypedefInfo._();
+        return new TypedefInfo.internal();
       } else if (serializedId.startsWith('outputUnit/')) {
-        return new OutputUnitInfo._();
+        return new OutputUnitInfo.internal();
       }
       assert(false);
     });
@@ -555,30 +539,6 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map _visitParameterInfo(ParameterInfo info) =>
       {'name': info.name, 'type': info.type, 'declaredType': info.declaredType};
 
-  String _visitMetric(Metric metric) => metric.name;
-
-  Map _visitMeasurements(Measurements measurements) {
-    if (measurements == null) return null;
-    var jsonEntries = <String, List<int>>{};
-    measurements.entries.forEach((metric, values) {
-      jsonEntries[_visitMetric(metric)] =
-          values.expand((e) => [e.begin, e.end]).toList();
-    });
-    var json = <String, dynamic>{'entries': jsonEntries};
-    // TODO(sigmund): encode uri as an offset of the URIs available in the parts
-    // of the library info.
-    if (measurements.uri != null) json['sourceFile'] = '${measurements.uri}';
-    if (measurements.counters[Metric.functions] != null) {
-      json[_visitMetric(Metric.functions)] =
-          measurements.counters[Metric.functions];
-    }
-    if (measurements.counters[Metric.reachableFunctions] != null) {
-      json[_visitMetric(Metric.reachableFunctions)] =
-          measurements.counters[Metric.reachableFunctions];
-    }
-    return json;
-  }
-
   Map visitFunction(FunctionInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{
@@ -592,7 +552,6 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         'inlinedCount': info.inlinedCount,
         'code': _serializeCode(info.code),
         'type': info.type,
-        'measurements': _visitMeasurements(info.measurements),
         // Note: version 3.2 of dump-info serializes `uses` in a section called
         // `holding` at the top-level.
       });

@@ -12,6 +12,10 @@
   the decoder is still backwards compatible (filling in just the `text` in
   `CodeSpan` where the json contained a String).
 
+* Deleted unused `Measurements`.
+
+* Split the json codec from info.dart.
+
 ## 0.5.17
 
 * Make `live_code_size_analysis` print library URIs and not library names.
