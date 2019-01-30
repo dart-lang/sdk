@@ -1,3 +1,9 @@
+## 0.6.0-dev.0.0
+
+* The fields `Info.id` and `Info.serializedId` have been removed. These
+  properties were only used for serialization and deserialization. Those values
+  are now computed during the serialization process instead.
+
 ## 0.5.17
 
 * Make `live_code_size_analysis` print library URIs and not library names.

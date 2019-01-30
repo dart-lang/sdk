@@ -27,14 +27,6 @@ abstract class Info {
   /// Name of the element associated with this info.
   String name;
 
-  /// An id to uniquely identify this info among infos of the same [kind].
-  // TODO(kevmoo) Consider removing `id` entirely. Make it an impl detail of
-  //              the JSON encoder
-  int get id;
-
-  /// A globally unique id combining [kind] and [id] together.
-  String get serializedId;
-
   /// Id used by the compiler when instrumenting code for code coverage.
   // TODO(sigmund): It would be nice if we could use the same id for
   // serialization and for coverage. Could we unify them?
@@ -53,45 +45,11 @@ abstract class Info {
 // TODO(sigmund): add more:
 //  - inputSize: bytes used in the Dart source program
 abstract class BasicInfo implements Info {
-  static final Set<int> _ids = new Set<int>();
-
-  /// Frees internal cache used for id uniqueness.
-  static void resetIds() => BasicInfo._ids.clear();
-
   final InfoKind kind;
-
-  int _id;
-  // TODO(kevmoo) Make computation of id explicit and not on-demand.
-  int get id {
-    if (_id == null) {
-      assert(this is LibraryInfo ||
-          this is ConstantInfo ||
-          this is OutputUnitInfo ||
-          this.parent != null);
-
-      if (this is ConstantInfo) {
-        // No name and no parent, so `longName` isn't helpful
-        assert(this.name == null);
-        assert(this.parent == null);
-        assert((this as ConstantInfo).code != null);
-        // Instead, use the content of the code.
-        _id = (this as ConstantInfo).code.hashCode;
-      } else {
-        _id = longName(this, useLibraryUri: true, forId: true).hashCode;
-      }
-      while (!_ids.add(_id)) {
-        _id++;
-      }
-    }
-
-    return _id;
-  }
 
   String coverageId;
   int size;
   Info parent;
-
-  String get serializedId => '${kindToString(kind)}/$id';
 
   String name;
 
@@ -101,18 +59,16 @@ abstract class BasicInfo implements Info {
 
   BasicInfo(this.kind, this.name, this.outputUnit, this.size, this.coverageId);
 
-  BasicInfo._fromId(String serializedId)
-      : kind = _kindFromSerializedId(serializedId),
-        _id = _idFromSerializedId(serializedId);
+  BasicInfo._(this.kind);
 
-  String toString() => '$serializedId $name [$size]';
+  String toString() => '$kind $name [$size]';
 }
 
 /// Info associated with elements containing executable code (like fields and
 /// methods)
 abstract class CodeInfo implements Info {
   /// How does this function or field depend on others.
-  final Set<DependencyInfo> uses = new SplayTreeSet<DependencyInfo>();
+  final List<DependencyInfo> uses = [];
 }
 
 /// The entire information produced while compiling a program.
@@ -250,7 +206,7 @@ class LibraryInfo extends BasicInfo {
   LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
       : super(InfoKind.library, name, outputUnit, size, null);
 
-  LibraryInfo._(String serializedId) : super._fromId(serializedId);
+  LibraryInfo._() : super._(InfoKind.library);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitLibrary(this);
 }
@@ -265,7 +221,7 @@ class OutputUnitInfo extends BasicInfo {
   OutputUnitInfo(String name, int size)
       : super(InfoKind.outputUnit, name, null, size, null);
 
-  OutputUnitInfo._(String serializedId) : super._fromId(serializedId);
+  OutputUnitInfo._() : super._(InfoKind.outputUnit);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitOutput(this);
 }
@@ -288,7 +244,7 @@ class ClassInfo extends BasicInfo {
       {String name, this.isAbstract, OutputUnitInfo outputUnit, int size: 0})
       : super(InfoKind.clazz, name, outputUnit, size, null);
 
-  ClassInfo._(String serializedId) : super._fromId(serializedId);
+  ClassInfo._() : super._(InfoKind.clazz);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClass(this);
 }
@@ -303,7 +259,7 @@ class ConstantInfo extends BasicInfo {
   ConstantInfo({int size: 0, this.code, OutputUnitInfo outputUnit})
       : super(InfoKind.constant, null, outputUnit, size, null);
 
-  ConstantInfo._(String serializedId) : super._fromId(serializedId);
+  ConstantInfo._() : super._(InfoKind.constant);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitConstant(this);
 }
@@ -340,7 +296,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
       this.isConst})
       : super(InfoKind.field, name, outputUnit, size, coverageId);
 
-  FieldInfo._(String serializedId) : super._fromId(serializedId);
+  FieldInfo._() : super._(InfoKind.field);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitField(this);
 }
@@ -353,7 +309,7 @@ class TypedefInfo extends BasicInfo {
   TypedefInfo(String name, this.type, OutputUnitInfo outputUnit)
       : super(InfoKind.typedef, name, outputUnit, 0, null);
 
-  TypedefInfo._(String serializedId) : super._fromId(serializedId);
+  TypedefInfo._() : super._(InfoKind.typedef);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitTypedef(this);
 }
@@ -417,7 +373,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
       this.measurements})
       : super(InfoKind.function, name, outputUnit, size, coverageId);
 
-  FunctionInfo._(String serializedId) : super._fromId(serializedId);
+  FunctionInfo._() : super._(InfoKind.function);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitFunction(this);
 }
@@ -431,13 +387,13 @@ class ClosureInfo extends BasicInfo {
       {String name, OutputUnitInfo outputUnit, int size: 0, this.function})
       : super(InfoKind.closure, name, outputUnit, size, null);
 
-  ClosureInfo._(String serializedId) : super._fromId(serializedId);
+  ClosureInfo._() : super._(InfoKind.closure);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClosure(this);
 }
 
 /// Information about how a dependency is used.
-class DependencyInfo implements Comparable<DependencyInfo> {
+class DependencyInfo {
   /// The dependency, either a FunctionInfo or FieldInfo.
   final Info target;
 
@@ -447,21 +403,6 @@ class DependencyInfo implements Comparable<DependencyInfo> {
   final String mask;
 
   DependencyInfo(this.target, this.mask);
-
-  int compareTo(DependencyInfo other) {
-    var value = target.serializedId.compareTo(other.target.serializedId);
-    if (value == 0) {
-      value = mask.compareTo(other.mask);
-    }
-    return value;
-  }
-
-  bool operator ==(other) =>
-      other is DependencyInfo &&
-      target.serializedId == other.target.serializedId &&
-      mask == other.mask;
-
-  int get hashCode => target.serializedId.hashCode * 37 ^ mask.hashCode;
 }
 
 /// Name and type information about a function parameter.
@@ -521,12 +462,6 @@ String kindToString(InfoKind kind) {
       return null;
   }
 }
-
-int _idFromSerializedId(String serializedId) =>
-    int.parse(serializedId.substring(serializedId.indexOf('/') + 1));
-
-InfoKind _kindFromSerializedId(String serializedId) =>
-    kindFromString(serializedId.substring(0, serializedId.indexOf('/')));
 
 InfoKind kindFromString(String kind) {
   switch (kind) {
