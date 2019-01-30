@@ -4112,12 +4112,6 @@ abstract class GenericFunctionType extends TypeAnnotation {
   void set parameters(FormalParameterList parameters);
 
   /**
-   * The question mark indicating that the type is nullable, or `null` if there
-   * is no question mark.
-   */
-  Token get question;
-
-  /**
    * Set the question mark indicating that the type is nullable to the given
    * [token].
    */
@@ -5757,12 +5751,6 @@ abstract class NamedType extends TypeAnnotation {
   void set name(Identifier identifier);
 
   /**
-   * The question mark indicating that the type is nullable, or `null` if there
-   * is no question mark.
-   */
-  Token get question;
-
-  /**
    * Set the question mark indicating that the type is nullable to the given
    * [token].
    */
@@ -7335,6 +7323,12 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class TypeAnnotation extends AstNode {
+  /**
+   * The question mark indicating that the type is nullable, or `null` if there
+   * is no question mark.
+   */
+  Token get question;
+
   /**
    * Return the type being named, or `null` if the AST structure has not been
    * resolved.
