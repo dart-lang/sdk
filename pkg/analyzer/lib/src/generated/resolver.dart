@@ -702,6 +702,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
+    bool isLibraryInWorkspacePackage(LibraryElement library) {
+      if (_workspacePackage == null || library == null) {
+        // Better to not make a big claim that they _are_ in the same package,
+        // if we were unable to determine what package [_currentLibrary] is in.
+        return false;
+      }
+      return _workspacePackage.contains(library.source.fullName);
+    }
+
     if (!_inDeprecatedMember &&
         element != null &&
         isDeprecated(element) &&
@@ -724,7 +733,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       LibraryElement library =
           element is LibraryElement ? element : element.library;
-      HintCode hintCode = _workspacePackage.contains(library.source.fullName)
+      HintCode hintCode = isLibraryInWorkspacePackage(library)
           ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
           : HintCode.DEPRECATED_MEMBER_USE;
       _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
