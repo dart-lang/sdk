@@ -56,7 +56,7 @@ abstract class BasicInfo implements Info {
 /// methods)
 abstract class CodeInfo implements Info {
   /// How does this function or field depend on others.
-  final List<DependencyInfo> uses = [];
+  List<DependencyInfo> uses = [];
 }
 
 /// The entire information produced while compiling a program.
@@ -172,16 +172,16 @@ class LibraryInfo extends BasicInfo {
   Uri uri;
 
   /// Top level functions defined within the library.
-  final List<FunctionInfo> topLevelFunctions = <FunctionInfo>[];
+  List<FunctionInfo> topLevelFunctions = <FunctionInfo>[];
 
   /// Top level fields defined within the library.
-  final List<FieldInfo> topLevelVariables = <FieldInfo>[];
+  List<FieldInfo> topLevelVariables = <FieldInfo>[];
 
   /// Classes defined within the library.
-  final List<ClassInfo> classes = <ClassInfo>[];
+  List<ClassInfo> classes = <ClassInfo>[];
 
   /// Typedefs defined within the library.
-  final List<TypedefInfo> typedefs = <TypedefInfo>[];
+  List<TypedefInfo> typedefs = <TypedefInfo>[];
 
   // TODO(sigmund): add here a list of parts. That can help us improve how we
   // encode source-span information in metrics (rather than include the uri on
@@ -221,12 +221,12 @@ class ClassInfo extends BasicInfo {
 
   // TODO(sigmund): split static vs instance vs closures
   /// Functions (static or instance) defined in the class.
-  final List<FunctionInfo> functions = <FunctionInfo>[];
+  List<FunctionInfo> functions = <FunctionInfo>[];
 
   /// Fields defined in the class.
   // TODO(sigmund): currently appears to only be populated with instance fields,
   // but this should be fixed.
-  final List<FieldInfo> fields = <FieldInfo>[];
+  List<FieldInfo> fields = <FieldInfo>[];
 
   ClassInfo(
       {String name, this.isAbstract, OutputUnitInfo outputUnit, int size: 0})
