@@ -16,6 +16,10 @@
 
 * Split the json codec from info.dart.
 
+* Introduced `lib/binary_codec.dart` a lighterweight
+  serialization/deserialization implementation. This will eventually be used by
+  default by dart2js.
+
 ## 0.5.17
 
 * Make `live_code_size_analysis` print library URIs and not library names.
