@@ -5,8 +5,9 @@
 /// Converters and codecs for converting between JSON and [Info] classes.
 part of dart2js_info.info;
 
-List<String> _toSortedSerializedIds(Iterable<Info> infos, Map<Info, Id> ids) =>
-    infos.map((i) => ids[i].serializedId).toList()..sort(compareNatural);
+List<String> _toSortedSerializedIds(
+        Iterable<Info> infos, Id Function(Info) getId) =>
+    infos.map((i) => getId(i).serializedId).toList()..sort(compareNatural);
 
 // TODO(sigmund): add unit tests.
 class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
@@ -325,7 +326,9 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   List<CodeSpan> parseCode(dynamic json) {
     // backwards compatibility with format 5.1:
     if (json is String) {
-      return [new CodeSpan(outputUnit: null, start: -1, end: -1, text: json)];
+      return [
+        new CodeSpan(outputUnit: null, start: null, end: null, text: json)
+      ];
     }
 
     if (json is List) {
@@ -346,32 +349,40 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
 class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     implements InfoVisitor<Map> {
   final Map<Info, Id> ids = new HashMap<Info, Id>();
-  final Set<int> usedIds = new Set<int>();
+  final Set<String> usedIds = new Set<String>();
 
   Id idFor(Info info) {
     var serializedId = ids[info];
     if (serializedId != null) return serializedId;
 
-    assert(info is LibraryInfo ||
-        info is ConstantInfo ||
-        info is OutputUnitInfo ||
-        info.parent != null);
+    assert(
+        info is LibraryInfo ||
+            info is ConstantInfo ||
+            info is OutputUnitInfo ||
+            info.parent != null,
+        "$info");
 
-    int id;
+    String id;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
       assert(info.name == null);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      id = info.code.first.text.hashCode;
+      id = info.code.first.text ?? "_";
     } else {
-      id = longName(info, useLibraryUri: true, forId: true).hashCode;
+      id = longName(info, useLibraryUri: true, forId: true);
+      if (info is FieldInfo || info is FunctionInfo || info is ClosureInfo) {
+        id = "${id}_${info.size}";
+      }
     }
-    while (!usedIds.add(id)) {
-      id++;
-    }
-    serializedId = new Id(info.kind, id);
+    int suffix = 0;
+    String candidateId;
+    do {
+      candidateId = id + (suffix == 0 ? '' : '.$suffix');
+      suffix++;
+    } while (!usedIds.add(candidateId));
+    serializedId = new Id(info.kind, candidateId);
     return ids[info] = serializedId;
   }
 
@@ -426,7 +437,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map _visitAllInfoDependencies(AllInfo allInfo) {
     var map = new SplayTreeMap<String, List>(compareNatural);
     allInfo.dependencies.forEach((k, v) {
-      map[idFor(k).serializedId] = _toSortedSerializedIds(v, ids);
+      map[idFor(k).serializedId] = _toSortedSerializedIds(v, idFor);
     });
     return map;
   }
@@ -449,7 +460,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map visitProgram(ProgramInfo info) {
     return {
-      'entrypoint': idFor(info.entrypoint),
+      'entrypoint': idFor(info.entrypoint).serializedId,
       'size': info.size,
       'dart2jsVersion': info.dart2jsVersion,
       'compilationMoment': '${info.compilationMoment}',
@@ -492,7 +503,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
               info.classes,
               info.typedefs
             ].expand((i) => i),
-            ids),
+            idFor),
         'canonicalUri': '${info.uri}',
       });
   }
@@ -503,14 +514,14 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         // TODO(sigmund): change format, include only when abstract is true.
         'modifiers': {'abstract': info.isAbstract},
         'children': _toSortedSerializedIds(
-            [info.fields, info.functions].expand((i) => i), ids)
+            [info.fields, info.functions].expand((i) => i), idFor)
       });
   }
 
   Map visitField(FieldInfo info) {
     var result = _visitBasicInfo(info)
       ..addAll(<String, Object>{
-        'children': _toSortedSerializedIds(info.closures, ids),
+        'children': _toSortedSerializedIds(info.closures, idFor),
         'inferredType': info.inferredType,
         'code': _serializeCode(info.code),
         'type': info.type,
@@ -571,7 +582,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map visitFunction(FunctionInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{
-        'children': _toSortedSerializedIds(info.closures, ids),
+        'children': _toSortedSerializedIds(info.closures, idFor),
         'modifiers': _visitFunctionModifiers(info.modifiers),
         'returnType': info.returnType,
         'inferredReturnType': info.inferredReturnType,
@@ -600,7 +611,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   List<Object> _serializeCode(List<CodeSpan> code) {
     return code
         .map<Object>((c) => {
-              'outputUnit': idFor(c.outputUnit),
+              'outputUnit': c.outputUnit != null
+                  ? idFor(c.outputUnit).serializedId
+                  : null,
               'start': c.start,
               'end': c.end,
               'text': c.text,
@@ -616,9 +629,9 @@ class AllInfoJsonCodec extends Codec<AllInfo, Map> {
 
 class Id {
   final InfoKind kind;
-  final int id;
+  final String id;
 
   Id(this.kind, this.id);
 
-  String get serializedId => '$kind/$id';
+  String get serializedId => '${kindToString(kind)}/$id';
 }
