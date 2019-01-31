@@ -63,15 +63,19 @@ class Function extends self::Object {
 }
 """;
 
-main() {
-  Uri uri = Uri.parse("dart:core");
-  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+Component parseSdk(Uri uri, KernelEnvironment environment) {
   Library library = parseLibrary(uri, testSdk, environment: environment);
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
   printer.writeLibraryFile(library);
   Expect.stringEquals(expectedSdk, "$sb");
-  Component component = new Component(libraries: <Library>[library]);
+  return new Component(libraries: <Library>[library]);
+}
+
+main() {
+  Uri uri = Uri.parse("dart:core");
+  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+  Component component = parseSdk(uri, environment);
   ClassHierarchy hierarchy = new ClassHierarchy(component);
   CoreTypes coreTypes = new CoreTypes(component);
   new KernelSubtypeTest(coreTypes, hierarchy, environment).run();

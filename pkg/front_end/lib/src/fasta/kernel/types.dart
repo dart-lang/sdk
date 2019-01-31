@@ -16,12 +16,17 @@ import 'package:kernel/ast.dart'
         TypedefType,
         VoidType;
 
-import 'class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+import '../dill/dill_loader.dart' show DillLoader;
+
+import 'kernel_builder.dart'
+    show ClassHierarchyBuilder, Declaration, KernelTypeBuilder;
 
 class Types {
   final ClassHierarchyBuilder hierarchy;
 
-  const Types(this.hierarchy);
+  DillLoader loader;
+
+  Types(this.hierarchy);
 
   /// Returns true if [s] is a subtype of [t].
   bool isSubtypeOfKernel(DartType s, DartType t) {
@@ -132,6 +137,26 @@ abstract class TypeRelation<T extends DartType> {
 
 class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   const IsInterfaceSubtypeOf();
+
+  bool isInterfaceRelated(InterfaceType s, InterfaceType t, Types types) {
+    KernelTypeBuilder sBuilder = types.loader.computeTypeBuilder(s);
+    KernelTypeBuilder tBuilder = types.loader.computeTypeBuilder(t);
+    var sNode = types.hierarchy.getNodeFromType(sBuilder);
+    var tNode = types.hierarchy.getNodeFromType(tBuilder);
+    List<KernelTypeBuilder> superclasses = sNode.superclasses;
+    int depth = tNode.depth;
+    Declaration superclass = tBuilder.declaration;
+    if (depth < superclasses.length) {
+      KernelTypeBuilder asInstanceOf = superclasses[depth];
+      if (asInstanceOf.declaration == superclass) {
+        return true;
+      }
+    }
+    for (KernelTypeBuilder interface_ in sNode.interfaces) {
+      if (interface_.declaration == superclass) return true;
+    }
+    return false;
+  }
 
   // TODO(ahe): Remove this method.
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
