@@ -701,26 +701,24 @@ class EnumListParameter : public MethodParameter {
             return -1;
           }
           bool valid_enum = false;
+          const char* id_start = cp;
+          while (IsEnumChar(*cp)) {
+            cp++;
+          }
+          if (cp == id_start) {
+            // Empty identifier, something like this [,].
+            return -1;
+          }
+          intptr_t id_len = cp - id_start;
           if (enums_ != NULL) {
             for (intptr_t i = 0; enums_[i] != NULL; i++) {
               intptr_t len = strlen(enums_[i]);
-              if (strncmp(cp, enums_[i], len) == 0) {
+              if (len == id_len && strncmp(id_start, enums_[i], len) == 0) {
                 element_count++;
                 valid_enum = true;
-                cp += len;
                 element_allowed = false;  // we need a comma first.
                 break;
               }
-            }
-          } else {
-            // Allow any identifiers
-            const char* id_start = cp;
-            while (IsEnumChar(*cp)) {
-              cp++;
-            }
-            if (cp == id_start) {
-              // Empty identifier, something like this [,].
-              return -1;
             }
           }
           if (!valid_enum) {
