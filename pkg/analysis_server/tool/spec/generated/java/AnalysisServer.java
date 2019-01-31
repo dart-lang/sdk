@@ -422,14 +422,27 @@ public interface AnalysisServer {
    * those sources. These edits may include changes to sources outside the set of specified sources
    * if a change in a specified source requires it.
    *
+   * If includedFixes is specified, then those fixes will be applied. If includeRequiredFixes is
+   * specified, then "required" fixes will be applied in addition to whatever fixes are specified in
+   * includedFixes if any. If neither includedFixes nor includeRequiredFixes is specified, then all
+   * fixes will be applied. If excludedFixes is specified, then those fixes will not be applied
+   * regardless of whether they are "required" or specified in includedFixes.
+   *
    * @param included A list of the files and directories for which edits should be suggested. If a
    *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
    *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
    *         file which does not exist, or which is not currently subject to analysis (e.g. because
    *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
    *         error of type FILE_NOT_ANALYZED will be generated.
+   * @param includedFixes A list of names indicating which fixes should be applied. If a name is
+   *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
+   *         be generated.
+   * @param includeRequiredFixes A flag indicating that "required" fixes should be applied.
+   * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
+   *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
+   *         be generated.
    */
-  public void edit_dartfix(List<String> included, DartfixConsumer consumer);
+  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includeRequiredFixes, List<String> excludedFixes, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}
@@ -476,6 +489,14 @@ public interface AnalysisServer {
    * @param length The length of the code on which the refactoring would be based.
    */
   public void edit_getAvailableRefactorings(String file, int offset, int length, GetAvailableRefactoringsConsumer consumer);
+
+  /**
+   * {@code edit.getDartfixInfo}
+   *
+   * Request information about edit.dartfix such as the list of known fixes that can be specified in
+   * an edit.dartfix request.
+   */
+  public void edit_getDartfixInfo(GetDartfixInfoConsumer consumer);
 
   /**
    * {@code edit.getFixes}

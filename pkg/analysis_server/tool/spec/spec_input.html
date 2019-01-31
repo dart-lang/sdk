@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.22.1</version>
+  <version>1.22.2</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1915,12 +1915,41 @@
       </field>
     </result>
   </request>
+  <request method="getDartfixInfo" experimental="true">
+    <p>
+      Request information about edit.dartfix
+      such as the list of known fixes that can be specified
+      in an edit.dartfix request.
+    </p>
+    <params>
+    </params>
+    <result>
+      <field name="fixes">
+        <list>
+          <ref>DartFix</ref>
+        </list>
+        <p>
+          A list of fixes that can be specified
+          in an edit.dartfix request.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="dartfix" experimental="true">
     <p>
       Analyze the specified sources for recommended changes
       and return a set of suggested edits for those sources.
       These edits may include changes to sources outside the set
       of specified sources if a change in a specified source requires it.
+    </p>
+    <p>
+      If includedFixes is specified, then those fixes will be applied.
+      If includeRequiredFixes is specified, then "required" fixes will be applied
+      in addition to whatever fixes are specified in includedFixes if any.
+      If neither includedFixes nor includeRequiredFixes is specified,
+      then all fixes will be applied.
+      If excludedFixes is specified, then those fixes will not be applied
+      regardless of whether they are "required" or specified in includedFixes.
     </p>
     <params>
       <field name="included">
@@ -1936,6 +1965,36 @@
           If a request is made for a file which does not exist, or which is not currently subject to analysis
           (e.g. because it is not associated with any analysis root specified to analysis.setAnalysisRoots),
           an error of type <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+      </field>
+      <field name="includedFixes" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of names indicating which fixes should be applied.
+        </p>
+        <p>
+          If a name is specified that does not match the name of a known fix,
+          an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+        </p>
+      </field>
+      <field name="includeRequiredFixes" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating that "required" fixes should be applied.
+        </p>
+      </field>
+      <field name="excludedFixes" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of names indicating which fixes should not be applied.
+        </p>
+        <p>
+          If a name is specified that does not match the name of a known fix,
+          an error of type <tt>UNKNOWN_FIX</tt> will be generated.
         </p>
       </field>
     </params>
@@ -4186,6 +4245,13 @@
         </p>
       </value>
       <value>
+        <code>UNKNOWN_FIX</code>
+        <p>
+          A dartfix request was received containing the name of a fix
+          which does not match the name of any known fixes.
+        </p>
+      </value>
+      <value>
         <code>UNKNOWN_REQUEST</code>
         <p>
           A request was received which the analysis server does
@@ -4214,6 +4280,31 @@
       An identifier used to associate search results with a search
       request.
     </p>
+  </type>
+  <type name="DartFix" experimental="true">
+    <p>
+      A "fix" that can be specified in an edit.dartfix request.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the fix.
+        </p>
+      </field>
+      <field name="description" optional="true">
+        <ref>String</ref>
+        <p>
+          A human readable description of the fix.
+        </p>
+      </field>
+      <field name="isRequired" optional="true">
+        <ref>bool</ref>
+        <p>
+          `true` if the fix is in the "required" fixes group.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="DartFixSuggestion" experimental="true">
     <p>

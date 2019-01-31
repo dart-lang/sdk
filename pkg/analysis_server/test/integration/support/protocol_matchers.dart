@@ -300,6 +300,19 @@ final Matcher isContextData =
         }));
 
 /**
+ * DartFix
+ *
+ * {
+ *   "name": String
+ *   "description": optional String
+ *   "isRequired": optional bool
+ * }
+ */
+final Matcher isDartFix = new LazyMatcher(() => new MatchesJsonObject(
+    "DartFix", {"name": isString},
+    optionalFields: {"description": isString, "isRequired": isBool}));
+
+/**
  * DartFixSuggestion
  *
  * {
@@ -1294,6 +1307,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
+ *   UNKNOWN_FIX
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
  * }
@@ -1325,6 +1339,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "SERVER_ERROR",
   "SORT_MEMBERS_INVALID_FILE",
   "SORT_MEMBERS_PARSE_ERRORS",
+  "UNKNOWN_FIX",
   "UNKNOWN_REQUEST",
   "UNSUPPORTED_FEATURE"
 ]);
@@ -2130,10 +2145,19 @@ final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
  *
  * {
  *   "included": List<FilePath>
+ *   "includedFixes": optional List<String>
+ *   "includeRequiredFixes": optional bool
+ *   "excludedFixes": optional List<String>
  * }
  */
-final Matcher isEditDartfixParams = new LazyMatcher(() => new MatchesJsonObject(
-    "edit.dartfix params", {"included": isListOf(isFilePath)}));
+final Matcher isEditDartfixParams =
+    new LazyMatcher(() => new MatchesJsonObject("edit.dartfix params", {
+          "included": isListOf(isFilePath)
+        }, optionalFields: {
+          "includedFixes": isListOf(isString),
+          "includeRequiredFixes": isBool,
+          "excludedFixes": isListOf(isString)
+        }));
 
 /**
  * edit.dartfix result
@@ -2231,6 +2255,26 @@ final Matcher isEditGetAvailableRefactoringsParams = new LazyMatcher(() =>
 final Matcher isEditGetAvailableRefactoringsResult = new LazyMatcher(() =>
     new MatchesJsonObject("edit.getAvailableRefactorings result",
         {"kinds": isListOf(isRefactoringKind)}));
+
+/**
+ * edit.getDartfixInfo params
+ *
+ * {
+ * }
+ */
+final Matcher isEditGetDartfixInfoParams = new LazyMatcher(
+    () => new MatchesJsonObject("edit.getDartfixInfo params", null));
+
+/**
+ * edit.getDartfixInfo result
+ *
+ * {
+ *   "fixes": List<DartFix>
+ * }
+ */
+final Matcher isEditGetDartfixInfoResult = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "edit.getDartfixInfo result", {"fixes": isListOf(isDartFix)}));
 
 /**
  * edit.getFixes params

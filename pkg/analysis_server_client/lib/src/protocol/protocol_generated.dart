@@ -5877,6 +5877,132 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 }
 
 /**
+ * DartFix
+ *
+ * {
+ *   "name": String
+ *   "description": optional String
+ *   "isRequired": optional bool
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DartFix implements HasToJson {
+  String _name;
+
+  String _description;
+
+  bool _isRequired;
+
+  /**
+   * The name of the fix.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the fix.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * A human readable description of the fix.
+   */
+  String get description => _description;
+
+  /**
+   * A human readable description of the fix.
+   */
+  void set description(String value) {
+    this._description = value;
+  }
+
+  /**
+   * `true` if the fix is in the "required" fixes group.
+   */
+  bool get isRequired => _isRequired;
+
+  /**
+   * `true` if the fix is in the "required" fixes group.
+   */
+  void set isRequired(bool value) {
+    this._isRequired = value;
+  }
+
+  DartFix(String name, {String description, bool isRequired}) {
+    this.name = name;
+    this.description = description;
+    this.isRequired = isRequired;
+  }
+
+  factory DartFix.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      String description;
+      if (json.containsKey("description")) {
+        description = jsonDecoder.decodeString(
+            jsonPath + ".description", json["description"]);
+      }
+      bool isRequired;
+      if (json.containsKey("isRequired")) {
+        isRequired = jsonDecoder.decodeBool(
+            jsonPath + ".isRequired", json["isRequired"]);
+      }
+      return new DartFix(name,
+          description: description, isRequired: isRequired);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "DartFix", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    if (description != null) {
+      result["description"] = description;
+    }
+    if (isRequired != null) {
+      result["isRequired"] = isRequired;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is DartFix) {
+      return name == other.name &&
+          description == other.description &&
+          isRequired == other.isRequired;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, description.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isRequired.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * DartFixSuggestion
  *
  * {
@@ -6214,12 +6340,21 @@ class DiagnosticGetServerPortResult implements ResponseResult {
  *
  * {
  *   "included": List<FilePath>
+ *   "includedFixes": optional List<String>
+ *   "includeRequiredFixes": optional bool
+ *   "excludedFixes": optional List<String>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditDartfixParams implements RequestParams {
   List<String> _included;
+
+  List<String> _includedFixes;
+
+  bool _includeRequiredFixes;
+
+  List<String> _excludedFixes;
 
   /**
    * A list of the files and directories for which edits should be suggested.
@@ -6248,8 +6383,62 @@ class EditDartfixParams implements RequestParams {
     this._included = value;
   }
 
-  EditDartfixParams(List<String> included) {
+  /**
+   * A list of names indicating which fixes should be applied.
+   *
+   * If a name is specified that does not match the name of a known fix, an
+   * error of type UNKNOWN_FIX will be generated.
+   */
+  List<String> get includedFixes => _includedFixes;
+
+  /**
+   * A list of names indicating which fixes should be applied.
+   *
+   * If a name is specified that does not match the name of a known fix, an
+   * error of type UNKNOWN_FIX will be generated.
+   */
+  void set includedFixes(List<String> value) {
+    this._includedFixes = value;
+  }
+
+  /**
+   * A flag indicating that "required" fixes should be applied.
+   */
+  bool get includeRequiredFixes => _includeRequiredFixes;
+
+  /**
+   * A flag indicating that "required" fixes should be applied.
+   */
+  void set includeRequiredFixes(bool value) {
+    this._includeRequiredFixes = value;
+  }
+
+  /**
+   * A list of names indicating which fixes should not be applied.
+   *
+   * If a name is specified that does not match the name of a known fix, an
+   * error of type UNKNOWN_FIX will be generated.
+   */
+  List<String> get excludedFixes => _excludedFixes;
+
+  /**
+   * A list of names indicating which fixes should not be applied.
+   *
+   * If a name is specified that does not match the name of a known fix, an
+   * error of type UNKNOWN_FIX will be generated.
+   */
+  void set excludedFixes(List<String> value) {
+    this._excludedFixes = value;
+  }
+
+  EditDartfixParams(List<String> included,
+      {List<String> includedFixes,
+      bool includeRequiredFixes,
+      List<String> excludedFixes}) {
     this.included = included;
+    this.includedFixes = includedFixes;
+    this.includeRequiredFixes = includeRequiredFixes;
+    this.excludedFixes = excludedFixes;
   }
 
   factory EditDartfixParams.fromJson(
@@ -6265,7 +6454,25 @@ class EditDartfixParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "included");
       }
-      return new EditDartfixParams(included);
+      List<String> includedFixes;
+      if (json.containsKey("includedFixes")) {
+        includedFixes = jsonDecoder.decodeList(jsonPath + ".includedFixes",
+            json["includedFixes"], jsonDecoder.decodeString);
+      }
+      bool includeRequiredFixes;
+      if (json.containsKey("includeRequiredFixes")) {
+        includeRequiredFixes = jsonDecoder.decodeBool(
+            jsonPath + ".includeRequiredFixes", json["includeRequiredFixes"]);
+      }
+      List<String> excludedFixes;
+      if (json.containsKey("excludedFixes")) {
+        excludedFixes = jsonDecoder.decodeList(jsonPath + ".excludedFixes",
+            json["excludedFixes"], jsonDecoder.decodeString);
+      }
+      return new EditDartfixParams(included,
+          includedFixes: includedFixes,
+          includeRequiredFixes: includeRequiredFixes,
+          excludedFixes: excludedFixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix params", json);
     }
@@ -6280,6 +6487,15 @@ class EditDartfixParams implements RequestParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["included"] = included;
+    if (includedFixes != null) {
+      result["includedFixes"] = includedFixes;
+    }
+    if (includeRequiredFixes != null) {
+      result["includeRequiredFixes"] = includeRequiredFixes;
+    }
+    if (excludedFixes != null) {
+      result["excludedFixes"] = excludedFixes;
+    }
     return result;
   }
 
@@ -6295,7 +6511,12 @@ class EditDartfixParams implements RequestParams {
   bool operator ==(other) {
     if (other is EditDartfixParams) {
       return listEqual(
-          included, other.included, (String a, String b) => a == b);
+              included, other.included, (String a, String b) => a == b) &&
+          listEqual(includedFixes, other.includedFixes,
+              (String a, String b) => a == b) &&
+          includeRequiredFixes == other.includeRequiredFixes &&
+          listEqual(excludedFixes, other.excludedFixes,
+              (String a, String b) => a == b);
     }
     return false;
   }
@@ -6304,6 +6525,9 @@ class EditDartfixParams implements RequestParams {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includedFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includeRequiredFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, excludedFixes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -7262,6 +7486,152 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, kinds.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.getDartfixInfo params
+ *
+ * {
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditGetDartfixInfoParams implements RequestParams {
+  EditGetDartfixInfoParams();
+
+  factory EditGetDartfixInfoParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      return new EditGetDartfixInfoParams();
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.getDartfixInfo params", json);
+    }
+  }
+
+  factory EditGetDartfixInfoParams.fromRequest(Request request) {
+    return new EditGetDartfixInfoParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.getDartfixInfo", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditGetDartfixInfoParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.getDartfixInfo result
+ *
+ * {
+ *   "fixes": List<DartFix>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditGetDartfixInfoResult implements ResponseResult {
+  List<DartFix> _fixes;
+
+  /**
+   * A list of fixes that can be specified in an edit.dartfix request.
+   */
+  List<DartFix> get fixes => _fixes;
+
+  /**
+   * A list of fixes that can be specified in an edit.dartfix request.
+   */
+  void set fixes(List<DartFix> value) {
+    assert(value != null);
+    this._fixes = value;
+  }
+
+  EditGetDartfixInfoResult(List<DartFix> fixes) {
+    this.fixes = fixes;
+  }
+
+  factory EditGetDartfixInfoResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<DartFix> fixes;
+      if (json.containsKey("fixes")) {
+        fixes = jsonDecoder.decodeList(
+            jsonPath + ".fixes",
+            json["fixes"],
+            (String jsonPath, Object json) =>
+                new DartFix.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "fixes");
+      }
+      return new EditGetDartfixInfoResult(fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.getDartfixInfo result", json);
+    }
+  }
+
+  factory EditGetDartfixInfoResult.fromResponse(Response response) {
+    return new EditGetDartfixInfoResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["fixes"] = fixes.map((DartFix value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditGetDartfixInfoResult) {
+      return listEqual(fixes, other.fixes, (DartFix a, DartFix b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -15953,6 +16323,7 @@ class RequestError implements HasToJson {
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
+ *   UNKNOWN_FIX
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
  * }
@@ -16143,6 +16514,13 @@ class RequestErrorCode implements Enum {
       const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
+   * A dartfix request was received containing the name of a fix which does not
+   * match the name of any known fixes.
+   */
+  static const RequestErrorCode UNKNOWN_FIX =
+      const RequestErrorCode._("UNKNOWN_FIX");
+
+  /**
    * A request was received which the analysis server does not recognize, or
    * cannot handle in its current configuration.
    */
@@ -16189,6 +16567,7 @@ class RequestErrorCode implements Enum {
     SERVER_ERROR,
     SORT_MEMBERS_INVALID_FILE,
     SORT_MEMBERS_PARSE_ERRORS,
+    UNKNOWN_FIX,
     UNKNOWN_REQUEST,
     UNSUPPORTED_FEATURE
   ];
@@ -16252,6 +16631,8 @@ class RequestErrorCode implements Enum {
         return SORT_MEMBERS_INVALID_FILE;
       case "SORT_MEMBERS_PARSE_ERRORS":
         return SORT_MEMBERS_PARSE_ERRORS;
+      case "UNKNOWN_FIX":
+        return UNKNOWN_FIX;
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
       case "UNSUPPORTED_FEATURE":

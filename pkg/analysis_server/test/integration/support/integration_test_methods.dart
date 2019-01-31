@@ -1482,10 +1482,37 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Request information about edit.dartfix such as the list of known fixes
+   * that can be specified in an edit.dartfix request.
+   *
+   * Parameters
+   *
+   * Returns
+   *
+   * fixes: List<DartFix>
+   *
+   *   A list of fixes that can be specified in an edit.dartfix request.
+   */
+  Future<EditGetDartfixInfoResult> sendEditGetDartfixInfo() async {
+    var params = new EditGetDartfixInfoParams().toJson();
+    var result = await server.send("edit.getDartfixInfo", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetDartfixInfoResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Analyze the specified sources for recommended changes and return a set of
    * suggested edits for those sources. These edits may include changes to
    * sources outside the set of specified sources if a change in a specified
    * source requires it.
+   *
+   * If includedFixes is specified, then those fixes will be applied. If
+   * includeRequiredFixes is specified, then "required" fixes will be applied
+   * in addition to whatever fixes are specified in includedFixes if any. If
+   * neither includedFixes nor includeRequiredFixes is specified, then all
+   * fixes will be applied. If excludedFixes is specified, then those fixes
+   * will not be applied regardless of whether they are "required" or specified
+   * in includedFixes.
    *
    * Parameters
    *
@@ -1500,6 +1527,24 @@ abstract class IntegrationTestMixin {
    *   associated with any analysis root specified to
    *   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
    *   generated.
+   *
+   * includedFixes: List<String> (optional)
+   *
+   *   A list of names indicating which fixes should be applied.
+   *
+   *   If a name is specified that does not match the name of a known fix, an
+   *   error of type UNKNOWN_FIX will be generated.
+   *
+   * includeRequiredFixes: bool (optional)
+   *
+   *   A flag indicating that "required" fixes should be applied.
+   *
+   * excludedFixes: List<String> (optional)
+   *
+   *   A list of names indicating which fixes should not be applied.
+   *
+   *   If a name is specified that does not match the name of a known fix, an
+   *   error of type UNKNOWN_FIX will be generated.
    *
    * Returns
    *
@@ -1522,8 +1567,15 @@ abstract class IntegrationTestMixin {
    *
    *   A list of source edits to apply the recommended changes.
    */
-  Future<EditDartfixResult> sendEditDartfix(List<String> included) async {
-    var params = new EditDartfixParams(included).toJson();
+  Future<EditDartfixResult> sendEditDartfix(List<String> included,
+      {List<String> includedFixes,
+      bool includeRequiredFixes,
+      List<String> excludedFixes}) async {
+    var params = new EditDartfixParams(included,
+            includedFixes: includedFixes,
+            includeRequiredFixes: includeRequiredFixes,
+            excludedFixes: excludedFixes)
+        .toJson();
     var result = await server.send("edit.dartfix", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditDartfixResult.fromJson(decoder, 'result', result);
