@@ -2914,6 +2914,30 @@ void main() {new C().^}''');
     assertNotSuggested('==');
   }
 
+  test_mixin() async {
+    addTestSource(r'''
+class A {
+  void a() {}
+}
+
+class B {
+  void b() {}
+}
+
+mixin X on A, B {
+  void x() {}
+}
+
+void f(X x) {
+  x.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', 'A', 'void');
+    assertSuggestMethod('b', 'B', 'void');
+    assertSuggestMethod('x', 'X', 'void');
+  }
+
   test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
