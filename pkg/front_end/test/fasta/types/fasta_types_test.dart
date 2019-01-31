@@ -4,7 +4,7 @@
 
 import "package:async_helper/async_helper.dart" show asyncTest;
 
-import "package:expect/expect.dart" show Expect;
+import "package:expect/expect.dart" show Expect, ExpectException;
 
 import "package:kernel/ast.dart" show Component, DartType;
 
@@ -57,10 +57,10 @@ main() {
     bool threw = false;
     try {
       new FastaTypesTest(hierarchy, environment).run();
-    } on NoSuchMethodError catch (e) {
+    } on ExpectException catch (e) {
       // TODO(ahe): Remove this when the the subtype implementation is complete.
-      if (!"$e".contains(
-          "Class 'IsFunctionSubtypeOf' has no instance method 'isFunctionRelated'")) {
+      if (e.message !=
+          "Expect.isTrue(false, 'int should be a subtype of FutureOr<int>.') fails.") {
         rethrow;
       }
       threw = true;

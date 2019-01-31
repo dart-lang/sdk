@@ -12,6 +12,8 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         InvalidType,
+        NamedType,
+        TypeParameter,
         TypeParameterType,
         TypedefType,
         VoidType;
@@ -116,12 +118,23 @@ class Types {
   }
 
   /// Returns true if all types in [s] and [t] pairwise are subtypes.
-  bool areArgumentsSubtypesKernel(List<DartType> s, List<DartType> t) {
+  bool areSubtypesOfKernel(List<DartType> s, List<DartType> t) {
     if (s.length != t.length) {
       throw "Numbers of type arguments don't match.";
     }
     for (int i = 0; i < s.length; i++) {
       if (!isSubtypeOfKernel(s[i], t[i])) return false;
+    }
+    return true;
+  }
+
+  bool areNamedSubtypesOfKernel(List<NamedType> s, List<NamedType> t) {
+    if (s.length != t.length) {
+      throw "Numbers of named arguments don't match.";
+    }
+    for (int i = 0; i < s.length; i++) {
+      if (s[i].name != t[i].name) return false;
+      if (!isSubtypeOfKernel(s[i].type, t[i].type)) return false;
     }
     return true;
   }
@@ -146,9 +159,10 @@ abstract class TypeRelation<T extends DartType> {
 class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   const IsInterfaceSubtypeOf();
 
+  @override
   bool isInterfaceRelated(InterfaceType s, InterfaceType t, Types types) {
     if (s.classNode == t.classNode) {
-      return types.areArgumentsSubtypesKernel(s.typeArguments, t.typeArguments);
+      return types.areSubtypesOfKernel(s.typeArguments, t.typeArguments);
     }
     KernelNamedTypeBuilder supertype =
         types.hierarchy.asSupertypeOf(s.classNode, t.classNode);
@@ -156,8 +170,14 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     if (supertype.arguments == null) return true;
     InterfaceType asSupertype =
         Substitution.fromInterfaceType(s).substituteType(supertype.build(null));
-    return types.areArgumentsSubtypesKernel(
+    return types.areSubtypesOfKernel(
         asSupertype.typeArguments, t.typeArguments);
+  }
+
+  @override
+  bool isTypeParameterRelated(
+      TypeParameterType s, InterfaceType t, Types types) {
+    return types.isSubtypeOfKernel(s.parameter.bound, t);
   }
 
   // TODO(ahe): Remove this method.
@@ -167,12 +187,64 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
 class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   const IsFunctionSubtypeOf();
 
+  @override
+  bool isFunctionRelated(FunctionType s, FunctionType t, Types types) {
+    List<TypeParameter> sTypeVariables = s.typeParameters;
+    List<TypeParameter> tTypeVariables = t.typeParameters;
+    if (sTypeVariables.length != tTypeVariables.length) return false;
+    if (sTypeVariables.isNotEmpty) {
+      // If the function types have type variables, we alpha-rename the type
+      // variables of [s] to use those of [t].
+      List<DartType> typeVariableSubstitution = <DartType>[];
+      bool secondBoundsCheckNeeded = false;
+      for (int i = 0; i < sTypeVariables.length; i++) {
+        TypeParameter sTypeVariable = sTypeVariables[i];
+        TypeParameter tTypeVariable = tTypeVariables[i];
+        if (sTypeVariable.bound != tTypeVariable.bound) {
+          // If the bounds aren't the same, we need to try again after
+          // computing the substitution of type variables.
+          secondBoundsCheckNeeded = true;
+        }
+        typeVariableSubstitution.add(new TypeParameterType(tTypeVariable));
+      }
+      Substitution substitution =
+          Substitution.fromPairs(sTypeVariables, typeVariableSubstitution);
+      if (secondBoundsCheckNeeded) {
+        for (int i = 0; i < sTypeVariables.length; i++) {
+          TypeParameter sTypeVariable = sTypeVariables[i];
+          TypeParameter tTypeVariable = tTypeVariables[i];
+          if (substitution.substituteType(sTypeVariable.bound) !=
+              tTypeVariable.bound) {
+            return false;
+          }
+        }
+      }
+      s = substitution.substituteType(s.withoutTypeParameters);
+    }
+    if (!types.isSubtypeOfKernel(s.returnType, t.returnType)) {
+      return false;
+    } else if (!types.areSubtypesOfKernel(
+        t.positionalParameters, s.positionalParameters)) {
+      return false;
+    } else if (!types.areNamedSubtypesOfKernel(
+        t.namedParameters, s.namedParameters)) {
+      return false;
+    }
+    return true;
+  }
+
   // TODO(ahe): Remove this method.
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
 }
 
 class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   const IsTypeParameterSubtypeOf();
+
+  @override
+  bool isTypeParameterRelated(
+      TypeParameterType s, TypeParameterType t, Types types) {
+    return s.parameter == t.parameter;
+  }
 
   // TODO(ahe): Remove this method.
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
