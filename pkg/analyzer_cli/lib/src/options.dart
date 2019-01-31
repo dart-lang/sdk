@@ -150,6 +150,10 @@ class CommandLineOptions {
   /// Dart analyzer snapshot.
   final bool trainSnapshot;
 
+  /// Path to a file to dump summary dependency information to for any given
+  /// build.
+  final String summaryDepsOutput;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = cast(args['build-analysis-output']),
@@ -191,7 +195,8 @@ class CommandLineOptions {
         lintsAreFatal = cast(args['fatal-lints']),
         trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
-        color = cast(args['color']);
+        color = cast(args['color']),
+        summaryDepsOutput = cast(args['summary-deps-output']);
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -405,6 +410,9 @@ class CommandLineOptions {
       ..addFlag('color',
           help: 'Use ansi colors when printing messages.',
           defaultsTo: ansi.terminalSupportsAnsi(),
+          hide: hide)
+      ..addOption('summary-deps-output',
+          help: 'Path to a file to dump summary dependency info to.',
           hide: hide);
 
     // Hidden flags.
