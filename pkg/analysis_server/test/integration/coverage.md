@@ -30,8 +30,12 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] analysis.overrides
 
 ## completion domain
+- [ ] completion.availableSuggestions
+- [ ] completion.getSuggestionDetails
 - [x] completion.getSuggestions
+- [ ] completion.registerLibraryPaths
 - [ ] completion.results
+- [ ] completion.setSubscriptions
 
 ## diagnostic domain
 - [x] diagnostic.getDiagnostics
