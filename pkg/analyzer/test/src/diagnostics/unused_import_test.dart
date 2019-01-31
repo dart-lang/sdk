@@ -10,11 +10,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnusedImportTest_Driver);
+    defineReflectiveTests(UnusedImportTest);
   });
 }
 
-abstract class UnusedImportTest extends ResolverTestCase {
+@reflectiveTest
+class UnusedImportTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_annotationOnDirective() async {
     Source source = addSource(r'''
 library L;
@@ -310,10 +314,4 @@ library lib1;
     assertNoErrors(source2);
     verify([source, source2]);
   }
-}
-
-@reflectiveTest
-class UnusedImportTest_Driver extends UnusedImportTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -9,11 +9,12 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryCastTest_Driver);
+    defineReflectiveTests(UnnecessaryCastTest);
   });
 }
 
-abstract class UnnecessaryCastTest extends ResolverTestCase {
+@reflectiveTest
+class UnnecessaryCastTest extends ResolverTestCase {
   test_conditionalExpression() async {
     await assertNoErrorsInCode(r'''
 abstract class I {}
@@ -56,17 +57,6 @@ class B<T extends A> {
 ''');
   }
 
-  test_generics() async {
-    // dartbug.com/18953
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-Future<int> f() => new Future.value(0);
-void g(bool c) {
-  (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
-}
-''');
-  }
-
   test_parameter_A() async {
     // dartbug.com/13855, dartbug.com/13732
     await assertNoErrorsInCode(r'''
@@ -105,14 +95,10 @@ m(num i) {
 }
 ''', [HintCode.UNNECESSARY_CAST]);
   }
-}
 
-@reflectiveTest
-class UnnecessaryCastTest_Driver extends UnnecessaryCastTest {
   @override
   bool get enableNewAnalysisDriver => true;
 
-  @override
   test_generics() async {
     // dartbug.com/18953
     assertErrorsInCode(r'''

@@ -9,11 +9,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DivisionOptimizationTest_Driver);
+    defineReflectiveTests(DivisionOptimizationTest);
   });
 }
 
-abstract class DivisionOptimizationTest extends ResolverTestCase {
+@reflectiveTest
+class DivisionOptimizationTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_divisionOptimization() async {
     await assertNoErrorsInCode(r'''
 f(int x, int y) {
@@ -64,10 +68,4 @@ f(int x, int y) {
 }
 ''', [HintCode.DIVISION_OPTIMIZATION]);
   }
-}
-
-@reflectiveTest
-class DivisionOptimizationTest_Driver extends DivisionOptimizationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

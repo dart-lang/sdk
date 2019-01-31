@@ -9,11 +9,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnusedFieldTest_Driver);
+    defineReflectiveTests(UnusedFieldTest);
   });
 }
 
-abstract class UnusedFieldTest extends ResolverTestCase {
+@reflectiveTest
+class UnusedFieldTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   bool get enableUnusedElement => true;
 
@@ -187,10 +191,4 @@ main(A a) {
 }
 ''', [HintCode.UNUSED_FIELD]);
   }
-}
-
-@reflectiveTest
-class UnusedFieldTest_Driver extends UnusedFieldTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

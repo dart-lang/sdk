@@ -9,11 +9,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ArgumentTypeNotAssignableTest_Driver);
+    defineReflectiveTests(ArgumentTypeNotAssignableTest);
   });
 }
 
-abstract class ArgumentTypeNotAssignableTest extends ResolverTestCase {
+@reflectiveTest
+class ArgumentTypeNotAssignableTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_functionType() async {
     await assertErrorsInCode(r'''
 m() {
@@ -35,11 +39,4 @@ m() {
 n(int i) {}
 ''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
   }
-}
-
-@reflectiveTest
-class ArgumentTypeNotAssignableTest_Driver
-    extends ArgumentTypeNotAssignableTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

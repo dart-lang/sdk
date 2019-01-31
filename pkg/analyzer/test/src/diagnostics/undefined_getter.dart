@@ -10,12 +10,14 @@ import '../../generated/resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedGetterTest);
-    defineReflectiveTests(UndefinedGetterTest_Driver);
   });
 }
 
 @reflectiveTest
 class UndefinedGetterTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_promotedTypeParameter_regress35305() async {
     await assertErrorsInCode(r'''
 void f<X extends num, Y extends X>(Y y) {
@@ -25,10 +27,4 @@ void f<X extends num, Y extends X>(Y y) {
 }
 ''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
   }
-}
-
-@reflectiveTest
-class UndefinedGetterTest_Driver extends UndefinedGetterTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

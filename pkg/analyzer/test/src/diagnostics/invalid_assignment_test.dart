@@ -9,11 +9,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidAssignmentTest_Driver);
+    defineReflectiveTests(InvalidAssignmentTest);
   });
 }
 
-abstract class InvalidAssignmentTest extends ResolverTestCase {
+@reflectiveTest
+class InvalidAssignmentTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_instanceVariable() async {
     await assertErrorsInCode(r'''
 class A {
@@ -101,10 +105,4 @@ main() {
 }
 ''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
-}
-
-@reflectiveTest
-class InvalidAssignmentTest_Driver extends InvalidAssignmentTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
