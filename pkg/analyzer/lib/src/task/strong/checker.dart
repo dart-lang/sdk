@@ -1379,7 +1379,6 @@ class CodeChecker extends RecursiveAstVisitor {
     n.accept(new _TopLevelInitializerValidator(this, name));
   }
 
-  @override
   void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
     // Safely handle malformed statements.
     if (loopVariable == null) {
