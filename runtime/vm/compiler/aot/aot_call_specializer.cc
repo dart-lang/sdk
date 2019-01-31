@@ -416,7 +416,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
 }
 
 // Modulo against a constant power-of-two can be optimized into a mask.
-// x % y -> x & (y - 1)
+// x % y -> x & (|y| - 1)  for smi masks only
 Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
                                                Token::Kind op_kind,
                                                Value* left_value,
@@ -426,8 +426,11 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
   }
 
   const Object& rhs = right_value->BoundConstant();
-  int64_t modulus = Utils::Abs(rhs.IsSmi() ? Smi::Cast(rhs).Value()
-                                           : Mint::Cast(rhs).value());
+  const int64_t value = Integer::Cast(rhs).AsInt64Value();  // smi and mint
+  if (value == kMinInt64) {
+    return nullptr;  // non-smi mask
+  }
+  const int64_t modulus = Utils::Abs(value);
   if (!Utils::IsPowerOfTwo(modulus) || !Smi::IsValid(modulus - 1)) {
     return nullptr;
   }
