@@ -1767,6 +1767,45 @@ class F {}
     }
   }
 
+  test_subtypes_mixin_superclassConstraints() async {
+    await _resolveTestUnit('''
+class A {
+  void methodA() {}
+}
+
+class B {
+  void methodB() {}
+}
+
+mixin M on A, B {
+  void methodA() {}
+  void methodM() {}
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+
+    {
+      var subtypes = await driver.search.subtypes(type: a);
+      expect(subtypes, hasLength(1));
+
+      var m = subtypes.singleWhere((r) => r.name == 'M');
+      expect(m.libraryUri, testUri);
+      expect(m.id, '$testUri;$testUri;M');
+      expect(m.members, ['methodA', 'methodM']);
+    }
+
+    {
+      var subtypes = await driver.search.subtypes(type: b);
+      expect(subtypes, hasLength(1));
+
+      var m = subtypes.singleWhere((r) => r.name == 'M');
+      expect(m.libraryUri, testUri);
+      expect(m.id, '$testUri;$testUri;M');
+      expect(m.members, ['methodA', 'methodM']);
+    }
+  }
+
   test_subtypes_discover() async {
     var pathT = convertPath('/test/lib/t.dart');
     var pathA = convertPath('/aaa/lib/a.dart');

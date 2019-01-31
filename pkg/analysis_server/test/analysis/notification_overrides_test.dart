@@ -305,6 +305,38 @@ class C extends B {
     assertHasInterfaceMember('m() {} // in A');
   }
 
+  test_inMixin_interface_method_direct_single() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+
+mixin M implements A {
+  m() {} // in M
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in M');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
+  }
+
+  test_inMixin_superclassConstraint_method_direct() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+
+mixin M on A {
+  m() {} // in M
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in M');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
   test_interface_method_direct_multiple() async {
     addTestFile('''
 class IA {
