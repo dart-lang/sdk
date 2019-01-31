@@ -1439,16 +1439,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    Expression initializer = node.initializer;
-    _inferLocalVariableType(node, initializer);
-    if (initializer != null) {
-      DartType rightType = initializer.staticType;
-      SimpleIdentifier name = node.name;
-      VariableElement element = name.staticElement as VariableElement;
-      if (element != null) {
-        _resolver.overrideVariable(element, rightType, true);
-      }
-    }
+    _inferLocalVariableType(node, node.initializer);
   }
 
   /**

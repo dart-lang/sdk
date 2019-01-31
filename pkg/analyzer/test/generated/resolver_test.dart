@@ -45,7 +45,6 @@ main() {
     defineReflectiveTests(LibraryScopeTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
-    defineReflectiveTests(TypeOverrideManagerTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
   });
@@ -744,68 +743,6 @@ int f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-  }
-}
-
-@reflectiveTest
-class TypeOverrideManagerTest extends EngineTestCase {
-  void test_exitScope_noScopes() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    expect(() {
-      manager.exitScope();
-    }, throwsStateError);
-  }
-
-  void test_exitScope_oneScope() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    manager.enterScope();
-    manager.exitScope();
-    expect(() {
-      manager.exitScope();
-    }, throwsStateError);
-  }
-
-  void test_exitScope_twoScopes() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    manager.enterScope();
-    manager.exitScope();
-    manager.enterScope();
-    manager.exitScope();
-    expect(() {
-      manager.exitScope();
-    }, throwsStateError);
-  }
-
-  void test_getType_enclosedOverride() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    LocalVariableElementImpl element =
-        ElementFactory.localVariableElement2("v");
-    InterfaceType type = ElementFactory.classElement2("C").type;
-    manager.enterScope();
-    manager.setType(element, type);
-    manager.enterScope();
-    expect(manager.getType(element), same(type));
-  }
-
-  void test_getType_immediateOverride() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    LocalVariableElementImpl element =
-        ElementFactory.localVariableElement2("v");
-    InterfaceType type = ElementFactory.classElement2("C").type;
-    manager.enterScope();
-    manager.setType(element, type);
-    expect(manager.getType(element), same(type));
-  }
-
-  void test_getType_noOverride() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    manager.enterScope();
-    expect(manager.getType(ElementFactory.localVariableElement2("v")), isNull);
-  }
-
-  void test_getType_noScope() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    expect(manager.getType(ElementFactory.localVariableElement2("v")), isNull);
   }
 }
 

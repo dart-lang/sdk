@@ -3432,7 +3432,6 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
         visitor.prepareToResolveMembersInClass(
             resolutionContext.enclosingClassDeclaration);
       }
-      visitor.initForIncrementalResolution();
       initializer.accept(visitor);
       DartType newType = initializer.staticType;
       if (newType == null || newType.isBottom || newType.isDartCoreNull) {

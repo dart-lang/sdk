@@ -3829,18 +3829,13 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
 
   /// Resolve the instance fields in the given compilation unit [node].
   void resolveCompilationUnit(CompilationUnit node) {
-    _overrideManager.enterScope();
-    try {
-      NodeList<CompilationUnitMember> declarations = node.declarations;
-      int declarationCount = declarations.length;
-      for (int i = 0; i < declarationCount; i++) {
-        CompilationUnitMember declaration = declarations[i];
-        if (declaration is ClassDeclaration) {
-          _resolveClassDeclaration(declaration);
-        }
+    NodeList<CompilationUnitMember> declarations = node.declarations;
+    int declarationCount = declarations.length;
+    for (int i = 0; i < declarationCount; i++) {
+      CompilationUnitMember declaration = declarations[i];
+      if (declaration is ClassDeclaration) {
+        _resolveClassDeclaration(declaration);
       }
-    } finally {
-      _overrideManager.exitScope();
     }
   }
 
@@ -4193,10 +4188,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   InferenceContext inferenceContext = null;
 
-  /// The object keeping track of which elements have had their types
-  /// overridden.
-  TypeOverrideManager _overrideManager = new TypeOverrideManager();
-
   /// The object keeping track of which elements have had their types promoted.
   TypePromotionManager _promoteManager = new TypePromotionManager();
 
@@ -4257,13 +4248,6 @@ class ResolverVisitor extends ScopedVisitor {
   ExecutableElement get enclosingFunction => _enclosingFunction;
 
   /// Return the object keeping track of which elements have had their types
-  /// overridden.
-  ///
-  /// @return the object keeping track of which elements have had their types
-  ///         overridden
-  TypeOverrideManager get overrideManager => _overrideManager;
-
-  /// Return the object keeping track of which elements have had their types
   /// promoted.
   ///
   /// @return the object keeping track of which elements have had their types
@@ -4307,11 +4291,6 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
-  }
-
-  /// Prepares this [ResolverVisitor] to using it for incremental resolution.
-  void initForIncrementalResolution() {
-    _overrideManager.enterScope();
   }
 
   /// Given a downward inference type [fnType], and the declared
@@ -4368,66 +4347,6 @@ class ResolverVisitor extends ScopedVisitor {
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
     // TODO(brianwilkerson) Remove this method.
-  }
-
-  /// If it is appropriate to do so, override the current type of the given
-  /// element with the given type.
-  ///
-  /// @param element the element whose type might be overridden
-  /// @param potentialType the potential type of the element
-  /// @param allowPrecisionLoss true if `potentialType` is allowed to be less
-  ///        precise than the current best type
-  ///
-  /// Return a new better [DartType], or `null` if [potentialType] is not better
-  /// than the current [element] type.
-  DartType overrideVariable(VariableElement element, DartType potentialType,
-      bool allowPrecisionLoss) {
-    // TODO(scheglov) type propagation for instance/top-level fields
-    // was disabled because it depends on the order or visiting.
-    // If both field and its client are in the same unit, and we visit
-    // the client before the field, then propagated type is not set yet.
-    if (element is PropertyInducingElement) {
-      return null;
-    }
-
-    if (potentialType == null ||
-        potentialType.isBottom ||
-        potentialType.isDartCoreNull) {
-      return null;
-    }
-    DartType currentType = _overrideManager.getBestType(element);
-
-    if (potentialType == currentType) {
-      return null;
-    }
-
-    // If we aren't allowing precision loss then the third and fourth conditions
-    // check that we aren't losing precision.
-    //
-    // Let [C] be the current type and [P] be the potential type.  When we
-    // aren't allowing precision loss -- which is the case for is-checks -- we
-    // check that [! (C << P)] or  [P << C]. The second check, that [P << C], is
-    // analogous to part of the Dart Language Spec rule for type promotion under
-    // is-checks (in the analogy [T] is [P] and [S] is [C]):
-    //
-    //   An is-expression of the form [v is T] shows that [v] has type [T] iff
-    //   [T] is more specific than the type [S] of the expression [v] and both
-    //   [T != dynamic] and [S != dynamic].
-    //
-    // It also covers an important case that is not applicable in the spec:
-    // for union types, we want an is-check to promote from an union type to
-    // (a subtype of) any of its members.
-    //
-    // The first check, that [! (C << P)], covers the case where [P] and [C] are
-    // unrelated types; This case is not addressed in the spec for static types.
-    if (currentType == null ||
-        allowPrecisionLoss ||
-        !typeSystem.isMoreSpecificThan(currentType, potentialType) ||
-        typeSystem.isMoreSpecificThan(potentialType, currentType)) {
-      _overrideManager.setType(element, potentialType);
-      return potentialType;
-    }
-    return null;
   }
 
   /// A client is about to resolve a member in the given class declaration.
@@ -4560,23 +4479,18 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
-        _overrideManager.enterScope();
+        _promoteManager.enterScope();
         try {
-          _promoteManager.enterScope();
-          try {
-            // Type promotion.
-            _promoteTypes(leftOperand);
-            _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
-            _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-            _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-                rightOperand);
-            // Visit right operand.
-            rightOperand.accept(this);
-          } finally {
-            _promoteManager.exitScope();
-          }
+          // Type promotion.
+          _promoteTypes(leftOperand);
+          _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
+          _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
+          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
+              rightOperand);
+          // Visit right operand.
+          rightOperand.accept(this);
         } finally {
-          _overrideManager.exitScope();
+          _promoteManager.exitScope();
         }
       }
       node.accept(elementResolver);
@@ -4585,12 +4499,7 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
-        _overrideManager.enterScope();
-        try {
-          rightOperand.accept(this);
-        } finally {
-          _overrideManager.exitScope();
-        }
+        rightOperand.accept(this);
       }
       node.accept(elementResolver);
     } else {
@@ -4628,12 +4537,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    _overrideManager.enterScope();
     try {
       inferenceContext.pushReturnContext(node);
       super.visitBlockFunctionBody(node);
     } finally {
-      _overrideManager.exitScope();
       inferenceContext.popReturnContext(node);
     }
   }
@@ -4719,20 +4626,15 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _overrideManager.enterScope();
-    try {
-      NodeList<Directive> directives = node.directives;
-      int directiveCount = directives.length;
-      for (int i = 0; i < directiveCount; i++) {
-        directives[i].accept(this);
-      }
-      NodeList<CompilationUnitMember> declarations = node.declarations;
-      int declarationCount = declarations.length;
-      for (int i = 0; i < declarationCount; i++) {
-        declarations[i].accept(this);
-      }
-    } finally {
-      _overrideManager.exitScope();
+    NodeList<Directive> directives = node.directives;
+    int directiveCount = directives.length;
+    for (int i = 0; i < directiveCount; i++) {
+      directives[i].accept(this);
+    }
+    NodeList<CompilationUnitMember> declarations = node.declarations;
+    int declarationCount = declarations.length;
+    for (int i = 0; i < declarationCount; i++) {
+      declarations[i].accept(this);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4744,34 +4646,24 @@ class ResolverVisitor extends ScopedVisitor {
     condition?.accept(this);
     Expression thenExpression = node.thenExpression;
     if (thenExpression != null) {
-      _overrideManager.enterScope();
+      _promoteManager.enterScope();
       try {
-        _promoteManager.enterScope();
-        try {
-          // Type promotion.
-          _promoteTypes(condition);
-          _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-              thenExpression);
-          // Visit "then" expression.
-          InferenceContext.setTypeFromNode(thenExpression, node);
-          thenExpression.accept(this);
-        } finally {
-          _promoteManager.exitScope();
-        }
+        // Type promotion.
+        _promoteTypes(condition);
+        _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
+        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
+            thenExpression);
+        // Visit "then" expression.
+        InferenceContext.setTypeFromNode(thenExpression, node);
+        thenExpression.accept(this);
       } finally {
-        _overrideManager.exitScope();
+        _promoteManager.exitScope();
       }
     }
     Expression elseExpression = node.elseExpression;
     if (elseExpression != null) {
-      _overrideManager.enterScope();
-      try {
-        InferenceContext.setTypeFromNode(elseExpression, node);
-        elseExpression.accept(this);
-      } finally {
-        _overrideManager.exitScope();
-      }
+      InferenceContext.setTypeFromNode(elseExpression, node);
+      elseExpression.accept(this);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4863,15 +4755,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitDoStatement(DoStatement node) {
-    _overrideManager.enterScope();
-    try {
-      InferenceContext.setType(node.condition, typeProvider.boolType);
-      super.visitDoStatement(node);
-    } finally {
-      _overrideManager.exitScope();
-    }
-    // TODO(brianwilkerson) If the loop can only be exited because the condition
-    // is false, then propagateFalseState(node.getCondition());
+    InferenceContext.setType(node.condition, typeProvider.boolType);
+    super.visitDoStatement(node);
   }
 
   @override
@@ -4915,7 +4800,6 @@ class ResolverVisitor extends ScopedVisitor {
     if (resolveOnlyCommentInFunctionBody) {
       return;
     }
-    _overrideManager.enterScope();
     try {
       InferenceContext.setTypeFromNode(node.expression, node);
       inferenceContext.pushReturnContext(node);
@@ -4929,31 +4813,7 @@ class ResolverVisitor extends ScopedVisitor {
         inferenceContext.addReturnOrYieldType(type);
       }
     } finally {
-      _overrideManager.exitScope();
       inferenceContext.popReturnContext(node);
-    }
-  }
-
-  @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _overrideManager.enterScope();
-    try {
-      super.visitFieldDeclaration(node);
-    } finally {
-      Map<VariableElement, DartType> overrides =
-          _overrideManager.captureOverrides(node.fields);
-      _overrideManager.exitScope();
-      _overrideManager.applyOverrides(overrides);
-    }
-  }
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    _overrideManager.enterScope();
-    try {
-      super.visitForEachStatement(node);
-    } finally {
-      _overrideManager.exitScope();
     }
   }
 
@@ -4995,55 +4855,10 @@ class ResolverVisitor extends ScopedVisitor {
     loopVariable?.accept(this);
     Statement body = node.body;
     if (body != null) {
-      _overrideManager.enterScope();
-      try {
-        if (loopVariable != null && iterable != null) {
-          LocalVariableElement loopElement = loopVariable.declaredElement;
-          if (loopElement != null) {
-            DartType propagatedType = null;
-            if (node.awaitKeyword == null) {
-              propagatedType = _getIteratorElementType(iterable);
-            } else {
-              propagatedType = _getStreamElementType(iterable);
-            }
-            if (propagatedType != null) {
-              overrideVariable(loopElement, propagatedType, true);
-            }
-          }
-        } else if (identifier != null && iterable != null) {
-          Element identifierElement = identifier.staticElement;
-          if (identifierElement is VariableElement) {
-            DartType iteratorElementType = _getIteratorElementType(iterable);
-            overrideVariable(identifierElement, iteratorElementType, true);
-          }
-        }
-        visitStatementInScope(body);
-      } finally {
-        _overrideManager.exitScope();
-      }
+      visitStatementInScope(body);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    _overrideManager.enterScope();
-    try {
-      super.visitForStatement(node);
-    } finally {
-      _overrideManager.exitScope();
-    }
-  }
-
-  @override
-  void visitForStatement2(ForStatement2 node) {
-    _overrideManager.enterScope();
-    try {
-      super.visitForStatement2(node);
-    } finally {
-      _overrideManager.exitScope();
-    }
   }
 
   @override
@@ -5057,13 +4872,8 @@ class ResolverVisitor extends ScopedVisitor {
       }
       InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
       forLoopParts.condition?.accept(this);
-      _overrideManager.enterScope();
-      try {
-        visitStatementInScope(node.body);
-        forLoopParts.updaters.accept(this);
-      } finally {
-        _overrideManager.exitScope();
-      }
+      visitStatementInScope(node.body);
+      forLoopParts.updaters.accept(this);
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
@@ -5104,32 +4914,7 @@ class ResolverVisitor extends ScopedVisitor {
       loopVariable?.accept(this);
       Statement body = node.body;
       if (body != null) {
-        _overrideManager.enterScope();
-        try {
-          if (loopVariable != null && iterable != null) {
-            LocalVariableElement loopElement = loopVariable.declaredElement;
-            if (loopElement != null) {
-              DartType propagatedType = null;
-              if (node.awaitKeyword == null) {
-                propagatedType = _getIteratorElementType(iterable);
-              } else {
-                propagatedType = _getStreamElementType(iterable);
-              }
-              if (propagatedType != null) {
-                overrideVariable(loopElement, propagatedType, true);
-              }
-            }
-          } else if (identifier != null && iterable != null) {
-            Element identifierElement = identifier.staticElement;
-            if (identifierElement is VariableElement) {
-              DartType iteratorElementType = _getIteratorElementType(iterable);
-              overrideVariable(identifierElement, iteratorElementType, true);
-            }
-          }
-          visitStatementInScope(body);
-        } finally {
-          _overrideManager.exitScope();
-        }
+        visitStatementInScope(body);
       }
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
@@ -5142,13 +4927,8 @@ class ResolverVisitor extends ScopedVisitor {
     node.initialization?.accept(this);
     InferenceContext.setType(node.condition, typeProvider.boolType);
     node.condition?.accept(this);
-    _overrideManager.enterScope();
-    try {
-      visitStatementInScope(node.body);
-      node.updaters.accept(this);
-    } finally {
-      _overrideManager.exitScope();
-    }
+    visitStatementInScope(node.body);
+    node.updaters.accept(this);
   }
 
   @override
@@ -5181,22 +4961,17 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _currentFunctionBody = node.body;
       _enclosingFunction = node.declaredElement;
-      _overrideManager.enterScope();
-      try {
-        DartType functionType = InferenceContext.getContext(node);
+      DartType functionType = InferenceContext.getContext(node);
+      if (functionType is FunctionType) {
+        functionType =
+            matchFunctionTypeParameters(node.typeParameters, functionType);
         if (functionType is FunctionType) {
-          functionType =
-              matchFunctionTypeParameters(node.typeParameters, functionType);
-          if (functionType is FunctionType) {
-            _inferFormalParameterList(node.parameters, functionType);
-            InferenceContext.setType(
-                node.body, _computeReturnOrYieldType(functionType.returnType));
-          }
+          _inferFormalParameterList(node.parameters, functionType);
+          InferenceContext.setType(
+              node.body, _computeReturnOrYieldType(functionType.returnType));
         }
-        super.visitFunctionExpression(node);
-      } finally {
-        _overrideManager.exitScope();
       }
+      super.visitFunctionExpression(node);
     } finally {
       _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
@@ -5250,57 +5025,27 @@ class ResolverVisitor extends ScopedVisitor {
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
-    Map<VariableElement, DartType> thenOverrides =
-        const <VariableElement, DartType>{};
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
-      _overrideManager.enterScope();
+      _promoteManager.enterScope();
       try {
-        _promoteManager.enterScope();
-        try {
-          // Type promotion.
-          _promoteTypes(condition);
-          _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-              thenStatement);
-          // Visit "then".
-          visitStatementInScope(thenStatement);
-        } finally {
-          _promoteManager.exitScope();
-        }
+        // Type promotion.
+        _promoteTypes(condition);
+        _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
+        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
+            thenStatement);
+        // Visit "then".
+        visitStatementInScope(thenStatement);
       } finally {
-        thenOverrides = _overrideManager.captureLocalOverrides();
-        _overrideManager.exitScope();
+        _promoteManager.exitScope();
       }
     }
-    Map<VariableElement, DartType> elseOverrides =
-        const <VariableElement, DartType>{};
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
-      _overrideManager.enterScope();
-      try {
-        visitStatementInScope(elseStatement);
-      } finally {
-        elseOverrides = _overrideManager.captureLocalOverrides();
-        _overrideManager.exitScope();
-      }
+      visitStatementInScope(elseStatement);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    // Join overrides.
-    bool thenIsAbrupt = _isAbruptTerminationStatement(thenStatement);
-    bool elseIsAbrupt = _isAbruptTerminationStatement(elseStatement);
-    if (elseIsAbrupt && !thenIsAbrupt) {
-      _overrideManager.applyOverrides(thenOverrides);
-    } else if (thenIsAbrupt && !elseIsAbrupt) {
-      _overrideManager.applyOverrides(elseOverrides);
-    } else if (!thenIsAbrupt && !elseIsAbrupt) {
-      List<Map<VariableElement, DartType>> perBranchOverrides =
-          <Map<VariableElement, DartType>>[];
-      perBranchOverrides.add(thenOverrides);
-      perBranchOverrides.add(elseOverrides);
-      _overrideManager.mergeOverrides(perBranchOverrides);
-    }
   }
 
   @override
@@ -5665,24 +5410,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _overrideManager.enterScope();
-    try {
-      InferenceContext.setType(
-          node.expression, _enclosingSwitchStatementExpressionType);
-      super.visitSwitchCase(node);
-    } finally {
-      _overrideManager.exitScope();
-    }
-  }
-
-  @override
-  void visitSwitchDefault(SwitchDefault node) {
-    _overrideManager.enterScope();
-    try {
-      super.visitSwitchDefault(node);
-    } finally {
-      _overrideManager.exitScope();
-    }
+    InferenceContext.setType(
+        node.expression, _enclosingSwitchStatementExpressionType);
+    super.visitSwitchCase(node);
   }
 
   @override
@@ -5694,19 +5424,6 @@ class ResolverVisitor extends ScopedVisitor {
       node.members.accept(this);
     } finally {
       _enclosingSwitchStatementExpressionType = previousExpressionType;
-    }
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _overrideManager.enterScope();
-    try {
-      super.visitTopLevelVariableDeclaration(node);
-    } finally {
-      Map<VariableElement, DartType> overrides =
-          _overrideManager.captureOverrides(node.variables);
-      _overrideManager.exitScope();
-      _overrideManager.applyOverrides(overrides);
     }
   }
 
@@ -5754,12 +5471,7 @@ class ResolverVisitor extends ScopedVisitor {
       condition?.accept(this);
       Statement body = node.body;
       if (body != null) {
-        _overrideManager.enterScope();
-        try {
-          visitStatementInScope(body);
-        } finally {
-          _overrideManager.exitScope();
-        }
+        visitStatementInScope(body);
       }
     } finally {
       _implicitLabelScope = outerImplicitScope;
@@ -5883,62 +5595,6 @@ class ResolverVisitor extends ScopedVisitor {
       return type;
     }
     return typeProvider.futureOrType.instantiate([type]);
-  }
-
-  /// The given expression is the expression used to compute the iterator for a
-  /// for-each statement. Attempt to compute the type of objects that will be
-  /// assigned to the loop variable and return that type. Return `null` if the
-  /// type could not be determined. The [iteratorExpression] is the expression
-  /// that will return the Iterable being iterated over.
-  DartType _getIteratorElementType(Expression iteratorExpression) {
-    DartType expressionType = iteratorExpression.staticType;
-    if (expressionType is InterfaceType) {
-      PropertyAccessorElement iteratorFunction =
-          expressionType.lookUpInheritedGetter("iterator");
-      if (iteratorFunction == null) {
-        // TODO(brianwilkerson) Should we report this error?
-        return null;
-      }
-      DartType iteratorType = iteratorFunction.returnType;
-      if (iteratorType is InterfaceType) {
-        PropertyAccessorElement currentFunction =
-            iteratorType.lookUpInheritedGetter("current");
-        if (currentFunction == null) {
-          // TODO(brianwilkerson) Should we report this error?
-          return null;
-        }
-        return currentFunction.returnType;
-      }
-    }
-    return null;
-  }
-
-  /// The given expression is the expression used to compute the stream for an
-  /// asynchronous for-each statement. Attempt to compute the type of objects
-  /// that will be assigned to the loop variable and return that type.
-  /// Return `null` if the type could not be determined. The [streamExpression]
-  /// is the expression that will return the stream being iterated over.
-  DartType _getStreamElementType(Expression streamExpression) {
-    DartType streamType = streamExpression.staticType;
-    if (streamType is InterfaceType) {
-      MethodElement listenFunction = streamType.lookUpInheritedMethod("listen");
-      if (listenFunction == null) {
-        return null;
-      }
-      List<ParameterElement> listenParameters = listenFunction.parameters;
-      if (listenParameters == null || listenParameters.length < 1) {
-        return null;
-      }
-      DartType onDataType = listenParameters[0].type;
-      if (onDataType is FunctionType) {
-        List<ParameterElement> onDataParameters = onDataType.parameters;
-        if (onDataParameters == null || onDataParameters.isEmpty) {
-          return null;
-        }
-        return onDataParameters[0].type;
-      }
-    }
-    return null;
   }
 
   /// Return `true` if the given [parameter] element of the AST being resolved
@@ -6065,71 +5721,6 @@ class ResolverVisitor extends ScopedVisitor {
       // complete type including return type.
       inferenceContext.recordInference(node.parent, type);
     }
-  }
-
-  /// Return `true` if the given expression terminates abruptly (that is, if any
-  /// expression following the given expression will not be reached).
-  ///
-  /// @param expression the expression being tested
-  /// @return `true` if the given expression terminates abruptly
-  bool _isAbruptTerminationExpression(Expression expression) {
-    // TODO(brianwilkerson) This needs to be significantly improved. Ideally we
-    // would eventually turn this into a method on Expression that returns a
-    // termination indication (normal, abrupt with no exception, abrupt with an
-    // exception).
-    expression = expression?.unParenthesized;
-    return expression is ThrowExpression || expression is RethrowExpression;
-  }
-
-  /// Return `true` if the given statement terminates abruptly (that is, if any
-  /// statement following the given statement will not be reached).
-  ///
-  /// @param statement the statement being tested
-  /// @return `true` if the given statement terminates abruptly
-  bool _isAbruptTerminationStatement(Statement statement) {
-    // TODO(brianwilkerson) This needs to be significantly improved. Ideally we
-    // would eventually turn this into a method on Statement that returns a
-    // termination indication (normal, abrupt with no exception, abrupt with an
-    // exception).
-    //
-    // collinsn: it is unsound to assume that [break] and [continue] are
-    // "abrupt". See: https://code.google.com/p/dart/issues/detail?id=19929#c4
-    // (tests are included in TypePropagationTest.java).
-    // In general, the difficulty is loopy control flow.
-    //
-    // In the presence of exceptions things become much more complicated, but
-    // while we only use this to propagate at [if]-statement join points,
-    // checking for [return] may work well enough in the common case.
-    if (statement is ReturnStatement) {
-      return true;
-    } else if (statement is ExpressionStatement) {
-      return _isAbruptTerminationExpression(statement.expression);
-    } else if (statement is Block) {
-      NodeList<Statement> statements = statement.statements;
-      int size = statements.length;
-      if (size == 0) {
-        return false;
-      }
-
-      // This last-statement-is-return heuristic is unsound for adversarial
-      // code, but probably works well in the common case:
-      //
-      //   var x = 123;
-      //   var c = true;
-      //   L: if (c) {
-      //     x = "hello";
-      //     c = false;
-      //     break L;
-      //     return;
-      //   }
-      //   print(x);
-      //
-      // Unsound to assume that [x = "hello";] never executed after the
-      // if-statement. Of course, a dead-code analysis could point out that
-      // [return] here is dead.
-      return _isAbruptTerminationStatement(statements[size - 1]);
-    }
-    return false;
   }
 
   /// Return `true` if the given variable is accessed within a closure in the
@@ -7749,191 +7340,6 @@ class TypeNameResolver {
       return identical(parent.type, typeName);
     }
     return false;
-  }
-}
-
-/// Instances of the class `TypeOverrideManager` manage the ability to override
-/// the type of an element within a given context.
-class TypeOverrideManager {
-  /// The current override scope, or `null` if no scope has been entered.
-  TypeOverrideManager_TypeOverrideScope currentScope;
-
-  /// Apply a set of overrides that were previously captured.
-  ///
-  /// @param overrides the overrides to be applied
-  void applyOverrides(Map<VariableElement, DartType> overrides) {
-    if (currentScope == null) {
-      throw new StateError("Cannot apply overrides without a scope");
-    }
-    currentScope.applyOverrides(overrides);
-  }
-
-  /// Return a table mapping the elements whose type is overridden in the
-  /// current scope to the overriding type.
-  ///
-  /// @return the overrides in the current scope
-  Map<VariableElement, DartType> captureLocalOverrides() {
-    if (currentScope == null) {
-      throw new StateError("Cannot capture local overrides without a scope");
-    }
-    return currentScope.captureLocalOverrides();
-  }
-
-  /// Return a map from the elements for the variables in the given list that
-  /// have their types overridden to the overriding type.
-  ///
-  /// @param variableList the list of variables whose overriding types are to be
-  ///        captured
-  /// @return a table mapping elements to their overriding types
-  Map<VariableElement, DartType> captureOverrides(
-      VariableDeclarationList variableList) {
-    if (currentScope == null) {
-      throw new StateError("Cannot capture overrides without a scope");
-    }
-    return currentScope.captureOverrides(variableList);
-  }
-
-  /// Enter a new override scope.
-  void enterScope() {
-    currentScope = new TypeOverrideManager_TypeOverrideScope(currentScope);
-  }
-
-  /// Exit the current override scope.
-  void exitScope() {
-    if (currentScope == null) {
-      throw new StateError("No scope to exit");
-    }
-    currentScope = currentScope._outerScope;
-  }
-
-  /// Return the best type information available for the given element. If the
-  /// type of the element has been overridden, then return the overriding type.
-  /// Otherwise, return the static type.
-  ///
-  /// @param element the element for which type information is to be returned
-  /// @return the best type information available for the given element
-  DartType getBestType(VariableElement element) {
-    DartType bestType = getType(element);
-    return bestType ?? element.type;
-  }
-
-  /// Return the overridden type of the given element, or `null` if the type of
-  /// the element has not been overridden.
-  ///
-  /// @param element the element whose type might have been overridden
-  /// @return the overridden type of the given element
-  DartType getType(Element element) {
-    if (currentScope == null) {
-      return null;
-    }
-    return currentScope.getType(element);
-  }
-
-  /// Update overrides assuming [perBranchOverrides] is the collection of
-  /// per-branch overrides for *all* branches flowing into a join point.
-  void mergeOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
-    int length = perBranchOverrides.length;
-    for (int i = 0; i < length; i++) {
-      Map<VariableElement, DartType> branch = perBranchOverrides[i];
-      branch.forEach((VariableElement variable, DartType branchType) {
-        DartType currentType = currentScope.getType(variable);
-        if (currentType != branchType) {
-          currentScope.resetType(variable);
-        }
-      });
-    }
-  }
-
-  /// Set the overridden type of the given element to the given type
-  ///
-  /// @param element the element whose type might have been overridden
-  /// @param type the overridden type of the given element
-  void setType(VariableElement element, DartType type) {
-    if (currentScope == null) {
-      throw new StateError("Cannot override without a scope");
-    }
-    currentScope.setType(element, type);
-  }
-}
-
-/// Instances of the class `TypeOverrideScope` represent a scope in which the
-/// types of elements can be overridden.
-class TypeOverrideManager_TypeOverrideScope {
-  /// The outer scope in which types might be overridden.
-  final TypeOverrideManager_TypeOverrideScope _outerScope;
-
-  /// A table mapping elements to the overridden type of that element.
-  Map<VariableElement, DartType> _overriddenTypes =
-      new HashMap<VariableElement, DartType>();
-
-  /// Initialize a newly created scope to be an empty child of the given scope.
-  ///
-  /// @param outerScope the outer scope in which types might be overridden
-  TypeOverrideManager_TypeOverrideScope(this._outerScope);
-
-  /// Apply a set of overrides that were previously captured.
-  ///
-  /// @param overrides the overrides to be applied
-  void applyOverrides(Map<VariableElement, DartType> overrides) {
-    _overriddenTypes.addAll(overrides);
-  }
-
-  /// Return a table mapping the elements whose type is overridden in the
-  /// current scope to the overriding type.
-  ///
-  /// @return the overrides in the current scope
-  Map<VariableElement, DartType> captureLocalOverrides() => _overriddenTypes;
-
-  /// Return a map from the elements for the variables in the given list that
-  /// have their types overridden to the overriding type.
-  ///
-  /// @param variableList the list of variables whose overriding types are to be
-  ///        captured
-  /// @return a table mapping elements to their overriding types
-  Map<VariableElement, DartType> captureOverrides(
-      VariableDeclarationList variableList) {
-    Map<VariableElement, DartType> overrides =
-        new HashMap<VariableElement, DartType>();
-    if (variableList.isConst || variableList.isFinal) {
-      for (VariableDeclaration variable in variableList.variables) {
-        VariableElement element = variable.declaredElement;
-        if (element != null) {
-          DartType type = _overriddenTypes[element];
-          if (type != null) {
-            overrides[element] = type;
-          }
-        }
-      }
-    }
-    return overrides;
-  }
-
-  /// Return the overridden type of the given element, or `null` if the type of
-  /// the element has not been overridden.
-  ///
-  /// @param element the element whose type might have been overridden
-  /// @return the overridden type of the given element
-  DartType getType(Element element) {
-    Element nonAccessor =
-        element is PropertyAccessorElement ? element.variable : element;
-    DartType type = _overriddenTypes[nonAccessor];
-    if (_overriddenTypes.containsKey(nonAccessor)) {
-      return type;
-    }
-    return type ?? _outerScope?.getType(element);
-  }
-
-  /// Clears the overridden type of the given [element].
-  void resetType(VariableElement element) {
-    _overriddenTypes[element] = null;
-  }
-
-  /// Set the overridden type of the given element to the given type
-  ///
-  /// @param element the element whose type might have been overridden
-  /// @param type the overridden type of the given element
-  void setType(VariableElement element, DartType type) {
-    _overriddenTypes[element] = type;
   }
 }
 
