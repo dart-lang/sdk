@@ -107,6 +107,10 @@ class ClassHierarchyBuilder {
 
   KernelTypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
+    if (cls == supertype) {
+      return new KernelNamedTypeBuilder(clsNode.cls.name, null)
+        ..bind(clsNode.cls);
+    }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
     List<KernelTypeBuilder> supertypes = clsNode.superclasses;
     int depth = supertypeNode.depth;

@@ -16,7 +16,9 @@ import 'package:kernel/ast.dart'
         TypedefType,
         VoidType;
 
-import 'kernel_builder.dart' show ClassHierarchyBuilder, KernelTypeBuilder;
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'kernel_builder.dart' show ClassHierarchyBuilder, KernelNamedTypeBuilder;
 
 class Types {
   final ClassHierarchyBuilder hierarchy;
@@ -112,6 +114,17 @@ class Types {
     }
     throw "Unhandled type combination: ${t.runtimeType} ${s.runtimeType}";
   }
+
+  /// Returns true if all types in [s] and [t] pairwise are subtypes.
+  bool areArgumentsSubtypesKernel(List<DartType> s, List<DartType> t) {
+    if (s.length != t.length) {
+      throw "Numbers of type arguments don't match.";
+    }
+    for (int i = 0; i < s.length; i++) {
+      if (!isSubtypeOfKernel(s[i], t[i])) return false;
+    }
+    return true;
+  }
 }
 
 abstract class TypeRelation<T extends DartType> {
@@ -134,9 +147,17 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   const IsInterfaceSubtypeOf();
 
   bool isInterfaceRelated(InterfaceType s, InterfaceType t, Types types) {
-    KernelTypeBuilder supertype =
+    if (s.classNode == t.classNode) {
+      return types.areArgumentsSubtypesKernel(s.typeArguments, t.typeArguments);
+    }
+    KernelNamedTypeBuilder supertype =
         types.hierarchy.asSupertypeOf(s.classNode, t.classNode);
-    return supertype == null ? false : true;
+    if (supertype == null) return false;
+    if (supertype.arguments == null) return true;
+    InterfaceType asSupertype =
+        Substitution.fromInterfaceType(s).substituteType(supertype.build(null));
+    return types.areArgumentsSubtypesKernel(
+        asSupertype.typeArguments, t.typeArguments);
   }
 
   // TODO(ahe): Remove this method.
