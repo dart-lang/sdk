@@ -52,8 +52,8 @@ main() {
     loader.appendLibraries(sdk);
     await target.buildOutlines();
     KernelClassBuilder objectClass = loader.coreLibrary["Object"];
-    ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(objectClass)
-      ..types.loader = loader;
+    ClassHierarchyBuilder hierarchy =
+        new ClassHierarchyBuilder(objectClass, loader);
     bool threw = false;
     try {
       new FastaTypesTest(hierarchy, environment).run();

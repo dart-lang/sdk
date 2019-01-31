@@ -5,9 +5,11 @@
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart'
-    show Library, Member, Name, Procedure, ProcedureKind;
+    show Class, Library, Member, Name, Procedure, ProcedureKind;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
@@ -67,19 +69,21 @@ bool impliesSetter(Declaration declaration) {
 }
 
 class ClassHierarchyBuilder {
-  final Map<KernelClassBuilder, ClassHierarchyNode> nodes =
-      <KernelClassBuilder, ClassHierarchyNode>{};
+  final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
 
   final KernelClassBuilder objectClass;
 
+  final Loader<Library> loader;
+
   Types types;
 
-  ClassHierarchyBuilder(this.objectClass) {
+  ClassHierarchyBuilder(this.objectClass, this.loader) {
     types = new Types(this);
   }
 
   ClassHierarchyNode getNodeFromClass(KernelClassBuilder cls) {
-    return nodes[cls] ??= new ClassHierarchyNodeBuilder(this, cls).build();
+    return nodes[cls.target] ??=
+        new ClassHierarchyNodeBuilder(this, cls).build();
   }
 
   ClassHierarchyNode getNodeFromType(KernelTypeBuilder type) {
@@ -89,12 +93,37 @@ class ClassHierarchyBuilder {
         : null;
   }
 
-  static ClassHierarchyBuilder build(
-      KernelClassBuilder objectClass, List<KernelClassBuilder> classes) {
-    ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(objectClass);
+  ClassHierarchyNode getNodeFromKernelClass(Class cls) {
+    return nodes[cls] ??
+        getNodeFromClass(loader.computeClassBuilderFromTargetClass(cls));
+  }
+
+  KernelTypeBuilder asSupertypeOf(Class cls, Class supertype) {
+    ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
+    ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
+    List<KernelTypeBuilder> supertypes = clsNode.superclasses;
+    int depth = supertypeNode.depth;
+    Declaration supertypeDeclaration = supertypeNode.cls;
+    if (depth < supertypes.length) {
+      KernelTypeBuilder asSupertypeOf = supertypes[depth];
+      if (asSupertypeOf.declaration == supertypeDeclaration)
+        return asSupertypeOf;
+    }
+    supertypes = clsNode.interfaces;
+    for (int i = 0; i < supertypes.length; i++) {
+      KernelTypeBuilder type = supertypes[i];
+      if (type.declaration == supertypeDeclaration) return type;
+    }
+    return null;
+  }
+
+  static ClassHierarchyBuilder build(KernelClassBuilder objectClass,
+      List<KernelClassBuilder> classes, Loader<Object> loader) {
+    ClassHierarchyBuilder hierarchy =
+        new ClassHierarchyBuilder(objectClass, loader);
     for (int i = 0; i < classes.length; i++) {
       KernelClassBuilder cls = classes[i];
-      hierarchy.nodes[cls] =
+      hierarchy.nodes[cls.target] =
           new ClassHierarchyNodeBuilder(hierarchy, cls).build();
     }
     return hierarchy;

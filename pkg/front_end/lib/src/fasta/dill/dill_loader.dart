@@ -29,6 +29,7 @@ import '../fasta_codes.dart'
 import '../kernel/kernel_builder.dart'
     show
         DynamicTypeBuilder,
+        KernelClassBuilder,
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
@@ -99,6 +100,13 @@ class DillLoader extends Loader<Library> {
     });
   }
 
+  @override
+  KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    Library kernelLibrary = cls.enclosingLibrary;
+    LibraryBuilder library = builders[kernelLibrary.importUri];
+    return library[cls.name];
+  }
+
   KernelTypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
   }
@@ -134,11 +142,8 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
   }
 
   KernelTypeBuilder visitInterfaceType(InterfaceType node) {
-    Class kernelClass = node.classNode;
-    Library kernelLibrary = kernelClass.enclosingLibrary;
-    DillLibraryBuilder library = loader.builders[kernelLibrary.importUri];
-    String name = kernelClass.name;
-    DillClassBuilder cls = library[name];
+    DillClassBuilder cls =
+        loader.computeClassBuilderFromTargetClass(node.classNode);
     List<KernelTypeBuilder> arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
@@ -147,7 +152,7 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
         arguments[i] = kernelArguments[i].accept(this);
       }
     }
-    return new KernelNamedTypeBuilder(name, arguments)..bind(cls);
+    return new KernelNamedTypeBuilder(cls.name, arguments)..bind(cls);
   }
 
   KernelTypeBuilder visitFunctionType(FunctionType node) {

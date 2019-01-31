@@ -79,6 +79,7 @@ import '../kernel/kernel_builder.dart'
         ClassHierarchyBuilder,
         Declaration,
         EnumBuilder,
+        KernelClassBuilder,
         KernelFieldBuilder,
         KernelProcedureBuilder,
         LibraryBuilder,
@@ -929,7 +930,7 @@ class SourceLoader<L> extends Loader<L> {
   ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
     ClassHierarchyBuilder hierarchy =
-        ClassHierarchyBuilder.build(objectClass, sourceClasses);
+        ClassHierarchyBuilder.build(objectClass, sourceClasses, this);
     ticker.logMs("Built class hierarchy");
     return hierarchy;
   }
@@ -1105,6 +1106,13 @@ class SourceLoader<L> extends Loader<L> {
   void releaseAncillaryResources() {
     hierarchy = null;
     typeInferenceEngine = null;
+  }
+
+  @override
+  KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    Library kernelLibrary = cls.enclosingLibrary;
+    LibraryBuilder library = builders[kernelLibrary.importUri];
+    return library[cls.name];
   }
 }
 
