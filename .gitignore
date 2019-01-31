@@ -1,5 +1,7 @@
 .buildlog
 .DS_Store
+*.swp
+*.swo
 .idea
 *.iml
 .pub/
