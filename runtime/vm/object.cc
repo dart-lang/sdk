@@ -14769,27 +14769,6 @@ RawArray* Code::await_token_positions() const {
 #endif
 }
 
-void Bytecode::set_instructions(const ExternalTypedData& instructions) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(Thread::Current()->IsMutatorThread());
-  // The interpreter requires the instructions to be aligned.
-  ASSERT(Utils::IsAligned(instructions.DataAddr(0), sizeof(KBCInstr)));
-  StorePointer(&raw_ptr()->instructions_, instructions.raw());
-#else
-  UNREACHABLE();
-#endif
-}
-
-uword Bytecode::PayloadStart() const {
-  const ExternalTypedData& instr = ExternalTypedData::Handle(instructions());
-  return reinterpret_cast<uword>(instr.DataAddr(0));
-}
-
-intptr_t Bytecode::Size() const {
-  const ExternalTypedData& instr = ExternalTypedData::Handle(instructions());
-  return instr.LengthInBytes();
-}
-
 void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -14809,7 +14788,9 @@ void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-RawBytecode* Bytecode::New(const ExternalTypedData& instructions,
+RawBytecode* Bytecode::New(uword instructions,
+                           intptr_t instructions_size,
+                           intptr_t instructions_offset,
                            const ObjectPool& object_pool) {
   ASSERT(Object::bytecode_class() != Class::null());
   Bytecode& result = Bytecode::Handle();
@@ -14818,9 +14799,11 @@ RawBytecode* Bytecode::New(const ExternalTypedData& instructions,
     RawObject* raw = Object::Allocate(Bytecode::kClassId, size, Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_pc_descriptors(Object::empty_descriptors());
     result.set_instructions(instructions);
+    result.set_instructions_size(instructions_size);
     result.set_object_pool(object_pool);
+    result.set_pc_descriptors(Object::empty_descriptors());
+    result.set_instructions_binary_offset(instructions_offset);
     result.set_source_positions_binary_offset(0);
   }
   return result.raw();

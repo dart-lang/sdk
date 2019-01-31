@@ -1314,16 +1314,19 @@ class RawCode : public RawObject {
 class RawBytecode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
 
+  uword instructions_;
+  intptr_t instructions_size_;
+
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;
-  RawExternalTypedData* instructions_;
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   VISIT_TO(RawObject*, pc_descriptors_);
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t source_positions_binary_offset_;
+  int32_t instructions_binary_offset_;
+  int32_t source_positions_binary_offset_;
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 

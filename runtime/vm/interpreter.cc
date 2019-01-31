@@ -813,8 +813,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);
   callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   pp_ = bytecode->ptr()->object_pool_;
-  *pc =
-      reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_->ptr()->data_);
+  *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
   pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
   fp_ = callee_fp;  // For the profiler.
@@ -1388,8 +1387,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc =
-      reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_->ptr()->data_);
+  pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
   pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
   fp_ = FP;                           // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;

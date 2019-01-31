@@ -1576,7 +1576,9 @@ class BytecodeSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawBytecode* bytecode = objects_[i];
+      s->Write<int32_t>(bytecode->ptr()->instructions_size_);
       WriteFromTo(bytecode);
+      s->Write<int32_t>(bytecode->ptr()->instructions_binary_offset_);
       s->Write<int32_t>(bytecode->ptr()->source_positions_binary_offset_);
     }
   }
@@ -1608,8 +1610,23 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
       RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));
       Deserializer::InitializeHeader(bytecode, kBytecodeCid,
                                      Bytecode::InstanceSize(), is_vm_object);
+      bytecode->ptr()->instructions_ = 0;
+      bytecode->ptr()->instructions_size_ = d->Read<int32_t>();
       ReadFromTo(bytecode);
+      bytecode->ptr()->instructions_binary_offset_ = d->Read<int32_t>();
       bytecode->ptr()->source_positions_binary_offset_ = d->Read<int32_t>();
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    Bytecode& bytecode = Bytecode::Handle(zone);
+    ExternalTypedData& binary = ExternalTypedData::Handle(zone);
+
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      bytecode ^= refs.At(i);
+      binary = bytecode.GetBinary(zone);
+      bytecode.set_instructions(reinterpret_cast<uword>(
+          binary.DataAddr(bytecode.instructions_binary_offset())));
     }
   }
 };

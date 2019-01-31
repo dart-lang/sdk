@@ -5220,11 +5220,10 @@ class Code : public Object {
 
 class Bytecode : public Object {
  public:
-  RawExternalTypedData* instructions() const {
-    return raw_ptr()->instructions_;
-  }
-  uword PayloadStart() const;
-  intptr_t Size() const;
+  uword instructions() const { return raw_ptr()->instructions_; }
+
+  uword PayloadStart() const { return instructions(); }
+  intptr_t Size() const { return raw_ptr()->instructions_size_; }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
 
@@ -5265,13 +5264,22 @@ class Bytecode : public Object {
     return RoundedAllocationSize(sizeof(RawBytecode));
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static RawBytecode* New(const ExternalTypedData& instructions,
+  static RawBytecode* New(uword instructions,
+                          intptr_t instructions_size,
+                          intptr_t instructions_offset,
                           const ObjectPool& object_pool);
 #endif
 
   RawExternalTypedData* GetBinary(Zone* zone) const;
 
   TokenPosition GetTokenIndexOfPC(uword pc) const;
+
+  intptr_t instructions_binary_offset() const {
+    return raw_ptr()->instructions_binary_offset_;
+  }
+  void set_instructions_binary_offset(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->instructions_binary_offset_, value);
+  }
 
   intptr_t source_positions_binary_offset() const {
     return raw_ptr()->source_positions_binary_offset_;
@@ -5303,14 +5311,21 @@ class Bytecode : public Object {
   static RawBytecode* FindCode(uword pc);
 
  private:
+  void set_instructions(uword instructions) const {
+    // The interpreter requires the instructions to be aligned.
+    ASSERT(Utils::IsAligned(instructions, sizeof(uint32_t)));
+    StoreNonPointer(&raw_ptr()->instructions_, instructions);
+  }
+  void set_instructions_size(intptr_t size) const {
+    StoreNonPointer(&raw_ptr()->instructions_size_, size);
+  }
   void set_object_pool(const ObjectPool& object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool.raw());
   }
 
+  friend class BytecodeDeserializationCluster;
   friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawBytecode;
-
-  void set_instructions(const ExternalTypedData& instructions) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Bytecode, Object);
   friend class Class;

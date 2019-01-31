@@ -30,11 +30,12 @@ class ProgramVisitor : public AllStatic {
   static void Dedup();
 
  private:
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static void BindStaticCalls();
   static void ShareMegamorphicBuckets();
   static void DedupStackMaps();
   static void DedupPcDescriptors();
-  NOT_IN_PRECOMPILED(static void DedupDeoptEntries());
+  static void DedupDeoptEntries();
 #if defined(DART_PRECOMPILER)
   static void DedupCatchEntryMovesMaps();
 #endif
@@ -42,6 +43,7 @@ class ProgramVisitor : public AllStatic {
   static void DedupLists();
   static void DedupInstructions();
   static void DedupInstructionsWithSameMetadata();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 }  // namespace dart

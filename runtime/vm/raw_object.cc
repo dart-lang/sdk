@@ -556,9 +556,8 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
   if (raw_obj->IsBytecode()) {
     RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
-    RawExternalTypedData* bytes = raw_bytecode->ptr()->instructions_;
-    uword start = reinterpret_cast<uword>(bytes->ptr()->data_);
-    uword size = Smi::Value(bytes->ptr()->length_);
+    uword start = raw_bytecode->ptr()->instructions_;
+    uword size = raw_bytecode->ptr()->instructions_size_;
     return (pc - start) < size;
   }
   return false;

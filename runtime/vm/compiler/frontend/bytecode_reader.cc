@@ -647,13 +647,8 @@ RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
   ASSERT(Utils::IsAligned(data, sizeof(KBCInstr)));
   helper_->reader_.set_offset(offset + size);
 
-  const ExternalTypedData& instructions = ExternalTypedData::Handle(
-      helper_->zone_,
-      ExternalTypedData::New(kExternalTypedDataInt8ArrayCid,
-                             const_cast<uint8_t*>(data), size, Heap::kOld));
-
   // Create and return bytecode object.
-  return Bytecode::New(instructions, pool);
+  return Bytecode::New(reinterpret_cast<uword>(data), size, offset, pool);
 }
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
