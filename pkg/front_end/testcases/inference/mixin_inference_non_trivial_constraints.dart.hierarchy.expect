@@ -74,7 +74,7 @@ M1:
 M2:
   superclasses:
     Object
-      -> I<List<T>>
+      -> I<List<Map<T, T>>>
         -> M1<Map<T, T>>
   interfaces:
   classMembers:
@@ -93,8 +93,8 @@ M2:
 M2<int> with M0:
   superclasses:
     Object
-      -> I<List<T>>
-        -> M1<Map<T, T>>
+      -> I<List<Map<int, int>>>
+        -> M1<Map<int, int>>
           -> M2<int>
   interfaces: M0
   classMembers:
@@ -125,8 +125,8 @@ M2<int> with M0:
 A:
   superclasses:
     Object
-      -> I<List<T>>
-        -> M1<Map<T, T>>
+      -> I<List<Map<int, int>>>
+        -> M1<Map<int, int>>
           -> M2<int>
             -> _A&M2&M0
   interfaces: M0

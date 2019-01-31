@@ -178,7 +178,7 @@ SimpleCaseImpl:
 SimpleCaseImpl2:
   superclasses:
     Object
-  interfaces: SimpleCaseImpl<Ai2, Bi2>, SimpleCase<Ai, Bi>
+  interfaces: SimpleCaseImpl<Ai2, Bi2>, SimpleCase<Ai2, Bi2>
   classMembers:
     Object.toString
     Object.runtimeType

@@ -31,7 +31,14 @@ import '../names.dart' show noSuchMethodName;
 import '../scope.dart' show Scope;
 
 import 'kernel_builder.dart'
-    show Declaration, LibraryBuilder, KernelClassBuilder, KernelTypeBuilder;
+    show
+        Declaration,
+        KernelClassBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        TypeBuilder,
+        TypeVariableBuilder;
 
 import 'types.dart' show Types;
 
@@ -357,7 +364,8 @@ class ClassHierarchyNodeBuilder {
     } else {
       superclasses =
           new List<KernelTypeBuilder>(supernode.superclasses.length + 1);
-      superclasses.setRange(0, superclasses.length - 1, supernode.superclasses);
+      superclasses.setRange(0, superclasses.length - 1,
+          substSupertypes(cls.supertype, supernode.superclasses));
       superclasses[superclasses.length - 1] = cls.supertype;
 
       classMembers = merge(
@@ -389,7 +397,8 @@ class ClassHierarchyNodeBuilder {
         interfaceSetters = result.mergedSetters;
         interfaces = <KernelTypeBuilder>[];
         if (supernode.interfaces != null) {
-          List<KernelTypeBuilder> types = supernode.interfaces;
+          List<KernelTypeBuilder> types =
+              substSupertypes(cls.supertype, supernode.interfaces);
           for (int i = 0; i < types.length; i++) {
             addInterface(interfaces, superclasses, types[i]);
           }
@@ -399,13 +408,15 @@ class ClassHierarchyNodeBuilder {
           ClassHierarchyNode interfaceNode =
               hierarchy.getNodeFromType(directInterfaces[i]);
           if (interfaceNode != null) {
-            List<KernelTypeBuilder> types = interfaceNode.superclasses;
+            List<KernelTypeBuilder> types = substSupertypes(
+                directInterfaces[i], interfaceNode.superclasses);
             for (int i = 0; i < types.length; i++) {
               addInterface(interfaces, superclasses, types[i]);
             }
 
             if (interfaceNode.interfaces != null) {
-              List<KernelTypeBuilder> types = interfaceNode.interfaces;
+              List<KernelTypeBuilder> types = substSupertypes(
+                  directInterfaces[i], interfaceNode.interfaces);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
               }
@@ -450,6 +461,43 @@ class ClassHierarchyNodeBuilder {
       superclasses,
       interfaces,
     );
+  }
+
+  List<KernelTypeBuilder> substSupertypes(
+      KernelNamedTypeBuilder supertype, List<KernelTypeBuilder> supertypes) {
+    Declaration declaration = supertype.declaration;
+    if (declaration is! KernelClassBuilder) return supertypes;
+    KernelClassBuilder cls = declaration;
+    List<TypeVariableBuilder<TypeBuilder, Object>> typeVariables =
+        cls.typeVariables;
+    if (typeVariables == null) return supertypes;
+    Map<TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder> substitution =
+        <TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder>{};
+    List<KernelTypeBuilder> arguments =
+        supertype.arguments ?? computeDefaultTypeArguments(supertype);
+    for (int i = 0; i < typeVariables.length; i++) {
+      substitution[typeVariables[i]] = arguments[i];
+    }
+    List<KernelTypeBuilder> result;
+    for (int i = 0; i < supertypes.length; i++) {
+      KernelTypeBuilder supertype = supertypes[i];
+      KernelTypeBuilder substed = supertype.subst(substitution);
+      if (supertype != substed) {
+        result ??= supertypes.toList();
+        result[i] = substed;
+      }
+    }
+    return result ?? supertypes;
+  }
+
+  List<KernelTypeBuilder> computeDefaultTypeArguments(KernelTypeBuilder type) {
+    KernelClassBuilder cls = type.declaration;
+    List<KernelTypeBuilder> result =
+        new List<KernelTypeBuilder>(cls.typeVariables.length);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = cls.typeVariables[i].defaultType;
+    }
+    return result;
   }
 
   KernelTypeBuilder addInterface(List<KernelTypeBuilder> interfaces,

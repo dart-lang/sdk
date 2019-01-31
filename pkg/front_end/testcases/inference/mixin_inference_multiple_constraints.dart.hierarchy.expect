@@ -177,7 +177,7 @@ M2 with M0:
     Object
       -> M1
         -> M2
-  interfaces: I<int>, J<double>, M0, _M0&I&J<X, Y>
+  interfaces: I<int>, J<double>, M0, _M0&I&J<dynamic, dynamic>
   classMembers:
     Object.toString
     Object.runtimeType
@@ -209,7 +209,7 @@ A:
       -> M1
         -> M2
           -> _A&M2&M0
-  interfaces: I<int>, J<double>, M0, _M0&I&J<X, Y>
+  interfaces: I<int>, J<double>, M0, _M0&I&J<dynamic, dynamic>
   classMembers:
     Object.toString
     Object.runtimeType

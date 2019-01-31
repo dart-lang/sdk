@@ -92,7 +92,7 @@ M2:
 M0<int> with M1:
   superclasses:
     Object
-      -> I<T>
+      -> I<int>
         -> M0<int>
   interfaces: M1
   classMembers:
@@ -123,7 +123,7 @@ M0<int> with M1:
 _A&M0&M1 with M2:
   superclasses:
     Object
-      -> I<T>
+      -> I<int>
         -> M0<int>
           -> _A&M0&M1
   interfaces: M1, M2
@@ -155,7 +155,7 @@ _A&M0&M1 with M2:
 A:
   superclasses:
     Object
-      -> I<T>
+      -> I<int>
         -> M0<int>
           -> _A&M0&M1
             -> _A&M0&M1&M2
