@@ -76,11 +76,10 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-bool VirtualMemory::FreeSubSegment(void* address,
+void VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
   const uword start = reinterpret_cast<uword>(address);
   unmap(start, start + size);
-  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

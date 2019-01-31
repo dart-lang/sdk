@@ -77,25 +77,13 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
         VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
-    vm->Truncate(kVirtualMemoryBlockSize / 2, true);
+    vm->Truncate(kVirtualMemoryBlockSize / 2);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
         VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, NULL);
-    vm->Truncate(kVirtualMemoryBlockSize / 2, false);
-    delete vm;
-  }
-  for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, NULL);
-    vm->Truncate(0, true);
-    delete vm;
-  }
-  for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
-    vm->Truncate(0, false);
+    vm->Truncate(0);
     delete vm;
   }
 }

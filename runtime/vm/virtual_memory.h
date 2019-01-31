@@ -57,10 +57,8 @@ class VirtualMemory {
 
   static bool InSamePage(uword address0, uword address1);
 
-  // Truncate this virtual memory segment. If try_unmap is false, the
-  // memory beyond the new end is still accessible, but will be returned
-  // upon destruction.
-  void Truncate(intptr_t new_size, bool try_unmap = true);
+  // Truncate this virtual memory segment.
+  void Truncate(intptr_t new_size);
 
   // False for a part of a snapshot added directly to the Dart heap, which
   // belongs to the embedder and must not be deallocated or have its
@@ -72,7 +70,7 @@ class VirtualMemory {
  private:
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
-  static bool FreeSubSegment(void* address, intptr_t size);
+  static void FreeSubSegment(void* address, intptr_t size);
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
