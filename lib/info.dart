@@ -120,14 +120,14 @@ class AllInfo {
   /// Major version indicating breaking changes in the format. A new version
   /// means that an old deserialization algorithm will not work with the new
   /// format.
-  final int version = 5;
+  final int version = 6;
 
   /// Minor version indicating non-breaking changes in the format. A change in
   /// this version number means that the json parsing in this library from a
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 1;
+  final int minorVersion = 0;
 
   AllInfo();
 
@@ -249,11 +249,28 @@ class ClassInfo extends BasicInfo {
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClass(this);
 }
 
+/// Details about generated code spans.
+class CodeSpan {
+  /// File where the code was generated.
+  OutputUnitInfo outputUnit;
+
+  /// Start offset in the generated file.
+  int start;
+
+  /// end offset in the generated file.
+  int end;
+
+  /// The actual code.
+  String text;
+
+  CodeSpan({this.outputUnit, this.start, this.end, this.text});
+}
+
 /// Information about a constant value.
 // TODO(sigmund): add dependency data for ConstantInfo
 class ConstantInfo extends BasicInfo {
   /// The actual generated code for the constant.
-  String code;
+  List<CodeSpan> code;
 
   // TODO(sigmund): Add coverage support to constants?
   ConstantInfo({int size: 0, this.code, OutputUnitInfo outputUnit})
@@ -276,7 +293,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
   List<ClosureInfo> closures;
 
   /// The actual generated code for the field.
-  String code;
+  List<CodeSpan> code;
 
   /// Whether this corresponds to a const field declaration.
   bool isConst;
@@ -350,7 +367,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   int inlinedCount;
 
   /// The actual generated code.
-  String code;
+  List<CodeSpan> code;
 
   /// Measurements collected for this function.
   Measurements measurements;

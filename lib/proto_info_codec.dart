@@ -44,7 +44,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      id = info.code.hashCode;
+      id = info.code.first.text.hashCode;
     } else {
       id = longName(info, useLibraryUri: true, forId: true).hashCode;
     }
@@ -146,7 +146,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     }
 
     if (info.code != null) {
-      proto.code = info.code;
+      proto.code = info.code.map((c) => c.text).join('\n');
     }
 
     if (info.sideEffects != null) {
@@ -171,7 +171,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..isConst = info.isConst;
 
     if (info.code != null) {
-      proto.code = info.code;
+      proto.code = info.code.map((c) => c.text).join('\n');
     }
 
     if (info.initializer != null) {
@@ -185,7 +185,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   static ConstantInfoPB _convertToConstantInfoPB(ConstantInfo info) {
-    return new ConstantInfoPB()..code = info.code;
+    return new ConstantInfoPB()..code = info.code.map((c) => c.text).join('\n');
   }
 
   static OutputUnitInfoPB _convertToOutputUnitInfoPB(OutputUnitInfo info) {

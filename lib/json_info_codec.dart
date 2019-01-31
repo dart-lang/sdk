@@ -144,7 +144,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..size = json['size']
       ..type = json['type']
       ..inferredType = json['inferredType']
-      ..code = json['code']
+      ..code = parseCode(json['code'])
       ..isConst = json['const'] ?? false
       ..initializer = parseId(json['initializer'])
       ..closures = (json['children'] as List)
@@ -155,7 +155,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   ConstantInfo parseConstant(Map json) {
     ConstantInfo result = parseId(json['id']);
     return result
-      ..code = json['code']
+      ..code = parseCode(json['code'])
       ..size = json['size']
       ..outputUnit = parseId(json['outputUnit']);
   }
@@ -243,7 +243,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..inferredReturnType = json['inferredReturnType']
       ..parameters =
           (json['parameters'] as List).map((p) => parseParameter(p)).toList()
-      ..code = json['code']
+      ..code = parseCode(json['code'])
       ..sideEffects = json['sideEffects']
       ..modifiers =
           parseModifiers(new Map<String, bool>.from(json['modifiers']))
@@ -321,6 +321,26 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       assert(false);
     });
   }
+
+  List<CodeSpan> parseCode(dynamic json) {
+    // backwards compatibility with format 5.1:
+    if (json is String) {
+      return [new CodeSpan(outputUnit: null, start: -1, end: -1, text: json)];
+    }
+
+    if (json is List) {
+      return json.map((dynamic value) {
+        Map<String, dynamic> jsonCode = value;
+        return new CodeSpan(
+            outputUnit: parseId(jsonCode['outputUnit']),
+            start: jsonCode['start'],
+            end: jsonCode['end'],
+            text: jsonCode['text']);
+      }).toList();
+    }
+
+    return [];
+  }
 }
 
 class AllInfoToJsonConverter extends Converter<AllInfo, Map>
@@ -344,7 +364,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      id = info.code.hashCode;
+      id = info.code.first.text.hashCode;
     } else {
       id = longName(info, useLibraryUri: true, forId: true).hashCode;
     }
@@ -492,7 +512,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       ..addAll(<String, Object>{
         'children': _toSortedSerializedIds(info.closures, ids),
         'inferredType': info.inferredType,
-        'code': info.code,
+        'code': _serializeCode(info.code),
         'type': info.type,
       });
     if (info.isConst) {
@@ -504,8 +524,8 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return result;
   }
 
-  Map visitConstant(ConstantInfo info) =>
-      _visitBasicInfo(info)..addAll(<String, Object>{'code': info.code});
+  Map visitConstant(ConstantInfo info) => _visitBasicInfo(info)
+    ..addAll(<String, Object>{'code': _serializeCode(info.code)});
 
   // TODO(sigmund): exclude false values (requires bumping the format version):
   //     var res = <String, bool>{};
@@ -559,7 +579,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
             info.parameters.map((p) => _visitParameterInfo(p)).toList(),
         'sideEffects': info.sideEffects,
         'inlinedCount': info.inlinedCount,
-        'code': info.code,
+        'code': _serializeCode(info.code),
         'type': info.type,
         'measurements': _visitMeasurements(info.measurements),
         // Note: version 3.2 of dump-info serializes `uses` in a section called
@@ -576,6 +596,17 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   visitOutput(OutputUnitInfo info) =>
       _visitBasicInfo(info)..['imports'] = info.imports;
+
+  List<Object> _serializeCode(List<CodeSpan> code) {
+    return code
+        .map<Object>((c) => {
+              'outputUnit': idFor(c.outputUnit),
+              'start': c.start,
+              'end': c.end,
+              'text': c.text,
+            })
+        .toList();
+  }
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {

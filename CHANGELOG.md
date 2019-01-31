@@ -4,6 +4,14 @@
   properties were only used for serialization and deserialization. Those values
   are now computed during the serialization process instead.
 
+* Added `CodeSpan` - a representation of code regions referring to output files.
+  This will be used to transition to a lighterweight dump-info that doesn't
+  embed code snippets (since they are duplicated with the output program).
+ 
+  Encoder produces a new format for code-spans, but for a transitional period
+  the decoder is still backwards compatible (filling in just the `text` in
+  `CodeSpan` where the json contained a String).
+
 ## 0.5.17
 
 * Make `live_code_size_analysis` print library URIs and not library names.
