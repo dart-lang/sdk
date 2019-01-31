@@ -8,7 +8,7 @@ library compiler.tool.show_inferred_types;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart2js_info/info.dart';
+import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/src/util.dart';
 
 main(args) {

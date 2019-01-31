@@ -293,7 +293,4 @@ class BinarySource extends AbstractDataSource {
         "Expected one of $values, found index $index.");
     return values[index];
   }
-
-  @override
-  String get _errorContext => ' Offset $_byteOffset in ${_bytes.length}.';
 }
