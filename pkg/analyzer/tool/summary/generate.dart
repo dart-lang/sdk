@@ -20,7 +20,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;

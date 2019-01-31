@@ -6,7 +6,8 @@
  * Code for converting HTML into text, for use during code generation of
  * analyzer and analysis server.
  */
-import 'package:analyzer/src/codegen/tools.dart';
+
+import 'package:analysis_tool/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 final RegExp whitespace = new RegExp(r'\s');

@@ -8,8 +8,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/src/codegen/html.dart';
-import 'package:analyzer/src/codegen/text_formatter.dart';
+import 'package:analysis_tool/html.dart';
+import 'package:analysis_tool/text_formatter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
 

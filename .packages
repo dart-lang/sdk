@@ -8,6 +8,7 @@
 #
 analysis_server:pkg/analysis_server/lib
 analysis_server_client:pkg/analysis_server_client/lib
+analysis_tool:pkg/analysis_tool/lib
 analyzer:pkg/analyzer/lib
 analyzer_cli:pkg/analyzer_cli/lib
 analyzer_fe_comparison:pkg/analyzer_fe_comparison/lib
