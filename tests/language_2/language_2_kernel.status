@@ -237,6 +237,7 @@ set_literals/invalid_set_literal_test/31: MissingCompileTimeError # Requires con
 set_literals/invalid_set_literal_test/32: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/33: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/34: MissingCompileTimeError # Requires constant evaluation
+spread_collections/*: Skip # Spread isn't implemented yet. TODO: Triage more precisely.
 syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/30: MissingCompileTimeError # Issue 29763 - low priority
