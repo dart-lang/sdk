@@ -63,6 +63,8 @@ class StackFrame {
   final MemberEntity member;
   final AsyncMarker asyncMarker;
   final KernelToLocalsMap localsMap;
+  // [ir.Let] and [ir.LocalInitializer] bindings.
+  final Map<ir.VariableDeclaration, HInstruction> letBindings;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
   final StaticTypeProvider staticTypeProvider;
@@ -72,6 +74,7 @@ class StackFrame {
       this.member,
       this.asyncMarker,
       this.localsMap,
+      this.letBindings,
       this.typeInferenceMap,
       this.sourceInformationBuilder,
       this.staticTypeProvider);
@@ -115,10 +118,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final NativeEmitter nativeEmitter;
 
-  // [ir.Let] and [ir.LocalInitializer] bindings.
-  final Map<ir.VariableDeclaration, HInstruction> letBindings =
-      <ir.VariableDeclaration, HInstruction>{};
-
   /// True if we are visiting the expression of a throw statement; we assume
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
@@ -160,6 +159,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   KernelToLocalsMap get localsMap => _currentFrame.localsMap;
 
+  Map<ir.VariableDeclaration, HInstruction> get letBindings =>
+      _currentFrame.letBindings;
+
   JCommonElements get _commonElements => _elementMap.commonElements;
 
   KernelToTypeInferenceMap get _typeInferenceMap =>
@@ -192,6 +194,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         member,
         asyncMarker,
         closedWorld.globalLocalsMap.getLocalsMap(member),
+        {},
         new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder
@@ -5044,8 +5047,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     bool heuristicSayGoodToGo() {
-      // Don't inline recursively, directly or indirectly.
-      if (function == targetElement) return false;
+      // Don't inline recursively,
       if (_inliningStack.any((entry) => entry.function == function)) {
         return false;
       }
