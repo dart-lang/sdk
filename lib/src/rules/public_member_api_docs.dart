@@ -92,7 +92,7 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor {
-  InheritanceManager manager;
+  InheritanceManager2 manager;
   bool isInLibFolder;
 
   final LintRule rule;
@@ -117,7 +117,10 @@ class _Visitor extends SimpleAstVisitor {
     if (classElement == null) {
       return null;
     }
-    return manager.lookupInheritance(classElement, member.name);
+    Uri libraryUri = classElement.library.source.uri;
+    return manager
+        .getInherited(classElement.type, new Name(libraryUri, member.name))
+        ?.element;
   }
 
   bool isOverridingMember(Declaration node) =>
@@ -164,9 +167,12 @@ class _Visitor extends SimpleAstVisitor {
     for (MethodDeclaration setter in setters) {
       MethodDeclaration getter = getters[setter.name.name];
       if (getter == null) {
+        Uri libraryUri = node.declaredElement.library.source.uri;
         // Look for an inherited getter.
-        ExecutableElement getter =
-            manager.lookupMember(node.declaredElement, setter.name.name);
+        ExecutableElement getter = manager
+            .getMember(node.declaredElement.type,
+                new Name(libraryUri, setter.name.name))
+            ?.element;
         if (getter is PropertyAccessorElement) {
           if (getter.documentationComment != null) {
             continue;
@@ -200,7 +206,9 @@ class _Visitor extends SimpleAstVisitor {
     LibraryElement library = node == null
         ? null
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null ? null : new InheritanceManager(library);
+    manager = library == null
+        ? null
+        : new InheritanceManager2(library.context.typeSystem);
 
     Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
     List<FunctionDeclaration> setters = <FunctionDeclaration>[];

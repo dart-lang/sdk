@@ -20,11 +20,13 @@ export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart'
     show ConstantEvaluationEngine, ConstantVisitor;
 export 'package:analyzer/src/dart/constant/value.dart' show DartObjectImpl;
+export 'package:analyzer/src/dart/element/inheritance_manager2.dart'
+    show InheritanceManager2, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisErrorInfo;
 export 'package:analyzer/src/generated/resolver.dart'
-    show ExitDetector, InheritanceManager, TypeProvider, TypeSystem;
+    show ExitDetector, TypeProvider, TypeSystem;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show

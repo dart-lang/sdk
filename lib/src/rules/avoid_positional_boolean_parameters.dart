@@ -49,7 +49,7 @@ class AvoidPositionalBooleanParameters extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -60,16 +60,10 @@ class AvoidPositionalBooleanParameters extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  InheritanceManager manager;
+  InheritanceManager2 manager;
 
-  _Visitor(this.rule);
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    LibraryElement library =
-        resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null ? null : new InheritanceManager(library);
-  }
+  _Visitor(this.rule, LinterContext context)
+      : manager = new InheritanceManager2(context.typeSystem);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -114,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       !node.isNamed;
 
   bool _isOverridingMember(Element member) {
-    if (member == null || manager == null) {
+    if (member == null) {
       return false;
     }
 
@@ -123,6 +117,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement == null) {
       return false;
     }
-    return manager.lookupInheritance(classElement, member.name) != null;
+    Uri libraryUri = classElement.library.source.uri;
+    return manager.getInherited(
+            classElement.type, new Name(libraryUri, member.name)) !=
+        null;
   }
 }
