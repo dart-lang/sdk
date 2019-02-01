@@ -410,6 +410,7 @@ class FlowGraph : public ZoneAllocated {
 
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
+  friend class FlowGraphChecker;
   friend class IfConverter;
   friend class BranchSimplifier;
   friend class ConstantPropagator;
