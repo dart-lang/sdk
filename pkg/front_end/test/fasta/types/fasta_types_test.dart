@@ -4,8 +4,6 @@
 
 import "package:async_helper/async_helper.dart" show asyncTest;
 
-import "package:expect/expect.dart" show Expect, ExpectException;
-
 import "package:kernel/ast.dart" show Component, DartType;
 
 import "package:kernel/core_types.dart" show CoreTypes;
@@ -56,18 +54,7 @@ main() {
     KernelClassBuilder objectClass = loader.coreLibrary["Object"];
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
-    bool threw = false;
-    try {
-      new FastaTypesTest(hierarchy, environment).run();
-    } on ExpectException catch (e) {
-      // TODO(ahe): Remove this when the the subtype implementation is complete.
-      if (e.message !=
-          "Expect.isFalse(true, 'T & num shouldn't be a subtype of T & int (legacy).') fails.") {
-        rethrow;
-      }
-      threw = true;
-    }
-    Expect.isTrue(threw, "Test unexpectedly passed");
+    new FastaTypesTest(hierarchy, environment).run();
   }
 
   asyncTest(() => context.runInContext<void>(doIt));
