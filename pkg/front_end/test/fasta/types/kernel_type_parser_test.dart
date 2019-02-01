@@ -34,6 +34,8 @@ const String testSdk = """
   class Null;
   class Function;
   typedef Typedef<T> <S>(T) -> S;
+  class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
+  typedef TestDefaultTypes () -> DefaultTypes;
 """;
 
 const String expectedSdk = """
@@ -41,6 +43,7 @@ library core;
 import self as self;
 
 typedef Typedef<T extends self::Object = dynamic> = <S extends self::Object = dynamic>(T) → S;
+typedef TestDefaultTypes = () → self::DefaultTypes<dynamic, self::Object, self::List<dynamic>, self::List<self::Object>, self::Comparable<dynamic>, (<BottomType>) → void, () → self::Comparable<dynamic>>;
 class Object {
 }
 class Comparable<T extends self::Object = dynamic> extends self::Object {
@@ -62,6 +65,8 @@ class FutureOr<T extends self::Object = dynamic> extends self::Object {
 class Null extends self::Object {
 }
 class Function extends self::Object {
+}
+class DefaultTypes<S extends self::Object = dynamic, T extends self::Object = self::Object, U extends self::List<self::DefaultTypes::S> = self::List<dynamic>, V extends self::List<self::DefaultTypes::T> = self::List<self::Object>, W extends self::Comparable<self::DefaultTypes::W> = self::Comparable<dynamic>, X extends (self::DefaultTypes::W) → void = (<BottomType>) → void, Y extends () → self::DefaultTypes::W = () → self::Comparable<dynamic>> extends self::Object {
 }
 """;
 

@@ -22,6 +22,8 @@ import "package:kernel/ast.dart"
         VoidType,
         setParents;
 
+import "package:kernel/src/bounds_checks.dart" show calculateBounds;
+
 import "type_parser.dart" as type_parser show parse;
 
 import "type_parser.dart"
@@ -120,6 +122,15 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
           arguments[i].accept<Node, KernelEnvironment>(this, environment);
     }
     if (declaration is Class) {
+      List<TypeParameter> typeVariables = declaration.typeParameters;
+      if (kernelArguments.isEmpty && typeVariables.isNotEmpty) {
+        kernelArguments = new List<DartType>.filled(typeVariables.length, null);
+        for (int i = 0; i < typeVariables.length; i++) {
+          kernelArguments[i] = typeVariables[i].defaultType;
+        }
+      } else if (kernelArguments.length != typeVariables.length) {
+        throw "Expected ${typeVariables.length} type arguments: $node";
+      }
       return new InterfaceType(declaration, kernelArguments);
     } else if (declaration is TypeParameter) {
       if (arguments.isNotEmpty) {
@@ -247,21 +258,28 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     }
     KernelEnvironment nestedEnvironment =
         environment.extend(typeParametersByName);
+    Class objectClass = environment.objectClass;
     for (int i = 0; i < typeVariables.length; i++) {
       ParsedType bound = typeVariables[i].bound;
       TypeParameter typeParameter = typeParameters[i];
       if (bound == null) {
         typeParameter
-          ..bound = environment.objectClass.rawType
+          ..bound = objectClass.rawType
           ..defaultType = const DynamicType();
       } else {
         DartType type =
             bound.accept<Node, KernelEnvironment>(this, nestedEnvironment);
         typeParameter
           ..bound = type
-          ..defaultType = type; // TODO(ahe): Is this correct?
-
+          // The default type will be overridden below, but we need to set it
+          // so [calculateBounds] can destinquish between explicit and implicit
+          // bounds.
+          ..defaultType = type;
       }
+    }
+    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass);
+    for (int i = 0; i < typeParameters.length; i++) {
+      typeParameters[i].defaultType = defaultTypes[i];
     }
     return new ParameterEnvironment(typeParameters, nestedEnvironment);
   }
