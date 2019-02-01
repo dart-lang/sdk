@@ -757,6 +757,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // We can replace the call to the native class interceptor method (target)
     // if the target does no conversions or useful type checks.
     if (_options.disableInlining) return null;
+    if (_closedWorld.annotationsData.nonInlinableFunctions.contains(method)) {
+      return null;
+    }
     if (!node.isInterceptedCall) return null;
 
     FunctionType type = _closedWorld.elementEnvironment.getFunctionType(method);

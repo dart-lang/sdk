@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: field1a:read*/
+/*element: field1a:read,write*/
 var field1a;
 
-/*element: field1b:write*/
+/*element: field1b:read,write*/
 var field1b;
 
 /*element: field1c:read,write*/
@@ -29,10 +29,10 @@ set field2c(_) {}
 
 /*element: Class.:invoke*/
 class Class {
-  /*element: Class.field1a:read*/
+  /*element: Class.field1a:read,write*/
   var field1a;
 
-  /*element: Class.field1b:write*/
+  /*element: Class.field1b:read,write*/
   var field1b;
 
   /*element: Class.field1c:read,write*/

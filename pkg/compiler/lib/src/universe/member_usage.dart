@@ -158,6 +158,8 @@ class FieldUsage extends MemberUsage {
       // All field initializers must be resolved as they could
       // have an observable side-effect (and cannot be tree-shaken
       // away).
+      // TODO(johnniwinther): We should track reads/writes precisely, while
+      // still generating initializer expression for side-effects.
       fullyUse();
     }
   }

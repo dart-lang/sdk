@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*element: main:calls=*,params=0*/
 main() {
   method1(new Class1a());
   method2(new Class2a<int>());
@@ -16,6 +17,7 @@ class Class1a {
   int field1;
 }
 
+/*element: method1:params=1*/
 @pragma('dart2js:noInline')
 method1(dynamic c) {
   c.field1 = 42;
@@ -27,6 +29,8 @@ class Class2a<T> {
   T field2;
 }
 
+/*strong.element: method2:calls=[set$field2(1)],params=1*/
+/*omit.element: method2:params=1*/
 @pragma('dart2js:noInline')
 method2(dynamic c) {
   c.field2 = 42;
@@ -44,6 +48,7 @@ class Class3b {
   int field3;
 }
 
+/*element: method3:calls=[set$field3(1)],params=1*/
 @pragma('dart2js:noInline')
 method3(dynamic c) {
   c.field3 = 42;
@@ -61,6 +66,7 @@ class Class4b implements Class4a {
   int field4;
 }
 
+/*element: method4:calls=[set$field4(1)],params=1*/
 @pragma('dart2js:noInline')
 method4(Class4a c) {
   c.field4 = 42;
