@@ -801,6 +801,9 @@ class SourceLoader<L> extends Loader<L> {
               : new StrongModeMixinInferrer(this));
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
+      hierarchy.mixinInferrer = target.legacyMode
+          ? new LegacyModeMixinInferrer()
+          : new StrongModeMixinInferrer(this);
       Component component = computeFullComponent();
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);

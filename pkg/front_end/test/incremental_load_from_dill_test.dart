@@ -317,6 +317,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     }
 
     {
+      List<String> prevFormattedErrors = formattedErrors.toList();
+      List<String> prevFormattedWarnings = formattedWarnings.toList();
       gotError = false;
       formattedErrors.clear();
       gotWarning = false;
@@ -327,6 +329,29 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       List<int> thisWholeComponent = serializeComponent(component2);
       print("*****\n\ncomponent2:\n${componentToString(component2)}\n\n\n");
       checkIsEqual(newestWholeComponentData, thisWholeComponent);
+      if (prevFormattedErrors.length != formattedErrors.length) {
+        Expect.fail("Previously had ${prevFormattedErrors.length} errors, "
+            "now had ${formattedErrors.length}.\n\n"
+            "Before:\n"
+            "${prevFormattedErrors.join("\n")}"
+            "\n\n"
+            "Now:\n"
+            "${formattedErrors.join("\n")}");
+      }
+      if ((prevFormattedErrors.toSet()..removeAll(formattedErrors))
+          .isNotEmpty) {
+        Expect.fail("Previously got error messages $prevFormattedErrors, "
+            "now had ${formattedErrors}.");
+      }
+      if (prevFormattedWarnings.length != formattedWarnings.length) {
+        Expect.fail("Previously had ${prevFormattedWarnings.length} errors, "
+            "now had ${formattedWarnings.length}.");
+      }
+      if ((prevFormattedWarnings.toSet()..removeAll(formattedWarnings))
+          .isNotEmpty) {
+        Expect.fail("Previously got error messages $prevFormattedWarnings, "
+            "now had ${formattedWarnings}.");
+      }
     }
   }
 }
