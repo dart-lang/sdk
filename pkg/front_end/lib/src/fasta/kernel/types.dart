@@ -51,19 +51,40 @@ class Types {
       return false;
     }
     if (t is InterfaceType) {
-      const IsInterfaceSubtypeOf relation = const IsInterfaceSubtypeOf();
-      if (s is DynamicType) {
-        return relation.isDynamicRelated(s, t, this);
-      } else if (s is VoidType) {
-        return relation.isVoidRelated(s, t, this);
-      } else if (s is InterfaceType) {
-        return relation.isInterfaceRelated(s, t, this);
-      } else if (s is FunctionType) {
-        return relation.isFunctionRelated(s, t, this);
-      } else if (s is TypeParameterType) {
-        return relation.isTypeParameterRelated(s, t, this);
-      } else if (s is TypedefType) {
-        return relation.isTypedefRelated(s, t, this);
+      if (t.classNode == hierarchy.futureOrKernelClass) {
+        const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
+        if (s is DynamicType) {
+          return relation.isDynamicRelated(s, t, this);
+        } else if (s is VoidType) {
+          return relation.isVoidRelated(s, t, this);
+        } else if (s is InterfaceType) {
+          return s.classNode == hierarchy.futureOrKernelClass
+              ? relation.isFutureOrRelated(s, t, this)
+              : relation.isInterfaceRelated(s, t, this);
+        } else if (s is FunctionType) {
+          return relation.isFunctionRelated(s, t, this);
+        } else if (s is TypeParameterType) {
+          return relation.isTypeParameterRelated(s, t, this);
+        } else if (s is TypedefType) {
+          return relation.isTypedefRelated(s, t, this);
+        }
+      } else {
+        const IsInterfaceSubtypeOf relation = const IsInterfaceSubtypeOf();
+        if (s is DynamicType) {
+          return relation.isDynamicRelated(s, t, this);
+        } else if (s is VoidType) {
+          return relation.isVoidRelated(s, t, this);
+        } else if (s is InterfaceType) {
+          return s.classNode == hierarchy.futureOrKernelClass
+              ? relation.isFutureOrRelated(s, t, this)
+              : relation.isInterfaceRelated(s, t, this);
+        } else if (s is FunctionType) {
+          return relation.isFunctionRelated(s, t, this);
+        } else if (s is TypeParameterType) {
+          return relation.isTypeParameterRelated(s, t, this);
+        } else if (s is TypedefType) {
+          return relation.isTypedefRelated(s, t, this);
+        }
       }
     } else if (t is FunctionType) {
       const IsFunctionSubtypeOf relation = const IsFunctionSubtypeOf();
@@ -72,7 +93,9 @@ class Types {
       } else if (s is VoidType) {
         return relation.isVoidRelated(s, t, this);
       } else if (s is InterfaceType) {
-        return relation.isInterfaceRelated(s, t, this);
+        return s.classNode == hierarchy.futureOrKernelClass
+            ? relation.isFutureOrRelated(s, t, this)
+            : relation.isInterfaceRelated(s, t, this);
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
@@ -88,7 +111,9 @@ class Types {
       } else if (s is VoidType) {
         return relation.isVoidRelated(s, t, this);
       } else if (s is InterfaceType) {
-        return relation.isInterfaceRelated(s, t, this);
+        return s.classNode == hierarchy.futureOrKernelClass
+            ? relation.isFutureOrRelated(s, t, this)
+            : relation.isInterfaceRelated(s, t, this);
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
@@ -103,7 +128,9 @@ class Types {
       } else if (s is VoidType) {
         return relation.isVoidRelated(s, t, this);
       } else if (s is InterfaceType) {
-        return relation.isInterfaceRelated(s, t, this);
+        return s.classNode == hierarchy.futureOrKernelClass
+            ? relation.isFutureOrRelated(s, t, this)
+            : relation.isInterfaceRelated(s, t, this);
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
@@ -151,6 +178,8 @@ abstract class TypeRelation<T extends DartType> {
 
   bool isFunctionRelated(FunctionType s, T t, Types types);
 
+  bool isFutureOrRelated(InterfaceType futureOr, T t, Types types);
+
   bool isTypeParameterRelated(TypeParameterType s, T t, Types types);
 
   bool isTypedefRelated(TypedefType s, T t, Types types);
@@ -178,6 +207,19 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   bool isTypeParameterRelated(
       TypeParameterType s, InterfaceType t, Types types) {
     return types.isSubtypeOfKernel(s.parameter.bound, t);
+  }
+
+  @override
+  bool isFutureOrRelated(InterfaceType futureOr, InterfaceType t, Types types) {
+    List<DartType> arguments = futureOr.typeArguments;
+    if (!types.isSubtypeOfKernel(arguments.single, t)) {
+      return false; // Rule 7.1
+    }
+    if (!types.isSubtypeOfKernel(
+        new InterfaceType(types.hierarchy.futureKernelClass, arguments), t)) {
+      return false; // Rule 7.2
+    }
+    return true;
   }
 
   // TODO(ahe): Remove this method.
@@ -252,6 +294,34 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
 
 class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   const IsTypedefSubtypeOf();
+
+  // TODO(ahe): Remove this method.
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+}
+
+class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
+  const IsFutureOrSubtypeOf();
+
+  @override
+  bool isInterfaceRelated(
+      InterfaceType s, InterfaceType futureOr, Types types) {
+    List<DartType> arguments = futureOr.typeArguments;
+    if (types.isSubtypeOfKernel(s, arguments.single)) {
+      return true; // Rule 11.
+    }
+    // Rule 10.
+    return types.isSubtypeOfKernel(
+        s, new InterfaceType(types.hierarchy.futureKernelClass, arguments));
+  }
+
+  @override
+  bool isFutureOrRelated(
+      InterfaceType sFutureOr, InterfaceType tFutureOr, Types types) {
+    //return types.isSubtypeOfKernel(
+    //    sFutureOr.typeArguments.single, futureOr.typeArguments.single);
+    // TODO(ahe): Not tested yet.
+    return true;
+  }
 
   // TODO(ahe): Remove this method.
   noSuchMethod(invocation) => super.noSuchMethod(invocation);

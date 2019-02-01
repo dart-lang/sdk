@@ -932,8 +932,8 @@ class SourceLoader<L> extends Loader<L> {
 
   ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    ClassHierarchyBuilder hierarchy =
-        ClassHierarchyBuilder.build(objectClass, sourceClasses, this);
+    ClassHierarchyBuilder hierarchy = ClassHierarchyBuilder.build(
+        objectClass, sourceClasses, this, coreTypes);
     ticker.logMs("Built class hierarchy");
     return hierarchy;
   }

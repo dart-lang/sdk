@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
@@ -82,9 +84,15 @@ class ClassHierarchyBuilder {
 
   final Loader<Library> loader;
 
+  final Class futureKernelClass;
+
+  final Class futureOrKernelClass;
+
   Types types;
 
-  ClassHierarchyBuilder(this.objectClass, this.loader) {
+  ClassHierarchyBuilder(this.objectClass, this.loader, CoreTypes coreTypes)
+      : futureKernelClass = coreTypes.futureClass,
+        futureOrKernelClass = coreTypes.futureOrClass {
     types = new Types(this);
   }
 
@@ -128,10 +136,13 @@ class ClassHierarchyBuilder {
     return null;
   }
 
-  static ClassHierarchyBuilder build(KernelClassBuilder objectClass,
-      List<KernelClassBuilder> classes, Loader<Object> loader) {
+  static ClassHierarchyBuilder build(
+      KernelClassBuilder objectClass,
+      List<KernelClassBuilder> classes,
+      Loader<Object> loader,
+      CoreTypes coreTypes) {
     ClassHierarchyBuilder hierarchy =
-        new ClassHierarchyBuilder(objectClass, loader);
+        new ClassHierarchyBuilder(objectClass, loader, coreTypes);
     for (int i = 0; i < classes.length; i++) {
       KernelClassBuilder cls = classes[i];
       hierarchy.nodes[cls.target] =

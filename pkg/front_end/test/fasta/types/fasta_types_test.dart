@@ -8,7 +8,9 @@ import "package:expect/expect.dart" show Expect, ExpectException;
 
 import "package:kernel/ast.dart" show Component, DartType;
 
-import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
+import "package:kernel/core_types.dart" show CoreTypes;
+
+import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
@@ -53,14 +55,14 @@ main() {
     await target.buildOutlines();
     KernelClassBuilder objectClass = loader.coreLibrary["Object"];
     ClassHierarchyBuilder hierarchy =
-        new ClassHierarchyBuilder(objectClass, loader);
+        new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
     bool threw = false;
     try {
       new FastaTypesTest(hierarchy, environment).run();
     } on ExpectException catch (e) {
       // TODO(ahe): Remove this when the the subtype implementation is complete.
       if (e.message !=
-          "Expect.isTrue(false, 'int should be a subtype of FutureOr<int>.') fails.") {
+          "Expect.isFalse(true, 'T & num shouldn't be a subtype of T & int (legacy).') fails.") {
         rethrow;
       }
       threw = true;
