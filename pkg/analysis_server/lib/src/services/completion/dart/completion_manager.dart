@@ -38,7 +38,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -54,6 +53,14 @@ class DartCompletionManager implements CompletionContributor {
    * to maintain state between calls to [DartContributionSorter#sort(...)].
    */
   static DartContributionSorter contributionSorter = new CommonUsageSorter();
+
+  /// If not `null`, then instead of using [ImportedReferenceContributor],
+  /// fill this set with kinds of elements that are applicable at the
+  /// completion location, so should be suggested from available suggestion
+  /// sets.
+  final Set<protocol.ElementKind> includedSuggestionKinds;
+
+  DartCompletionManager({this.includedSuggestionKinds});
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -88,7 +95,6 @@ class DartCompletionManager implements CompletionContributor {
       new ArgListContributor(),
       new CombinatorContributor(),
       new FieldFormalContributor(),
-      new ImportedReferenceContributor(),
       new InheritedReferenceContributor(),
       new KeywordContributor(),
       new LabelContributor(),
@@ -104,6 +110,13 @@ class DartCompletionManager implements CompletionContributor {
       new UriContributor(),
       new VariableNameContributor()
     ];
+
+    if (includedSuggestionKinds != null) {
+      _addIncludedSuggestionKinds(dartRequest);
+    } else {
+      contributors.add(new ImportedReferenceContributor());
+    }
+
     try {
       for (DartCompletionContributor contributor in contributors) {
         String contributorTag =
@@ -151,6 +164,23 @@ class DartCompletionManager implements CompletionContributor {
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;
+  }
+
+  void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
+    var kinds = includedSuggestionKinds;
+    if (kinds != null) {
+      if (request.opType.includeTypeNameSuggestions) {
+        kinds.add(protocol.ElementKind.CLASS);
+        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.ENUM);
+        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.MIXIN);
+      }
+      if (request.opType.includeReturnValueSuggestions) {
+        kinds.add(protocol.ElementKind.FUNCTION);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
+    }
   }
 
   static List<String> _ensureList(Map<String, List<String>> map, String key) {
@@ -303,8 +333,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    * based on the given [request]. This method will throw [AbortCompletion]
    * if the completion request has been aborted.
    */
-  static Future<DartCompletionRequest> from(CompletionRequest request,
-      {ResultDescriptor resultDescriptor}) async {
+  static Future<DartCompletionRequest> from(CompletionRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     request.checkAborted();

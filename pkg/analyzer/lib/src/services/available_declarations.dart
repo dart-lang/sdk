@@ -424,6 +424,20 @@ class DeclarationsTracker {
     _changedPaths.add(path);
   }
 
+  /// Discard all contexts and libraries, notify the [changes] stream that
+  /// these libraries are removed.
+  void discardContexts() {
+    var libraryIdList = _idToLibrary.keys.toList();
+    _changesController.add(LibraryChange._([], libraryIdList));
+
+    _contexts.clear();
+    _pathToFile.clear();
+    _uriToFile.clear();
+    _idToLibrary.clear();
+    _changedPaths.clear();
+    _scheduledFiles.clear();
+  }
+
   /// Do a single piece of work.
   ///
   /// The client should call this method until [hasWork] returns `false`.
@@ -472,13 +486,9 @@ class DeclarationsTracker {
     return _contexts[analysisContext];
   }
 
-  /// The [analysisContext] is being disposed, it does not need declarations.
-  void removeContext(AnalysisContext analysisContext) {
-    _contexts.remove(analysisContext);
-
-    _scheduledFiles.removeWhere((f) {
-      return f.context._analysisContext == analysisContext;
-    });
+  /// Return the library with the given [id], or `null` if there is none.
+  Library getLibrary(int id) {
+    return _idToLibrary[id];
   }
 
   void _addFile(DeclarationsContext context, String path) {

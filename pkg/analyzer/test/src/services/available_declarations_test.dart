@@ -794,6 +794,29 @@ final double e = 2.7;
         isFinal: true, returnType: 'double');
   }
 
+  test_discardContexts() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class A {}
+''');
+
+    // No libraries initially.
+    expect(uriToLibrary, isEmpty);
+
+    // Add the context, and discard everything immediately.
+    tracker.addContext(testAnalysisContext);
+    tracker.discardContexts();
+
+    // There is no context.
+    expect(tracker.getContext(testAnalysisContext), isNull);
+
+    // There is no work to do.
+    expect(tracker.hasWork, isFalse);
+    await _doAllTrackerWork();
+
+    // So, there are no new libraries.
+    expect(uriToLibrary, isEmpty);
+  }
+
   test_export() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -1448,6 +1471,20 @@ class C {}
     }
   }
 
+  test_getLibrary() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var id = uriToLibrary['package:test/test.dart'].id;
+    var library = tracker.getLibrary(id);
+    expect(library.id, id);
+    expect(library.uriStr, 'package:test/test.dart');
+  }
+
   test_kindsOfDeclarations() async {
     newFile('/home/test/lib/test.dart', content: r'''
 class MyClass {}
@@ -1544,29 +1581,6 @@ class C {}
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
     ]);
-  }
-
-  test_removeContext_afterAddContext() async {
-    newFile('/home/test/lib/test.dart', content: r'''
-class A {}
-''');
-
-    // No libraries initially.
-    expect(uriToLibrary, isEmpty);
-
-    // Add the context, and remove it immediately.
-    tracker.addContext(testAnalysisContext);
-    tracker.removeContext(testAnalysisContext);
-
-    // There is no context.
-    expect(tracker.getContext(testAnalysisContext), isNull);
-
-    // There is no work to do.
-    expect(tracker.hasWork, isFalse);
-    await _doAllTrackerWork();
-
-    // So, there are no new libraries.
-    expect(uriToLibrary, isEmpty);
   }
 
   void _assertDeclaration(
