@@ -17,6 +17,7 @@ import "package:kernel/ast.dart"
         TypeParameter,
         TypeParameterType,
         Typedef,
+        TypedefType,
         VoidType,
         setParents;
 
@@ -44,6 +45,8 @@ Library parseLibrary(Uri uri, String text,
     Node node = environment.kernelFromParsedType(type);
     if (node is Class) {
       library.addClass(node);
+    } else if (node is Typedef) {
+      library.addTypedef(node);
     } else {
       throw "Unsupported: $node";
     }
@@ -93,7 +96,10 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
   DartType visitInterfaceType(
       ParsedInterfaceType node, KernelEnvironment environment) {
-    TreeNode declaration = environment[node.name];
+    String name = node.name;
+    if (name == "dynamic") return const DynamicType();
+    if (name == "void") return const VoidType();
+    TreeNode declaration = environment[name];
     List<ParsedType> arguments = node.arguments;
     List<DartType> kernelArguments =
         new List<DartType>.filled(arguments.length, null);
@@ -108,6 +114,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         throw "Type variable can't have arguments (${node.name})";
       }
       return new TypeParameterType(declaration);
+    } else if (declaration is Typedef) {
+      return new TypedefType(declaration, kernelArguments);
     } else {
       throw "Unhandled ${declaration.runtimeType}";
     }
@@ -143,7 +151,23 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
   }
 
   Typedef visitTypedef(ParsedTypedef node, KernelEnvironment environment) {
-    throw "not implemented: $node";
+    String name = node.name;
+    Typedef def = environment[name] =
+        new Typedef(name, null, fileUri: environment.fileUri);
+    ParameterEnvironment parameterEnvironment =
+        computeTypeParameterEnvironment(node.typeVariables, environment);
+    def.typeParameters.addAll(parameterEnvironment.parameters);
+    FunctionType type;
+    {
+      KernelEnvironment environment = parameterEnvironment.environment;
+      type = node.type.accept<Node, KernelEnvironment>(this, environment);
+      type = new FunctionType(type.positionalParameters, type.returnType,
+          namedParameters: type.namedParameters,
+          typeParameters: type.typeParameters,
+          requiredParameterCount: type.requiredParameterCount,
+          typedefType: def.thisType);
+    }
+    return def..type = type;
   }
 
   FunctionType visitFunctionType(

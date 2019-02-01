@@ -1176,6 +1176,8 @@ class _SyncIterator {
   var _current;
   var _yieldEachIterable;
 }
+
+class Function {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an

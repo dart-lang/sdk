@@ -84,15 +84,21 @@ class ClassHierarchyBuilder {
 
   final Loader<Library> loader;
 
+  final Class objectKernelClass;
+
   final Class futureKernelClass;
 
   final Class futureOrKernelClass;
 
+  final Class functionKernelClass;
+
   Types types;
 
   ClassHierarchyBuilder(this.objectClass, this.loader, CoreTypes coreTypes)
-      : futureKernelClass = coreTypes.futureClass,
-        futureOrKernelClass = coreTypes.futureOrClass {
+      : objectKernelClass = objectClass.target,
+        futureKernelClass = coreTypes.futureClass,
+        futureOrKernelClass = coreTypes.futureOrClass,
+        functionKernelClass = coreTypes.functionClass {
     types = new Types(this);
   }
 

@@ -267,6 +267,8 @@ class Parser {
       ParsedType type;
       if (optional("(") || optional("<")) {
         type = parseFunctionType();
+      } else if (optionalAdvance("void")) {
+        type = new ParsedInterfaceType("void", <ParsedType>[]);
       } else {
         String name = parseName();
         List<ParsedType> arguments = <ParsedType>[];

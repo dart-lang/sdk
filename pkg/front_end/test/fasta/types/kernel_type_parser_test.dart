@@ -33,12 +33,14 @@ const String testSdk = """
   class FutureOr<T>;
   class Null;
   class Function;
+  typedef Typedef<T> <S>(T) -> S;
 """;
 
 const String expectedSdk = """
 library core;
 import self as self;
 
+typedef Typedef<T extends self::Object = dynamic> = <S extends self::Object = dynamic>(T) → S;
 class Object {
 }
 class Comparable<T extends self::Object = dynamic> extends self::Object {

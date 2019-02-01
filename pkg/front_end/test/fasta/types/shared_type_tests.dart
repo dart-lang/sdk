@@ -187,5 +187,12 @@ abstract class SubtypeTest<T, E> {
         legacyMode: true, typeParameters: 'S extends num, T');
     isNotSubtype('S', 'T & num',
         legacyMode: true, typeParameters: 'S extends num, T');
+
+    isNotSubtype('dynamic', 'int');
+    isNotSubtype('void', 'int');
+    isNotSubtype('() -> int', 'int');
+    isNotSubtype('Typedef<Object>', 'int');
+    isSubtype('() -> int', 'Function');
+    isSubtype('() -> int', 'Object');
   }
 }

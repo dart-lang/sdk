@@ -7,6 +7,7 @@ library fasta.types;
 import 'package:kernel/ast.dart'
     show
         BottomType,
+        Class,
         DartType,
         DynamicType,
         FunctionType,
@@ -30,7 +31,7 @@ class Types {
   /// Returns true if [s] is a subtype of [t].
   bool isSubtypeOfKernel(DartType s, DartType t) {
     if (s is BottomType) {
-      return true;
+      return true; // Rule 3.
     }
     if (s is InvalidType) {
       // InvalidType is also a bottom type.
@@ -40,18 +41,20 @@ class Types {
       return false;
     }
     if (t is DynamicType) {
-      // A top type.
-      return true;
+      return true; // Rule 2.
     }
     if (t is VoidType) {
-      // A top type.
-      return true;
+      return true; // Rule 2.
     }
     if (t is BottomType) {
       return false;
     }
     if (t is InterfaceType) {
-      if (t.classNode == hierarchy.futureOrKernelClass) {
+      Class cls = t.classNode;
+      if (cls == hierarchy.objectKernelClass) {
+        return true; // Rule 2.
+      }
+      if (cls == hierarchy.futureOrKernelClass) {
         const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
         if (s is DynamicType) {
           return relation.isDynamicRelated(s, t, this);
@@ -262,8 +265,25 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     return types.isSubtypeOfKernel(intersection.promotedBound, t); // Rule 12.
   }
 
-  // TODO(ahe): Remove this method.
-  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  @override
+  bool isDynamicRelated(DynamicType s, InterfaceType t, Types types) {
+    return false;
+  }
+
+  @override
+  bool isFunctionRelated(FunctionType s, InterfaceType t, Types types) {
+    return t.classNode == types.hierarchy.functionKernelClass; // Rule 14.
+  }
+
+  @override
+  bool isTypedefRelated(TypedefType s, InterfaceType t, Types types) {
+    return false;
+  }
+
+  @override
+  bool isVoidRelated(VoidType s, InterfaceType t, Types types) {
+    return false;
+  }
 }
 
 class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
