@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * Instances of the class `InheritanceManager` manage the knowledge of where class members
  * (methods, getters & setters) are inherited from.
  */
+@Deprecated('Use InheritanceManager2 instead.')
 class InheritanceManager {
   /**
    * The [LibraryElement] that is managed by this manager.
@@ -125,7 +126,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
-  @deprecated
+  @Deprecated('Use InheritanceManager2.getInherited() instead.')
   ExecutableElement lookupInheritance(
       ClassElement classElt, String memberName) {
     if (memberName == null || memberName.isEmpty) {
@@ -150,7 +151,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
-  @deprecated
+  @Deprecated('Use InheritanceManager2.getMember() instead.')
   ExecutableElement lookupMember(ClassElement classElt, String memberName) {
     ExecutableElement element = _lookupMemberInClass(classElt, memberName);
     if (element != null) {
@@ -169,7 +170,7 @@ class InheritanceManager {
    * @param memberName the name of the class member to query
    * @return a list of overridden methods
    */
-  @deprecated
+  @Deprecated('Use InheritanceManager2.getOverridden() instead.')
   List<ExecutableElement> lookupOverrides(
       ClassElement classElt, String memberName) {
     List<ExecutableElement> result = new List<ExecutableElement>();
