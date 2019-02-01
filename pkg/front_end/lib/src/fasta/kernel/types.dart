@@ -227,9 +227,11 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
 
   @override
   bool isInterfaceRelated(InterfaceType s, InterfaceType t, Types types) {
-    if (s.classNode == t.classNode) {
+    Class cls = s.classNode;
+    if (cls == t.classNode) {
       return types.areSubtypesOfKernel(s.typeArguments, t.typeArguments);
     }
+    if (cls == types.hierarchy.nullKernelClass) return true;
     KernelNamedTypeBuilder supertype =
         types.hierarchy.asSupertypeOf(s.classNode, t.classNode);
     if (supertype == null) return false;
@@ -335,6 +337,11 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
     return true;
   }
 
+  @override
+  bool isInterfaceRelated(InterfaceType s, FunctionType t, Types types) {
+    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+  }
+
   // TODO(ahe): Remove this method.
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
 }
@@ -348,9 +355,15 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
     return s.parameter == t.parameter;
   }
 
+  @override
   bool isIntersectionRelated(
       TypeParameterType intersection, TypeParameterType t, Types types) {
     return intersection.parameter == t.parameter; // Rule 8.
+  }
+
+  @override
+  bool isInterfaceRelated(InterfaceType s, TypeParameterType t, Types types) {
+    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
   }
 
   // TODO(ahe): Remove this method.
@@ -359,6 +372,11 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
 
 class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   const IsTypedefSubtypeOf();
+
+  @override
+  bool isInterfaceRelated(InterfaceType s, TypedefType t, Types types) {
+    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+  }
 
   // TODO(ahe): Remove this method.
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
@@ -410,6 +428,12 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
     return const IsTypeParameterSubtypeOf()
             .isTypeParameterRelated(s, intersection, types) &&
         types.isSubtypeOfKernel(s, intersection.promotedBound);
+  }
+
+  @override
+  bool isInterfaceRelated(
+      InterfaceType s, TypeParameterType intersection, Types types) {
+    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
   }
 
   // TODO(ahe): Remove this method.

@@ -397,4 +397,10 @@ class _ProtoConstraint {
   _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
 
   _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
+
+  String toString() {
+    return isUpper
+        ? "${parameter.name} <: $bound"
+        : "$bound <: ${parameter.name}";
+  }
 }

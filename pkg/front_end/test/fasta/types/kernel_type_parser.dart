@@ -4,6 +4,7 @@
 
 import "package:kernel/ast.dart"
     show
+        BottomType,
         Class,
         DartType,
         DynamicType,
@@ -97,8 +98,19 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
   DartType visitInterfaceType(
       ParsedInterfaceType node, KernelEnvironment environment) {
     String name = node.name;
-    if (name == "dynamic") return const DynamicType();
-    if (name == "void") return const VoidType();
+    if (name == "dynamic") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new DynamicType();
+    } else if (name == "void") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new VoidType();
+    } else if (name == "bottom") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new BottomType();
+    }
     TreeNode declaration = environment[name];
     List<ParsedType> arguments = node.arguments;
     List<DartType> kernelArguments =

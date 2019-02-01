@@ -62,6 +62,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('(num) -> int', '(num) -> num');
     isSubtype('(num) -> int', '(int) -> num');
     isNotSubtype('(int) -> int', '(num) -> num');
+    isSubtype('Null', '(int) -> num');
 
     isSubtype('(num) -> (num) -> num', '(num) -> (int) -> num');
     isNotSubtype('(num) -> (int) -> int', '(num) -> (num) -> num');
@@ -114,12 +115,15 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('FutureOr<double>', 'int');
     isNotSubtype('FutureOr<int>', 'Future<num>');
     isNotSubtype('FutureOr<int>', 'num');
+    isSubtype('Null', 'FutureOr<int>');
+    isSubtype('Null', 'Future<int>');
 
     // T & B <: T & A if B <: A
     isSubtype('T & int', 'T & int', typeParameters: 'T');
     isSubtype('T & int', 'T & num', typeParameters: 'T');
     isSubtype('T & num', 'T & num', typeParameters: 'T');
     isNotSubtype('T & num', 'T & int', typeParameters: 'T');
+    isSubtype('Null', 'T & num', typeParameters: 'T');
 
     // T & B <: T extends A if B <: A
     // (Trivially satisfied since promoted bounds are always a isSubtype of the
@@ -159,5 +163,20 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('Typedef<Object>', 'int');
     isSubtype('() -> int', 'Function');
     isSubtype('() -> int', 'Object');
+
+    isNotSubtype('Null', 'bottom');
+    isSubtype('Null', 'Object');
+    isSubtype('Null', 'void');
+    isSubtype('Null', 'dynamic');
+    isSubtype('Null', 'double');
+    isSubtype('Null', 'Comparable<Object>');
+    isSubtype('Null', 'Typedef<Object>');
+    isSubtype('Null', 'T', typeParameters: 'T');
+
+    isSubtype('Null', 'Null');
+    isSubtype('bottom', 'bottom');
+    isSubtype('Object', 'Object');
+    isSubtype('dynamic', 'dynamic');
+    isSubtype('void', 'void');
   }
 }

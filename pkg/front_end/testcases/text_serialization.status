@@ -971,6 +971,7 @@ top_level_accessors_part: TextSerializationFailure # Was: Pass
 top_level_accessors: TextSerializationFailure # Was: Pass
 top_level_library_method: TextSerializationFailure # Was: Pass
 typedef: TextSerializationFailure # Was: Pass
+type_of_null: TextSerializationFailure
 type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 type_variable_prefix: TextSerializationFailure # Was: RuntimeError
 type_variable_uses: TextSerializationFailure # Was: Pass
