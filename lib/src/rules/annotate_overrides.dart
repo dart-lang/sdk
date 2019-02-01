@@ -66,7 +66,7 @@ class AnnotateOverrides extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  InheritanceManager manager;
+  InheritanceManager2 manager;
 
   _Visitor(this.rule);
 
@@ -80,7 +80,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement == null) {
       return null;
     }
-    return manager.lookupInheritance(classElement, member.name);
+
+    Uri libraryUri = classElement.library.source.uri;
+    return manager
+        .getInherited(classElement.type, new Name(libraryUri, member.name))
+        ?.element;
   }
 
   @override
@@ -88,7 +92,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     LibraryElement library = node == null
         ? null
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null ? null : new InheritanceManager(library);
+    manager = library == null
+        ? null
+        : new InheritanceManager2(library.context.typeSystem);
   }
 
   @override
