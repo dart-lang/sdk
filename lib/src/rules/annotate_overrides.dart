@@ -56,7 +56,7 @@ class AnnotateOverrides extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -68,10 +68,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   InheritanceManager2 manager;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LinterContext context)
+      : manager = new InheritanceManager2(context.typeSystem);
 
   ExecutableElement getOverriddenMember(Element member) {
-    if (member == null || manager == null) {
+    if (member == null) {
       return null;
     }
 
@@ -85,16 +86,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     return manager
         .getInherited(classElement.type, new Name(libraryUri, member.name))
         ?.element;
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    LibraryElement library = node == null
-        ? null
-        : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null
-        ? null
-        : new InheritanceManager2(library.context.typeSystem);
   }
 
   @override

@@ -49,7 +49,7 @@ class AvoidPositionalBooleanParameters extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -62,16 +62,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   InheritanceManager2 manager;
 
-  _Visitor(this.rule);
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    LibraryElement library =
-        resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null
-        ? null
-        : new InheritanceManager2(library.context.typeSystem);
-  }
+  _Visitor(this.rule, LinterContext context)
+      : manager = new InheritanceManager2(context.typeSystem);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -116,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       !node.isNamed;
 
   bool _isOverridingMember(Element member) {
-    if (member == null || manager == null) {
+    if (member == null) {
       return false;
     }
 
