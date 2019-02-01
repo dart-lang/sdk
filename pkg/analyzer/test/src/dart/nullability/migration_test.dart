@@ -565,6 +565,24 @@ void test() {
 ''');
   }
 
+  test_data_flow_inward_missing_type() async {
+    await analyze('''
+int f(int i) => 0;
+int g(i) => f(i); // TODO(danrubel): suggest type
+void test() {
+  g(null);
+}
+''');
+
+    checkMigration('''
+int f(int? i) => 0;
+int g(i) => f(i); // TODO(danrubel): suggest type
+void test() {
+  g(null);
+}
+''');
+  }
+
   test_data_flow_outward() async {
     await analyze('''
 int f(int i) => null;
@@ -573,6 +591,18 @@ int g(int i) => f(i);
 
     checkMigration('''
 int? f(int i) => null;
+int? g(int i) => f(i);
+''');
+  }
+
+  test_data_flow_outward_missing_type() async {
+    await analyze('''
+f(int i) => null; // TODO(danrubel): suggest type
+int g(int i) => f(i);
+''');
+
+    checkMigration('''
+f(int i) => null; // TODO(danrubel): suggest type
 int? g(int i) => f(i);
 ''');
   }

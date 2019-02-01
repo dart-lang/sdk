@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
@@ -19,6 +20,15 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   ConstraintVariableGatherer(this._variables);
 
   ConstraintVariable get _always => _variables.always;
+
+  DecoratedType decorateType(TypeAnnotation type) {
+    return type == null
+        // TODO(danrubel): Return something other than this
+        // to indicate that we should insert a type for the declaration
+        // that is missing a type reference.
+        ? new DecoratedType(DynamicTypeImpl.instance, _always)
+        : type.accept(this);
+  }
 
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
@@ -54,7 +64,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var type = node.type.accept(this);
+    var type = decorateType(node.type);
     _variables.recordDecoratedElementType(node.declaredElement, type);
     assert(!node.declaredElement.isNamed); // TODO(paulberry)
     _currentFunctionType.positionalParameters.add(type);
@@ -95,7 +105,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   void _handleExecutableDeclaration(ExecutableElement declaredElement,
       TypeAnnotation returnType, FormalParameterList parameters) {
-    var decoratedReturnType = returnType.accept(this);
+    var decoratedReturnType = decorateType(returnType);
     var previousFunctionType = _currentFunctionType;
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type

@@ -342,6 +342,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         _checkAssignment(destinationType.typeArguments[i],
             sourceType.typeArguments[i], expression);
       }
+    } else if (destinationType.type.isDynamic) {
+      // ok; nothing further to do.
+    } else if (sourceType.type.isDynamic) {
+      // TODO(danrubel): assert that destination type is nullable
     } else {
       throw '$destinationType <= $sourceType'; // TODO(paulberry)
     }

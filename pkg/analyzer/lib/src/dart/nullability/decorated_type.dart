@@ -50,6 +50,8 @@ class DecoratedType {
           namedParameters.isEmpty); // TODO(paulberry)
       var args = positionalParameters.map((p) => p.toString()).join(', ');
       return '$returnType Function($args)$trailing';
+    } else if (type is DynamicTypeImpl) {
+      return 'dynamic';
     } else {
       throw '$type'; // TODO(paulberry)
     }
