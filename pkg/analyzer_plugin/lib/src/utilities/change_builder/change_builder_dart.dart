@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -1203,6 +1204,171 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
+  ImportLibraryElementResult importLibraryElement(
+    LibraryElement requestedLibrary,
+    Element requestedElement,
+  ) {
+    if (librariesToImport.isNotEmpty) {
+      throw StateError('Only one library can be safely imported.');
+    }
+
+    // If the element is defined in this library, then no prefix needed.
+    if (libraryElement == requestedElement.library) {
+      return ImportLibraryElementResultImpl(null);
+    }
+
+    var requestedLibraryUri = requestedLibrary.source.uri;
+    var requestedElementUri = requestedElement.librarySource.uri;
+    var requestedElementName = requestedElement.displayName;
+
+    var importedUnprefixedNameMap = <String, List<Uri>>{};
+    for (var import in libraryElement.imports) {
+      var definedNames = import.namespace.definedNames;
+      if (import.prefix == null) {
+        for (var name in definedNames.keys) {
+          var importedElementUri = definedNames[name].librarySource?.uri;
+          if (importedElementUri != null) {
+            var uriList = importedUnprefixedNameMap[name];
+            if (uriList == null) {
+              importedUnprefixedNameMap[name] = <Uri>[importedElementUri];
+            } else if (!uriList.contains(importedElementUri)) {
+              uriList.add(importedElementUri);
+            }
+          }
+        }
+      }
+    }
+
+    var declaredNames = Set<String>();
+    var collector = _ImportLibraryElementNamesCollector(declaredNames);
+    if (libraryElement.units.length == 1) {
+      unit.accept(collector);
+    } else {
+      for (var unitElement in libraryElement.units) {
+        var unitPath = unitElement.source.fullName;
+        var unitAst = session.getParsedUnit(unitPath).unit;
+        unitAst.accept(collector);
+      }
+    }
+
+    var inheritedNames = Set<String>();
+    var visitedInheritedClasses = Set<ClassElement>();
+
+    void addInheritedNames(ClassElement classElement) {
+      if (classElement == null) return;
+      if (!visitedInheritedClasses.add(classElement)) return;
+
+      for (var element in classElement.accessors) {
+        inheritedNames.add(element.displayName);
+      }
+      for (var element in classElement.methods) {
+        inheritedNames.add(element.displayName);
+      }
+
+      for (var interface in classElement.interfaces) {
+        addInheritedNames(interface.element);
+      }
+      for (var interface in classElement.mixins) {
+        addInheritedNames(interface.element);
+      }
+      for (var interface in classElement.superclassConstraints) {
+        addInheritedNames(interface.element);
+      }
+      addInheritedNames(classElement.supertype?.element);
+    }
+
+    for (var unit in libraryElement.units) {
+      for (var classElement in unit.mixins) {
+        addInheritedNames(classElement);
+      }
+      for (var classElement in unit.types) {
+        addInheritedNames(classElement);
+      }
+    }
+
+    // Check for conflicts with unprefixed imports.
+    //
+    // We cannot add a new unprefixed import if it will provide names that
+    // will conflict with locally defined, or inherited names.
+    //
+    // We cannot add a new unprefixed import if it will cause ambiguity
+    // with any existing import, for the requested name or not.
+    var canUseUnprefixedImport = true;
+    var requestedElements = requestedLibrary.exportNamespace.definedNames;
+    for (var name in requestedElements.keys) {
+      if (declaredNames.contains(name) || inheritedNames.contains(name)) {
+        canUseUnprefixedImport = false;
+        break;
+      }
+
+      var requestedNameUri = requestedElements[name].librarySource.uri;
+      var importedNameUriList = importedUnprefixedNameMap[name];
+      if (importedNameUriList != null) {
+        for (var importedNameUri in importedNameUriList) {
+          if (importedNameUri != requestedNameUri) {
+            canUseUnprefixedImport = false;
+            break;
+          }
+        }
+      }
+    }
+
+    // Find import prefixes with which the name is ambiguous.
+    var ambiguousWithImportPrefixes = Set<String>();
+    for (var import in libraryElement.imports) {
+      var definedNames = import.namespace.definedNames;
+      if (import.prefix != null) {
+        var prefix = import.prefix.name;
+        var prefixedName = '$prefix.$requestedElementName';
+        var importedElement = definedNames[prefixedName];
+        if (importedElement != null &&
+            importedElement.librarySource.uri != requestedElementUri) {
+          ambiguousWithImportPrefixes.add(prefix);
+        }
+      }
+    }
+
+    // Check for existing imports of the requested library.
+    for (var import in libraryElement.imports) {
+      if (import.importedLibrary.source.uri == requestedLibraryUri) {
+        var importedNames = import.namespace.definedNames;
+        if (import.prefix == null) {
+          if (canUseUnprefixedImport &&
+              importedNames.containsKey(requestedElementName)) {
+            return ImportLibraryElementResultImpl(null);
+          }
+        } else {
+          var prefix = import.prefix.name;
+          var prefixedName = '$prefix.$requestedElementName';
+          if (importedNames.containsKey(prefixedName) &&
+              !ambiguousWithImportPrefixes.contains(prefix)) {
+            return ImportLibraryElementResultImpl(prefix);
+          }
+        }
+      }
+    }
+
+    var uriText = _getLibraryUriText(requestedLibraryUri);
+
+    // If the name cannot be used without import prefix, generate one.
+    String prefix;
+    if (!canUseUnprefixedImport) {
+      prefix = 'prefix';
+      for (var index = 0;; index++) {
+        prefix = 'prefix$index';
+        if (!importedUnprefixedNameMap.containsKey(prefix) &&
+            !declaredNames.contains(prefix) &&
+            !inheritedNames.contains(prefix)) {
+          break;
+        }
+      }
+    }
+
+    librariesToImport[requestedElementUri] = _LibraryToImport(uriText, prefix);
+    return ImportLibraryElementResultImpl(prefix);
+  }
+
+  @override
   void replaceTypeWithFuture(
       TypeAnnotation typeAnnotation, TypeProvider typeProvider) {
     InterfaceType futureType = typeProvider.futureType;
@@ -1511,6 +1677,14 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
   }
 }
 
+/// Information about a library to import.
+class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
+  @override
+  final String prefix;
+
+  ImportLibraryElementResultImpl(this.prefix);
+}
+
 class _EnclosingElementFinder {
   ClassElement enclosingClass;
   ExecutableElement enclosingExecutable;
@@ -1530,6 +1704,27 @@ class _EnclosingElementFinder {
         enclosingExecutable = node.declaredElement;
       }
       node = node.parent;
+    }
+  }
+}
+
+/// Information collector for importing elements.
+class _ImportLibraryElementNamesCollector extends RecursiveAstVisitor<void> {
+  final Set<String> declaredNames;
+
+  _ImportLibraryElementNamesCollector(this.declaredNames);
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    if (node.prefix != null) {
+      declaredNames.add(node.prefix.name);
+    }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      declaredNames.add(node.name);
     }
   }
 }

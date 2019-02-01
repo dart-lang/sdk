@@ -28,6 +28,7 @@ main() {
     defineReflectiveTests(DartEditBuilderImplTest);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
+    defineReflectiveTests(ImportLibraryElementTest);
     defineReflectiveTests(ImportLibraryTest);
     defineReflectiveTests(WriteOverrideTest);
   });
@@ -1625,6 +1626,586 @@ class C extends B {}
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+}
+
+@reflectiveTest
+class ImportLibraryElementTest extends AbstractContextTest
+    with BuilderTestMixin {
+  test_existingImport_withoutPrefix() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+    );
+  }
+
+  test_existingImport_withoutPrefix_twoImports_sameElement() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'package:test/a.dart';
+''');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'C',
+    );
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'C',
+    );
+  }
+
+  test_existingImport_withPrefix() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as p;
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedPrefix: 'p',
+    );
+  }
+
+  test_existingImport_withPrefix_twoImports_sameElement() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'package:test/a.dart';
+''');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as p;
+import 'package:test/b.dart' as p;
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'C',
+      expectedPrefix: 'p',
+    );
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as p;
+import 'package:test/b.dart' as p;
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'C',
+      expectedPrefix: 'p',
+    );
+  }
+
+  test_newImport_withoutPrefix() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: 'class B {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'B',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_newImport_withoutPrefix_existingImportWithHide() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {}
+class B {}
+''');
+    newFile('/home/test/lib/b.dart', content: 'class B {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' hide B;
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'B',
+      expectedCode: r'''
+import 'package:test/a.dart' hide B;
+import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_newImport_withoutPrefix_existingImportWithShow() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {}
+class B {}
+''');
+    newFile('/home/test/lib/b.dart', content: 'class B {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' show A;
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'B',
+      expectedCode: r'''
+import 'package:test/a.dart' show A;
+import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_newImport_withoutPrefix_exported() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'a.dart';
+''');
+    await _assertImportLibraryElement(
+      initialCode: '',
+      uriStr: 'package:test/b.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_newImport_withoutPrefix_exported_importedWithDifferentUri() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'a.dart';
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_newImport_withPrefix_existing_thisName_willConflictWithLocal_class() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+
+class C {}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'C',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/a.dart' as prefix0;
+
+class C {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_existing_thisName_willConflictWithLocal_importPrefix() async {
+    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'dart:math' as foo;
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'dart:math' as foo;
+import 'package:test/a.dart';
+import 'package:test/a.dart' as prefix0;
+''',
+    );
+  }
+
+  test_newImport_withPrefix_existing_thisName_willConflictWithOtherImport() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    newFile('/home/test/lib/b.dart', content: 'class C {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'C',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+import 'package:test/b.dart' as prefix0;
+''',
+    );
+  }
+
+  test_newImport_withPrefix_existing_thisName_willConflictWithOtherImport_prefixed() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    newFile('/home/test/lib/b.dart', content: 'class C {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as p;
+import 'package:test/b.dart' as p;
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'C',
+      expectedCode: r'''
+import 'package:test/a.dart' as p;
+import 'package:test/b.dart' as p;
+import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_newImport_withPrefix_otherName_ambiguousImport() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {}
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class A {}
+class B {}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'B',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+''',
+    );
+  }
+
+  test_newImport_withPrefix_otherName_conflictWithInherited_extends() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {
+  void bar() {}
+}
+''');
+    newFile('/home/test/lib/b.dart', content: '''
+int foo = 0;
+int bar = 0;
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+
+class X extends A {}
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+
+class X extends A {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_otherName_conflictWithInherited_implements() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {
+  void bar() {}
+}
+''');
+    newFile('/home/test/lib/b.dart', content: '''
+int foo = 0;
+int bar = 0;
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+
+abstract class X implements A {}
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+
+abstract class X implements A {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_otherName_conflictWithInherited_on() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {
+  void bar() {}
+}
+''');
+    newFile('/home/test/lib/b.dart', content: '''
+int foo = 0;
+int bar = 0;
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+
+mixin M on A {}
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+
+mixin M on A {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_otherName_conflictWithInherited_with() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {
+  void bar() {}
+}
+''');
+    newFile('/home/test/lib/b.dart', content: '''
+int foo = 0;
+int bar = 0;
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+
+class X with A {}
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+
+class X with A {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_otherName_conflictWithLocal_class() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {}
+class B {}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+class B {}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart' as prefix0;
+
+class B {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_thisName_ambiguousImport() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    newFile('/home/test/lib/b.dart', content: 'class C {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'C',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+''',
+    );
+  }
+
+  test_newImport_withPrefix_thisName_conflictWithInherited_method() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {
+  void foo() {}
+}
+''');
+    newFile('/home/test/lib/b.dart', content: '''
+int foo = 0;
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+
+class X extends A {}
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as prefix0;
+
+class X extends A {}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_thisName_conflictWithLocal_class() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+class C {}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'C',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart' as prefix0;
+
+class C {}
+''',
+    );
+  }
+
+  @failingTest
+  test_newImport_withPrefix_thisName_conflictWithLocal_class_inPart() async {
+    newFile('/home/test/lib/a.dart', content: 'class C {}');
+    newFile('/home/test/lib/p.dart', content: 'class C {}');
+    // TODO(scheglov) "import" must be before "part"
+    await _assertImportLibraryElement(
+      initialCode: r'''
+part 'p.dart';
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'C',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart' as prefix0;
+
+part 'p.dart';
+''',
+    );
+  }
+
+  test_newImport_withPrefix_thisName_conflictWithLocal_importPrefix() async {
+    newFile('/home/test/lib/a.dart', content: '');
+    newFile('/home/test/lib/b.dart', content: 'var foo = 0;');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as foo;
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart' as foo;
+import 'package:test/b.dart' as prefix0;
+''',
+    );
+  }
+
+  test_newImport_withPrefix_thisName_conflictWithLocal_localVariable() async {
+    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+main() {
+  var foo = '';
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart' as prefix0;
+
+main() {
+  var foo = '';
+}
+''',
+    );
+  }
+
+  test_newImport_withPrefix_thisName_conflictWithLocal_method() async {
+    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedPrefix: 'prefix0',
+      expectedCode: r'''
+import 'package:test/a.dart' as prefix0;
+
+class A {
+  void foo() {}
+}
+''',
+    );
+  }
+
+  test_thisLibrary() async {
+    await _assertImportLibraryElement(
+      initialCode: r'''
+class A {}
+''',
+      uriStr: 'package:test/test.dart',
+      name: 'A',
+    );
+  }
+
+  void _assertEmptyChange(DartChangeBuilderImpl builder) {
+    var change = builder.sourceChange;
+    expect(change, isNotNull);
+    expect(change.edits, isEmpty);
+  }
+
+  Future<void> _assertImportLibraryElement(
+      {String initialCode,
+      String uriStr,
+      String name,
+      String expectedPrefix,
+      String expectedCode}) async {
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, content: initialCode);
+
+    var requestedLibrary = await session.getLibraryByUri(uriStr);
+    var element = requestedLibrary.exportNamespace.get(name);
+
+    var builder = newBuilder();
+    await builder.addFileEdit(path, (builder) {
+      var result = builder.importLibraryElement(requestedLibrary, element);
+      expect(result.prefix, expectedPrefix);
+    });
+
+    if (expectedCode != null) {
+      var edits = getEdits(builder);
+      var resultCode = SourceEdit.applySequence(initialCode, edits);
+      expect(resultCode, expectedCode);
+    } else {
+      _assertEmptyChange(builder);
+    }
   }
 }
 
