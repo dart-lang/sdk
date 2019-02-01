@@ -7,6 +7,8 @@ description: >-
   A linter for Dart, bundled with the SDK, that helps enforce coding style,
   flags potentially difficult to maintain, error-prone or non-performant
   source and generally nudges you towards writing more idiomatic Dart.
+  This package is vended into the SDK, where it is plugged into the analyzer
+  framework; it is not intended to be used directly.
 homepage: https://github.com/dart-lang/linter
 
 environment:
