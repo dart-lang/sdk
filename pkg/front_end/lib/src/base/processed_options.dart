@@ -212,12 +212,15 @@ class ProcessedOptions {
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
-    (_raw.onDiagnostic ??
-        _defaultDiagnosticMessageHandler)(format(message, severity, context));
+    reportDiagnosticMessage(format(message, severity, context));
     if (command_line_reporting.shouldThrowOn(severity)) {
       throw new DebugAbort(
           message.uri, message.charOffset, severity, StackTrace.current);
     }
+  }
+
+  void reportDiagnosticMessage(DiagnosticMessage message) {
+    (_raw.onDiagnostic ?? _defaultDiagnosticMessageHandler)(message);
   }
 
   void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {

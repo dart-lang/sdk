@@ -4,7 +4,8 @@
 
 library front_end.diagnostic_message;
 
-import '../fasta/fasta_codes.dart' show Code, FormattedMessage;
+import '../fasta/fasta_codes.dart'
+    show Code, DiagnosticMessageFromJson, FormattedMessage;
 
 import '../fasta/severity.dart' show Severity;
 
@@ -38,7 +39,9 @@ abstract class DiagnosticMessage {
 
 /// This method is subject to change.
 Uri getMessageUri(DiagnosticMessage message) {
-  return message is FormattedMessage ? message.uri : null;
+  return message is FormattedMessage
+      ? message.uri
+      : message is DiagnosticMessageFromJson ? message.uri : null;
 }
 
 /// This method is subject to change.
