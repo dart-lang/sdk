@@ -200,6 +200,12 @@ class Types {
     }
     return true;
   }
+
+  bool isSameTypeKernel(DartType s, DartType t) {
+    // TODO(ahe,dmitryas): This may requires special casing to ensure that top
+    // types are the same.
+    return s == t;
+  }
 }
 
 abstract class TypeRelation<T extends DartType> {
@@ -304,7 +310,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       for (int i = 0; i < sTypeVariables.length; i++) {
         TypeParameter sTypeVariable = sTypeVariables[i];
         TypeParameter tTypeVariable = tTypeVariables[i];
-        if (sTypeVariable.bound != tTypeVariable.bound) {
+        if (!types.isSameTypeKernel(sTypeVariable.bound, tTypeVariable.bound)) {
           // If the bounds aren't the same, we need to try again after
           // computing the substitution of type variables.
           secondBoundsCheckNeeded = true;
@@ -317,8 +323,9 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         for (int i = 0; i < sTypeVariables.length; i++) {
           TypeParameter sTypeVariable = sTypeVariables[i];
           TypeParameter tTypeVariable = tTypeVariables[i];
-          if (substitution.substituteType(sTypeVariable.bound) !=
-              tTypeVariable.bound) {
+          if (!types.isSameTypeKernel(
+              substitution.substituteType(sTypeVariable.bound),
+              tTypeVariable.bound)) {
             return false;
           }
         }
