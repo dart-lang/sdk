@@ -178,5 +178,28 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Object', 'Object');
     isSubtype('dynamic', 'dynamic');
     isSubtype('void', 'void');
+
+    // Check that the top types are equivalent.
+    isSubtype('<S extends Object, T extends void>(S, T) -> void',
+        '<U extends dynamic, V extends Object>(U, V) -> void');
+
+    {
+      String f = '<T extends dynamic>() -> T';
+      String g = '<T extends Object>() -> T';
+      isSubtype(f, g);
+      isSubtype(g, f);
+    }
+
+    {
+      String h = '<T extends List<dynamic>>() -> T';
+      String i = '<T extends List<Object>>() -> T';
+      String j = '<T extends List<void>>() -> T';
+      isSubtype(h, i);
+      isSubtype(h, j);
+      isSubtype(i, h);
+      isSubtype(i, j);
+      isSubtype(j, h);
+      isSubtype(j, i);
+    }
   }
 }

@@ -202,9 +202,7 @@ class Types {
   }
 
   bool isSameTypeKernel(DartType s, DartType t) {
-    // TODO(ahe,dmitryas): This may requires special casing to ensure that top
-    // types are the same.
-    return s == t;
+    return isSubtypeOfKernel(s, t) && isSubtypeOfKernel(t, s);
   }
 }
 
