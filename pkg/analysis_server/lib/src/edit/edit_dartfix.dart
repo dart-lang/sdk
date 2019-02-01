@@ -32,11 +32,68 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
 
+const doubleToInt = 'double-to-int';
+const fixNamedConstructorTypeArgs = 'fix-named-constructor-type-arguments';
+const nonNullable = 'non-nullable';
+const useMixin = 'use-mixin';
+
+const allFixes = <String>[
+  doubleToInt,
+  fixNamedConstructorTypeArgs,
+  // TODO(danrubel) enable this by default when NNBD fix is ready
+  //nonNullable,
+  useMixin,
+];
+
+const requiredFixes = <String>[
+  fixNamedConstructorTypeArgs,
+  useMixin,
+];
+
+List<DartFix> get dartfixInfo {
+  final fixes = <DartFix>[];
+
+  void addFix(String name, String description) {
+    if (!allFixes.contains(name)) {
+      description = 'Experimental: $description\n'
+          'This is not applied unless explicitly included.';
+    }
+    final fix = new DartFix(name, description: description);
+    if (requiredFixes.contains(name)) {
+      fix.isRequired = true;
+    }
+    fixes.add(fix);
+  }
+
+  addFix(
+    doubleToInt,
+    'Find double literals ending in .0 and remove the .0\n'
+        'wherever double context can be inferred.',
+  );
+  addFix(
+    fixNamedConstructorTypeArgs,
+    'Move named constructor type arguments from the name to the type.',
+  );
+  addFix(
+    nonNullable,
+    'Update sources to be non-nullable by default.\n'
+        // TODO(danrubel) remove this when NNBD fix is ready
+        'Requires the experimental non-nullable flag to be enabled.',
+  );
+  addFix(
+    useMixin,
+    'Convert classes used as a mixin to the new mixin syntax.',
+  );
+
+  return fixes;
+}
+
 class EditDartFix {
   final AnalysisServer server;
   final Request request;
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
+  final fixesToApply = new Set<String>();
 
   List<DartFixSuggestion> suggestions;
   List<DartFixSuggestion> otherSuggestions;
@@ -70,6 +127,22 @@ class EditDartFix {
   Future<Response> compute() async {
     final params = new EditDartfixParams.fromRequest(request);
 
+    // Determine the fixes to be applied
+    if (params.includeRequiredFixes == true) {
+      fixesToApply.addAll(requiredFixes);
+    }
+    if (params.includedFixes != null) {
+      fixesToApply.addAll(params.includedFixes);
+    }
+    if (fixesToApply.isEmpty) {
+      fixesToApply.addAll(allFixes);
+    }
+    if (params.excludedFixes != null) {
+      for (String fixName in params.excludedFixes) {
+        fixesToApply.remove(fixName);
+      }
+    }
+
     // Validate each included file and directory.
     final resourceProvider = server.resourceProvider;
     final contextManager = server.contextManager;
@@ -90,27 +163,27 @@ class EditDartFix {
       }
     }
 
-    // Get the desired lints
+    // Setup lints
     final lintRules = Registry.ruleRegistry;
+    final linters = <Linter>[];
+    final fixes = <LinterFix>[];
+    if (fixesToApply.contains(useMixin)) {
+      final preferMixin = lintRules['prefer_mixin'];
+      final preferMixinFix = new PreferMixinFix(this);
+      preferMixin.reporter = preferMixinFix;
+      linters.add(preferMixin);
+      fixes.add(preferMixinFix);
+    }
+    if (fixesToApply.contains(doubleToInt)) {
+      final preferIntLiterals = lintRules['prefer_int_literals'];
+      final preferIntLiteralsFix = new PreferIntLiteralsFix(this);
+      preferIntLiterals.reporter = preferIntLiteralsFix;
+      linters.add(preferIntLiterals);
+      fixes.add(preferIntLiteralsFix);
+    }
 
-    final preferMixin = lintRules['prefer_mixin'];
-    final preferMixinFix = new PreferMixinFix(this);
-    preferMixin.reporter = preferMixinFix;
-
-    final preferIntLiterals = lintRules['prefer_int_literals'];
-    final preferIntLiteralsFix = new PreferIntLiteralsFix(this);
     final nonNullableFix = new NonNullableFix(this);
-    preferIntLiterals?.reporter = preferIntLiteralsFix;
 
-    // Setup
-    final linters = <Linter>[
-      preferMixin,
-      preferIntLiterals,
-    ];
-    final fixes = <LinterFix>[
-      preferMixinFix,
-      preferIntLiteralsFix,
-    ];
     final lintVisitorsBySession = <AnalysisSession, _LintVisitors>{};
 
     // TODO(danrubel): Determine if a lint is configured to run as part of
@@ -174,7 +247,8 @@ class EditDartFix {
             for (LinterFix fix in fixes) {
               await fix.applyLocalFixes(result);
             }
-            if (isIncluded(source.fullName)) {
+            if (isIncluded(source.fullName) &&
+                fixesToApply.contains(nonNullable)) {
               nonNullableFix.applyLocalFixes(result);
             }
           }
@@ -200,11 +274,6 @@ class EditDartFix {
     }
 
     // Apply distributed fixes
-    if (preferIntLiterals == null) {
-      // TODO(danrubel): Remove this once linter rolled into sdk/third_party.
-      addRecommendation('*** Convert double literal not available'
-          ' because prefer_int_literal not found. May need to roll linter');
-    }
     for (LinterFix fix in fixes) {
       await fix.applyRemainingFixes();
     }
@@ -215,15 +284,13 @@ class EditDartFix {
   }
 
   Future<bool> fixError(ResolvedUnitResult result, AnalysisError error) async {
-    if (error.errorCode ==
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
-      // TODO(danrubel): Rather than comparing the error codes individually,
-      // it would be better if each error code could specify
-      // whether or not it could be fixed automatically.
+    const errorCodeToFixName = <ErrorCode, String>{
+      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
+          fixNamedConstructorTypeArgs,
+    };
 
-      // Fall through to calculate and apply the fix
-    } else {
-      // This error cannot be automatically fixed
+    final fixName = errorCodeToFixName[error.errorCode];
+    if (!fixesToApply.contains(fixName)) {
       return false;
     }
 

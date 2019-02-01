@@ -43,9 +43,10 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     expect(suggestion.location.length, length);
   }
 
-  Future<EditDartfixResult> performFix() async {
+  Future<EditDartfixResult> performFix({List<String> includedFixes}) async {
     final id = nextRequestId;
     final params = new EditDartfixParams([projectPath]);
+    params.includedFixes = includedFixes;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
     final response = await new EditDartFix(server, request).compute();
@@ -133,18 +134,22 @@ class C extends C1 with M1 implements C2 {}
 mixin M1 {}
 mixin M on M1 implements C1 {}
 
+Object obj;
+
 void functionWithNullableParam(String object) {
   if (object == null) {
     print('object is null');
   } else {
     print('object is not-null');
   }
+  String str = null;
   List<Object> list = null;
   list = <Object>[];
-  list.add(object);
+  list.add(str);
+  list.add(obj);
 }
 ''');
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result = await performFix(includedFixes: [nonNullable]);
     expect(result.suggestions, hasLength(1));
     expect(result.hasErrors, isFalse);
     expectSuggestion(result.suggestions[0], 'non-nullable', 46, 6);
@@ -161,15 +166,19 @@ class C extends C1 with M1 implements C2 {}
 mixin M1 {}
 mixin M on M1 implements C1 {}
 
+Object? obj;
+
 void functionWithNullableParam(String? object) {
   if (object == null) {
     print('object is null');
   } else {
     print('object is not-null');
   }
+  String? str = null;
   List<Object?>? list = null;
   list = <Object?>[];
-  list.add(object);
+  list.add(str);
+  list.add(obj);
 }
 ''');
   }

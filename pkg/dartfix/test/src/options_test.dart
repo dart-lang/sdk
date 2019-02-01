@@ -24,7 +24,11 @@ main() {
     String errorOut,
     int exitCode,
     bool force = false,
+    List<String> includeFixes = const <String>[],
+    List<String> excludeFixes = const <String>[],
+    bool listFixes = false,
     String normalOut,
+    bool requiredFixes = false,
     bool overwrite = false,
     List<String> targetSuffixes,
     bool verbose = false,
@@ -47,7 +51,11 @@ main() {
       expect(actualExitCode, isNull, reason: 'exit code');
     }
     expect(options.force, force);
+    expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
+    expect(options.listFixes, listFixes);
+    expect(options.includeFixes, includeFixes);
+    expect(options.excludeFixes, excludeFixes);
     expect(options.verbose, verbose);
     expect(path.isAbsolute(options.sdkPath), isTrue, reason: options.sdkPath);
     for (String target in options.targets) {
@@ -62,12 +70,22 @@ main() {
     return options;
   }
 
+  test('exclude fix', () {
+    parse(['--exclude', 'c', '--exclude', 'd', 'foo'],
+        excludeFixes: ['c', 'd'], targetSuffixes: ['foo']);
+  });
+
   test('force', () {
     parse(['--force', 'foo'], force: true, targetSuffixes: ['foo']);
   });
 
   test('help', () {
     parse(['--help'], errorOut: 'Display this help message', exitCode: 1);
+  });
+
+  test('include fix', () {
+    parse(['--include', 'a', '--include', 'b', 'foo'],
+        includeFixes: ['a', 'b'], targetSuffixes: ['foo']);
   });
 
   test('invalid option', () {
@@ -89,8 +107,16 @@ main() {
         errorOut: 'Expected directory, but found', exitCode: 15);
   });
 
+  test('list fixes', () {
+    parse(['--list'], errorOut: 'Display this help message', listFixes: true);
+  });
+
   test('overwrite', () {
     parse(['--overwrite', 'foo'], overwrite: true, targetSuffixes: ['foo']);
+  });
+
+  test('required fixes', () {
+    parse(['--required', 'foo'], requiredFixes: true);
   });
 
   test('simple', () {
