@@ -91,7 +91,7 @@ uword Heap::AllocateNew(intptr_t size) {
     return addr;
   }
 
-  intptr_t tlab_size = CalculateTLABSize();
+  intptr_t tlab_size = GetTLABSize();
   if ((tlab_size > 0) && (size > tlab_size)) {
     return AllocateOld(size, HeapPage::kData);
   }
@@ -101,8 +101,11 @@ uword Heap::AllocateNew(intptr_t size) {
     uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
     if (tlab_top != 0) {
       addr = new_space_.TryAllocateInTLAB(thread, size);
-      ASSERT(addr != 0);
-      return addr;
+      if (addr != 0) {  // but "leftover" TLAB could end smaller than tlab_size
+        return addr;
+      }
+      // Abandon "leftover" TLAB as well so we can start from scratch.
+      AbandonRemainingTLAB(thread);
     }
   }
 
@@ -112,7 +115,7 @@ uword Heap::AllocateNew(intptr_t size) {
   // from a different thread and will be racing to allocate the requested
   // memory with other threads being released after the collection.
   CollectGarbage(kNew);
-  tlab_size = CalculateTLABSize();
+
   uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
   if (tlab_top != 0) {
     addr = new_space_.TryAllocateInTLAB(thread, size);

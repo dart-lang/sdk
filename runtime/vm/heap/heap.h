@@ -285,7 +285,7 @@ class Heap {
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
-  intptr_t CalculateTLABSize() {
+  intptr_t GetTLABSize() {
     // Inspired by V8 tlab size. More than threshold for old space allocation,
     // less then minimal(initial) new semi-space.
     const intptr_t size = 512 * KB;

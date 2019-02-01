@@ -926,6 +926,15 @@ uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
   uword result = top_;
   intptr_t remaining = end_ - top_;
   if (remaining < size) {
+    // Grab whatever is remaining
+    size = remaining;
+  } else {
+    // Reduce TLAB size so we land at even TLAB size for future TLABs.
+    intptr_t survived_size = UsedInWords() * kWordSize;
+    size -= survived_size % size;
+  }
+  size = Utils::RoundDown(size, kObjectAlignment);
+  if (size == 0) {
     return 0;
   }
   ASSERT(to_->Contains(result));
