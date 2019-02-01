@@ -96,8 +96,8 @@ class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
     return environment.kernelFromParsedType(type_parser.parse(text).single);
   }
 
-  bool isSubtypeImpl(DartType subtype, DartType supertype, bool legacyMode) {
-    return new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode)
+  bool isSubtypeImpl(DartType subtype, DartType supertype) {
+    return new TypeEnvironment(coreTypes, hierarchy)
         .isSubtypeOf(subtype, supertype);
   }
 
