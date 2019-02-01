@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 
@@ -36,6 +37,10 @@ class FindNode {
     return _node(search, (n) => n is CommentReference);
   }
 
+  ConditionalExpression conditionalExpression(String search) {
+    return _node(search, (n) => n is ConditionalExpression);
+  }
+
   ConstructorDeclaration constructor(String search) {
     return _node(search, (n) => n is ConstructorDeclaration);
   }
@@ -54,6 +59,10 @@ class FindNode {
 
   FunctionBody functionBody(String search) {
     return _node(search, (n) => n is FunctionBody);
+  }
+
+  FunctionDeclaration functionDeclaration(String search) {
+    return _node(search, (n) => n is FunctionDeclaration);
   }
 
   FunctionExpression functionExpression(String search) {
@@ -150,6 +159,10 @@ class FindNode {
 
   ThrowExpression throw_(String search) {
     return _node(search, (n) => n is ThrowExpression);
+  }
+
+  TypeAnnotation typeAnnotation(String search) {
+    return _node(search, (n) => n is TypeAnnotation);
   }
 
   TypeName typeName(String search) {

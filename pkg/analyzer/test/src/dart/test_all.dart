@@ -8,6 +8,7 @@ import 'analysis/test_all.dart' as analysis;
 import 'ast/test_all.dart' as ast;
 import 'constant/test_all.dart' as constant;
 import 'element/test_all.dart' as element;
+import 'nullability/test_all.dart' as nullability;
 import 'resolution/test_all.dart' as resolution;
 import 'sdk/test_all.dart' as sdk;
 
@@ -18,6 +19,7 @@ main() {
     ast.main();
     constant.main();
     element.main();
+    nullability.main();
     resolution.main();
     sdk.main();
   }, name: 'dart');
