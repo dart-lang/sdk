@@ -1532,7 +1532,7 @@ class AssistProcessor {
     }
 
     String widgetName = widgetClassElement.displayName;
-    String stateName = widgetName + 'State';
+    String stateName = '_${widgetName}State';
 
     // Find fields assigned in constructors.
     var fieldsAssignedInConstructors = new Set<FieldElement>();

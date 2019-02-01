@@ -36,12 +36,12 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyWidgetState createState() {
-    return MyWidgetState();
+  _MyWidgetState createState() {
+    return _MyWidgetState();
   }
 }
 
-class MyWidgetState extends State<MyWidget> {
+class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return Container();
@@ -103,12 +103,12 @@ class MyWidget extends StatefulWidget {
   }
 
   @override
-  MyWidgetState createState() {
-    return MyWidgetState();
+  _MyWidgetState createState() {
+    return _MyWidgetState();
   }
 }
 
-class MyWidgetState extends State<MyWidget> {
+class _MyWidgetState extends State<MyWidget> {
   String instanceField4;
 
   String instanceField5;
@@ -165,8 +165,8 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyWidgetState createState() {
-    return MyWidgetState();
+  _MyWidgetState createState() {
+    return _MyWidgetState();
   }
 
   static String get staticGetter1 => '';
@@ -174,7 +174,7 @@ class MyWidget extends StatefulWidget {
   static String get staticGetter2 => '';
 }
 
-class MyWidgetState extends State<MyWidget> {
+class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -246,8 +246,8 @@ class MyWidget extends StatefulWidget {
   MyWidget(this.instanceField1);
 
   @override
-  MyWidgetState createState() {
-    return MyWidgetState();
+  _MyWidgetState createState() {
+    return _MyWidgetState();
   }
 
   static void staticMethod1() {
@@ -259,7 +259,7 @@ class MyWidget extends StatefulWidget {
   }
 }
 
-class MyWidgetState extends State<MyWidget> {
+class _MyWidgetState extends State<MyWidget> {
   String instanceField2;
 
   @override
@@ -349,12 +349,12 @@ class MyWidget extends StatefulWidget {
   const MyWidget(this.aaa, this.bbb);
 
   @override
-  MyWidgetState createState() {
-    return MyWidgetState();
+  _MyWidgetState createState() {
+    return _MyWidgetState();
   }
 }
 
-class MyWidgetState extends State<MyWidget> {
+class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -387,12 +387,12 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyWidgetState createState() {
-    return MyWidgetState();
+  _MyWidgetState createState() {
+    return _MyWidgetState();
   }
 }
 
-class MyWidgetState extends State<MyWidget> {
+class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return Container();
