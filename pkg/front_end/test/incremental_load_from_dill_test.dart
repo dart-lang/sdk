@@ -42,6 +42,9 @@ import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
 import "incremental_utils.dart" as util;
 
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show DiagnosticMessageFromJson, FormattedMessage;
+
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, "../testing.json");
 
@@ -220,7 +223,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     if (brandNewWorld) {
       sourceFiles = new Map<String, String>.from(world["sources"]);
     } else {
-      sourceFiles.addAll(new Map<String, String>.from(world["sources"]));
+      sourceFiles.addAll(
+          new Map<String, String>.from(world["sources"] ?? <String, String>{}));
     }
     Uri packagesUri;
     for (String filename in sourceFiles.keys) {
@@ -242,17 +246,27 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       }
     }
     bool gotError = false;
-    final List<String> formattedErrors = <String>[];
+    final Set<String> formattedErrors = Set<String>();
     bool gotWarning = false;
-    final List<String> formattedWarnings = <String>[];
+    final Set<String> formattedWarnings = Set<String>();
 
     options.onDiagnostic = (DiagnosticMessage message) {
+      String stringId = message.ansiFormatted.join("\n");
+      if (message is FormattedMessage) {
+        stringId = message.toJsonString();
+      } else if (message is DiagnosticMessageFromJson) {
+        stringId = message.toJsonString();
+      }
       if (message.severity == Severity.error) {
         gotError = true;
-        formattedErrors.addAll(message.plainTextFormatted);
+        if (!formattedErrors.add(stringId)) {
+          Expect.fail("Got the same message twice: ${stringId}");
+        }
       } else if (message.severity == Severity.warning) {
         gotWarning = true;
-        formattedWarnings.addAll(message.plainTextFormatted);
+        if (!formattedWarnings.add(stringId)) {
+          Expect.fail("Got the same message twice: ${stringId}");
+        }
       }
     };
 
@@ -327,8 +341,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     }
 
     {
-      List<String> prevFormattedErrors = formattedErrors.toList();
-      List<String> prevFormattedWarnings = formattedWarnings.toList();
+      Set<String> prevFormattedErrors = formattedErrors.toSet();
+      Set<String> prevFormattedWarnings = formattedWarnings.toSet();
       gotError = false;
       formattedErrors.clear();
       gotWarning = false;
@@ -385,9 +399,9 @@ int countSyntheticLibraries(Component c) {
 void performErrorAndWarningCheck(
     YamlMap world,
     bool gotError,
-    List<String> formattedErrors,
+    Set<String> formattedErrors,
     bool gotWarning,
-    List<String> formattedWarnings) {
+    Set<String> formattedWarnings) {
   if (world["errors"] == true && !gotError) {
     throw "Expected error, but didn't get any.";
   } else if (world["errors"] != true && gotError) {
