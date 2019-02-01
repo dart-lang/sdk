@@ -34,6 +34,7 @@ const String testSdk = """
   class Null;
   class Function;
   typedef Typedef<T> <S>(T) -> S;
+  typedef VoidFunction () -> void;
   class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
   typedef TestDefaultTypes () -> DefaultTypes;
 """;
@@ -43,6 +44,7 @@ library core;
 import self as self;
 
 typedef Typedef<T extends self::Object = dynamic> = <S extends self::Object = dynamic>(T) → S;
+typedef VoidFunction = () → void;
 typedef TestDefaultTypes = () → self::DefaultTypes<dynamic, self::Object, self::List<dynamic>, self::List<self::Object>, self::Comparable<dynamic>, (<BottomType>) → void, () → self::Comparable<dynamic>>;
 class Object {
 }

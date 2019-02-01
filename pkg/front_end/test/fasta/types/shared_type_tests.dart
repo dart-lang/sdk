@@ -201,5 +201,32 @@ abstract class SubtypeTest<T, E> {
       isSubtype(j, h);
       isSubtype(j, i);
     }
+
+    isNotSubtype('dynamic', '() -> dynamic');
+    isNotSubtype('FutureOr<() -> void>', '() -> void');
+    isSubtype('T & () -> void', '() -> void', typeParameters: 'T');
+    isSubtype('T & () -> void', '() -> dynamic', typeParameters: 'T');
+    isSubtype('T & () -> void', '() -> Object', typeParameters: 'T');
+
+    isSubtype('T & (void) -> void', '(void) -> void', typeParameters: 'T');
+    isSubtype('T & (void) -> void', '(dynamic) -> dynamic',
+        typeParameters: 'T');
+    isSubtype('T & (void) -> void', '(Object) -> Object', typeParameters: 'T');
+
+    isSubtype('T & (void) -> void', '(void) -> void', typeParameters: 'T');
+    isSubtype('T & (void) -> void', '(Iterable<int>) -> dynamic',
+        typeParameters: 'T');
+    isSubtype('T & (void) -> void', '(int) -> Object', typeParameters: 'T');
+
+    isNotSubtype('T & (void) -> void', '(int) -> int', typeParameters: 'T');
+
+    isSubtype('T', '() -> void', typeParameters: 'T extends () -> void');
+    isNotSubtype('T', '() -> void', typeParameters: 'T');
+    isNotSubtype('Typedef<void>', '() -> void');
+    isSubtype('VoidFunction', '() -> void');
+    isNotSubtype(
+        'DefaultTypes<void, void, List<void>, List<void>, int, (int) -> void, () -> int>',
+        '() -> void');
+    isNotSubtype('void', '() -> void');
   }
 }
