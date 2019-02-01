@@ -1013,6 +1013,7 @@ class KernelLibraryBuilder
 
     if (modifyTarget == false) return library;
 
+    library.isSynthetic = isSynthetic;
     addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector

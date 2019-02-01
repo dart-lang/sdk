@@ -221,7 +221,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (isExternal);
+  Byte flags (isExternal, isSynthetic);
   CanonicalNameReference canonicalName;
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.

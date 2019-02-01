@@ -25,11 +25,9 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
-
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -284,16 +282,28 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
         world, gotError, formattedErrors, gotWarning, formattedWarnings);
     util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-    newestWholeComponentData = serializeComponent(component);
+    newestWholeComponentData = util.postProcess(component);
     newestWholeComponent = component;
     print("*****\n\ncomponent:\n${componentToString(component)}\n\n\n");
-    if (component.libraries.length != world["expectedLibraryCount"]) {
-      throw "Expected ${world["expectedLibraryCount"]} libraries, "
-          "got ${component.libraries.length}";
+
+    int nonSyntheticLibraries = countNonSyntheticLibraries(component);
+    int syntheticLibraries = countSyntheticLibraries(component);
+    if (nonSyntheticLibraries != world["expectedLibraryCount"]) {
+      throw "Expected ${world["expectedLibraryCount"]} non-synthetic "
+          "libraries, got ${nonSyntheticLibraries}";
     }
-    if (component.libraries[0].importUri != entry) {
-      throw "Expected the first library to have uri $entry but was "
-          "${component.libraries[0].importUri}";
+    if (world["expectedSyntheticLibraryCount"] != null) {
+      if (syntheticLibraries != world["expectedSyntheticLibraryCount"]) {
+        throw "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
+            "libraries, got ${syntheticLibraries}";
+      }
+    }
+    List<Library> entryLib = component.libraries
+        .where((Library lib) => lib.importUri == entry)
+        .toList();
+    if (entryLib.length != 1) {
+      throw "Expected the entry to become a library. Got ${entryLib.length} "
+          "libraries for it.";
     }
     if (compiler.initializedFromDill != expectInitializeFromDill) {
       throw "Expected that initializedFromDill would be "
@@ -326,7 +336,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       Component component2 = await compiler.computeDelta(fullComponent: true);
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
-      List<int> thisWholeComponent = serializeComponent(component2);
+      List<int> thisWholeComponent = util.postProcess(component2);
       print("*****\n\ncomponent2:\n${componentToString(component2)}\n\n\n");
       checkIsEqual(newestWholeComponentData, thisWholeComponent);
       if (prevFormattedErrors.length != formattedErrors.length) {
@@ -354,6 +364,22 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       }
     }
   }
+}
+
+int countNonSyntheticLibraries(Component c) {
+  int result = 0;
+  for (Library lib in c.libraries) {
+    if (!lib.isSynthetic) result++;
+  }
+  return result;
+}
+
+int countSyntheticLibraries(Component c) {
+  int result = 0;
+  for (Library lib in c.libraries) {
+    if (lib.isSynthetic) result++;
+  }
+  return result;
 }
 
 void performErrorAndWarningCheck(
@@ -491,21 +517,23 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   /// Filter out the automatically added entryPoint, unless it's explicitly
   /// specified as being invalidated.
+  /// Also filter out uris with "nonexisting.dart" in the name as synthetic
+  /// libraries are invalidated automatically too.
   /// This is not perfect, but works for what it's currently used for.
   Set<Uri> getFilteredInvalidatedImportUrisForTesting(
       List<Uri> invalidatedUris) {
     if (invalidatedImportUrisForTesting == null) return null;
+
     Set<String> invalidatedFilenames =
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
-    if (invalidatedFilenames.contains(entryPoint.pathSegments.last)) {
-      return invalidatedImportUrisForTesting;
-    }
-
     Set<Uri> result = new Set<Uri>();
     for (Uri uri in invalidatedImportUrisForTesting) {
-      if (invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
+      if (uri.pathSegments.last == "nonexisting.dart") continue;
+      if (invalidatedFilenames.contains(entryPoint.pathSegments.last) ||
+          invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
     }
-    return result;
+
+    return result.isEmpty ? null : result;
   }
 
   TestIncrementalCompiler(CompilerOptions options, this.entryPoint,

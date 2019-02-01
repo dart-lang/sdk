@@ -755,7 +755,7 @@ class SourceLoader<L> extends Loader<L> {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         L target = sourceLibrary.build(coreLibrary);
-        if (!library.isPatch && !library.isSynthetic) {
+        if (!library.isPatch) {
           libraries.add(target);
         }
       }

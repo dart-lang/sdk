@@ -320,9 +320,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Uri mainMethodUri = mainMethod?.enclosingLibrary?.importUri;
     if (mainMethodUri != null) worklist.add(mainMethodUri);
     if (entry != null) worklist.add(entry);
-
     for (LibraryBuilder library in reusedLibraries) {
-      if (library.uri.scheme == "dart") continue;
+      if (library.uri.scheme == "dart" && !library.isSynthetic) {
+        continue;
+      }
       Library lib = library.target;
       potentiallyReferencedLibraries[library.uri] = lib;
       libraryMap[library.uri] = lib;
@@ -598,7 +599,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
-      if (uri.scheme == "dart") {
+      if (uri.scheme == "dart" && !library.isSynthetic) {
         result.add(library);
         return;
       }

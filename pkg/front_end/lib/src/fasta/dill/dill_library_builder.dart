@@ -64,6 +64,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   DillLibraryBuilder(this.library, this.loader)
       : super(library.fileUri, new Scope.top(), new Scope.top());
 
+  @override
+  bool get isSynthetic => library.isSynthetic;
+
   Uri get uri => library.importUri;
 
   Uri get fileUri => library.fileUri;
