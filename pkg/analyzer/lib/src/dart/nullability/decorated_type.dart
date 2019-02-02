@@ -6,23 +6,40 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 
+/// Representation of a type in the code to be migrated.  In addition to
+/// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
+/// indicating whether the type, and the types that compose it, are nullable.
 class DecoratedType {
   final DartType type;
 
+  /// [ConstraintVariable] whose value will be set to `true` if migration needs
+  /// to make this type nullable.
+  ///
   /// If `null`, that means that an external constraint (outside the code being
   /// migrated) forces this type to be non-nullable.
   final ConstraintVariable nullable;
 
-  /// If not `null`, this is a variable that indicates whether a null value
-  /// assigned to this type will unconditionally lead to an assertion failure.
+  /// [ConstraintVariable] whose value will be set to `true` if migration
+  /// determines that a `null` value stored in an expression having this type
+  /// will unconditionally lead to an assertion failure.
   final ConstraintVariable nullAsserts;
 
+  /// If `this` is a function type, the [DecoratedType] of its return type.
   final DecoratedType returnType;
 
+  /// If `this` is a function type, the [DecoratedType] of each of its
+  /// positional parameters (including both required and optional positional
+  /// parameters).
   final List<DecoratedType> positionalParameters;
 
+  /// If `this` is a function type, the [DecoratedType] of each of its named
+  /// parameters.
   final Map<String, DecoratedType> namedParameters;
 
+  /// If `this` is a parameterized type, the [DecoratedType] of each of its
+  /// type parameters.
+  ///
+  /// TODO(paulberry): how should we handle generic typedefs?
   final List<DecoratedType> typeArguments;
 
   DecoratedType(this.type, this.nullable,
@@ -36,6 +53,7 @@ class DecoratedType {
     assert(!type.isDynamic || identical(nullable, ConstraintVariable.always));
   }
 
+  @override
   String toString() {
     var trailing = nullable == null ? '' : '?($nullable)';
     var type = this.type;

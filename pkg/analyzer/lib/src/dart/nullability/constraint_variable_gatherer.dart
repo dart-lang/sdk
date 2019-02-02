@@ -12,13 +12,29 @@ import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 
+/// Visitor that gathers constraint variables for nullability migration from
+/// code to be migrated.
+///
+/// The return type of each `visit...` method is a [DecoratedType] indicating
+/// the static type of the element declared by the visited node, along with the
+/// constraint variables that will determine its nullability.  For `visit...`
+/// methods that don't visit declarations, `null` will be returned.
 class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
+  /// Constraint variables and decorated types are stored here.
   final Variables _variables;
 
+  /// If the parameters of a function or method are being visited, the
+  /// [DecoratedType] of the corresponding function or method type.
+  ///
+  /// TODO(paulberry): should this be updated when we visit generic function
+  /// type syntax?  How about when we visit old-style function-typed formal
+  /// parameters?
   DecoratedType _currentFunctionType;
 
   ConstraintVariableGatherer(this._variables);
 
+  /// Creates and stores a [DecoratedType] object corresponding to the given
+  /// [type] AST, and returns it.
   DecoratedType decorateType(TypeAnnotation type) {
     return type == null
         // TODO(danrubel): Return something other than this
@@ -101,6 +117,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
+  /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(ExecutableElement declaredElement,
       TypeAnnotation returnType, FormalParameterList parameters) {
     var decoratedReturnType = decorateType(returnType);
@@ -116,23 +133,48 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   }
 }
 
+/// Repository of constraint variables and decorated types corresponding to the
+/// code being migrated.
+///
+/// This data structure carries information from the first pass of migration
+/// ([ConstraintVariableGatherer], which finds all the variables that need to be
+/// constrained) and the second ([ConstraintGatherer], which builds all the
+/// constraints).
+///
+/// TODO(paulberry): consider splitting into two interfaces, one to be used by
+/// each phase, so that it is clearer which methods store information and which
+/// methods retrieve information.
 abstract class Variables {
+  /// Creates a constraint variable to represent whether the given [expression]
+  /// should be null-checked.
   ConstraintVariable checkNotNullForExpression(Expression expression);
 
+  /// Retrieves the [DecoratedType] associated with the static type of the given
+  /// [element].
   DecoratedType decoratedElementType(Element element);
 
+  /// Creates a constraint variable to represent whether the static type of
+  /// the given [expression] will be nullable after the migration.
   ConstraintVariable nullableForExpression(Expression expression);
 
+  /// Creates a constraint variable to represent whether the given [node] should
+  /// be made nullable (by adding a `?` after it).
   ConstraintVariable nullableForTypeAnnotation(TypeAnnotation node);
 
+  /// Records conditional discard information for the given AST node (which is
+  /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
       AstNode node, ConditionalDiscard conditionalDiscard);
 
+  /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
 
+  /// Associates decorated type information with the given expression [node].
   void recordDecoratedExpressionType(Expression node, DecoratedType type);
 
+  /// Associates decorated type information with the given [type] node.
   void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type);
 
+  /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(Expression expression, ExpressionChecks checks);
 }

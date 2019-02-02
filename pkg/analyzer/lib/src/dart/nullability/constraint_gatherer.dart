@@ -18,16 +18,44 @@ import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
+/// Visitor that gathers nullability migration constraints from code to be
+/// migrated.
+///
+/// The return type of each `visit...` method is a [DecoratedType] indicating
+/// the static type of the visited expression, along with the constraint
+/// variables that will determine its nullability.  For `visit...` methods that
+/// don't visit expressions, `null` will be returned.
 class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
+  /// The repository of constraint variables and decorated types (from a
+  /// previous pass over the source code).
   final Variables _variables;
+
+  /// Constraints gathered by the visitor are stored here.
   final Constraints _constraints;
+
+  /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _notNullType;
+
+  /// For convenience, a [DecoratedType] representing non-nullable `bool`.
   final DecoratedType _nonNullableBoolType;
 
+  /// The [DecoratedType] of the innermost function or method being visited, or
+  /// `null` if the visitor is not inside any function or method.
+  ///
+  /// This is needed to construct the appropriate nullability constraints for
+  /// return statements.
   DecoratedType _currentFunctionType;
 
+  /// Information about the most recently visited binary expression whose
+  /// boolean value could possibly affect nullability analysis.
   _ConditionInfo _conditionInfo;
 
+  /// The set of constraint variables that would have to be assigned the value
+  /// of `true` for the code currently being visited to be reachable.
+  ///
+  /// Guard variables are attached to the left hand side of any generated
+  /// constraints, so that constraints do not take effect if they come from
+  /// code that can be proven unreachable by the migration tool.
   final _guards = <ConstraintVariable>[];
 
   ConstraintGatherer(
@@ -35,6 +63,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       : _notNullType = DecoratedType(typeProvider.objectType, null),
         _nonNullableBoolType = DecoratedType(typeProvider.boolType, null) {}
 
+  /// Gets the decorated type of [element] from [_variables], performing any
+  /// necessary substitutions.
   DecoratedType getOrComputeElementType(Element element,
       {DecoratedType targetType}) {
     DecoratedSubstitution substitution;
@@ -61,6 +91,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     }
     var decoratedBaseType = _variables.decoratedElementType(baseElement);
     if (decoratedBaseType == null) {
+      // TODO(paulberry): move this logic somewhere that it can be shared by
+      // [ConstraintVariableGatherer] (which will have to use it when computing
+      // the decorated type of an inferred parameter or return type that is not
+      // `dynamic`).
       DecoratedType decorate(DartType type) {
         assert((type as TypeImpl).nullability ==
             Nullability.indeterminate); // TODO(paulberry)
@@ -308,7 +342,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     return DecoratedType(typeName.type, null);
   }
 
-  _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
+  /// Creates the necessary constraint(s) for an assignment from [sourceType] to
+  /// [destinationType].  [expression] is the expression whose type is
+  /// [sourceType]; it is the expression we will have to null-check in the case
+  /// where a nullable source is assigned to a non-nullable destination.
+  void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
       Expression expression) {
     if (sourceType.nullable != null) {
       if (destinationType.nullable != null) {
@@ -345,6 +383,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     }
   }
 
+  /// Double checks that [name] is not the name of a method or getter declared
+  /// on [Object].
+  ///
+  /// TODO(paulberry): get rid of this method and put the correct logic into the
+  /// call sites.
   void _checkNonObjectMember(String name) {
     assert(name != 'toString');
     assert(name != 'hashCode');
@@ -352,6 +395,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(name != 'runtimeType');
   }
 
+  /// Creates the necessary constraint(s) for an assignment of the given
+  /// [expression] to a destination whose type is [destinationType].
   DecoratedType _handleAssignment(
       DecoratedType destinationType, Expression expression) {
     var sourceType = expression.accept(this);
@@ -359,6 +404,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     return sourceType;
   }
 
+  /// Double checks that [type] is sufficiently simple for this naive prototype
+  /// implementation.
+  ///
+  /// TODO(paulberry): get rid of this method and put the correct logic into the
+  /// call sites.
   bool _isSimple(DecoratedType type) {
     if (type.type.isBottom) return true;
     if (type.type is! InterfaceType) return false;
@@ -366,6 +416,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     return true;
   }
 
+  /// Creates a constraint variable (if necessary) representing the nullability
+  /// of [node], which is the disjunction of the nullabilities [a] and [b].
   ConstraintVariable _joinNullabilities(
       ConditionalExpression node, ConstraintVariable a, ConstraintVariable b) {
     if (a == null) return b;
@@ -381,6 +433,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     return result;
   }
 
+  /// Records a constraint having [condition] as its left hand side and
+  /// [consequence] as its right hand side.  Any [_guards] are included in the
+  /// left hand side.
   void _recordConstraint(
       ConstraintVariable condition, ConstraintVariable consequence) {
     _guards.add(condition);
@@ -388,22 +443,40 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     _guards.removeLast();
   }
 
+  /// Records a constraint having [consequence] as its right hand side.  Any
+  /// [_guards] are used as the right hand side.
   void _recordFact(ConstraintVariable consequence) {
     _constraints.record(_guards, consequence);
   }
 }
 
+/// Information about a binary expression whose boolean value could possibly
+/// affect nullability analysis.
 class _ConditionInfo {
+  /// The [expression] of interest.
   final Expression condition;
 
+  /// Indicates whether [condition] is pure (free from side effects).
+  ///
+  /// For example, a condition like `x == null` is pure (assuming `x` is a local
+  /// variable or static variable), because evaluating it has no user-visible
+  /// effect other than returning a boolean value.
   final bool isPure;
 
+  /// If not `null`, the [ConstraintVariable] whose value must be `true` in
+  /// order for [condition] to evaluate to `true`.
   final ConstraintVariable trueGuard;
 
+  /// If not `null`, the [ConstraintVariable] whose value must be `true` in
+  /// order for [condition] to evaluate to `false`.
   final ConstraintVariable falseGuard;
 
+  /// If not `null`, the [ConstraintVariable] whose value should be set to
+  /// `true` if [condition] is asserted to be `true`.
   final ConstraintVariable trueChecksNonNull;
 
+  /// If not `null`, the [ConstraintVariable] whose value should be set to
+  /// `true` if [condition] is asserted to be `false`.
   final ConstraintVariable falseChecksNonNull;
 
   _ConditionInfo(this.condition,

@@ -28,12 +28,16 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   @override
   final _Constraints constraints = _Constraints();
 
+  /// Checks that a constraint was recorded with a left hand side of
+  /// [conditions] and a right hand side of [consequence].
   void assertConstraint(
       Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
     expect(constraints._clauses,
         contains(_Clause(conditions.toSet(), consequence)));
   }
 
+  /// Checks that no constraint was recorded with a right hand side of
+  /// [consequence].
   void assertNoConstraints(ConstraintVariable consequence) {
     expect(
         constraints._clauses,
@@ -41,11 +45,17 @@ class ConstraintGathererTest extends ConstraintsTestBase {
             predicate((_Clause clause) => clause.consequence == consequence))));
   }
 
+  /// Gets the [ExpressionChecks] associated with the expression whose text
+  /// representation is [text], or `null` if the expression has no
+  /// [ExpressionChecks] associated with it.
   ExpressionChecks checkExpression(String text) {
     return _variables.checkExpression(findNode.expression(text));
   }
 
-  decoratedExpressionType(String text) {
+  /// Gets the [DecoratedType] associated with the expression whose text
+  /// representation is [text], or `null` if the expression has no
+  /// [DecoratedType] associated with it.
+  DecoratedType decoratedExpressionType(String text) {
     return _variables.decoratedExpressionType(findNode.expression(text));
   }
 
@@ -386,6 +396,8 @@ class C {
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   Constraints get constraints;
 
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
   @override
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
@@ -396,6 +408,8 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
 
 @reflectiveTest
 class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
+  /// Gets the [DecoratedType] associated with the function declaration whose
+  /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
       _variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
@@ -489,6 +503,7 @@ class MigrationIntegrationTest extends ConstraintsTestBase {
     return unit;
   }
 
+  /// Checks that the result of the migration matches the given string.
   void checkMigration(String expected) {
     var modifications = <_Modification>[];
     for (var variable in _variables._potentialModifications) {
@@ -673,6 +688,7 @@ int f(int i, [int? j]) {
 class MigrationVisitorTestBase extends DriverResolutionTest {
   final _variables = _Variables();
 
+  @override
   Future<CompilationUnit> analyze(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -681,15 +697,20 @@ class MigrationVisitorTestBase extends DriverResolutionTest {
     return unit;
   }
 
+  /// Gets the [DecoratedType] associated with the type annotation whose text
+  /// is [text].
   DecoratedType decoratedTypeAnnotation(String text) {
     return _variables.decoratedTypeAnnotation(findNode.typeAnnotation(text));
   }
 
+  /// Gets the [ConditionalDiscard] information associated with the statement
+  /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return _variables.conditionalDiscard(findNode.statement(text));
   }
 }
 
+/// Type of a [ConstraintVariable] representing the addition of a null check.
 class _CheckExpression extends ConstraintVariable
     implements _PotentialModification {
   final Expression _node;
@@ -704,18 +725,25 @@ class _CheckExpression extends ConstraintVariable
   toString() => 'checkNotNull($_node@${_node.offset})';
 }
 
+/// Mock representation of a constraint equation that is not connected to a
+/// constraint solver.  We use this to confirm that analysis produces the
+/// correct constraint equations.
+///
+/// [hashCode] and equality are implemented using [toString] for simplicity.
 class _Clause {
   final Set<ConstraintVariable> conditions;
   final ConstraintVariable consequence;
 
   _Clause(this.conditions, this.consequence);
 
+  @override
   int get hashCode => toString().hashCode;
 
   @override
   bool operator ==(Object other) =>
       other is _Clause && toString() == other.toString();
 
+  @override
   String toString() {
     String lhs;
     if (conditions.isNotEmpty) {
@@ -730,6 +758,8 @@ class _Clause {
   }
 }
 
+/// Records information about how a conditional expression or statement might
+/// need to be modified.
 class _ConditionalModification extends _PotentialModification {
   final AstNode node;
 
@@ -783,15 +813,21 @@ class _ConditionalModification extends _PotentialModification {
   }
 }
 
+/// Mock representation of a constraint solver that does not actually do any
+/// solving.  We use this to confirm that analysis produced the correct
+/// constraint equations.
 class _Constraints extends Constraints {
   final _clauses = <_Clause>[];
 
+  @override
   void record(
       Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
     _clauses.add(_Clause(conditions.toSet(), consequence));
   }
 }
 
+/// Representation of a single location in the code that needs to be modified
+/// by the migration tool.
 class _Modification {
   final int location;
 
@@ -800,6 +836,8 @@ class _Modification {
   _Modification(this.location, this.insert);
 }
 
+/// Type of a [ConstraintVariable] representing the fact that a subexpression's
+/// type is nullable.
 class _NullableExpression extends ConstraintVariable {
   final Expression _node;
 
@@ -809,6 +847,7 @@ class _NullableExpression extends ConstraintVariable {
   toString() => 'nullable($_node@${_node.offset})';
 }
 
+/// Type of a [ConstraintVariable] representing the addition of `?` to a type.
 class _NullableTypeAnnotation extends ConstraintVariable
     implements _PotentialModification {
   final TypeAnnotation _node;
@@ -823,10 +862,15 @@ class _NullableTypeAnnotation extends ConstraintVariable
   toString() => 'nullable($_node@${_node.offset})';
 }
 
+/// Interface used by data structures representing potential modifications to
+/// the code being migrated.
 abstract class _PotentialModification {
+  /// Gets the individual migrations that need to be done, considering the
+  /// solution to the constraint equations.
   Iterable<_Modification> get _modifications;
 }
 
+/// Mock representation of constraint variables.
 class _Variables extends Variables {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
@@ -840,6 +884,7 @@ class _Variables extends Variables {
 
   final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
 
+  /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>
       _expressionChecks[_normalizeExpression(expression)];
 
@@ -850,6 +895,7 @@ class _Variables extends Variables {
     return variable;
   }
 
+  /// Gets the [conditionalDiscard] associated with the given [expression].
   ConditionalDiscard conditionalDiscard(AstNode node) =>
       _conditionalDiscard[node];
 
@@ -857,9 +903,11 @@ class _Variables extends Variables {
   DecoratedType decoratedElementType(Element element) =>
       _decoratedElementTypes[element];
 
+  /// Gets the [DecoratedType] associated with the given [expression].
   DecoratedType decoratedExpressionType(Expression expression) =>
       _decoratedExpressionTypes[_normalizeExpression(expression)];
 
+  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
       _decoratedTypeAnnotations[typeAnnotation];
 
@@ -899,6 +947,7 @@ class _Variables extends Variables {
     _expressionChecks[_normalizeExpression(expression)] = checks;
   }
 
+  /// Unwraps any parentheses surrounding [expression].
   Expression _normalizeExpression(Expression expression) {
     while (expression is ParenthesizedExpression) {
       expression = (expression as ParenthesizedExpression).expression;

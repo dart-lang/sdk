@@ -8,16 +8,26 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 
+/// Representation of a type variable substitution with awareness of constraint
+/// variables for nullability substitution.
 class DecoratedSubstitution {
+  /// The replacements to be performed by the substitution.  Keys are type
+  /// parameters to replace, and values are the [DecoratedType]s to replace
+  /// them with.
   final Map<TypeParameterElement, DecoratedType> _replacements;
 
   DecoratedSubstitution(this._replacements);
 
+  /// Apply this substitution to [type].
+  ///
+  /// [undecoratedResult] is the result of the substitution, as determined by
+  /// the normal type system.
   DecoratedType apply(DecoratedType type, DartType undecoratedResult) {
     if (_replacements.isEmpty) return type;
     return _apply(type, undecoratedResult);
   }
 
+  /// Internal implementation of [_apply], used as a recursion target.
   DecoratedType _apply(DecoratedType type, DartType undecoratedResult) {
     var typeType = type.type;
     if (typeType is FunctionType && undecoratedResult is FunctionType) {

@@ -44,6 +44,9 @@ class UnitPropagationTest {
   }
 }
 
+/// Representation of a constraint variable with a specified name.
+///
+/// This makes test failures easier to comprehend.
 class _NamedConstraintVariable extends ConstraintVariable {
   final String _name;
 
