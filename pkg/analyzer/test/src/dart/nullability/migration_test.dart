@@ -17,14 +17,14 @@ import '../resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstraintsTest);
+    defineReflectiveTests(ConstraintGathererTest);
     defineReflectiveTests(ConstraintVariableGathererTest);
     defineReflectiveTests(MigrationIntegrationTest);
   });
 }
 
 @reflectiveTest
-class ConstraintsTest extends ConstraintsTestBase {
+class ConstraintGathererTest extends ConstraintsTestBase {
   @override
   final _Constraints constraints = _Constraints();
 
