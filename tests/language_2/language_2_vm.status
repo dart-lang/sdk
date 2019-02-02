@@ -20,6 +20,7 @@ assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not repo
 async_star/async_star_await_for_test: RuntimeError
 async_star/async_star_cancel_test: RuntimeError
 async_star/async_star_test: RuntimeError
+control_flow_collections/*: Skip # Not isn't implemented in the VM yet. TODO: Triage more precisely.
 spread_collections/*: Skip # Spread isn't implemented in the VM yet. TODO: Triage more precisely.
 
 [ $arch == arm64 && $runtime == vm ]
