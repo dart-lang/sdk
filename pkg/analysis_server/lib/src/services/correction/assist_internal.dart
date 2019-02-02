@@ -20,9 +20,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -70,6 +72,13 @@ class AssistProcessor {
    * Returns the EOL to use for this [CompilationUnit].
    */
   String get eol => utils.endOfLine;
+
+  /**
+   * Return the status of the known experiments.
+   */
+  ExperimentStatus get experimentStatus =>
+      (session.analysisContext.analysisOptions as AnalysisOptionsImpl)
+          .experimentStatus;
 
   Future<List<Assist>> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -129,6 +138,14 @@ class AssistProcessor {
     await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
+
+    if (experimentStatus.control_flow_collections) {
+      await _addProposal_convertConditionalExpressionToIfElement();
+      await _addProposal_convertMapFromIterableToIfLiteral();
+    }
+    if (experimentStatus.spread_collections) {
+      await _addProposal_convertAddAllToSpread();
+    }
 
     return assists;
   }
@@ -403,6 +420,40 @@ class AssistProcessor {
     }
   }
 
+  Future<void> _addProposal_convertAddAllToSpread() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'addAll' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral2 || sections[0] != invocation) {
+      _coverageMarker();
+      return;
+    }
+    ListLiteral2 list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String argumentText = utils.getNodeText(argument);
+    // [ ... ]..addAll( ... )
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleInsertion(list.elements.last.end, ', ...$argumentText');
+      builder.addDeletion(range.node(invocation));
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
+  }
+
   Future<void> _addProposal_convertClassToMixin() async {
     ClassDeclaration classDeclaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
@@ -457,6 +508,42 @@ class AssistProcessor {
       });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_CLASS_TO_MIXIN);
+  }
+
+  Future<void> _addProposal_convertConditionalExpressionToIfElement() async {
+    AstNode node = this.node;
+    if (node is! ConditionalExpression) {
+      _coverageMarker();
+      return;
+    }
+    AstNode nodeToReplace = node;
+    AstNode parent = node.parent;
+    while (parent is ParenthesizedExpression) {
+      nodeToReplace = parent;
+      parent = parent.parent;
+    }
+    // TODO(brianwilkerson) Consider adding support for map literals.
+    if (parent is ListLiteral2 || parent is SetLiteral2) {
+      ConditionalExpression conditional = node;
+      Expression condition = conditional.condition.unParenthesized;
+      Expression thenExpression = conditional.thenExpression.unParenthesized;
+      Expression elseExpression = conditional.elseExpression.unParenthesized;
+
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(range.node(nodeToReplace),
+            (DartEditBuilder builder) {
+          builder.write('if (');
+          builder.write(utils.getNodeText(condition));
+          builder.write(') ');
+          builder.write(utils.getNodeText(thenExpression));
+          builder.write(' else ');
+          builder.write(utils.getNodeText(elseExpression));
+        });
+      });
+      _addAssistFromBuilder(
+          changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
+    }
   }
 
   Future<void> _addProposal_convertDocumentationIntoBlock() async {
@@ -677,6 +764,163 @@ class AssistProcessor {
       builder.addSimpleReplacement(replacementRange, code);
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  Future<void> _addProposal_convertMapFromIterableToIfLiteral() async {
+    //
+    // Ensure that the selection is inside an invocation of Map.fromIterable.
+    //
+    InstanceCreationExpression creation =
+        node.thisOrAncestorOfType<InstanceCreationExpression>();
+    if (creation == null) {
+      _coverageMarker();
+      return;
+    }
+    ConstructorElement element = creation.staticElement;
+    if (element.name != 'fromIterable' ||
+        element.enclosingElement != typeProvider.mapType.element) {
+      _coverageMarker();
+      return;
+    }
+    //
+    // Ensure that the arguments have the right form.
+    //
+    NodeList<Expression> arguments = creation.argumentList.arguments;
+    if (arguments.length != 3) {
+      _coverageMarker();
+      return;
+    }
+    Expression iterator = arguments[0].unParenthesized;
+    Expression secondArg = arguments[1];
+    Expression thirdArg = arguments[2];
+
+    Expression extractBody(FunctionExpression expression) {
+      FunctionBody body = expression.body;
+      if (body is ExpressionFunctionBody) {
+        return body.expression;
+      } else if (body is BlockFunctionBody) {
+        NodeList<Statement> statements = body.block.statements;
+        if (statements.length == 1) {
+          Statement statement = statements[0];
+          if (statement is ReturnStatement) {
+            return statement.expression;
+          }
+        }
+      }
+      return null;
+    }
+
+    FunctionExpression extractClosure(String name, Expression argument) {
+      if (argument is NamedExpression && argument.name.label.name == name) {
+        Expression expression = argument.expression.unParenthesized;
+        if (expression is FunctionExpression) {
+          NodeList<FormalParameter> parameters =
+              expression.parameters.parameters;
+          if (parameters.length == 1 && parameters[0].isRequired) {
+            if (extractBody(expression) != null) {
+              return expression;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    FunctionExpression keyClosure =
+        extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
+    FunctionExpression valueClosure =
+        extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
+    if (keyClosure == null || valueClosure == null) {
+      _coverageMarker();
+      return;
+    }
+    //
+    // Compute the loop variable name and convert the key and value closures if
+    // necessary.
+    //
+    SimpleFormalParameter keyParameter = keyClosure.parameters.parameters[0];
+    String keyParameterName = keyParameter.identifier.name;
+    SimpleFormalParameter valueParameter =
+        valueClosure.parameters.parameters[0];
+    String valueParameterName = valueParameter.identifier.name;
+    Expression keyBody = extractBody(keyClosure);
+    String keyExpressionText = utils.getNodeText(keyBody);
+    Expression valueBody = extractBody(valueClosure);
+    String valueExpressionText = utils.getNodeText(valueBody);
+
+    String loopVariableName;
+    if (keyParameterName == valueParameterName) {
+      loopVariableName = keyParameterName;
+    } else {
+      _ParameterReferenceFinder keyFinder =
+          new _ParameterReferenceFinder(keyParameter.declaredElement);
+      keyBody.accept(keyFinder);
+
+      _ParameterReferenceFinder valueFinder =
+          new _ParameterReferenceFinder(valueParameter.declaredElement);
+      valueBody.accept(valueFinder);
+
+      String computeUnusedVariableName() {
+        String candidate = 'e';
+        var index = 1;
+        while (keyFinder.referencesName(candidate) ||
+            valueFinder.referencesName(candidate)) {
+          candidate = 'e${index++}';
+        }
+        return candidate;
+      }
+
+      if (valueFinder.isParameterUnreferenced) {
+        if (valueFinder.referencesName(keyParameterName)) {
+          // The name of the value parameter is not used, but we can't use the
+          // name of the key parameter because doing so would hide a variable
+          // referenced in the value expression.
+          loopVariableName = computeUnusedVariableName();
+          keyExpressionText = keyFinder.replaceName(
+              keyExpressionText, loopVariableName, keyBody.offset);
+        } else {
+          loopVariableName = keyParameterName;
+        }
+      } else if (keyFinder.isParameterUnreferenced) {
+        if (keyFinder.referencesName(valueParameterName)) {
+          // The name of the key parameter is not used, but we can't use the
+          // name of the value parameter because doing so would hide a variable
+          // referenced in the key expression.
+          loopVariableName = computeUnusedVariableName();
+          valueExpressionText = valueFinder.replaceName(
+              valueExpressionText, loopVariableName, valueBody.offset);
+        } else {
+          loopVariableName = valueParameterName;
+        }
+      } else {
+        // The names are different and both are used. We need to find a name
+        // that would not change the resolution of any other identifiers in
+        // either the key or value expressions.
+        loopVariableName = computeUnusedVariableName();
+        keyExpressionText = keyFinder.replaceName(
+            keyExpressionText, loopVariableName, keyBody.offset);
+        valueExpressionText = valueFinder.replaceName(
+            valueExpressionText, loopVariableName, valueBody.offset);
+      }
+    }
+    //
+    // Construct the edit.
+    //
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
+        builder.write('{ for (var ');
+        builder.write(loopVariableName);
+        builder.write(' in ');
+        builder.write(utils.getNodeText(iterator));
+        builder.write(') ');
+        builder.write(keyExpressionText);
+        builder.write(' : ');
+        builder.write(valueExpressionText);
+        builder.write(' }');
+      });
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
   }
 
   Future<void> _addProposal_convertPartOfToUri() async {
@@ -1226,6 +1470,36 @@ class AssistProcessor {
         changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
+  Future<void> _addProposal_convertToMultilineString() async {
+    var node = this.node;
+    if (node is InterpolationElement) {
+      node = (node as InterpolationElement).parent;
+    }
+    if (node is SingleStringLiteral) {
+      SingleStringLiteral literal = node;
+      if (!literal.isMultiline) {
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (builder) {
+          var newQuote = literal.isSingleQuoted ? "'''" : '"""';
+          builder.addReplacement(
+            SourceRange(literal.offset + (literal.isRaw ? 1 : 0), 1),
+            (builder) {
+              builder.writeln(newQuote);
+            },
+          );
+          builder.addSimpleReplacement(
+            SourceRange(literal.end - 1, 1),
+            newQuote,
+          );
+        });
+        _addAssistFromBuilder(
+          changeBuilder,
+          DartAssistKind.CONVERT_TO_MULTILINE_STRING,
+        );
+      }
+    }
+  }
+
   Future<void> _addProposal_convertToNormalParameter() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -1264,36 +1538,6 @@ class AssistProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.CONVERT_TO_NORMAL_PARAMETER);
-    }
-  }
-
-  Future<void> _addProposal_convertToMultilineString() async {
-    var node = this.node;
-    if (node is InterpolationElement) {
-      node = (node as InterpolationElement).parent;
-    }
-    if (node is SingleStringLiteral) {
-      SingleStringLiteral literal = node;
-      if (!literal.isMultiline) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (builder) {
-          var newQuote = literal.isSingleQuoted ? "'''" : '"""';
-          builder.addReplacement(
-            SourceRange(literal.offset + (literal.isRaw ? 1 : 0), 1),
-            (builder) {
-              builder.writeln(newQuote);
-            },
-          );
-          builder.addSimpleReplacement(
-            SourceRange(literal.end - 1, 1),
-            newQuote,
-          );
-        });
-        _addAssistFromBuilder(
-          changeBuilder,
-          DartAssistKind.CONVERT_TO_MULTILINE_STRING,
-        );
-      }
     }
   }
 
@@ -3536,6 +3780,70 @@ class AssistProcessor {
       return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
     }
     return false;
+  }
+}
+
+/**
+ * A visitor that can be used to find references to a parameter.
+ */
+class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
+  /**
+   * The parameter for which references are being sought, or `null` if we are
+   * just accumulating a list of referenced names.
+   */
+  final ParameterElement parameter;
+
+  /**
+   * A list of the simple identifiers that reference the [parameter].
+   */
+  final List<SimpleIdentifier> references = <SimpleIdentifier>[];
+
+  /**
+   * A collection of the names of other simple identifiers that were found. We
+   * need to know these in order to ensure that the selected loop variable does
+   * not hide a name from an enclosing scope that is already being referenced.
+   */
+  final Set<String> otherNames = new Set<String>();
+
+  /**
+   * Initialize a newly created finder to find references to the [parameter].
+   */
+  _ParameterReferenceFinder(this.parameter) : assert(parameter != null);
+
+  /**
+   * Return `true` if the parameter is unreferenced in the nodes that have been
+   * visited.
+   */
+  bool get isParameterUnreferenced => references.isEmpty;
+
+  /**
+   * Return `true` is the given name (assumed to be different than the name of
+   * the parameter) is references in the nodes that have been visited.
+   */
+  bool referencesName(String name) => otherNames.contains(name);
+
+  /**
+   * Replace all of the references to the parameter in the given [source] with
+   * the [newName]. The [offset] is the offset of the first character of the
+   * [source] relative to the start of the file.
+   */
+  String replaceName(String source, String newName, int offset) {
+    int oldLength = parameter.name.length;
+    for (int i = references.length - 1; i >= 0; i--) {
+      int oldOffset = references[i].offset - offset;
+      source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
+    }
+    return source;
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == parameter) {
+      references.add(node);
+    } else if (!node.isQualified) {
+      // Only non-prefixed identifiers can be hidden.
+      otherNames.add(node.name);
+    }
   }
 }
 

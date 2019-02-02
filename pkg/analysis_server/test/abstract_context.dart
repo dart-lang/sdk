@@ -50,6 +50,10 @@ class AbstractContextTest with ResourceProviderMixin {
   AnalysisContextCollection _analysisContextCollection;
   AnalysisDriver _driver;
 
+  /// The file system specific `/home/test/analysis_options.yaml` path.
+  String get analysisOptionsPath =>
+      convertPath('/home/test/analysis_options.yaml');
+
   AnalysisDriver get driver => _driver;
 
   AnalysisSession get session => driver.currentSession;
@@ -217,6 +221,22 @@ class _VisibleForTesting {
 
     var testPath = convertPath('/home/test');
     _driver = getDriver(testPath);
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({List<String> experiments}) {
+    StringBuffer buffer = new StringBuffer();
+    if (experiments != null) {
+      buffer.writeln('analyzer:');
+      buffer.writeln('  enable-experiment:');
+      for (String experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+    newFile(analysisOptionsPath, content: buffer.toString());
+    if (_driver != null) {
+      createAnalysisContexts();
+    }
   }
 
   /// Return the existing analysis context that should be used to analyze the

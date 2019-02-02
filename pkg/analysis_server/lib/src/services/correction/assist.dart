@@ -75,6 +75,8 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_IF_ELEMENT = const AssistKind(
+      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
   static const CONVERT_TO_MULTILINE_STRING = const AssistKind(
@@ -89,6 +91,8 @@ class DartAssistKind {
       'dart.assist.convert.toSingleQuotedString',
       30,
       "Convert to single quoted string");
+  static const CONVERT_TO_SPREAD = const AssistKind(
+      'dart.assist.convertToSpread', 30, "Convert to a spread");
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
