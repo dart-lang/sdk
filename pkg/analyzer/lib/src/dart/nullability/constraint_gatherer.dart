@@ -33,11 +33,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   ConstraintGatherer(
       TypeProvider typeProvider, this._variables, this._constraints)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
-        _nonNullableBoolType = DecoratedType(typeProvider.boolType, null) {
-    _constraints.record([], _always);
-  }
-
-  ConstraintVariable get _always => _variables.always;
+        _nonNullableBoolType = DecoratedType(typeProvider.boolType, null) {}
 
   DecoratedType getOrComputeElementType(Element element,
       {DecoratedType targetType}) {
@@ -208,8 +204,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       falseGuard = _conditionInfo.falseGuard;
       _variables.recordConditionalDiscard(
           node,
-          ConditionalDiscard(trueGuard ?? _always, falseGuard ?? _always,
-              _conditionInfo.isPure));
+          ConditionalDiscard(trueGuard ?? ConstraintVariable.always,
+              falseGuard ?? ConstraintVariable.always, _conditionInfo.isPure));
     }
     if (trueGuard != null) {
       _guards.add(trueGuard);
@@ -269,7 +265,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
-    return DecoratedType(node.staticType, _always);
+    return DecoratedType(node.staticType, ConstraintVariable.always);
   }
 
   @override
@@ -342,10 +338,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         _checkAssignment(destinationType.typeArguments[i],
             sourceType.typeArguments[i], expression);
       }
-    } else if (destinationType.type.isDynamic) {
+    } else if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
       // ok; nothing further to do.
-    } else if (sourceType.type.isDynamic) {
-      // TODO(danrubel): assert that destination type is nullable
     } else {
       throw '$destinationType <= $sourceType'; // TODO(paulberry)
     }
@@ -376,8 +370,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       ConditionalExpression node, ConstraintVariable a, ConstraintVariable b) {
     if (a == null) return b;
     if (b == null) return a;
-    if (identical(a, _always) || identical(b, _always)) {
-      return _always;
+    if (identical(a, ConstraintVariable.always) ||
+        identical(b, ConstraintVariable.always)) {
+      return ConstraintVariable.always;
     }
     var result = _variables.nullableForExpression(node);
     _recordConstraint(a, result);

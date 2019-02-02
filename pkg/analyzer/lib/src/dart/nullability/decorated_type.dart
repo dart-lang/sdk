@@ -30,7 +30,11 @@ class DecoratedType {
       this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
-      this.typeArguments = const []});
+      this.typeArguments = const []}) {
+    // The type system doesn't have a non-nullable version of `dynamic`.  So if
+    // the type is `dynamic`, verify that `nullable` is `always`.
+    assert(!type.isDynamic || identical(nullable, ConstraintVariable.always));
+  }
 
   String toString() {
     var trailing = nullable == null ? '' : '?($nullable)';

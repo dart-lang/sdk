@@ -28,8 +28,6 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   @override
   final _Constraints constraints = _Constraints();
 
-  ConstraintVariable get always => _variables.always;
-
   void assertConstraint(
       Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
     expect(constraints._clauses,
@@ -54,7 +52,10 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   test_always() async {
     await analyze('');
 
-    assertConstraint([], always);
+    // No clause is needed for `always`; it is assigned the value `true` before
+    // solving begins.
+    assertNoConstraints(ConstraintVariable.always);
+    assert(ConstraintVariable.always.value, isTrue);
   }
 
   test_binaryExpression_add_left_check() async {
@@ -178,7 +179,7 @@ int f(bool b, int i) {
 ''');
 
     var nullable_conditional = decoratedExpressionType('(b ?').nullable;
-    expect(nullable_conditional, same(always));
+    expect(nullable_conditional, same(ConstraintVariable.always));
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -201,7 +202,7 @@ int f(bool b, int i) {
 ''');
 
     var nullable_conditional = decoratedExpressionType('(b ?').nullable;
-    expect(nullable_conditional, same(always));
+    expect(nullable_conditional, same(ConstraintVariable.always));
   }
 
   test_functionDeclaration_expression_body() async {
@@ -241,7 +242,8 @@ void test() {
 }
 ''');
 
-    assertConstraint([always], decoratedTypeAnnotation('int').nullable);
+    assertConstraint(
+        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
   }
 
   test_functionInvocation_return() async {
@@ -274,7 +276,7 @@ int f(int i, int j, int k) {
     assertConstraint([nullable_k], nullable_return);
     var discard = statementDiscard('if (i == null)');
     expect(discard.keepTrue, same(nullable_i));
-    expect(discard.keepFalse, same(always));
+    expect(discard.keepFalse, same(ConstraintVariable.always));
     expect(discard.pureCondition, true);
   }
 
@@ -366,7 +368,8 @@ int f() {
 }
 ''');
 
-    assertConstraint([always], decoratedTypeAnnotation('int').nullable);
+    assertConstraint(
+        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
   }
 
   test_thisExpression() async {
@@ -404,7 +407,7 @@ void f(int? x) {}
     var decoratedType = decoratedTypeAnnotation('int?');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
-    expect(decoratedType.nullable, same(_variables.always));
+    expect(decoratedType.nullable, same(ConstraintVariable.always));
   }
 
   test_interfaceType_typeParameter() async {
@@ -418,6 +421,18 @@ void f(List<int> x) {}
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedListType.typeArguments[0], same(decoratedIntType));
     expect(decoratedIntType.nullable, isNotNull);
+  }
+
+  test_topLevelFunction_parameterType_implicit_dynamic() async {
+    await analyze('''
+void f(x) {}
+''');
+    var decoratedType = _variables.decoratedElementType(
+        (findNode.expression('x') as SimpleIdentifier).staticElement);
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedType));
+    expect(decoratedType.type.isDynamic, isTrue);
+    expect(decoratedType.nullable, same(ConstraintVariable.always));
   }
 
   test_topLevelFunction_parameterType_positionalOptional() async {
@@ -438,6 +453,15 @@ void f(int i) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.nullable, isNotNull);
+  }
+
+  test_topLevelFunction_returnType_implicit_dynamic() async {
+    await analyze('''
+f() {}
+''');
+    var decoratedType = decoratedFunctionType('f').returnType;
+    expect(decoratedType.type.isDynamic, isTrue);
+    expect(decoratedType.nullable, same(ConstraintVariable.always));
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -666,11 +690,6 @@ class MigrationVisitorTestBase extends DriverResolutionTest {
   }
 }
 
-class _Always extends ConstraintVariable {
-  @override
-  String toString() => 'always';
-}
-
 class _CheckExpression extends ConstraintVariable
     implements _PotentialModification {
   final Expression _node;
@@ -809,8 +828,6 @@ abstract class _PotentialModification {
 }
 
 class _Variables extends Variables {
-  final _always = _Always();
-
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
@@ -822,9 +839,6 @@ class _Variables extends Variables {
   final _potentialModifications = <_PotentialModification>[];
 
   final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
-
-  @override
-  ConstraintVariable get always => _always;
 
   ExpressionChecks checkExpression(Expression expression) =>
       _expressionChecks[_normalizeExpression(expression)];

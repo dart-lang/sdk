@@ -19,14 +19,12 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   ConstraintVariableGatherer(this._variables);
 
-  ConstraintVariable get _always => _variables.always;
-
   DecoratedType decorateType(TypeAnnotation type) {
     return type == null
         // TODO(danrubel): Return something other than this
         // to indicate that we should insert a type for the declaration
         // that is missing a type reference.
-        ? new DecoratedType(DynamicTypeImpl.instance, _always)
+        ? new DecoratedType(DynamicTypeImpl.instance, ConstraintVariable.always)
         : type.accept(this);
   }
 
@@ -76,7 +74,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(node != null); // TODO(paulberry)
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
-    if (type.isVoid) return DecoratedType(type, _always);
+    if (type.isVoid) return DecoratedType(type, ConstraintVariable.always);
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
     var typeArguments = const <DecoratedType>[];
@@ -91,7 +89,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     }
     var nullable = node.question == null
         ? _variables.nullableForTypeAnnotation(node)
-        : _always;
+        : ConstraintVariable.always;
     // TODO(paulberry): decide whether to assign a variable for nullAsserts
     var nullAsserts = null;
     var decoratedType = DecoratedType(type, nullable,
@@ -119,8 +117,6 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 }
 
 abstract class Variables {
-  ConstraintVariable get always;
-
   ConstraintVariable checkNotNullForExpression(Expression expression);
 
   DecoratedType decoratedElementType(Element element);

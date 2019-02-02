@@ -8,6 +8,8 @@ abstract class Constraints {
 }
 
 class ConstraintVariable {
+  static final ConstraintVariable always = _Always();
+
   final _dependencies = <_Clause>[];
 
   bool _value = false;
@@ -113,6 +115,15 @@ class Solver extends Constraints {
       }
     }
   }
+}
+
+class _Always extends ConstraintVariable {
+  _Always() {
+    _value = true;
+  }
+
+  @override
+  String toString() => 'always';
 }
 
 class _Clause {
