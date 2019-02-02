@@ -79,6 +79,10 @@ class DartAssistKind {
       'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
+  static const CONVERT_TO_LIST_LITERAL = const AssistKind(
+      'dart.assist.convert.toListLiteral', 30, "Convert to list literal");
+  static const CONVERT_TO_MAP_LITERAL = const AssistKind(
+      'dart.assist.convert.toMapLiteral', 30, "Convert to map literal");
   static const CONVERT_TO_MULTILINE_STRING = const AssistKind(
       'dart.assist.convert.toMultilineString',
       30,
@@ -87,6 +91,8 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorNormalParameter',
       30,
       "Convert to normal parameter");
+  static const CONVERT_TO_SET_LITERAL = const AssistKind(
+      'dart.assist.convert.toSetLiteral', 30, "Convert to set literal");
   static const CONVERT_TO_SINGLE_QUOTED_STRING = const AssistKind(
       'dart.assist.convert.toSingleQuotedString',
       30,

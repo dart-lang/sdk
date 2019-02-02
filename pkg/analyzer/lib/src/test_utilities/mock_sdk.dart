@@ -235,6 +235,8 @@ abstract class Iterable<E> {
 
   List<E> toList();
 
+  Set<E> toSet();
+
   Iterable<E> where(bool test(E element));
 }
 
@@ -315,6 +317,10 @@ abstract class RegExp implements Pattern {
 }
 
 abstract class Set<E> implements Iterable<E> {
+  factory Set() => null;
+  factory Set.identity() => null;
+  factory Set.from(Iterable elements) => null;
+  factory Set.of(Iterable<E> elements) => null;
   Set<R> cast<R>();
 }
 
