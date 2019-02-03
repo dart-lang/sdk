@@ -246,6 +246,21 @@ method() {
         selectionLength: 22);
   }
 
+  test_outsideOfWorkspace() async {
+    testFile = convertPath('/home/other/lib/a.dart');
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  f^
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
   test_private_otherLibrary() async {
     addSource('/home/test/lib/a.dart', '''
 class A {

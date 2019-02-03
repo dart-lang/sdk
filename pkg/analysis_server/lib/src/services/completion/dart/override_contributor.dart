@@ -83,7 +83,13 @@ class OverrideContributor implements DartCompletionContributor {
       });
     });
 
-    String replacement = builder.sourceChange.edits[0].edits[0].replacement;
+    var fileEdits = builder.sourceChange.edits;
+    if (fileEdits.length != 1) return null;
+
+    var sourceEdits = fileEdits[0].edits;
+    if (sourceEdits.length != 1) return null;
+
+    String replacement = sourceEdits[0].replacement;
     String completion = replacement.trim();
     String overrideAnnotation = '@override';
     if (_hasOverride(request.target.containingNode) &&
