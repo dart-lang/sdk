@@ -291,13 +291,14 @@ class LinterException implements Exception {
 /// Linter options.
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
+  String analysisOptions;
   LintFilter filter;
   file_system.ResourceProvider resourceProvider;
-  LinterOptions([this.enabledLints]) {
+  // todo (pq): consider migrating to named params (but note Linter dep).
+  LinterOptions([this.enabledLints, this.analysisOptions]) {
     enabledLints ??= Registry.ruleRegistry;
   }
   void configure(LintConfig config) {
-    // TODO(pquitslund): revisit these default-to-on semantics.
     enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
     filter = new FileGlobFilter(config.fileIncludes, config.fileExcludes);
