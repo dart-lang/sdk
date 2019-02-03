@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
@@ -51,6 +52,37 @@ class DecoratedType {
     // The type system doesn't have a non-nullable version of `dynamic`.  So if
     // the type is `dynamic`, verify that `nullable` is `always`.
     assert(!type.isDynamic || identical(nullable, ConstraintVariable.always));
+  }
+
+  /// Creates a [DecoratedType] corresponding to the given [element], which is
+  /// presumed to have come from code that is already migrated.
+  factory DecoratedType.forElement(Element element) {
+    DecoratedType decorate(DartType type) {
+      assert((type as TypeImpl).nullability ==
+          Nullability.indeterminate); // TODO(paulberry)
+      if (type is FunctionType) {
+        var decoratedType = DecoratedType(type, null,
+            returnType: decorate(type.returnType), positionalParameters: []);
+        for (var parameter in type.parameters) {
+          assert(parameter.isPositional); // TODO(paulberry)
+          decoratedType.positionalParameters.add(decorate(parameter.type));
+        }
+        return decoratedType;
+      } else if (type is InterfaceType) {
+        assert(type.typeParameters.isEmpty); // TODO(paulberry)
+        return DecoratedType(type, null);
+      } else {
+        throw type.runtimeType; // TODO(paulberry)
+      }
+    }
+
+    DecoratedType decoratedType;
+    if (element is MethodElement) {
+      decoratedType = decorate(element.type);
+    } else {
+      throw element.runtimeType; // TODO(paulberry)
+    }
+    return decoratedType;
   }
 
   @override

@@ -920,7 +920,7 @@ abstract class _PotentialModification {
 }
 
 /// Mock representation of constraint variables.
-class _Variables extends Variables {
+class _Variables implements VariableRecorder, VariableRepository {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
@@ -949,8 +949,10 @@ class _Variables extends Variables {
       _conditionalDiscard[node];
 
   @override
-  DecoratedType decoratedElementType(Element element) =>
-      _decoratedElementTypes[element];
+  DecoratedType decoratedElementType(Element element, {bool create: false}) =>
+      _decoratedElementTypes[element] ??= create
+          ? DecoratedType.forElement(element)
+          : throw StateError('No element found');
 
   /// Gets the [DecoratedType] associated with the given [expression].
   DecoratedType decoratedExpressionType(Expression expression) =>

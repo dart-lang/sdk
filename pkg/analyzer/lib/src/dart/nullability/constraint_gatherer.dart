@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
 import 'package:analyzer/src/dart/nullability/decorated_substitution.dart';
@@ -28,7 +27,7 @@ import 'package:meta/meta.dart';
 class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// The repository of constraint variables and decorated types (from a
   /// previous pass over the source code).
-  final Variables _variables;
+  final VariableRepository _variables;
 
   /// Constraints gathered by the visitor are stored here.
   final Constraints _constraints;
@@ -93,38 +92,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     } else {
       baseElement = element;
     }
-    var decoratedBaseType = _variables.decoratedElementType(baseElement);
-    if (decoratedBaseType == null) {
-      // TODO(paulberry): move this logic somewhere that it can be shared by
-      // [ConstraintVariableGatherer] (which will have to use it when computing
-      // the decorated type of an inferred parameter or return type that is not
-      // `dynamic`).
-      DecoratedType decorate(DartType type) {
-        assert((type as TypeImpl).nullability ==
-            Nullability.indeterminate); // TODO(paulberry)
-        if (type is FunctionType) {
-          var decoratedType = DecoratedType(type, null,
-              returnType: decorate(type.returnType), positionalParameters: []);
-          for (var parameter in type.parameters) {
-            assert(parameter.isPositional); // TODO(paulberry)
-            decoratedType.positionalParameters.add(decorate(parameter.type));
-          }
-          return decoratedType;
-        } else if (type is InterfaceType) {
-          assert(type.typeParameters.isEmpty); // TODO(paulberry)
-          return DecoratedType(type, null);
-        } else {
-          throw type.runtimeType; // TODO(paulberry)
-        }
-      }
-
-      if (baseElement is MethodElement) {
-        decoratedBaseType = decorate(baseElement.type);
-      } else {
-        throw baseElement.runtimeType; // TODO(paulberry)
-      }
-      _variables.recordDecoratedElementType(baseElement, decoratedBaseType);
-    }
+    var decoratedBaseType =
+        _variables.decoratedElementType(baseElement, create: true);
     if (substitution != null) {
       DartType elementType;
       if (element is MethodElement) {

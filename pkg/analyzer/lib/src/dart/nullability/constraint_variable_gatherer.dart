@@ -21,7 +21,7 @@ import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 /// methods that don't visit declarations, `null` will be returned.
 class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
-  final Variables _variables;
+  final VariableRecorder _variables;
 
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType] of the corresponding function or method type.
@@ -136,30 +136,43 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 /// Repository of constraint variables and decorated types corresponding to the
 /// code being migrated.
 ///
-/// This data structure carries information from the first pass of migration
+/// This data structure records the results of the first pass of migration
 /// ([ConstraintVariableGatherer], which finds all the variables that need to be
-/// constrained) and the second ([ConstraintGatherer], which builds all the
-/// constraints).
+/// constrained).
+abstract class VariableRecorder {
+  /// Creates a constraint variable to represent whether the given [node] should
+  /// be made nullable (by adding a `?` after it).
+  ConstraintVariable nullableForTypeAnnotation(TypeAnnotation node);
+
+  /// Associates decorated type information with the given [element].
+  void recordDecoratedElementType(Element element, DecoratedType type);
+
+  /// Associates decorated type information with the given [type] node.
+  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type);
+}
+
+/// Repository of constraint variables and decorated types corresponding to the
+/// code being migrated.
 ///
-/// TODO(paulberry): consider splitting into two interfaces, one to be used by
-/// each phase, so that it is clearer which methods store information and which
-/// methods retrieve information.
-abstract class Variables {
+/// This data structure allows the second pass of migration
+/// ([ConstraintGatherer], which builds all the constraints) to access the
+/// results of the first ([ConstraintVariableGatherer], which finds all the
+/// variables that need to be constrained).
+abstract class VariableRepository {
   /// Creates a constraint variable to represent whether the given [expression]
   /// should be null-checked.
   ConstraintVariable checkNotNullForExpression(Expression expression);
 
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
-  DecoratedType decoratedElementType(Element element);
+  ///
+  /// If [create] is `true`, and no decorated type is found for the given
+  /// element, one is synthesized using [DecoratedType.forElement].
+  DecoratedType decoratedElementType(Element element, {bool create: false});
 
   /// Creates a constraint variable to represent whether the static type of
   /// the given [expression] will be nullable after the migration.
   ConstraintVariable nullableForExpression(Expression expression);
-
-  /// Creates a constraint variable to represent whether the given [node] should
-  /// be made nullable (by adding a `?` after it).
-  ConstraintVariable nullableForTypeAnnotation(TypeAnnotation node);
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).
@@ -167,13 +180,13 @@ abstract class Variables {
       AstNode node, ConditionalDiscard conditionalDiscard);
 
   /// Associates decorated type information with the given [element].
+  ///
+  /// TODO(paulberry): why is this in both [VariableRecorder] and
+  /// [VariableRepository]?
   void recordDecoratedElementType(Element element, DecoratedType type);
 
   /// Associates decorated type information with the given expression [node].
   void recordDecoratedExpressionType(Expression node, DecoratedType type);
-
-  /// Associates decorated type information with the given [type] node.
-  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type);
 
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(Expression expression, ExpressionChecks checks);
