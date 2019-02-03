@@ -2427,6 +2427,32 @@ var b = new B();
     expect(_getTopLevelVarType(result.unit, 'b'), 'B');
   }
 
+  test_importOfNonLibrary_part_afterLibrary() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+    var c = convertPath('/test/lib/c.dart');
+
+    newFile(a, content: '''
+library my.lib;
+
+part 'b.dart';
+''');
+    newFile(b, content: '''
+part of my.lib;
+
+class A {}
+''');
+    newFile(c, content: '''
+import 'b.dart';
+''');
+
+    // This ensures that `a.dart` linked library is cached.
+    await driver.getResult(a);
+
+    // Should not fail because of considering `b.dart` part as `a.dart` library.
+    await driver.getResult(c);
+  }
+
   test_instantiateToBounds_invalid() async {
     var a = convertPath('/test/lib/a.dart');
     newFile(a, content: r'''

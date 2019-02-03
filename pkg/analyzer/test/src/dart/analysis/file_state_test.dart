@@ -889,6 +889,29 @@ set _V3(_) {}
     _assertFilesWithoutLibraryCycle([fa, fb, fc]);
   }
 
+  test_transitiveSignature_part() {
+    var aPath = convertPath('/test/lib/a.dart');
+    var bPath = convertPath('/test/lib/b.dart');
+
+    newFile(aPath, content: r'''
+part 'b.dart';
+''');
+    newFile(bPath, content: '''
+part of 'a.dart';
+''');
+
+    var aFile = fileSystemState.getFileForPath(aPath);
+    var bFile = fileSystemState.getFileForPath(bPath);
+
+    var aSignature = aFile.transitiveSignature;
+    var bSignature = bFile.transitiveSignature;
+
+    // It is not valid to use a part as a library, and so ask its signature.
+    // But when this happens, we should compute the transitive signature anyway.
+    // And it should not be the signature of the containing library.
+    expect(bSignature, isNot(aSignature));
+  }
+
   void _assertExportedTopLevelDeclarations(String path, List<String> expected) {
     FileState file = fileSystemState.getFileForPath(path);
     Map<String, TopLevelDeclaration> declarations =
