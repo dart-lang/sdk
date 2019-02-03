@@ -39,6 +39,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// For convenience, a [DecoratedType] representing non-nullable `bool`.
   final DecoratedType _nonNullableBoolType;
 
+  /// For convenience, a [DecoratedType] representing non-nullable `Type`.
+  final DecoratedType _nonNullableTypeType;
+
   /// The [DecoratedType] of the innermost function or method being visited, or
   /// `null` if the visitor is not inside any function or method.
   ///
@@ -61,7 +64,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   ConstraintGatherer(
       TypeProvider typeProvider, this._variables, this._constraints)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
-        _nonNullableBoolType = DecoratedType(typeProvider.boolType, null) {}
+        _nonNullableBoolType = DecoratedType(typeProvider.boolType, null),
+        _nonNullableTypeType = DecoratedType(typeProvider.typeType, null) {}
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -230,7 +234,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIfStatement(IfStatement node) {
-    _handleAssignment(_notNullType, node.condition); // TODO(paulberry): test
+    // TODO(paulberry): should the use of a boolean in an if-statement be
+    // treated like an implicit `assert(b != null)`?  Probably.
+    _handleAssignment(_notNullType, node.condition);
     ConstraintVariable trueGuard;
     ConstraintVariable falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -260,7 +266,6 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    // TODO(paulberry): test
     return DecoratedType(node.staticType, null);
   }
 
@@ -304,7 +309,6 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
-    // TODO(paulberry): test directly
     return node.expression.accept(this);
   }
 
@@ -319,8 +323,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
     var staticElement = node.staticElement;
-    assert(staticElement is ParameterElement); // TODO(paulberry)
-    return getOrComputeElementType(staticElement);
+    if (staticElement is ParameterElement) {
+      return getOrComputeElementType(staticElement);
+    } else if (staticElement is ClassElement) {
+      return _nonNullableTypeType;
+    } else {
+      // TODO(paulberry)
+      throw new UnimplementedError('${staticElement.runtimeType}');
+    }
   }
 
   @override
@@ -330,7 +340,6 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
-    // TODO(paulberry): test directly
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
     return DecoratedType(node.staticType, null);
@@ -338,7 +347,6 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
-    // TODO(paulberry): test
     return DecoratedType(typeName.type, null);
   }
 

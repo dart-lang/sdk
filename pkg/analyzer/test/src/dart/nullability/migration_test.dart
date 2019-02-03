@@ -268,6 +268,17 @@ int/*2*/ g() {
         decoratedTypeAnnotation('int/*2*/').nullable);
   }
 
+  test_if_condition() async {
+    await analyze('''
+void f(bool b) {
+  if (b) {}
+}
+''');
+
+    assertConstraint([(decoratedTypeAnnotation('bool b').nullable)],
+        checkExpression('b) {}').notNull);
+  }
+
   test_if_guard_equals_null() async {
     await analyze('''
 int f(int i, int j, int k) {
@@ -323,6 +334,15 @@ int f(bool b, int i) {
     assertConstraint([nullable_i], nullable_return);
   }
 
+  test_intLiteral() async {
+    await analyze('''
+int f() {
+  return 0;
+}
+''');
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
   test_methodInvocation_parameter_contravariant() async {
     await analyze('''
 class C<T> {
@@ -371,6 +391,17 @@ void test(C c) {
         checkExpression('c.m').notNull);
   }
 
+  test_parenthesizedExpression() async {
+    await analyze('''
+int f() {
+  return (null);
+}
+''');
+
+    assertConstraint(
+        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+  }
+
   test_return_null() async {
     await analyze('''
 int f() {
@@ -390,6 +421,24 @@ class C {
 ''');
 
     assertNoConstraints(decoratedTypeAnnotation('C f').nullable);
+  }
+
+  test_throwExpression() async {
+    await analyze('''
+int f() {
+  return throw null;
+}
+''');
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_typeName() async {
+    await analyze('''
+Type f() {
+  return int;
+}
+''');
+    assertNoConstraints(decoratedTypeAnnotation('Type').nullable);
   }
 }
 
