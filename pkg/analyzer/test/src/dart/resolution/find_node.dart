@@ -20,8 +20,16 @@ class FindNode {
     return _node(search, (n) => n is Annotation);
   }
 
+  AstNode any(String search) {
+    return _node(search, (n) => true);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
+  }
+
+  BinaryExpression binary(String search) {
+    return _node(search, (n) => n is BinaryExpression);
   }
 
   CascadeExpression cascade(String search) {
@@ -76,8 +84,16 @@ class FindNode {
     return _node(search, (n) => n is ImportDirective);
   }
 
+  IndexExpression index(String search) {
+    return _node(search, (n) => n is IndexExpression);
+  }
+
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search, (n) => n is InstanceCreationExpression);
+  }
+
+  LibraryDirective library(String search) {
+    return _node(search, (n) => n is LibraryDirective);
   }
 
   ListLiteral listLiteral(String search) {

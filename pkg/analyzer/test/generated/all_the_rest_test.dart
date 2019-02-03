@@ -2,28 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use
+import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -37,7 +32,6 @@ import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/element_type_matchers.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -48,7 +42,6 @@ main() {
     // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
-    defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(EnumMemberBuilderTest);
     defineReflectiveTests(ErrorReporterTest);
     defineReflectiveTests(ErrorReporterTest2);
@@ -162,385 +155,6 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
     source.uri = toUri('/sdk/lib/core/int.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
-  }
-}
-
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class ElementLocatorTest extends ResolverTestCase {
-  void fail_locate_Identifier_partOfDirective() {
-    // Can't resolve the library element without the library declaration.
-    //    AstNode id = findNodeIn("foo", "part of foo.bar;");
-    //    Element element = ElementLocator.locate(id);
-    //    assertInstanceOf(LibraryElement.class, element);
-    fail("Test this case");
-  }
-
-  @override
-  void reset() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.hint = false;
-    resetWith(options: analysisOptions);
-  }
-
-  test_locate_AssignmentExpression() async {
-    AstNode id = await _findNodeIn("+=", r'''
-int x = 0;
-void main() {
-  x += 1;
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_BinaryExpression() async {
-    AstNode id = await _findNodeIn("+", "var x = 3 + 4;");
-    Element element = ElementLocator.locate(id);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_ClassDeclaration() async {
-    AstNode id = await _findNodeIn("class", "class A { }");
-    Element element = ElementLocator.locate(id);
-    expect(element, isClassElement);
-  }
-
-  test_locate_CompilationUnit() async {
-    CompilationUnit cu = await _resolveContents("// only comment");
-    expect(cu.declaredElement, isNotNull);
-    Element element = ElementLocator.locate(cu);
-    expect(element, same(cu.declaredElement));
-  }
-
-  test_locate_ConstructorDeclaration() async {
-    AstNode id = await _findNodeIndexedIn("bar", 0, r'''
-class A {
-  A.bar() {}
-}''');
-    ConstructorDeclaration declaration =
-        id.thisOrAncestorOfType<ConstructorDeclaration>();
-    Element element = ElementLocator.locate(declaration);
-    expect(element, isConstructorElement);
-  }
-
-  test_locate_ExportDirective() async {
-    AstNode id = await _findNodeIn("export", "export 'dart:core';");
-    Element element = ElementLocator.locate(id);
-    expect(element, isExportElement);
-  }
-
-  test_locate_FunctionDeclaration() async {
-    AstNode id = await _findNodeIn("f", "int f() => 3;");
-    FunctionDeclaration declaration =
-        id.thisOrAncestorOfType<FunctionDeclaration>();
-    Element element = ElementLocator.locate(declaration);
-    expect(element, isFunctionElement);
-  }
-
-  test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() async {
-    AstNode id = await _findNodeIndexedIn("Class", 2, r'''
-class Class {
-  const Class.name();
-}
-void main(@Class.name() parameter) {
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isClassElement);
-  }
-
-  test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() async {
-    AstNode id = await _findNodeIndexedIn("Class", 2, r'''
-class Class {
-  const Class();
-}
-void main(@Class() parameter) {
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isConstructorElement);
-  }
-
-  test_locate_Identifier_className() async {
-    AstNode id = await _findNodeIn("A", "class A { }");
-    Element element = ElementLocator.locate(id);
-    expect(element, isClassElement);
-  }
-
-  test_locate_Identifier_constructor_named() async {
-    AstNode id = await _findNodeIndexedIn("bar", 0, r'''
-class A {
-  A.bar() {}
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isConstructorElement);
-  }
-
-  test_locate_Identifier_constructor_unnamed() async {
-    AstNode id = await _findNodeIndexedIn("A", 1, r'''
-class A {
-  A() {}
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isConstructorElement);
-  }
-
-  test_locate_Identifier_fieldName() async {
-    AstNode id = await _findNodeIn("x", "class A { var x; }");
-    Element element = ElementLocator.locate(id);
-    expect(element, isFieldElement);
-  }
-
-  test_locate_Identifier_libraryDirective() async {
-    AstNode id = await _findNodeIn("foo", "library foo.bar;");
-    Element element = ElementLocator.locate(id);
-    expect(element, isLibraryElement);
-  }
-
-  test_locate_Identifier_propertyAccess() async {
-    AstNode id = await _findNodeIn("length", r'''
-void main() {
- int x = 'foo'.length;
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isPropertyAccessorElement);
-  }
-
-  test_locate_ImportDirective() async {
-    AstNode id = await _findNodeIn("import", "import 'dart:core';");
-    Element element = ElementLocator.locate(id);
-    expect(element, isImportElement);
-  }
-
-  test_locate_IndexExpression() async {
-    AstNode id = await _findNodeIndexedIn("\\[", 1, r'''
-void main() {
-  List x = [1, 2];
-  var y = x[0];
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_InstanceCreationExpression() async {
-    AstNode node = await _findNodeIndexedIn("A(", 0, r'''
-class A {}
-void main() {
- new A();
-}''');
-    Element element = ElementLocator.locate(node);
-    expect(element, isConstructorElement);
-  }
-
-  test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
-    // prepare: new pref.A()
-    SimpleIdentifier identifier = AstTestFactory.identifier3("A");
-    PrefixedIdentifier prefixedIdentifier =
-        AstTestFactory.identifier4("pref", identifier);
-    InstanceCreationExpression creation =
-        AstTestFactory.instanceCreationExpression2(
-            Keyword.NEW, AstTestFactory.typeName3(prefixedIdentifier));
-    // set ClassElement
-    ClassElement classElement = ElementFactory.classElement2("A");
-    identifier.staticElement = classElement;
-    // set ConstructorElement
-    ConstructorElement constructorElement =
-        ElementFactory.constructorElement2(classElement, null);
-    creation.constructorName.staticElement = constructorElement;
-    // verify that "A" is resolved to ConstructorElement
-    Element element = ElementLocator.locate(identifier);
-    expect(element, same(classElement));
-  }
-
-  test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
-    // prepare: new A()
-    SimpleIdentifier identifier = AstTestFactory.identifier3("A");
-    InstanceCreationExpression creation =
-        AstTestFactory.instanceCreationExpression2(
-            Keyword.NEW, AstTestFactory.typeName3(identifier));
-    // set ClassElement
-    ClassElement classElement = ElementFactory.classElement2("A");
-    identifier.staticElement = classElement;
-    // set ConstructorElement
-    ConstructorElement constructorElement =
-        ElementFactory.constructorElement2(classElement, null);
-    creation.constructorName.staticElement = constructorElement;
-    // verify that "A" is resolved to ConstructorElement
-    Element element = ElementLocator.locate(identifier);
-    expect(element, same(classElement));
-  }
-
-  test_locate_LibraryDirective() async {
-    AstNode id = await _findNodeIn("library", "library foo;");
-    Element element = ElementLocator.locate(id);
-    expect(element, isLibraryElement);
-  }
-
-  test_locate_MethodDeclaration() async {
-    AstNode id = await _findNodeIn("m", r'''
-class A {
-  void m() {}
-}''');
-    MethodDeclaration declaration =
-        id.thisOrAncestorOfType<MethodDeclaration>();
-    Element element = ElementLocator.locate(declaration);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_MethodInvocation_method() async {
-    AstNode id = await _findNodeIndexedIn("bar", 1, r'''
-class A {
-  int bar() => 42;
-}
-void main() {
- var f = new A().bar();
-}''');
-    Element element = ElementLocator.locate(id);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_MethodInvocation_topLevel() async {
-    String code = r'''
-foo(x) {}
-void main() {
- foo(0);
-}''';
-    CompilationUnit cu = await _resolveContents(code);
-    int offset = code.indexOf('foo(0)');
-    AstNode node = new NodeLocator(offset).searchWithin(cu);
-    MethodInvocation invocation = node.thisOrAncestorOfType<MethodInvocation>();
-    Element element = ElementLocator.locate(invocation);
-    expect(element, isFunctionElement);
-  }
-
-  test_locate_PartOfDirective() async {
-    Source librarySource = addNamedSource('/lib.dart', '''
-library my.lib;
-part 'part.dart';
-''');
-    Source unitSource = addNamedSource('/part.dart', '''
-part of my.lib;
-''');
-    CompilationUnit unit =
-        analysisContext.resolveCompilationUnit2(unitSource, librarySource);
-    PartOfDirective partOf = unit.directives.first;
-    Element element = ElementLocator.locate(partOf);
-    expect(element, isLibraryElement);
-  }
-
-  test_locate_PostfixExpression() async {
-    AstNode id = await _findNodeIn("++", "int addOne(int x) => x++;");
-    Element element = ElementLocator.locate(id);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_PrefixedIdentifier() async {
-    AstNode id = await _findNodeIn("int", r'''
-import 'dart:core' as core;
-core.int value;''');
-    PrefixedIdentifier identifier =
-        id.thisOrAncestorOfType<PrefixedIdentifier>();
-    Element element = ElementLocator.locate(identifier);
-    expect(element, isClassElement);
-  }
-
-  test_locate_PrefixExpression() async {
-    AstNode id = await _findNodeIn("++", "int addOne(int x) => ++x;");
-    Element element = ElementLocator.locate(id);
-    expect(element, isMethodElement);
-  }
-
-  test_locate_StringLiteral_exportUri() async {
-    addNamedSource("/foo.dart", "library foo;");
-    AstNode id = await _findNodeIn("'foo.dart'", "export 'foo.dart';");
-    Element element = ElementLocator.locate(id);
-    expect(element, isLibraryElement);
-  }
-
-  test_locate_StringLiteral_expression() async {
-    AstNode id = await _findNodeIn("abc", "var x = 'abc';");
-    Element element = ElementLocator.locate(id);
-    expect(element, isNull);
-  }
-
-  test_locate_StringLiteral_importUri() async {
-    addNamedSource("/foo.dart", "library foo; class A {}");
-    AstNode id = await _findNodeIn(
-        "'foo.dart'", "import 'foo.dart'; class B extends A {}");
-    Element element = ElementLocator.locate(id);
-    expect(element, isLibraryElement);
-  }
-
-  test_locate_StringLiteral_partUri() async {
-    addNamedSource("/foo.dart", "part of app;");
-    AstNode id =
-        await _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
-    Element element = ElementLocator.locate(id);
-    expect(element, isCompilationUnitElement);
-  }
-
-  test_locate_VariableDeclaration() async {
-    AstNode id = await _findNodeIn("x", "var x = 'abc';");
-    VariableDeclaration declaration =
-        id.thisOrAncestorOfType<VariableDeclaration>();
-    Element element = ElementLocator.locate(declaration);
-    expect(element, isTopLevelVariableElement);
-  }
-
-  /**
-   * Find the first AST node matching a pattern in the resolved AST for the given source.
-   *
-   * [nodePattern] the (unique) pattern used to identify the node of interest.
-   * [code] the code to resolve.
-   * Returns the matched node in the resolved AST for the given source lines.
-   */
-  Future<AstNode> _findNodeIn(String nodePattern, String code) async {
-    return await _findNodeIndexedIn(nodePattern, 0, code);
-  }
-
-  /**
-   * Find the AST node matching the given indexed occurrence of a pattern in the resolved AST for
-   * the given source.
-   *
-   * [nodePattern] the pattern used to identify the node of interest.
-   * [index] the index of the pattern match of interest.
-   * [code] the code to resolve.
-   * Returns the matched node in the resolved AST for the given source lines
-   */
-  Future<AstNode> _findNodeIndexedIn(
-      String nodePattern, int index, String code) async {
-    CompilationUnit cu = await _resolveContents(code);
-    int start = _getOffsetOfMatch(code, nodePattern, index);
-    int end = start + nodePattern.length;
-    return new NodeLocator(start, end).searchWithin(cu);
-  }
-
-  int _getOffsetOfMatch(String contents, String pattern, int matchIndex) {
-    if (matchIndex == 0) {
-      return contents.indexOf(pattern);
-    }
-    Iterable<Match> matches = new RegExp(pattern).allMatches(contents);
-    Match match = matches.toList()[matchIndex];
-    return match.start;
-  }
-
-  /**
-   * Parse, resolve and verify the given source lines to produce a fully
-   * resolved AST.
-   *
-   * [code] the code to resolve.
-   *
-   * Returns the result of resolving the AST structure representing the content
-   * of the source.
-   *
-   * Throws if source cannot be verified.
-   */
-  Future<CompilationUnit> _resolveContents(String code) async {
-    Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    return analysisContext.resolveCompilationUnit(source, library);
   }
 }
 
