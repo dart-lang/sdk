@@ -167,16 +167,20 @@ class DartCompletionManager implements CompletionContributor {
   }
 
   void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
+    var opType = request.opType;
+
+    if (!opType.includeIdentifiers) return;
+
     var kinds = includedSuggestionKinds;
     if (kinds != null) {
-      if (request.opType.includeTypeNameSuggestions) {
+      if (opType.includeTypeNameSuggestions) {
         kinds.add(protocol.ElementKind.CLASS);
         kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
         kinds.add(protocol.ElementKind.ENUM);
         kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
         kinds.add(protocol.ElementKind.MIXIN);
       }
-      if (request.opType.includeReturnValueSuggestions) {
+      if (opType.includeReturnValueSuggestions) {
         kinds.add(protocol.ElementKind.FUNCTION);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
