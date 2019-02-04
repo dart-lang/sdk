@@ -344,6 +344,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   LibraryContext _libraryContext;
 
   /**
+   * This function is invoked when the current session is about to be discarded.
+   */
+  void Function() onCurrentSessionAboutToBeDiscarded;
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -1623,6 +1628,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Create a new analysis session, so invalidating the current one.
    */
   void _createNewSession() {
+    if (onCurrentSessionAboutToBeDiscarded != null) {
+      onCurrentSessionAboutToBeDiscarded();
+    }
     _currentSession = new AnalysisSessionImpl(this);
   }
 
