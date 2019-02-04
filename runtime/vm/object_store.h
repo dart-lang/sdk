@@ -111,7 +111,6 @@ class ObjectPointerVisitor;
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
   RW(Function, lookup_port_handler)                                            \
-  RW(TypedData, empty_uint32_array)                                            \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \

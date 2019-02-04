@@ -20701,21 +20701,6 @@ RawTypedData* TypedData::New(intptr_t class_id,
   return result.raw();
 }
 
-RawTypedData* TypedData::EmptyUint32Array(Thread* thread) {
-  ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->object_store() != NULL);
-  if (isolate->object_store()->empty_uint32_array() != TypedData::null()) {
-    // Already created.
-    return isolate->object_store()->empty_uint32_array();
-  }
-  const TypedData& array = TypedData::Handle(
-      thread->zone(), TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
-  isolate->object_store()->set_empty_uint32_array(array);
-  return array.raw();
-}
-
 const char* TypedData::ToCString() const {
   switch (GetClassId()) {
 #define CASE_TYPED_DATA_CLASS(clazz)                                           \

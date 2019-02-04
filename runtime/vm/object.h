@@ -8316,8 +8316,6 @@ class TypedData : public Instance {
     return RawObject::IsTypedDataClassId(cid);
   }
 
-  static RawTypedData* EmptyUint32Array(Thread* thread);
-
  protected:
   void SetLength(intptr_t value) const {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
