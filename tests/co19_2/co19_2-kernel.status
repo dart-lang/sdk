@@ -919,11 +919,9 @@ LibTest/io/InternetAddress/lookup_A03_t02: RuntimeError
 LibTest/io/RawDatagramSocket/receive_A02_t02: RuntimeError
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-Language/Classes/definition_t23: CompileTimeError
 Language/Expressions/Constants/exception_t02/01: MissingRuntimeError
 Language/Expressions/Function_Invocation/async_invokation_t02: RuntimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t01: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError
 Language/Statements/Assert/execution_t08: RuntimeError
 Language/Types/Function_Types/call_t01: RuntimeError
 LanguageFeatures/Constant_update2018/CastOperator_A01_t01: DartkCrash

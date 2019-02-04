@@ -51,23 +51,4 @@ ISOLATE_UNIT_TEST_CASE(ClassFinalizer) {
   EXPECT(ClassFinalizer::ProcessPendingClasses());
 }
 
-ISOLATE_UNIT_TEST_CASE(ClassFinalize_Cycles) {
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
-  const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(zone, object_store->pending_classes());
-  GrowableArray<const Class*> classes;
-  classes.Add(&Class::Handle(CreateTestClass("Jungfrau")));
-  pending_classes.Add(*classes[0]);
-  classes.Add(&Class::Handle(CreateTestClass("Eiger")));
-  pending_classes.Add(*classes[1]);
-  // Create a cycle.
-  classes[0]->set_super_type(
-      Type::Handle(Type::NewNonParameterizedType(*classes[1])));
-  classes[1]->set_super_type(
-      Type::Handle(Type::NewNonParameterizedType(*classes[0])));
-  EXPECT(!ClassFinalizer::ProcessPendingClasses());
-}
-
 }  // namespace dart

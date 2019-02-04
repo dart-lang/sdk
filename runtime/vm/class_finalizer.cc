@@ -191,11 +191,13 @@ bool ClassFinalizer::ProcessPendingClasses() {
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
-    // First check all superclasses.
+    // Mark all classes as cycle-free (should be checked by front-end).
+    // TODO(alexmarkov): Cleanup is_cycle_free bit on classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      GrowableArray<intptr_t> visited_interfaces;
-      CheckSuperTypeAndInterfaces(cls, &visited_interfaces);
+      if (!cls.is_cycle_free()) {
+        cls.set_is_cycle_free();
+      }
     }
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -976,6 +978,30 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
   }
 }
 
+// For a class used as an interface marks this class and all its superclasses
+// implemented.
+//
+// Does not mark its interfaces implemented because those would already be
+// marked as such.
+static void MarkImplemented(Zone* zone, const Class& iface) {
+  if (iface.is_implemented()) {
+    return;
+  }
+
+  Class& cls = Class::Handle(zone, iface.raw());
+  AbstractType& type = AbstractType::Handle(zone);
+
+  while (!cls.is_implemented()) {
+    cls.set_is_implemented();
+
+    type = cls.super_type();
+    if (type.IsNull() || type.IsObjectType()) {
+      break;
+    }
+    cls = type.type_class();
+  }
+}
+
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
@@ -984,12 +1010,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
-  }
-  if (!IsSuperCycleFree(cls)) {
-    const String& name = String::Handle(cls.Name());
-    ReportError(cls, cls.token_pos(),
-                "class '%s' has a cycle in its superclass relationship",
-                name.ToCString());
   }
   // Finalize super class.
   Class& super_class = Class::Handle(cls.SuperClass());
@@ -1013,13 +1033,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     ASSERT(type.signature() == signature.raw());
     ASSERT(type.type_class() == cls.raw());
 
-    // Check for illegal self references.
-    GrowableArray<intptr_t> visited_aliases;
-    if (!IsTypedefCycleFree(cls, type, &visited_aliases)) {
-      const String& name = String::Handle(cls.Name());
-      ReportError(cls, cls.token_pos(),
-                  "typedef '%s' illegally refers to itself", name.ToCString());
-    }
     cls.set_is_type_finalized();
 
     // Finalize the result and parameter types of the signature
@@ -1047,35 +1060,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   // Finalize interface types (but not necessarily interface classes).
   Array& interface_types = Array::Handle(cls.interfaces());
   AbstractType& interface_type = AbstractType::Handle();
-  AbstractType& seen_interf = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
     interface_type = FinalizeType(cls, interface_type);
     interface_types.SetAt(i, interface_type);
-
-    // Check whether the interface is duplicated. We need to wait with
-    // this check until the super type and interface types are finalized,
-    // so that we can use Type::Equals() for the test.
-    // TODO(regis): This restriction about duplicated interfaces may get lifted.
-    ASSERT(interface_type.IsFinalized());
-    ASSERT(super_type.IsNull() || super_type.IsFinalized());
-    if (!super_type.IsNull() && interface_type.Equals(super_type)) {
-      ReportError(cls, cls.token_pos(),
-                  "super type '%s' may not be listed in "
-                  "implements clause of class '%s'",
-                  String::Handle(super_type.Name()).ToCString(),
-                  String::Handle(cls.Name()).ToCString());
-    }
-    for (intptr_t j = 0; j < i; j++) {
-      seen_interf ^= interface_types.At(j);
-      if (interface_type.Equals(seen_interf)) {
-        ReportError(cls, cls.token_pos(),
-                    "interface '%s' appears twice in "
-                    "implements clause of class '%s'",
-                    String::Handle(interface_type.Name()).ToCString(),
-                    String::Handle(cls.Name()).ToCString());
-      }
-    }
   }
   cls.set_is_type_finalized();
 
@@ -1093,6 +1081,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   for (intptr_t i = 0; i < interface_types.Length(); ++i) {
     interface_type ^= interface_types.At(i);
     interface_class = interface_type.type_class();
+    MarkImplemented(thread->zone(), interface_class);
     interface_class.AddDirectImplementor(cls);
   }
 
@@ -1174,9 +1163,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
          cls.is_abstract() || (Array::Handle(cls.functions()).Length() > 0));
   FinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
-  if (cls.is_const()) {
-    CheckForLegalConstClass(cls);
-  }
   if (FLAG_use_cha_deopt) {
     GrowableArray<intptr_t> cids;
     CollectFinalizedSuperClasses(cls, &cids);
@@ -1306,306 +1292,6 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     values_list.MakeImmutable();
     values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
     ASSERT(!values_list.IsNull());
-  }
-}
-
-bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
-  Class& test1 = Class::Handle(cls.raw());
-  Class& test2 = Class::Handle(cls.SuperClass());
-  // A finalized class has been checked for cycles.
-  // Using the hare and tortoise algorithm for locating cycles.
-  while (!test1.is_type_finalized() && !test2.IsNull() &&
-         !test2.is_type_finalized()) {
-    if (test1.raw() == test2.raw()) {
-      // Found a cycle.
-      return false;
-    }
-    test1 = test1.SuperClass();
-    test2 = test2.SuperClass();
-    if (!test2.IsNull()) {
-      test2 = test2.SuperClass();
-    }
-  }
-  // No cycles.
-  return true;
-}
-
-// Returns false if a function type alias illegally refers to itself.
-bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
-                                        const AbstractType& type,
-                                        GrowableArray<intptr_t>* visited) {
-  ASSERT(visited != NULL);
-  bool checking_typedef = false;
-  if (type.IsType()) {
-    AbstractType& other_type = AbstractType::Handle();
-    if (type.IsFunctionType()) {
-      const Class& scope_class = Class::Handle(type.type_class());
-      const Function& signature_function =
-          Function::Handle(Type::Cast(type).signature());
-      // The signature function of this function type may be a local signature
-      // function used in a formal parameter type of the typedef signature, but
-      // not the typedef signature function itself, thus not qualifying as an
-      // illegal self reference.
-      if (!scope_class.is_type_finalized() && scope_class.IsTypedefClass() &&
-          (scope_class.signature_function() == signature_function.raw())) {
-        checking_typedef = true;
-        const intptr_t scope_class_id = scope_class.id();
-        ASSERT(visited != NULL);
-        for (intptr_t i = 0; i < visited->length(); i++) {
-          if ((*visited)[i] == scope_class_id) {
-            // We have already visited alias 'scope_class'. We found a cycle.
-            return false;
-          }
-        }
-        visited->Add(scope_class_id);
-      }
-      // Check the bounds of this function type.
-      const intptr_t num_type_params = scope_class.NumTypeParameters();
-      TypeParameter& type_param = TypeParameter::Handle();
-      const TypeArguments& type_params =
-          TypeArguments::Handle(scope_class.type_parameters());
-      ASSERT((type_params.IsNull() && (num_type_params == 0)) ||
-             (type_params.Length() == num_type_params));
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param ^= type_params.TypeAt(i);
-        other_type = type_param.bound();
-        if (!IsTypedefCycleFree(cls, other_type, visited)) {
-          return false;
-        }
-      }
-      // Check the result type of the signature of this function type.
-      other_type = signature_function.result_type();
-      if (!IsTypedefCycleFree(cls, other_type, visited)) {
-        return false;
-      }
-      // Check the parameter types of the signature of this function type.
-      const intptr_t num_parameters = signature_function.NumParameters();
-      for (intptr_t i = 0; i < num_parameters; i++) {
-        other_type = signature_function.ParameterTypeAt(i);
-        if (!IsTypedefCycleFree(cls, other_type, visited)) {
-          return false;
-        }
-      }
-    }
-    const TypeArguments& type_args = TypeArguments::Handle(type.arguments());
-    if (!type_args.IsNull()) {
-      for (intptr_t i = 0; i < type_args.Length(); i++) {
-        other_type = type_args.TypeAt(i);
-        if (!IsTypedefCycleFree(cls, other_type, visited)) {
-          return false;
-        }
-      }
-    }
-    if (checking_typedef) {
-      visited->RemoveLast();
-    }
-  }
-  return true;
-}
-
-// For a class used as an interface marks this class and all its superclasses
-// implemented.
-//
-// Does not mark its interfaces implemented because those would already be
-// marked as such.
-static void MarkImplemented(Zone* zone, const Class& iface) {
-  if (iface.is_implemented()) {
-    return;
-  }
-
-  Class& cls = Class::Handle(zone, iface.raw());
-  AbstractType& type = AbstractType::Handle(zone);
-
-  while (!cls.is_implemented()) {
-    cls.set_is_implemented();
-
-    type = cls.super_type();
-    if (type.IsNull() || type.IsObjectType()) {
-      break;
-    }
-    cls = type.type_class();
-  }
-}
-
-// Recursively walks the graph of explicitly declared super type and
-// interfaces.
-// Reports an error if there is a cycle in the graph. We detect cycles by
-// remembering interfaces we've visited in each path through the
-// graph. If we visit an interface a second time on a given path,
-// we found a loop.
-void ClassFinalizer::CheckSuperTypeAndInterfaces(
-    const Class& cls,
-    GrowableArray<intptr_t>* visited) {
-  if (cls.is_cycle_free()) {
-    return;
-  }
-  ASSERT(visited != NULL);
-  if (FLAG_trace_class_finalization) {
-    THR_Print("Checking super and interfaces: %s\n", cls.ToCString());
-  }
-  Zone* zone = Thread::Current()->zone();
-  const intptr_t cls_index = cls.id();
-  for (intptr_t i = 0; i < visited->length(); i++) {
-    if ((*visited)[i] == cls_index) {
-      // We have already visited class 'cls'. We found a cycle.
-      const String& class_name = String::Handle(zone, cls.Name());
-      ReportError(cls, cls.token_pos(), "cyclic reference found for class '%s'",
-                  class_name.ToCString());
-    }
-  }
-
-  // If the class/interface has no explicit super class/interfaces, we are done.
-  AbstractType& super_type = AbstractType::Handle(zone, cls.super_type());
-  Array& super_interfaces = Array::Handle(zone, cls.interfaces());
-  if ((super_type.IsNull() || super_type.IsObjectType()) &&
-      (super_interfaces.Length() == 0)) {
-    cls.set_is_cycle_free();
-    return;
-  }
-
-  // If cls belongs to core lib or is a synthetic class which could belong to
-  // the core library, the restrictions about allowed interfaces are lifted.
-  const bool exempt_from_hierarchy_restrictions =
-      cls.library() == Library::CoreLibrary() ||
-      String::Handle(cls.Name()).Equals(Symbols::DebugClassName());
-
-  // Check the super type and interfaces of cls.
-  visited->Add(cls_index);
-  AbstractType& interface = AbstractType::Handle(zone);
-  Class& interface_class = Class::Handle(zone);
-
-  // Check super type. Failures lead to a longjmp.
-  if (super_type.IsDynamicType()) {
-    ReportError(cls, cls.token_pos(), "class '%s' may not extend 'dynamic'",
-                String::Handle(zone, cls.Name()).ToCString());
-  }
-  interface_class = super_type.type_class();
-  if (interface_class.IsTypedefClass()) {
-    ReportError(cls, cls.token_pos(),
-                "class '%s' may not extend function type alias '%s'",
-                String::Handle(zone, cls.Name()).ToCString(),
-                String::Handle(zone, super_type.UserVisibleName()).ToCString());
-  }
-  if (interface_class.is_enum_class()) {
-    ReportError(cls, cls.token_pos(), "class '%s' may not extend enum '%s'",
-                String::Handle(zone, cls.Name()).ToCString(),
-                String::Handle(zone, interface_class.Name()).ToCString());
-  }
-
-  // If cls belongs to core lib or to core lib's implementation, restrictions
-  // about allowed interfaces are lifted.
-  if (!exempt_from_hierarchy_restrictions) {
-    // Prevent extending core implementation classes.
-    bool is_error = false;
-    switch (interface_class.id()) {
-      case kNumberCid:
-      case kIntegerCid:  // Class Integer, not int.
-      case kSmiCid:
-      case kMintCid:
-      case kDoubleCid:  // Class Double, not double.
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-      case kBoolCid:
-      case kNullCid:
-      case kArrayCid:
-      case kImmutableArrayCid:
-      case kGrowableObjectArrayCid:
-#define DO_NOT_EXTEND_TYPED_DATA_CLASSES(clazz)                                \
-  case kTypedData##clazz##Cid:                                                 \
-  case kTypedData##clazz##ViewCid:                                             \
-  case kExternalTypedData##clazz##Cid:
-        CLASS_LIST_TYPED_DATA(DO_NOT_EXTEND_TYPED_DATA_CLASSES)
-#undef DO_NOT_EXTEND_TYPED_DATA_CLASSES
-      case kByteDataViewCid:
-      case kWeakPropertyCid:
-        is_error = true;
-        break;
-      default: {
-        // Special case: classes for which we don't have a known class id.
-        if (super_type.IsDoubleType() || super_type.IsIntType() ||
-            super_type.IsStringType()) {
-          is_error = true;
-        }
-        break;
-      }
-    }
-    if (is_error) {
-      const String& interface_name =
-          String::Handle(zone, interface_class.Name());
-      ReportError(cls, cls.token_pos(), "'%s' is not allowed to extend '%s'",
-                  String::Handle(zone, cls.Name()).ToCString(),
-                  interface_name.ToCString());
-    }
-  }
-  // Now check the super interfaces of the super type.
-  CheckSuperTypeAndInterfaces(interface_class, visited);
-
-  // Check interfaces. Failures lead to a longjmp.
-  for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
-    interface ^= super_interfaces.At(i);
-    ASSERT(!interface.IsTypeParameter());  // Should be detected by parser.
-    if (interface.IsDynamicType()) {
-      ReportError(cls, cls.token_pos(),
-                  "'dynamic' may not be used as interface");
-    }
-    interface_class = interface.type_class();
-    if (interface_class.IsTypedefClass()) {
-      const String& interface_name =
-          String::Handle(zone, interface_class.Name());
-      ReportError(cls, cls.token_pos(),
-                  "function type alias '%s' may not be used as interface",
-                  interface_name.ToCString());
-    }
-    if (interface_class.is_enum_class()) {
-      const String& interface_name =
-          String::Handle(zone, interface_class.Name());
-      ReportError(cls, cls.token_pos(),
-                  "enum '%s' may not be used as interface",
-                  interface_name.ToCString());
-    }
-    // Verify that unless cls belongs to core lib, it cannot extend, implement,
-    // or mixin any of Null, bool, num, int, double, String, dynamic.
-    if (!exempt_from_hierarchy_restrictions) {
-      if (interface.IsBoolType() || interface.IsNullType() ||
-          interface.IsNumberType() || interface.IsIntType() ||
-          interface.IsDoubleType() || interface.IsStringType() ||
-          interface.IsDynamicType()) {
-        const String& interface_name =
-            String::Handle(zone, interface_class.Name());
-        ReportError(cls, cls.token_pos(),
-                    "'%s' is not allowed to extend or implement '%s'",
-                    String::Handle(zone, cls.Name()).ToCString(),
-                    interface_name.ToCString());
-      }
-    }
-
-    // Now check the super interfaces.
-    CheckSuperTypeAndInterfaces(interface_class, visited);
-    MarkImplemented(zone, interface_class);
-  }
-  visited->RemoveLast();
-  cls.set_is_cycle_free();
-}
-
-// A class is marked as constant if it has one constant constructor.
-// A constant class can only have final instance fields.
-// Note: we must check for cycles before checking for const properties.
-void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
-  ASSERT(cls.is_const());
-  const Array& fields_array = Array::Handle(cls.fields());
-  intptr_t len = fields_array.Length();
-  Field& field = Field::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    field ^= fields_array.At(i);
-    if (!field.is_static() && !field.is_final()) {
-      const String& class_name = String::Handle(cls.Name());
-      const String& field_name = String::Handle(field.name());
-      ReportError(cls, field.token_pos(),
-                  "const class '%s' has non-final field '%s'",
-                  class_name.ToCString(), field_name.ToCString());
-    }
   }
 }
 
