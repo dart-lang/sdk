@@ -34,6 +34,19 @@ void testFunction() {
   MyClass.myFunction(10000);
 }
 
+class MyConstClass {
+  const MyConstClass();
+  static const MyConstClass instance = null ?? const MyConstClass();
+
+  void foo() {
+    debugger();
+  }
+}
+
+void testFunction2() {
+  MyConstClass.instance.foo();
+}
+
 bool allRangesCompiled(coverage) {
   for (int i = 0; i < coverage['ranges'].length; i++) {
     if (!coverage['ranges'][i]['compiled']) {
@@ -78,9 +91,9 @@ var tests = <IsolateTest>[
     final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
 
-    // Running in app_jitk mode will result in the number of ranges being 7
-    // during the training run and 8 when running from the snapshot.
-    expect(((numRanges == 7) || (numRanges == 8)), isTrue);
+    // Running in app_jitk mode will result in the number of ranges being 9
+    // during the training run and 10 when running from the snapshot.
+    expect(((numRanges == 9) || (numRanges == 10)), isTrue);
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(
@@ -95,7 +108,7 @@ var tests = <IsolateTest>[
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, numRanges);
+    expect(coverage['ranges'].length, numRanges + 2);
     expect(allRangesCompiled(coverage), isTrue);
 
     // One function
