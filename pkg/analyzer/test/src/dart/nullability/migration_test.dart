@@ -490,8 +490,8 @@ void f(List<int> x) {}
     await analyze('''
 void f(x) {}
 ''');
-    var decoratedType = _variables.decoratedElementType(
-        (findNode.expression('x') as SimpleIdentifier).staticElement);
+    var decoratedType =
+        _variables.decoratedElementType(findNode.simple('x').staticElement);
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
