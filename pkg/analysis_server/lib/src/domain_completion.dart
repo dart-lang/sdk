@@ -160,23 +160,33 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-//    var libraryId = params.id;
-//    var library = server.declarationsTracker.getLibrary(libraryId);
-//    if (libraryId == null) {
-//      server.sendResponse(Response.invalidParameter(
-//        request,
-//        'libraryId',
-//        'No such library: $libraryId',
-//      ));
-//      return;
-//    }
+    var libraryId = params.id;
+    var library = server.declarationsTracker.getLibrary(libraryId);
+    if (library == null) {
+      server.sendResponse(Response.invalidParameter(
+        request,
+        'libraryId',
+        'No such library: $libraryId',
+      ));
+      return;
+    }
 
-    var result = await server.getResolvedUnit(file);
+    var resolvedUnit = await server.getResolvedUnit(file);
+    var requestedLibraryElement =
+        await resolvedUnit.session.getLibraryByUri(library.uriStr);
+    var requestedElement =
+        requestedLibraryElement.exportNamespace.get(params.label);
 
     var completion = params.label;
-    var builder = DartChangeBuilder(result.session);
+    var builder = DartChangeBuilder(resolvedUnit.session);
     await builder.addFileEdit(file, (builder) {
-      // TODO(scheglov) Ensure import, update completion.
+      var result = builder.importLibraryElement(
+        requestedLibraryElement,
+        requestedElement,
+      );
+      if (result.prefix != null) {
+        completion = '${result.prefix}.$completion';
+      }
     });
 
     server.sendResponse(
