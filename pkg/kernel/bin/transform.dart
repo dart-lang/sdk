@@ -14,7 +14,7 @@ import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/constants.dart' as constants
-    show SimpleErrorReporter, transformComponent;
+    show EnvironmentMap, SimpleErrorReporter, transformComponent;
 
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
@@ -96,11 +96,10 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'constants':
       // We use the -D defines supplied to this VM instead of explicitly using a
       // constructed map of constants.
-      final Map<String, String> defines = null;
-      final VmConstantsBackend backend =
-          new VmConstantsBackend(defines, coreTypes);
+      final Map<String, String> defines = new constants.EnvironmentMap();
+      final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
-          component, backend, const constants.SimpleErrorReporter());
+          component, backend, defines, const constants.SimpleErrorReporter());
       break;
     case 'treeshake':
       component = treeshaker.transformComponent(coreTypes, hierarchy, component,

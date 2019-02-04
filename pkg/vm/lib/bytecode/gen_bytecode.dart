@@ -44,7 +44,7 @@ void generateBytecode(
   bool emitSourcePositions: false,
   bool omitAssertSourcePositions: false,
   bool useFutureBytecodeFormat: false,
-  Map<String, String> environmentDefines,
+  Map<String, String> environmentDefines: const <String, String>{},
   ErrorReporter errorReporter,
   List<Library> libraries,
 }) {
@@ -53,8 +53,7 @@ void generateBytecode(
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-  final constantsBackend =
-      new VmConstantsBackend(environmentDefines, coreTypes);
+  final constantsBackend = new VmConstantsBackend(coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
   libraries ??= component.libraries;
   final bytecodeGenerator = new BytecodeGenerator(
@@ -63,6 +62,7 @@ void generateBytecode(
       hierarchy,
       typeEnvironment,
       constantsBackend,
+      environmentDefines,
       emitSourcePositions,
       omitAssertSourcePositions,
       useFutureBytecodeFormat,
@@ -78,6 +78,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
+  final Map<String, String> environmentDefines;
   final bool emitSourcePositions;
   final bool omitAssertSourcePositions;
   final bool useFutureBytecodeFormat;
@@ -122,6 +123,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.hierarchy,
       this.typeEnvironment,
       this.constantsBackend,
+      this.environmentDefines,
       this.emitSourcePositions,
       this.omitAssertSourcePositions,
       this.useFutureBytecodeFormat,
@@ -823,8 +825,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
-    constantEvaluator = new ConstantEvaluator(constantsBackend, typeEnvironment,
-        coreTypes, /* enableAsserts = */ true, errorReporter)
+    constantEvaluator = new ConstantEvaluator(
+        constantsBackend,
+        environmentDefines,
+        typeEnvironment,
+        coreTypes,
+        /* enableAsserts = */ true,
+        errorReporter)
       ..env = new EvaluationEnvironment();
     labeledStatements = <LabeledStatement, Label>{};
     switchCases = <SwitchCase, Label>{};

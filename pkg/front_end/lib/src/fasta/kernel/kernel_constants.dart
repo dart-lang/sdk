@@ -6,7 +6,6 @@ library fasta.kernel_constants;
 
 import 'package:kernel/ast.dart'
     show
-        Arguments,
         Constant,
         DartType,
         IntConstant,
@@ -15,9 +14,7 @@ import 'package:kernel/ast.dart'
         MapConstant,
         Member,
         Procedure,
-        StaticInvocation,
-        TreeNode,
-        UnevaluatedConstant;
+        TreeNode;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -192,40 +189,10 @@ class KernelConstantErrorReporter extends ErrorReporter {
   }
 }
 
-class KernelConstantsBackend extends ConstantsBackend {
+class KernelConstantsBackend implements ConstantsBackend {
   @override
   Constant lowerListConstant(ListConstant constant) => constant;
 
   @override
   Constant lowerMapConstant(MapConstant constant) => constant;
-
-  @override
-  Constant buildConstantForNative(
-      String nativeName,
-      List<DartType> typeArguments,
-      List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments,
-      List<TreeNode> context,
-      StaticInvocation node,
-      ErrorReporter errorReporter,
-      Constant abortEvaluation(String message)) {
-    // VM-specific names of the fromEnvironment factory constructors.
-    if (nativeName == 'Bool_fromEnvironment' ||
-        nativeName == 'Integer_fromEnvironment' ||
-        nativeName == 'String_fromEnvironment') {
-      // Replace the evaluated arguments.
-      Arguments arguments = node.arguments;
-      for (int i = 0; i < arguments.positional.length; ++i) {
-        Constant constant = positionalArguments[i];
-        arguments.positional[i] = constant.asExpression()..parent = arguments;
-      }
-      for (int i = 0; i < arguments.named.length; ++i) {
-        Constant constant = namedArguments[arguments.named[i].name];
-        arguments.named[i].value = constant.asExpression()..parent = arguments;
-      }
-      return new UnevaluatedConstant(node);
-    }
-    return abortEvaluation(
-        errorReporter.invalidStaticInvocation(context, node, node.target));
-  }
 }

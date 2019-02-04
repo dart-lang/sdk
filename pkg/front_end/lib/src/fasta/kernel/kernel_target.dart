@@ -753,6 +753,7 @@ class KernelTarget extends TargetImplementation {
       constants.transformLibraries(
           loader.libraries,
           new KernelConstantsBackend(),
+          null, // TODO(askesc): Get environment from compiler options.
           loader.coreTypes,
           environment,
           new KernelConstantErrorReporter(loader, environment));

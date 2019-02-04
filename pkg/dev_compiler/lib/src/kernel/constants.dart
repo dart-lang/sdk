@@ -174,8 +174,6 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
 // TODO(jmesserly): make some changes in the base class to make it a better fit
 // for compilers like DDC?
 class _ConstantEvaluator extends ConstantEvaluator {
-  final Map<String, String> declaredVariables;
-
   /// Used to denote an unavailable constant value from another module
   ///
   // TODO(jmesserly): this happens when we try to evaluate constant values from
@@ -183,10 +181,11 @@ class _ConstantEvaluator extends ConstantEvaluator {
   // does not contain the initializer value of the constant.
   final Constant unavailableConstant;
 
-  _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
+  _ConstantEvaluator(
+      TypeEnvironment types, Map<String, String> declaredVariables,
       {bool enableAsserts: false})
       : unavailableConstant = InstanceConstant(null, [], {}),
-        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
+        super(_ConstantsBackend(), declaredVariables, types, types.coreTypes,
             enableAsserts, const _ErrorReporter()) {
     env = EvaluationEnvironment();
   }
@@ -233,37 +232,6 @@ class _ConstantEvaluator extends ConstantEvaluator {
   }
 
   @override
-  visitStaticInvocation(node) {
-    // Handle int/bool/String.fromEnvironment constructors.
-    //
-    // (The VM handles this via its `native` calls and implements it in
-    // VmConstantsBackend.buildConstantForNative.)
-    var target = node.target;
-    if (isFromEnvironmentInvocation(coreTypes, node)) {
-      var firstArg = evaluatePositionalArguments(node.arguments)[0];
-      var defaultArg = evaluateNamedArguments(node.arguments)['defaultValue'];
-
-      var varName = (firstArg as StringConstant).value;
-      var value = declaredVariables[varName];
-      var targetClass = target.enclosingClass;
-
-      if (targetClass == coreTypes.stringClass) {
-        if (value != null) return canonicalize(StringConstant(value));
-        return defaultArg ?? nullConstant;
-      } else if (targetClass == coreTypes.intClass) {
-        var intValue = int.tryParse(value ?? '');
-        if (intValue != null) return canonicalize(IntConstant(intValue));
-        return defaultArg ?? nullConstant;
-      } else if (targetClass == coreTypes.boolClass) {
-        if (value == "true") return trueConstant;
-        if (value == "false") return falseConstant;
-        return defaultArg ?? falseConstant;
-      }
-    }
-    return super.visitStaticInvocation(node);
-  }
-
-  @override
   evaluateBinaryNumericOperation(String op, num a, num b, TreeNode node) {
     // Use doubles to match JS number semantics.
     return super
@@ -290,18 +258,7 @@ class _ConstantEvaluator extends ConstantEvaluator {
 /// This is mostly unused by DDC, because we don't use the global constant
 /// transformer.
 class _ConstantsBackend implements ConstantsBackend {
-  final CoreTypes coreTypes;
-  final Field symbolNameField;
-
-  _ConstantsBackend(this.coreTypes)
-      : symbolNameField = coreTypes.internalSymbolClass.fields
-            .firstWhere((f) => f.name.name == '_name');
-
-  @override
-  buildConstantForNative(nativeName, typeArguments, positionalArguments,
-      namedArguments, context, node, errorReporter, abortEvaluation) {
-    throw StateError('unreachable'); // DDC does not use VM native syntax
-  }
+  _ConstantsBackend();
 
   @override
   lowerMapConstant(constant) => constant;

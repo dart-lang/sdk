@@ -18,18 +18,18 @@
 /// language.  Issue(http://dartbug.com/31799)
 library kernel.transformations.constants;
 
+import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:io' as io;
 
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
-import '../external_name.dart' show getExternalName;
 import '../kernel.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
 
-Component transformComponent(
-    Component component, ConstantsBackend backend, ErrorReporter errorReporter,
+Component transformComponent(Component component, ConstantsBackend backend,
+    Map<String, String> environmentDefines, ErrorReporter errorReporter,
     {bool keepFields: false,
     bool legacyMode: false,
     bool enableAsserts: false,
@@ -42,8 +42,8 @@ Component transformComponent(
   final typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
-  transformLibraries(
-      component.libraries, backend, coreTypes, typeEnvironment, errorReporter,
+  transformLibraries(component.libraries, backend, environmentDefines,
+      coreTypes, typeEnvironment, errorReporter,
       keepFields: keepFields,
       enableAsserts: enableAsserts,
       evaluateAnnotations: evaluateAnnotations);
@@ -53,6 +53,7 @@ Component transformComponent(
 void transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
+    Map<String, String> environmentDefines,
     CoreTypes coreTypes,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
@@ -62,6 +63,7 @@ void transformLibraries(
     bool enableAsserts: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
+      environmentDefines,
       keepFields,
       keepVariables,
       evaluateAnnotations,
@@ -86,6 +88,7 @@ class ConstantsTransformer extends Transformer {
 
   ConstantsTransformer(
       ConstantsBackend backend,
+      Map<String, String> environmentDefines,
       this.keepFields,
       this.keepVariables,
       this.evaluateAnnotations,
@@ -93,8 +96,8 @@ class ConstantsTransformer extends Transformer {
       this.typeEnvironment,
       bool enableAsserts,
       ErrorReporter errorReporter)
-      : constantEvaluator = new ConstantEvaluator(
-            backend, typeEnvironment, coreTypes, enableAsserts, errorReporter);
+      : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
+            typeEnvironment, coreTypes, enableAsserts, errorReporter);
 
   // Transform the library/class members:
 
@@ -377,6 +380,7 @@ class ConstantsTransformer extends Transformer {
 
 class ConstantEvaluator extends RecursiveVisitor {
   final ConstantsBackend backend;
+  Map<String, String> environmentDefines;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
   final bool enableAsserts;
@@ -396,8 +400,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
 
-  ConstantEvaluator(this.backend, this.typeEnvironment, this.coreTypes,
-      this.enableAsserts, this.errorReporter)
+  ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
+      this.coreTypes, this.enableAsserts, this.errorReporter)
       : canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{};
 
@@ -1151,26 +1155,71 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
+    final Arguments arguments = node.arguments;
     if (target.kind == ProcedureKind.Factory) {
-      final String nativeName = getExternalName(target);
-      if (nativeName != null) {
-        final Constant constant = backend.buildConstantForNative(
-            nativeName,
-            evaluateTypeArguments(node, node.arguments),
-            evaluatePositionalArguments(node.arguments),
-            evaluateNamedArguments(node.arguments),
-            contextChain,
-            node,
-            errorReporter,
-            (String message) => throw new _AbortCurrentEvaluation(message));
-        assert(constant != null);
-        return canonicalize(constant);
+      if (target.isConst &&
+          target.name.name == "fromEnvironment" &&
+          target.enclosingLibrary == coreTypes.coreLibrary &&
+          arguments.positional.length == 1) {
+        if (environmentDefines != null) {
+          // Evaluate environment constant.
+          Constant name = arguments.positional[0].accept(this);
+          if (name is StringConstant) {
+            String value = environmentDefines[name.value];
+            Constant defaultValue = null;
+            for (int i = 0; i < arguments.named.length; i++) {
+              NamedExpression named = arguments.named[i];
+              if (named.name == "defaultValue") {
+                defaultValue = named.value.accept(this);
+                break;
+              }
+            }
+
+            if (target.enclosingClass == coreTypes.boolClass) {
+              Constant boolConstant = value == "true"
+                  ? trueConstant
+                  : value == "false"
+                      ? falseConstant
+                      : defaultValue is BoolConstant
+                          ? defaultValue.value ? trueConstant : falseConstant
+                          : defaultValue is NullConstant
+                              ? nullConstant
+                              : falseConstant;
+              return boolConstant;
+            } else if (target.enclosingClass == coreTypes.intClass) {
+              int intValue = value != null ? int.tryParse(value) : null;
+              intValue ??=
+                  defaultValue is IntConstant ? defaultValue.value : null;
+              if (intValue == null) return nullConstant;
+              return canonicalize(new IntConstant(intValue));
+            } else if (target.enclosingClass == coreTypes.stringClass) {
+              value ??=
+                  defaultValue is StringConstant ? defaultValue.value : null;
+              if (value == null) return nullConstant;
+              return canonicalize(new StringConstant(value));
+            }
+          }
+          // TODO(askesc): Give more meaningful error message if name is null.
+        } else {
+          // Leave environment constant unevaluated.
+          for (int i = 0; i < arguments.positional.length; ++i) {
+            Constant constant = arguments.positional[i].accept(this);
+            arguments.positional[i] = constant.asExpression()
+              ..parent = arguments;
+          }
+          for (int i = 0; i < arguments.named.length; ++i) {
+            Constant constant = arguments.named[i].value.accept(this);
+            arguments.named[i].value = constant.asExpression()
+              ..parent = arguments;
+          }
+          return new UnevaluatedConstant(node);
+        }
       }
     } else if (target.name.name == 'identical') {
       // Ensure the "identical()" function comes from dart:core.
       final parent = target.parent;
       if (parent is Library && parent == coreTypes.coreLibrary) {
-        final positionalArguments = evaluatePositionalArguments(node.arguments);
+        final positionalArguments = evaluatePositionalArguments(arguments);
         final Constant left = positionalArguments[0];
         final Constant right = positionalArguments[1];
         // Since we canonicalize constants during the evaluation, we can use
@@ -1426,17 +1475,23 @@ class EvaluationEnvironment {
 }
 
 abstract class ConstantsBackend {
-  Constant buildConstantForNative(
-      String nativeName,
-      List<DartType> typeArguments,
-      List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments,
-      List<TreeNode> context,
-      StaticInvocation node,
-      ErrorReporter errorReporter,
-      Constant abortEvaluation(String message));
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);
+}
+
+// Environment map which looks up environment defines in the VM environment
+// at runtime.
+class EnvironmentMap extends UnmodifiableMapBase<String, String> {
+  @override
+  String operator [](Object key) {
+    // The fromEnvironment constructor is specified to throw when called using
+    // new. However, the VM implementation actually looks up the given name in
+    // the environment.
+    return new String.fromEnvironment(key);
+  }
+
+  @override
+  get keys => throw "Environment map iteration not supported";
 }
 
 // Used as control-flow to abort the current evaluation.
