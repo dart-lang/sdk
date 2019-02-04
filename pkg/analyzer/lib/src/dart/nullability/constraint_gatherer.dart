@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
-import 'package:analyzer/src/dart/nullability/decorated_substitution.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
@@ -70,7 +69,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// necessary substitutions.
   DecoratedType getOrComputeElementType(Element element,
       {DecoratedType targetType}) {
-    DecoratedSubstitution substitution;
+    Map<TypeParameterElement, DecoratedType> substitution;
     Element baseElement;
     if (element is Member) {
       assert(targetType != null);
@@ -80,14 +79,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
           baseElement is ClassMemberElement) {
         var enclosingClass = baseElement.enclosingElement;
         assert(targetTypeType.element == enclosingClass); // TODO(paulberry)
-        var replacements = <TypeParameterElement, DecoratedType>{};
+        substitution = <TypeParameterElement, DecoratedType>{};
         assert(enclosingClass.typeParameters.length ==
             targetTypeType.typeArguments.length); // TODO(paulberry)
         for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-          replacements[enclosingClass.typeParameters[i]] =
+          substitution[enclosingClass.typeParameters[i]] =
               targetType.typeArguments[i];
         }
-        substitution = DecoratedSubstitution(replacements);
       }
     } else {
       baseElement = element;
@@ -101,7 +99,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } else {
         throw element.runtimeType; // TODO(paulberry)
       }
-      return substitution.apply(decoratedBaseType, elementType);
+      return decoratedBaseType.substitute(substitution, elementType);
     } else {
       return decoratedBaseType;
     }

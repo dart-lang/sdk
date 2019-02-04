@@ -85,6 +85,17 @@ class DecoratedType {
     return decoratedType;
   }
 
+  /// Apply the given [substitution] to this type.
+  ///
+  /// [undecoratedResult] is the result of the substitution, as determined by
+  /// the normal type system.
+  DecoratedType substitute(
+      Map<TypeParameterElement, DecoratedType> substitution,
+      DartType undecoratedResult) {
+    if (substitution.isEmpty) return this;
+    return _substitute(substitution, undecoratedResult);
+  }
+
   @override
   String toString() {
     var trailing = nullable == null ? '' : '?($nullable)';
@@ -109,5 +120,43 @@ class DecoratedType {
     } else {
       throw '$type'; // TODO(paulberry)
     }
+  }
+
+  /// Internal implementation of [_substitute], used as a recursion target.
+  DecoratedType _substitute(
+      Map<TypeParameterElement, DecoratedType> substitution,
+      DartType undecoratedResult) {
+    var type = this.type;
+    if (type is FunctionType && undecoratedResult is FunctionType) {
+      assert(type.typeFormals.isEmpty); // TODO(paulberry)
+      var newPositionalParameters = <DecoratedType>[];
+      for (int i = 0; i < positionalParameters.length; i++) {
+        var numRequiredParameters =
+            undecoratedResult.normalParameterTypes.length;
+        var undecoratedParameterType = i < numRequiredParameters
+            ? undecoratedResult.normalParameterTypes[i]
+            : undecoratedResult
+                .optionalParameterTypes[i - numRequiredParameters];
+        newPositionalParameters.add(positionalParameters[i]
+            ._substitute(substitution, undecoratedParameterType));
+      }
+      // TODO(paulberry): what do we do for nullAsserts here?
+      var nullAsserts = null;
+      return DecoratedType(undecoratedResult, nullable,
+          nullAsserts: nullAsserts,
+          returnType: returnType._substitute(
+              substitution, undecoratedResult.returnType),
+          positionalParameters: newPositionalParameters);
+    } else if (type is TypeParameterType) {
+      var inner = substitution[type.element];
+      // TODO(paulberry): what do we do for nullAsserts here?
+      var nullAsserts = null;
+      return DecoratedType(
+          undecoratedResult, ConstraintVariable.or(inner?.nullable, nullable),
+          nullAsserts: nullAsserts);
+    } else if (type is VoidType) {
+      return this;
+    }
+    throw '$type.substitute($substitution)'; // TODO(paulberry)
   }
 }
