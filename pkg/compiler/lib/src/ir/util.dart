@@ -20,10 +20,15 @@ String nodeToDebugString(ir.Node node, [int textLength = 40]) {
   return '(${node.runtimeType}:${node.hashCode})${blockText}';
 }
 
-/// Comparator for the canonical order or named arguments.
+/// Comparator for the canonical order or named parameters.
 // TODO(johnniwinther): Remove this when named parameters are sorted in dill.
 int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
   return a.name.compareTo(b.name);
+}
+
+/// Comparator for the declaration order of parameters.
+int nativeOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
+  return a.fileOffset.compareTo(b.fileOffset);
 }
 
 SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {

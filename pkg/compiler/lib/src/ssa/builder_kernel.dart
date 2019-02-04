@@ -1249,7 +1249,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
                 _sourceInformationBuilder.buildGet(functionNode)));
       }
 
-      for (ir.VariableDeclaration param in functionNode.positionalParameters) {
+      void handleParameter(ir.VariableDeclaration param) {
         templateArguments.add('#');
         Local local = localsMap.getLocalVariable(param);
         // Convert Dart function to JavaScript function.
@@ -1266,6 +1266,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
           argument = pop();
         }
         inputs.add(argument);
+      }
+
+      functionNode.positionalParameters.forEach(handleParameter);
+      if (functionNode.namedParameters.isNotEmpty) {
+        List<ir.VariableDeclaration> namedParameters =
+            functionNode.namedParameters.toList();
+        // Sort by file offset to visit parameters in declaration order.
+        namedParameters.sort(nativeOrdering);
+        namedParameters.forEach(handleParameter);
       }
 
       String arguments = templateArguments.join(',');

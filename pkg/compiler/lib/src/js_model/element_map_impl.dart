@@ -69,7 +69,8 @@ abstract class JsToWorldBuilder implements JsToElementMap {
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue));
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false});
 }
 
 class JsKernelToElementMap
@@ -1744,9 +1745,10 @@ class JsKernelToElementMap
 
   @override
   void forEachParameter(covariant IndexedFunction function,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
     FunctionData data = members.getData(function);
-    data.forEachParameter(this, f);
+    data.forEachParameter(this, f, isNative: isNative);
   }
 
   void forEachConstructorBody(

@@ -15,9 +15,8 @@ class Class {
       // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
       native;
 
-  // TODO(johnniwinther): Include named parameters in the main call.
   /*element: Class.method2:
-   calls=[method2(a)],
+   calls=[method2(a,b,c)],
    params=4,
    stubs=[
     method2$1:method2(a),
@@ -32,12 +31,12 @@ class Class {
   // we sort them lexicographically but that doesn't match the target
   // expectations.
   /*element: Class.method3:
-   calls=[method3(a)],
+   calls=[method3(a,c,b)],
    params=4,
    stubs=[
     method3$1:method3(a),
-    method3$2$b:method3(a,b),
-    method3$2$c:method3(a,null,c)]
+    method3$2$b:method3(a,null,b),
+    method3$2$c:method3(a,c)]
   */
   method3(a, {c, b})
       // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
@@ -47,15 +46,15 @@ class Class {
   // we sort them lexicographically but that doesn't match the target
   // expectations.
   /*element: Class.method4:
-   calls=[method4(a)],
+   calls=[method4(a,c,d,b)],
    params=5,
    stubs=[
     method4$1:method4(a),
-    method4$2$b:method4(a,b),
-    method4$2$c:method4(a,null,c),
-    method4$3$b$c:method4(a,b,c),
-    method4$3$b$d:method4(a,b,null,d),
-    method4$3$c$d:method4(a,null,c,d)]
+    method4$2$b:method4(a,null,null,b),
+    method4$2$c:method4(a,c),
+    method4$3$b$c:method4(a,c,null,b),
+    method4$3$b$d:method4(a,null,d,b),
+    method4$3$c$d:method4(a,c,d)]
   */
   method4(a, {c, d, b})
       // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE

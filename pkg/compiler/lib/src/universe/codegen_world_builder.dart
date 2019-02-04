@@ -687,7 +687,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   @override
   void forEachParameter(FunctionEntity function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    _elementMap.forEachParameter(function, f);
+    _elementMap.forEachParameter(function, f,
+        isNative: _world.nativeData.isNativeMember(function));
   }
 
   @override

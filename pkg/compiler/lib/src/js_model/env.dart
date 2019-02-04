@@ -566,7 +566,8 @@ abstract class FunctionData implements JMemberData {
   List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap);
 
   void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue));
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false});
 }
 
 abstract class FunctionDataMixin implements FunctionData {
@@ -597,8 +598,47 @@ abstract class FunctionDataMixin implements FunctionData {
   }
 }
 
+abstract class FunctionNodeMixin implements FunctionData {
+  ir.FunctionNode get functionNode;
+
+  @override
+  void forEachParameter(JsToElementMap elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
+    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(node.type);
+      String name = node.name;
+      ConstantValue defaultValue;
+      if (isOptional) {
+        if (node.initializer != null) {
+          defaultValue = elementMap.getConstantValue(node.initializer);
+        } else {
+          defaultValue = new NullConstantValue();
+        }
+      }
+      f(type, name, defaultValue);
+    }
+
+    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
+      handleParameter(functionNode.positionalParameters[i],
+          isOptional: i >= functionNode.requiredParameterCount);
+    }
+    if (functionNode.namedParameters.isEmpty) {
+      return;
+    }
+    List<ir.VariableDeclaration> namedParameters =
+        functionNode.namedParameters.toList();
+    if (isNative) {
+      namedParameters.sort(nativeOrdering);
+    } else {
+      namedParameters.sort(namedOrdering);
+    }
+    namedParameters.forEach(handleParameter);
+  }
+}
+
 class FunctionDataImpl extends JMemberDataImpl
-    with FunctionDataMixin
+    with FunctionDataMixin, FunctionNodeMixin
     implements FunctionData {
   /// Tag used for identifying serialized [FunctionDataImpl] objects in a
   /// debugging data stream.
@@ -642,31 +682,6 @@ class FunctionDataImpl extends JMemberDataImpl
 
   FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
-  }
-
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
-      ConstantValue defaultValue;
-      if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
-        } else {
-          defaultValue = new NullConstantValue();
-        }
-      }
-      f(type, name, defaultValue);
-    }
-
-    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
-      handleParameter(functionNode.positionalParameters[i],
-          isOptional: i >= functionNode.requiredParameterCount);
-    }
-    functionNode.namedParameters.toList()
-      ..sort(namedOrdering)
-      ..forEach(handleParameter);
   }
 
   @override
@@ -727,7 +742,8 @@ class SignatureFunctionData implements FunctionData {
   }
 
   void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
     throw new UnimplementedError('SignatureData.forEachParameter');
   }
 
@@ -750,8 +766,9 @@ abstract class DelegatedFunctionData implements FunctionData {
   }
 
   void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    return baseData.forEachParameter(elementMap, f);
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
+    return baseData.forEachParameter(elementMap, f, isNative: isNative);
   }
 
   InterfaceType getMemberThisType(JsToElementMap elementMap) {
