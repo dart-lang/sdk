@@ -32,7 +32,11 @@ class DartAssistContextImpl implements DartAssistContext {
  */
 class DartAssistKind {
   static const ADD_TYPE_ANNOTATION = const AssistKind(
-      'dart.assist.addTypeAnnotation', 30, "Add type annotation");
+      'dart.assist.addTypeAnnotation', 30, "Add type annotation",
+      associatedErrorCodes: <String>[
+        'always_specify_types',
+        'type_annotate_public_apis'
+      ]);
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
       'dart.assist.assignToVariable', 30, "Assign value to new local variable");
   static const CONVERT_CLASS_TO_MIXIN = const AssistKind(
@@ -50,7 +54,8 @@ class DartAssistKind {
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
-      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
+      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body",
+      associatedErrorCodes: <String>['prefer_expression_function_bodies']);
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field");
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
@@ -64,7 +69,8 @@ class DartAssistKind {
   static const CONVERT_INTO_IS_NOT =
       const AssistKind('dart.assist.convert.isNot', 30, "Convert to is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
-      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'");
+      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'",
+      associatedErrorCodes: <String>['prefer_is_not_empty']);
   static const CONVERT_PART_OF_TO_URI = const AssistKind(
       'dart.assist.convert.partOfToPartUri', 30, "Convert to use a URI");
   static const CONVERT_TO_DOUBLE_QUOTED_STRING = const AssistKind(
@@ -96,7 +102,8 @@ class DartAssistKind {
   static const CONVERT_TO_SINGLE_QUOTED_STRING = const AssistKind(
       'dart.assist.convert.toSingleQuotedString',
       30,
-      "Convert to single quoted string");
+      "Convert to single quoted string",
+      associatedErrorCodes: <String>['prefer_single_quotes']);
   static const CONVERT_TO_SPREAD = const AssistKind(
       'dart.assist.convertToSpread', 30, "Convert to a spread");
   static const ENCAPSULATE_FIELD =
