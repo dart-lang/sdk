@@ -1257,6 +1257,14 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
       /* Falls through */
+    case kProblemsAsJson: {
+      intptr_t length = helper_->ReadUInt();  // read length of table.
+      for (intptr_t i = 0; i < length; ++i) {
+        helper_->SkipBytes(helper_->ReadUInt());  // read strings.
+      }
+      if (++next_read_ == field) return;
+      /* Falls through */
+    }
     case kAnnotations:
       helper_->SkipListOfExpressions();  // read annotations.
       if (++next_read_ == field) return;

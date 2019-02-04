@@ -5,12 +5,19 @@
 #ifndef RUNTIME_VM_OBJECT_H_
 #define RUNTIME_VM_OBJECT_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include <tuple>
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
+#include "vm/code_entry_kind.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -29,6 +36,10 @@
 namespace dart {
 
 // Forward declarations.
+namespace compiler {
+class Assembler;
+}
+
 namespace kernel {
 class Program;
 class TreeNode;
@@ -39,7 +50,6 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class Api;
 class ArgumentsDescriptor;
-class Assembler;
 class Closure;
 class Code;
 class DeoptInstr;
@@ -1021,6 +1031,9 @@ class Class : public Object {
 
   bool IsPrivate() const;
 
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyEntryPoint() const;
+
   // Returns an array of instance and static fields defined by this class.
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
@@ -1196,13 +1209,16 @@ class Class : public Object {
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
-                    bool respect_reflectable = true) const;
+                    bool respect_reflectable = true,
+                    bool check_is_entrypoint = false) const;
   RawObject* InvokeGetter(const String& selector,
                           bool throw_nsm_if_absent,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
   RawObject* InvokeSetter(const String& selector,
                           const Instance& argument,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
 
   // Evaluate the given expression as if it appeared in a static method of this
   // class and return the resulting value, or an error object if evaluating the
@@ -1960,12 +1976,6 @@ class ICData : public Object {
     kCachedICDataArrayCount = kCachedICDataOneArgWithExactnessTrackingIdx + 1,
   };
 
-#if defined(TAG_IC_DATA)
-  using Tag = RawICData::Tag;
-  void set_tag(Tag value) const;
-  Tag tag() const { return raw_ptr()->tag_; }
-#endif
-
   bool is_static_call() const;
 
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
@@ -2221,6 +2231,8 @@ class Function : public Object {
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
   RawCode* CurrentCode() const { return CurrentCodeOf(raw()); }
+
+  bool SafeToClosurize() const;
 
   static RawCode* CurrentCodeOf(const RawFunction* function) {
     return function->ptr()->code_;
@@ -2702,6 +2714,9 @@ class Function : public Object {
     return modifier() != RawFunction::kNoModifier;
   }
 
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyEntryPoint() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
@@ -3064,6 +3079,8 @@ class RedirectionData : public Object {
   friend class HeapProfiler;
 };
 
+enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+
 class Field : public Object {
  public:
   RawField* Original() const;
@@ -3161,6 +3178,9 @@ class Field : public Object {
   RawAbstractType* type() const { return raw_ptr()->type_; }
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
+
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyEntryPoint(EntryPointPragma kind) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawField));
@@ -3636,13 +3656,16 @@ class Library : public Object {
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
-                    bool respect_reflectable = true) const;
+                    bool respect_reflectable = true,
+                    bool check_is_entrypoint = false) const;
   RawObject* InvokeGetter(const String& selector,
                           bool throw_nsm_if_absent,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
   RawObject* InvokeSetter(const String& selector,
                           const Instance& argument,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
 
   // Evaluate the given expression as if it appeared in an top-level method of
   // this library and return the resulting value, or an error object if
@@ -4058,26 +4081,15 @@ class KernelProgramInfo : public Object {
 // with it which is stored in-inline after all the entries.
 class ObjectPool : public Object {
  public:
-  enum EntryType {
-    kTaggedObject,
-    kImmediate,
-    kNativeFunction,
-    kNativeFunctionWrapper,
-    kNativeEntryData,
-  };
-
-  enum Patchability {
-    kPatchable,
-    kNotPatchable,
-  };
-
-  class TypeBits : public BitField<uint8_t, EntryType, 0, 7> {};
-  class PatchableBit
-      : public BitField<uint8_t, Patchability, TypeBits::kNextBit, 1> {};
+  using EntryType = compiler::ObjectPoolBuilderEntry::EntryType;
+  using Patchability = compiler::ObjectPoolBuilderEntry::Patchability;
+  using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
+  using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
-    explicit Entry(const Object* obj) : obj_(obj), type_(kTaggedObject) {}
+    explicit Entry(const Object* obj)
+        : obj_(obj), type_(EntryType::kTaggedObject) {}
     Entry(uword value, EntryType info) : raw_value_(value), type_(info) {}
     union {
       const Object* obj_;
@@ -4115,23 +4127,23 @@ class ObjectPool : public Object {
   }
 
   RawObject* ObjectAt(intptr_t index) const {
-    ASSERT((TypeAt(index) == kTaggedObject) ||
-           (TypeAt(index) == kNativeEntryData));
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kNativeEntryData));
     return EntryAddr(index)->raw_obj_;
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
-    ASSERT((TypeAt(index) == kTaggedObject) ||
-           (TypeAt(index) == kNativeEntryData) ||
-           (TypeAt(index) == kImmediate && obj.IsSmi()));
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kNativeEntryData) ||
+           (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
   uword RawValueAt(intptr_t index) const {
-    ASSERT(TypeAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     return EntryAddr(index)->raw_value_;
   }
   void SetRawValueAt(intptr_t index, uword raw_value) const {
-    ASSERT(TypeAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
@@ -4156,7 +4168,11 @@ class ObjectPool : public Object {
                                  (len * kBytesPerElement));
   }
 
+  static RawObjectPool* NewFromBuilder(
+      const compiler::ObjectPoolBuilder& builder);
   static RawObjectPool* New(intptr_t len);
+
+  void CopyInto(compiler::ObjectPoolBuilder* builder) const;
 
   // Returns the pool index from the offset relative to a tagged RawObjectPool*,
   // adjusting for the tag-bit.
@@ -4737,12 +4753,7 @@ class Code : public Object {
     return OFFSET_OF(RawCode, instructions_);
   }
 
-  enum class EntryKind {
-    kNormal,
-    kUnchecked,
-    kMonomorphic,
-    kMonomorphicUnchecked,
-  };
+  using EntryKind = CodeEntryKind;
 
   static intptr_t entry_point_offset(EntryKind kind = EntryKind::kNormal) {
     switch (kind) {
@@ -4761,9 +4772,9 @@ class Code : public Object {
 
   static intptr_t function_entry_point_offset(EntryKind kind) {
     switch (kind) {
-      case Code::EntryKind::kNormal:
+      case EntryKind::kNormal:
         return Function::entry_point_offset();
-      case Code::EntryKind::kUnchecked:
+      case EntryKind::kUnchecked:
         return Function::unchecked_entry_point_offset();
       default:
         ASSERT(false && "Invalid entry kind.");
@@ -5025,16 +5036,9 @@ class Code : public Object {
   }
 
   RawObject* owner() const { return raw_ptr()->owner_; }
-
-  void set_owner(const Function& function) const {
-    ASSERT(function.IsOld());
-    StorePointer(&raw_ptr()->owner_,
-                 reinterpret_cast<RawObject*>(function.raw()));
-  }
-
-  void set_owner(const Class& cls) {
-    ASSERT(cls.IsOld());
-    StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(cls.raw()));
+  void set_owner(const Object& owner) const {
+    ASSERT(owner.IsFunction() || owner.IsClass() || owner.IsAbstractType());
+    StorePointer(&raw_ptr()->owner_, owner.raw());
   }
 
   // We would have a VisitPointers function here to traverse all the
@@ -5063,13 +5067,13 @@ class Code : public Object {
   // `Object::set_object_pool()`.
   static RawCode* FinalizeCode(const Function& function,
                                FlowGraphCompiler* compiler,
-                               Assembler* assembler,
+                               compiler::Assembler* assembler,
                                PoolAttachment pool_attachment,
                                bool optimized = false,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
                                FlowGraphCompiler* compiler,
-                               Assembler* assembler,
+                               compiler::Assembler* assembler,
                                PoolAttachment pool_attachment,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
@@ -5099,8 +5103,9 @@ class Code : public Object {
 #endif
   }
 
-  bool IsAllocationStubCode() const;
   bool IsStubCode() const;
+  bool IsAllocationStubCode() const;
+  bool IsTypeTestStubCode() const;
   bool IsFunctionCode() const;
 
   void DisableDartCode() const;
@@ -5811,12 +5816,15 @@ class Instance : public Object {
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
-                    bool respect_reflectable = true) const;
+                    bool respect_reflectable = true,
+                    bool check_is_entrypoint = false) const;
   RawObject* InvokeGetter(const String& selector,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
   RawObject* InvokeSetter(const String& selector,
                           const Instance& argument,
-                          bool respect_reflectable = true) const;
+                          bool respect_reflectable = true,
+                          bool check_is_entrypoint = false) const;
 
   // Evaluate the given expression as if it appeared in an instance method of
   // this instance and return the resulting value, or an error object if
@@ -6325,8 +6333,9 @@ class AbstractType : public Instance {
   uword type_test_stub_entry_point() const {
     return raw_ptr()->type_test_stub_entry_point_;
   }
+  RawCode* type_test_stub() const { return raw_ptr()->type_test_stub_; }
 
-  void SetTypeTestingStub(const Instructions& instr) const;
+  void SetTypeTestingStub(const Code& stub) const;
 
  private:
   // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
@@ -9396,6 +9405,14 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
 
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
+
+EntryPointPragma FindEntryPointPragma(Isolate* I,
+                                      const Array& metadata,
+                                      Field* reusable_field_handle,
+                                      Object* reusable_object_handle);
+
+DART_WARN_UNUSED_RESULT
+RawError* EntryPointClosurizationError(const String& getter_name);
 
 }  // namespace dart
 

@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/statements.dart:15:5: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
 //     yield x;
@@ -7,8 +9,7 @@
 // pkg/front_end/testcases/statements.dart:16:5: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
 //     yield* x;
 //     ^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

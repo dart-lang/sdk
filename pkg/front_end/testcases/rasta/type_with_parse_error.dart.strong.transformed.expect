@@ -1,10 +1,11 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/type_with_parse_error.dart:21:7: Error: Expected ';' after this.
 //   int i
 //       ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

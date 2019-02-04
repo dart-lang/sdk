@@ -60,6 +60,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         messageConflictsWithTypeVariableCause,
@@ -82,6 +83,7 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInferred,
         templateIncorrectTypeArgumentQualified,
         templateIncorrectTypeArgumentQualifiedInferred,
+        templateIntersectionTypeAsTypeArgument,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
@@ -102,6 +104,8 @@ import '../modifier.dart'
         staticMask;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../severity.dart' show Severity;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -235,6 +239,26 @@ class KernelLibraryBuilder
     return addNamedType("void", null, charOffset)
       ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
           const VoidType(), this, charOffset));
+  }
+
+  @override
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity,
+      bool problemOnLibrary: false}) {
+    FormattedMessage formattedMessage = super.addProblem(
+        message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: true);
+    if (formattedMessage != null) {
+      target.problemsAsJson ??= <String>[];
+      target.problemsAsJson.add(formattedMessage.toJsonString());
+    }
+    return formattedMessage;
   }
 
   void addClass(
@@ -1306,10 +1330,17 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(covariant KernelLibraryBuilder part, Set<Uri> usedParts) {
-    super.includePart(part, usedParts);
+  void includePart(
+      covariant KernelLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
+    super.includePart(part, usedParts, partOffset);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+    // Check that the targets are different. This is not normally a problem
+    // but is for patch files.
+    if (target != part.target && part.target.problemsAsJson != null) {
+      target.problemsAsJson ??= <String>[];
+      target.problemsAsJson.addAll(part.target.problemsAsJson);
+    }
   }
 
   @override
@@ -1429,6 +1460,15 @@ class KernelLibraryBuilder
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
         typeParameter = null;
+      } else if (argument is TypeParameterType &&
+          argument.promotedBound != null) {
+        addProblem(
+            templateIntersectionTypeAsTypeArgument.withArguments(
+                typeParameter.name, argument, argument.promotedBound),
+            offset,
+            noLength,
+            fileUri);
+        continue;
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (issueInferred) {

@@ -1,3 +1,6 @@
+# 0.1.4
+ * update protocol version constraints
+
 # 0.1.3
  * update SDK constraints
 

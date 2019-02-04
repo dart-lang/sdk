@@ -9,6 +9,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/globals.h"
 #include "vm/log.h"
+#include "vm/object.h"
 
 namespace dart {
 

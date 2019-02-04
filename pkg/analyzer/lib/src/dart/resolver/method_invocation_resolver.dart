@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -495,13 +494,6 @@ class MethodInvocationResolver {
       nameNode.staticElement = targetType.element;
       var calleeType = _getCalleeType(node, targetType);
       _setResolution(node, calleeType);
-
-      ClassElementImpl receiverSuperClass = AbstractClassElementImpl.getImpl(
-        receiverType.element.supertype.element,
-      );
-      if (receiverSuperClass.hasNoSuchMethod) {
-        return;
-      }
 
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,

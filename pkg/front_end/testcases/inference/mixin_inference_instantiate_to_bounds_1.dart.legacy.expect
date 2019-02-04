@@ -1,4 +1,5 @@
-// Formatted problems:
+//
+// Problems in component:
 //
 // pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart:12:7: Error: 'M1 with M0' can't implement both 'I<int>' and 'I<dynamic>'
 //  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart'.
@@ -9,19 +10,7 @@
 //  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart'.
 // class A extends M1 with M0 {}
 //       ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart:12:7: Error: 'M1 with M0' can't implement both 'I<int>' and 'I<dynamic>'
-//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart'.
-// class A extends M1 with M0 {}
-//       ^
-//
-// pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart:12:7: Error: 'A' can't implement both 'I<int>' and 'I<dynamic>'
-//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart'.
-// class A extends M1 with M0 {}
-//       ^
-
 library;
 import self as self;
 import "dart:core" as core;

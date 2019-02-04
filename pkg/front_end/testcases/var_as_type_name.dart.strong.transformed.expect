@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/var_as_type_name.dart:6:15: Error: The keyword 'var' can't be used as a type name.
 //   Map<String, var> m;
@@ -11,8 +13,7 @@
 // pkg/front_end/testcases/var_as_type_name.dart:6:15: Error: 'var' isn't a type.
 //   Map<String, var> m;
 //               ^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

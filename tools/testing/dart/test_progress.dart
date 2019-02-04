@@ -613,17 +613,14 @@ void _writeFailureStatus(
 
   final ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (!test.lastCommandOutput.hasTimedOut) {
-    if (!ranAllCommands && !test.expectCompileError) {
+    if (!ranAllCommands && !test.hasCompileError) {
       output.write('Unexpected compile error.');
     } else {
-      if (test.expectCompileError) {
+      if (test.hasCompileError) {
         output.write('Missing expected compile error.');
       }
       if (test.hasRuntimeError) {
         output.write('Missing expected runtime error.');
-      }
-      if (test.configuration.isChecked && test.isNegativeIfChecked) {
-        output.write('Missing expected dynamic type error.');
       }
     }
   }

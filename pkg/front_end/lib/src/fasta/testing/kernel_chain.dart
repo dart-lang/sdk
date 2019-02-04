@@ -10,8 +10,7 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/ast.dart'
-    show Component, Field, Library, ListLiteral, StringLiteral;
+import 'package:kernel/ast.dart' show Component, Library;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -34,12 +33,15 @@ import 'package:kernel/text/text_serialization_verifier.dart'
         TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step;
+    show ChainContext, Expectation, ExpectationSet, Result, StdioProcess, Step;
 
 import '../../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import '../../base/processed_options.dart' show ProcessedOptions;
+
+import '../../compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -49,6 +51,75 @@ import '../messages.dart' show LocatedMessage;
 
 import '../fasta_codes.dart'
     show templateInternalProblemUnhandled, templateUnspecified;
+
+import '../util/relativize.dart' show relativizeUri;
+
+final Uri platformBinariesLocation = computePlatformBinariesLocation();
+
+abstract class MatchContext implements ChainContext {
+  bool get updateExpectations;
+
+  ExpectationSet get expectationSet;
+
+  Expectation get expectationFileMismatch =>
+      expectationSet["ExpectationFileMismatch"];
+
+  Expectation get expectationFileMissing =>
+      expectationSet["ExpectationFileMissing"];
+
+  Future<Result<O>> match<O>(
+    String suffix,
+    String actual,
+    Uri uri,
+    O output,
+  ) async {
+    actual = actual.trim();
+    if (actual.isNotEmpty) {
+      actual += "\n";
+    }
+    File expectedFile = new File("${uri.toFilePath()}$suffix");
+    if (await expectedFile.exists()) {
+      String expected = await expectedFile.readAsString();
+      if (expected != actual) {
+        if (updateExpectations) {
+          return updateExpectationFile<O>(expectedFile.uri, actual, output);
+        }
+        String diff = await runDiff(expectedFile.uri, actual);
+        return new Result<O>(output, expectationFileMismatch,
+            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+      } else {
+        return new Result<O>.pass(output);
+      }
+    } else {
+      if (actual.isEmpty) return new Result<O>.pass(output);
+      if (updateExpectations) {
+        return updateExpectationFile(expectedFile.uri, actual, output);
+      }
+      return new Result<O>(
+          output,
+          expectationFileMissing,
+          """
+Please create file ${expectedFile.path} with this content:
+$actual""",
+          null);
+    }
+  }
+
+  Future<Result<O>> updateExpectationFile<O>(
+    Uri uri,
+    String actual,
+    O output,
+  ) async {
+    if (actual.isEmpty) {
+      await new File.fromUri(uri).delete();
+    } else {
+      await openWrite(uri, (IOSink sink) {
+        sink.write(actual);
+      });
+    }
+    return new Result<O>.pass(output);
+  }
+}
 
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
@@ -60,13 +131,14 @@ class Print extends Step<Component, Component, ChainContext> {
     await CompilerContext.runWithDefaultOptions((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
 
+      Printer printer = new Printer(sb);
       for (Library library in component.libraries) {
-        Printer printer = new Printer(sb);
         if (library.importUri.scheme != "dart" &&
             library.importUri.scheme != "package") {
           printer.writeLibraryFile(library);
         }
       }
+      printer.writeConstantTable(component);
     });
     print("$sb");
     return pass(component);
@@ -132,80 +204,45 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
   }
 }
 
-class MatchExpectation extends Step<Component, Component, ChainContext> {
+class MatchExpectation extends Step<Component, Component, MatchContext> {
   final String suffix;
 
-  // TODO(ahe): This is true by default which doesn't match well with the class
-  // name.
-  final bool updateExpectations;
-
-  const MatchExpectation(this.suffix, {this.updateExpectations: false});
+  const MatchExpectation(this.suffix);
 
   String get name => "match expectations";
 
-  Future<Result<Component>> run(Component component, dynamic context) async {
-    StringBuffer messages = context.componentToDiagnostics[component];
-    Uri uri = component.uriToSource.keys
-        .firstWhere((uri) => uri != null && uri.scheme == "file");
-    Library library = component.libraries
-        .firstWhere((Library library) => library.importUri.scheme != "dart");
+  Future<Result<Component>> run(Component component, MatchContext context) {
+    StringBuffer messages =
+        (context as dynamic).componentToDiagnostics[component];
+    Uri uri =
+        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+    Iterable<Library> libraries = component.libraries.where(
+        ((Library library) =>
+            library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package"));
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
-    if (messages.isNotEmpty) {
-      buffer.write("// Formatted problems:\n//");
-      for (String line in "${messages}".split("\n")) {
-        buffer.write("\n// $line".trimRight());
-      }
-      buffer.write("\n\n");
-      messages.clear();
+    messages.clear();
+    Printer printer = new Printer(buffer)
+      ..writeProblemsAsJson("Problems in component", component.problemsAsJson);
+    libraries.forEach((Library library) {
+      printer.writeLibraryFile(library);
+      printer.endLine();
+    });
+    String actual = "$buffer";
+    String binariesPath = relativizeUri(platformBinariesLocation);
+    if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
+      // We are running from the built SDK.
+      actual = actual.replaceAll(
+          binariesPath.substring(
+              0, binariesPath.length - "lib/_internal/".length),
+          "sdk/");
     }
-    for (Field field in library.fields) {
-      if (field.name.name != "#errors") continue;
-      ListLiteral list = field.initializer;
-      buffer.write("// Unhandled errors:");
-      for (StringLiteral string in list.expressions) {
-        buffer.write("\n//");
-        for (String line in string.value.split("\n")) {
-          buffer.write("\n// $line");
-        }
-      }
-      buffer.write("\n\n");
-    }
-    new ErrorPrinter(buffer).writeLibraryFile(library);
-    String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
+    actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
-    File expectedFile = new File("${uri.toFilePath()}$suffix");
-    if (await expectedFile.exists()) {
-      String expected = await expectedFile.readAsString();
-      if (expected.trim() != actual.trim()) {
-        if (!updateExpectations) {
-          String diff = await runDiff(expectedFile.uri, actual);
-          return new Result<Component>(
-              component,
-              context.expectationSet["ExpectationFileMismatch"],
-              "$uri doesn't match ${expectedFile.uri}\n$diff",
-              null);
-        }
-      } else {
-        return pass(component);
-      }
-    }
-    if (updateExpectations) {
-      await openWrite(expectedFile.uri, (IOSink sink) {
-        sink.writeln(actual.trim());
-      });
-      return pass(component);
-    } else {
-      return new Result<Component>(
-          component,
-          context.expectationSet["ExpectationFileMissing"],
-          """
-Please create file ${expectedFile.path} with this content:
-$actual""",
-          null);
-    }
+    return context.match<Component>(suffix, actual, uri, component);
   }
 }
 
@@ -374,31 +411,4 @@ Future<void> openWrite(Uri uri, f(IOSink sink)) async {
     await sink.close();
   }
   print("Wrote $uri");
-}
-
-class ErrorPrinter extends Printer {
-  ErrorPrinter(StringSink sink, {Object importTable, Object metadata})
-      : super(sink, importTable: importTable, metadata: metadata);
-
-  ErrorPrinter._inner(ErrorPrinter parent, Object importTable, Object metadata)
-      : super(parent.sink,
-            importTable: importTable,
-            metadata: metadata,
-            syntheticNames: parent.syntheticNames,
-            annotator: parent.annotator,
-            showExternal: parent.showExternal,
-            showOffsets: parent.showOffsets,
-            showMetadata: parent.showMetadata);
-
-  @override
-  ErrorPrinter createInner(importTable, metadata) {
-    return new ErrorPrinter._inner(this, importTable, metadata);
-  }
-
-  @override
-  visitField(Field node) {
-    if (node.name.name != "#errors") {
-      super.visitField(node);
-    }
-  }
 }

@@ -14,6 +14,8 @@ import 'package:args/args.dart';
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
 // ignore_for_file: implementation_imports
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -105,6 +107,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           'used, and where dill filesize does not matter, and the gain is '
           'improved speed.',
       defaultsTo: false,
+      hide: true)
+  ..addMultiOption('enable-experiment',
+      help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true);
 
 String usage = '''
@@ -274,6 +279,8 @@ class FrontendCompiler implements CompilerInterface {
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
+      ..experimentalFlags = parseExperimentalFlags(
+          options['enable-experiment'], (msg) => errors.add(msg))
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {

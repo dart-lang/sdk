@@ -25,8 +25,8 @@ class FlutterConvertToChildrenTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Row(
-    /*caret*/child: new Container()
+  return Row(
+    /*caret*/child: Container()
   );
 }
 ''');
@@ -38,34 +38,30 @@ build() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/child: new Container(
+  return Scaffold(
+    body: Center(
+      /*caret*/child: Container(
         width: 200.0,
         height: 300.0,
       ),
       key: null,
     ),
-// end
   );
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/children: <Widget>[
-        new Container(
+  return Scaffold(
+    body: Center(
+      children: <Widget>[
+        Container(
           width: 200.0,
           height: 300.0,
         ),
       ],
       key: null,
     ),
-// end
   );
 }
 ''');
@@ -77,35 +73,31 @@ build() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-// start
-    body: new Center(
+  return Scaffold(
+    body: Center(
       /*caret*/child:
-          new Container(
+          Container(
         width: 200.0,
         height: 300.0,
       ),
       key: null,
     ),
-// end
   );
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/children: <Widget>[
-        new Container(
+  return Scaffold(
+    body: Center(
+      children: <Widget>[
+        Container(
           width: 200.0,
           height: 300.0,
         ),
       ],
       key: null,
     ),
-// end
   );
 }
 ''');
@@ -116,9 +108,9 @@ build() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-    body: /*caret*/new Center(
-      child: new Container(),
+  return Scaffold(
+    body: /*caret*/Center(
+      child: Container(),
     ),
   );
 }
@@ -131,26 +123,22 @@ build() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/child: new GestureDetector(),
+  return Scaffold(
+    body: Center(
+      /*caret*/child: GestureDetector(),
       key: null,
     ),
-// end
   );
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/children: <Widget>[new GestureDetector()],
+  return Scaffold(
+    body: Center(
+      children: <Widget>[GestureDetector()],
       key: null,
     ),
-// end
   );
 }
 ''');

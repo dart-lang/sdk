@@ -625,7 +625,7 @@ class Dart2TypeSystem extends TypeSystem {
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
+      if (isSubtypeOf(to, from.bound ?? DynamicTypeImpl.instance)) {
         return new TypeParameterMember(from.element, null, to).type;
       }
     }
@@ -908,10 +908,9 @@ class Dart2TypeSystem extends TypeSystem {
         var newType =
             _substituteForUnknownType(p.type, lowerBound: !lowerBound);
         return new ParameterElementImpl.synthetic(
-            // ignore: deprecated_member_use
             p.name,
             newType,
-            // ignore: deprecated_member_use
+            // ignore: deprecated_member_use_from_same_package
             p.parameterKind);
       });
       // Return type is covariant.
@@ -1660,14 +1659,6 @@ class GenericInferrer {
 
     return messageLines.join('\n');
   }
-}
-
-/**
- * A type system that implements the type semantics for strong mode.
- */
-@deprecated
-class StrongTypeSystemImpl extends Dart2TypeSystem {
-  StrongTypeSystemImpl(TypeProvider typeProvider) : super(typeProvider);
 }
 
 /**

@@ -44,8 +44,16 @@ class FindNode {
     return _node(search, (n) => n is ExportDirective);
   }
 
+  Expression expression(String search) {
+    return _node(search, (n) => n is Expression);
+  }
+
   FieldFormalParameter fieldFormalParameter(String search) {
     return _node(search, (n) => n is FieldFormalParameter);
+  }
+
+  FunctionBody functionBody(String search) {
+    return _node(search, (n) => n is FunctionBody);
   }
 
   FunctionExpression functionExpression(String search) {
@@ -122,6 +130,10 @@ class FindNode {
 
   SimpleFormalParameter simpleParameter(String search) {
     return _node(search, (n) => n is SimpleFormalParameter);
+  }
+
+  Statement statement(String search) {
+    return _node(search, (n) => n is Statement);
   }
 
   StringLiteral stringLiteral(String search) {

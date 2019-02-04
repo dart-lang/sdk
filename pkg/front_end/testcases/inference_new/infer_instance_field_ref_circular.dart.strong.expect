@@ -1,28 +1,17 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:69: Error: Can't infer the type of 'b': circularity found during type inference.
-// Specify the type explicitly.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
-//                                                                     ^
-//
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:17:67: Error: Can't infer the type of 'x': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
-//                                                                   ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:69: Error: Can't infer the type of 'b': circularity found during type inference.
-// Specify the type explicitly.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
-//                                                                     ^
-//
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:17:67: Error: Can't infer the type of 'x': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
-//                                                                   ^
-
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:69: Error: Can't infer the type of 'b': circularity found during type inference.
+// Specify the type explicitly.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
+//                                                                     ^
+//
+// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:17:67: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+//                                                                   ^
+//
 import self as self;
 import "dart:core" as core;
 

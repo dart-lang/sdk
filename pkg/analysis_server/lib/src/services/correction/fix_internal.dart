@@ -282,8 +282,56 @@ class FixProcessor {
     if (errorCode == HintCode.DEAD_CODE) {
       await _addFix_removeDeadCode();
     }
+    if (errorCode == HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH ||
+        errorCode == HintCode.DEAD_CODE_ON_CATCH_SUBTYPE) {
+      await _addFix_removeDeadCode();
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+    }
+    // TODO(brianwilkerson) Define a syntax for deprecated members to indicate
+    //  how to update the code and implement a fix to apply the update.
+//    if (errorCode == HintCode.DEPRECATED_MEMBER_USE ||
+//        errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE) {
+//      await _addFix_replaceDeprecatedMemberUse();
+//    }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
       await _addFix_useEffectiveIntegerDivision();
+    }
+    if (errorCode == HintCode.DUPLICATE_IMPORT) {
+      await _addFix_removeUnusedImport();
+    }
+    if (errorCode == HintCode.DUPLICATE_HIDDEN_NAME ||
+        errorCode == HintCode.DUPLICATE_SHOWN_NAME) {
+      await _addFix_removeNameFromCombinator();
+    }
+    // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
+//    if (errorCode == HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE) {
+//      await _addFix_convertPathToPackageUri();
+//    }
+    if (errorCode == HintCode.INVALID_FACTORY_ANNOTATION ||
+        errorCode == HintCode.INVALID_IMMUTABLE_ANNOTATION ||
+        errorCode == HintCode.INVALID_LITERAL_ANNOTATION ||
+        errorCode == HintCode.INVALID_REQUIRED_PARAM ||
+        errorCode == HintCode.INVALID_SEALED_ANNOTATION) {
+      await _addFix_removeAnnotation();
+    }
+    if (errorCode == HintCode.MISSING_REQUIRED_PARAM ||
+        errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
+      await _addFix_addMissingRequiredArgument();
+    }
+    if (errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER ||
+        errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD ||
+        errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD ||
+        errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER) {
+      await _addFix_removeAnnotation();
+    }
+    // TODO(brianwilkerson) Add a fix to normalize the path.
+//    if (errorCode == HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT) {
+//      await _addFix_normalizeUri();
+//    }
+    if (errorCode == HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE) {
+      await _addFix_importAsync();
+      await _addFix_updateSdkConstraints();
     }
     if (errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL) {
       await _addFix_isNotNull();
@@ -291,17 +339,49 @@ class FixProcessor {
     if (errorCode == HintCode.TYPE_CHECK_IS_NULL) {
       await _addFix_isNull();
     }
+    if (errorCode == HintCode.UNDEFINED_HIDDEN_NAME ||
+        errorCode == HintCode.UNDEFINED_SHOWN_NAME) {
+      await _addFix_removeNameFromCombinator();
+    }
     if (errorCode == HintCode.UNNECESSARY_CAST) {
       await _addFix_removeUnnecessaryCast();
     }
+    // TODO(brianwilkerson) Add a fix to remove the method.
+//    if (errorCode == HintCode.UNNECESSARY_NO_SUCH_METHOD) {
+//      await _addFix_removeMethodDeclaration();
+//    }
+    // TODO(brianwilkerson) Add a fix to remove the type check.
+//    if (errorCode == HintCode.UNNECESSARY_TYPE_CHECK_FALSE ||
+//        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_TRUE) {
+//      await _addFix_removeUnnecessaryTypeCheck();
+//    }
     if (errorCode == HintCode.UNUSED_CATCH_CLAUSE) {
       await _addFix_removeUnusedCatchClause();
     }
     if (errorCode == HintCode.UNUSED_CATCH_STACK) {
       await _addFix_removeUnusedCatchStack();
     }
+    // TODO(brianwilkerson) Add a fix to remove the declaration. Decide whether
+    //  this should be a single general fix, or multiple more specific fixes
+    //  such as [_addFix_removeMethodDeclaration].
+//    if (errorCode == HintCode.UNUSED_ELEMENT ||
+//        errorCode == HintCode.UNUSED_FIELD) {
+//      await _addFix_removeUnusedDeclaration();
+//    }
     if (errorCode == HintCode.UNUSED_IMPORT) {
       await _addFix_removeUnusedImport();
+    }
+    // TODO(brianwilkerson) Add a fix to remove the label.
+//    if (errorCode == HintCode.UNUSED_LABEL) {
+//      await _addFix_removeUnusedLabel();
+//    }
+    // TODO(brianwilkerson) Add a fix to remove the local variable, either with
+    //  or without the initialization code.
+//    if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+//      await _addFix_removeUnusedLocalVariable();
+//    }
+    if (errorCode == HintCode.UNUSED_SHOWN_NAME) {
+      await _addFix_removeNameFromCombinator();
     }
     if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
       await _addFix_insertSemicolon();
@@ -326,10 +406,6 @@ class FixProcessor {
             StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
       await _addFix_createConstructor_insteadOfSyntheticDefault();
       await _addFix_addMissingParameter();
-    }
-    if (errorCode == HintCode.MISSING_REQUIRED_PARAM ||
-        errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
-      await _addFix_addMissingRequiredArgument();
     }
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       await _addFix_createConstructor_named();
@@ -468,10 +544,6 @@ class FixProcessor {
     if (errorCode ==
         CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE) {
       await _addFix_extendClassForMixin();
-    }
-    if (errorCode == HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE) {
-      await _addFix_importAsync();
-      await _addFix_updateSdkConstraints();
     }
     // lints
     if (errorCode is LintCode) {
@@ -2509,6 +2581,49 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_NE_NULL);
   }
 
+  Future<void> _addFix_removeAnnotation() async {
+    void addFix(Annotation node) async {
+      if (node == null) {
+        return;
+      }
+      Token followingToken = node.endToken.next;
+      followingToken = followingToken.precedingComments ?? followingToken;
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(node, followingToken));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_ANNOTATION,
+          args: [node.name.name]);
+    }
+
+    Annotation findAnnotation(
+        NodeList<Annotation> metadata, String targetName) {
+      return metadata.firstWhere(
+          (annotation) => annotation.name.name == targetName,
+          orElse: () => null);
+    }
+
+    AstNode node = this.coveredNode;
+    if (node is Annotation) {
+      await addFix(node);
+    } else if (node is DefaultFormalParameter) {
+      await addFix(findAnnotation(node.parameter.metadata, 'required'));
+    } else if (node is NormalFormalParameter) {
+      await addFix(findAnnotation(node.metadata, 'required'));
+    } else if (node is DeclaredSimpleIdentifier) {
+      AstNode parent = node.parent;
+      if (parent is MethodDeclaration) {
+        await addFix(findAnnotation(parent.metadata, 'override'));
+      } else if (parent is VariableDeclaration) {
+        FieldDeclaration fieldDeclaration =
+            parent.thisOrAncestorOfType<FieldDeclaration>();
+        if (fieldDeclaration != null) {
+          await addFix(findAnnotation(fieldDeclaration.metadata, 'override'));
+        }
+      }
+    }
+  }
+
   Future<void> _addFix_removeAwait() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -2524,8 +2639,6 @@ class FixProcessor {
   }
 
   Future<void> _addFix_removeDeadCode() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     AstNode coveringNode = this.coveredNode;
     if (coveringNode is Expression) {
       AstNode parent = coveredNode.parent;
@@ -2562,6 +2675,17 @@ class FixProcessor {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(rangeToRemove);
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
+    } else if (coveringNode is CatchClause) {
+      TryStatement tryStatement = coveringNode.parent;
+      NodeList<CatchClause> catchClauses = tryStatement.catchClauses;
+      int index = catchClauses.indexOf(coveringNode);
+      AstNode previous =
+          index == 0 ? tryStatement.body : catchClauses[index - 1];
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.endEnd(previous, coveringNode));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
     }
@@ -2670,6 +2794,68 @@ class FixProcessor {
         builder.addDeletion(utils.getLinesRange(range.node(declaration)));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_METHOD_DECLARATION);
+    }
+  }
+
+  Future<void> _addFix_removeNameFromCombinator() async {
+    SourceRange rangeForCombinator(Combinator combinator) {
+      AstNode parent = combinator.parent;
+      if (parent is NamespaceDirective) {
+        NodeList<Combinator> combinators = parent.combinators;
+        if (combinators.length == 1) {
+          Token previousToken =
+              combinator.parent.findPrevious(combinator.beginToken);
+          return range.endEnd(previousToken, combinator);
+        }
+        int index = combinators.indexOf(combinator);
+        if (index < 0) {
+          return null;
+        } else if (index == combinators.length - 1) {
+          return range.endEnd(combinators[index - 1], combinator);
+        }
+        return range.startStart(combinator, combinators[index + 1]);
+      }
+      return null;
+    }
+
+    SourceRange rangeForNameInCombinator(
+        Combinator combinator, SimpleIdentifier name) {
+      NodeList<SimpleIdentifier> names;
+      if (combinator is HideCombinator) {
+        names = combinator.hiddenNames;
+      } else if (combinator is ShowCombinator) {
+        names = combinator.shownNames;
+      } else {
+        return null;
+      }
+      if (names.length == 1) {
+        return rangeForCombinator(combinator);
+      }
+      int index = names.indexOf(name);
+      if (index < 0) {
+        return null;
+      } else if (index == names.length - 1) {
+        return range.endEnd(names[index - 1], name);
+      }
+      return range.startStart(name, names[index + 1]);
+    }
+
+    AstNode node = this.coveredNode;
+    if (node is SimpleIdentifier) {
+      AstNode parent = coveredNode.parent;
+      if (parent is Combinator) {
+        SourceRange rangeToRemove = rangeForNameInCombinator(parent, node);
+        if (rangeToRemove == null) {
+          return;
+        }
+        DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addDeletion(rangeToRemove);
+        });
+        _addFixFromBuilder(
+            changeBuilder, DartFixKind.REMOVE_NAME_FROM_COMBINATOR,
+            args: [parent is HideCombinator ? 'hide' : 'show']);
+      }
     }
   }
 

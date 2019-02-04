@@ -33,7 +33,7 @@ class LspStdioAnalysisServer {
    */
   Future serveStdio() {
     LspByteStreamServerChannel serverChannel = new LspByteStreamServerChannel(
-        stdin, stdout, socketServer.instrumentationService);
+        stdin, stdout.nonBlocking, socketServer.instrumentationService);
     socketServer.createAnalysisServer(serverChannel);
     return serverChannel.closed;
   }

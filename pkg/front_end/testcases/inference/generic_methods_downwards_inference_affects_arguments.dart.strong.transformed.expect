@@ -1,4 +1,12 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_downwards_inference_affects_arguments.dart:13:76: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//           /*@typeArgs=String*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
+//                                                                            ^
+//
 import self as self;
 import "dart:core" as core;
 

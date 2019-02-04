@@ -1,48 +1,27 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:9: Error: Type 'T' is a bound of itself via 'U', 'Y', 'Z'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
-//         ^
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:22: Error: Type 'U' is a bound of itself via 'Y', 'Z', 'T'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
-//                      ^
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:28: Error: Type 'Y' is a bound of itself via 'Z', 'T', 'U'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-//     X extends Function(V), Y extends Z, Z extends T> {}
-//                            ^
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:41: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-//     X extends Function(V), Y extends Z, Z extends T> {}
-//                                         ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:9: Error: Type 'T' is a bound of itself via 'U', 'Y', 'Z'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
-//         ^
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:22: Error: Type 'U' is a bound of itself via 'Y', 'Z', 'T'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
-//                      ^
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:28: Error: Type 'Y' is a bound of itself via 'Z', 'T', 'U'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-//     X extends Function(V), Y extends Z, Z extends T> {}
-//                            ^
-//
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:41: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-//     X extends Function(V), Y extends Z, Z extends T> {}
-//                                         ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:9: Error: Type 'T' is a bound of itself via 'U', 'Y', 'Z'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
+//         ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:22: Error: Type 'U' is a bound of itself via 'Y', 'Z', 'T'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
+//                      ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:28: Error: Type 'Y' is a bound of itself via 'Z', 'T', 'U'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+//     X extends Function(V), Y extends Z, Z extends T> {}
+//                            ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:41: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+//     X extends Function(V), Y extends Z, Z extends T> {}
+//                                         ^
+//
 import self as self;
 import "dart:core" as core;
 

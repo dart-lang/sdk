@@ -974,6 +974,15 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
         r"""Constant constructor can't call non-constant super constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalCircularity = messageConstEvalCircularity;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalCircularity = const MessageCode(
+    "ConstEvalCircularity",
+    analyzerCodes: <String>["RECURSIVE_COMPILE_TIME_CONSTANT"],
+    message: r"""Constant expression depends on itself.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalContext = messageConstEvalContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3338,6 +3347,129 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFfiAnnotationMissing = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+    withArguments: _withArgumentsFfiAnnotationMissing);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiAnnotationMissing =
+    const Code<Message Function(String name)>(
+  "FfiAnnotationMissing",
+  templateFfiAnnotationMissing,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiAnnotationMissing(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiAnnotationMissing,
+      message:
+          """Field '${name}' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(DartType _type)> templateFfiTypeInvalid = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Expected type '#type' to be a valid and instantiated subtype of '_NativeType'.""",
+    withArguments: _withArgumentsFfiTypeInvalid);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeFfiTypeInvalid =
+    const Code<Message Function(DartType _type)>(
+  "FfiTypeInvalid",
+  templateFfiTypeInvalid,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiTypeInvalid(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiTypeInvalid,
+      message:
+          """Expected type '${type}' to be a valid and instantiated subtype of '_NativeType'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        DartType
+            _type3)> templateFfiTypeMismatch = const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3)>(
+    messageTemplate:
+        r"""Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'.""",
+    withArguments: _withArgumentsFfiTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2, DartType _type3)>
+    codeFfiTypeMismatch = const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3)>(
+  "FfiTypeMismatch",
+  templateFfiTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiTypeMismatch(
+    DartType _type, DartType _type2, DartType _type3) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeFfiTypeMismatch,
+      message:
+          """Expected type '${type}' to be '${type2}', which is the Dart type corresponding to '${type3}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2, 'type3': _type3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType
+            _type)> templateFfiTypeOpaque = const Template<
+        Message Function(String name, DartType _type)>(
+    messageTemplate:
+        r"""Method '#name' cannot be called on something of type '#type' as this type is opaque.""",
+    withArguments: _withArgumentsFfiTypeOpaque);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type)> codeFfiTypeOpaque =
+    const Code<Message Function(String name, DartType _type)>(
+  "FfiTypeOpaque",
+  templateFfiTypeOpaque,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiTypeOpaque(String name, DartType _type) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiTypeOpaque,
+      message:
+          """Method '${name}' cannot be called on something of type '${type}' as this type is opaque.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializedOutsideDeclaringClass =
     messageFieldInitializedOutsideDeclaringClass;
 
@@ -5310,6 +5442,46 @@ const MessageCode messageInterpolationInUri = const MessageCode(
     "InterpolationInUri",
     analyzerCodes: <String>["INVALID_LITERAL_IN_CONFIGURATION"],
     message: r"""Can't use string interpolation in a URI.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        DartType
+            _type2)> templateIntersectionTypeAsTypeArgument = const Template<
+        Message Function(String name, DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""Can't infer a type for '#name', it can be either '#type' or '#type2'.""",
+    tipTemplate:
+        r"""Try adding a type argument selecting one of the options.""",
+    withArguments: _withArgumentsIntersectionTypeAsTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeIntersectionTypeAsTypeArgument =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+  "IntersectionTypeAsTypeArgument",
+  templateIntersectionTypeAsTypeArgument,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIntersectionTypeAsTypeArgument(
+    String name, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeIntersectionTypeAsTypeArgument,
+      message:
+          """Can't infer a type for '${name}', it can be either '${type}' or '${type2}'.""" +
+              labeler.originMessages,
+      tip: """Try adding a type argument selecting one of the options.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7932,6 +8104,26 @@ const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
     index: 18,
     message: r"""The modifier 'static' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAndInstanceConflict =
+    messageStaticAndInstanceConflict;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAndInstanceConflict = const MessageCode(
+    "StaticAndInstanceConflict",
+    analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"],
+    message: r"""This static member conflicts with an instance member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAndInstanceConflictCause =
+    messageStaticAndInstanceConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAndInstanceConflictCause = const MessageCode(
+    "StaticAndInstanceConflictCause",
+    severity: Severity.context,
+    message: r"""This is the instance member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticConstructor = messageStaticConstructor;

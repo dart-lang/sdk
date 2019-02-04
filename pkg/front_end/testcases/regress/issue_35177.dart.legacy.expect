@@ -6,4 +6,3 @@ static method main() → dynamic {
   () → dynamic f;
   f.call().call<core::int>();
 }
-

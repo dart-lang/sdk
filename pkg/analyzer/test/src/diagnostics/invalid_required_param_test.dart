@@ -10,13 +10,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidRequiredParamTest);
     defineReflectiveTests(InvalidRequiredParamTest_Driver);
   });
 }
 
-@reflectiveTest
-class InvalidRequiredParamTest extends ResolverTestCase {
+abstract class InvalidRequiredParamTest extends ResolverTestCase {
   @override
   void reset() {
     super.resetWith(packages: [

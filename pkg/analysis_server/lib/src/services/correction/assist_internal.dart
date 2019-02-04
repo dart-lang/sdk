@@ -99,6 +99,7 @@ class AssistProcessor {
     await _addProposal_convertToIsNot_onNot();
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToFieldParameter();
+    await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
     await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
@@ -1266,6 +1267,36 @@ class AssistProcessor {
     }
   }
 
+  Future<void> _addProposal_convertToMultilineString() async {
+    var node = this.node;
+    if (node is InterpolationElement) {
+      node = (node as InterpolationElement).parent;
+    }
+    if (node is SingleStringLiteral) {
+      SingleStringLiteral literal = node;
+      if (!literal.isMultiline) {
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (builder) {
+          var newQuote = literal.isSingleQuoted ? "'''" : '"""';
+          builder.addReplacement(
+            SourceRange(literal.offset + (literal.isRaw ? 1 : 0), 1),
+            (builder) {
+              builder.writeln(newQuote);
+            },
+          );
+          builder.addSimpleReplacement(
+            SourceRange(literal.end - 1, 1),
+            newQuote,
+          );
+        });
+        _addAssistFromBuilder(
+          changeBuilder,
+          DartAssistKind.CONVERT_TO_MULTILINE_STRING,
+        );
+      }
+    }
+  }
+
   Future<void> _addProposal_convertToSingleQuotedString() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -1625,7 +1656,7 @@ class AssistProcessor {
               }
               builder.writeln('  @override');
               builder.writeln('  $stateName createState() {');
-              builder.writeln('    return new $stateName();');
+              builder.writeln('    return $stateName();');
               builder.writeln('  }');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
@@ -1817,8 +1848,8 @@ class AssistProcessor {
       return;
     }
 
-    // child: new ThisWidget(child: ourChild)
-    // children: [foo, new ThisWidget(child: ourChild), bar]
+    // child: ThisWidget(child: ourChild)
+    // children: [foo, ThisWidget(child: ourChild), bar]
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       var childExpression = childArgument.expression;
@@ -2608,7 +2639,6 @@ class AssistProcessor {
         builder.write('[');
         builder.write(eol);
         builder.write(indentArg);
-        builder.write('new ');
         builder.addSimpleLinkedEdit('WIDGET', 'widget');
         builder.write('(');
         builder.write(eol);

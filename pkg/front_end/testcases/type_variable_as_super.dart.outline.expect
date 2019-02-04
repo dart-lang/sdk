@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/type_variable_as_super.dart:5:16: Error: The type variable 'T' can't be used as supertype.
 // abstract class A<T> extends T {}
@@ -11,8 +13,7 @@
 // pkg/front_end/testcases/type_variable_as_super.dart:11:7: Error: The type variable 'T' can't be used as supertype.
 // class C<T> extends T {}
 //       ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

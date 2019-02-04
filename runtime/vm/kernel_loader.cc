@@ -211,6 +211,7 @@ void KernelLoader::ReadObfuscationProhibitions() {
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   Thread* thread = Thread::Current();
+  TIMELINE_DURATION(thread, Isolate, "LoadKernel");
 
   if (program->is_single_program()) {
     KernelLoader loader(program);
@@ -621,6 +622,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    // Note that `problemsAsJson` on Component is implicitly skipped.
     const intptr_t length = program_->library_count();
     Object& last_library = Library::Handle(Z);
     for (intptr_t i = 0; i < length; i++) {
@@ -1336,6 +1338,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                       intptr_t class_offset,
                                       const ClassIndex& class_index,
                                       ClassHelper* class_helper) {
+  TIMELINE_DURATION(Thread::Current(), Isolate, "FinishClassLoading");
+
   fields_.Clear();
   functions_.Clear();
   ActiveClassScope active_class_scope(&active_class_, &klass);

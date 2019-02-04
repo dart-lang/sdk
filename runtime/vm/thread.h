@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_THREAD_H_
 #define RUNTIME_VM_THREAD_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
@@ -16,6 +20,7 @@
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
 
 namespace dart {
@@ -294,6 +299,14 @@ class Thread : public ThreadState {
     return ++stack_overflow_count_;
   }
 
+#if !defined(TARGET_ARCH_DBC)
+  static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
+    return fpu_regs
+               ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
+               : stack_overflow_shared_without_fpu_regs_entry_point_offset();
+  }
+#endif
+
   TaskKind task_kind() const { return task_kind_; }
 
   // Retrieves and clears the stack overflow flags.  These are set by
@@ -449,20 +462,6 @@ class Thread : public ThreadState {
   bool bump_allocate() const { return bump_allocate_; }
   void set_bump_allocate(bool b) { bump_allocate_ = b; }
 
-  HandleScope* top_handle_scope() const {
-#if defined(DEBUG)
-    return top_handle_scope_;
-#else
-    return 0;
-#endif
-  }
-
-  void set_top_handle_scope(HandleScope* handle_scope) {
-#if defined(DEBUG)
-    top_handle_scope_ = handle_scope;
-#endif
-  }
-
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
     return no_safepoint_scope_depth_;
@@ -494,7 +493,7 @@ class Thread : public ThreadState {
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
-  static intptr_t write_barrier_wrappers_offset(Register reg) {
+  static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
@@ -504,6 +503,19 @@ class Thread : public ThreadState {
     }
     return OFFSET_OF(Thread, write_barrier_wrappers_entry_points_) +
            index * sizeof(uword);
+  }
+
+  static intptr_t WriteBarrierWrappersOffsetForRegister(Register reg) {
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+      if (i == reg) {
+        return index * kStoreBufferWrapperSize;
+      }
+      ++index;
+    }
+    UNREACHABLE();
+    return 0;
   }
 #endif
 
@@ -693,7 +705,7 @@ class Thread : public ThreadState {
     execution_state_ = static_cast<uint32_t>(state);
   }
 
-  bool MayAllocateHandles() {
+  virtual bool MayAllocateHandles() {
     return (execution_state() == kThreadInVM) ||
            (execution_state() == kThreadInGenerated);
   }
@@ -751,10 +763,6 @@ class Thread : public ThreadState {
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
   intptr_t CountLocalHandles() const;
-  bool IsValidZoneHandle(Dart_Handle object) const;
-  intptr_t CountZoneHandles() const;
-  bool IsValidScopedHandle(Dart_Handle object) const;
-  intptr_t CountScopedHandles() const;
   int ZoneSizeInBytes() const;
   void UnwindScopes(uword stack_marker);
 
@@ -838,7 +846,6 @@ class Thread : public ThreadState {
   ApiLocalScope* api_top_scope_;
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
-  HandleScope* top_handle_scope_;
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;

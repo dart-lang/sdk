@@ -518,7 +518,7 @@ class PageSpace {
   friend class ExclusiveLargePageIterator;
   friend class HeapIterationScope;
   friend class PageSpaceController;
-  friend class SweeperTask;
+  friend class ConcurrentSweeperTask;
   friend class GCCompactor;
   friend class CompactorTask;
 

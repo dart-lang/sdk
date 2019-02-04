@@ -8797,7 +8797,7 @@ main() {
     expect(type, isNotNull);
     expect(element.name, name);
     expect(element.nameOffset, offset);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     expect(element.parameterKind, kind);
     expect(element.type, type);
   }

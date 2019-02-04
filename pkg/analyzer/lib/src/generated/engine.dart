@@ -95,12 +95,6 @@ typedef bool AnalyzeFunctionBodiesPredicate(Source source);
  */
 abstract class AnalysisContext {
   /**
-   * An empty list of contexts.
-   */
-  @deprecated
-  static const List<AnalysisContext> EMPTY_LIST = const <AnalysisContext>[];
-
-  /**
    * The file resolver provider used to override the way file URI's are
    * resolved in some contexts.
    */
@@ -2057,12 +2051,6 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
  * An implementation of a [ChangeNotice].
  */
 class ChangeNoticeImpl implements ChangeNotice {
-  /**
-   * An empty list of change notices.
-   */
-  @deprecated
-  static const List<ChangeNoticeImpl> EMPTY_LIST = const <ChangeNoticeImpl>[];
-
   /**
    * The source for which the result is being reported.
    */

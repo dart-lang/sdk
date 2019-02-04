@@ -302,7 +302,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _process(_instanceMembersByName, (m) => m.invoke());
+          // We don't track parameters in the codegen world builder, so we
+          // pass `null` instead of the concrete call structure.
+          _process(_instanceMembersByName, (m) => m.invoke(null));
           return true;
         }
         break;
@@ -405,7 +407,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
-      case StaticUseKind.REFLECT:
         break;
     }
   }
@@ -447,7 +448,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
-      case StaticUseKind.REFLECT:
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -458,7 +458,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.DIRECT_INVOKE:
         MemberEntity member = staticUse.element;
         MemberUsage instanceUsage = _getMemberUsage(member, memberUsed);
-        memberUsed(instanceUsage.entity, instanceUsage.invoke());
+        // We don't track parameters in the codegen world builder, so we
+        // pass `null` instead of the concrete call structure.
+        memberUsed(instanceUsage.entity, instanceUsage.invoke(null));
         _instanceMembersByName[instanceUsage.entity.name]
             ?.remove(instanceUsage);
         useSet.addAll(usage.normalUse());
@@ -514,17 +516,19 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.write());
       }
       if (!usage.hasInvoke && hasInvocation(member)) {
-        useSet.addAll(usage.invoke());
+        // We don't track parameters in the codegen world builder, so we
+        // pass `null` instead of the concrete call structures.
+        useSet.addAll(usage.invoke(null));
       }
 
-      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+      if (usage.hasPendingClosurizationUse) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
             .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
             .add(usage);
       }
-      if (usage.pendingUse.contains(MemberUse.NORMAL)) {
+      if (usage.hasPendingNormalUse) {
         // The element is not yet used. Add it to the list of instance
         // members to still be processed.
         _instanceMembersByName

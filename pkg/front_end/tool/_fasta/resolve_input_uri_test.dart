@@ -2,39 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Platform;
-
-import 'package:test/test.dart';
+import 'package:expect/expect.dart' show Expect;
 
 import 'resolve_input_uri.dart';
 
+test() {
+  // data URI scheme is supported by default'.
+  Expect.stringEquals('data', resolveInputUri('data:,foo').scheme);
+
+  // Custom Dart schemes are recognized by default.
+  Expect.stringEquals('dart', resolveInputUri('dart:foo').scheme);
+  Expect.stringEquals('package', resolveInputUri('package:foo').scheme);
+
+  // Unknown schemes are recognized by default.
+  Expect.stringEquals(
+      isWindows ? 'file' : 'c', resolveInputUri('c:/foo').scheme);
+  Expect.stringEquals('test', resolveInputUri('test:foo').scheme);
+  Expect.stringEquals(
+      'org-dartlang-foo', resolveInputUri('org-dartlang-foo:bar').scheme);
+  Expect.stringEquals('test', resolveInputUri('test:/foo').scheme);
+  Expect.stringEquals(
+      'org-dartlang-foo', resolveInputUri('org-dartlang-foo:/bar').scheme);
+  Expect.stringEquals(
+      "${Uri.base.resolve('file.txt')}", "${resolveInputUri('file:file.txt')}");
+}
+
 main() {
-  test('data URI scheme is supported by default', () {
-    expect(resolveInputUri('data:,foo').scheme, 'data');
-  });
-
-  test('internal dart schemes are recognized by default', () {
-    expect(resolveInputUri('dart:foo').scheme, 'dart');
-    expect(resolveInputUri('package:foo').scheme, 'package');
-  });
-
-  test('unknown schemes are not recognized by default', () {
-    expect(resolveInputUri('c:/foo').scheme, 'file');
-    if (Platform.isWindows) {
-      /// : is an invalid path character in windows.
-      expect(() => resolveInputUri('test:foo').scheme, throws);
-      expect(() => resolveInputUri('org-dartlang-foo:bar').scheme, throws);
-    } else {
-      expect(resolveInputUri('test:foo').scheme, 'file');
-      expect(resolveInputUri('org-dartlang-foo:bar').scheme, 'file');
-    }
-  });
-
-  test('more schemes can be supported', () {
-    expect(resolveInputUri('test:foo', extraSchemes: ['test']).scheme, 'test');
-    expect(
-        resolveInputUri('org-dartlang-foo:bar',
-            extraSchemes: ['org-dartlang-foo']).scheme,
-        'org-dartlang-foo');
-  });
+  // Test platform default.
+  test();
+  // Test non-Windows behavior.
+  isWindows = false;
+  test();
+  // Test Windows behavior.
+  isWindows = true;
+  test();
 }

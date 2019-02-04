@@ -60,8 +60,11 @@ void foo() { ... }
 
 If the second parameter is missing, `null` or `true`, the procedure will
 available for lookup and invocation directly from native or VM code. If the
-procedure is a *generative* constructor, the enclosing class will also be marked
-for allocation from native or VM code.
+procedure is a *generative* constructor, the enclosing class must also be
+annotated for allocation from native or VM code.
+
+Note that annotating a procedure does not allow closurizing it, e.g. access a
+non-getter via `Dart_GetField`.
 
 ### Fields
 

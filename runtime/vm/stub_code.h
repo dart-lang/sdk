@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -14,7 +15,6 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
-class ObjectPoolWrapper;
 class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
@@ -152,8 +152,8 @@ class StubCode : public AllStatic {
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-  static RawCode* GetBuildMethodExtractorStub(ObjectPoolWrapper* pool);
-  static void GenerateBuildMethodExtractorStub(Assembler* assembler);
+  static RawCode* GetBuildMethodExtractorStub(ObjectPoolBuilder* pool);
+  static void GenerateBuildMethodExtractorStub(compiler::Assembler* assembler);
 #endif
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
@@ -169,6 +169,16 @@ class StubCode : public AllStatic {
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#define GENERATE_STUB(name)                                                    \
+  static RawCode* BuildIsolateSpecific##name##Stub(ObjectPoolBuilder* opw) {   \
+    return StubCode::Generate("_iso_stub_" #name, opw,                         \
+                              StubCode::Generate##name##Stub);                 \
+  }
+  VM_STUB_CODE_LIST(GENERATE_STUB);
+#undef GENERATE_STUB
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
  private:
   friend class MegamorphicCacheTable;
 
@@ -183,35 +193,37 @@ class StubCode : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define STUB_CODE_GENERATE(name)                                               \
-  static void Generate##name##Stub(Assembler* assembler);
+  static void Generate##name##Stub(compiler::Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
-  static RawCode* Generate(const char* name,
-                           ObjectPoolWrapper* object_pool_wrapper,
-                           void (*GenerateStub)(Assembler* assembler));
+  static RawCode* Generate(
+      const char* name,
+      ObjectPoolBuilder* object_pool_builder,
+      void (*GenerateStub)(compiler::Assembler* assembler));
 
-  static void GenerateSharedStub(Assembler* assembler,
+  static void GenerateSharedStub(compiler::Assembler* assembler,
                                  bool save_fpu_registers,
                                  const RuntimeEntry* target,
                                  intptr_t self_code_stub_offset_from_thread,
                                  bool allow_return);
 
-  static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(Assembler* assembler,
+  static void GenerateMegamorphicMissStub(compiler::Assembler* assembler);
+  static void GenerateAllocationStubForClass(compiler::Assembler* assembler,
                                              const Class& cls);
   static void GenerateNArgsCheckInlineCacheStub(
-      Assembler* assembler,
+      compiler::Assembler* assembler,
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
       bool optimized = false,
       bool exactness_check = false);
-  static void GenerateUsageCounterIncrement(Assembler* assembler,
+  static void GenerateUsageCounterIncrement(compiler::Assembler* assembler,
                                             Register temp_reg);
-  static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+  static void GenerateOptimizedUsageCounterIncrement(
+      compiler::Assembler* assembler);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 

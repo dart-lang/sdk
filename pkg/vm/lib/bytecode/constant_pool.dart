@@ -10,7 +10,12 @@ import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'dbc.dart' show constantPoolIndexLimit, BytecodeLimitExceededException;
 import 'bytecode_serialization.dart'
-    show BufferedWriter, BufferedReader, StringTable;
+    show
+        BufferedWriter,
+        BufferedReader,
+        BytecodeSizeStatistics,
+        ConstantPoolEntryStatistics,
+        StringTable;
 import 'object_table.dart' show ObjectHandle, ObjectTable;
 
 /*
@@ -209,6 +214,9 @@ enum ConstantTag {
   kSymbol,
   kInterfaceCall,
 }
+
+String constantTagToString(ConstantTag tag) =>
+    tag.toString().substring('ConstantTag.k'.length);
 
 abstract class ConstantPoolEntry {
   const ConstantPoolEntry();
@@ -1303,13 +1311,28 @@ class ConstantPool {
   }
 
   void write(BufferedWriter writer) {
+    final start = writer.offset;
+    if (BytecodeSizeStatistics.constantPoolStats.isEmpty) {
+      for (var tag in ConstantTag.values) {
+        BytecodeSizeStatistics.constantPoolStats
+            .add(new ConstantPoolEntryStatistics(constantTagToString(tag)));
+      }
+    }
     writer.writePackedUInt30(entries.length);
     entries.forEach((e) {
       if (e is _ReservedConstantPoolEntry) {
         return;
       }
+
+      final entryStart = writer.offset;
+
       e.write(writer);
+
+      final entryStat = BytecodeSizeStatistics.constantPoolStats[e.tag.index];
+      entryStat.size += (writer.offset - entryStart);
+      ++entryStat.count;
     });
+    BytecodeSizeStatistics.constantPoolSize += (writer.offset - start);
   }
 
   ConstantPool.read(BufferedReader reader)

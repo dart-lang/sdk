@@ -1,16 +1,11 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
-//   C<String, String> field;
-//   ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
-//   C<String, String> field;
-//   ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
+//   C<String, String> field;
+//   ^
+//
 import self as self;
 import "dart:core" as core;
 

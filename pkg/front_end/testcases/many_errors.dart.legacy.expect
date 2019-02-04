@@ -1,0 +1,94 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/many_errors.dart:8:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const A.named1() sync* {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/many_errors.dart:13:1: Error: An external or native method can't have a body.
+// external foo(String x) {
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   const A.named1() sync* {}
+//                          ^
+//
+// pkg/front_end/testcases/many_errors.dart:10:26: Error: New expression is not a constant expression.
+//   const A.named2() : x = new Object();
+//                          ^^^
+//
+// pkg/front_end/testcases/many_errors.dart:10:24: Warning: 'x' is a final instance variable that has already been initialized.
+//   const A.named2() : x = new Object();
+//                        ^
+// pkg/front_end/testcases/many_errors.dart:6:9: Context: 'x' was initialized here.
+//   final x = null;
+//         ^
+//
+// pkg/front_end/testcases/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const A.named2() : x = new Object();
+//                        ^
+//
+// pkg/front_end/testcases/many_errors.dart:13:24: Error: An external or native method can't have a body.
+// external foo(String x) {
+//                        ^
+//
+// pkg/front_end/testcases/many_errors.dart:28:9: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+//   const AbstractClass.id();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/many_errors.dart:28:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const AbstractClass.id();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field dynamic x = null;
+  constructor named1() → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  const A.named1() sync* {}
+                         ^" {}
+  const constructor named2() → self::A
+    : final dynamic #t2 = throw invalid-expression "pkg/front_end/testcases/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const A.named2() : x = new Object();
+                       ^", super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  field self::B b = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractClass extends core::Object {
+  const constructor id() → self::AbstractClass
+    : super core::Object::•()
+    ;
+}
+external static method foo(core::String x) → dynamic {
+  invalid-expression "pkg/front_end/testcases/many_errors.dart:13:24: Error: An external or native method can't have a body.
+external foo(String x) {
+                       ^";
+  {
+    return x.length;
+  }
+}
+static method m() → dynamic {
+  throw invalid-expression "pkg/front_end/testcases/many_errors.dart:28:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const AbstractClass.id();
+        ^";
+  (let final dynamic #t3 = new self::C::•() in #t3.==(null) ? null : let final dynamic #t4 = #t3.b in #t4.==(null) ? #t3.b = new self::B::•() : #t4).b;
+}
+static method main() → dynamic {}

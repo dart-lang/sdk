@@ -5,6 +5,7 @@
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
+import '../elements/types.dart' show DartType;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -168,6 +169,10 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   @override
   AbstractValue computeAbstractValueForConstant(ConstantValue value) =>
       const TrivialAbstractValue();
+
+  @override
+  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type) =>
+      null;
 
   @override
   AbstractBool containsAll(AbstractValue a) => AbstractBool.Maybe;

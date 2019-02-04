@@ -1,10 +1,11 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_35213.dart:5:9: Error: Expected ',' before this.
 // f(int a int b) { }
 //         ^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

@@ -68,6 +68,9 @@ import 'identifier_context.dart'
 
 import 'listener.dart' show Listener;
 
+import 'literal_entry_info.dart'
+    show computeLiteralEntry, LiteralEntryInfo, looksLikeLiteralEntry;
+
 import 'loop_state.dart' show LoopState;
 
 import 'member_kind.dart' show MemberKind;
@@ -4186,7 +4189,7 @@ class Parser {
         token = next;
         break;
       }
-      token = parseExpression(token);
+      token = parseListOrSetLiteralEntry(token);
       next = token.next;
       ++count;
       if (!optional(',', next)) {
@@ -4196,7 +4199,7 @@ class Parser {
         }
 
         // Recovery
-        if (!looksLikeExpressionStart(next)) {
+        if (!looksLikeLiteralEntry(next)) {
           if (beginToken.endGroup.isSynthetic) {
             // The scanner has already reported an error,
             // but inserted `]` in the wrong place.
@@ -4223,45 +4226,99 @@ class Parser {
     return token;
   }
 
+  Token parseListOrSetLiteralEntry(Token token) {
+    LiteralEntryInfo info = computeLiteralEntry(token);
+    while (info != null) {
+      if (info.hasEntry) {
+        token = parseExpression(token);
+      } else {
+        token = info.parse(token, this);
+      }
+      info = info.computeNext(token);
+    }
+    return token;
+  }
+
   /// This method parses the portion of a set or map literal that starts with
   /// the left curly brace when there are no leading type arguments.
-  Token parseLiteralSetOrMapSuffix(final Token start, Token constKeyword) {
+  Token parseLiteralSetOrMapSuffix(Token token, Token constKeyword) {
     if (!enableSetLiterals) {
       // TODO(danrubel): remove this once set literals are permanent
-      return parseLiteralMapSuffix(start, constKeyword);
+      return parseLiteralMapSuffix(token, constKeyword);
     }
 
-    Token leftBrace = start.next;
+    Token leftBrace = token = token.next;
     assert(optional('{', leftBrace));
-    if (optional('}', leftBrace.next)) {
-      Token rightBrace = leftBrace.next;
-      listener.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
-      return rightBrace;
-    }
-
-    bool old = mayParseFunctionExpressions;
-    mayParseFunctionExpressions = true;
-    Token token = parseExpression(leftBrace);
-    mayParseFunctionExpressions = old;
-
     Token next = token.next;
     if (optional('}', next)) {
-      listener.handleLiteralSet(1, leftBrace, constKeyword, next);
+      listener.handleLiteralSetOrMap(0, leftBrace, constKeyword, next);
       return next;
-    } else if (optional(',', next)) {
-      return parseLiteralSetRest(token, constKeyword, leftBrace);
-    } else {
-      // TODO(danrubel): Consider better recovery
-      // rather than just assuming this is a literal map.
-      Token colon = ensureColon(token);
+    }
 
-      final old = mayParseFunctionExpressions;
-      mayParseFunctionExpressions = true;
-      token = parseExpression(colon);
-      mayParseFunctionExpressions = old;
+    final old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    int count = 0;
+    bool isMap;
 
-      listener.handleLiteralMapEntry(colon, token.next);
-      return parseLiteralMapRest(token, constKeyword, leftBrace);
+    // Parse entries until we determine it's a map, or set, or no more entries
+    while (true) {
+      LiteralEntryInfo info = computeLiteralEntry(token);
+      while (info != null) {
+        if (info.hasEntry) {
+          token = parseExpression(token);
+          if (isMap == null) {
+            isMap = optional(':', token.next);
+          }
+          if (isMap) {
+            Token colon = ensureColon(token);
+            token = parseExpression(colon);
+            listener.handleLiteralMapEntry(colon, token.next);
+          }
+        } else {
+          token = info.parse(token, this);
+        }
+        info = info.computeNext(token);
+      }
+      ++count;
+      next = token.next;
+
+      if (isMap != null) {
+        mayParseFunctionExpressions = old;
+        return isMap
+            ? parseLiteralMapRest(token, count, constKeyword, leftBrace)
+            : parseLiteralSetRest(token, count, constKeyword, leftBrace);
+      }
+
+      Token comma;
+      if (optional(',', next)) {
+        comma = token = next;
+        next = token.next;
+      }
+      if (optional('}', next)) {
+        listener.handleLiteralSetOrMap(count, leftBrace, constKeyword, next);
+        mayParseFunctionExpressions = old;
+        return next;
+      }
+
+      if (comma == null) {
+        // Recovery
+        if (looksLikeLiteralEntry(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          token = rewriteAndRecover(
+              token,
+              fasta.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
+        } else {
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing curly bracket
+          next = leftBrace.endGroup;
+          listener.handleLiteralSetOrMap(count, leftBrace, constKeyword, next);
+          mayParseFunctionExpressions = old;
+          return next;
+        }
+      }
     }
   }
 
@@ -4291,12 +4348,12 @@ class Parser {
     token = parseMapLiteralEntry(token);
     mayParseFunctionExpressions = old;
 
-    return parseLiteralMapRest(token, constKeyword, beginToken);
+    return parseLiteralMapRest(token, 1, constKeyword, beginToken);
   }
 
   /// Parse a literal map after the first entry.
-  Token parseLiteralMapRest(Token token, Token constKeyword, Token beginToken) {
-    int count = 1;
+  Token parseLiteralMapRest(
+      Token token, int count, Token constKeyword, Token beginToken) {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
@@ -4312,7 +4369,7 @@ class Parser {
       }
       if (comma == null) {
         // Recovery
-        if (looksLikeExpressionStart(next)) {
+        if (looksLikeLiteralEntry(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           token = rewriteAndRecover(
@@ -4364,15 +4421,15 @@ class Parser {
 
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseExpression(token);
+    token = parseListOrSetLiteralEntry(token);
     mayParseFunctionExpressions = old;
 
-    return parseLiteralSetRest(token, constKeyword, beginToken);
+    return parseLiteralSetRest(token, 1, constKeyword, beginToken);
   }
 
   /// Parse a literal set after the first expression.
-  Token parseLiteralSetRest(Token token, Token constKeyword, Token beginToken) {
-    int count = 1;
+  Token parseLiteralSetRest(
+      Token token, int count, Token constKeyword, Token beginToken) {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
@@ -4388,7 +4445,7 @@ class Parser {
       }
       if (comma == null) {
         // Recovery
-        if (looksLikeExpressionStart(next)) {
+        if (looksLikeLiteralEntry(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           token = rewriteAndRecover(
@@ -4403,7 +4460,7 @@ class Parser {
           break;
         }
       }
-      token = parseExpression(token);
+      token = parseListOrSetLiteralEntry(token);
       ++count;
     }
     assert(optional('}', token));
@@ -4477,17 +4534,29 @@ class Parser {
 
   /// ```
   /// mapLiteralEntry:
-  ///   expression ':' expression
+  ///   expression ':' expression |
+  ///   'if' '(' expression ')' mapLiteralEntry ( 'else' mapLiteralEntry )? |
+  ///   'await'? 'for' '(' forLoopParts ')' mapLiteralEntry |
+  ///   ( '...' | '...?' ) expression
   /// ;
   /// ```
   Token parseMapLiteralEntry(Token token) {
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
-    token = parseExpression(token);
-    Token colon = ensureColon(token);
-    token = parseExpression(colon);
-    listener.handleLiteralMapEntry(colon, token.next);
+    LiteralEntryInfo info = computeLiteralEntry(token);
+    while (info != null) {
+      if (info.hasEntry) {
+        token = parseExpression(token);
+        Token colon = ensureColon(token);
+        token = parseExpression(colon);
+        // TODO remove unused 2nd parameter
+        listener.handleLiteralMapEntry(colon, token.next);
+      } else {
+        token = info.parse(token, this);
+      }
+      info = info.computeNext(token);
+    }
     return token;
   }
 
@@ -5227,10 +5296,11 @@ class Parser {
   ///   'await'? 'for' '(' forLoopParts ')' statement
   /// ;
   ///
-  /// forLoopParts:
-  ///   forInitializerStatement expression? ';' expressionList? |
-  ///   declaredIdentifier 'in' expression |
-  ///   identifier 'in' expression
+  ///  forLoopParts:
+  ///      localVariableDeclaration ';' expression? ';' expressionList?
+  ///    | expression? ';' expression? ';' expressionList?
+  ///    | localVariableDeclaration 'in' expression
+  ///    | identifier 'in' expression
   /// ;
   ///
   /// forInitializerStatement:
@@ -5239,20 +5309,35 @@ class Parser {
   /// ;
   /// ```
   Token parseForStatement(Token token, Token awaitToken) {
-    Token forKeyword = token = token.next;
+    Token forToken = token = token.next;
     assert(awaitToken == null || optional('await', awaitToken));
     assert(optional('for', token));
-    listener.beginForStatement(forKeyword);
+    listener.beginForStatement(forToken);
 
-    Token leftParenthesis = forKeyword.next;
+    token = parseForLoopPartsStart(awaitToken, forToken);
+    Token identifier = token.next;
+    token = parseForLoopPartsMid(token, awaitToken, forToken);
+    if (optional('in', token.next) || optional(':', token.next)) {
+      // Process `for ( ... in ... )`
+      return parseForInRest(token, awaitToken, forToken, identifier);
+    } else {
+      // Process `for ( ... ; ... ; ... )`
+      return parseForRest(awaitToken, token, forToken);
+    }
+  }
+
+  /// Parse the start of a for loop control structure
+  /// from the open parenthesis up to but not including the identifier.
+  Token parseForLoopPartsStart(Token awaitToken, Token forToken) {
+    Token leftParenthesis = forToken.next;
     if (!optional('(', leftParenthesis)) {
       // Recovery
       reportRecoverableError(
           leftParenthesis, fasta.templateExpectedButGot.withArguments('('));
       int offset = leftParenthesis.offset;
 
-      BeginToken openParen =
-          token.setNext(new SyntheticBeginToken(TokenType.OPEN_PAREN, offset));
+      BeginToken openParen = forToken
+          .setNext(new SyntheticBeginToken(TokenType.OPEN_PAREN, offset));
 
       Token loopPart;
       if (awaitToken != null) {
@@ -5280,18 +5365,18 @@ class Parser {
 
       leftParenthesis = openParen;
     }
-    token = leftParenthesis;
 
     // Pass `true` so that the [parseExpressionStatementOrDeclaration] only
     // parses the metadata, modifiers, and type of a local variable
     // declaration if it exists. This enables capturing [beforeIdentifier]
     // for later error reporting.
-    token = parseExpressionStatementOrDeclaration(token, true);
-    Token beforeIdentifier = token;
+    return parseExpressionStatementOrDeclaration(forToken.next, true);
+  }
 
-    // Parse the remainder of the local variable declaration
-    // or an expression if no local variable declaration was found.
-    if (token != leftParenthesis) {
+  /// Parse the remainder of the local variable declaration
+  /// or an expression if no local variable declaration was found.
+  Token parseForLoopPartsMid(Token token, Token awaitToken, Token forToken) {
+    if (token != forToken.next) {
       token = parseVariablesDeclarationRest(token, false);
       listener.handleForInitializerLocalVariableDeclaration(token);
     } else if (optional(';', token.next)) {
@@ -5300,58 +5385,53 @@ class Parser {
       token = parseExpression(token);
       listener.handleForInitializerExpressionStatement(token);
     }
-
     Token next = token.next;
-    if (!optional('in', next)) {
+    if (optional(';', next)) {
+      if (awaitToken != null) {
+        reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
+      }
+    } else if (!optional('in', next)) {
+      // Recovery
       if (optional(':', next)) {
-        // Recovery
         reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
-        // Fall through to process `for ( ... in ... )`
-      } else if (awaitToken == null || optional(';', next)) {
-        // Process `for ( ... ; ... ; ... )`
-        if (awaitToken != null) {
-          reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
-        }
-        return parseForRest(token, forKeyword, leftParenthesis);
-      } else {
-        // Recovery
+      } else if (awaitToken != null) {
         reportRecoverableError(
             next, fasta.templateExpectedButGot.withArguments('in'));
-        next = token.setNext(
+        token.setNext(
             new SyntheticKeywordToken(Keyword.IN, next.offset)..setNext(next));
       }
     }
-
-    // Process `for ( ... in ... )`
-    Token identifier = beforeIdentifier.next;
-    if (!identifier.isIdentifier) {
-      reportRecoverableErrorWithToken(
-          identifier, fasta.templateExpectedIdentifier);
-    } else if (identifier != token) {
-      if (optional('=', identifier.next)) {
-        reportRecoverableError(
-            identifier.next, fasta.messageInitializedVariableInForEach);
-      } else {
-        reportRecoverableErrorWithToken(
-            identifier.next, fasta.templateUnexpectedToken);
-      }
-    } else if (awaitToken != null && !inAsync) {
-      reportRecoverableError(next, fasta.messageAwaitForNotAsync);
-    }
-    return parseForInRest(token, awaitToken, forKeyword, leftParenthesis);
+    return token;
   }
 
   /// This method parses the portion of the forLoopParts that starts with the
   /// first semicolon (the one that terminates the forInitializerStatement).
   ///
   /// ```
-  /// forLoopParts:
-  ///   forInitializerStatement expression? ';' expressionList? |
-  ///   declaredIdentifier 'in' expression |
-  ///   identifier 'in' expression
+  ///  forLoopParts:
+  ///      localVariableDeclaration ';' expression? ';' expressionList?
+  ///    | expression? ';' expression? ';' expressionList?
+  ///    | localVariableDeclaration 'in' expression
+  ///    | identifier 'in' expression
   /// ;
   /// ```
-  Token parseForRest(Token token, Token forToken, Token leftParenthesis) {
+  Token parseForRest(Token awaitToken, Token token, Token forToken) {
+    token = parseForLoopPartsRest(token, forToken, awaitToken);
+    listener.beginForStatementBody(token.next);
+    LoopState savedLoopState = loopState;
+    loopState = LoopState.InsideLoop;
+    token = parseStatement(token);
+    loopState = savedLoopState;
+    listener.endForStatementBody(token.next);
+    listener.endForStatement(token.next);
+    return token;
+  }
+
+  Token parseForLoopPartsRest(Token token, Token forToken, Token awaitToken) {
+    Token leftParenthesis = forToken.next;
+    assert(optional('for', forToken));
+    assert(optional('(', leftParenthesis));
+
     Token leftSeparator = ensureSemicolon(token);
     if (optional(';', leftSeparator.next)) {
       token = parseEmptyStatement(leftSeparator);
@@ -5375,14 +5455,8 @@ class Parser {
       reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
       token = leftParenthesis.endGroup;
     }
-    listener.beginForStatementBody(token.next);
-    LoopState savedLoopState = loopState;
-    loopState = LoopState.InsideLoop;
-    token = parseStatement(token);
-    loopState = savedLoopState;
-    listener.endForStatementBody(token.next);
-    listener.endForStatement(
-        forToken, leftParenthesis, leftSeparator, expressionCount, token.next);
+    listener.handleForLoopParts(
+        forToken, leftParenthesis, leftSeparator, expressionCount);
     return token;
   }
 
@@ -5391,28 +5465,55 @@ class Parser {
   /// keyword.
   ///
   /// ```
-  /// forLoopParts:
-  ///   forInitializerStatement expression? ';' expressionList? |
-  ///   declaredIdentifier 'in' expression |
-  ///   identifier 'in' expression
+  ///  forLoopParts:
+  ///      localVariableDeclaration ';' expression? ';' expressionList?
+  ///    | expression? ';' expression? ';' expressionList?
+  ///    | localVariableDeclaration 'in' expression
+  ///    | identifier 'in' expression
   /// ;
   /// ```
   Token parseForInRest(
-      Token token, Token awaitToken, Token forKeyword, Token leftParenthesis) {
-    Token inKeyword = token.next;
-    assert(optional('in', inKeyword) || optional(':', inKeyword));
-    listener.beginForInExpression(inKeyword.next);
-    token = parseExpression(inKeyword);
-    token = ensureCloseParen(token, leftParenthesis);
-    listener.endForInExpression(token);
+      Token token, Token awaitToken, Token forToken, Token identifier) {
+    token = parseForInLoopPartsRest(token, awaitToken, forToken, identifier);
     listener.beginForInBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
     token = parseStatement(token);
     loopState = savedLoopState;
     listener.endForInBody(token.next);
-    listener.endForIn(
-        awaitToken, forKeyword, leftParenthesis, inKeyword, token.next);
+    listener.endForIn(token.next);
+    return token;
+  }
+
+  Token parseForInLoopPartsRest(
+      Token token, Token awaitToken, Token forToken, Token identifier) {
+    Token inKeyword = token.next;
+    assert(optional('for', forToken));
+    assert(optional('(', forToken.next));
+    assert(optional('in', inKeyword) || optional(':', inKeyword));
+
+    if (!identifier.isIdentifier) {
+      reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+    } else if (identifier != token) {
+      if (optional('=', identifier.next)) {
+        reportRecoverableError(
+            identifier.next, fasta.messageInitializedVariableInForEach);
+      } else {
+        reportRecoverableErrorWithToken(
+            identifier.next, fasta.templateUnexpectedToken);
+      }
+    } else if (awaitToken != null && !inAsync) {
+      // TODO(danrubel): consider reporting the error on awaitToken
+      reportRecoverableError(inKeyword, fasta.messageAwaitForNotAsync);
+    }
+
+    listener.beginForInExpression(inKeyword.next);
+    token = parseExpression(inKeyword);
+    token = ensureCloseParen(token, forToken.next);
+    listener.endForInExpression(token);
+    listener.handleForInLoopParts(
+        awaitToken, forToken, forToken.next, inKeyword);
     return token;
   }
 

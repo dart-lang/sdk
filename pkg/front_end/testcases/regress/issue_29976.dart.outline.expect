@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_29976.dart:9:14: Error: The non-ASCII character 'é' (U+00E9) can't be used in identifiers, only in strings and comments.
 // Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
@@ -18,8 +20,7 @@
 //     ^^^^^^^^^^^^^^...
 //
 // pkg/front_end/testcases/regress/issue_29976.dart:12:1: Error: Expected a declaration, but got ''.
-
-library;
+//
 import self as self;
 
 static get x() → dynamic

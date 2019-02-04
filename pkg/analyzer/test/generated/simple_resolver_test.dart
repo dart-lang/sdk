@@ -23,6 +23,8 @@ main() {
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
   test_argumentResolution_required_matching() async {

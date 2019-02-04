@@ -276,9 +276,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         outputLibraries = computeTransitiveClosure(compiledLibraries,
             mainMethod, entryPoint, reusedLibraries, hierarchy);
       } else {
+        outputLibraries = new List<Library>();
         computeTransitiveClosure(compiledLibraries, mainMethod, entryPoint,
-            reusedLibraries, hierarchy);
-        outputLibraries = compiledLibraries;
+            reusedLibraries, hierarchy, outputLibraries);
       }
 
       if (componentWithDill == null) {
@@ -299,19 +299,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Procedure mainMethod,
       Uri entry,
       List<LibraryBuilder> reusedLibraries,
-      ClassHierarchy hierarchy) {
-    List<Library> result = new List<Library>.from(inputLibraries);
+      ClassHierarchy hierarchy,
+      [List<Library> inputLibrariesFiltered]) {
+    List<Library> result = new List<Library>();
     Map<Uri, Library> libraryMap = <Uri, Library>{};
+    Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
+    Map<Uri, Library> potentiallyReferencedInputLibraries = <Uri, Library>{};
     for (Library library in inputLibraries) {
       libraryMap[library.importUri] = library;
-    }
-    List<Uri> worklist = new List<Uri>.from(libraryMap.keys);
-    worklist.add(mainMethod?.enclosingLibrary?.importUri);
-    if (entry != null) {
-      worklist.add(entry);
+      if (library.importUri.scheme == "dart") {
+        result.add(library);
+        inputLibrariesFiltered?.add(library);
+      } else {
+        potentiallyReferencedLibraries[library.importUri] = library;
+        potentiallyReferencedInputLibraries[library.importUri] = library;
+      }
     }
 
-    Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
+    List<Uri> worklist = new List<Uri>();
+    Uri mainMethodUri = mainMethod?.enclosingLibrary?.importUri;
+    if (mainMethodUri != null) worklist.add(mainMethodUri);
+    if (entry != null) worklist.add(entry);
+
     for (LibraryBuilder library in reusedLibraries) {
       if (library.uri.scheme == "dart") continue;
       Library lib = library.target;
@@ -330,6 +339,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library library = potentiallyReferencedLibraries.remove(uri);
         if (library != null) {
           result.add(library);
+          if (potentiallyReferencedInputLibraries.remove(uri) != null) {
+            inputLibrariesFiltered?.add(library);
+          }
         }
       }
     }

@@ -18,7 +18,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart'
+    show TargetFlags, DiagnosticReporter;
 
 import 'package:testing/testing.dart'
     show
@@ -55,12 +56,19 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyNode;
+
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
+    show ClassHierarchyBuilder;
+
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show
         KernelTextSerialization,
+        MatchContext,
         MatchExpectation,
         Print,
         TypeCheck,
@@ -111,28 +119,36 @@ const String EXPECTATIONS = '''
 
 const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
+final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
+
 String generateExpectationName(bool legacyMode) {
   return legacyMode ? "legacy" : "strong";
 }
 
-class FastaContext extends ChainContext {
+class FastaContext extends ChainContext with MatchContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
   final bool legacyMode;
   final bool onlyCrashes;
   final bool enableSetLiterals;
+  final bool skipVm;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
       <Component, StringBuffer>{};
   final Uri platformBinaries;
-  Uri platformUri;
-  Component platform;
 
+  @override
+  final bool updateExpectations;
+
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
-  Expectation verificationError;
+
+  Uri platformUri;
+
+  Component platform;
 
   FastaContext(
       this.vm,
@@ -141,9 +157,9 @@ class FastaContext extends ChainContext {
       this.onlyCrashes,
       this.enableSetLiterals,
       bool ignoreExpectations,
-      bool updateExpectations,
+      this.updateExpectations,
       bool updateComments,
-      bool skipVm,
+      this.skipVm,
       bool kernelTextSerialization,
       this.uriTranslator,
       bool fullCompile)
@@ -152,13 +168,10 @@ class FastaContext extends ChainContext {
           const Print(),
           new Verify(fullCompile)
         ] {
-    verificationError = expectationSet["VerificationError"];
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(
-          fullCompile
-              ? ".${generateExpectationName(legacyMode)}.expect"
-              : ".outline.expect",
-          updateExpectations: updateExpectations));
+      steps.add(new MatchExpectation(fullCompile
+          ? ".${generateExpectationName(legacyMode)}.expect"
+          : ".outline.expect"));
     }
     if (!legacyMode) {
       steps.add(const TypeCheck());
@@ -167,20 +180,25 @@ class FastaContext extends ChainContext {
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
     }
-    if (fullCompile && !skipVm) {
+    if (legacyMode && !fullCompile) {
+      steps.add(new MatchHierarchy());
+    }
+    if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation(
-            fullCompile
-                ? ".${generateExpectationName(legacyMode)}.transformed.expect"
-                : ".outline.transformed.expect",
-            updateExpectations: updateExpectations));
+        steps.add(new MatchExpectation(fullCompile
+            ? ".${generateExpectationName(legacyMode)}.transformed.expect"
+            : ".outline.transformed.expect"));
       }
       steps.add(const EnsureNoErrors());
-      steps.add(const WriteDill());
-      steps.add(const Run());
+      if (!skipVm) {
+        steps.add(const WriteDill());
+        steps.add(const Run());
+      }
     }
   }
+
+  Expectation get verificationError => expectationSet["VerificationError"];
 
   Future ensurePlatformUris() async {
     if (platformUri == null) {
@@ -209,6 +227,15 @@ class FastaContext extends ChainContext {
       return result.copyWithOutcome(Expectation.Pass);
     }
     return super.processTestResult(description, result, last);
+  }
+
+  @override
+  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+    if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
+      return new Set<Expectation>.from([Expectation.Pass]);
+    } else {
+      return outcomes;
+    }
   }
 
   static Future<FastaContext> create(
@@ -331,7 +358,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = new KernelTarget(
+      KernelTarget sourceTarget = new KernelTestingTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
@@ -397,12 +424,16 @@ class TestVmTarget extends VmTarget {
   String get name => "vm";
 
   @override
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (enabled) {
       super.performModularTransformationsOnLibraries(
-          component, coreTypes, hierarchy, libraries,
+          component, coreTypes, hierarchy, libraries, diagnosticReporter,
           logger: logger);
     }
   }
@@ -419,5 +450,34 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
     return buffer.isEmpty
         ? pass(component)
         : fail(component, """Unexpected errors:\n$buffer""");
+  }
+}
+
+class KernelTestingTarget extends KernelTarget {
+  @override
+  ClassHierarchyBuilder builderHierarchy;
+
+  KernelTestingTarget(StandardFileSystem fileSystem, bool includeComments,
+      DillTarget dillTarget, UriTranslator uriTranslator)
+      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+}
+
+class MatchHierarchy extends Step<Component, Component, FastaContext> {
+  const MatchHierarchy();
+
+  String get name => "check hierarchy";
+
+  Future<Result<Component>> run(
+      Component component, FastaContext context) async {
+    Uri uri =
+        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+    KernelTestingTarget target = context.componentToTarget[component];
+    ClassHierarchyBuilder hierarchy = target.builderHierarchy;
+    StringBuffer sb = new StringBuffer();
+    for (ClassHierarchyNode node in hierarchy.nodes.values) {
+      node.toString(sb);
+      sb.writeln();
+    }
+    return context.match<Component>(".hierarchy.expect", "$sb", uri, component);
   }
 }

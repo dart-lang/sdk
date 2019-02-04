@@ -1,0 +1,60 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Fisk:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Fisk.x
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Foo:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Foo.bar
+    Foo.cafebabe
+    Foo.toString
+    Foo.index
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Foo._name
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Foo.values
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Foo.baz
+  classSetters:

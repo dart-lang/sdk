@@ -165,6 +165,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     int offset = params.offset;
     int length = params.length;
 
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     List<SourceChange> changes = <SourceChange>[];
     //
     // Allow plugins to start computing assists.
@@ -228,6 +232,11 @@ class EditDomainHandler extends AbstractRequestHandler {
     EditGetFixesParams params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     //
     // Allow plugins to start computing fixes.
     //
@@ -277,9 +286,15 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
 
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     SourceChange change;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
       PostfixCompletionContext context = new PostfixCompletionContext(
         result,
@@ -303,10 +318,17 @@ class EditDomainHandler extends AbstractRequestHandler {
   Future getStatementCompletion(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
     var params = new EditGetStatementCompletionParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     SourceChange change;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
       var context = new StatementCompletionContext(result, params.offset);
       StatementCompletionProcessor processor =
@@ -377,12 +399,18 @@ class EditDomainHandler extends AbstractRequestHandler {
   Future<void> importElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    EditImportElementsParams params =
-        new EditImportElementsParams.fromRequest(request);
+
+    var params = new EditImportElementsParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     //
     // Prepare the resolved unit.
     //
-    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result == null) {
       server.sendResponse(new Response.importElementsInvalidFile(request));
     }
@@ -415,9 +443,15 @@ class EditDomainHandler extends AbstractRequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     bool value = false;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(params.file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
       var context = new PostfixCompletionContext(
         result,
@@ -452,12 +486,16 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.options.analytics?.sendEvent('edit', 'organizeDirectives');
 
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
-    // prepare file
-    String file = params.file;
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
     if (!engine.AnalysisEngine.isDartFileName(file)) {
       server.sendResponse(new Response.fileNotAnalyzed(request, file));
       return;
     }
+
     // Prepare the file information.
     ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result == null) {
@@ -487,19 +525,23 @@ class EditDomainHandler extends AbstractRequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new EditSortMembersParams.fromRequest(request);
-    // prepare file
-    String file = params.file;
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
     if (!engine.AnalysisEngine.isDartFileName(file)) {
       server.sendResponse(new Response.sortMembersInvalidFile(request));
       return;
     }
+
     // Prepare the file information.
-    var driver = server.getAnalysisDriver(file);
-    ParsedUnitResult result = await driver?.parseFile(file);
+    ParsedUnitResult result = await server.getParsedUnit(file);
     if (result == null) {
       server.sendResponse(new Response.fileNotAnalyzed(request, file));
       return;
     }
+
     int fileStamp = -1;
     String code = result.content;
     CompilationUnit unit = result.unit;
@@ -560,13 +602,15 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future _getAvailableRefactoringsImpl(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    // prepare parameters
     var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
     int length = params.length;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     // add refactoring kinds
     List<RefactoringKind> kinds = <RefactoringKind>[];
     // Check nodes.
@@ -731,6 +775,11 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(_request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
 
     if (params.kind != null) {
       server.options.analytics
@@ -740,7 +789,7 @@ class _RefactoringManager {
     runZoned(() async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
-      await _init(params.kind, params.file, params.offset, params.length);
+      await _init(params.kind, file, params.offset, params.length);
       if (initStatus.hasFatalError) {
         feedback = null;
         _sendResultResponse();

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/static.dart:28:9: Warning: Getter not found: 'staticSetter'.
 //     Foo.staticSetter;
@@ -135,8 +137,7 @@
 // pkg/front_end/testcases/rasta/static.dart:84:13: Warning: Getter not found: 'staticSetter'.
 //     use(Foo.staticSetter ??= 87);
 //             ^^^^^^^^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

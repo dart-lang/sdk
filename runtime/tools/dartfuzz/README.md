@@ -29,15 +29,13 @@ How to start DartFuzz testing
 =============================
 To start a fuzz testing session, run
 
-    dart dartfuzz_test.dart
-
-    run_dartfuzz_test.py  [--help]
-                          [--isolates ISOLATES ]
-                          [--repeat REPEAT]
-                          [--time TIME]
-                          [--true_divergence]
-                          [--mode1 MODE]
-                          [--mode2 MODE]
+    dart dartfuzz_test.dart [--help]
+                            [--isolates ISOLATES ]
+                            [--repeat REPEAT]
+                            [--time TIME]
+                            [--true_divergence]
+                            [--mode1 MODE]
+                            [--mode2 MODE]
 
 where
 

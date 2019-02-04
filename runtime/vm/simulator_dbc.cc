@@ -3758,7 +3758,7 @@ SwitchDispatch:
     RawSmi* index = RAW_CAST(Smi, SP[-1]);
     const int16_t offset = rD;
     FP[-(Smi::Value(index) + offset) - 0] = SP[-0];
-    SP--;
+    SP -= 2;
     DISPATCH();
   }
 

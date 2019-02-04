@@ -141,13 +141,13 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
   buffer += offset;
   intptr_t bytes_written =
       SynchronousSocket::Write(socket->fd(), buffer, length);
+  Dart_TypedDataReleaseData(buffer_obj);
   if (bytes_written >= 0) {
     Dart_SetIntegerReturnValue(args, bytes_written);
   } else {
     OSError os_error;
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
-  Dart_TypedDataReleaseData(buffer_obj);
 }
 
 void FUNCTION_NAME(SynchronousSocket_ReadList)(Dart_NativeArguments args) {

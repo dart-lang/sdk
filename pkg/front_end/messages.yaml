@@ -146,6 +146,10 @@ ConstEvalDeferredLibrary:
 ConstEvalFreeTypeParameter:
   template: "The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed."
 
+ConstEvalCircularity:
+  template: "Constant expression depends on itself."
+  analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
@@ -3317,6 +3321,15 @@ IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
+IntersectionTypeAsTypeArgument:
+  template: "Can't infer a type for '#name', it can be either '#type' or '#type2'."
+  tip: "Try adding a type argument selecting one of the options."
+  script: |
+    class A {}
+    class B extends A {}
+    f<T>(T t) => null;
+    g<S>(S t) => t is B ? f(t) : null;
+
 InferredPackageUri:
   template: "Interpreting this as package URI, '#uri'."
   severity: WARNING
@@ -3386,3 +3399,42 @@ ObjectMixesIn:
   template: "The class 'Object' can't use mixins."
   frontendInternal: true
   external: test/fasta/object_supertype_test.dart
+
+StaticAndInstanceConflict:
+  template: "This static member conflicts with an instance member."
+  script:
+    - |
+      class C {
+        set foo(value) {}
+        static get foo => 42;
+      }
+    - |
+      class C {
+        static set foo(value) {}
+        get foo => 42;
+      }
+  analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
+
+StaticAndInstanceConflictCause:
+  template: "This is the instance member."
+  severity: CONTEXT
+
+FfiTypeMismatch:
+  # Used by dart:ffi
+  template: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
+  external: test/ffi_test.dart
+
+FfiTypeInvalid:
+  # Used by dart:ffi
+  template: "Expected type '#type' to be a valid and instantiated subtype of '_NativeType'."
+  external: test/ffi_test.dart
+
+FfiTypeOpaque:
+  # Used by dart:ffi
+  template: "Method '#name' cannot be called on something of type '#type' as this type is opaque."
+  external: test/ffi_test.dart
+
+FfiAnnotationMissing:
+  # Used by dart:ffi
+  template: "Field '#name' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields."
+  external: test/ffi_test.dart

@@ -10,11 +10,20 @@
 #error Do not include instructions_arm.h directly; use instructions.h instead.
 #endif
 
+#include "vm/allocation.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_arm.h"
-#include "vm/native_entry.h"
-#include "vm/object.h"
+#include "vm/native_function.h"
 
 namespace dart {
+
+class ICData;
+class Code;
+class Object;
+class ObjectPool;
+class RawCode;
+class RawICData;
+class RawObject;
 
 class InstructionPattern : public AllStatic {
  public:
@@ -36,6 +45,14 @@ class InstructionPattern : public AllStatic {
   static uword DecodeLoadWordImmediate(uword end,
                                        Register* reg,
                                        intptr_t* value);
+
+  // Encodes a load immediate sequence ending at 'end' (the last instruction of
+  // the load sequence is the instruction before the one at end).
+  //
+  // Supports only a subset of [DecodeLoadWordImmediate], namely:
+  //   movw r, #lower16
+  //   movt r, #upper16
+  static void EncodeLoadWordImmediate(uword end, Register reg, intptr_t value);
 
   // Decodes a load sequence ending at 'end' (the last instruction of the
   // load sequence is the instruction before the one at end).  Returns the
@@ -160,6 +177,10 @@ class ReturnPattern : public ValueObject {
 
 class PcRelativeCallPattern : public ValueObject {
  public:
+  // 24 bit signed integer which will get multiplied by 4.
+  static const intptr_t kLowerCallingRange = -(1 << 25);
+  static const intptr_t kUpperCallingRange = (1 << 25) - 1;
+
   explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
 
   static const int kLengthInBytes = 1 * Instr::kInstrSize;
@@ -188,34 +209,47 @@ class PcRelativeCallPattern : public ValueObject {
   uword pc_;
 };
 
-class PcRelativeJumpPattern : public ValueObject {
+// Instruction pattern for a tail call to a signed 32-bit PC-relative offset
+//
+// The AOT compiler can emit PC-relative calls. If the destination of such a
+// call is not in range for the "bl.<cond> <offset>" instruction, the AOT
+// compiler will emit a trampoline which is in range. That trampoline will
+// then tail-call to the final destination (also via PC-relative offset, but it
+// supports a full signed 32-bit offset).
+//
+// The pattern of the trampoline looks like:
+//
+//     movw TMP, #lower16
+//     movt TMP, #upper16
+//     add  PC, PC, TMP lsl #0
+//
+class PcRelativeTrampolineJumpPattern : public ValueObject {
  public:
-  explicit PcRelativeJumpPattern(uword pc) : pc_(pc) {}
-
-  static const int kLengthInBytes = 1 * Instr::kInstrSize;
-
-  int32_t distance() {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    return Assembler::DecodeBranchOffset(*reinterpret_cast<int32_t*>(pc_));
-#else
-    UNREACHABLE();
-    return 0;
-#endif
+  explicit PcRelativeTrampolineJumpPattern(uword pattern_start)
+      : pattern_start_(pattern_start) {
+    USE(pattern_start_);
   }
 
-  void set_distance(int32_t distance) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    int32_t* word = reinterpret_cast<int32_t*>(pc_);
-    *word = Assembler::EncodeBranchOffset(distance, *word);
-#else
-    UNREACHABLE();
-#endif
-  }
+  static const int kLengthInBytes = 3 * Instr::kInstrSize;
 
+  void Initialize();
+
+  int32_t distance();
+  void set_distance(int32_t distance);
   bool IsValid() const;
 
  private:
-  uword pc_;
+  // This offset must be applied to account for the fact that
+  //   a) the actual "branch" is only in the 3rd instruction
+  //   b) when reading the PC it reports current instruction + 8
+  static const intptr_t kDistanceOffset = -4 * Instr::kInstrSize;
+
+  // add  PC, PC, TMP lsl #0
+  static const uint32_t kAddPcEncoding =
+      (ADD << kOpcodeShift) | (AL << kConditionShift) | (PC << kRnShift) |
+      (PC << kRdShift) | (TMP << kRmShift);
+
+  uword pattern_start_;
 };
 
 }  // namespace dart

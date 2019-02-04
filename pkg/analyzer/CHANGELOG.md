@@ -1,6 +1,32 @@
+## 0.35.0
+* Added support in the AST structure for the control_flow_collections and
+  spread_collections experiments. This includes adding new visitor methods to
+  `AstVisitor`, which will need to be implemented by any classes that implement
+  `AstVisitor` directly. Concrete implementations were added to other visitor
+  classes (such as `RecursiveAstVisitor`) so that clients that extend those
+  other classes will not be impacted.
+* Removed `EMPTY_LIST` constants.  Please use `const <...>[]` instead.
+* Disabled support for the task model.  Please use the new `AnalysisSession`
+  API.
+* Removed `StrongTypeSystemImpl`.  Please use `Dart2TypeSystem` instead.
+
 ## 0.34.2
 * Removed support for the `@checked` annotation.  Please use the `covariant`
-  keyword instead.
+  keyword instead (#28797).
+* Did additional work on the new set_literals and constant_update_2018 features.
+* Began adding a string representation of initializer expressions to summaries
+  (#35418).
+* Added a pub aware workspace so that pub packages can be handled properly.
+* Added logging in an effort to track down #35551.
+* Split off DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE from DEPRECATED_MEMBER_USE
+  (#30084).
+* Removed the unused hint code INVALID_ASSIGNMENT.
+* Added a hint enforcing the contract of `@literal`:
+  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR.
+* Added a hint INVALID_LITERAL_ANNOTATION (#34259).
+* Fixed handling of @immutable on mixins.
+* Did work on @sealed annotation for classes and mixins.
+* Bug fixes: #25860, #29394, #33930, #35090, #35441, #35458, #35467, #35548.
 
 ## 0.34.1
 * Added logic to report a hint if a deprecated lint is specified in the user's

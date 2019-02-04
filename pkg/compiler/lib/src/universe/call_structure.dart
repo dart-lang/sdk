@@ -86,6 +86,19 @@ class CallStructure {
       ? this
       : new CallStructure(argumentCount, namedArguments);
 
+  /// Short textual representation use for testing.
+  String get shortText {
+    StringBuffer sb = new StringBuffer();
+    sb.write('(');
+    sb.write(positionalArgumentCount);
+    if (namedArgumentCount > 0) {
+      sb.write(',');
+      sb.write(getOrderedNamedArguments().join(','));
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+
   /// A description of the argument structure.
   String structureToString() {
     StringBuffer sb = new StringBuffer();

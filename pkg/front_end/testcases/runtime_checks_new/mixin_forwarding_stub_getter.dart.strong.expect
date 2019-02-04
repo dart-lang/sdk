@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:39:9: Error: The return type of the method 'M.x' is 'void Function(T)', which does not match the return type of the overridden method, 'void Function(int)'.
 // Change to a subtype of 'void Function(int)'.
@@ -10,15 +12,7 @@
 // pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:47:16: Context: Override was introduced in the mixin application class 'C'.
 // abstract class C<T> = B with M<F<T>> implements I<T>;
 //                ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:39:9: Error: The return type of the method 'M.x' is 'void Function(T)', which does not match the return type of the overridden method, 'void Function(int)'.
-// Change to a subtype of 'void Function(int)'.
-//   T get x => f();
-//         ^
-
-library test;
 import self as self;
 import "dart:core" as core;
 

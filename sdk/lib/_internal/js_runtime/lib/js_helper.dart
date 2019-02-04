@@ -1397,22 +1397,22 @@ checkNull(object) {
 }
 
 @NoInline()
-checkNum(value) {
+num checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
 }
 
-checkInt(value) {
+int checkInt(value) {
   if (value is! int) throw argumentErrorValue(value);
   return value;
 }
 
-checkBool(value) {
+bool checkBool(value) {
   if (value is! bool) throw argumentErrorValue(value);
   return value;
 }
 
-checkString(value) {
+String checkString(value) {
   if (value is! String) throw argumentErrorValue(value);
   return value;
 }
@@ -3356,6 +3356,15 @@ String _computeCspNonce() {
   return JS('String', 'String(#.nonce)', currentScript);
 }
 
+/// The 'crossOrigin' value on the current script used for CORS, if any.
+String _crossOrigin = _computeCrossOrigin();
+
+String _computeCrossOrigin() {
+  var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+  if (currentScript == null) return null;
+  return JS('String|Null', '#.crossOrigin', currentScript);
+}
+
 /// Returns true if we are currently in a worker context.
 bool _isWorker() {
   requiresPreamble();
@@ -3500,6 +3509,9 @@ Future<Null> _loadHunk(String hunkName) {
     JS('', '#.src = #', script, uri);
     if (_cspNonce != null && _cspNonce != '') {
       JS('', '#.nonce = #', script, _cspNonce);
+    }
+    if (_crossOrigin != null && _crossOrigin != '') {
+      JS('', '#.crossOrigin = #', script, _crossOrigin);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);

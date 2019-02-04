@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/unresolved_recovery.dart:7:10: Error: Superclass has no method named '[]='.
 //     super[4] = 42;
@@ -39,42 +41,7 @@
 // pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:24: Error: Expected ';' after this.
 //   on Exception catch (e) { }
 //                        ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:7:10: Error: Superclass has no method named '[]='.
-//     super[4] = 42;
-//          ^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:8:10: Error: Superclass has no method named '[]'.
-//     super[4] += 5;
-//          ^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:8:10: Error: Superclass has no method named '[]='.
-//     super[4] += 5;
-//          ^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:9:17: Error: Superclass has no method named '[]'.
-//     return super[2];
-//                 ^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:3: Error: 'on' isn't a type.
-//   on Exception catch (e) { }
-//   ^^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:6: Error: Expected ';' after this.
-//   on Exception catch (e) { }
-//      ^^^^^^^^^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:16: Error: Expected an identifier, but got 'catch'.
-//   on Exception catch (e) { }
-//                ^^^^^
-//
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:24: Error: Expected ';' after this.
-//   on Exception catch (e) { }
-//                        ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

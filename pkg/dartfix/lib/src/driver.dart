@@ -19,8 +19,6 @@ import 'package:dartfix/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
-  static final expectedProtocolVersion = new Version.parse('1.21.1');
-
   Context context;
   _Handler handler;
   Logger logger;
@@ -219,9 +217,10 @@ class _Handler
 
   @override
   void onProtocolNotSupported(Version version) {
-    logger.stderr('Expected protocol version ${Driver.expectedProtocolVersion},'
+    logger.stderr('Expected protocol version $PROTOCOL_VERSION,'
         ' but found $version');
-    if (version > Driver.expectedProtocolVersion) {
+    final expectedVersion = Version.parse(PROTOCOL_VERSION);
+    if (version > expectedVersion) {
       logger.stdout('''
 This version of dartfix is incompatible with the current Dart SDK. 
 Try installing a newer version of dartfix by running
@@ -237,14 +236,6 @@ or installing an older version of dartfix using
     pub global activate dartfix <version>
 ''');
     }
-  }
-
-  @override
-  bool checkServerProtocolVersion(Version version) {
-    // This overrides the default protocol version check to be more narrow
-    // because the edit.dartfix protocol is experimental
-    // and will continue to evolve.
-    return version == Driver.expectedProtocolVersion;
   }
 
   @override

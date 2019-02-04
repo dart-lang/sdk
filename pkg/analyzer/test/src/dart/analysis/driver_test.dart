@@ -340,6 +340,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
   void configurePreviewDart2() {

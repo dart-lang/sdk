@@ -1422,6 +1422,12 @@ class TokenType {
   static const TokenType PERIOD_PERIOD_PERIOD = const TokenType(
       '...', 'PERIOD_PERIOD_PERIOD', NO_PRECEDENCE, PERIOD_PERIOD_PERIOD_TOKEN);
 
+  static const TokenType PERIOD_PERIOD_PERIOD_QUESTION = const TokenType(
+      '...?',
+      'PERIOD_PERIOD_PERIOD_QUESTION',
+      NO_PRECEDENCE,
+      PERIOD_PERIOD_PERIOD_QUESTION_TOKEN);
+
   static const TokenType AS = Keyword.AS;
 
   static const TokenType IS = Keyword.IS;
@@ -1513,6 +1519,7 @@ class TokenType {
     TokenType.BACKPING,
     TokenType.BACKSLASH,
     TokenType.PERIOD_PERIOD_PERIOD,
+    TokenType.PERIOD_PERIOD_PERIOD_QUESTION,
 
     // TODO(danrubel): Should these be added to the "all" list?
     //TokenType.IS,

@@ -1,4 +1,46 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/type_variable_uses.dart:7:15: Warning: Can only use type variables in instance methods.
+//   static C<T> staticMethod() {
+//               ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:8:11: Warning: Type variables can't be used in static members.
+//     print(T);
+//           ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:9:5: Warning: Type variables can't be used in static members.
+//     T t;
+//     ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:10:7: Warning: Type variables can't be used in static members.
+//     C<T> l;
+//       ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:11:9: Warning: Type variables can't be used in static members.
+//     C<C<T>> ll;
+//         ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:12:13: Warning: Type variables can't be used in static members.
+//     const C<T>();
+//             ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:13:12: Warning: Type variables can't be used in static members.
+//     const <T>[];
+//            ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:14:14: Warning: Type variables can't be used in static members.
+//     const <C<T>>[];
+//              ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:15:20: Warning: Type variables can't be used in static members.
+//     const <Object>[T];
+//                    ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:16:28: Warning: Type variables can't be used in static members.
+//     const <Object>[const C<T>()];
+//                            ^
 //
 // pkg/front_end/testcases/type_variable_uses.dart:24:13: Error: Type variables can't be used as constants.
 //     const C<T>();
@@ -19,8 +61,7 @@
 // pkg/front_end/testcases/type_variable_uses.dart:28:28: Error: Type variables can't be used as constants.
 //     const <Object>[const C<T>()];
 //                            ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

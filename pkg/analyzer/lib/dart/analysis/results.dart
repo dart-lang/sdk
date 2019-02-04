@@ -89,7 +89,7 @@ abstract class ParsedLibraryResult implements AnalysisResult {
 /// those discovered during scanning and parsing.
 ///
 /// Clients may not extend, implement or mix-in this class.
-// ignore: deprecated_member_use
+// ignore: deprecated_member_use_from_same_package
 abstract class ParsedUnitResult implements ParseResult {}
 
 /// The result of parsing of a single file. The errors returned include only
@@ -128,7 +128,7 @@ abstract class ResolvedLibraryResult implements AnalysisResult {
 /// include both syntactic and semantic errors.
 ///
 /// Clients may not extend, implement or mix-in this class.
-// ignore: deprecated_member_use
+// ignore: deprecated_member_use_from_same_package
 abstract class ResolvedUnitResult implements ResolveResult {}
 
 /// The result of building a resolved AST for a single file. The errors returned

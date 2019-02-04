@@ -102,7 +102,7 @@ export interface SomeOptions {
 
     test('parses an interface with type args', () {
       final String input = '''
-interface ResponseError<D> {
+interface MyInterface<D> {
 	data?: D;
 }
     ''';

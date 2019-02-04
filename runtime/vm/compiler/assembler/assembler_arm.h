@@ -9,19 +9,53 @@
 #error Do not include assembler_arm.h directly; use assembler.h instead.
 #endif
 
+#include <functional>
+
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/code_entry_kind.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants_arm.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
-#include "vm/object.h"
 #include "vm/simulator.h"
 
 namespace dart {
 
 // Forward declarations.
-class RuntimeEntry;
+class FlowGraphCompiler;
 class RegisterSet;
+class RuntimeEntry;
+
+// TODO(vegorov) these enumerations are temporarily moved out of compiler
+// namespace to make refactoring easier.
+enum OperandSize {
+  kByte,
+  kUnsignedByte,
+  kHalfword,
+  kUnsignedHalfword,
+  kWord,
+  kUnsignedWord,
+  kWordPair,
+  kSWord,
+  kDWord,
+  kRegList,
+};
+
+// Load/store multiple addressing mode.
+enum BlockAddressMode {
+  // bit encoding P U W
+  DA = (0 | 0 | 0) << 21,    // decrement after
+  IA = (0 | 4 | 0) << 21,    // increment after
+  DB = (8 | 0 | 0) << 21,    // decrement before
+  IB = (8 | 4 | 0) << 21,    // increment before
+  DA_W = (0 | 0 | 1) << 21,  // decrement after with writeback to base
+  IA_W = (0 | 4 | 1) << 21,  // increment after with writeback to base
+  DB_W = (8 | 0 | 1) << 21,  // decrement before with writeback to base
+  IB_W = (8 | 4 | 1) << 21   // increment before with writeback to base
+};
+
+namespace compiler {
 
 // Instruction encoding bits.
 enum {
@@ -180,32 +214,6 @@ class Operand : public ValueObject {
   friend class Address;
 };
 
-enum OperandSize {
-  kByte,
-  kUnsignedByte,
-  kHalfword,
-  kUnsignedHalfword,
-  kWord,
-  kUnsignedWord,
-  kWordPair,
-  kSWord,
-  kDWord,
-  kRegList,
-};
-
-// Load/store multiple addressing mode.
-enum BlockAddressMode {
-  // bit encoding P U W
-  DA = (0 | 0 | 0) << 21,    // decrement after
-  IA = (0 | 4 | 0) << 21,    // increment after
-  DB = (8 | 0 | 0) << 21,    // decrement before
-  IB = (8 | 4 | 0) << 21,    // increment before
-  DA_W = (0 | 0 | 1) << 21,  // decrement after with writeback to base
-  IA_W = (0 | 4 | 1) << 21,  // increment after with writeback to base
-  DB_W = (8 | 0 | 1) << 21,  // decrement before with writeback to base
-  IB_W = (8 | 4 | 1) << 21   // increment before with writeback to base
-};
-
 class Address : public ValueObject {
  public:
   enum OffsetKind {
@@ -337,12 +345,8 @@ class FieldAddress : public Address {
 
 class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
-                     bool use_far_branches = false)
-      : AssemblerBase(object_pool_wrapper),
-        use_far_branches_(use_far_branches),
-        constant_pool_allowed_(false) {}
-
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
+                     bool use_far_branches = false);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -656,31 +660,31 @@ class Assembler : public AssemblerBase {
   void blx(Register rm, Condition cond = AL);
 
   void Branch(const Code& code,
-              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
+              ObjectPoolBuilderEntry::Patchability patchable =
+                  ObjectPoolBuilderEntry::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
 
   void Branch(const Address& address, Condition cond = AL);
 
-  void BranchLink(
-      const Code& code,
-      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+  void BranchLink(const Code& code,
+                  ObjectPoolBuilderEntry::Patchability patchable =
+                      ObjectPoolBuilderEntry::kNotPatchable,
+                  CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(
-      const Code& code,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+  void BranchLinkPatchable(const Code& code,
+                           CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(
       const Code& code,
       const Object& equivalence,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -756,7 +760,7 @@ class Assembler : public AssemblerBase {
                                   Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       ObjectPool::Patchability patchable,
+                       ObjectPoolBuilderEntry::Patchability patchable,
                        Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
@@ -1030,12 +1034,9 @@ class Assembler : public AssemblerBase {
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
   void LoadAllocationStatsAddress(Register dest, intptr_t cid);
-  void IncrementAllocationStats(Register stats_addr,
-                                intptr_t cid,
-                                Heap::Space space);
+  void IncrementAllocationStats(Register stats_addr, intptr_t cid);
   void IncrementAllocationStatsWithSize(Register stats_addr_reg,
-                                        Register size_reg,
-                                        Heap::Space space);
+                                        Register size_reg);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
@@ -1106,7 +1107,12 @@ class Assembler : public AssemblerBase {
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
   // will be used during relocation to fix the offset.
-  void GenerateUnRelocatedPcRelativeCall();
+  //
+  // The provided [offset_into_target] will be added to calculate the final
+  // destination.  It can be used e.g. for calling into the middle of a
+  // function.
+  void GenerateUnRelocatedPcRelativeCall(Condition cond = AL,
+                                         intptr_t offset_into_target = 0);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
@@ -1114,7 +1120,7 @@ class Assembler : public AssemblerBase {
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }
-  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
+  static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
@@ -1273,9 +1279,22 @@ class Assembler : public AssemblerBase {
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
 
+  friend class dart::FlowGraphCompiler;
+  std::function<void(Condition, Register)>
+      generate_invoke_write_barrier_wrapper_;
+  std::function<void(Condition)> generate_invoke_array_write_barrier_;
+
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
+
+}  // namespace compiler
+
+// TODO(vegorov) temporary export commonly used classes into dart namespace
+// to ease migration.
+using compiler::Address;
+using compiler::FieldAddress;
+using compiler::Operand;
 
 }  // namespace dart
 

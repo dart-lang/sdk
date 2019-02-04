@@ -31,6 +31,7 @@ import '../scanner.dart' show Token;
 enum NullValue {
   Arguments,
   As,
+  AwaitToken,
   Block,
   BreakTarget,
   CascadeReceiver,

@@ -32,12 +32,6 @@ import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
  */
 abstract class DartType {
   /**
-   * An empty list of types.
-   */
-  @deprecated
-  static const List<DartType> EMPTY_LIST = const <DartType>[];
-
-  /**
    * Return the name of this type as it should appear when presented to users in
    * contexts such as error messages.
    */
@@ -67,6 +61,12 @@ abstract class DartType {
    * dart:async library.
    */
   bool get isDartAsyncFutureOr;
+
+  /**
+   * Return `true` if this type represents the type 'bool' defined in the
+   * dart:core library.
+   */
+  bool get isDartCoreBool;
 
   /**
    * Return `true` if this type represents the type 'Function' defined in the
@@ -355,12 +355,6 @@ abstract class FunctionType implements ParameterizedType {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class InterfaceType implements ParameterizedType {
-  /**
-   * An empty list of types.
-   */
-  @deprecated
-  static const List<InterfaceType> EMPTY_LIST = const <InterfaceType>[];
-
   /**
    * Return a list containing all of the accessors (getters and setters)
    * declared in this type.
@@ -729,12 +723,6 @@ abstract class ParameterizedType implements DartType {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class TypeParameterType implements DartType {
-  /**
-   * An empty list of type parameter types.
-   */
-  @deprecated
-  static const List<TypeParameterType> EMPTY_LIST = const <TypeParameterType>[];
-
   /**
    * Return the type representing the bound associated with this parameter,
    * or `dynamic` if there was no explicit bound.

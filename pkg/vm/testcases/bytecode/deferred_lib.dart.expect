@@ -2,6 +2,8 @@ library #lib;
 import self as self;
 import "./hello.dart" as hel;
 
+import "#pkg/vm/testcases/bytecode/hello.dart" deferred as lib;
+
 [@vm.bytecode=
 Bytecode {
   Entry                1

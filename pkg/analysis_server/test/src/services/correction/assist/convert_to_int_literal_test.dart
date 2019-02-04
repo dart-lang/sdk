@@ -24,7 +24,7 @@ class ConvertToIntLiteralTest extends AssistProcessorTest {
 const double myDouble = /*caret*/42.0;
 ''');
     await assertHasAssist('''
-const double myDouble = /*caret*/42;
+const double myDouble = 42;
 ''');
   }
 
@@ -40,7 +40,7 @@ const double myDouble = /*caret*/42;
 const double myDouble = /*caret*/4.2e1;
 ''');
     await assertHasAssist('''
-const double myDouble = /*caret*/42;
+const double myDouble = 42;
 ''');
   }
 

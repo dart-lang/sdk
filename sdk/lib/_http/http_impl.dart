@@ -531,24 +531,16 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   _StreamSinkImpl(this._target);
 
-  void _reportClosedSink() {
-    stderr.writeln("StreamSink is closed and adding to it is an error.");
-    stderr.writeln("  See http://dartbug.com/29554.");
-    stderr.writeln(StackTrace.current);
-  }
-
   void add(T data) {
     if (_isClosed) {
-      _reportClosedSink();
-      return;
+      throw StateError("StreamSink is closed");
     }
     _controller.add(data);
   }
 
   void addError(error, [StackTrace stackTrace]) {
     if (_isClosed) {
-      _reportClosedSink();
-      return;
+      throw StateError("StreamSink is closed");
     }
     _controller.addError(error, stackTrace);
   }
@@ -2924,6 +2916,14 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   bool setOption(SocketOption option, bool enabled) {
     return _socket.setOption(option, enabled);
+  }
+
+  Uint8List getRawOption(RawSocketOption option) {
+    return _socket.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _socket.setRawOption(option);
   }
 
   Map _toJSON(bool ref) {

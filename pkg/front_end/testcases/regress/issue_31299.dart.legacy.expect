@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31299.dart:18:12: Warning: Too many positional arguments: 0 allowed, but 2 found.
 // Try removing the extra positional arguments.
@@ -7,8 +9,7 @@
 // pkg/front_end/testcases/regress/issue_31299.dart:10:3: Context: Found this candidate, but the arguments don't match.
 //   A.foo() : m = 2;
 //   ^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

@@ -3036,6 +3036,7 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   return true;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
     SourceReport::kCallSitesStr,
     SourceReport::kCoverageStr,
@@ -3043,18 +3044,25 @@ static const char* const report_enum_names[] = {
     SourceReport::kProfileStr,
     NULL,
 };
+#endif
 
 static const MethodParameter* get_source_report_params[] = {
+#if !defined(DART_PRECOMPILED_RUNTIME)
     RUNNABLE_ISOLATE_PARAMETER,
     new EnumListParameter("reports", true, report_enum_names),
     new IdParameter("scriptId", false),
     new UIntParameter("tokenPos", false),
     new UIntParameter("endTokenPos", false),
     new BoolParameter("forceCompile", false),
+#endif
     NULL,
 };
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "disabled in AOT mode and PRODUCT.");
+  return false;
+#else
   if (CheckCompilerDisabled(thread, js)) {
     return true;
   }
@@ -3116,6 +3124,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
   report.PrintJSON(js, script, TokenPosition(start_pos),
                    TokenPosition(end_pos));
   return true;
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 static const MethodParameter* reload_sources_params[] = {
@@ -3526,6 +3535,7 @@ static const MethodParameter* set_vm_timeline_flags_params[] = {
     NULL,
 };
 
+#if defined(SUPPORT_TIMELINE)
 static bool HasStream(const char** recorded_streams, const char* stream) {
   while (*recorded_streams != NULL) {
     if ((strstr(*recorded_streams, "all") != NULL) ||
@@ -3536,12 +3546,13 @@ static bool HasStream(const char** recorded_streams, const char* stream) {
   }
   return false;
 }
+#endif
 
 static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
-  if (!FLAG_support_timeline) {
-    PrintSuccess(js);
-    return true;
-  }
+#if !defined(SUPPORT_TIMELINE)
+  PrintSuccess(js);
+  return true;
+#else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
@@ -3561,6 +3572,7 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 
   return true;
+#endif
 }
 
 static const MethodParameter* get_vm_timeline_flags_params[] = {
@@ -3568,16 +3580,17 @@ static const MethodParameter* get_vm_timeline_flags_params[] = {
 };
 
 static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
-  if (!FLAG_support_timeline) {
-    JSONObject obj(js);
-    obj.AddProperty("type", "TimelineFlags");
-    return true;
-  }
+#if !defined(SUPPORT_TIMELINE)
+  JSONObject obj(js);
+  obj.AddProperty("type", "TimelineFlags");
+  return true;
+#else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
   Timeline::PrintFlagsToJSON(js);
   return true;
+#endif
 }
 
 static const MethodParameter* clear_vm_timeline_params[] = {
@@ -4545,16 +4558,20 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
 
   // Changing most flags at runtime is dangerous because e.g., it may leave the
   // behavior generated code and the runtime out of sync.
+  const uintptr_t kProfilePeriodIndex = 3;
   const char* kAllowedFlags[] = {
       "pause_isolates_on_start",
       "pause_isolates_on_exit",
       "pause_isolates_on_unhandled_exceptions",
+      "profile_period",
   };
 
   bool allowed = false;
+  bool profile_period = false;
   for (size_t i = 0; i < ARRAY_SIZE(kAllowedFlags); i++) {
     if (strcmp(flag_name, kAllowedFlags[i]) == 0) {
       allowed = true;
+      profile_period = (i == kProfilePeriodIndex);
       break;
     }
   }
@@ -4569,6 +4586,11 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
   const char* error = NULL;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
     PrintSuccess(js);
+    if (profile_period) {
+      // FLAG_profile_period has already been set to the new value. Now we need
+      // to notify the ThreadInterrupter to pick up the change.
+      Profiler::UpdateSamplePeriod();
+    }
     return true;
   } else {
     JSONObject jsobj(js);

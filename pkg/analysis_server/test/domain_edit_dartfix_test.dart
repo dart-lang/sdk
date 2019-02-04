@@ -122,11 +122,18 @@ analyzer:
     createProject();
     addTestFile('''
 main() {
-  functionWithNullableParam(new List<Object>(1));
+  functionWithNullableParam(new List<String>(1));
   functionWithNullableParam(null);
 }
 
-void functionWithNullableParam(Object object) {
+class C1 {}
+class C2 {}
+class C extends C1 with M1 implements C2 {}
+
+mixin M1 {}
+mixin M on M1 implements C1 {}
+
+void functionWithNullableParam(String object) {
   if (object == null) {
     print('object is null');
   } else {
@@ -143,11 +150,18 @@ void functionWithNullableParam(Object object) {
     expectSuggestion(result.suggestions[0], 'non-nullable', 46, 6);
     expectEdits(result.edits, '''
 main() {
-  functionWithNullableParam(new List<Object?>(1));
+  functionWithNullableParam(new List<String?>(1));
   functionWithNullableParam(null);
 }
 
-void functionWithNullableParam(Object? object) {
+class C1 {}
+class C2 {}
+class C extends C1 with M1 implements C2 {}
+
+mixin M1 {}
+mixin M on M1 implements C1 {}
+
+void functionWithNullableParam(String? object) {
   if (object == null) {
     print('object is null');
   } else {

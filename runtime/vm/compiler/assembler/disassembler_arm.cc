@@ -655,16 +655,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
         case 7: {
           if ((instr->Bits(21, 2) == 0x1) && (instr->ConditionField() == AL)) {
             Format(instr, "bkpt #'imm12_4");
-            if (instr->BkptField() == Instr::kStopMessageCode) {
-              const char* message = "Stop messages not enabled";
-              if (FLAG_print_stop_message) {
-                message = *reinterpret_cast<const char**>(
-                    reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-              }
-              buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
-                                            remaining_size_in_buffer(),
-                                            " ; \"%s\"", message);
-            }
           } else {
             // Format(instr, "smc'cond");
             Unknown(instr);  // Not used.

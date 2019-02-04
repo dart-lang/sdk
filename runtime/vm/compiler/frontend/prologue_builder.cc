@@ -181,8 +181,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   for (; param < num_fixed_params; ++param) {
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
-        kWordSize *
-        (compiler_frame_layout.param_end_from_fp + num_fixed_params - param));
+        kWordSize * (compiler::target::frame_layout.param_end_from_fp +
+                     num_fixed_params - param));
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
     copy_args_prologue += Drop();
@@ -201,8 +201,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       Fragment good(supplied);
       good += LoadLocal(optional_count_var);
       good += LoadFpRelativeSlot(
-          kWordSize *
-          (compiler_frame_layout.param_end_from_fp + num_fixed_params - param));
+          kWordSize * (compiler::target::frame_layout.param_end_from_fp +
+                       num_fixed_params - param));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
 
@@ -286,7 +286,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       Fragment good(supplied);
 
       {
-        // fp[compiler_frame_layout.param_end_from_fp + (count_var - pos)]
+        // fp[target::frame_layout.param_end_from_fp + (count_var - pos)]
         good += LoadLocal(count_var);
         {
           // pos = arg_desc[names_offset + arg_desc_name_index + positionOffset]
@@ -299,8 +299,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
           good += LoadIndexed(/* index_scale = */ kWordSize);
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
-        good += LoadFpRelativeSlot(kWordSize *
-                                   compiler_frame_layout.param_end_from_fp);
+        good += LoadFpRelativeSlot(
+            kWordSize * compiler::target::frame_layout.param_end_from_fp);
 
         // Copy down.
         good += StoreLocalRaw(TokenPosition::kNoSource,
@@ -407,7 +407,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
   store_type_args += LoadFpRelativeSlot(
-      kWordSize * (1 + compiler_frame_layout.param_end_from_fp));
+      kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
 

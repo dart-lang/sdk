@@ -1,16 +1,11 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.
-// typedef Handle Handle(String command);
-//                ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.
-// typedef Handle Handle(String command);
-//                ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.
+// typedef Handle Handle(String command);
+//                ^
+//
 import self as self;
 import "dart:core" as core;
 

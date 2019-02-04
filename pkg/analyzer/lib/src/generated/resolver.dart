@@ -306,8 +306,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
     String libraryPath = _currentLibrary.source.fullName;
-    Workspace workspace = ContextBuilder.createWorkspace(
-        resourceProvider, libraryPath, null /* ContextBuilder */);
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, null /* sdkManager */, null /* contentCache */);
+    Workspace workspace =
+        ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
     _workspacePackage = workspace.findPackageFor(libraryPath);
     _linterContext = LinterContextImpl(null /* allUnits */,
         null /* currentUnit */, declaredVariables, typeProvider, _typeSystem);
@@ -338,8 +340,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (element?.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
-        _errorReporter.reportErrorForNode(HintCode.INVALID_SEALED_ANNOTATION,
-            node.parent, [node.element.name]);
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_SEALED_ANNOTATION, node, [node.element.name]);
       }
     }
     super.visitAnnotation(node);
@@ -2614,6 +2616,64 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitForStatement2(ForStatement2 node) {
+    bool outerBreakValue = _enclosingBlockContainsBreak;
+    _enclosingBlockContainsBreak = false;
+    ForLoopParts parts = node.forLoopParts;
+    try {
+      if (parts is ForEachParts) {
+        bool iterableExits = _nodeExits(parts.iterable);
+        // Discard whether the for-each body exits; since the for-each iterable
+        // may be empty, execution may never enter the body, so it doesn't matter
+        // if it exits or not.  We still must visit the body, to accurately
+        // manage `_enclosingBlockBreaksLabel`.
+        _nodeExits(node.body);
+        return iterableExits;
+      }
+      VariableDeclarationList variables;
+      Expression initialization;
+      Expression condition;
+      NodeList<Expression> updaters;
+      if (parts is ForPartsWithDeclarations) {
+        variables = parts.variables;
+        condition = parts.condition;
+        updaters = parts.updaters;
+      } else if (parts is ForPartsWithExpression) {
+        initialization = parts.initialization;
+        condition = parts.condition;
+        updaters = parts.updaters;
+      }
+      if (variables != null &&
+          _visitVariableDeclarations(variables.variables)) {
+        return true;
+      }
+      if (initialization != null && _nodeExits(initialization)) {
+        return true;
+      }
+      if (condition != null && _nodeExits(condition)) {
+        return true;
+      }
+      if (_visitExpressions(updaters)) {
+        return true;
+      }
+      bool blockReturns = _nodeExits(node.body);
+      // TODO(jwren) Do we want to take all constant expressions into account?
+      // If for(; true; ) (or for(;;)), and the body doesn't return or the body
+      // doesn't have a break, then return true.
+      bool implicitOrExplictTrue =
+          condition == null || (condition is BooleanLiteral && condition.value);
+      if (implicitOrExplictTrue) {
+        if (blockReturns || !_enclosingBlockContainsBreak) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      _enclosingBlockContainsBreak = outerBreakValue;
+    }
+  }
+
+  @override
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
       false;
 
@@ -3382,26 +3442,31 @@ class ImportsVerifier {
     }
   }
 
-  /// Report an [HintCode.UNUSED_SHOWN_NAME] hint for each unused shown name.
+  /// Use the error [reporter] to report an [HintCode.UNUSED_SHOWN_NAME] hint
+  /// for each unused shown name.
   ///
-  /// Only call this method after all of the compilation units have been visited
-  /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///        [HintCode.UNUSED_SHOWN_NAME] hints
+  /// This method should only be invoked after all of the compilation units have
+  /// been visited by this visitor.
   void generateUnusedShownNameHints(ErrorReporter reporter) {
     _unusedShownNamesMap.forEach(
         (ImportDirective importDirective, List<SimpleIdentifier> identifiers) {
       if (_unusedImports.contains(importDirective)) {
-        // This import is actually wholly unused, not just one or more shown names from it.
-        // This is then an "unused import", rather than unused shown names.
+        // The whole import is unused, not just one or more shown names from it,
+        // so an "unused_import" hint will be generated, making it unnecessary
+        // to generate hints for the individual names.
         return;
       }
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+        List<SimpleIdentifier> duplicateNames =
+            _duplicateShownNamesMap[importDirective];
+        if (duplicateNames == null || !duplicateNames.contains(identifier)) {
+          // Only generate a hint if we won't also generate a
+          // "duplicate_shown_name" hint for the same identifier.
+          reporter.reportErrorForNode(
+              HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+        }
       }
     });
   }
@@ -4450,7 +4515,6 @@ class ResolverVisitor extends ScopedVisitor {
   void visitAssertStatement(AssertStatement node) {
     InferenceContext.setType(node.condition, typeProvider.boolType);
     super.visitAssertStatement(node);
-    _propagateTrueState(node.condition);
   }
 
   @override
@@ -4491,7 +4555,6 @@ class ResolverVisitor extends ScopedVisitor {
         try {
           _promoteManager.enterScope();
           try {
-            _propagateTrueState(leftOperand);
             // Type promotion.
             _promoteTypes(leftOperand);
             _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
@@ -4515,7 +4578,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (rightOperand != null) {
         _overrideManager.enterScope();
         try {
-          _propagateFalseState(leftOperand);
           rightOperand.accept(this);
         } finally {
           _overrideManager.exitScope();
@@ -4677,7 +4739,6 @@ class ResolverVisitor extends ScopedVisitor {
       try {
         _promoteManager.enterScope();
         try {
-          _propagateTrueState(condition);
           // Type promotion.
           _promoteTypes(condition);
           _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
@@ -4697,7 +4758,6 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseExpression != null) {
       _overrideManager.enterScope();
       try {
-        _propagateFalseState(condition);
         InferenceContext.setTypeFromNode(elseExpression, node);
         elseExpression.accept(this);
       } finally {
@@ -4706,15 +4766,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    bool thenIsAbrupt = _isAbruptTerminationExpression(thenExpression);
-    bool elseIsAbrupt = _isAbruptTerminationExpression(elseExpression);
-    if (elseIsAbrupt && !thenIsAbrupt) {
-      _propagateTrueState(condition);
-      _propagateState(thenExpression);
-    } else if (thenIsAbrupt && !elseIsAbrupt) {
-      _propagateFalseState(condition);
-      _propagateState(elseExpression);
-    }
   }
 
   @override
@@ -4977,6 +5028,22 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitForStatement2(ForStatement2 node) {
+    _overrideManager.enterScope();
+    try {
+      super.visitForStatement2(node);
+    } finally {
+      _overrideManager.exitScope();
+    }
+  }
+
+  @override
+  void visitForStatement2InScope(ForStatement2 node) {
+    throw new UnsupportedError('Implement this');
+    visitStatementInScope(node.body); // ignore: dead_code
+  }
+
+  @override
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
@@ -4984,14 +5051,11 @@ class ResolverVisitor extends ScopedVisitor {
     node.condition?.accept(this);
     _overrideManager.enterScope();
     try {
-      _propagateTrueState(node.condition);
       visitStatementInScope(node.body);
       node.updaters.accept(this);
     } finally {
       _overrideManager.exitScope();
     }
-    // TODO(brianwilkerson) If the loop can only be exited because the condition
-    // is false, then propagateFalseState(condition);
   }
 
   @override
@@ -5101,7 +5165,6 @@ class ResolverVisitor extends ScopedVisitor {
       try {
         _promoteManager.enterScope();
         try {
-          _propagateTrueState(condition);
           // Type promotion.
           _promoteTypes(condition);
           _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
@@ -5123,7 +5186,6 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseStatement != null) {
       _overrideManager.enterScope();
       try {
-        _propagateFalseState(condition);
         visitStatementInScope(elseStatement);
       } finally {
         elseOverrides = _overrideManager.captureLocalOverrides();
@@ -5136,10 +5198,8 @@ class ResolverVisitor extends ScopedVisitor {
     bool thenIsAbrupt = _isAbruptTerminationStatement(thenStatement);
     bool elseIsAbrupt = _isAbruptTerminationStatement(elseStatement);
     if (elseIsAbrupt && !thenIsAbrupt) {
-      _propagateTrueState(condition);
       _overrideManager.applyOverrides(thenOverrides);
     } else if (thenIsAbrupt && !elseIsAbrupt) {
-      _propagateFalseState(condition);
       _overrideManager.applyOverrides(elseOverrides);
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
       List<Map<VariableElement, DartType>> perBranchOverrides =
@@ -5203,6 +5263,29 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitListLiteral2(ListLiteral2 node) {
+    InterfaceType listT;
+
+    if (node.typeArguments != null) {
+      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
+      if (targs.length == 1 && !targs[0].isDynamic) {
+        listT = typeProvider.listType.instantiate([targs[0]]);
+      }
+    } else {
+      listT = typeAnalyzer.inferListType2(node, downwards: true);
+    }
+    if (listT != null) {
+      for (CollectionElement element in node.elements) {
+        _pushCollectionTypesDown(element, listT);
+      }
+      InferenceContext.setType(node, listT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitListLiteral2(node);
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
     InterfaceType mapT;
     if (node.typeArguments != null) {
@@ -5234,6 +5317,54 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.clearType(node);
     }
     super.visitMapLiteral(node);
+  }
+
+  @override
+  void visitMapLiteral2(MapLiteral2 node) {
+    InterfaceType mapT;
+    if (node.typeArguments != null) {
+      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
+      if (targs.length == 2 && targs.any((t) => !t.isDynamic)) {
+        mapT = typeProvider.mapType.instantiate([targs[0], targs[1]]);
+      }
+    } else {
+      mapT = typeAnalyzer.inferMapType2(node, downwards: true);
+      if (mapT != null &&
+          node.typeArguments == null &&
+          node.entries.isEmpty &&
+          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
+          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
+        // The node is really an empty set literal with no type arguments, so
+        // don't try to visit the replaced map literal.
+        return;
+      }
+    }
+    if (mapT != null) {
+      DartType kType = mapT.typeArguments[0];
+      DartType vType = mapT.typeArguments[1];
+
+      void pushTypesDown(MapElement element) {
+        if (element is MapForElement) {
+          pushTypesDown(element.body);
+        } else if (element is MapIfElement) {
+          pushTypesDown(element.thenElement);
+          pushTypesDown(element.elseElement);
+        } else if (element is MapLiteralEntry) {
+          InferenceContext.setType(element.key, kType);
+          InferenceContext.setType(element.value, vType);
+        } else if (element is SpreadElement) {
+          InferenceContext.setType(element.expression, mapT);
+        }
+      }
+
+      for (MapElement element in node.entries) {
+        pushTypesDown(element);
+      }
+      InferenceContext.setType(node, mapT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitMapLiteral2(node);
   }
 
   @override
@@ -5397,6 +5528,32 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitSetLiteral2(SetLiteral2 node) {
+    InterfaceType setT;
+
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (typeArguments.length == 1) {
+        DartType elementType = typeArguments.arguments[0].type;
+        if (!elementType.isDynamic) {
+          setT = typeProvider.setType.instantiate([elementType]);
+        }
+      }
+    } else {
+      setT = typeAnalyzer.inferSetType2(node, downwards: true);
+    }
+    if (setT != null) {
+      for (CollectionElement element in node.elements) {
+        _pushCollectionTypesDown(element, setT);
+      }
+      InferenceContext.setType(node, setT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitSetLiteral2(node);
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
@@ -5506,7 +5663,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (body != null) {
         _overrideManager.enterScope();
         try {
-          _propagateTrueState(condition);
           visitStatementInScope(body);
         } finally {
           _overrideManager.exitScope();
@@ -5963,50 +6119,17 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  /// Propagate any type information that results from knowing that the given
-  /// condition will have been evaluated to 'false'.
-  ///
-  /// @param condition the condition that will have evaluated to 'false'
-  void _propagateFalseState(Expression condition) {
-    if (condition is BinaryExpression) {
-      if (condition.operator.type == TokenType.BAR_BAR) {
-        _propagateFalseState(condition.leftOperand);
-        _propagateFalseState(condition.rightOperand);
-      }
-    } else if (condition is PrefixExpression) {
-      if (condition.operator.type == TokenType.BANG) {
-        _propagateTrueState(condition.operand);
-      }
-    } else if (condition is ParenthesizedExpression) {
-      _propagateFalseState(condition.expression);
-    }
-  }
-
-  /// Propagate any type information that results from knowing that the given
-  /// expression will have been evaluated without altering the flow of
-  /// execution.
-  ///
-  /// @param expression the expression that will have been evaluated
-  void _propagateState(Expression expression) {
-    // TODO(brianwilkerson) Implement this.
-  }
-
-  /// Propagate any type information that results from knowing that the given
-  /// condition will have been evaluated to 'true'.
-  ///
-  /// @param condition the condition that will have evaluated to 'true'
-  void _propagateTrueState(Expression condition) {
-    if (condition is BinaryExpression) {
-      if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        _propagateTrueState(condition.leftOperand);
-        _propagateTrueState(condition.rightOperand);
-      }
-    } else if (condition is PrefixExpression) {
-      if (condition.operator.type == TokenType.BANG) {
-        _propagateFalseState(condition.operand);
-      }
-    } else if (condition is ParenthesizedExpression) {
-      _propagateTrueState(condition.expression);
+  void _pushCollectionTypesDown(
+      CollectionElement element, ParameterizedType collectionType) {
+    if (element is CollectionForElement) {
+      _pushCollectionTypesDown(element.body, collectionType);
+    } else if (element is CollectionIfElement) {
+      _pushCollectionTypesDown(element.thenElement, collectionType);
+      _pushCollectionTypesDown(element.elseElement, collectionType);
+    } else if (element is Expression) {
+      InferenceContext.setType(element, collectionType.typeArguments[0]);
+    } else if (element is SpreadElement) {
+      InferenceContext.setType(element.expression, collectionType);
     }
   }
 
@@ -6455,6 +6578,30 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       nameScope = outerNameScope;
       _implicitLabelScope = outerImplicitScope;
     }
+  }
+
+  @override
+  void visitForStatement2(ForStatement2 node) {
+    Scope outerNameScope = nameScope;
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    try {
+      nameScope = new EnclosedScope(nameScope);
+      _implicitLabelScope = _implicitLabelScope.nest(node);
+      visitForStatement2InScope(node);
+    } finally {
+      nameScope = outerNameScope;
+      _implicitLabelScope = outerImplicitScope;
+    }
+  }
+
+  /// Visit the given [node] after it's scope has been created. This replaces
+  /// the normal call to the inherited visit method so that ResolverVisitor can
+  /// intervene when type propagation is enabled.
+  void visitForStatement2InScope(ForStatement2 node) {
+    // TODO(brianwilkerson) Investigate the possibility of removing the
+    //  visit...InScope methods now that type propagation is no longer done.
+    node.forLoopParts?.accept(this);
+    visitStatementInScope(node.body);
   }
 
   /// Visit the given statement after it's scope has been created. This replaces

@@ -204,11 +204,12 @@ class CoreTypes {
   }
 
   Class get futureClass {
-    return _futureClass ??= index.getClass('dart:async', 'Future');
+    return _futureClass ??= index.getClass('dart:core', 'Future');
   }
 
   Class get futureOrClass {
-    return _futureOrClass ??= index.getClass('dart:async', 'FutureOr');
+    return _futureOrClass ??= (index.tryGetClass('dart:core', 'FutureOr') ??
+        index.getClass('dart:async', 'FutureOr'));
   }
 
   Procedure get identicalProcedure {
@@ -316,7 +317,7 @@ class CoreTypes {
   }
 
   Class get streamClass {
-    return _streamClass ??= index.getClass('dart:async', 'Stream');
+    return _streamClass ??= index.getClass('dart:core', 'Stream');
   }
 
   Member get streamIteratorSubscription {

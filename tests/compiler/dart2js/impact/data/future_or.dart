@@ -7,7 +7,7 @@ import "dart:async";
 /*element: main:
  dynamic=[runtimeType],
  runtimeType=[unknown:FutureOr<int>],
- static=[Future.value(1),assertIsSubtype,print(1),throwTypeError],
+ static=[Future.value(1),assertIsSubtype(5),print(1),throwTypeError(1)],
  type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
 */
 @pragma('dart2js:disableFinal')

@@ -41,7 +41,6 @@ const String symbolForTypeCast = ' in type cast';
 
 void generateBytecode(
   Component component, {
-  bool dropAST: false,
   bool emitSourcePositions: false,
   bool omitAssertSourcePositions: false,
   bool useFutureBytecodeFormat: false,
@@ -70,12 +69,6 @@ void generateBytecode(
       errorReporter);
   for (var library in libraries) {
     bytecodeGenerator.visitLibrary(library);
-  }
-  if (dropAST) {
-    final astRemover = new DropAST(component);
-    for (var library in libraries) {
-      astRemover.visitLibrary(library);
-    }
   }
 }
 
@@ -406,9 +399,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return expr.constant;
     }
     final constant = constantEvaluator.evaluate(expr);
-    if (constant == null) {
+    if (constant is UnevaluatedConstant &&
+        constant.expression is InvalidExpression) {
       // Compile-time error is already reported. Proceed with compilation
-      // in order to report as many errors as possible.
+      // in order to report errors in other constant expressions.
       hasErrors = true;
       return new NullConstant();
     }
@@ -3046,10 +3040,10 @@ class ConstantEmitter extends ConstantVisitor<int> {
 
   @override
   int visitInstanceConstant(InstanceConstant node) => cp.addInstance(
-      node.klass,
-      hasInstantiatorTypeArguments(node.klass)
+      node.classNode,
+      hasInstantiatorTypeArguments(node.classNode)
           ? cp.addTypeArgumentsForInstanceAllocation(
-              node.klass, node.typeArguments)
+              node.classNode, node.typeArguments)
           : cp.addNull(),
       node.fieldValues.map<Field, int>((Reference fieldRef, Constant value) =>
           new MapEntry(fieldRef.asField, value.accept(this))));
@@ -3127,44 +3121,6 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 
     return result;
   }
-}
-
-// Drop kernel AST for members with bytecode.
-class DropAST extends Transformer {
-  BytecodeMetadataRepository metadata;
-
-  DropAST(Component component)
-      : metadata = component.metadata[new BytecodeMetadataRepository().tag];
-
-  @override
-  TreeNode defaultMember(Member node) {
-    if (_hasBytecode(node)) {
-      if (node is Field) {
-        node.initializer = null;
-      } else if (node is Constructor) {
-        node.initializers = <Initializer>[];
-        node.function.body = null;
-      } else if (node.function != null) {
-        node.function.body = null;
-      }
-    }
-
-    // Instance field initializers do not form separate functions, and bytecode
-    // is not attached to instance fields (it is included into constructors).
-    // When VM reads a constructor from kernel, it also reads and translates
-    // instance field initializers. So, their ASTs can be dropped only if
-    // bytecode was generated for all generative constructors.
-    if (node is Field && !node.isStatic && node.initializer != null) {
-      if (node.enclosingClass.constructors.every(_hasBytecode)) {
-        node.initializer = null;
-      }
-    }
-
-    return node;
-  }
-
-  bool _hasBytecode(Member node) =>
-      metadata != null && metadata.mapping.containsKey(node);
 }
 
 typedef void GenerateContinuation();

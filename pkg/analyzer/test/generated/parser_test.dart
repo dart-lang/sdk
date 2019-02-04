@@ -10860,6 +10860,8 @@ class C {
   }
 
   void test_incompleteForEach() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     ForStatement statement = parseStatement('for (String item i) {}');
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
@@ -14571,6 +14573,8 @@ main() {
   }
 
   void test_parseForStatement_each_await() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     String code = 'await for (element in list) {}';
     var forStatement = _parseAsyncStatement(code) as ForEachStatement;
     assertNoErrors();
@@ -14586,6 +14590,8 @@ main() {
   }
 
   void test_parseForStatement_each_genericFunctionType() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (void Function<T>(T) element in list) {}')
             as ForEachStatement;
@@ -14602,6 +14608,8 @@ main() {
   }
 
   void test_parseForStatement_each_identifier() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (element in list) {}') as ForEachStatement;
     assertNoErrors();
@@ -14617,6 +14625,8 @@ main() {
   }
 
   void test_parseForStatement_each_noType_metadata() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (@A var element in list) {}') as ForEachStatement;
     assertNoErrors();
@@ -14633,6 +14643,8 @@ main() {
   }
 
   void test_parseForStatement_each_type() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (A element in list) {}') as ForEachStatement;
     assertNoErrors();
@@ -14648,6 +14660,8 @@ main() {
   }
 
   void test_parseForStatement_each_var() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (var element in list) {}') as ForEachStatement;
     assertNoErrors();
@@ -14663,6 +14677,8 @@ main() {
   }
 
   void test_parseForStatement_loop_c() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement = parseStatement('for (; i < count;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -14678,6 +14694,8 @@ main() {
   }
 
   void test_parseForStatement_loop_cu() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (; i < count; i++) {}') as ForStatement;
     assertNoErrors();
@@ -14694,6 +14712,8 @@ main() {
   }
 
   void test_parseForStatement_loop_ecu() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (i--; i < count; i++) {}') as ForStatement;
     assertNoErrors();
@@ -14710,6 +14730,8 @@ main() {
   }
 
   void test_parseForStatement_loop_i() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement = parseStatement('for (var i = 0;;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -14728,6 +14750,8 @@ main() {
   }
 
   void test_parseForStatement_loop_i_withMetadata() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (@A var i = 0;;) {}') as ForStatement;
     assertNoErrors();
@@ -14747,6 +14771,8 @@ main() {
   }
 
   void test_parseForStatement_loop_ic() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (var i = 0; i < count;) {}') as ForStatement;
     assertNoErrors();
@@ -14765,6 +14791,8 @@ main() {
   }
 
   void test_parseForStatement_loop_icu() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (var i = 0; i < count; i++) {}') as ForStatement;
     assertNoErrors();
@@ -14783,6 +14811,8 @@ main() {
   }
 
   void test_parseForStatement_loop_iicuu() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (int i = 0, j = count; i < j; i++, j--) {}')
             as ForStatement;
@@ -14802,6 +14832,8 @@ main() {
   }
 
   void test_parseForStatement_loop_iu() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (var i = 0;; i++) {}') as ForStatement;
     assertNoErrors();
@@ -14820,6 +14852,8 @@ main() {
   }
 
   void test_parseForStatement_loop_u() {
+    // TODO(danrubel): remove this once control flow and spread collection
+    // entry parsing is enabled by default
     var forStatement = parseStatement('for (;; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);

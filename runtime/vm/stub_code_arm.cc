@@ -160,7 +160,8 @@ void StubCode::GenerateBuildMethodExtractorStub(Assembler* assembler) {
   const auto& closure_allocation_stub =
       Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
 
-  const intptr_t kReceiverOffset = compiler_frame_layout.param_end_from_fp + 1;
+  const intptr_t kReceiverOffset =
+      compiler::target::frame_layout.param_end_from_fp + 1;
 
   const auto& context_allocation_stub = StubCode::AllocateContext();
 
@@ -569,13 +570,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_exception_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R1);
   // Result in R0 is preserved as part of pushing all registers below.
 
@@ -643,13 +644,14 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);  // Pass last FP in R0.
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
-    __ ldr(R1,
-           Address(FP, compiler_frame_layout.first_local_from_fp * kWordSize));
+    __ ldr(R1, Address(FP, compiler::target::frame_layout.first_local_from_fp *
+                               kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into R1.
-    __ ldr(R1,
-           Address(FP, compiler_frame_layout.first_local_from_fp * kWordSize));
-    __ ldr(R2, Address(FP, (compiler_frame_layout.first_local_from_fp - 1) *
+    __ ldr(R1, Address(FP, compiler::target::frame_layout.first_local_from_fp *
+                               kWordSize));
+    __ ldr(R2, Address(FP, (compiler::target::frame_layout.first_local_from_fp -
+                            1) *
                                kWordSize));
   }
   // Code above cannot cause GC.
@@ -755,7 +757,8 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Load the receiver.
   __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
   __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
-  __ ldr(R8, Address(IP, compiler_frame_layout.param_end_from_fp * kWordSize));
+  __ ldr(R8, Address(IP, compiler::target::frame_layout.param_end_from_fp *
+                             kWordSize));
 
   // Preserve IC data and arguments descriptor.
   __ PushList((1 << R4) | (1 << R9));
@@ -827,7 +830,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
   // R9: Allocation size.
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   // Potential new object start.
   __ ldr(R0, Address(THR, Thread::top_offset()));
   __ adds(NOTFP, R0, Operand(R9));  // Potential next object start.
@@ -886,7 +888,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // data area to be initialized.
   // NOTFP: new object end address.
   // R9: allocation size.
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9, space));
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9));
 
   __ LoadObject(R8, Object::null_object());
   __ mov(R9, Operand(R8));
@@ -1067,7 +1069,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     __ ldr(R0, Address(THR, Thread::top_offset()));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
@@ -1142,7 +1143,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label loop;
     __ AddImmediate(NOTFP, R0, Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
-    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
+    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1412,7 +1413,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
 
     RELEASE_ASSERT((Thread::top_offset() + kWordSize) == Thread::end_offset());
     __ ldrd(kInstanceReg, kEndReg, THR, Thread::top_offset());
@@ -1466,8 +1466,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     }
 
     // Update allocation stats.
-    NOT_IN_PRODUCT(
-        __ IncrementAllocationStats(kAllocationStatsReg, cls.id(), space));
+    NOT_IN_PRODUCT(__ IncrementAllocationStats(kAllocationStatsReg, cls.id()));
 
     __ Ret();
     __ Bind(&slow_case);

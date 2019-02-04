@@ -71,9 +71,9 @@ class RunKernelTask : public ThreadPool::Task {
  public:
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
     TimelineDurationScope tds(Timeline::GetVMStream(), "KernelIsolateStartup");
-#endif  // !PRODUCT
+#endif  // SUPPORT_TIMELINE
     char* error = NULL;
     Isolate* isolate = NULL;
 

@@ -1,12 +1,9 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/annotation_eof.dart:10:1: Error: Expected a declaration, but got ''.
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/annotation_eof.dart:10:1: Error: Expected a declaration, but got ''.
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/annotation_eof.dart:10:1: Error: Expected a declaration, but got ''.
+//
 import self as self;
 import "dart:core" as core;
 

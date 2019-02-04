@@ -30,12 +30,10 @@ main() {
 ''');
     await assertHasAssist('''
 main() {
-// start
   {
     print(0);
     print(1);
   }
-// end
 }
 ''');
   }

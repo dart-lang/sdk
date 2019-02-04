@@ -8,12 +8,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportPrefixDriverResolutionTest);
-    defineReflectiveTests(ImportPrefixTaskResolutionTest);
   });
 }
 
@@ -113,7 +111,3 @@ main() {
     assertTypeNull(pRef);
   }
 }
-
-@reflectiveTest
-class ImportPrefixTaskResolutionTest extends TaskResolutionTest
-    with ImportPrefixResolutionMixin {}

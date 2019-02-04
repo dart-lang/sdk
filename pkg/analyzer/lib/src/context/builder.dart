@@ -30,7 +30,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
@@ -483,11 +482,6 @@ class ContextBuilder {
       if (builderOptions.argResults != null) {
         applyAnalysisOptionFlags(options, builderOptions.argResults,
             verbosePrint: verbosePrint);
-        // If lints turned on but none specified, then enable default lints
-        if (options.lint && options.lintRules.isEmpty) {
-          options.lintRules = Registry.ruleRegistry.defaultRules;
-          verbose('Using default lint rules');
-        }
       }
     } else {
       verbose('Using default analysis options');

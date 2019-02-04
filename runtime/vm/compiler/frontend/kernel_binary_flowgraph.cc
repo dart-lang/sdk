@@ -692,17 +692,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += LoadLocal(parsed_function()->current_context_var());
       body += B->LoadNativeField(
           Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
-      body += B->StoreFpRelativeSlot(kWordSize *
-                                     compiler_frame_layout.param_end_from_fp);
-      body += Drop();
+      body += B->StoreFpRelativeSlot(
+          kWordSize * compiler::target::frame_layout.param_end_from_fp);
     } else {
       body += LoadLocal(parsed_function()->current_context_var());
       body += B->LoadNativeField(
           Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
       body += B->StoreFpRelativeSlot(
-          kWordSize *
-          (compiler_frame_layout.param_end_from_fp + function.NumParameters()));
-      body += Drop();
+          kWordSize * (compiler::target::frame_layout.param_end_from_fp +
+                       function.NumParameters()));
     }
   }
 
@@ -781,7 +779,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       store += IntConstant(0);
       store += LoadFunctionTypeArguments();
       store += StoreIndexed(kArrayCid);
-      store += Drop();
       store += IntConstant(1);
       store += StoreLocal(TokenPosition::kNoSource, index);
       store += Drop();
@@ -807,10 +804,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(argument_count);
     loop_body += LoadLocal(index);
     loop_body += B->SmiBinaryOp(Token::kSUB, /*truncate=*/true);
-    loop_body += B->LoadFpRelativeSlot(kWordSize *
-                                       compiler_frame_layout.param_end_from_fp);
+    loop_body += B->LoadFpRelativeSlot(
+        kWordSize * compiler::target::frame_layout.param_end_from_fp);
     loop_body += StoreIndexed(kArrayCid);
-    loop_body += Drop();
 
     // ++i
     loop_body += LoadLocal(index);
@@ -3159,7 +3155,6 @@ Fragment StreamingFlowGraphBuilder::BuildAllocateInvocationMirrorCall(
   instructions += IntConstant(num_type_arguments == 0 ? 0 : 1);  // index
   instructions += LoadLocal(scopes()->this_variable);            // receiver
   instructions += StoreIndexed(kArrayCid);
-  instructions += Drop();  // dispose of stored value
   instructions += build_rest_of_actuals;
 
   // First argument is receiver.
@@ -3302,7 +3297,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
     build_rest_of_actuals += BuildExpression();         // value.
     build_rest_of_actuals += StoreLocal(position, value);
     build_rest_of_actuals += StoreIndexed(kArrayCid);
-    build_rest_of_actuals += Drop();  // dispose of stored value
 
     instructions += BuildAllocateInvocationMirrorCall(
         position, setter_name, /* num_type_arguments = */ 0,
@@ -3860,7 +3854,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
       build_rest_of_actuals +=
           TranslateInstantiatedTypeArguments(type_arguments);
       build_rest_of_actuals += StoreIndexed(kArrayCid);
-      build_rest_of_actuals += Drop();  // dispose of stored value
       ++actuals_array_index;
     }
 
@@ -3873,7 +3866,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
       build_rest_of_actuals += IntConstant(actuals_array_index + i);  // index
       build_rest_of_actuals += BuildExpression();                     // value.
       build_rest_of_actuals += StoreIndexed(kArrayCid);
-      build_rest_of_actuals += Drop();  // dispose of stored value
       ++i;
     }
     // Read named arguments
@@ -3886,7 +3878,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
         build_rest_of_actuals += IntConstant(i + actuals_array_index);  // index
         build_rest_of_actuals += BuildExpression();  // value.
         build_rest_of_actuals += StoreIndexed(kArrayCid);
-        build_rest_of_actuals += Drop();  // dispose of stored value
         ++i;
       }
     }
@@ -4298,7 +4289,6 @@ Fragment StreamingFlowGraphBuilder::BuildStringConcatenation(TokenPosition* p) {
       instructions += IntConstant(i);
       instructions += BuildExpression();  // read ith expression.
       instructions += StoreIndexed(kArrayCid);
-      instructions += Drop();
     }
 
     instructions += StringInterpolate(position);
@@ -4499,7 +4489,6 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
       instructions += IntConstant(i);
       instructions += BuildExpression();  // read ith expression.
       instructions += StoreIndexed(kArrayCid);
-      instructions += Drop();
     }
   }
   instructions += PushArgument();  // The array.
@@ -4555,13 +4544,11 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
       instructions += IntConstant(2 * i);
       instructions += BuildExpression();  // read ith key.
       instructions += StoreIndexed(kArrayCid);
-      instructions += Drop();
 
       instructions += LoadLocal(array);
       instructions += IntConstant(2 * i + 1);
       instructions += BuildExpression();  // read ith value.
       instructions += StoreIndexed(kArrayCid);
-      instructions += Drop();
     }
   }
   instructions += PushArgument();  // The array.

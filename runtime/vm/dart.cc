@@ -95,8 +95,8 @@ static void CheckOffsets() {
 #if defined(TARGET_ARCH_ARM)
   // These offsets are embedded in precompiled instructions. We need simarm
   // (compiler) and arm (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 28);
-  CHECK_OFFSET(Thread::object_null_offset(), 88);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 36);
+  CHECK_OFFSET(Thread::object_null_offset(), 96);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 20);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
@@ -104,8 +104,8 @@ static void CheckOffsets() {
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 56);
-  CHECK_OFFSET(Thread::object_null_offset(), 168);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 72);
+  CHECK_OFFSET(Thread::object_null_offset(), 184);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 40);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
@@ -135,6 +135,27 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return strdup("VM already initialized or flags not initialized.");
   }
+
+  const Snapshot* snapshot = nullptr;
+  if (vm_isolate_snapshot != nullptr) {
+    snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
+    if (snapshot == nullptr) {
+      return strdup("Invalid vm isolate snapshot seen");
+    }
+  }
+
+  // We are initializing the VM. We will take the VM-global flags used
+  // during snapshot generation time also at runtime (this avoids the need
+  // for the embedder to pass the same flags used during snapshot generation
+  // also to the runtime).
+  if (snapshot != nullptr) {
+    char* error =
+        SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(snapshot);
+    if (error != nullptr) {
+      return error;
+    }
+  }
+
 #if defined(DEBUG)
   // Turn on verify_gc_contains if any of the other GC verification flag
   // is turned on.
@@ -164,11 +185,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();
-  if (FLAG_support_timeline) {
-    Timeline::Init();
-  }
-  NOT_IN_PRODUCT(
-      TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
+#if defined(SUPPORT_TIMELINE)
+  Timeline::Init();
+  TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
+#endif
   Isolate::InitVM();
   PortMap::Init();
   FreeListElement::Init();
@@ -214,12 +234,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ArgumentsDescriptor::Init();
     ICData::Init();
     if (vm_isolate_snapshot != NULL) {
-      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
-                                               "VMIsolateSnapshot"));
-      const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
-      if (snapshot == NULL) {
-        return strdup("Invalid vm isolate snapshot seen");
-      }
+#if defined(SUPPORT_TIMELINE)
+      TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
+#endif
+      ASSERT(snapshot != nullptr);
       vm_snapshot_kind_ = snapshot->kind();
 
       if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
@@ -260,7 +278,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       ReversePcLookupCache::BuildAndAttachToIsolate(vm_isolate_);
 
       Object::FinishInit(vm_isolate_);
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
       if (tds.enabled()) {
         tds.SetNumArguments(2);
         tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
@@ -309,8 +327,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     }
 #endif
     {
-      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
-                                               "FinalizeVMIsolate"));
+#if defined(SUPPORT_TIMELINE)
+      TimelineDurationScope tds(Timeline::GetVMStream(), "FinalizeVMIsolate");
+#endif
       Object::FinalizeVMIsolate(vm_isolate_);
     }
 #if defined(DEBUG)
@@ -526,13 +545,13 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   NOT_IN_PRODUCT(CodeObservers::Cleanup());
-  if (FLAG_support_timeline) {
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
-                   UptimeMillis());
-    }
-    Timeline::Cleanup();
+#if defined(SUPPORT_TIMELINE)
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
+                 UptimeMillis());
   }
+  Timeline::Cleanup();
+#endif
   OS::Cleanup();
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
@@ -571,18 +590,16 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-  NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                                           "InitializeIsolate");
-                 tds.SetNumArguments(1);
-                 tds.CopyArgument(0, "isolateName", I->name());)
+#if defined(SUPPORT_TIMLINE)
+  TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
+                            "InitializeIsolate");
+  tds.SetNumArguments(1);
+  tds.CopyArgument(0, "isolateName", I->name());
+#endif
   ASSERT(I != NULL);
   StackZone zone(T);
   HandleScope handle_scope(T);
-  {
-    NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                                             "ObjectStore::Init"));
-    ObjectStore::Init(I);
-  }
+  ObjectStore::Init(I);
 
   Error& error = Error::Handle(T->zone());
   error = Object::Init(I, kernel_buffer, kernel_buffer_size);
@@ -591,8 +608,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
   if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
-    NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                                             "IsolateSnapshotReader"));
+#if defined(SUPPORT_TIMELINE)
+    TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
+                              "ReadIsolateSnapshot");
+#endif
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
     if (snapshot == NULL) {
@@ -618,7 +637,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
     ReversePcLookupCache::BuildAndAttachToIsolate(I);
 
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
     if (tds.enabled()) {
       tds.SetNumArguments(2);
       tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
@@ -719,23 +738,28 @@ const char* Dart::FeaturesString(Isolate* isolate,
   buffer.AddString("release");
 #endif
 
-#define ADD_FLAG(name, isolate_flag, flag)                                     \
+#define ADD_FLAG(name, value)                                                  \
   do {                                                                         \
-    const bool name = (isolate != NULL) ? isolate->name() : flag;              \
-    buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
+    buffer.AddString(value ? (" " #name) : (" no-" #name));                    \
   } while (0);
 
+#define ADD_ISOLATE_FLAG(name, isolate_flag, flag)                             \
+  do {                                                                         \
+    const bool value = (isolate != NULL) ? isolate->name() : flag;             \
+    ADD_FLAG(#name, value);                                                    \
+  } while (0);
+
+  VM_GLOBAL_FLAG_LIST(ADD_FLAG);
   if (Snapshot::IncludesCode(kind)) {
     // enabling assertions affects deopt ids.
-    ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    if (kind == Snapshot::kFullAOT) {
-      ADD_FLAG(use_bare_instructions, use_bare_instructions,
-               FLAG_use_bare_instructions);
-    }
+    ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
-      ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
-      ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
+      ADD_ISOLATE_FLAG(use_field_guards, use_field_guards,
+                       FLAG_use_field_guards);
+      ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
+    buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
+                                              : " no-causal_async_stacks");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)
@@ -778,6 +802,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
   if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
     buffer.AddString(" dwarf-stack-traces");
   }
+#undef ADD_ISOLATE_FLAG
 #undef ADD_FLAG
 
   return buffer.Steal();

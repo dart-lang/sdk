@@ -55,7 +55,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// have been applied.
   Future<void> assertHasAssist(String expected,
       {Map<String, List<String>> additionallyChangedFiles}) async {
-    _setSelection();
     Assist assist = await _assertHasAssist();
     _change = assist.change;
     expect(_change.id, kind.id);
@@ -107,7 +106,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   /// Asserts that there is no [Assist] of the given [kind] at [_offset].
   Future<void> assertNoAssist() async {
-    _setSelection();
     List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
@@ -134,6 +132,32 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     return values.map((value) {
       return new LinkedEditSuggestion(value, kind);
     }).toList();
+  }
+
+  @override
+  Future<void> resolveTestUnit(String code) async {
+    var offset = code.indexOf('/*caret*/');
+    if (offset >= 0) {
+      var endOffset = offset + '/*caret*/'.length;
+      code = code.substring(0, offset) + code.substring(endOffset);
+      _offset = offset;
+      _length = 0;
+    } else {
+      var startOffset = code.indexOf('// start\n');
+      var endOffset = code.indexOf('// end\n');
+      if (startOffset >= 0 && endOffset >= 0) {
+        var startLength = '// start\n'.length;
+        code = code.substring(0, startOffset) +
+            code.substring(startOffset + startLength, endOffset) +
+            code.substring(endOffset + '// end\n'.length);
+        _offset = startOffset;
+        _length = endOffset - startLength - _offset;
+      } else {
+        _offset = 0;
+        _length = 0;
+      }
+    }
+    return super.resolveTestUnit(code);
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.
@@ -165,22 +189,5 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       positions.add(new Position(testFile, offset));
     }
     return positions;
-  }
-
-  void _setSelection() {
-    _offset = testCode.indexOf('/*caret*/');
-    if (_offset >= 0) {
-      _offset += '/*caret*/'.length;
-      _length = 0;
-    } else {
-      _offset = testCode.indexOf('// start\n');
-      if (_offset >= 0) {
-        _offset += '// start\n'.length;
-        _length = testCode.indexOf('// end') - _offset;
-      } else {
-        _offset = 0;
-        _length = 0;
-      }
-    }
   }
 }

@@ -1,11 +1,13 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-#ifndef PRODUCT
+#include "vm/globals.h"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/source_report.h"
 
 #include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
+#include "vm/kernel_loader.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/profiler.h"
@@ -90,6 +92,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -107,6 +110,28 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     // before we have compiled its enclosing function or if the enclosing
     // function failed to compile.
     return true;
+  }
+  return false;
+}
+
+bool SourceReport::ShouldSkipField(const Field& field) {
+  if (!field.token_pos().IsReal() || !field.end_token_pos().IsReal()) {
+    // At least one of the token positions is not known.
+    return true;
+  }
+
+  if (script_ != NULL && !script_->IsNull()) {
+    if (field.Script() != script_->raw()) {
+      // The field is from the wrong script.
+      return true;
+    }
+    if (((start_pos_ > TokenPosition::kMinSource) &&
+         (field.end_token_pos() < start_pos_)) ||
+        ((end_pos_ > TokenPosition::kMinSource) &&
+         (field.token_pos() > end_pos_))) {
+      // The field does not intersect with the requested token range.
+      return true;
+    }
   }
   return false;
 }
@@ -465,10 +490,25 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
 }
 
+void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
+  if (ShouldSkipField(field) || !field.has_initializer()) return;
+  const Function& func =
+      Function::Handle(zone(), GetInitializerFunction(field));
+  VisitFunction(jsarr, func);
+}
+
+RawFunction* SourceReport::GetInitializerFunction(const Field& field) {
+  Thread* const thread = Thread::Current();
+  // Create a function to evaluate the initializer
+  return kernel::CreateFieldInitializerFunction(thread, thread->zone(), field);
+}
+
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Class& cls = Class::Handle(zone());
   Array& functions = Array::Handle(zone());
+  Array& fields = Array::Handle(zone());
   Function& func = Function::Handle(zone());
+  Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
   while (it.HasNext()) {
@@ -504,6 +544,12 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
       VisitFunction(jsarr, func);
+    }
+
+    fields = cls.fields();
+    for (intptr_t i = 0; i < fields.Length(); i++) {
+      field ^= fields.At(i);
+      VisitField(jsarr, field);
     }
   }
 }
@@ -554,4 +600,4 @@ void SourceReport::PrintJSON(JSONStream* js,
 }
 
 }  // namespace dart
-#endif  // PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

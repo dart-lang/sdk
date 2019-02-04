@@ -4,13 +4,23 @@
 
 library fasta.target_implementation;
 
+import 'package:kernel/ast.dart' show Source;
+
 import 'package:kernel/target/targets.dart' as backend show Target;
+
+import '../base/processed_options.dart' show ProcessedOptions;
 
 import 'builder/builder.dart' show Declaration, ClassBuilder, LibraryBuilder;
 
 import 'compiler_context.dart' show CompilerContext;
 
 import 'loader.dart' show Loader;
+
+import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
+
+import 'rewrite_severity.dart' show rewriteSeverity;
+
+import 'severity.dart' show Severity;
 
 import 'target.dart' show Target;
 
@@ -27,6 +37,9 @@ abstract class TargetImplementation extends Target {
   final backend.Target backendTarget;
 
   final CompilerContext context = CompilerContext.current;
+
+  /// Shared with [CompilerContext].
+  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
   Declaration cachedAbstractClassInstantiationError;
   Declaration cachedCompileTimeError;
@@ -115,4 +128,26 @@ abstract class TargetImplementation extends Target {
       Uri uri, List<int> lineStarts, List<int> sourceCode);
 
   void readPatchFiles(covariant LibraryBuilder library) {}
+
+  FormattedMessage createFormattedMessage(
+      Message message,
+      int charOffset,
+      int length,
+      Uri fileUri,
+      List<LocatedMessage> messageContext,
+      Severity severity) {
+    ProcessedOptions processedOptions = context.options;
+    return processedOptions.format(
+        message.withLocation(fileUri, charOffset, length),
+        severity,
+        messageContext);
+  }
+
+  Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
+    severity ??= message.code.severity;
+    if (severity == Severity.errorLegacyWarning) {
+      severity = backendTarget.legacyMode ? Severity.warning : Severity.error;
+    }
+    return rewriteSeverity(severity, message.code, fileUri);
+  }
 }

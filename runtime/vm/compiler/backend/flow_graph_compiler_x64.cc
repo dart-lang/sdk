@@ -25,6 +25,32 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
+void FlowGraphCompiler::ArchSpecificInitialization() {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    auto object_store = isolate()->object_store();
+
+    const auto& stub =
+        Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
+    if (!stub.InVMHeap()) {
+      assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
+        const intptr_t offset_into_target =
+            Thread::WriteBarrierWrappersOffsetForRegister(reg);
+        AddPcRelativeCallStubTarget(stub);
+        assembler_->GenerateUnRelocatedPcRelativeCall(offset_into_target);
+      };
+    }
+
+    const auto& array_stub =
+        Code::ZoneHandle(object_store->array_write_barrier_stub());
+    if (!array_stub.InVMHeap()) {
+      assembler_->generate_invoke_array_write_barrier_ = [&]() {
+        AddPcRelativeCallStubTarget(array_stub);
+        assembler_->GenerateUnRelocatedPcRelativeCall();
+      };
+    }
+  }
+}
+
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -735,12 +761,12 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
   // on the call site to find out at which pool index the destination name is
   // located.
-  const intptr_t sub_type_cache_index = __ object_pool_wrapper().AddObject(
-      Object::null_object(), ObjectPool::Patchability::kPatchable);
+  const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
+      Object::null_object(), compiler::ObjectPoolBuilderEntry::kPatchable);
   const intptr_t sub_type_cache_offset =
       ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
-  const intptr_t dst_name_index = __ object_pool_wrapper().AddObject(
-      dst_name, ObjectPool::Patchability::kPatchable);
+  const intptr_t dst_name_index = __ object_pool_builder().AddObject(
+      dst_name, compiler::ObjectPoolBuilderEntry::kPatchable);
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
@@ -779,10 +805,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
       isolate()->object_store()->build_method_extractor_code());
   ASSERT(!build_method_extractor.IsNull());
 
-  const intptr_t stub_index = __ object_pool_wrapper().AddObject(
-      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
-  const intptr_t function_index = __ object_pool_wrapper().AddObject(
-      extracted_method, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t stub_index = __ object_pool_builder().AddObject(
+      build_method_extractor, compiler::ObjectPoolBuilderEntry::kNotPatchable);
+  const intptr_t function_index = __ object_pool_builder().AddObject(
+      extracted_method, compiler::ObjectPoolBuilderEntry::kNotPatchable);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = RAX;
@@ -875,7 +901,7 @@ void FlowGraphCompiler::EmitPrologue() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+      args_desc_slot = compiler::target::frame_layout.FrameSlotForVariable(
           parsed_function().arg_desc_var());
     }
 
@@ -885,7 +911,7 @@ void FlowGraphCompiler::EmitPrologue() {
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
-          compiler_frame_layout.FrameSlotForVariableIndex(-i);
+          compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : RAX;
       __ movq(Address(RBP, slot_index * kWordSize), value_reg);
     }
@@ -1281,13 +1307,13 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       ASSERT((destination.base_reg() != FPREG) ||
-             ((-compiler_frame_layout.VariableIndexForFrameSlot(
+             ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
                   destination.stack_index())) < compiler_->StackSize()));
       __ movq(destination.ToStackSlotAddress(), source.reg());
     }
   } else if (source.IsStackSlot()) {
     ASSERT((source.base_reg() != FPREG) ||
-           ((-compiler_frame_layout.VariableIndexForFrameSlot(
+           ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
                 source.stack_index())) < compiler_->StackSize()));
     if (destination.IsRegister()) {
       __ movq(destination.reg(), source.ToStackSlotAddress());

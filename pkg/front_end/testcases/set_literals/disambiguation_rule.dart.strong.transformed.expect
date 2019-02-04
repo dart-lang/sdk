@@ -1,8 +1,44 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'LinkedHashMap' is from 'dart:collection'.
+// Change the type of the map literal or the context in which it is used.
+//   LinkedHashMap<int, bool> lhm = {};
+//                                  ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'LinkedHashMap' is from 'dart:collection'.
+// Change the type of the map literal or the context in which it is used.
+// Future<LinkedHashMap<int, bool>> lhmfun() async => {};
+//                                                    ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'FutureOr' is from 'dart:async'.
+//  - 'LinkedHashSet' is from 'dart:collection'.
+// Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<LinkedHashSet<int>>'.
+// FutureOr<LinkedHashSet<int>> lhsfun2() => {};
+//                                           ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'FutureOr' is from 'dart:async'.
+//  - 'LinkedHashMap' is from 'dart:collection'.
+// Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<LinkedHashMap<int, bool>>'.
+// FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};
+//                                                 ^
+//
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 import "dart:collection" as col;
+
+import "dart:async";
+import "dart:collection";
 
 static method main() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();

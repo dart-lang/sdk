@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-/// gsutil.py binary to use.
-final gsutil = Platform.isWindows ? "gsutil.py.bat" : "gsutil.py";
+/// The path to the gsutil script.
+String gsutilPy;
 
 /// Cloud storage location containing results.
 const testResultsStoragePath = "gs://dart-test-results/builders";
@@ -21,15 +21,16 @@ const approvedResultsStoragePath =
 /// Runs gsutil with the provided [arguments] and returns the standard output.
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
-  final processResult = await Process.run(gsutil, arguments,
-      environment: {"DEPOT_TOOLS_UPDATE": "0"});
+  final processResult = await Process.run(
+      "python", [gsutilPy]..addAll(arguments),
+      runInShell: Platform.isWindows);
   if (processResult.exitCode != 0) {
     if (processResult.exitCode == 1 &&
             processResult.stderr.contains("No URLs matched") ||
         processResult.stderr.contains("One or more URLs matched no objects")) {
       return null;
     }
-    throw new Exception("Failed to run: $gsutil $arguments\n"
+    throw new Exception("Failed to run: python $gsutilPy $arguments\n"
         "exitCode: ${processResult.exitCode}\n"
         "stdout:\n${processResult.stdout}\n"
         "stderr:\n${processResult.stderr}");

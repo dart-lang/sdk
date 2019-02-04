@@ -15,7 +15,6 @@ cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
 config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
 const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
-const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
 emit_const_fields_test: CompileTimeError # failing-by-design: #34340

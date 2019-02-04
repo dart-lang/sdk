@@ -170,10 +170,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // extract and validate params
     CompletionGetSuggestionsParams params =
         new CompletionGetSuggestionsParams.fromRequest(request);
-    String filePath = params.file;
+    String file = params.file;
     int offset = params.offset;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(filePath);
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
 
     if (result?.state == ResultState.VALID) {
       if (offset < 0 || offset > result.content.length) {
@@ -185,7 +189,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         return;
       }
 
-      recordRequest(performance, filePath, result.content, offset);
+      recordRequest(performance, file, result.content, offset);
     }
     CompletionRequestImpl completionRequest =
         new CompletionRequestImpl(result, offset, performance);

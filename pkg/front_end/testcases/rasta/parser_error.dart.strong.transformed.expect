@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/parser_error.dart:10:7: Error: Expected an identifier, but got '?'.
 //   if (?b) return b;  /// 01: compile-time error
@@ -11,11 +13,12 @@
 // pkg/front_end/testcases/rasta/parser_error.dart:10:9: Error: Expected an identifier, but got ')'.
 //   if (?b) return b;  /// 01: compile-time error
 //         ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
 
 static method test(dynamic a, {dynamic b = null, dynamic c = null}) → core::int {
   if((invalid-expression "pkg/front_end/testcases/rasta/parser_error.dart:10:7: Error: This couldn't be parsed.

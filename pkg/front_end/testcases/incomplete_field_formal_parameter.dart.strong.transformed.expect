@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/incomplete_field_formal_parameter.dart:6:11: Error: Expected '.' before this.
 //   C.a(this);
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/incomplete_field_formal_parameter.dart:9:12: Error: Expected an identifier, but got ','.
 //   C.d(this., p);
 //            ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

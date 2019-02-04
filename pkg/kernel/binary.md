@@ -1,3 +1,9 @@
+<!--
+Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+
 This file describes the binary format of Dart Kernel.
 
 Notation
@@ -131,7 +137,8 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 16;
+  UInt32 formatVersion = 18;
+  List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -219,6 +226,7 @@ type Library {
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
+  List<String> problemsAsJson; // Described in problems.md.
   List<Expression> annotations;
   List<LibraryDependency> libraryDependencies;
   List<CanonicalNameReference> additionalExports;
@@ -926,26 +934,8 @@ type TypeLiteralConstant extends Constant {
   DartType type;
 }
 
-type EnvironmentBoolConstant extends Constant {
-  Byte tag = 12;
-  StringReference name;
-  ConstantReference defaultValue;
-}
-
-type EnvironmentIntConstant extends Constant {
-  Byte tag = 13;
-  StringReference name;
-  ConstantReference defaultValue;
-}
-
-type EnvironmentStringConstant extends Constant {
-  Byte tag = 14;
-  StringReference name;
-  ConstantReference defaultValue;
-}
-
 type UnevaluatedConstant extends Constant {
-  Byte tag = 15;
+  Byte tag = 12;
   Expression expression;
 }
 

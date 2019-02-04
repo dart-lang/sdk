@@ -118,7 +118,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("Stack Check");
   Label done;
   const intptr_t fp_sp_dist =
-      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      (compiler::target::frame_layout.first_local_from_fp + 1 -
+       compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ movl(EDI, ESP);
@@ -136,7 +137,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t stack_index =
-      compiler_frame_layout.FrameSlotForVariable(&local());
+      compiler::target::frame_layout.FrameSlotForVariable(&local());
   return LocationSummary::Make(zone, kNumInputs,
                                Location::StackSlot(stack_index),
                                LocationSummary::kNoCall);
@@ -158,9 +159,9 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ movl(Address(EBP, compiler_frame_layout.FrameOffsetInBytesForVariable(
-                           &local())),
-          value);
+  __ movl(
+      Address(EBP, compiler::target::FrameOffsetInBytesForVariable(&local())),
+      value);
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -2544,19 +2545,20 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore ESP from EBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      (compiler::target::frame_layout.first_local_from_fp + 1 -
+       compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ leal(ESP, Address(EBP, fp_sp_dist));
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
-      __ movl(Address(EBP, compiler_frame_layout.FrameOffsetInBytesForVariable(
+      __ movl(Address(EBP, compiler::target::FrameOffsetInBytesForVariable(
                                raw_exception_var_)),
               kExceptionObjectReg);
     }
     if (raw_stacktrace_var_ != nullptr) {
-      __ movl(Address(EBP, compiler_frame_layout.FrameOffsetInBytesForVariable(
+      __ movl(Address(EBP, compiler::target::FrameOffsetInBytesForVariable(
                                raw_stacktrace_var_)),
               kStackTraceObjectReg);
     }
@@ -5102,6 +5104,24 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ BranchIfNotSmi(value, deopt);
 }
 
+void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  NullErrorSlowPath* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Register value_reg = locs()->in(0).reg();
+  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
+  // in order to be able to allocate it on register.
+  __ CompareObject(value_reg, Object::null_object());
+  __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                           bool save_fpu_registers) {
+  // We only generate shared spilling stub calls for AOT configurations.
+  UNREACHABLE();
+}
+
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5579,7 +5599,7 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).reg() == ECX);
     __ SmiUntag(ECX);
 
-    // Deoptimize if shift count is > 63 or negative.
+    // Deoptimize if shift count is > 63 or negative (or not a smi).
     if (!IsShiftCountInRange()) {
       ASSERT(CanDeoptimize());
       Label* deopt =
@@ -5971,8 +5991,8 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register target_reg = locs()->temp_slot(0)->reg();
 
   // Load code object from frame.
-  __ movl(target_reg,
-          Address(EBP, compiler_frame_layout.code_from_fp * kWordSize));
+  __ movl(target_reg, Address(EBP, compiler::target::frame_layout.code_from_fp *
+                                       kWordSize));
   // Load instructions object (active_instructions and Code::entry_point() may
   // not point to this instruction object any more; see Code::DisableDartCode).
   __ movl(target_reg,

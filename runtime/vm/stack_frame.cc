@@ -6,6 +6,7 @@
 
 #include "platform/memory_sanitizer.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/deopt_instructions.h"
 #include "vm/heap/become.h"
 #include "vm/isolate.h"
@@ -56,7 +57,14 @@ const FrameLayout bare_instructions_frame_layout = {
     /*.code_from_fp = */ 0,             // No saved CODE
 };
 
-FrameLayout compiler_frame_layout = invalid_frame_layout;
+namespace compiler {
+
+namespace target {
+FrameLayout frame_layout = invalid_frame_layout;
+}
+
+}  // namespace compiler
+
 FrameLayout runtime_frame_layout = invalid_frame_layout;
 
 int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
@@ -75,15 +83,15 @@ int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
 
 void FrameLayout::Init() {
   // By default we use frames with CODE_REG/PP in the frame.
-  compiler_frame_layout = default_frame_layout;
+  compiler::target::frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    compiler_frame_layout = bare_instructions_frame_layout;
+    compiler::target::frame_layout = bare_instructions_frame_layout;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    compiler_frame_layout = invalid_frame_layout;
+    compiler::target::frame_layout = invalid_frame_layout;
     runtime_frame_layout = bare_instructions_frame_layout;
   }
 #endif

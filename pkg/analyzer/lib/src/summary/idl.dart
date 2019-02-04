@@ -283,6 +283,73 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
   UnlinkedUnit get unit;
 }
 
+/// Information about a single declaration.
+abstract class AvailableDeclaration extends base.SummaryClass {
+  /// The kind of the declaration.
+  @Id(1)
+  AvailableDeclarationKind get kind;
+
+  /// The name of the declaration.
+  @Id(0)
+  String get name;
+}
+
+/// Enum of declaration kinds in available files.
+enum AvailableDeclarationKind {
+  CLASS,
+  CLASS_TYPE_ALIAS,
+  ENUM,
+  FUNCTION,
+  FUNCTION_TYPE_ALIAS,
+  MIXIN,
+  VARIABLE
+}
+
+/// Information about an available, even if not yet imported file.
+@TopLevel('UICF')
+abstract class AvailableFile extends base.SummaryClass {
+  factory AvailableFile.fromBuffer(List<int> buffer) =>
+      generated.readAvailableFile(buffer);
+
+  /// Declarations of the file.
+  @Id(3)
+  List<AvailableDeclaration> get declarations;
+
+  /// Exports directives of the file.
+  @Id(1)
+  List<AvailableFileExport> get exports;
+
+  /// Is `true` if this file is a library.
+  @Id(0)
+  bool get isLibrary;
+
+  /// URIs of `part` directives.
+  @Id(2)
+  List<String> get parts;
+}
+
+/// Information about an export directive.
+abstract class AvailableFileExport extends base.SummaryClass {
+  /// Combinators contained in this export directive.
+  @Id(1)
+  List<AvailableFileExportCombinator> get combinators;
+
+  /// URI of the exported library.
+  @Id(0)
+  String get uri;
+}
+
+/// Information about a `show` or `hide` combinator in an export directive.
+abstract class AvailableFileExportCombinator extends base.SummaryClass {
+  /// List of names which are hidden.  Empty if this is a `show` combinator.
+  @Id(1)
+  List<String> get hides;
+
+  /// List of names which are shown.  Empty if this is a `hide` combinator.
+  @Id(0)
+  List<String> get shows;
+}
+
 /// Information about an element code range.
 abstract class CodeRange extends base.SummaryClass {
   /// Length of the element code.

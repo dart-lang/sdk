@@ -12,7 +12,11 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:convert' show jsonEncode;
 
-import 'package:analyzer/analyzer.dart';
+// ignore: deprecated_member_use
+import 'package:analyzer/analyzer.dart'
+    show parseCompilationUnit, parseDirectives;
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:path/path.dart' as path;

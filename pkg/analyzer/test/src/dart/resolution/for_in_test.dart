@@ -7,12 +7,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForInDriverResolutionTest);
-    defineReflectiveTests(ForInTaskResolutionTest);
   });
 }
 
@@ -42,7 +40,3 @@ main() {
     assertTypeDynamic(pRef);
   }
 }
-
-@reflectiveTest
-class ForInTaskResolutionTest extends TaskResolutionTest
-    with ForInResolutionMixin {}

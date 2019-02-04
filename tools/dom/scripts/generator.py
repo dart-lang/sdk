@@ -873,6 +873,8 @@ _serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
 dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
+    # Used to convert Dart function to a JS callback typedef (old style).
+    'Callback set': Conversion('convertDartClosureToJS', 'dynamic', 'dynamic'),
     'Date get':
       Conversion('convertNativeToDart_DateTime', 'dynamic', 'DateTime'),
     'Date set':
@@ -920,6 +922,8 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set MessagePort.postMessage': _serialize_SSV,
     'any set Window.postMessage': _serialize_SSV,
     'any set _DOMWindowCrossFrame.postMessage': _serialize_SSV,
+    'any set Worker.postMessage': _serialize_SSV,
+    'any set ServiceWorker.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',

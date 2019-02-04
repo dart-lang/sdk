@@ -5,18 +5,18 @@
 #include "vm/globals.h"  // NOLINT
 #if defined(TARGET_ARCH_DBC)
 
+#define SHOULD_NOT_INCLUDE_RUNTIME
+
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/longjump.h"
-#include "vm/runtime_entry.h"
 #include "vm/simulator.h"
-#include "vm/stack_frame.h"
-#include "vm/stub_code.h"
 
 namespace dart {
-
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+
+namespace compiler {
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   const uword end = data + length;
@@ -72,11 +72,11 @@ void Assembler::Emit(int32_t value) {
 }
 
 const char* Assembler::RegisterName(Register reg) {
-  return Thread::Current()->zone()->PrintToString("R%d", reg);
+  return ThreadState::Current()->zone()->PrintToString("R%d", reg);
 }
 
 const char* Assembler::FpuRegisterName(FpuRegister reg) {
-  return Thread::Current()->zone()->PrintToString("F%d", reg);
+  return ThreadState::Current()->zone()->PrintToString("F%d", reg);
 }
 
 static int32_t EncodeJump(int32_t relative_pc) {
@@ -125,9 +125,11 @@ void Assembler::LoadConstant(uintptr_t ra, const Object& obj) {
 }
 
 intptr_t Assembler::AddConstant(const Object& obj) {
-  return object_pool_wrapper().FindObject(Object::ZoneHandle(obj.raw()));
+  return object_pool_builder().FindObject(
+      NewZoneHandle(ThreadState::Current()->zone(), obj));
 }
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_DBC

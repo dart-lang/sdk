@@ -1,56 +1,31 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/clone_function_type.dart:22:51: Error: Expected an identifier, but got '}'.
-// class Fm1<Z> extends Object with Am1<Function({int}), Z> {}
-//                                                   ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:46:45: Error: Expected an identifier, but got '}'.
-// class Qm1<Z> = Object with Am1<Function({int}), Z>;
-//                                             ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:77:51: Error: Expected an identifier, but got '}'.
-// class Fm2<Z> extends Object with Am2<Function({int}), Z> {}
-//                                                   ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:105:45: Error: Expected an identifier, but got '}'.
-// class Qm2<Z> = Object with Am2<Function({int}), Z>;
-//                                             ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:134:28: Error: Expected an identifier, but got '}'.
-// typedef TdF = Function({int});
-//                            ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:190:34: Error: Expected an identifier, but got '}'.
-// class Ef1<X extends Function({int})> {
-//                                  ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/clone_function_type.dart:22:51: Error: Expected an identifier, but got '}'.
-// class Fm1<Z> extends Object with Am1<Function({int}), Z> {}
-//                                                   ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:46:45: Error: Expected an identifier, but got '}'.
-// class Qm1<Z> = Object with Am1<Function({int}), Z>;
-//                                             ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:77:51: Error: Expected an identifier, but got '}'.
-// class Fm2<Z> extends Object with Am2<Function({int}), Z> {}
-//                                                   ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:105:45: Error: Expected an identifier, but got '}'.
-// class Qm2<Z> = Object with Am2<Function({int}), Z>;
-//                                             ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:134:28: Error: Expected an identifier, but got '}'.
-// typedef TdF = Function({int});
-//                            ^
-//
-// pkg/front_end/testcases/clone_function_type.dart:190:34: Error: Expected an identifier, but got '}'.
-// class Ef1<X extends Function({int})> {
-//                                  ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/clone_function_type.dart:22:51: Error: Expected an identifier, but got '}'.
+// class Fm1<Z> extends Object with Am1<Function({int}), Z> {}
+//                                                   ^
+//
+// pkg/front_end/testcases/clone_function_type.dart:46:45: Error: Expected an identifier, but got '}'.
+// class Qm1<Z> = Object with Am1<Function({int}), Z>;
+//                                             ^
+//
+// pkg/front_end/testcases/clone_function_type.dart:77:51: Error: Expected an identifier, but got '}'.
+// class Fm2<Z> extends Object with Am2<Function({int}), Z> {}
+//                                                   ^
+//
+// pkg/front_end/testcases/clone_function_type.dart:105:45: Error: Expected an identifier, but got '}'.
+// class Qm2<Z> = Object with Am2<Function({int}), Z>;
+//                                             ^
+//
+// pkg/front_end/testcases/clone_function_type.dart:134:28: Error: Expected an identifier, but got '}'.
+// typedef TdF = Function({int});
+//                            ^
+//
+// pkg/front_end/testcases/clone_function_type.dart:190:34: Error: Expected an identifier, but got '}'.
+// class Ef1<X extends Function({int})> {
+//                                  ^
+//
 import self as self;
 import "dart:core" as core;
 

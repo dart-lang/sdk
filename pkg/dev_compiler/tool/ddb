@@ -176,7 +176,9 @@ void main(List<String> args) {
     var tmp = path.join(Directory.systemTemp.path, 'ddc');
 
     result = Process.runSync(chromeBinary,
-        ['--auto-open-devtools-for-tabs', '--user-data-dir=$tmp', htmlFile]);
+        ['--auto-open-devtools-for-tabs',
+         '--allow-file-access-from-files',
+         '--user-data-dir=$tmp', htmlFile]);
   } else if (node) {
     var nodePath = '$sdkJsPath:$libRoot';
     var runjs = '''

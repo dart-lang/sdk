@@ -39,6 +39,8 @@ SimpleIdentifier _findSimpleIdentifier(
       root, code, search, (n) => n is SimpleIdentifier);
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class DeclarationResolverMetadataTest extends ResolverTestCase {
   String code;
@@ -363,6 +365,8 @@ const b = null;
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class DeclarationResolverTest extends ResolverTestCase {
   @override
@@ -809,6 +813,8 @@ part 'foo.bar';
 
 /**
  * Strong mode DeclarationResolver tests
+ * TODO(paulberry): migrate this test away from the task model.
+ * See dartbug.com/35734.
  */
 @reflectiveTest
 class StrongModeDeclarationResolverTest extends ResolverTestCase {

@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34225.dart:6:14: Error: A class member can't have the same name as the enclosing class.
 //   static set C(v) {} //# 01: compile-time error
@@ -7,8 +9,13 @@
 // pkg/front_end/testcases/regress/issue_34225.dart:10:7: Error: A class member can't have the same name as the enclosing class.
 //   set D(v) {} //# 02: compile-time error
 //       ^
-
-library;
+//
+// pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
+//   c.C = 5;
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -26,7 +33,7 @@ class D extends core::Object {
 }
 static method main() → dynamic {
   self::C c = new self::C::•();
-  let final self::C #t1 = c in invalid-expression "pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
   c.C = 5;

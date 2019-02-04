@@ -7,12 +7,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationDriverResolutionTest);
-    defineReflectiveTests(InstanceCreationTaskResolutionTest);
   });
 }
 
@@ -150,15 +148,5 @@ main() {
       expectedConstructorMember: true,
       expectedPrefix: import.prefix,
     );
-  }
-}
-
-@reflectiveTest
-class InstanceCreationTaskResolutionTest extends TaskResolutionTest
-    with InstanceCreationResolutionMixin {
-  @FailingTest(reason: 'Does not report the error.')
-  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() {
-    return super
-        .test_error_newWithInvalidTypeParameters_implicitNew_inference_top();
   }
 }

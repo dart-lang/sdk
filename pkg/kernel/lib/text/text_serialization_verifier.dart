@@ -4,7 +4,8 @@
 
 import '../ast.dart';
 
-import '../text/serializer_combinators.dart' show TextSerializer;
+import '../text/serializer_combinators.dart'
+    show DeserializationState, SerializationState, TextSerializer;
 
 import '../text/text_reader.dart' show TextIterator;
 
@@ -80,7 +81,8 @@ class TextSerializationVerifier implements Visitor<void> {
     stream.moveNext();
     T result;
     try {
-      result = serializer.readFrom(stream, null);
+      result = serializer.readFrom(
+          stream, new DeserializationState(null, new CanonicalName.root()));
     } catch (exception) {
       failures.add(
           new TextDeserializationFailure(exception.toString(), uri, offset));
@@ -96,7 +98,7 @@ class TextSerializationVerifier implements Visitor<void> {
       T node, TextSerializer<T> serializer, Uri uri, int offset) {
     StringBuffer buffer = new StringBuffer();
     try {
-      serializer.writeTo(buffer, node, null);
+      serializer.writeTo(buffer, node, new SerializationState(null));
     } catch (exception) {
       failures
           .add(new TextSerializationFailure(exception.toString(), uri, offset));
@@ -302,24 +304,6 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
-  void visitEnvironmentBoolConstantReference(EnvironmentBoolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentIntConstantReference(EnvironmentIntConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentStringConstantReference(EnvironmentStringConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
@@ -399,24 +383,6 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitNullConstant(NullConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
   }

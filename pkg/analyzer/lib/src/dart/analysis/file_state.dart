@@ -711,6 +711,9 @@ class FileState {
     parser.enableOptionalNewAndConst = true;
     parser.enableSetLiterals = experimentStatus.set_literals;
     parser.enableNonNullable = experimentStatus.non_nullable;
+    parser.enableSpreadCollections = experimentStatus.spread_collections;
+    parser.enableControlFlowCollections =
+        experimentStatus.control_flow_collections;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

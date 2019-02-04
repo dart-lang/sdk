@@ -185,6 +185,31 @@ abstract class AstFactory {
       Token semicolon);
 
   /**
+   * Returns a newly created for element that can be part of a list or set
+   * literal.
+   */
+  CollectionForElement collectionForElement(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      CollectionElement body});
+
+  /**
+   * Returns a newly created if element that can be part of a list or set
+   * literal.
+   */
+  CollectionIfElement collectionIfElement(
+      {Token ifKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      CollectionElement thenElement,
+      Token elseKeyword,
+      CollectionElement elseElement});
+
+  /**
    * Returns a newly created reference to a Dart element. The [newKeyword]
    * can be `null` if the reference is not to a constructor.
    */
@@ -384,6 +409,7 @@ abstract class AstFactory {
       List<Configuration> configurations,
       List<Combinator> combinators,
       Token semicolon);
+
   /**
    * Returns a newly created function body consisting of a block of
    * statements. The [keyword] can be `null` if the function body is not an
@@ -474,6 +500,19 @@ abstract class AstFactory {
       FormalParameterList parameters});
 
   /**
+   * Returns a newly created for each part that includes a declaration.
+   */
+  ForEachPartsWithDeclaration forEachPartsWithDeclaration(
+      {DeclaredIdentifier loopVariable, Token inKeyword, Expression iterable});
+
+  /**
+   * Returns a newly created for each part that includes an identifier that is
+   * declared outside of the loop.
+   */
+  ForEachPartsWithIdentifier forEachPartsWithIdentifier(
+      {SimpleIdentifier identifier, Token inKeyword, Expression iterable});
+
+  /**
    * Returns a newly created for-each statement whose loop control variable
    * is declared internally (in the for-loop part). The [awaitKeyword] can be
    * `null` if this is not an asynchronous for loop.
@@ -516,6 +555,26 @@ abstract class AstFactory {
       Token rightParenthesis);
 
   /**
+   * Returns a newly created for part that includes a declaration.
+   */
+  ForPartsWithDeclarations forPartsWithDeclarations(
+      {VariableDeclarationList variables,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters});
+
+  /**
+   * Returns a newly created for part that includes an expression.
+   */
+  ForPartsWithExpression forPartsWithExpression(
+      {Expression initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters});
+
+  /**
    * Returns a newly created for statement. Either the [variableList] or the
    * [initialization] must be `null`. Either the [condition] and the list of
    * [updaters] can be `null` if the loop does not have the corresponding
@@ -532,6 +591,17 @@ abstract class AstFactory {
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body);
+
+  /**
+   * Returns a newly created for statement.
+   */
+  ForStatement2 forStatement2(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body});
 
   /**
    * Returns a newly created function declaration. Either or both of the
@@ -764,12 +834,55 @@ abstract class AstFactory {
       Token leftBracket, List<Expression> elements, Token rightBracket);
 
   /**
+   * Returns a newly created list literal.
+   */
+  ListLiteral2 listLiteral2(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket});
+
+  /**
+   * Returns a newly created for element that can be part of a map literal.
+   */
+  MapForElement mapForElement(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      MapElement body});
+
+  /**
+   * Returns a newly created if element that can be part of a map literal.
+   */
+  MapIfElement mapIfElement(
+      {Token ifKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      MapElement thenElement,
+      Token elseKeyword,
+      MapElement elseElement});
+
+  /**
    * Returns a newly created map literal. The [constKeyword] can be `null` if
    * the literal is not a constant. The [typeArguments] can be `null` if no type
    * arguments were declared. The [entries] can be `null` if the map is empty.
    */
   MapLiteral mapLiteral(Token constKeyword, TypeArgumentList typeArguments,
       Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket);
+
+  /**
+   * Returns a newly created map literal.
+   */
+  MapLiteral2 mapLiteral2(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<MapElement> entries,
+      Token rightBracket});
 
   /**
    * Returns a newly created map literal entry.
@@ -949,6 +1062,16 @@ abstract class AstFactory {
       Token leftBracket, List<Expression> elements, Token rightBracket);
 
   /**
+   * Returns a newly created set literal.
+   */
+  SetLiteral2 setLiteral2(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket});
+
+  /**
    * Returns a newly created import show combinator.
    */
   ShowCombinator showCombinator(
@@ -993,6 +1116,11 @@ abstract class AstFactory {
    * Returns a newly created simple string literal.
    */
   SimpleStringLiteral simpleStringLiteral(Token literal, String value);
+
+  /**
+   * Returns a newly created spread element.
+   */
+  SpreadElement spreadElement({Token spreadOperator, Expression expression});
 
   /**
    * Returns a newly created string interpolation expression.

@@ -36,6 +36,11 @@ Target getTarget(String name, TargetFlags flags) {
   return builder(flags);
 }
 
+abstract class DiagnosticReporter<M, C> {
+  void report(M message, int charOffset, int length, Uri fileUri,
+      {List<C> context});
+}
+
 /// A target provides backend-specific options for generating kernel IR.
 abstract class Target {
   String get name;
@@ -94,8 +99,12 @@ abstract class Target {
   void performOutlineTransformations(Component component) {}
 
   /// Perform target-specific modular transformations on the given libraries.
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)});
 
   /// Perform target-specific modular transformations on the given program.
@@ -196,8 +205,12 @@ class NoneTarget extends Target {
   bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 
   @override

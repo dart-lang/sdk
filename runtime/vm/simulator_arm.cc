@@ -1551,20 +1551,10 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
             // Format(instr, "bkpt #'imm12_4");
             SimulatorDebugger dbg(this);
             int32_t imm = instr->BkptField();
-            if (imm == Instr::kStopMessageCode) {
-              const char* message = "Stop messages not enabled";
-              if (FLAG_print_stop_message) {
-                message = *reinterpret_cast<const char**>(
-                    reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-              }
-              set_pc(get_pc() + Instr::kInstrSize);
-              dbg.Stop(instr, message);
-            } else {
-              char buffer[32];
-              snprintf(buffer, sizeof(buffer), "bkpt #0x%x", imm);
-              set_pc(get_pc() + Instr::kInstrSize);
-              dbg.Stop(instr, buffer);
-            }
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "bkpt #0x%x", imm);
+            set_pc(get_pc() + Instr::kInstrSize);
+            dbg.Stop(instr, buffer);
           } else {
             // Format(instr, "smc'cond");
             UnimplementedInstruction(instr);

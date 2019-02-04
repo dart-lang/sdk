@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Only factory constructor can specify '=' redirection.
 // Try making this a factory constructor, or remove the redirection.
@@ -14,20 +16,7 @@
 // Try removing the return type.
 //   Foo() = Bar;
 //           ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Only factory constructor can specify '=' redirection.
-// Try making this a factory constructor, or remove the redirection.
-//   Foo() = Bar;
-//         ^
-//
-// pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Expected a function body or '=>'.
-// Try adding {}.
-//   Foo() = Bar;
-//         ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

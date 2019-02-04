@@ -816,7 +816,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       AstNode grandparent = node.parent.parent;
       if (grandparent is ConstructorReferenceNode) {
         ConstructorElement element =
-            (grandparent as ConstructorReferenceNode).staticElement;
+            // TODO(paulberry): remove the unnecessary cast when we are ready to
+            // depend on a version of the analyzer that includes
+            // https://dart-review.googlesource.com/c/sdk/+/89923
+            (grandparent // ignore: unnecessary_cast
+                    as ConstructorReferenceNode)
+                .staticElement;
         if (element != null) {
           List<ParameterElement> parameters = element.parameters;
           ParameterElement parameterElement = parameters.firstWhere((e) {

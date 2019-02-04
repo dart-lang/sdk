@@ -45,7 +45,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContentCacheTest);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ElementLocatorTest);
@@ -57,7 +57,7 @@ main() {
     defineReflectiveTests(ExitDetectorTest2);
     defineReflectiveTests(FileBasedSourceTest);
     defineReflectiveTests(ResolveRelativeUriTest);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(SDKLibrariesReaderTest);
     defineReflectiveTests(UriKindTest);
   });
@@ -165,6 +165,8 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ElementLocatorTest extends ResolverTestCase {
   void fail_locate_Identifier_partOfDirective() {
@@ -734,6 +736,8 @@ zap: baz
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ErrorReporterTest2 extends ResolverTestCase {
   test_reportTypeErrorForNode_sameName_functionType() async {
@@ -1563,6 +1567,8 @@ on String catch (e, s) { return 1; }''');
  * Tests for the [ExitDetector] that require that the AST be resolved.
  *
  * See [ExitDetectorTest] for tests that do not require the AST to be resolved.
+ * TODO(paulberry): migrate this test away from the task model.
+ * See dartbug.com/35734.
  */
 @reflectiveTest
 class ExitDetectorTest2 extends ResolverTestCase {

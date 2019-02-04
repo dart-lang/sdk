@@ -988,7 +988,9 @@ class FileTest {
     file.createSync();
     var output = file.openWrite();
     output.close();
-    output.add(buffer); // Ignored.
+    Expect.throws(() {
+      output.add(buffer);
+    });
     output.done.then((_) {
       file.deleteSync();
       asyncTestDone("testCloseExceptionStream");

@@ -842,6 +842,10 @@ class AstTestFactory {
       astFactory.mapLiteralEntry(
           key, TokenFactory.tokenFromType(TokenType.COLON), value);
 
+  static MapLiteralEntry mapLiteralEntry3(String key, String value) =>
+      astFactory.mapLiteralEntry(string2(key),
+          TokenFactory.tokenFromType(TokenType.COLON), string2(value));
+
   static MethodDeclaration methodDeclaration(
           Keyword modifier,
           TypeAnnotation returnType,

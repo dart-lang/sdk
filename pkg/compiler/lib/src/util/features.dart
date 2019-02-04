@@ -68,6 +68,7 @@ class Features {
   /// encoded in `[...]` will be parsed as lists of strings.
   static Features fromText(String text) {
     Features features = new Features();
+    if (text == null) return features;
     int index = 0;
     while (index < text.length) {
       int eqPos = text.indexOf('=', index);

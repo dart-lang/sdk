@@ -14,6 +14,7 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         templateInternalProblemConstructorNotFound,
@@ -97,13 +98,19 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  void addProblem(Message message, int charOffset, int length, Uri fileUri,
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
       {bool wasHandled: false,
       List<LocatedMessage> context,
-      Severity severity}) {
+      Severity severity,
+      bool problemOnLibrary: false}) {
     fileUri ??= this.fileUri;
-    loader.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled, context: context, severity: severity);
+
+    return loader.addProblem(message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: true);
   }
 
   /// Returns true if the export scope was modified.

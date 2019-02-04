@@ -10,13 +10,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnusedImportTest);
     defineReflectiveTests(UnusedImportTest_Driver);
   });
 }
 
-@reflectiveTest
-class UnusedImportTest extends ResolverTestCase {
+abstract class UnusedImportTest extends ResolverTestCase {
   test_annotationOnDirective() async {
     Source source = addSource(r'''
 library L;

@@ -12,7 +12,7 @@ import 'dartfuzz_values.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.2';
+const String version = '1.3';
 
 // Restriction on statement and expression depths.
 const int stmtDepth = 5;
@@ -160,6 +160,33 @@ class DartFuzz {
   }
 
   //
+  // Comments (for FE and analysis tools).
+  //
+
+  void emitComment() {
+    switch (rand.nextInt(4)) {
+      case 0:
+        emitLn('// Single-line comment.');
+        break;
+      case 1:
+        emitLn('/// Single-line documentation comment.');
+        break;
+      case 2:
+        emitLn('/*');
+        emitLn(' * Multi-line');
+        emitLn(' * comment.');
+        emitLn(' */');
+        break;
+      default:
+        emitLn('/**');
+        emitLn(' ** Multi-line');
+        emitLn(' ** documentation comment.');
+        emitLn(' */');
+        break;
+    }
+  }
+
+  //
   // Statements.
   //
 
@@ -167,7 +194,7 @@ class DartFuzz {
   bool emitAssign() {
     DartType tp = getType();
     emitLn('', newline: false);
-    emitVar(tp);
+    emitVar(0, tp);
     emitAssignOp(tp);
     emitExpr(0, tp);
     emit(';', newline: true);
@@ -202,10 +229,10 @@ class DartFuzz {
     emitExpr(0, DartType.BOOL);
     emit(') {', newline: true);
     indent += 2;
-    bool b = emitStatements(depth + 1);
+    emitStatements(depth + 1);
     indent -= 2;
     emitLn('}');
-    return b;
+    return true;
   }
 
   // Emit a two-way if statement.
@@ -257,13 +284,17 @@ class DartFuzz {
   // Emit a statement. Returns true if code may fall-through.
   // TODO: add many more constructs
   bool emitStatement(int depth) {
+    // Throw in a comment every once in a while.
+    if (rand.nextInt(10) == 0) {
+      emitComment();
+    }
     // Continuing nested statements becomes less likely as the depth grows.
     if (rand.nextInt(depth + 1) > stmtDepth) {
       return emitAssign();
     }
     // Possibly nested statement.
     switch (rand.nextInt(8)) {
-      // favors assignment
+      // Favors assignment.
       case 0:
         return emitIf1(depth);
       case 1:
@@ -310,10 +341,9 @@ class DartFuzz {
 
   void emitInt() {
     switch (rand.nextInt(4)) {
-      // favors small positive int
+      // Favors small positive int.
       case 0:
-        emit(
-            '${DartFuzzValues.interestingIntegers[rand.nextInt(DartFuzzValues.interestingIntegers.length)]}');
+        emit('${oneOf(DartFuzzValues.interestingIntegers)}');
         break;
       case 1:
         emitSmallNegativeInt();
@@ -325,22 +355,10 @@ class DartFuzz {
   }
 
   void emitDouble() {
-    switch (rand.nextInt(7)) {
-      // favors small double
+    switch (rand.nextInt(10)) {
+      // Favors regular double.
       case 0:
-        emit('double.infinity');
-        break;
-      case 1:
-        emit('double.maxFinite');
-        break;
-      case 2:
-        emit('double.minPositive');
-        break;
-      case 3:
-        emit('double.nan');
-        break;
-      case 4:
-        emit('double.negativeInfinity');
+        emit(oneOf(DartFuzzValues.interestingDoubles));
         break;
       default:
         emit('${rand.nextDouble()}');
@@ -350,15 +368,12 @@ class DartFuzz {
 
   void emitChar() {
     switch (rand.nextInt(10)) {
-      // favors regular char
+      // Favors regular char.
       case 0:
-        emit('\\u2665');
-        break;
-      case 1:
-        emit('\\u{1f600}'); // rune
+        emit(oneOf(DartFuzzValues.interestingChars));
         break;
       default:
-        emit(DartFuzzValues.interestingChars[
+        emit(DartFuzzValues.regularChars[
             rand.nextInt(DartFuzzValues.interestingChars.length)]);
         break;
     }
@@ -442,18 +457,40 @@ class DartFuzz {
     emit('${choices[rand.nextInt(choices.length)]}');
   }
 
-  void emitVar(DartType tp) {
-    // TODO: add subscripted var
-    emitScalarVar(tp);
+  void emitSubscriptedVar(int depth, DartType tp) {
+    if (tp == DartType.INT) {
+      emitScalarVar(DartType.INT_LIST);
+      emit('[');
+      emitExpr(depth + 1, DartType.INT);
+      emit(']');
+    } else if (tp == DartType.STRING) {
+      emitScalarVar(DartType.INT_STRING_MAP);
+      emit('[');
+      emitExpr(depth + 1, DartType.INT);
+      emit(']');
+    } else {
+      emitScalarVar(tp); // resort to scalar
+    }
   }
 
-  void emitTerminal(DartType tp) {
+  void emitVar(int depth, DartType tp) {
+    switch (rand.nextInt(2)) {
+      case 0:
+        emitScalarVar(tp);
+        break;
+      default:
+        emitSubscriptedVar(depth, tp);
+        break;
+    }
+  }
+
+  void emitTerminal(int depth, DartType tp) {
     switch (rand.nextInt(2)) {
       case 0:
         emitLiteral(tp);
         break;
       default:
-        emitVar(tp);
+        emitVar(depth, tp);
         break;
     }
   }
@@ -478,7 +515,7 @@ class DartFuzz {
       emitExpr(depth + 1, tp);
       emit('))');
     } else {
-      emitTerminal(tp); // resort to terminal
+      emitTerminal(depth, tp); // resort to terminal
     }
   }
 
@@ -495,6 +532,16 @@ class DartFuzz {
         emit(')');
         return;
       }
+    } else if (tp == DartType.STRING || tp == DartType.INT_LIST) {
+      // For strings and lists, a construct like x = x + x; inside a loop
+      // yields an exponentially growing data structure. We avoid this
+      // situation by forcing a literal on the rhs of each +.
+      emit('(');
+      emitExpr(depth + 1, tp);
+      emitBinaryOp(tp);
+      emitLiteral(tp);
+      emit(')');
+      return;
     }
     emit('(');
     emitExpr(depth + 1, tp);
@@ -524,32 +571,34 @@ class DartFuzz {
       if (r == 1) emitPreOrPostOp(tp);
       emit(')');
     } else {
-      emitTerminal(tp); // resort to terminal
+      emitTerminal(depth, tp); // resort to terminal
     }
   }
 
   // Emit library call.
   void emitLibraryCall(int depth, DartType tp) {
-    if (tp == DartType.INT_STRING_MAP) {
-      emitTerminal(tp); // resort to terminal
-      return;
-    }
     DartLib lib = getLibraryMethod(tp);
-    List<DartType> proto = lib.proto;
+    String proto = lib.proto;
     // Receiver.
-    if (proto[0] != null) {
-      DartType deeper_tp = proto[0];
+    if (proto[0] != 'V') {
       emit('(');
-      emitExpr(depth + 1, deeper_tp);
+      emitArg(depth + 1, proto[0]);
       emit(').');
     }
     // Call.
     emit('${lib.name}');
     // Parameters.
-    if (proto.length == 1) {
-      emit('()');
-    } else if (proto[1] != null) {
-      emitExprList(depth + 1, proto);
+    if (proto[1] != 'v') {
+      emit('(');
+      if (proto[1] != 'V') {
+        for (int i = 1; i < proto.length; i++) {
+          emitArg(depth + 1, proto[i]);
+          if (i != (proto.length - 1)) {
+            emit(', ');
+          }
+        }
+      }
+      emit(')');
     }
   }
 
@@ -586,14 +635,14 @@ class DartFuzz {
         return;
       }
     }
-    emitTerminal(tp); // resort to terminal.
+    emitTerminal(depth, tp); // resort to terminal.
   }
 
   // Emit expression.
   void emitExpr(int depth, DartType tp) {
     // Continuing nested expressions becomes less likely as the depth grows.
     if (rand.nextInt(depth + 1) > exprDepth) {
-      emitTerminal(tp);
+      emitTerminal(depth, tp);
       return;
     }
     // Possibly nested expression.
@@ -617,7 +666,7 @@ class DartFuzz {
         emitMethodCall(depth, tp);
         break;
       default:
-        emitTerminal(tp);
+        emitTerminal(depth, tp);
         break;
     }
   }
@@ -725,8 +774,39 @@ class DartFuzz {
       return oneOf(DartLib.stringLibs);
     } else if (tp == DartType.INT_LIST) {
       return oneOf(DartLib.intListLibs);
+    } else if (tp == DartType.INT_STRING_MAP) {
+      return oneOf(DartLib.intStringMapLibs);
     } else {
       assert(false);
+    }
+  }
+
+  // Emit a library argument, possibly subject to restrictions.
+  void emitArg(int depth, String p) {
+    switch (p) {
+      case 'B':
+        emitExpr(depth, DartType.BOOL);
+        break;
+      case 'i':
+        emitSmallPositiveInt();
+        break;
+      case 'I':
+        emitExpr(depth, DartType.INT);
+        break;
+      case 'D':
+        emitExpr(depth, DartType.DOUBLE);
+        break;
+      case 'S':
+        emitExpr(depth, DartType.STRING);
+        break;
+      case 'L':
+        emitExpr(depth, DartType.INT_LIST);
+        break;
+      case 'M':
+        emitExpr(depth, DartType.INT_STRING_MAP);
+        break;
+      default:
+        assert(false);
     }
   }
 

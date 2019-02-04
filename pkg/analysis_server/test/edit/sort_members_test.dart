@@ -55,11 +55,32 @@ main() {
   }
 
   test_BAD_notDartFile() async {
-    Request request =
-        new EditSortMembersParams('/not-a-Dart-file.txt').toRequest('0');
+    Request request = new EditSortMembersParams(
+      convertPath('/not-a-Dart-file.txt'),
+    ).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new EditSortMembersParams('test.dart').toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        new EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
+            .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_OK_afterWaitForAnalysis() async {

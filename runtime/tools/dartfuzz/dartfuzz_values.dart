@@ -26,8 +26,23 @@ class DartType {
 /// Class with interesting values for fuzzing.
 class DartFuzzValues {
   // Interesting characters.
-  static const interestingChars =
+  static const List<String> interestingChars = [
+    '\\u2665',
+    '\\u{1f600}', // rune
+  ];
+
+  // Regular characters.
+  static const regularChars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#&()+- ';
+
+  // Interesting doubles.
+  static const interestingDoubles = [
+    'double.infinity',
+    'double.maxFinite',
+    'double.minPositive',
+    'double.nan',
+    'double.negativeInfinity',
+  ];
 
   // Interesting integer values.
   static const List<int> interestingIntegers = [
@@ -71,97 +86,111 @@ class DartFuzzValues {
 }
 
 /// Class that represents Dart library methods.
+//
 /// The invididual lists are organized by return type.
-/// Proto list:
-///   [ receiver-type (null denotes none),
-///     param1 type (null denotes getter),
-///     param2 type,
-///     ...
-///   ]
+/// The proto string has the following format:
+///    +-------> receiver type (V denotes none)
+///    |+------> param1 type  (V denotes none, v denotes getter)
+///    ||+-----> param2 type
+///    |||+----> ....
+///    ||||
+///   "TTTT...."
+/// where:
+///   V void
+///   v void (special)
+///   B bool
+///   I int
+///   i int (small)
+///   D double
+///   S String
+///   L List<int>
+///   M Map<int, String>
 ///
 /// TODO(ajcbik): generate these lists automatically
 ///
 class DartLib {
   final String name;
-  final List<DartType> proto;
+  final String proto;
   const DartLib(this.name, this.proto);
 
   static const boolLibs = [
-    DartLib('isEven', [DartType.INT, null]),
-    DartLib('isOdd', [DartType.INT, null]),
-    DartLib('isEmpty', [DartType.STRING, null]),
-    DartLib('isEmpty', [DartType.INT_STRING_MAP, null]),
-    DartLib('isNotEmpty', [DartType.STRING, null]),
-    DartLib('isNotEmpty', [DartType.INT_STRING_MAP, null]),
-    DartLib('endsWith', [DartType.STRING, DartType.STRING]),
-    DartLib('remove', [DartType.INT_LIST, DartType.INT]),
-    DartLib('containsValue', [DartType.INT_STRING_MAP, DartType.STRING]),
-    DartLib('containsKey', [DartType.INT_STRING_MAP, DartType.INT]),
+    DartLib('isEven', "Iv"),
+    DartLib('isOdd', "Iv"),
+    DartLib('isEmpty', "Sv"),
+    DartLib('isEmpty', "Mv"),
+    DartLib('isNotEmpty', "Sv"),
+    DartLib('isNotEmpty', "Mv"),
+    DartLib('endsWith', "SS"),
+    DartLib('remove', "LI"),
+    DartLib('containsValue', "MS"),
+    DartLib('containsKey', "MI"),
   ];
 
   static const intLibs = [
-    DartLib('bitLength', [DartType.INT, null]),
-    DartLib('sign', [DartType.INT, null]),
-    DartLib('abs', [DartType.INT]),
-    DartLib('round', [DartType.INT]),
-    DartLib('round', [DartType.DOUBLE]),
-    DartLib('floor', [DartType.INT]),
-    DartLib('floor', [DartType.DOUBLE]),
-    DartLib('ceil', [DartType.INT]),
-    DartLib('ceil', [DartType.DOUBLE]),
-    DartLib('truncate', [DartType.INT]),
-    DartLib('truncate', [DartType.DOUBLE]),
-    DartLib('toInt', [DartType.DOUBLE]),
-    DartLib('toUnsigned', [DartType.INT, DartType.INT]),
-    DartLib('toSigned', [DartType.INT, DartType.INT]),
-    DartLib('modInverse', [DartType.INT, DartType.INT]),
-    DartLib('modPow', [DartType.INT, DartType.INT, DartType.INT]),
-    DartLib('length', [DartType.STRING, null]),
-    DartLib('length', [DartType.INT_LIST, null]),
-    DartLib('length', [DartType.INT_STRING_MAP, null]),
-    DartLib('codeUnitAt', [DartType.STRING, DartType.INT]),
-    DartLib('compareTo', [DartType.STRING, DartType.STRING]),
-    DartLib('removeLast', [DartType.INT_LIST]),
-    DartLib('removeAt', [DartType.INT_LIST, DartType.INT]),
-    DartLib('indexOf', [DartType.INT_LIST, DartType.INT]),
-    DartLib('lastIndexOf', [DartType.INT_LIST, DartType.INT]),
+    DartLib('bitLength', "Iv"),
+    DartLib('sign', "Iv"),
+    DartLib('abs', "IV"),
+    DartLib('round', "IV"),
+    DartLib('round', "DV"),
+    DartLib('floor', "IV"),
+    DartLib('floor', "DV"),
+    DartLib('ceil', "IV"),
+    DartLib('ceil', "DV"),
+    DartLib('truncate', "IV"),
+    DartLib('truncate', "DV"),
+    DartLib('toInt', "DV"),
+    DartLib('toUnsigned', "II"),
+    DartLib('toSigned', "II"),
+    DartLib('modInverse', "II"),
+    DartLib('modPow', "III"),
+    DartLib('length', "Sv"),
+    DartLib('length', "Lv"),
+    DartLib('length', "Mv"),
+    DartLib('codeUnitAt', "SI"),
+    DartLib('compareTo', "SS"),
+    DartLib('removeLast', "LV"),
+    DartLib('removeAt', "LI"),
+    DartLib('indexOf', "LI"),
+    DartLib('lastIndexOf', "LI"),
   ];
 
   static const doubleLibs = [
-    DartLib('sign', [DartType.DOUBLE, null]),
-    DartLib('abs', [DartType.DOUBLE]),
-    DartLib('toDouble', [DartType.INT]),
-    DartLib('roundToDouble', [DartType.INT]),
-    DartLib('roundToDouble', [DartType.DOUBLE]),
-    DartLib('floorToDouble', [DartType.INT]),
-    DartLib('floorToDouble', [DartType.DOUBLE]),
-    DartLib('ceilToDouble', [DartType.INT]),
-    DartLib('ceilToDouble', [DartType.DOUBLE]),
-    DartLib('truncateToDouble', [DartType.INT]),
-    DartLib('truncateToDouble', [DartType.DOUBLE]),
-    DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE]),
+    DartLib('sign', "Dv"),
+    DartLib('abs', "DV"),
+    DartLib('toDouble', "IV"),
+    DartLib('roundToDouble', "IV"),
+    DartLib('roundToDouble', "DV"),
+    DartLib('floorToDouble', "IV"),
+    DartLib('floorToDouble', "DV"),
+    DartLib('ceilToDouble', "IV"),
+    DartLib('ceilToDouble', "DV"),
+    DartLib('truncateToDouble', "IV"),
+    DartLib('truncateToDouble', "DV"),
+    DartLib('remainder', "DD"),
   ];
 
   static const stringLibs = [
-    DartLib('toString', [DartType.BOOL]),
-    DartLib('toString', [DartType.INT]),
-    DartLib('toString', [DartType.DOUBLE]),
-    DartLib('toRadixString', [DartType.INT, DartType.INT]),
-    DartLib('trim', [DartType.STRING]),
-    DartLib('trimLeft', [DartType.STRING]),
-    DartLib('trimRight', [DartType.STRING]),
-    DartLib('toLowerCase', [DartType.STRING]),
-    DartLib('toUpperCase', [DartType.STRING]),
-    DartLib('substring', [DartType.STRING, DartType.INT]),
-    DartLib('replaceRange',
-        [DartType.STRING, DartType.INT, DartType.INT, DartType.STRING]),
-    DartLib('remove', [DartType.INT_STRING_MAP, DartType.INT]),
-    // Avoid (OOM divergences, TODO(ajcbik): restrict parameters)
-    // DartLib('padLeft', [DartType.STRING, DartType.INT]),
-    // DartLib('padRight', [DartType.STRING, DartType.INT]),
+    DartLib('toString', "BV"),
+    DartLib('toString', "IV"),
+    DartLib('toString', "DV"),
+    DartLib('toRadixString', "II"),
+    DartLib('trim', "SV"),
+    DartLib('trimLeft', "SV"),
+    DartLib('trimRight', "SV"),
+    DartLib('toLowerCase', "SV"),
+    DartLib('toUpperCase', "SV"),
+    DartLib('substring', "SI"),
+    DartLib('replaceRange', "SIIS"),
+    DartLib('remove', "MI"),
+    DartLib('padLeft', "Si"), // restrict!
+    DartLib('padRight', "Si"), // restrict!
   ];
 
   static const intListLibs = [
-    DartLib('sublist', [DartType.INT_LIST, DartType.INT])
+    DartLib('sublist', "LI"),
+  ];
+
+  static const intStringMapLibs = [
+    DartLib('Map.from', "VM"),
   ];
 }

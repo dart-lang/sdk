@@ -769,14 +769,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       expression.parent.replaceChild(
           expression,
-          new Let(
-              new VariableDeclaration.forValue(receiver)
-                ..fileOffset = receiver.fileOffset,
-              helper.desugarSyntheticExpression(helper.buildProblem(
-                  errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset,
-                  length)))
-            ..fileOffset = fileOffset);
+          helper.desugarSyntheticExpression(helper.buildProblem(
+              errorTemplate.withArguments(name.name, receiverType),
+              fileOffset,
+              length)));
     }
     return interfaceMember;
   }
@@ -1676,12 +1672,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Modifies a type as appropriate when inferring a closure return type.
   DartType inferReturnType(DartType returnType) {
-    if (returnType == null) {
-      // Analyzer infers `Null` if there is no `return` expression; the spec
-      // says to return `void`.  TODO(paulberry): resolve this difference.
-      return coreTypes.nullClass.rawType;
-    }
-    return returnType;
+    return returnType ?? typeSchemaEnvironment.nullType;
   }
 
   /// Performs type inference on the given [statement].

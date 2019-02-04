@@ -26,8 +26,8 @@ import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
   main() {
-    return new Container(
-      child: new /*caret*/Text('aaa'),
+    return Container(
+      child: /*caret*/Text('aaa'),
     );
   }
 }
@@ -37,10 +37,10 @@ import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
   main() {
-    return new Container(
+    return Container(
       child: Column(
         children: <Widget>[
-          new /*caret*/Text('aaa'),
+          Text('aaa'),
         ],
       ),
     );
@@ -56,13 +56,13 @@ import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
   main() {
-    return new Row(children: [
-      new Text('aaa'),
+    return Row(children: [
+      Text('aaa'),
 // start
-      new Text('bbb'),
-      new Text('ccc'),
+      Text('bbb'),
+      Text('ccc'),
 // end
-      new Text('ddd'),
+      Text('ddd'),
     ]);
   }
 }
@@ -72,17 +72,15 @@ import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
   main() {
-    return new Row(children: [
-      new Text('aaa'),
-// start
+    return Row(children: [
+      Text('aaa'),
       Column(
         children: <Widget>[
-          new Text('bbb'),
-          new Text('ccc'),
+          Text('bbb'),
+          Text('ccc'),
         ],
       ),
-// end
-      new Text('ddd'),
+      Text('ddd'),
     ]);
   }
 }

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/named_function_scope.dart:28:48: Error: A function expression can't have a name.
 //     var x = /*@error=NamedFunctionExpression*/ T() {};
@@ -78,22 +80,7 @@
 // pkg/front_end/testcases/named_function_scope.dart:83:32: Warning: 'T' isn't a type.
 //     void T(/*@error=NotAType*/ T t) {}
 //                                ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/named_function_scope.dart:28:48: Error: A function expression can't have a name.
-//     var x = /*@error=NamedFunctionExpression*/ T() {};
-//                                                ^
-//
-// pkg/front_end/testcases/named_function_scope.dart:48:9: Error: A function expression can't have a name.
-//         T() {};
-//         ^
-//
-// pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
-//         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
-//         ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

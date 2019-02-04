@@ -12,14 +12,8 @@
 
 #include "vm/allocation.h"
 #include "vm/cpu.h"
-#include "vm/object.h"
 
 namespace dart {
-
-// Forward declarations.
-class RawClass;
-class Immediate;
-class RawObject;
 
 // Template class for all instruction pattern classes.
 // P has to specify a static pattern and a pattern length method.

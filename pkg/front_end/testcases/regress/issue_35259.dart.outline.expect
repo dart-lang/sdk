@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_35259.dart:7:11: Error: 'Supertype' is already declared in this scope.
 //   factory Supertype() = Unresolved;
@@ -22,8 +24,7 @@
 // pkg/front_end/testcases/regress/issue_35259.dart:6:11: Warning: Redirection constructor target not found: 'Unresolved'
 //   factory Supertype() = Unresolved;
 //           ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

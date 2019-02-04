@@ -274,13 +274,13 @@
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
-    "dartkp-bare-linux-(debug|release)-x64": {
+    "dartkp-no-bare-linux-(debug|release)-x64": {
       "options": {
-        "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions"]
+        "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"]
     }},
-    "dartkp-bare-linux-(debug|release)-(simarm|simarm64)": {
+    "dartkp-no-bare-linux-(debug|release)-(simarm|simarm64)": {
       "options": {
-        "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions"],
+        "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"],
         "use-blobs": true
     }},
     "dartk-(linux|mac)-(debug|release)-(ia32|x64)": { },
@@ -491,7 +491,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-android-${mode}-${arch}"
+            "-ndartkp-android-${mode}-${arch}",
+            "-j2"
           ],
           "fileset": "vm-kernel",
           "shards": 15
@@ -552,7 +553,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-bare-${system}-${mode}-${arch}"
+            "-ndartkp-no-bare-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10

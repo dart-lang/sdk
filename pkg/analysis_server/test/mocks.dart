@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -64,31 +65,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     return _closed.future;
   }
 
-  /**
-   * A stream of [NotificationMessage]s from the server that may be errors.
-   */
-  Stream<lsp.NotificationMessage> get errorNotificationsFromServer {
-    return notificationsFromServer.where(_isErrorNotification);
-  }
-
-  /**
-   * A stream of [NotificationMessage]s from the server.
-   */
-  Stream<lsp.NotificationMessage> get notificationsFromServer {
-    return _serverToClient.stream
-        .where((m) => m is lsp.NotificationMessage)
-        .cast<lsp.NotificationMessage>();
-  }
-
-  /**
-   * A stream of [RequestMessage]s from the server.
-   */
-  Stream<lsp.RequestMessage> get requestsFromServer {
-    return _serverToClient.stream
-        .where((m) => m is lsp.RequestMessage)
-        .cast<lsp.RequestMessage>();
-  }
-
   Stream<lsp.Message> get serverToClient => _serverToClient.stream;
 
   @override
@@ -96,6 +72,13 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (!_closed.isCompleted) {
       _closed.complete();
     }
+  }
+
+  /// Run the object through JSON serialisation to catch any
+  /// issues like fields that are unserialisable types. This is used for
+  /// messages going server-to-client.
+  void ensureMessageCanBeJsonSerialized(ToJsonable message) {
+    jsonEncode(message.toJson());
   }
 
   @override
@@ -110,6 +93,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
+    ensureMessageCanBeJsonSerialized(notification);
+
     _serverToClient.add(notification);
   }
 
@@ -118,7 +104,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
     notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
+
     _clientToServer.add(notification);
   }
 
@@ -128,6 +116,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
+    ensureMessageCanBeJsonSerialized(request);
+
     _serverToClient.add(request);
   }
 
@@ -141,7 +132,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       throw new Exception('sendLspRequest after connection closed');
     }
+
     request = _convertJson(request, lsp.RequestMessage.fromJson);
+
     // Wrap send request in future to simulate WebSocket.
     new Future(() => _clientToServer.add(request));
     return waitForResponse(request);
@@ -153,6 +146,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
+    ensureMessageCanBeJsonSerialized(response);
+
     // Wrap send response in future to simulate WebSocket.
     new Future(() => _serverToClient.add(response));
   }
@@ -162,7 +158,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+
     response = _convertJson(response, lsp.ResponseMessage.fromJson);
+
     _clientToServer.add(response);
   }
 
@@ -200,15 +198,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   T _convertJson<T>(
       lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
     return constructor(jsonDecode(jsonEncode(message.toJson())));
-  }
-
-  /// Checks whether a notification is likely an error from the server (for
-  /// example a window/showMessage). This is useful for tests that want to
-  /// ensure no errors come from the server in response to notifications (which
-  /// don't have their own responses).
-  bool _isErrorNotification(lsp.NotificationMessage notification) {
-    return notification.method == Method.window_logMessage ||
-        notification.method == Method.window_showMessage;
   }
 }
 

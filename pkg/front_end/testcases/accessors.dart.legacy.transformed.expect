@@ -1,4 +1,19 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/accessors.dart:16:13: Warning: Getter not found: 'onlySetter'.
+//       print(onlySetter);
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/accessors.dart:25:11: Warning: Getter not found: 'onlySetter'.
+//     print(onlySetter);
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/accessors.dart:40:11: Warning: Getter not found: 'onlySetter'.
+//     print(onlySetter);
+//           ^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

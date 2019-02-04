@@ -394,10 +394,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForAssignability(node.rightOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForUseOfVoidResult(node.rightOperand);
+      _checkForNullableDereference(node.rightOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     }
+
+    if (type != TokenType.EQ_EQ && type != TokenType.BANG_EQ) {
+      _checkForNullableDereference(node.leftOperand);
+    }
+
     _checkForUseOfVoidResult(node.leftOperand);
+
     super.visitBinaryExpression(node);
   }
 
@@ -532,9 +539,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     _checkForNonBoolCondition(node.condition);
-    // TODO(mfairhurst) Enable this and get code compliant.
-    //_checkForUseOfVoidResult(node.thenExpression);
-    //_checkForUseOfVoidResult(node.elseExpression);
     super.visitConditionalExpression(node);
   }
 
@@ -775,7 +779,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression functionExpression = node.function;
     DartType expressionType = functionExpression.staticType;
-    if (!_checkForUseOfVoidResult(functionExpression) &&
+    if (!_checkForNullableDereference(functionExpression) &&
+        !_checkForUseOfVoidResult(functionExpression) &&
         !_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
@@ -1025,7 +1030,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
-//      _checkForBadFunctionUse(node);
+      //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
       _initialFieldElementsMap = null;
@@ -1079,6 +1084,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForAssignmentToFinal(operand);
     }
     _checkForIntNotAssignable(operand);
+    _checkForNullableDereference(operand);
     _checkForUseOfVoidResult(operand);
     super.visitPrefixExpression(node);
   }
@@ -1208,6 +1214,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
+    _checkForNullableDereference(node.expression);
     _checkForUseOfVoidResult(node.expression);
     super.visitThrowExpression(node);
   }
@@ -1312,6 +1319,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitYieldStatement(YieldStatement node) {
     if (_inGenerator) {
       _checkForYieldOfInvalidType(node.expression, node.star != null);
+      if (node.star != null) {
+        _checkForNullableDereference(node.expression);
+      }
     } else {
       CompileTimeErrorCode errorCode;
       if (node.star != null) {
@@ -3586,6 +3596,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (_checkForNullableDereference(node.iterable)) {
+      return;
+    }
+
     if (_checkForUseOfVoidResult(node.iterable)) {
       return;
     }
@@ -3598,9 +3612,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // The type of the loop variable.
     SimpleIdentifier variable = node.identifier ?? loopVariable.identifier;
     DartType variableType = getStaticType(variable);
-
-    // TODO(mfairhurst) Check and guard against `for(void x in _)`?
-    //_checkForUseOfVoidResult(variable);
 
     DartType loopType = node.awaitKeyword != null
         ? _typeProvider.streamType
@@ -4423,7 +4434,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForNonBoolCondition(Expression condition) {
     DartType conditionType = getStaticType(condition);
-    if (!_checkForUseOfVoidResult(condition) &&
+    if (!_checkForNullableDereference(condition) &&
+        !_checkForUseOfVoidResult(condition) &&
         conditionType != null &&
         !_typeSystem.isAssignableTo(conditionType, _boolType)) {
       _errorReporter.reportErrorForNode(
@@ -4533,6 +4545,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
       }
     }
+  }
+
+  /**
+   * Check for illegal derefences of nullables, ie, "unchecked" usages of
+   * nullable values. Note that *any* usage of a null value is an "unchecked"
+   * usage, because proper checks will promote the type to a non-nullable value.
+   *
+   * See [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]
+   */
+  bool _checkForNullableDereference(Expression expression) {
+    if (expression == null ||
+        !_options.experimentStatus.non_nullable ||
+        (expression.staticType as TypeImpl).nullability !=
+            Nullability.nullable) {
+      return false;
+    }
+
+    StaticWarningCode code = StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
+
+    if (expression is MethodInvocation) {
+      SimpleIdentifier methodName = expression.methodName;
+      _errorReporter.reportErrorForNode(code, methodName, []);
+    } else {
+      _errorReporter.reportErrorForNode(code, expression, []);
+    }
+
+    return true;
   }
 
   /**

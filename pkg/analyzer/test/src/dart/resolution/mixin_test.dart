@@ -10,12 +10,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinDriverResolutionTest);
-    defineReflectiveTests(MixinTaskResolutionTest);
   });
 }
 
@@ -1922,14 +1920,5 @@ class X extends A with M {}
     assertElement(access, findElement.setter('foo'));
     // Hm... Does it need any type?
     assertTypeDynamic(access);
-  }
-}
-
-@reflectiveTest
-class MixinTaskResolutionTest extends TaskResolutionTest
-    with MixinResolutionMixin {
-  @failingTest
-  test_conflictingGenericInterfaces() {
-    return super.test_conflictingGenericInterfaces();
   }
 }

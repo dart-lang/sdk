@@ -589,16 +589,16 @@ void GCMarker::ProcessObjectIdTable() {
 #endif  // !PRODUCT
 }
 
-class MarkTask : public ThreadPool::Task {
+class ParallelMarkTask : public ThreadPool::Task {
  public:
-  MarkTask(GCMarker* marker,
-           Isolate* isolate,
-           MarkingStack* marking_stack,
-           ThreadBarrier* barrier,
-           SyncMarkingVisitor* visitor,
-           intptr_t task_index,
-           intptr_t num_tasks,
-           uintptr_t* num_busy)
+  ParallelMarkTask(GCMarker* marker,
+                   Isolate* isolate,
+                   MarkingStack* marking_stack,
+                   ThreadBarrier* barrier,
+                   SyncMarkingVisitor* visitor,
+                   intptr_t task_index,
+                   intptr_t num_tasks,
+                   uintptr_t* num_busy)
       : marker_(marker),
         isolate_(isolate),
         marking_stack_(marking_stack),
@@ -613,7 +613,7 @@ class MarkTask : public ThreadPool::Task {
         Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
     ASSERT(result);
     {
-      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "MarkTask");
+      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ParallelMark");
       int64_t start = OS::GetCurrentMonotonicMicros();
 
       // Phase 1: Iterate over roots and drain marking stack in tasks.
@@ -705,7 +705,7 @@ class MarkTask : public ThreadPool::Task {
   const intptr_t num_tasks_;
   uintptr_t* num_busy_;
 
-  DISALLOW_COPY_AND_ASSIGN(MarkTask);
+  DISALLOW_COPY_AND_ASSIGN(ParallelMarkTask);
 };
 
 class ConcurrentMarkTask : public ThreadPool::Task {
@@ -737,7 +737,7 @@ class ConcurrentMarkTask : public ThreadPool::Task {
         Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
     ASSERT(result);
     {
-      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMarkTask");
+      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMark");
       int64_t start = OS::GetCurrentMonotonicMicros();
 
       marker_->IterateRoots(visitor_, task_index_, num_tasks_);
@@ -942,11 +942,9 @@ void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
               skipped_code_functions);
         }
 
-        MarkTask* mark_task =
-            new MarkTask(this, isolate_, &marking_stack_, &barrier, visitor, i,
-                         num_tasks, &num_busy);
-        ThreadPool* pool = Dart::thread_pool();
-        bool result = pool->Run(mark_task);
+        bool result = Dart::thread_pool()->Run(
+            new ParallelMarkTask(this, isolate_, &marking_stack_, &barrier,
+                                 visitor, i, num_tasks, &num_busy));
         ASSERT(result);
       }
       bool more_to_mark = false;

@@ -21,16 +21,6 @@ class Registry with IterableMixin<LintRule> {
    */
   Map<String, LintRule> _ruleMap = <String, LintRule>{};
 
-  /**
-   * A list of the default lint rules.
-   */
-  List<LintRule> _defaultRules = <LintRule>[];
-
-  /**
-   * Return a list of the default lint rules.
-   */
-  List<LintRule> get defaultRules => _defaultRules;
-
   @override
   Iterator<LintRule> get iterator => _ruleMap.values.iterator;
 
@@ -69,12 +59,9 @@ class Registry with IterableMixin<LintRule> {
     _ruleMap[rule.name] = rule;
   }
 
-  /**
-   * Add the given lint [rule] to this registry and mark it as being a default
-   * lint (one that will be run if lints are requested but no rules are enabled.
-   */
+  // todo (pq): remove once linter-0.1.79 is in DEPS.
+  @deprecated
   void registerDefault(LintRule rule) {
     register(rule);
-    _defaultRules.add(rule);
   }
 }

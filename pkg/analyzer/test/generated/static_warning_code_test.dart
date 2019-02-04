@@ -15,7 +15,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualValuesInConstSetTest);
-    defineReflectiveTests(StaticWarningCodeTest);
   });
 }
 
@@ -61,8 +60,7 @@ const s = {A<int>(), A<num>()};
   }
 }
 
-@reflectiveTest
-class StaticWarningCodeTest extends ResolverTestCase {
+abstract class StaticWarningCodeTest extends ResolverTestCase {
   fail_argumentTypeNotAssignable_tearOff_required() async {
     Source source = addSource(r'''
 class C {

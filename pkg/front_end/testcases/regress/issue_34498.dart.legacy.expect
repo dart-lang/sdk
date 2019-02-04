@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34498.dart:8:3: Warning: 'lib.MyClass' can't be used as a type because 'lib' doesn't refer to an import prefix.
 //   lib.MyClass get lib => null; // (1)
@@ -19,10 +21,11 @@
 // Try removing the type arguments.
 //   T<String> foo() {}
 //   ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_34498_lib.dart" as lib;
 
 class A extends core::Object {
   synthetic constructor •() → self::A
@@ -46,3 +49,13 @@ class C<T extends core::Object = dynamic> extends core::Object {
 }
 static final field self::A a = null;
 static method main() → dynamic {}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class MyClass extends core::Object {
+  synthetic constructor •() → self2::MyClass
+    : super core::Object::•()
+    ;
+}

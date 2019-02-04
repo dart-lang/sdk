@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 
 // Test the dart:io Link class.
 
@@ -57,8 +56,8 @@ testCreateSync() {
 
   // Test FileSystemEntity.identical on files, directories, and links,
   // reached by different paths.
-  Expect
-      .isTrue(FileSystemEntity.identicalSync(createdDirectly, createdDirectly));
+  Expect.isTrue(
+      FileSystemEntity.identicalSync(createdDirectly, createdDirectly));
   Expect.isFalse(
       FileSystemEntity.identicalSync(createdDirectly, createdThroughLink));
   Expect.isTrue(FileSystemEntity.identicalSync(
@@ -190,6 +189,38 @@ testRenameSync() {
     Expect.isFalse(link2.existsSync());
   }
 
+  testRenameToLink(String base, String target) {
+    Link link1 = Link(join(base, '1'))..createSync(target);
+    Link link2 = Link(join(base, '2'))..createSync(target);
+    Expect.isTrue(link1.existsSync());
+    Expect.isTrue(link2.existsSync());
+    Link renamed = link1.renameSync(link2.path);
+    Expect.isFalse(link1.existsSync());
+    Expect.isTrue(renamed.existsSync());
+    renamed.deleteSync();
+    Expect.isFalse(renamed.existsSync());
+  }
+
+  testRenameToTarget(String linkName, String target, bool isDirectory) {
+    Link link = Link(linkName)..createSync(target);
+    Expect.isTrue(link.existsSync());
+    try {
+      Link renamed = link.renameSync(target);
+      if (isDirectory) {
+        Expect.fail('Renaming a link to the name of an existing directory ' +
+            'should fail');
+      }
+      Expect.isTrue(renamed.existsSync());
+      renamed.deleteSync();
+    } on FileSystemException catch (_) {
+      if (isDirectory) {
+        return;
+      }
+      Expect.fail('Renaming a link to the name of an existing file should ' +
+          'not fail');
+    }
+  }
+
   Directory baseDir = Directory.systemTemp.createTempSync('dart_link');
   String base = baseDir.path;
   Directory dir = new Directory(join(base, 'a'))..createSync();
@@ -197,6 +228,11 @@ testRenameSync() {
 
   testRename(base, file.path);
   testRename(base, dir.path);
+
+  testRenameToLink(base, file.path);
+
+  testRenameToTarget(join(base, 'fileLink'), file.path, false);
+  testRenameToTarget(join(base, 'dirLink'), dir.path, true);
 
   baseDir.deleteSync(recursive: true);
 }

@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:math" as math;
 
+import "dart:math";
+
 static method test2() → dynamic {
   core::List<core::num> o;
   core::Iterable<core::num> y = o.{core::Iterable::map}<core::num>((core::num x) → core::num {

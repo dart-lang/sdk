@@ -628,27 +628,27 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
       JSONObject jsentry(stream);
       jsentry.AddProperty("offset", OffsetFromIndex(i));
       switch (TypeAt(i)) {
-        case ObjectPool::kTaggedObject:
+        case ObjectPool::EntryType::kTaggedObject:
           obj = ObjectAt(i);
           jsentry.AddProperty("kind", "Object");
           jsentry.AddProperty("value", obj);
           break;
-        case ObjectPool::kImmediate:
+        case ObjectPool::EntryType::kImmediate:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "Immediate");
           jsentry.AddProperty64("value", imm);
           break;
-        case ObjectPool::kNativeEntryData:
+        case ObjectPool::EntryType::kNativeEntryData:
           obj = ObjectAt(i);
           jsentry.AddProperty("kind", "NativeEntryData");
           jsentry.AddProperty("value", obj);
           break;
-        case ObjectPool::kNativeFunction:
+        case ObjectPool::EntryType::kNativeFunction:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunction");
           jsentry.AddProperty64("value", imm);
           break;
-        case ObjectPool::kNativeFunctionWrapper:
+        case ObjectPool::EntryType::kNativeFunctionWrapper:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunctionWrapper");
           jsentry.AddProperty64("value", imm);
@@ -798,7 +798,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* qualified_name = QualifiedName();
   const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
-  const bool is_stub = IsStubCode() || IsAllocationStubCode();
+  const bool is_stub =
+      IsStubCode() || IsAllocationStubCode() || IsTypeTestStubCode();
   if (is_stub) {
     jsobj.AddProperty("kind", "Stub");
   } else {

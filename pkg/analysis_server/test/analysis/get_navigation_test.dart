@@ -9,6 +9,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../mocks.dart';
 import 'notification_navigation_test.dart';
 
 main() {
@@ -127,6 +128,25 @@ main() {
     assertHasRegionString("'dart:math'");
     expect(testTargets, hasLength(1));
     expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = _createGetNavigationRequest('test.dart', 0, 0);
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        _createGetNavigationRequest(convertPath('/foo/../bar/test.dart'), 0, 0);
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_multipleRegions() async {

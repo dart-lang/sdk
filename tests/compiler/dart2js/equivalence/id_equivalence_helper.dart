@@ -409,12 +409,11 @@ class IdData<T> {
       String unexpectedMessage =
           dataValidator.isAsExpected(actualValue, expectedValue?.value);
       if (unexpectedMessage != null) {
-        /*if (data.value != expectedValue || expectedValue == null && data.value.value != '') {*/
         String expected = expectedValue?.toString() ?? '';
         String actual = dataValidator.getText(actualValue);
         int offset = getOffsetFromId(id, uri);
         String value1 = '${expected}';
-        String value2 = '${actual}';
+        String value2 = IdValue.idToString(id, '${actual}');
         annotations
             .putIfAbsent(offset, () => [])
             .add(colorizeDiff(value1, ' | ', value2));
@@ -751,10 +750,10 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
           }
         } else if (expectedValue != actualValue) {
           errorsFound.add(
-              "Mismatch for $key: expected '$expectedValue', found '${actualValue}");
+              "Mismatch for $key: expected '$expectedValue', found '${actualValue}'");
         }
       });
-      return errorsFound.isNotEmpty ? errorsFound.join(', ') : null;
+      return errorsFound.isNotEmpty ? errorsFound.join('\n ') : null;
     }
   }
 

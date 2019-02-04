@@ -113,7 +113,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ movl(EAX, Address(THR, Thread::top_offset()));                            \
   __ movl(EBX, EAX);                                                           \
                                                                                \
@@ -132,7 +131,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movl(Address(THR, Thread::top_offset()), EBX);                            \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));      \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));             \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -1936,7 +1935,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ movl(EAX, Address(THR, Thread::top_offset()));
   __ movl(EBX, EAX);
 
@@ -1956,7 +1954,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movl(Address(THR, Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -2202,10 +2200,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  if (!FLAG_support_timeline) {
-    __ LoadObject(EAX, Bool::False());
-    __ ret();
-  }
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadObject(EAX, Bool::False());
+  __ ret();
+#else
   Label true_label;
   // Load TimelineStream*.
   __ movl(EAX, Address(THR, Thread::dart_stream_offset()));
@@ -2220,6 +2218,7 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ Bind(&true_label);
   __ LoadObject(EAX, Bool::True());
   __ ret();
+#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,

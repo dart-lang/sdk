@@ -182,10 +182,11 @@ class ParsedArguments {
             }
             var parsedValue;
             if (valueSpecification == int) {
-              parsedValue = int.parse(value, onError: (_) {
+              parsedValue = int.tryParse(value);
+              if (parsedValue == null) {
                 return throw new CommandLineProblem.deprecated(
                     "Value for '$argument', '$value', isn't an int.");
-              });
+              }
             } else if (valueSpecification == bool) {
               if (value == null || value == "true" || value == "yes") {
                 parsedValue = true;
@@ -332,9 +333,7 @@ ProcessedOptions analyzeCommandLine(
   final Uri singleRootBase = options["--single-root-base"];
 
   FileSystem fileSystem = StandardFileSystem.instance;
-  List<String> extraSchemes = const [];
   if (singleRootScheme != null) {
-    extraSchemes = [singleRootScheme];
     fileSystem = new SchemeBasedFileSystem({
       'file': fileSystem,
       'data': fileSystem,
@@ -366,8 +365,7 @@ ProcessedOptions analyzeCommandLine(
     return new ProcessedOptions(
         options: new CompilerOptions()
           ..sdkSummary = options["--platform"]
-          ..librariesSpecificationUri =
-              resolveInputUri(arguments[1], extraSchemes: extraSchemes)
+          ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true
           ..fileSystem = fileSystem
           ..packagesFileUri = packages
@@ -383,13 +381,12 @@ ProcessedOptions analyzeCommandLine(
           ..bytecode = bytecode
           ..experimentalFlags = experimentalFlags,
         inputs: <Uri>[Uri.parse(arguments[0])],
-        output: resolveInputUri(arguments[3], extraSchemes: extraSchemes));
+        output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
 
-  final Uri defaultOutput =
-      resolveInputUri("${arguments.first}.dill", extraSchemes: extraSchemes);
+  final Uri defaultOutput = resolveInputUri("${arguments.first}.dill");
 
   final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
 
@@ -423,7 +420,7 @@ ProcessedOptions analyzeCommandLine(
   List<Uri> inputs = <Uri>[];
   if (areRestArgumentsInputs) {
     for (String argument in arguments) {
-      inputs.add(resolveInputUri(argument, extraSchemes: extraSchemes));
+      inputs.add(resolveInputUri(argument));
     }
   }
   return new ProcessedOptions(

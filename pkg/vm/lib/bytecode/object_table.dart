@@ -12,6 +12,7 @@ import 'bytecode_serialization.dart'
         BufferedWriter,
         BufferedReader,
         BytecodeObject,
+        BytecodeSizeStatistics,
         ObjectReader,
         ObjectWriter,
         StringWriter;
@@ -1022,6 +1023,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   void write(BufferedWriter writer) {
     assert(writer.objectWriter == this);
     assert(_indexTable != null);
+    final start = writer.offset;
 
     BufferedWriter contentsWriter = new BufferedWriter.fromWriter(writer);
     List<int> offsets = new List<int>(_indexTable.length);
@@ -1045,6 +1047,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
         obj.indexStrings(writer.stringWriter);
       }
     }
+    BytecodeSizeStatistics.objectTableSize += (writer.offset - start);
   }
 
   ObjectTable.read(BufferedReader reader) {

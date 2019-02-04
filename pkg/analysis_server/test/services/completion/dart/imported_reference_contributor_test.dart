@@ -43,8 +43,9 @@ import 'b.dart';
 void main() {f^}''');
     await computeSuggestions();
 
-    assertSuggestFunction('foo', 'bool',
+    CompletionSuggestion cs = assertSuggestFunction('foo', 'bool',
         defaultArgListString: 'bar, baz: null');
+    expect(cs.elementUri, equals('package:test/b.dart'));
   }
 
   test_ArgumentList() async {

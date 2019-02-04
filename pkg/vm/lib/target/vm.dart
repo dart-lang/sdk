@@ -68,8 +68,12 @@ class VmTarget extends Target {
       ];
 
   @override
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
         doSuperResolution: false /* resolution is done in Dart VM */);

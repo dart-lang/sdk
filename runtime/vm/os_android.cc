@@ -8,7 +8,6 @@
 #include "vm/os.h"
 
 #include <android/log.h>   // NOLINT
-#include <endian.h>        // NOLINT
 #include <errno.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
@@ -247,30 +246,6 @@ void OS::DebugBreak() {
 DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
-}
-
-uint16_t HostToBigEndian16(uint16_t value) {
-  return htobe16(value);
-}
-
-uint32_t HostToBigEndian32(uint32_t value) {
-  return htobe32(value);
-}
-
-uint64_t HostToBigEndian64(uint64_t value) {
-  return htobe64(value);
-}
-
-uint16_t HostToLittleEndian16(uint16_t value) {
-  return htole16(value);
-}
-
-uint32_t HostToLittleEndian32(uint32_t value) {
-  return htole32(value);
-}
-
-uint64_t HostToLittleEndian64(uint64_t value) {
-  return htole64(value);
 }
 
 void OS::Print(const char* format, ...) {

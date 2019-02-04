@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
 //     dynamic();
@@ -279,8 +281,7 @@
 // pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Setter not found: 'Func'.
 //     use(Func -= 42);
 //         ^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

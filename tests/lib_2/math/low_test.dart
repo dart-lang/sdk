@@ -5,9 +5,6 @@
 // Test that the default PRNG does uniformly distribute values when not using
 // a power of 2.
 
-// Library tag to allow Dartium to run the test.
-library low_test;
-
 import "package:expect/expect.dart";
 import 'dart:math';
 

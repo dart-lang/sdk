@@ -54,6 +54,9 @@ mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
 [ $arch == x64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
+[ $arch == x64 && ($hot_reload || $hot_reload_rollback) ]
+isolate/int32_length_overflow_test: Timeout  # Issue 35733
+
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 collection/list_test: RuntimeError # Issue 34911
 

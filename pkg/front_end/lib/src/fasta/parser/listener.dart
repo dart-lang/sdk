@@ -323,8 +323,13 @@ class Listener implements UnescapeErrorListener {
   /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
 
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  /// Marks the end of parsing the control structure of a for statement
+  /// or for control flow entry up to and including the closing parenthesis.
+  /// `for` `(` initialization `;` condition `;` updaters `)`
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {}
+
+  void endForStatement(Token endToken) {
     logEvent("ForStatement");
   }
 
@@ -334,9 +339,14 @@ class Listener implements UnescapeErrorListener {
     logEvent("ForStatementBody");
   }
 
+  /// Marks the end of parsing the control structure of a for-in statement
+  /// or for control flow entry up to and including the closing parenthesis.
+  /// `for` `(` (type)? identifier `in` iterator `)`
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {}
+
   // One of the two possible corresponding end events for [beginForStatement].
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void endForIn(Token endToken) {
     logEvent("ForIn");
   }
 
@@ -1074,6 +1084,50 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstExpression");
   }
 
+  /// Called before parsing a "for" control flow list, set, or map entry.
+  void beginForControlFlow(Token awaitToken, Token forToken) {}
+
+  /// Called after parsing a "for" control flow list, set, or map entry.
+  void endForControlFlow(Token token) {
+    logEvent('endForControlFlow');
+  }
+
+  /// Called after parsing a "for-in" control flow list, set, or map entry.
+  void endForInControlFlow(Token token) {
+    logEvent('endForInControlFlow');
+  }
+
+  /// Called before parsing an `if` control flow list, set, or map entry.
+  void beginIfControlFlow(Token ifToken) {}
+
+  /// Called before parsing the `else` portion of an `if` control flow list,
+  /// set, or map entry.
+  void handleElseControlFlow(Token elseToken) {}
+
+  /// Called after parsing an `if` control flow list, set, or map entry.
+  /// Substructures:
+  /// - if conditional expression
+  /// - expression
+  void endIfControlFlow(Token token) {
+    logEvent("endIfControlFlow");
+  }
+
+  /// Called after parsing an if-else control flow list, set, or map entry.
+  /// Substructures:
+  /// - if conditional expression
+  /// - then expression
+  /// - else expression
+  void endIfElseControlFlow(Token token) {
+    logEvent("endIfElseControlFlow");
+  }
+
+  /// Called after parsing a list, set, or map entry that starts with
+  /// one of the spread collection tokens `...` or `...?`.  Substructures:
+  /// - expression
+  void handleSpreadExpression(Token spreadToken) {
+    logEvent("SpreadExpression");
+  }
+
   /// Handle the start of a function typed formal parameter.  Substructures:
   /// - type variables
   void beginFunctionTypedFormalParameter(Token token) {}
@@ -1156,9 +1210,9 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralSet");
   }
 
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
-    logEvent('EmptyLiteralSetOrMap');
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    logEvent('LiteralSetOrMap');
   }
 
   void handleLiteralNull(Token token) {

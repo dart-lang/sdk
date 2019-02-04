@@ -63,6 +63,8 @@ class ForEachStatementTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
+                // TODO(danrubel): investigate why 4 missing identifier errors
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN
               ],

@@ -26,6 +26,7 @@ import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
+import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
 import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
@@ -88,6 +89,7 @@ main() {
     convert_to_double_quoted_string.main();
     convert_to_field_parameter.main();
     convert_to_int_literal.main();
+    convert_to_multiline_string.main();
     convert_to_normal_parameter.main();
     convert_to_single_quoted_string.main();
     encapsulate_field.main();

@@ -736,6 +736,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _socket.setOption(option, enabled);
   }
 
+  Uint8List getRawOption(RawSocketOption option) {
+    return _socket?.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _socket?.setRawOption(option);
+  }
+
   void _eventDispatcher(RawSocketEvent event) {
     try {
       if (event == RawSocketEvent.read) {

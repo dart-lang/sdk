@@ -51,11 +51,9 @@ import 'dill_loader.dart' show DillLoader;
 import 'dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
-  final Uri uri;
+  final Library library;
 
   final DillLoader loader;
-
-  Library library;
 
   /// Exports that can't be serialized.
   ///
@@ -63,10 +61,12 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
-  DillLibraryBuilder(this.uri, this.loader)
-      : super(uri, new Scope.top(), new Scope.top());
+  DillLibraryBuilder(this.library, this.loader)
+      : super(library.fileUri, new Scope.top(), new Scope.top());
 
-  Uri get fileUri => uri;
+  Uri get uri => library.importUri;
+
+  Uri get fileUri => library.fileUri;
 
   @override
   String get name => library.name;

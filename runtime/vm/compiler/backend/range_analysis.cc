@@ -2801,10 +2801,12 @@ void BinaryInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* right_range = RequiredInputRepresentation(1) == kTagged
+                                 ? analysis->GetSmiRange(right())
+                                 : right()->definition()->range();
   CacheRange(&shift_range_, right()->definition()->range(),
              RangeBoundary::kRangeBoundaryInt64);
-  InferRangeHelper(left()->definition()->range(),
-                   right()->definition()->range(), range);
+  InferRangeHelper(left()->definition()->range(), right_range, range);
 }
 
 void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {

@@ -277,6 +277,7 @@ class StringTable implements StringWriter, StringReader {
   }
 
   void write(BufferedWriter writer) {
+    final start = writer.offset;
     writer.writeUInt32(_oneByteStrings.length);
     writer.writeUInt32(_twoByteStrings.length);
     int endOffset = 0;
@@ -301,6 +302,7 @@ class StringTable implements StringWriter, StringReader {
       }
     }
     _written = true;
+    BytecodeSizeStatistics.stringTableSize += (writer.offset - start);
   }
 
   StringTable.read(BufferedReader reader) {
@@ -356,5 +358,50 @@ class StringTable implements StringWriter, StringReader {
     }
     sb.writeln('}');
     return sb.toString();
+  }
+}
+
+class ConstantPoolEntryStatistics {
+  final String name;
+  int size = 0;
+  int count = 0;
+
+  ConstantPoolEntryStatistics(this.name);
+}
+
+class BytecodeSizeStatistics {
+  static int componentSize = 0;
+  static int objectTableSize = 0;
+  static int stringTableSize = 0;
+  static int membersSize = 0;
+  static int constantPoolSize = 0;
+  static int instructionsSize = 0;
+  static List<ConstantPoolEntryStatistics> constantPoolStats =
+      <ConstantPoolEntryStatistics>[];
+
+  static void reset() {
+    componentSize = 0;
+    objectTableSize = 0;
+    stringTableSize = 0;
+    membersSize = 0;
+    constantPoolSize = 0;
+    instructionsSize = 0;
+    constantPoolStats = <ConstantPoolEntryStatistics>[];
+  }
+
+  static void dump() {
+    print("Bytecode size statistics:");
+    print("  Bytecode component:  $componentSize");
+    print("   - object table:     $objectTableSize");
+    print("   - string table:     $stringTableSize");
+    print("  Bytecode members:    $membersSize");
+    print("   - constant pool:    $constantPoolSize");
+    for (var cpStat in constantPoolStats) {
+      final name = cpStat.name.padRight(40);
+      final size = cpStat.size.toString().padLeft(10);
+      final count = cpStat.count.toString().padLeft(8);
+      print("       - $name:    $size  (count: $count)");
+    }
+    print("   - instructions:     $instructionsSize");
   }
 }

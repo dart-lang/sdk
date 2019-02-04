@@ -501,6 +501,14 @@ class RawSynchronousSocket {
 }
 
 @patch
+class RawSocketOption {
+  @patch
+  static int _getOptionValue(int key) {
+    throw UnsupportedError("RawSocketOption._getOptionValue");
+  }
+}
+
+@patch
 class SecurityContext {
   @patch
   factory SecurityContext({bool withTrustedRoots: false}) {

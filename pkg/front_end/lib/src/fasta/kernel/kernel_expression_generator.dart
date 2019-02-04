@@ -328,11 +328,18 @@ class KernelVariableUseGenerator extends KernelGenerator
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     helper.typePromoter?.mutateVariable(variable, helper.functionNestingLevel);
-    var write = variable.isFinal || variable.isConst
-        ? makeInvalidWrite(value)
-        : new VariableSet(variable, value)
-      ..fileOffset = offsetForToken(token);
-    complexAssignment?.write = write;
+    Expression write;
+    if (variable.isFinal || variable.isConst) {
+      write = makeInvalidWrite(value);
+      if (complexAssignment != null) {
+        write = helper.desugarSyntheticExpression(write);
+        complexAssignment.write = write;
+      }
+    } else {
+      write = new VariableSet(variable, value)
+        ..fileOffset = offsetForToken(token);
+      complexAssignment?.write = write;
+    }
     return write;
   }
 

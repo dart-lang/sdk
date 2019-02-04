@@ -1,40 +1,26 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
-// /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
-//                                                                ^
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
-//   T m<T>(T x) => x;
-//     ^
-//
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type of the overridden method, 'T'.
-// Change to a subtype of 'T'.
-// /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
-//                                                                ^
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
-//   T m<T>(T x) => x;
-//     ^
-//
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:21:106: Error: Expected 0 type arguments.
-//       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ /*@error=TypeArgumentMismatch*/ m<
-//                                                                                                          ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
-// /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
-//                                                                ^
-//
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type of the overridden method, 'T'.
-// Change to a subtype of 'T'.
-// /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
-//                                                                ^
-//
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:21:106: Error: Expected 0 type arguments.
-//       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ /*@error=TypeArgumentMismatch*/ m<
-//                                                                                                          ^
-
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+// /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
+//                                                                ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+//   T m<T>(T x) => x;
+//     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type of the overridden method, 'T'.
+// Change to a subtype of 'T'.
+// /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
+//                                                                ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+//   T m<T>(T x) => x;
+//     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:21:106: Error: Expected 0 type arguments.
+//       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ /*@error=TypeArgumentMismatch*/ m<
+//                                                                                                          ^
+//
 import self as self;
 import "dart:core" as core;
 

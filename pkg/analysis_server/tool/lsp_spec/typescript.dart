@@ -64,6 +64,11 @@ String getImprovedType(String interfaceName, String fieldName) {
     },
     "ResponseError": {
       "code": "ErrorCodes",
+      // This is dynamic normally, but since this class can be serialised
+      // we will crash if it data is set to something that can't be converted to
+      // JSON (for ex. Uri) so this forces anyone setting this to convert to a
+      // String.
+      "data": "String",
     },
     "NotificationMessage": {
       "method": "Method",
@@ -85,6 +90,21 @@ String getImprovedType(String interfaceName, String fieldName) {
   };
 
   final interface = _improvedTypeMappings[interfaceName];
+
+  return interface != null ? interface[fieldName] : null;
+}
+
+/// Improves comments in generated code to support where types may have been
+/// altered (for ex. with [getImprovedType] above).
+String getImprovedComment(String interfaceName, String fieldName) {
+  const Map<String, Map<String, String>> _improvedComments = {
+    "ResponseError": {
+      "data":
+          "// A string that contains additional information about the error. Can be omitted.",
+    },
+  };
+
+  final interface = _improvedComments[interfaceName];
 
   return interface != null ? interface[fieldName] : null;
 }

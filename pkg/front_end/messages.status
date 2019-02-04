@@ -56,6 +56,7 @@ ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
 ConstConstructorWithNonConstSuper/example: Fail
+ConstEvalCircularity/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
 ConstEvalDeferredLibrary/example: Fail
@@ -172,6 +173,10 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
+FfiAnnotationMissing/analyzerCode : Fail
+FfiTypeInvalid/analyzerCode: Fail
+FfiTypeMismatch/analyzerCode: Fail
+FfiTypeOpaque/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail
@@ -207,6 +212,7 @@ InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
 InterpolationInUri/example: Fail
+IntersectionTypeAsTypeArgument/analyzerCode: Fail # Analyzer doesn't catch this error.
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail

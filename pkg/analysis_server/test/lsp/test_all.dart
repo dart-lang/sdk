@@ -23,6 +23,7 @@ import 'references_test.dart' as references_test;
 import 'rename_test.dart' as rename_test;
 import 'server_test.dart' as server_test;
 import 'signature_help_test.dart' as signature_help_test;
+import 'folding_test.dart' as folding_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -44,5 +45,6 @@ main() {
     assists_code_action_tests.main();
     packet_transformer_tests.main();
     rename_test.main();
+    folding_test.main();
   }, name: 'lsp');
 }

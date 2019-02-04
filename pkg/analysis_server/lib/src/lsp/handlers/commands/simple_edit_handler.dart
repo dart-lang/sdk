@@ -47,7 +47,7 @@ abstract class SimpleEditCommandHandler
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
         'Client failed to apply workspace edit for $commandName',
-        editResponse.error,
+        editResponse.error.toString(),
       );
     }
 
@@ -64,7 +64,7 @@ abstract class SimpleEditCommandHandler
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
         'Client failed to apply workspace edit for $commandName',
-        workspaceEdit,
+        workspaceEdit.toString(),
       );
     }
   }

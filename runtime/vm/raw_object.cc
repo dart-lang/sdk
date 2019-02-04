@@ -572,8 +572,8 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
         ObjectPool::TypeBits::decode(entry_bits[i]);
-    if ((entry_type == ObjectPool::kTaggedObject) ||
-        (entry_type == ObjectPool::kNativeEntryData)) {
+    if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
+        (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }

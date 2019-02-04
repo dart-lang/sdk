@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
 //  - 'Map' is from 'dart:core'.
@@ -29,12 +31,14 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<LinkedHashMap<int, bool>>'.
 // FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};
 //                                                 ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
+
+import "dart:async";
+import "dart:collection";
 
 static method main() → dynamic async {
   core::Map<core::int, core::bool> m = <core::int, core::bool>{};

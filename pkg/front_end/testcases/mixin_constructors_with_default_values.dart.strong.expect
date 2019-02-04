@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
 
+import "package:expect/expect.dart";
+
 class C<T extends core::Object = dynamic> extends core::Object {
   field core::String trace;
   constructor •({dynamic a = 0, dynamic b = self::C::T}) → self::C<self::C::T>

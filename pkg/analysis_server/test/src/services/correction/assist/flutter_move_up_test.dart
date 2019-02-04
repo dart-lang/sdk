@@ -24,11 +24,11 @@ class FlutterMoveUpTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      /*caret*/new Text('aaa'),
-      new Text('bbb'),
-      new Text('ccc'),
+      /*caret*/Text('aaa'),
+      Text('bbb'),
+      Text('ccc'),
     ],
   );
 }
@@ -41,11 +41,11 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('aaa'),
-      /*caret*/new Text('bbbbbb'),
-      new Text('ccccccccc'),
+      Text('aaa'),
+      /*caret*/Text('bbbbbb'),
+      Text('ccccccccc'),
     ],
   );
 }
@@ -53,16 +53,16 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('bbbbbb'),
-      /*caret*/new Text('aaa'),
-      new Text('ccccccccc'),
+      Text('bbbbbb'),
+      Text('aaa'),
+      Text('ccccccccc'),
     ],
   );
 }
 ''');
-    assertExitPosition(before: "new Text('bbbbbb')");
+    assertExitPosition(before: "Text('bbbbbb')");
   }
 
   test_notInList() async {
@@ -70,8 +70,8 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Center(
-    child: /*caret*/new Text('aaa'),
+  Center(
+    child: /*caret*/Text('aaa'),
   );
 }
 ''');

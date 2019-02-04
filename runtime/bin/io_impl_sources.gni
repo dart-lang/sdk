@@ -37,6 +37,7 @@ io_impl_sources = [
   "namespace.h",
   "namespace_android.cc",
   "namespace_fuchsia.cc",
+  "namespace_fuchsia.h",
   "namespace_linux.cc",
   "namespace_macos.cc",
   "namespace_win.cc",

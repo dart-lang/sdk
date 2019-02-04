@@ -1357,6 +1357,42 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForStatement2(ForStatement2 node) {
+    var parts = node.forLoopParts;
+    VariableDeclarationList variables;
+    Expression initialization;
+    Expression condition;
+    Expression iterable;
+    NodeList<Expression> updaters;
+    if (parts is ForPartsWithDeclarations) {
+      variables = parts.variables;
+      condition = parts.condition;
+      updaters = parts.updaters;
+    } else if (parts is ForPartsWithExpression) {
+      initialization = parts.initialization;
+      condition = parts.condition;
+      updaters = parts.updaters;
+    } else if (parts is ForEachParts) {
+      iterable = parts.iterable;
+    }
+
+    tracker.beginForStatement2(node);
+
+    variables?.accept(this);
+    initialization?.accept(this);
+    condition?.accept(this);
+    iterable?.accept(this);
+
+    tracker.beginForStatementBody();
+    node.body?.accept(this);
+
+    tracker.beginForStatementUpdaters();
+    updaters?.accept(this);
+
+    tracker.endForStatement();
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
     if (node.parent is CompilationUnit) {

@@ -19,7 +19,7 @@ incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 inference/bug31436: RuntimeError # Test exercises Dart 2.0 semantics
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations_locals: Fail # Issue #30031
-inference/future_then_explicit_future: Fail
+inference/future_then_explicit_future: RuntimeError
 inference/generic_methods_infer_js_builtin: RuntimeError # Test attempts to access platform-private library leading to NSM.
 inference/infer_assign_to_index: Fail
 inference/infer_assign_to_property: Fail
@@ -49,7 +49,7 @@ rasta/bad_unicode: Fail
 rasta/breaking_bad: Fail
 rasta/class_hierarchy: Fail
 rasta/class_member: Fail
-rasta/constant_get_and_invoke: Fail
+rasta/constant_get_and_invoke: RuntimeError
 rasta/deferred_lib: Fail
 rasta/deferred_load: Fail
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
@@ -69,7 +69,7 @@ rasta/issue_000042: Fail
 rasta/issue_000043: Fail
 rasta/issue_000044: Fail
 rasta/issue_000045: Fail
-rasta/issue_000046: Fail
+rasta/issue_000046: RuntimeError
 rasta/issue_000047: Fail
 rasta/issue_000081: Fail
 rasta/malformed_const_constructor: Fail
@@ -126,6 +126,7 @@ runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises s
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
 set_literals/disambiguation_rule: RuntimeError
+spread_collection: RuntimeError
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void_methods: Fail # Bad return from setters.

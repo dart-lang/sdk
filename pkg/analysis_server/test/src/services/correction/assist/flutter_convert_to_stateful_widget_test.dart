@@ -27,24 +27,24 @@ import 'package:flutter/material.dart';
 class /*caret*/MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class MyWidget extends StatefulWidget {
   @override
   MyWidgetState createState() {
-    return new MyWidgetState();
+    return MyWidgetState();
   }
 }
 
 class MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');
@@ -72,16 +72,16 @@ class /*caret*/MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     instanceField4 = instanceField1;
-    return new Row(
+    return Row(
       children: [
-        new Text(instanceField1),
-        new Text(instanceField2),
-        new Text(instanceField3),
-        new Text(instanceField4),
-        new Text(instanceField5),
-        new Text(staticField1),
-        new Text(staticField2),
-        new Text(staticField3),
+        Text(instanceField1),
+        Text(instanceField2),
+        Text(instanceField3),
+        Text(instanceField4),
+        Text(instanceField5),
+        Text(staticField1),
+        Text(staticField2),
+        Text(staticField3),
       ],
     );
   }
@@ -90,7 +90,7 @@ class /*caret*/MyWidget extends StatelessWidget {
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class MyWidget extends StatefulWidget {
   static String staticField1;
   final String instanceField1;
   final String instanceField2;
@@ -104,7 +104,7 @@ class /*caret*/MyWidget extends StatefulWidget {
 
   @override
   MyWidgetState createState() {
-    return new MyWidgetState();
+    return MyWidgetState();
   }
 }
 
@@ -116,16 +116,16 @@ class MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     instanceField4 = widget.instanceField1;
-    return new Row(
+    return Row(
       children: [
-        new Text(widget.instanceField1),
-        new Text(widget.instanceField2),
-        new Text(widget.instanceField3),
-        new Text(instanceField4),
-        new Text(instanceField5),
-        new Text(MyWidget.staticField1),
-        new Text(MyWidget.staticField2),
-        new Text(MyWidget.staticField3),
+        Text(widget.instanceField1),
+        Text(widget.instanceField2),
+        Text(widget.instanceField3),
+        Text(instanceField4),
+        Text(instanceField5),
+        Text(MyWidget.staticField1),
+        Text(MyWidget.staticField2),
+        Text(MyWidget.staticField3),
       ],
     );
   }
@@ -141,12 +141,12 @@ import 'package:flutter/material.dart';
 class /*caret*/MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: [
-        new Text(staticGetter1),
-        new Text(staticGetter2),
-        new Text(instanceGetter1),
-        new Text(instanceGetter2),
+        Text(staticGetter1),
+        Text(staticGetter2),
+        Text(instanceGetter1),
+        Text(instanceGetter2),
       ],
     );
   }
@@ -163,10 +163,10 @@ class /*caret*/MyWidget extends StatelessWidget {
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class MyWidget extends StatefulWidget {
   @override
   MyWidgetState createState() {
-    return new MyWidgetState();
+    return MyWidgetState();
   }
 
   static String get staticGetter1 => '';
@@ -177,12 +177,12 @@ class /*caret*/MyWidget extends StatefulWidget {
 class MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: [
-        new Text(MyWidget.staticGetter1),
-        new Text(MyWidget.staticGetter2),
-        new Text(instanceGetter1),
-        new Text(instanceGetter2),
+        Text(MyWidget.staticGetter1),
+        Text(MyWidget.staticGetter2),
+        Text(instanceGetter1),
+        Text(instanceGetter2),
       ],
     );
   }
@@ -208,11 +208,11 @@ class /*caret*/MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: [
-        new Text(instanceField1),
-        new Text(instanceField2),
-        new Text(staticField),
+        Text(instanceField1),
+        Text(instanceField2),
+        Text(staticField),
       ],
     );
   }
@@ -239,7 +239,7 @@ class /*caret*/MyWidget extends StatelessWidget {
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class MyWidget extends StatefulWidget {
   static String staticField;
   final String instanceField1;
 
@@ -247,7 +247,7 @@ class /*caret*/MyWidget extends StatefulWidget {
 
   @override
   MyWidgetState createState() {
-    return new MyWidgetState();
+    return MyWidgetState();
   }
 
   static void staticMethod1() {
@@ -264,11 +264,11 @@ class MyWidgetState extends State<MyWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: [
-        new Text(widget.instanceField1),
-        new Text(instanceField2),
-        new Text(MyWidget.staticField),
+        Text(widget.instanceField1),
+        Text(instanceField2),
+        Text(MyWidget.staticField),
       ],
     );
   }
@@ -328,12 +328,12 @@ class /*caret*/MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: [
-        new Text(aaa),
-        new Text(bbb),
-        new Text('$aaa'),
-        new Text('${bbb}'),
+        Text(aaa),
+        Text(bbb),
+        Text('$aaa'),
+        Text('${bbb}'),
       ],
     );
   }
@@ -342,7 +342,7 @@ class /*caret*/MyWidget extends StatelessWidget {
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class MyWidget extends StatefulWidget {
   final String aaa;
   final String bbb;
 
@@ -350,19 +350,19 @@ class /*caret*/MyWidget extends StatefulWidget {
 
   @override
   MyWidgetState createState() {
-    return new MyWidgetState();
+    return MyWidgetState();
   }
 }
 
 class MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: [
-        new Text(widget.aaa),
-        new Text(widget.bbb),
-        new Text('${widget.aaa}'),
-        new Text('${widget.bbb}'),
+        Text(widget.aaa),
+        Text(widget.bbb),
+        Text('${widget.aaa}'),
+        Text('${widget.bbb}'),
       ],
     );
   }
@@ -378,24 +378,24 @@ import 'package:flutter/material.dart';
 class /*caret*/MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class MyWidget extends StatefulWidget {
   @override
   MyWidgetState createState() {
-    return new MyWidgetState();
+    return MyWidgetState();
   }
 }
 
 class MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');

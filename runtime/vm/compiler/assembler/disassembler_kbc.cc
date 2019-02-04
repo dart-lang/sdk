@@ -234,7 +234,7 @@ static bool GetLoadedObjectAt(uword pc,
   KBCInstr instr = KernelBytecode::At(pc);
   if (HasLoadFromPool(instr)) {
     uint16_t index = KernelBytecode::DecodeD(instr);
-    if (object_pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+    if (object_pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
       *obj = object_pool.ObjectAt(index);
       return true;
     }

@@ -1,3 +1,111 @@
+## 2.1.2-dev.0.0
+
+* Merge commit 011a1239fc4c0ed140ddce4773cc791da1936cd4 into dev
+
+## 2.1.1
+
+* Identical to 2.1.1-dev.3.2
+
+## 2.1.1-dev.3.2
+
+* Cherry-pick 9d25cc93e850d4717cdc9e1c4bd3623e09c16d47 to dev
+
+## 2.1.1-dev.3.1
+
+* Cherry-pick 46080dd886a622c5520895d49c97506ecedb1df8 to dev
+* Cherry-pick fc62cf037343248c5ace87629d8eb1063f9f2428 to dev
+* Cherry-pick 770ab5275ac34af62d7c39da8eac8c56fdc48edb to dev
+* Cherry-pick 957e194735bda4fcf06cdcc68fa80f3290b17d79 to dev
+
+## 2.1.1-dev.3.0
+
+* Cherry-pick 3cb16d20e7810a2a378bb897d939f67c0b380d88 to dev
+
+## 2.1.1-dev.2.0
+
+### Core library changes
+
+#### `dart:html`
+
+*   Added methods `Element.removeAttribute`, `Element.removeAttributeNS`,
+    `Element.hasAttribute` and `Element.hasAttributeNS`. (Issue [35655][]).
+*   Improved dart2js compilation of `element.attributes.remove(name)` to
+    generate `element.removeAttribute(name)`, so that there is no performance
+    reason to migrate to the above methods.
+*   Fixed a number of `dart:html` P1 bugs:
+
+    *   Fixed HTML API's with callback typedef to correctly convert Dart
+        function to JS function (Issue [35484]).
+    *   HttpStatus constants exposed in `dart:html` (Issue [34318]).
+    *   Expose DomName `ondblclick` and `dblclickEvent` for Angular analyzer.
+    *   Fixed `removeAll` on `classes`; `elements` parameter should be
+        `Iterable<Object>` to match Set's `removeAll` not `Iterable<E>` (Issue
+        [30278]).
+    *   Fixed a number of methods on DataTransferItem, Entry, FileEntry and
+        DirectoryEntry which previously returned NativeJavaScriptObject.  This
+        fixes handling drag/drop of files/directories (Issue [35510]).
+    *   Added ability to allow local file access from Chrome browser in ddb.
+
+[35655]: https://github.com/dart-lang/sdk/issues/35655
+[30278]: https://github.com/dart-lang/sdk/issues/30278
+[34318]: https://github.com/dart-lang/sdk/issues/34318
+[35484]: https://github.com/dart-lang/sdk/issues/35484
+[35510]: https://github.com/dart-lang/sdk/issues/35510
+
+#### `dart:io`
+
+*   Added ability to get and set low level socket options.
+* **Breaking Change:** Adding to a closed `IOSink` now throws a `StateError`.
+
+[29554]: https://github.com/dart-lang/sdk/issues/29554
+
+### Other library changes
+
+#### `package:kernel`
+
+*   **Breaking change:** The `klass` getter on the `InstanceConstant` class in
+    the Kernel AST API has been renamed to `classNode` for consistency.
+
+*   **Breaking change:** Updated `Link` implementation to utilize true symbolic
+    links instead of junctions on Windows. Existing junctions will continue to
+    work with the new `Link` implementation, but all new links will create
+    symbolic links.
+    
+    To create a symbolic link, Dart must be run with
+    administrative privileges or Developer Mode must be enabled, otherwise a
+    `FileSystemException` will be raised with errno set to
+    `ERROR_PRIVILEGE_NOT_HELD` (Issue [33966]).
+
+[33966]: https://github.com/dart-lang/sdk/issues/33966
+
+### Dart VM
+
+### Tool Changes
+
+#### Analyzer
+
+*   The `DEPRECATED_MEMBER_USE` hint was split into two hints:
+
+    *   `DEPRECATED_MEMBER_USE` reports on usage of `@deprecated` members
+        declared in a different package.
+    *   `DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE` reports on usage of
+        `@deprecated` members declared in the same package.
+
+### Linter
+
+The linter was bumped to `0.1.79` which introduces the following linter improvements to the SDK:
+
+* `unnecessary_parenthesis` updated to play nicer with cascades
+* new lint: `use_full_hex_values_for_flutter_colors`
+* new lint: `prefer_null_aware_operators`
+* miscellaneous documentation fixes
+* removed deprecated lints from the "all options" sample
+* stopped registering "default lints"
+* `hash_and_equals` fixed to respect `hashCode` fields
+
+
+#### Other Tools
+
 ## 2.1.1-dev.3.2
 
 * Cherry-pick 9d25cc93e850d4717cdc9e1c4bd3623e09c16d47 to dev
@@ -47,7 +155,9 @@
 
 ### Dart VM
 
-In previous releases it was possible to violate static types using dart:mirrors but this bug is fixed now. Meaning that the code below would run without any TypeErrors and print "impossible" output.
+In previous releases it was possible to violate static types using
+`dart:mirrors` but this bug is fixed now. Meaning that the code below would run
+without any TypeErrors and print "impossible" output.
 
 ```dart
 import 'dart:mirrors';
@@ -105,7 +215,7 @@ See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more detai
       Common front-end. On large apps, the fix can cut down 2/3 of the time
       spent on this task.
 
-    * We fixed a bug in how inferred types were miscategorized (#35311). The old
+    * We fixed a bug in how inferred types were miscategorized (Issue [35311]). The old
       behavior was unsound and could produce broken programs. The fix may cause
       more code to be pulled into the main output unit.
 
@@ -137,14 +247,15 @@ See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more detai
       }
       ```
 
-    * Because the new implementation might require you to inspect and fix
-      your app, we exposed two temporary flags:
+  Because the new implementation might require you to inspect and fix
+  your app, we exposed two temporary flags:
 
-        * `--report-invalid-deferred-types`: when provided, we will run
-          both the old and new algorithm and report where the issue was
-          detected.
+    * `--report-invalid-deferred-types`: when provided, we will run both the
+      old and new algorithm and report where the issue was detected.
 
-        * `--new-deferred-split`: enables the new algorithm.
+    * `--new-deferred-split`: enables the new algorithm.
+
+[35311]: https://github.com/dart-lang/sdk/issues/35311
 
 #### dartdoc
 
@@ -2783,7 +2894,7 @@ during isolate initialization.
     people in practice.
 
   * **Breaking:** Support for `barback` versions prior to 0.15.0 (released July
-    2014) has been dropped. Pub will no longer install these older barback
+    1)    has been dropped. Pub will no longer install these older barback
     versions.
 
   * `pub serve` now GZIPs the assets it serves to make load times more similar

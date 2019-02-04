@@ -308,7 +308,7 @@ class DisassemblerX64 : public ValueObject {
   }
 
   const char* NameOfCPURegister(int reg) const {
-    return Assembler::RegisterName(static_cast<Register>(reg));
+    return compiler::Assembler::RegisterName(static_cast<Register>(reg));
   }
 
   const char* NameOfByteCPURegister(int reg) const {
@@ -344,7 +344,6 @@ class DisassemblerX64 : public ValueObject {
   const char* TwoByteMnemonic(uint8_t opcode);
   int TwoByteOpcodeInstruction(uint8_t* data);
   int Print660F38Instruction(uint8_t* data);
-  void CheckPrintStop(uint8_t* data);
 
   int F6F7Instruction(uint8_t* data);
   int ShiftInstruction(uint8_t* data);
@@ -1229,20 +1228,6 @@ int DisassemblerX64::Print660F38Instruction(uint8_t* current) {
   }
 }
 
-// Called when disassembling test eax, 0xXXXXX.
-void DisassemblerX64::CheckPrintStop(uint8_t* data) {
-#if defined(TARGET_ARCH_IA32)
-  // Recognize stop pattern.
-  if (*data == 0xCC) {
-    const char* message = "Stop messages not enabled";
-    if (FLAG_print_stop_message) {
-      message = *reinterpret_cast<const char**>(data - 4);
-    }
-    Print("  STOP:'%s'", message);
-  }
-#endif
-}
-
 // Handle all two-byte opcodes, which start with 0x0F.
 // These instructions may be affected by an 0x66, 0xF2, or 0xF3 prefix.
 // We do not use any three-byte opcodes, which start with 0x0F38 or 0x0F3A.
@@ -1854,12 +1839,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 
       case 0xA9: {
         data++;
-        bool check_for_stop = operand_size() == DOUBLEWORD_SIZE;
         Print("test%s %s,", operand_size_code(), Rax());
         data += PrintImmediate(data, operand_size());
-        if (check_for_stop) {
-          CheckPrintStop(data);
-        }
         break;
       }
       case 0xD1:  // fall through

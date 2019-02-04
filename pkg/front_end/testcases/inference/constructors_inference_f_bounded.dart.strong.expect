@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' doesn't conform to the bound 'Clonable<T>' of the type variable 'T' on 'Pair'.
 //  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
@@ -17,22 +19,7 @@
 // pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:35: Context: This is the type variable whose bound isn't conformed to.
 // class Pair<T extends Clonable<T>, U extends Clonable<U>> {
 //                                   ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' doesn't conform to the bound 'Clonable<T>' of the type variable 'T' on 'Pair'.
-//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
-//                                                                                                              ^
-//
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' doesn't conform to the bound 'Clonable<U>' of the type variable 'U' on 'Pair'.
-//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
-//                                                                                                              ^
-
-library test;
 import self as self;
 import "dart:core" as core;
 

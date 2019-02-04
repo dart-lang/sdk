@@ -81,11 +81,6 @@ void Heap::AbandonRemainingTLAB(Thread* thread) {
   thread->set_end(0);
 }
 
-intptr_t Heap::CalculateTLABSize() {
-  intptr_t size = new_space_.end() - new_space_.top();
-  return Utils::RoundDown(size, kObjectAlignment);
-}
-
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   // Currently, only the Dart thread may allocate in new space.

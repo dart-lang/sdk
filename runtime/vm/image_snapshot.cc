@@ -111,6 +111,15 @@ void ImageWriter::PrepareForSerialization(
           heap_->SetObjectId(instructions, offset);
           break;
         }
+        case ImageWriterCommand::InsertBytesOfTrampoline: {
+          auto trampoline_bytes = inst.insert_trampoline_bytes.buffer;
+          auto trampoline_length = inst.insert_trampoline_bytes.buffer_length;
+          const intptr_t offset = next_text_offset_;
+          instructions_.Add(
+              InstructionsData(trampoline_bytes, trampoline_length, offset));
+          next_text_offset_ += trampoline_length;
+          break;
+        }
         default:
           UNREACHABLE();
       }
@@ -272,13 +281,15 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Heap* heap = thread->isolate()->heap();
-  NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                                           "WriteInstructions"));
+  TIMELINE_DURATION(thread, Isolate, "WriteInstructions");
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     InstructionsData& data = instructions_[i];
+    const bool is_trampoline = data.trampoline_bytes != nullptr;
+    if (is_trampoline) continue;
+
     data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
     ASSERT(data.raw_code_ != NULL);
     data.code_ = &Code::Handle(zone, data.raw_code_);
@@ -364,7 +375,7 @@ void AssemblyImageWriter::Finalize() {
 #endif
 }
 
-static void EnsureIdentifier(char* label) {
+static void EnsureAssemblerIdentifier(char* label) {
   for (char c = *label; c != '\0'; c = *++label) {
     if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
         ((c >= '0') && (c <= '9'))) {
@@ -372,6 +383,29 @@ static void EnsureIdentifier(char* label) {
     }
     *label = '_';
   }
+}
+
+const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
+                                          const Code& code) {
+  if (code.raw() == object_store->build_method_extractor_code()) {
+    return "_iso_stub_BuildMethodExtractorStub";
+  } else if (code.raw() == object_store->null_error_stub_with_fpu_regs_stub()) {
+    return "_iso_stub_NullErrorSharedWithFPURegsStub";
+  } else if (code.raw() ==
+             object_store->null_error_stub_without_fpu_regs_stub()) {
+    return "_iso_stub_NullErrorSharedWithoutFPURegsStub";
+  } else if (code.raw() ==
+             object_store->stack_overflow_stub_with_fpu_regs_stub()) {
+    return "_iso_stub_StackOverflowStubWithFPURegsStub";
+  } else if (code.raw() ==
+             object_store->stack_overflow_stub_without_fpu_regs_stub()) {
+    return "_iso_stub_StackOverflowStubWithoutFPURegsStub";
+  } else if (code.raw() == object_store->write_barrier_wrappers_stub()) {
+    return "_iso_stub_WriteBarrierWrappersStub";
+  } else if (code.raw() == object_store->array_write_barrier_stub()) {
+    return "_iso_stub_ArrayWriteBarrierStub";
+  }
+  return nullptr;
 }
 
 void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
@@ -403,21 +437,40 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   ObjectStore* object_store = Isolate::Current()->object_store();
 
-  TypeTestingStubFinder tts;
+  TypeTestingStubNamer tts;
   intptr_t text_offset = 0;
 
+  ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
   for (intptr_t i = 0; i < instructions_.length(); i++) {
-    auto& instr = instructions_[i];
-    ASSERT((instr.text_offset_ - instructions_[0].text_offset_) == text_offset);
+    auto& data = instructions_[i];
+    const bool is_trampoline = data.trampoline_bytes != nullptr;
+    ASSERT((data.text_offset_ - instructions_[0].text_offset_) == text_offset);
+
+    if (is_trampoline) {
+      if (profile_writer_ != nullptr) {
+        const intptr_t offset = Image::kHeaderSize + text_offset;
+        profile_writer_->SetObjectTypeAndName({offset_space_, offset},
+                                              "Trampolines",
+                                              /*name=*/nullptr);
+        profile_writer_->AttributeBytesTo({offset_space_, offset},
+                                          data.trampline_length);
+      }
+
+      const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
+      const auto end = start + data.trampline_length;
+      text_offset += WriteByteSequence(start, end);
+      delete[] data.trampoline_bytes;
+      data.trampoline_bytes = nullptr;
+      continue;
+    }
 
     const intptr_t instr_start = text_offset;
 
-    const Instructions& insns = *instr.insns_;
-    const Code& code = *instr.code_;
+    const Instructions& insns = *data.insns_;
+    const Code& code = *data.code_;
 
     if (profile_writer_ != nullptr) {
       const intptr_t offset = Image::kHeaderSize + text_offset;
-      ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
       profile_writer_->SetObjectTypeAndName({offset_space_, offset},
                                             "Instructions",
                                             /*name=*/nullptr);
@@ -451,45 +504,41 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
       text_offset += sizeof(uword);
-
-      WriteByteSequence(beginning, entry);
-      text_offset += (entry - beginning);
+      text_offset += WriteByteSequence(beginning, entry);
 
       ASSERT((text_offset - instr_start) == insns.HeaderSize());
     }
 
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
-    if (code.IsNull()) {
-      const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
-      assembly_stream_.Print("Precompiled_%s:\n", name);
-    } else {
-      owner = code.owner();
-      if (owner.IsNull()) {
-        const char* name = StubCode::NameOfStub(insns.EntryPoint());
-        if (name == nullptr &&
-            code.raw() == object_store->build_method_extractor_code()) {
-          name = "BuildMethodExtractor";
-        }
-        if (name != NULL) {
-          assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
-        } else {
-          const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
-          assembly_stream_.Print("Precompiled__%s:\n", name);
-        }
-      } else if (owner.IsClass()) {
-        str = Class::Cast(owner).Name();
-        const char* name = str.ToCString();
-        EnsureIdentifier(const_cast<char*>(name));
-        assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
-                               i);
-      } else if (owner.IsFunction()) {
-        const char* name = Function::Cast(owner).ToQualifiedCString();
-        EnsureIdentifier(const_cast<char*>(name));
-        assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+    ASSERT(!code.IsNull());
+    owner = code.owner();
+    if (owner.IsNull()) {
+      const char* name = StubCode::NameOfStub(insns.EntryPoint());
+      if (name != nullptr) {
+        assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
       } else {
-        UNREACHABLE();
+        if (name == nullptr) {
+          name = NameOfStubIsolateSpecificStub(object_store, code);
+        }
+        ASSERT(name != nullptr);
+        assembly_stream_.Print("Precompiled__%s:\n", name);
       }
+    } else if (owner.IsClass()) {
+      str = Class::Cast(owner).Name();
+      const char* name = str.ToCString();
+      EnsureAssemblerIdentifier(const_cast<char*>(name));
+      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
+                             i);
+    } else if (owner.IsAbstractType()) {
+      const char* name = tts.StubNameForType(AbstractType::Cast(owner));
+      assembly_stream_.Print("Precompiled_%s:\n", name);
+    } else if (owner.IsFunction()) {
+      const char* name = Function::Cast(owner).ToQualifiedCString();
+      EnsureAssemblerIdentifier(const_cast<char*>(name));
+      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+    } else {
+      UNREACHABLE();
     }
 
 #ifdef DART_PRECOMPILER
@@ -512,8 +561,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       ASSERT(Utils::IsAligned(entry, sizeof(uword)));
       ASSERT(Utils::IsAligned(end, sizeof(uword)));
 
-      WriteByteSequence(entry, end);
-      text_offset += (end - entry);
+      text_offset += WriteByteSequence(entry, end);
     }
 
     ASSERT((text_offset - instr_start) == insns.raw()->Size());
@@ -618,11 +666,12 @@ void AssemblyImageWriter::FrameUnwindEpilogue() {
   assembly_stream_.Print(".cfi_endproc\n");
 }
 
-void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
+intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   for (uword* cursor = reinterpret_cast<uword*>(start);
        cursor < reinterpret_cast<uword*>(end); cursor++) {
     WriteWordLiteralText(*cursor);
   }
+  return end - start;
 }
 
 BlobImageWriter::BlobImageWriter(Thread* thread,
@@ -639,6 +688,14 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size) {
 }
 
+intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
+  for (uword* cursor = reinterpret_cast<uword*>(start);
+       cursor < reinterpret_cast<uword*>(end); cursor++) {
+    instructions_blob_stream_.WriteWord(*cursor);
+  }
+  return end - start;
+}
+
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
@@ -653,12 +710,24 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
-    auto& instr = instructions_[i];
-    const Instructions& insns = *instructions_[i].insns_;
-    AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
-    ASSERT((instr.text_offset_ - instructions_[0].text_offset_) == text_offset);
+    auto& data = instructions_[i];
+    const bool is_trampoline = data.trampoline_bytes != nullptr;
+    ASSERT((data.text_offset_ - instructions_[0].text_offset_) == text_offset);
+
+    if (is_trampoline) {
+      const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
+      const auto end = start + data.trampline_length;
+      text_offset += WriteByteSequence(start, end);
+      delete[] data.trampoline_bytes;
+      data.trampoline_bytes = nullptr;
+      continue;
+    }
 
     const intptr_t instr_start = text_offset;
+
+    const Instructions& insns = *instructions_[i].insns_;
+    AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
+
     uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
     uword entry = beginning + Instructions::HeaderSize();
     uword payload_size = insns.Size();
@@ -684,12 +753,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     instructions_blob_stream_.WriteWord(marked_tags);
     text_offset += sizeof(uword);
     beginning += sizeof(uword);
-
-    for (uword* cursor = reinterpret_cast<uword*>(beginning);
-         cursor < reinterpret_cast<uword*>(end); cursor++) {
-      instructions_blob_stream_.WriteWord(*cursor);
-      text_offset += sizeof(uword);
-    }
+    text_offset += WriteByteSequence(beginning, end);
 
     ASSERT((text_offset - instr_start) == insns.raw()->Size());
   }

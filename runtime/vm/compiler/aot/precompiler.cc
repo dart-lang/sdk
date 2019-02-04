@@ -198,7 +198,7 @@ void Precompiler::DoCompileAll() {
       // Since we keep the object pool until the end of AOT compilation, it
       // will hang on to its entries until the very end. Therefore we have
       // to use handles which survive that long, so we use [zone_] here.
-      global_object_pool_wrapper_.InitializeWithZone(zone_);
+      global_object_pool_builder_.InitializeWithZone(zone_);
     }
 
     {
@@ -238,18 +238,51 @@ void Precompiler::DoCompileAll() {
         const Code& code = StubCode::InterpretCall();
         const ObjectPool& stub_pool = ObjectPool::Handle(code.object_pool());
 
-        global_object_pool_wrapper()->Reset();
-        global_object_pool_wrapper()->InitializeFrom(stub_pool);
+        global_object_pool_builder()->Reset();
+        stub_pool.CopyInto(global_object_pool_builder());
 
         // We have two global code objects we need to re-generate with the new
         // global object pool, namely the
         //   - megamorphic miss handler code and the
         //   - build method extractor code
         MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_wrapper());
-        I->object_store()->set_build_method_extractor_code(
-            Code::Handle(StubCode::GetBuildMethodExtractorStub(
-                global_object_pool_wrapper())));
+            isolate_, global_object_pool_builder());
+
+        auto& stub_code = Code::Handle();
+
+        stub_code =
+            StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
+        I->object_store()->set_build_method_extractor_code(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_null_error_stub_with_fpu_regs_stub(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificNullErrorSharedWithoutFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
+            stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificStackOverflowSharedWithoutFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
+            stub_code);
+
+        stub_code = StubCode::BuildIsolateSpecificWriteBarrierWrappersStub(
+            global_object_pool_builder());
+        I->object_store()->set_write_barrier_wrappers_stub(stub_code);
+
+        stub_code = StubCode::BuildIsolateSpecificArrayWriteBarrierStub(
+            global_object_pool_builder());
+        I->object_store()->set_array_write_barrier_stub(stub_code);
       }
 
       CollectDynamicFunctionNames();
@@ -270,10 +303,10 @@ void Precompiler::DoCompileAll() {
         // Now we generate the actual object pool instance and attach it to the
         // object store. The AOT runtime will use it from there in the enter
         // dart code stub.
-        const auto& pool =
-            ObjectPool::Handle(global_object_pool_wrapper()->MakeObjectPool());
+        const auto& pool = ObjectPool::Handle(
+            ObjectPool::NewFromBuilder(*global_object_pool_builder()));
         I->object_store()->set_global_object_pool(pool);
-        global_object_pool_wrapper()->Reset();
+        global_object_pool_builder()->Reset();
 
         if (FLAG_print_gop) {
           THR_Print("Global object pool:\n");
@@ -296,8 +329,11 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_unique_dynamic_targets(Array::null_array());
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
+      Field& null_field = Field::Handle(Z);
       I->object_store()->set_future_class(null_class);
       I->object_store()->set_pragma_class(null_class);
+      I->object_store()->set_pragma_name(null_field);
+      I->object_store()->set_pragma_options(null_field);
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_symbol_class(null_class);
       I->object_store()->set_compiletime_error_class(null_class);
@@ -494,7 +530,7 @@ void Precompiler::CollectCallbackFields() {
 
 void Precompiler::ProcessFunction(const Function& function) {
   const intptr_t gop_offset =
-      FLAG_use_bare_instructions ? global_object_pool_wrapper()->CurrentLength()
+      FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
 
   if (!function.HasCode()) {
@@ -561,9 +597,10 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   String& selector = String::Handle(Z);
   if (FLAG_use_bare_instructions) {
     for (intptr_t i = gop_offset;
-         i < global_object_pool_wrapper()->CurrentLength(); i++) {
-      const auto& wrapper_entry = global_object_pool_wrapper()->EntryAt(i);
-      if (wrapper_entry.type() == ObjectPool::kTaggedObject) {
+         i < global_object_pool_builder()->CurrentLength(); i++) {
+      const auto& wrapper_entry = global_object_pool_builder()->EntryAt(i);
+      if (wrapper_entry.type() ==
+          compiler::ObjectPoolBuilderEntry::kTaggedObject) {
         const auto& entry = *wrapper_entry.obj_;
         AddCalleesOfHelper(entry, &selector, &cls);
       }
@@ -572,7 +609,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
     const auto& pool = ObjectPool::Handle(Z, code.object_pool());
     auto& entry = Object::Handle(Z);
     for (intptr_t i = 0; i < pool.Length(); i++) {
-      if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
+      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
         entry = pool.ObjectAt(i);
         AddCalleesOfHelper(entry, &selector, &cls);
       }
@@ -848,7 +885,7 @@ void Precompiler::AddField(const Field& field) {
         }
         const intptr_t gop_offset =
             FLAG_use_bare_instructions
-                ? global_object_pool_wrapper()->CurrentLength()
+                ? global_object_pool_builder()->CurrentLength()
                 : 0;
         ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
         const Function& initializer =
@@ -945,54 +982,22 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   }
 }
 
-enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
-
 // Adds all values annotated with @pragma('vm:entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
-  auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
+  auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
   auto& field = Field::Handle(Z);
   auto& metadata = Array::Handle(Z);
-  auto& pragma = Object::Handle(Z);
-  auto& pragma_options = Object::Handle(Z);
-  auto& pragma_name_field = Field::Handle(Z, cls.LookupField(Symbols::name()));
-  auto& pragma_options_field =
-      Field::Handle(Z, cls.LookupField(Symbols::options()));
+  auto& reusable_object_handle = Object::Handle(Z);
+  auto& reusable_field_handle = Field::Handle(Z);
 
   // Lists of fields which need implicit getter/setter/static final getter
   // added.
   auto& implicit_getters = GrowableObjectArray::Handle(Z);
   auto& implicit_setters = GrowableObjectArray::Handle(Z);
   auto& implicit_static_getters = GrowableObjectArray::Handle(Z);
-
-  // Local function allows easy reuse of handles above.
-  auto metadata_defines_entrypoint = [&]() {
-    for (intptr_t i = 0; i < metadata.Length(); i++) {
-      pragma = metadata.At(i);
-      if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
-        continue;
-      }
-      if (Instance::Cast(pragma).GetField(pragma_name_field) !=
-          Symbols::vm_entry_point().raw()) {
-        continue;
-      }
-      pragma_options = Instance::Cast(pragma).GetField(pragma_options_field);
-      if (pragma_options.raw() == Bool::null() ||
-          pragma_options.raw() == Bool::True().raw()) {
-        return EntryPointPragma::kAlways;
-        break;
-      }
-      if (pragma_options.raw() == Symbols::Get().raw()) {
-        return EntryPointPragma::kGetterOnly;
-      }
-      if (pragma_options.raw() == Symbols::Set().raw()) {
-        return EntryPointPragma::kSetterOnly;
-      }
-    }
-    return EntryPointPragma::kNever;
-  };
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1003,7 +1008,9 @@ void Precompiler::AddAnnotatedRoots() {
       // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
         metadata ^= lib.GetMetadata(cls);
-        if (metadata_defines_entrypoint() == EntryPointPragma::kAlways) {
+        if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                 &reusable_object_handle) ==
+            EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
       }
@@ -1018,7 +1025,9 @@ void Precompiler::AddAnnotatedRoots() {
         if (field.has_pragma()) {
           metadata ^= lib.GetMetadata(field);
           if (metadata.IsNull()) continue;
-          EntryPointPragma pragma = metadata_defines_entrypoint();
+          EntryPointPragma pragma =
+              FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                   &reusable_object_handle);
           if (pragma == EntryPointPragma::kNever) continue;
 
           AddField(field);
@@ -1043,7 +1052,9 @@ void Precompiler::AddAnnotatedRoots() {
         if (function.has_pragma()) {
           metadata ^= lib.GetMetadata(function);
           if (metadata.IsNull()) continue;
-          if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
+          if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                   &reusable_object_handle) !=
+              EntryPointPragma::kAlways) {
             continue;
           }
 
@@ -1494,7 +1505,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   type_usage_info->BuildTypeUsageInformation();
 
   TypeTestingStubGenerator type_testing_stubs;
-  Instructions& instr = Instructions::Handle();
+  Code& code = Code::Handle();
   for (intptr_t i = 0; i < types.length(); i++) {
     const AbstractType& type = types.At(i);
 
@@ -1505,8 +1516,8 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     }
 
     if (type_usage_info->IsUsedInTypeTest(type)) {
-      instr = type_testing_stubs.OptimizedCodeForType(type);
-      type.SetTypeTestingStub(instr);
+      code = type_testing_stubs.OptimizedCodeForType(type);
+      type.SetTypeTestingStub(code);
 
       // Ensure we retain the type.
       AddType(type);
@@ -1999,7 +2010,9 @@ void Precompiler::SwitchICCalls() {
 
     void SwitchPool(const ObjectPool& pool) {
       for (intptr_t i = 0; i < pool.Length(); i++) {
-        if (pool.TypeAt(i) != ObjectPool::kTaggedObject) continue;
+        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
         entry_ = pool.ObjectAt(i);
         if (entry_.IsICData()) {
           // The only IC calls generated by precompilation are for switchable
@@ -2259,9 +2272,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   }
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
-#ifndef PRODUCT
-  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
-#endif  // !PRODUCT
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -2286,10 +2296,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(), compiler_timeline,
-                                  "BuildFlowGraph");
-#endif  // !PRODUCT
+
+        TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
         flow_graph =
             pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
                                      Compiler::kNoOSRDeoptId, optimized());
@@ -2314,13 +2322,9 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
-      NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
 
       if (optimized()) {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(), compiler_timeline,
-                                  "OptimizationPasses");
-#endif  // !PRODUCT
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -2344,12 +2348,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
 
-      ObjectPoolWrapper object_pool;
-      ObjectPoolWrapper* active_object_pool_wrapper =
+      ObjectPoolBuilder object_pool;
+      ObjectPoolBuilder* active_object_pool_builder =
           FLAG_use_bare_instructions
-              ? precompiler_->global_object_pool_wrapper()
+              ? precompiler_->global_object_pool_builder()
               : &object_pool;
-      Assembler assembler(active_object_pool_wrapper, use_far_branches);
+      Assembler assembler(active_object_pool_builder, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {
@@ -2364,17 +2368,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
       {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(), compiler_timeline, "CompileGraph");
-#endif  // !PRODUCT
+        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(), compiler_timeline,
-                                  "FinalizeCompilation");
-#endif  // !PRODUCT
+        TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);

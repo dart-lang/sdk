@@ -40,12 +40,8 @@ static void TraceStrongModeType(const Instruction* instr,
 }
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
-#ifndef PRODUCT
-  Thread* thread = flow_graph->thread();
-  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
-  TimelineDurationScope tds2(thread, compiler_timeline,
-                             "FlowGraphTypePropagator");
-#endif  // !PRODUCT
+  TIMELINE_DURATION(flow_graph->thread(), CompilerVerbose,
+                    "FlowGraphTypePropagator");
   FlowGraphTypePropagator propagator(flow_graph);
   propagator.Propagate();
 }
@@ -283,7 +279,7 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
   Definition* receiver = check->value()->definition();
   CompileType* type = TypeOf(receiver);
-  if (type->is_nullable() && !type->IsNull()) {
+  if (type->is_nullable()) {
     // Insert redefinition for the receiver to guard against invalid
     // code motion.
     EnsureMoreAccurateRedefinition(check, receiver, type->CopyNonNullable());
@@ -305,7 +301,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   if (target.IsNull()) {
     // If the selector is not defined on Null, we can propagate non-nullness.
     CompileType* type = TypeOf(receiver);
-    if (type->is_nullable() && !type->IsNull()) {
+    if (type->is_nullable()) {
       // Insert redefinition for the receiver to guard against invalid
       // code motion.
       EnsureMoreAccurateRedefinition(call, receiver, type->CopyNonNullable());

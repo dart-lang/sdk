@@ -172,8 +172,7 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
   Thread* thread = Thread::Current();
-  NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                                           "ProcessPendingClasses"));
+  TIMELINE_DURATION(thread, Isolate, "ProcessPendingClasses");
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   HANDLESCOPE(thread);
@@ -1117,20 +1116,26 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 }
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
-  Thread* thread = Thread::Current();
-  HANDLESCOPE(thread);
   ASSERT(cls.is_type_finalized());
   if (cls.is_finalized()) {
     return;
   }
+
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
 
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "ClassFinalizer::FinalizeClass");
-#endif  // !defined(PRODUCT)
+                            "FinalizeClass");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(0, "class", cls.ToCString());
+  }
+#endif  // defined(SUPPORT_TIMELINE)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
@@ -1764,6 +1769,11 @@ void ClassFinalizer::SortClasses() {
   Thread* T = Thread::Current();
   Zone* Z = T->zone();
   Isolate* I = T->isolate();
+
+  // Prevent background compiler from adding deferred classes or canonicalizing
+  // new types while classes are being sorted and type hashes are modified.
+  BackgroundCompiler::Stop(I);
+
   ClassTable* table = I->class_table();
   intptr_t num_cids = table->NumCids();
   intptr_t* old_to_new_cid = new intptr_t[num_cids];

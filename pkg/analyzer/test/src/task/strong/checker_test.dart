@@ -8,13 +8,11 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CheckerTest);
     defineReflectiveTests(CheckerTest_Driver);
   });
 }
 
-@reflectiveTest
-class CheckerTest extends AbstractStrongTest {
+abstract class CheckerTest extends AbstractStrongTest {
   test_awaitForInCastsStreamElementToVariable() async {
     await checkFile('''
 import 'dart:async';

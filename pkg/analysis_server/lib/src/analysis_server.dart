@@ -155,11 +155,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
 
-  /// The DiagnosticServer for this AnalysisServer. If available, it can be used
-  /// to start an http diagnostics server or return the port for an existing
-  /// server.
-  final DiagnosticServer diagnosticServer;
-
   final DetachableFileSystemManager detachableFileSystemManager;
 
   /// Initialize a newly created server to receive requests from and send
@@ -175,11 +170,11 @@ class AnalysisServer extends AbstractAnalysisServer {
     AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
-    this.diagnosticServer,
+    DiagnosticServer diagnosticServer,
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  }) : super(options, baseResourceProvider) {
+  }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
 
     pluginManager = new PluginManager(
@@ -351,6 +346,12 @@ class AnalysisServer extends AbstractAnalysisServer {
     });
   }
 
+  /// Return `true` if the [path] is both absolute and normalized.
+  bool isAbsoluteAndNormalized(String path) {
+    var pathContext = resourceProvider.pathContext;
+    return pathContext.isAbsolute(path) && pathContext.normalize(path) == path;
+  }
+
   /// Return `true` if analysis is complete.
   bool isAnalysisComplete() {
     return !analysisDriverScheduler.isAnalyzing;
@@ -380,6 +381,16 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
+  }
+
+  /// If the [path] is not a valid file path, that is absolute and normalized,
+  /// send an error response, and return `true`. If OK then return `false`.
+  bool sendResponseErrorIfInvalidFilePath(Request request, String path) {
+    if (!isAbsoluteAndNormalized(path)) {
+      sendResponse(Response.invalidFilePathFormat(request, path));
+      return true;
+    }
+    return false;
   }
 
   /// Sends a `server.error` notification.

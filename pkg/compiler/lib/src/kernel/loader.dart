@@ -13,7 +13,7 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
-import 'package:kernel/target/targets.dart';
+import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
 import '../../compiler_new.dart' as api;
 import '../common/tasks.dart' show CompilerTask, Measurer;

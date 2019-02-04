@@ -9,13 +9,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryCastTest);
     defineReflectiveTests(UnnecessaryCastTest_Driver);
   });
 }
 
-@reflectiveTest
-class UnnecessaryCastTest extends ResolverTestCase {
+abstract class UnnecessaryCastTest extends ResolverTestCase {
   test_conditionalExpression() async {
     await assertNoErrorsInCode(r'''
 abstract class I {}

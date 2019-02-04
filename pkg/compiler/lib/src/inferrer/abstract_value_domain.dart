@@ -7,6 +7,7 @@ library dart2js.abstract_value_domain;
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
+import '../elements/types.dart' show DartType;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -476,6 +477,11 @@ abstract class AbstractValueDomain {
   /// [receiver] can hit a [noSuchMethod].
   AbstractBool needsNoSuchMethodHandling(
       AbstractValue receiver, Selector selector);
+
+  /// Returns the [AbstractValue] for the [parameterType] of a native
+  /// method. May return `null`, for example, if [parameterType] is not modelled
+  /// precisely by an [AbstractValue].
+  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type);
 
   /// Returns an [AbstractBool] that describes if the set of runtime values of
   /// [subset] are known to all be in the set of runtime values of [superset].

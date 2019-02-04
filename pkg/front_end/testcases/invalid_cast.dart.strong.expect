@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/invalid_cast.dart:22:60: Error: The list literal type 'List<Object>' isn't of expected type 'List<int>'.
 //  - 'List' is from 'dart:core'.
@@ -58,8 +60,7 @@
 // Change the type of the function or the context in which it is used.
 //   void Function(Object) k = /*@error=InvalidCastLocalFunction*/ localFunction;
 //                                                                 ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

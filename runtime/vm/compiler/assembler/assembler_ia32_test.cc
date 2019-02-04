@@ -19,6 +19,7 @@
 #endif
 
 namespace dart {
+namespace compiler {
 
 #define __ assembler->
 
@@ -36,7 +37,7 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ReadArgument, assembler) {
-  __ movl(EAX, Address(ESP, kWordSize));
+  __ movl(EAX, Address(ESP, target::kWordSize));
   __ ret();
 }
 
@@ -54,21 +55,21 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movl(EAX, Address(EBP, 0));
   __ movl(EAX, Address(EAX, 0));
 
-  __ movl(EAX, Address(ESP, kWordSize));
-  __ movl(EAX, Address(EBP, kWordSize));
-  __ movl(EAX, Address(EAX, kWordSize));
+  __ movl(EAX, Address(ESP, target::kWordSize));
+  __ movl(EAX, Address(EBP, target::kWordSize));
+  __ movl(EAX, Address(EAX, target::kWordSize));
 
-  __ movl(EAX, Address(ESP, -kWordSize));
-  __ movl(EAX, Address(EBP, -kWordSize));
-  __ movl(EAX, Address(EAX, -kWordSize));
+  __ movl(EAX, Address(ESP, -target::kWordSize));
+  __ movl(EAX, Address(EBP, -target::kWordSize));
+  __ movl(EAX, Address(EAX, -target::kWordSize));
 
-  __ movl(EAX, Address(ESP, 256 * kWordSize));
-  __ movl(EAX, Address(EBP, 256 * kWordSize));
-  __ movl(EAX, Address(EAX, 256 * kWordSize));
+  __ movl(EAX, Address(ESP, 256 * target::kWordSize));
+  __ movl(EAX, Address(EBP, 256 * target::kWordSize));
+  __ movl(EAX, Address(EAX, 256 * target::kWordSize));
 
-  __ movl(EAX, Address(ESP, -256 * kWordSize));
-  __ movl(EAX, Address(EBP, -256 * kWordSize));
-  __ movl(EAX, Address(EAX, -256 * kWordSize));
+  __ movl(EAX, Address(ESP, -256 * target::kWordSize));
+  __ movl(EAX, Address(EBP, -256 * target::kWordSize));
+  __ movl(EAX, Address(EAX, -256 * target::kWordSize));
 
   __ movl(EAX, Address(EAX, TIMES_1));
   __ movl(EAX, Address(EAX, TIMES_2));
@@ -78,11 +79,11 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movl(EAX, Address(EBP, TIMES_2));
   __ movl(EAX, Address(EAX, TIMES_2));
 
-  __ movl(EAX, Address(EBP, TIMES_2, kWordSize));
-  __ movl(EAX, Address(EAX, TIMES_2, kWordSize));
+  __ movl(EAX, Address(EBP, TIMES_2, target::kWordSize));
+  __ movl(EAX, Address(EAX, TIMES_2, target::kWordSize));
 
-  __ movl(EAX, Address(EBP, TIMES_2, 256 * kWordSize));
-  __ movl(EAX, Address(EAX, TIMES_2, 256 * kWordSize));
+  __ movl(EAX, Address(EBP, TIMES_2, 256 * target::kWordSize));
+  __ movl(EAX, Address(EAX, TIMES_2, 256 * target::kWordSize));
 
   __ movl(EAX, Address(EAX, EBP, TIMES_2, 0));
   __ movl(EAX, Address(EAX, EAX, TIMES_2, 0));
@@ -91,19 +92,19 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movl(EAX, Address(ESP, EBP, TIMES_2, 0));
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
 
-  __ movl(EAX, Address(EAX, EBP, TIMES_2, kWordSize));
-  __ movl(EAX, Address(EAX, EAX, TIMES_2, kWordSize));
-  __ movl(EAX, Address(EBP, EBP, TIMES_2, kWordSize));
-  __ movl(EAX, Address(EBP, EAX, TIMES_2, kWordSize));
-  __ movl(EAX, Address(ESP, EBP, TIMES_2, kWordSize));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, kWordSize));
+  __ movl(EAX, Address(EAX, EBP, TIMES_2, target::kWordSize));
+  __ movl(EAX, Address(EAX, EAX, TIMES_2, target::kWordSize));
+  __ movl(EAX, Address(EBP, EBP, TIMES_2, target::kWordSize));
+  __ movl(EAX, Address(EBP, EAX, TIMES_2, target::kWordSize));
+  __ movl(EAX, Address(ESP, EBP, TIMES_2, target::kWordSize));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, target::kWordSize));
 
-  __ movl(EAX, Address(EAX, EBP, TIMES_2, 256 * kWordSize));
-  __ movl(EAX, Address(EAX, EAX, TIMES_2, 256 * kWordSize));
-  __ movl(EAX, Address(EBP, EBP, TIMES_2, 256 * kWordSize));
-  __ movl(EAX, Address(EBP, EAX, TIMES_2, 256 * kWordSize));
-  __ movl(EAX, Address(ESP, EBP, TIMES_2, 256 * kWordSize));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, 256 * kWordSize));
+  __ movl(EAX, Address(EAX, EBP, TIMES_2, 256 * target::kWordSize));
+  __ movl(EAX, Address(EAX, EAX, TIMES_2, 256 * target::kWordSize));
+  __ movl(EAX, Address(EBP, EBP, TIMES_2, 256 * target::kWordSize));
+  __ movl(EAX, Address(EBP, EAX, TIMES_2, 256 * target::kWordSize));
+  __ movl(EAX, Address(ESP, EBP, TIMES_2, 256 * target::kWordSize));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 256 * target::kWordSize));
 }
 
 ASSEMBLER_TEST_RUN(AddressingModes, test) {
@@ -376,11 +377,11 @@ ASSEMBLER_TEST_RUN(Decrement, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddressBinOp, assembler) {
-  __ movl(EAX, Address(ESP, kWordSize));
-  __ addl(EAX, Address(ESP, kWordSize));
+  __ movl(EAX, Address(ESP, target::kWordSize));
+  __ addl(EAX, Address(ESP, target::kWordSize));
   __ incl(EAX);
-  __ subl(EAX, Address(ESP, kWordSize));
-  __ imull(EAX, Address(ESP, kWordSize));
+  __ subl(EAX, Address(ESP, target::kWordSize));
+  __ imull(EAX, Address(ESP, target::kWordSize));
   __ ret();
 }
 
@@ -480,7 +481,7 @@ ASSEMBLER_TEST_RUN(Negate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitScanReverse, assembler) {
-  __ movl(ECX, Address(ESP, kWordSize));
+  __ movl(ECX, Address(ESP, target::kWordSize));
   __ movl(EAX, Immediate(666));  // Marker for conditional write.
   __ bsrl(EAX, ECX);
   __ ret();
@@ -538,7 +539,7 @@ ASSEMBLER_TEST_GENERATE(MoveExtendMemory, assembler) {
   __ movzxb(EAX, Address(ESP, 0));  // EAX = 0xff
   __ movsxw(EBX, Address(ESP, 0));  // EBX = -1
   __ movzxw(ECX, Address(ESP, 0));  // ECX = 0xffff
-  __ addl(ESP, Immediate(kWordSize));
+  __ addl(ESP, Immediate(target::kWordSize));
 
   __ addl(EBX, ECX);
   __ addl(EAX, EBX);
@@ -584,7 +585,7 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
   __ pushl(Immediate(0x1C));
   __ xorl(ECX, Address(ESP, 0));  // 0x65B.
   __ popl(EAX);                   // Discard.
-  __ movl(EAX, Address(ESP, kWordSize));
+  __ movl(EAX, Address(ESP, target::kWordSize));
   __ movl(EDX, Immediate(0xB0));
   __ orl(Address(EAX, 0), EDX);
   __ movl(EAX, ECX);
@@ -762,7 +763,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ Bind(&donetest13);
 
   Label donetest14;
-  __ subl(ESP, Immediate(kWordSize));
+  __ subl(ESP, Immediate(target::kWordSize));
   __ movl(Address(ESP, 0), Immediate(0x80000000));
   __ movl(EAX, Immediate(0));
   __ movl(ECX, Immediate(3));
@@ -772,10 +773,10 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ j(EQUAL, &donetest14);
   __ int3();
   __ Bind(&donetest14);
-  __ addl(ESP, Immediate(kWordSize));
+  __ addl(ESP, Immediate(target::kWordSize));
 
   Label donetest15;
-  __ subl(ESP, Immediate(kWordSize));
+  __ subl(ESP, Immediate(target::kWordSize));
   __ movl(Address(ESP, 0), Immediate(0xFF000000));
   __ movl(EAX, Immediate(-1));
   __ movl(ECX, Immediate(2));
@@ -785,7 +786,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ j(EQUAL, &donetest15);
   __ int3();
   __ Bind(&donetest15);
-  __ addl(ESP, Immediate(kWordSize));
+  __ addl(ESP, Immediate(target::kWordSize));
 
   Label donetest16;
   __ movl(EDX, Immediate(0x80000000));
@@ -2645,10 +2646,10 @@ ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
 ASSEMBLER_TEST_GENERATE(SingleFPOperationsStack, assembler) {
   __ movl(EAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, EAX);
-  __ addss(XMM0, Address(ESP, kWordSize));  // 15.7f
-  __ mulss(XMM0, Address(ESP, kWordSize));  // 53.38f
-  __ subss(XMM0, Address(ESP, kWordSize));  // 49.98f
-  __ divss(XMM0, Address(ESP, kWordSize));  // 14.7f
+  __ addss(XMM0, Address(ESP, target::kWordSize));  // 15.7f
+  __ mulss(XMM0, Address(ESP, target::kWordSize));  // 53.38f
+  __ subss(XMM0, Address(ESP, target::kWordSize));  // 49.98f
+  __ divss(XMM0, Address(ESP, target::kWordSize));  // 14.7f
   __ pushl(EAX);
   __ movss(Address(ESP, 0), XMM0);
   __ flds(Address(ESP, 0));
@@ -2689,7 +2690,7 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
   __ movsd(XMM6, XMM5);
   __ movsd(XMM7, XMM6);
   __ movl(Address(ESP, 0), Immediate(0));
-  __ movl(Address(ESP, kWordSize), Immediate(0));
+  __ movl(Address(ESP, target::kWordSize), Immediate(0));
   __ movsd(XMM0, Address(ESP, 0));
   __ movsd(Address(ESP, 0), XMM7);
   __ movsd(XMM7, Address(ESP, 0));
@@ -2701,7 +2702,7 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
   __ movaps(XMM1, XMM2);
   __ movaps(XMM0, XMM1);
   __ movl(Address(ESP, 0), Immediate(0));
-  __ movl(Address(ESP, kWordSize), Immediate(0));
+  __ movl(Address(ESP, target::kWordSize), Immediate(0));
   __ movsd(Address(ESP, 0), XMM0);
   __ fldl(Address(ESP, 0));
   __ popl(EAX);
@@ -2755,7 +2756,7 @@ ASSEMBLER_TEST_GENERATE(DoubleFPUStackMoves, assembler) {
   __ pushl(EAX);
   __ fldl(Address(ESP, 0));
   __ movl(Address(ESP, 0), Immediate(0));
-  __ movl(Address(ESP, kWordSize), Immediate(0));
+  __ movl(Address(ESP, target::kWordSize), Immediate(0));
   __ fstpl(Address(ESP, 0));
   __ popl(EAX);
   __ popl(EDX);
@@ -2844,10 +2845,10 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperationsStack, assembler) {
   __ popl(EAX);
   __ popl(EAX);
 
-  __ addsd(XMM0, Address(ESP, kWordSize));  // 15.7
-  __ mulsd(XMM0, Address(ESP, kWordSize));  // 53.38
-  __ subsd(XMM0, Address(ESP, kWordSize));  // 49.98
-  __ divsd(XMM0, Address(ESP, kWordSize));  // 14.7
+  __ addsd(XMM0, Address(ESP, target::kWordSize));  // 15.7
+  __ mulsd(XMM0, Address(ESP, target::kWordSize));  // 53.38
+  __ subsd(XMM0, Address(ESP, target::kWordSize));  // 49.98
+  __ divsd(XMM0, Address(ESP, target::kWordSize));  // 14.7
 
   __ pushl(EAX);
   __ pushl(EAX);
@@ -2913,7 +2914,7 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
-  __ filds(Address(ESP, kWordSize));
+  __ filds(Address(ESP, target::kWordSize));
   __ ret();
 }
 
@@ -3004,7 +3005,7 @@ ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(FloatToIntConversionRound, assembler) {
-  __ movsd(XMM1, Address(ESP, kWordSize));
+  __ movsd(XMM1, Address(ESP, target::kWordSize));
   __ cvtss2si(EDX, XMM1);
   __ movl(EAX, EDX);
   __ ret();
@@ -3025,7 +3026,7 @@ ASSEMBLER_TEST_RUN(FloatToIntConversionRound, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(FloatToIntConversionTrunc, assembler) {
-  __ movsd(XMM1, Address(ESP, kWordSize));
+  __ movsd(XMM1, Address(ESP, target::kWordSize));
   __ cvttss2si(EDX, XMM1);
   __ movl(EAX, EDX);
   __ ret();
@@ -3286,7 +3287,7 @@ ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToIntConversionRound, assembler) {
-  __ movsd(XMM3, Address(ESP, kWordSize));
+  __ movsd(XMM3, Address(ESP, target::kWordSize));
   __ cvtsd2si(EAX, XMM3);
   __ ret();
 }
@@ -3305,7 +3306,7 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversionRound, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToIntConversionTrunc, assembler) {
-  __ movsd(XMM3, Address(ESP, kWordSize));
+  __ movsd(XMM3, Address(ESP, target::kWordSize));
   __ cvttsd2si(EAX, XMM3);
   __ ret();
 }
@@ -3324,7 +3325,7 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversionTrunc, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
-  __ movsd(XMM3, Address(ESP, kWordSize));
+  __ movsd(XMM3, Address(ESP, target::kWordSize));
   __ roundsd(XMM2, XMM3, Assembler::kRoundToZero);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -3386,7 +3387,7 @@ ASSEMBLER_TEST_RUN(GlobalAddress, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Sine, assembler) {
-  __ flds(Address(ESP, kWordSize));
+  __ flds(Address(ESP, target::kWordSize));
   __ fsin();
   __ ret();
 }
@@ -3403,7 +3404,7 @@ ASSEMBLER_TEST_RUN(Sine, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Cosine, assembler) {
-  __ flds(Address(ESP, kWordSize));
+  __ flds(Address(ESP, target::kWordSize));
   __ fcos();
   __ ret();
 }
@@ -3420,9 +3421,9 @@ ASSEMBLER_TEST_RUN(Cosine, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SinCos, assembler) {
-  __ fldl(Address(ESP, kWordSize));
+  __ fldl(Address(ESP, target::kWordSize));
   __ fsincos();
-  __ subl(ESP, Immediate(2 * kWordSize));
+  __ subl(ESP, Immediate(2 * target::kWordSize));
   __ fstpl(Address(ESP, 0));  // cos result.
   __ movsd(XMM0, Address(ESP, 0));
   __ fstpl(Address(ESP, 0));  // sin result.
@@ -3430,7 +3431,7 @@ ASSEMBLER_TEST_GENERATE(SinCos, assembler) {
   __ subsd(XMM1, XMM0);  // sin - cos.
   __ movsd(Address(ESP, 0), XMM1);
   __ fldl(Address(ESP, 0));
-  __ addl(ESP, Immediate(2 * kWordSize));
+  __ addl(ESP, Immediate(2 * target::kWordSize));
   __ ret();
 }
 
@@ -3456,7 +3457,7 @@ ASSEMBLER_TEST_RUN(SinCos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Tangent, assembler) {
-  __ fldl(Address(ESP, kWordSize));
+  __ fldl(Address(ESP, target::kWordSize));
   __ fptan();
   __ ffree(0);
   __ fincstp();
@@ -3477,7 +3478,7 @@ ASSEMBLER_TEST_RUN(Tangent, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SquareRootFloat, assembler) {
-  __ movss(XMM0, Address(ESP, kWordSize));
+  __ movss(XMM0, Address(ESP, target::kWordSize));
   __ sqrtss(XMM1, XMM0);
   __ pushl(EAX);
   __ movss(Address(ESP, 0), XMM1);
@@ -3502,7 +3503,7 @@ ASSEMBLER_TEST_RUN(SquareRootFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ sqrtsd(XMM1, XMM0);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -3563,7 +3564,7 @@ ASSEMBLER_TEST_RUN(XmmAlu, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(FloatNegate, assembler) {
-  __ movss(XMM0, Address(ESP, kWordSize));
+  __ movss(XMM0, Address(ESP, target::kWordSize));
   __ FloatNegate(XMM0);
   __ pushl(EAX);
   __ movss(Address(ESP, 0), XMM0);
@@ -3588,7 +3589,7 @@ ASSEMBLER_TEST_RUN(FloatNegate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegate, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ DoubleNegate(XMM0);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -3617,8 +3618,8 @@ ASSEMBLER_TEST_RUN(DoubleNegate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LongMulReg, assembler) {
-  __ movl(ECX, Address(ESP, kWordSize));
-  __ movl(EAX, Address(ESP, 2 * kWordSize));
+  __ movl(ECX, Address(ESP, target::kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));
   __ imull(ECX);
   __ ret();
 }
@@ -3638,8 +3639,8 @@ ASSEMBLER_TEST_RUN(LongMulReg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LongMulAddress, assembler) {
-  __ movl(EAX, Address(ESP, 2 * kWordSize));
-  __ imull(Address(ESP, kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));
+  __ imull(Address(ESP, target::kWordSize));
   __ ret();
 }
 
@@ -3657,8 +3658,8 @@ ASSEMBLER_TEST_RUN(LongMulAddress, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LongUnsignedMulReg, assembler) {
-  __ movl(ECX, Address(ESP, kWordSize));
-  __ movl(EAX, Address(ESP, 2 * kWordSize));
+  __ movl(ECX, Address(ESP, target::kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));
   __ mull(ECX);
   __ ret();
 }
@@ -3683,8 +3684,8 @@ ASSEMBLER_TEST_RUN(LongUnsignedMulReg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LongUnsignedMulAddress, assembler) {
-  __ movl(EAX, Address(ESP, 2 * kWordSize));
-  __ mull(Address(ESP, kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));
+  __ mull(Address(ESP, target::kWordSize));
   __ ret();
 }
 
@@ -3710,10 +3711,10 @@ ASSEMBLER_TEST_RUN(LongUnsignedMulAddress, test) {
 ASSEMBLER_TEST_GENERATE(LongAddReg, assembler) {
   // Preserve clobbered callee-saved register (EBX).
   __ pushl(EBX);
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // left low.
-  __ movl(EDX, Address(ESP, 3 * kWordSize));  // left high.
-  __ movl(ECX, Address(ESP, 4 * kWordSize));  // right low.
-  __ movl(EBX, Address(ESP, 5 * kWordSize));  // right high
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 3 * target::kWordSize));  // left high.
+  __ movl(ECX, Address(ESP, 4 * target::kWordSize));  // right low.
+  __ movl(EBX, Address(ESP, 5 * target::kWordSize));  // right high
   __ addl(EAX, ECX);
   __ adcl(EDX, EBX);
   __ popl(EBX);
@@ -3744,10 +3745,10 @@ ASSEMBLER_TEST_RUN(LongAddReg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LongAddAddress, assembler) {
-  __ movl(EAX, Address(ESP, 1 * kWordSize));  // left low.
-  __ movl(EDX, Address(ESP, 2 * kWordSize));  // left high.
-  __ addl(EAX, Address(ESP, 3 * kWordSize));  // low.
-  __ adcl(EDX, Address(ESP, 4 * kWordSize));  // high.
+  __ movl(EAX, Address(ESP, 1 * target::kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 2 * target::kWordSize));  // left high.
+  __ addl(EAX, Address(ESP, 3 * target::kWordSize));  // low.
+  __ adcl(EDX, Address(ESP, 4 * target::kWordSize));  // high.
   // Result is in EAX/EDX.
   __ ret();
 }
@@ -3773,10 +3774,10 @@ ASSEMBLER_TEST_RUN(LongAddAddress, test) {
 ASSEMBLER_TEST_GENERATE(LongSubReg, assembler) {
   // Preserve clobbered callee-saved register (EBX).
   __ pushl(EBX);
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // left low.
-  __ movl(EDX, Address(ESP, 3 * kWordSize));  // left high.
-  __ movl(ECX, Address(ESP, 4 * kWordSize));  // right low.
-  __ movl(EBX, Address(ESP, 5 * kWordSize));  // right high
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 3 * target::kWordSize));  // left high.
+  __ movl(ECX, Address(ESP, 4 * target::kWordSize));  // right low.
+  __ movl(EBX, Address(ESP, 5 * target::kWordSize));  // right high
   __ subl(EAX, ECX);
   __ sbbl(EDX, EBX);
   __ popl(EBX);
@@ -3807,10 +3808,10 @@ ASSEMBLER_TEST_RUN(LongSubReg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LongSubAddress, assembler) {
-  __ movl(EAX, Address(ESP, 1 * kWordSize));  // left low.
-  __ movl(EDX, Address(ESP, 2 * kWordSize));  // left high.
-  __ subl(EAX, Address(ESP, 3 * kWordSize));  // low.
-  __ sbbl(EDX, Address(ESP, 4 * kWordSize));  // high.
+  __ movl(EAX, Address(ESP, 1 * target::kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 2 * target::kWordSize));  // left high.
+  __ subl(EAX, Address(ESP, 3 * target::kWordSize));  // low.
+  __ sbbl(EDX, Address(ESP, 4 * target::kWordSize));  // high.
   // Result is in EAX/EDX.
   __ ret();
 }
@@ -3836,18 +3837,18 @@ ASSEMBLER_TEST_RUN(LongSubAddress, test) {
 ASSEMBLER_TEST_GENERATE(LongSubAddress2, assembler) {
   // Preserve clobbered callee-saved register (EBX).
   __ pushl(EBX);
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // left low.
-  __ movl(EDX, Address(ESP, 3 * kWordSize));  // left high.
-  __ movl(ECX, Address(ESP, 4 * kWordSize));  // right low.
-  __ movl(EBX, Address(ESP, 5 * kWordSize));  // right high
-  __ subl(ESP, Immediate(2 * kWordSize));
-  __ movl(Address(ESP, 0 * kWordSize), EAX);  // left low.
-  __ movl(Address(ESP, 1 * kWordSize), EDX);  // left high.
-  __ subl(Address(ESP, 0 * kWordSize), ECX);
-  __ sbbl(Address(ESP, 1 * kWordSize), EBX);
-  __ movl(EAX, Address(ESP, 0 * kWordSize));
-  __ movl(EDX, Address(ESP, 1 * kWordSize));
-  __ addl(ESP, Immediate(2 * kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 3 * target::kWordSize));  // left high.
+  __ movl(ECX, Address(ESP, 4 * target::kWordSize));  // right low.
+  __ movl(EBX, Address(ESP, 5 * target::kWordSize));  // right high
+  __ subl(ESP, Immediate(2 * target::kWordSize));
+  __ movl(Address(ESP, 0 * target::kWordSize), EAX);  // left low.
+  __ movl(Address(ESP, 1 * target::kWordSize), EDX);  // left high.
+  __ subl(Address(ESP, 0 * target::kWordSize), ECX);
+  __ sbbl(Address(ESP, 1 * target::kWordSize), EBX);
+  __ movl(EAX, Address(ESP, 0 * target::kWordSize));
+  __ movl(EDX, Address(ESP, 1 * target::kWordSize));
+  __ addl(ESP, Immediate(2 * target::kWordSize));
   __ popl(EBX);
   // Result is in EAX/EDX.
   __ ret();
@@ -3884,18 +3885,18 @@ ASSEMBLER_TEST_RUN(LongSubAddress2, test) {
 ASSEMBLER_TEST_GENERATE(LongAddAddress2, assembler) {
   // Preserve clobbered callee-saved register (EBX).
   __ pushl(EBX);
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // left low.
-  __ movl(EDX, Address(ESP, 3 * kWordSize));  // left high.
-  __ movl(ECX, Address(ESP, 4 * kWordSize));  // right low.
-  __ movl(EBX, Address(ESP, 5 * kWordSize));  // right high
-  __ subl(ESP, Immediate(2 * kWordSize));
-  __ movl(Address(ESP, 0 * kWordSize), EAX);  // left low.
-  __ movl(Address(ESP, 1 * kWordSize), EDX);  // left high.
-  __ addl(Address(ESP, 0 * kWordSize), ECX);
-  __ adcl(Address(ESP, 1 * kWordSize), EBX);
-  __ movl(EAX, Address(ESP, 0 * kWordSize));
-  __ movl(EDX, Address(ESP, 1 * kWordSize));
-  __ addl(ESP, Immediate(2 * kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 3 * target::kWordSize));  // left high.
+  __ movl(ECX, Address(ESP, 4 * target::kWordSize));  // right low.
+  __ movl(EBX, Address(ESP, 5 * target::kWordSize));  // right high
+  __ subl(ESP, Immediate(2 * target::kWordSize));
+  __ movl(Address(ESP, 0 * target::kWordSize), EAX);  // left low.
+  __ movl(Address(ESP, 1 * target::kWordSize), EDX);  // left high.
+  __ addl(Address(ESP, 0 * target::kWordSize), ECX);
+  __ adcl(Address(ESP, 1 * target::kWordSize), EBX);
+  __ movl(EAX, Address(ESP, 0 * target::kWordSize));
+  __ movl(EDX, Address(ESP, 1 * target::kWordSize));
+  __ addl(ESP, Immediate(2 * target::kWordSize));
   __ popl(EBX);
   // Result is in EAX/EDX.
   __ ret();
@@ -3931,7 +3932,7 @@ ASSEMBLER_TEST_RUN(LongAddAddress2, test) {
 
 // Testing only the lower 64-bit value of 'cvtdq2pd'.
 ASSEMBLER_TEST_GENERATE(IntegerToDoubleConversion, assembler) {
-  __ movsd(XMM1, Address(ESP, kWordSize));
+  __ movsd(XMM1, Address(ESP, target::kWordSize));
   __ cvtdq2pd(XMM2, XMM1);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -3962,21 +3963,21 @@ ASSEMBLER_TEST_RUN(IntegerToDoubleConversion, test) {
 
 // Implement with truncation.
 ASSEMBLER_TEST_GENERATE(FPUStoreLong, assembler) {
-  __ fldl(Address(ESP, kWordSize));
+  __ fldl(Address(ESP, target::kWordSize));
   __ pushl(EAX);
   __ pushl(EAX);
   __ fnstcw(Address(ESP, 0));
   __ movzxw(EAX, Address(ESP, 0));
   __ orl(EAX, Immediate(0x0c00));
-  __ movw(Address(ESP, kWordSize), EAX);
-  __ fldcw(Address(ESP, kWordSize));
+  __ movw(Address(ESP, target::kWordSize), EAX);
+  __ fldcw(Address(ESP, target::kWordSize));
   __ pushl(EAX);
   __ pushl(EAX);
   __ fistpl(Address(ESP, 0));
   __ popl(EAX);
   __ popl(EDX);
   __ fldcw(Address(ESP, 0));
-  __ addl(ESP, Immediate(kWordSize * 2));
+  __ addl(ESP, Immediate(target::kWordSize * 2));
   __ ret();
 }
 
@@ -4014,7 +4015,7 @@ ASSEMBLER_TEST_RUN(FPUStoreLong, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(XorpdZeroing, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ xorpd(XMM0, XMM0);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -4042,7 +4043,7 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Pxor, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ pxor(XMM0, XMM0);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -4070,7 +4071,7 @@ ASSEMBLER_TEST_RUN(Pxor, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Orpd, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ xorpd(XMM1, XMM1);
   __ DoubleNegate(XMM1);
   __ orpd(XMM0, XMM1);
@@ -4103,7 +4104,7 @@ ASSEMBLER_TEST_RUN(Orpd, test) {
 
 ASSEMBLER_TEST_GENERATE(Pextrd0, assembler) {
   if (TargetCPUFeatures::sse4_1_supported()) {
-    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ movsd(XMM0, Address(ESP, target::kWordSize));
     __ pextrd(EAX, XMM0, Immediate(0));
   }
   __ ret();
@@ -4123,7 +4124,7 @@ ASSEMBLER_TEST_RUN(Pextrd0, test) {
 
 ASSEMBLER_TEST_GENERATE(Pextrd1, assembler) {
   if (TargetCPUFeatures::sse4_1_supported()) {
-    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ movsd(XMM0, Address(ESP, target::kWordSize));
     __ pextrd(EAX, XMM0, Immediate(1));
   }
   __ ret();
@@ -4143,7 +4144,7 @@ ASSEMBLER_TEST_RUN(Pextrd1, test) {
 
 ASSEMBLER_TEST_GENERATE(Pmovsxdq, assembler) {
   if (TargetCPUFeatures::sse4_1_supported()) {
-    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ movsd(XMM0, Address(ESP, target::kWordSize));
     __ pmovsxdq(XMM0, XMM0);
     __ pextrd(EAX, XMM0, Immediate(1));
   }
@@ -4165,7 +4166,7 @@ ASSEMBLER_TEST_RUN(Pmovsxdq, test) {
 
 ASSEMBLER_TEST_GENERATE(Pcmpeqq, assembler) {
   if (TargetCPUFeatures::sse4_1_supported()) {
-    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ movsd(XMM0, Address(ESP, target::kWordSize));
     __ xorpd(XMM1, XMM1);
     __ pcmpeqq(XMM0, XMM1);
     __ movd(EAX, XMM0);
@@ -4188,7 +4189,7 @@ ASSEMBLER_TEST_RUN(Pcmpeqq, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AndPd, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ andpd(XMM0, XMM0);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -4216,7 +4217,7 @@ ASSEMBLER_TEST_RUN(AndPd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Movq, assembler) {
-  __ movq(XMM0, Address(ESP, kWordSize));
+  __ movq(XMM0, Address(ESP, target::kWordSize));
   __ subl(ESP, Immediate(kDoubleSize));
   __ movq(Address(ESP, 0), XMM0);
   __ fldl(Address(ESP, 0));
@@ -4238,7 +4239,7 @@ ASSEMBLER_TEST_RUN(Movq, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ DoubleAbs(XMM0);
   __ pushl(EAX);
   __ pushl(EAX);
@@ -4270,7 +4271,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
-  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movsd(XMM0, Address(ESP, target::kWordSize));
   __ movmskpd(EAX, XMM0);
   __ andl(EAX, Immediate(0x1));
   __ ret();
@@ -4296,7 +4297,7 @@ ASSEMBLER_TEST_GENERATE(ConditionalMovesSign, assembler) {
   // Preserve clobbered callee-saved register (EBX).
   __ pushl(EBX);
 
-  __ movl(EDX, Address(ESP, 2 * kWordSize));
+  __ movl(EDX, Address(ESP, 2 * target::kWordSize));
   __ xorl(EAX, EAX);
   __ movl(EBX, Immediate(1));
   __ movl(ECX, Immediate(-1));
@@ -4332,8 +4333,8 @@ ASSEMBLER_TEST_RUN(ConditionalMovesSign, test) {
 
 // Return 1 if overflow, 0 if no overflow.
 ASSEMBLER_TEST_GENERATE(ConditionalMovesNoOverflow, assembler) {
-  __ movl(EDX, Address(ESP, 1 * kWordSize));
-  __ addl(EDX, Address(ESP, 2 * kWordSize));
+  __ movl(EDX, Address(ESP, 1 * target::kWordSize));
+  __ addl(EDX, Address(ESP, 2 * target::kWordSize));
   __ movl(EAX, Immediate(1));
   __ movl(ECX, Immediate(0));
   __ cmovno(EAX, ECX);
@@ -4360,7 +4361,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
 ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
   __ xorl(EAX, EAX);
   __ movl(ECX, Immediate(1));
-  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ movl(EDX, Address(ESP, 1 * target::kWordSize));
   __ cmpl(EDX, Immediate(785));
   __ cmove(EAX, ECX);
   __ ret();
@@ -4385,7 +4386,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
 ASSEMBLER_TEST_GENERATE(ConditionalMovesNotEqual, assembler) {
   __ xorl(EAX, EAX);
   __ movl(ECX, Immediate(1));
-  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ movl(EDX, Address(ESP, 1 * target::kWordSize));
   __ cmpl(EDX, Immediate(785));
   __ cmovne(EAX, ECX);
   __ ret();
@@ -4409,8 +4410,8 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNotEqual, test) {
 ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
   __ movl(EDX, Immediate(1));   // Greater equal.
   __ movl(ECX, Immediate(-1));  // Less
-  __ movl(EAX, Address(ESP, 1 * kWordSize));
-  __ cmpl(EAX, Address(ESP, 2 * kWordSize));
+  __ movl(EAX, Address(ESP, 1 * target::kWordSize));
+  __ cmpl(EAX, Address(ESP, 2 * target::kWordSize));
   __ cmovlessl(EAX, ECX);
   __ cmovgel(EAX, EDX);
   __ ret();
@@ -4620,9 +4621,9 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ pushl(ESI);
   __ pushl(EDI);
   __ pushl(ECX);
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // from.
-  __ movl(EDI, Address(ESP, 5 * kWordSize));  // to.
-  __ movl(ECX, Address(ESP, 6 * kWordSize));  // count.
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // from.
+  __ movl(EDI, Address(ESP, 5 * target::kWordSize));  // to.
+  __ movl(ECX, Address(ESP, 6 * target::kWordSize));  // count.
   __ rep_movsb();
   __ popl(ECX);
   __ popl(EDI);
@@ -4657,9 +4658,9 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushl(THR);
-  __ movl(EAX, Address(ESP, 2 * kWordSize));
-  __ movl(ECX, Address(ESP, 3 * kWordSize));
-  __ movl(THR, Address(ESP, 4 * kWordSize));
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));
+  __ movl(ECX, Address(ESP, 3 * target::kWordSize));
+  __ movl(THR, Address(ESP, 4 * target::kWordSize));
   __ pushl(EAX);
   __ StoreIntoObject(ECX, FieldAddress(ECX, GrowableObjectArray::data_offset()),
                      EAX);
@@ -4804,6 +4805,7 @@ IMMEDIATE_TEST(AddrImmEAXByte,
                Address(ESP, 0),
                __ popl(EAX))
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

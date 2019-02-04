@@ -6,7 +6,7 @@ library vm.metadata.bytecode;
 
 import 'package:kernel/ast.dart';
 import '../bytecode/bytecode_serialization.dart'
-    show BufferedWriter, BufferedReader, StringTable;
+    show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
 import '../bytecode/constant_pool.dart' show ConstantPool;
 import '../bytecode/dbc.dart'
     show
@@ -121,6 +121,7 @@ class MemberBytecode extends BytecodeMetadata {
 
   @override
   void write(BufferedWriter writer) {
+    final start = writer.offset;
     writer.writePackedUInt30(flags);
     if (hasClosures) {
       writer.writePackedUInt30(closures.length);
@@ -140,6 +141,7 @@ class MemberBytecode extends BytecodeMetadata {
     if (hasClosures) {
       closures.forEach((c) => c.bytecode.write(writer));
     }
+    BytecodeSizeStatistics.membersSize += (writer.offset - start);
   }
 
   factory MemberBytecode.read(BufferedReader reader) {
@@ -368,6 +370,7 @@ class BytecodeComponent extends BytecodeMetadata {
 
   @override
   void write(BufferedWriter writer) {
+    final start = writer.offset;
     objectTable.allocateIndexTable();
 
     // Writing object table may add new strings to strings table,
@@ -384,6 +387,7 @@ class BytecodeComponent extends BytecodeMetadata {
 
     writer.writeBytes(stringsWriter.takeBytes());
     writer.writeBytes(objectsWriter.takeBytes());
+    BytecodeSizeStatistics.componentSize += (writer.offset - start);
   }
 
   BytecodeComponent.read(BufferedReader reader) {
@@ -461,6 +465,7 @@ void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {
   writer.writePackedUInt30(bytecodes.length);
   writer.align(bytecodeInstructionsAlignment);
   writer.writeBytes(bytecodes);
+  BytecodeSizeStatistics.instructionsSize += bytecodes.length;
 }
 
 List<int> _readBytecodeInstructions(BufferedReader reader) {

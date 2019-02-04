@@ -291,6 +291,12 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   String name;
 
+  /// Problems in this [Library] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
+
   @nocoq
   final List<Expression> annotations;
 
@@ -5104,6 +5110,10 @@ abstract class Constant extends Node {
 
   /// Gets the type of this constant.
   DartType getType(TypeEnvironment types);
+
+  Expression asExpression() {
+    return new ConstantExpression(this);
+  }
 }
 
 abstract class PrimitiveConstant<T> extends Constant {
@@ -5296,7 +5306,7 @@ class InstanceConstant extends Constant {
 
   InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
 
-  Class get klass => classReference.asClass;
+  Class get classNode => classReference.asClass;
 
   visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
@@ -5344,7 +5354,7 @@ class InstanceConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) =>
-      new InterfaceType(klass, typeArguments);
+      new InterfaceType(classNode, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
@@ -5440,56 +5450,12 @@ class TypeLiteralConstant extends Constant {
   DartType getType(TypeEnvironment types) => types.typeType;
 }
 
-abstract class EnvironmentConstant extends Constant {
-  final String name;
-  final Constant defaultValue;
-
-  EnvironmentConstant(this.name, this.defaultValue);
-  visitChildren(Visitor v) {
-    defaultValue.acceptReference(v);
-  }
-}
-
-class EnvironmentBoolConstant extends EnvironmentConstant {
-  EnvironmentBoolConstant(String name, Constant defaultValue)
-      : super(name, defaultValue);
-
-  accept(ConstantVisitor v) => v.visitEnvironmentBoolConstant(this);
-  acceptReference(Visitor v) {
-    return v.visitEnvironmentBoolConstantReference(this);
-  }
-
-  DartType getType(TypeEnvironment types) => types.boolType;
-}
-
-class EnvironmentIntConstant extends EnvironmentConstant {
-  EnvironmentIntConstant(String name, Constant defaultValue)
-      : super(name, defaultValue);
-
-  accept(ConstantVisitor v) => v.visitEnvironmentIntConstant(this);
-  acceptReference(Visitor v) {
-    return v.visitEnvironmentIntConstantReference(this);
-  }
-
-  DartType getType(TypeEnvironment types) => types.intType;
-}
-
-class EnvironmentStringConstant extends EnvironmentConstant {
-  EnvironmentStringConstant(String name, Constant defaultValue)
-      : super(name, defaultValue);
-
-  accept(ConstantVisitor v) => v.visitEnvironmentStringConstant(this);
-  acceptReference(Visitor v) {
-    return v.visitEnvironmentStringConstantReference(this);
-  }
-
-  DartType getType(TypeEnvironment types) => types.stringType;
-}
-
 class UnevaluatedConstant extends Constant {
   final Expression expression;
 
-  UnevaluatedConstant(this.expression);
+  UnevaluatedConstant(this.expression) {
+    expression?.parent = null;
+  }
 
   visitChildren(Visitor v) {
     expression.accept(v);
@@ -5499,6 +5465,9 @@ class UnevaluatedConstant extends Constant {
   acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
 
   DartType getType(TypeEnvironment types) => expression.getStaticType(types);
+
+  @override
+  Expression asExpression() => expression;
 }
 
 // ------------------------------------------------------------------------
@@ -5508,6 +5477,12 @@ class UnevaluatedConstant extends Constant {
 /// A way to bundle up libraries in a component.
 class Component extends TreeNode {
   final CanonicalName root;
+
+  /// Problems in this [Component] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   final List<Library> libraries;
 

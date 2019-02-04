@@ -44,7 +44,7 @@ bool BytecodeMetadataHelper::HasBytecode(intptr_t node_offset) {
 }
 
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadMetadata");
   // This increases bytecode reading time by ~7%, so only keep it around for
@@ -310,10 +310,8 @@ void BytecodeMetadataHelper::ReadTypeParametersDeclaration(
 
 void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                                               const ObjectPool& pool) {
-#if !defined(PRODUCT)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                            "BytecodeMetadataHelper::ReadConstantPool");
-#endif  // !defined(PRODUCT)
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
+                    "BytecodeMetadataHelper::ReadConstantPool");
 
   // These enums and the code below reading the constant pool from kernel must
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
@@ -455,9 +453,6 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                         array,  // Arguments descriptor.
                         H.thread()->compiler_state().GetNextDeoptId(),
                         checked_argument_count, ICData::RebindRule::kInstance);
-#if defined(TAG_IC_DATA)
-        ICData::Cast(obj).set_tag(ICData::Tag::kInstanceCall);
-#endif
       } break;
       case ConstantPoolTag::kStaticICData: {
         elem = ReadObject();
@@ -473,9 +468,6 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
                           H.thread()->compiler_state().GetNextDeoptId(),
                           num_args_checked, ICData::RebindRule::kStatic);
         ICData::Cast(obj).AddTarget(Function::Cast(elem));
-#if defined(TAG_IC_DATA)
-        ICData::Cast(obj).set_tag(ICData::Tag::kStaticCall);
-#endif
       } break;
       case ConstantPoolTag::kStaticField:
         obj = ReadObject();
@@ -486,7 +478,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         // InstanceField constant occupies 2 entries.
         // The first entry is used for field offset.
         obj = Smi::New(field.Offset() / kWordSize);
-        pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, obj);
         ++i;
         ASSERT(i < obj_count);
@@ -570,8 +563,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kNativeEntry: {
         name = ReadString();
         obj = NativeEntry(function, name);
-        pool.SetTypeAt(i, ObjectPool::kNativeEntryData,
-                       ObjectPool::kNotPatchable);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeEntryData,
+                       ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, obj);
         continue;
       }
@@ -628,7 +621,8 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         array ^= pool.ObjectAt(arg_desc_index);
         // InterfaceCall constant occupies 2 entries.
         // The first entry is used for selector name.
-        pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, name);
         ++i;
         ASSERT(i < obj_count);
@@ -638,16 +632,15 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
       default:
         UNREACHABLE();
     }
-    pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+    pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                   ObjectPool::Patchability::kNotPatchable);
     pool.SetObjectAt(i, obj);
   }
 }
 
 RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
-#if !defined(PRODUCT)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                            "BytecodeMetadataHelper::ReadBytecode");
-#endif  // !defined(PRODUCT)
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
+                    "BytecodeMetadataHelper::ReadBytecode");
   intptr_t size = helper_->ReadUInt();
   intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), sizeof(KBCInstr));
   const uint8_t* data = helper_->reader_.BufferAt(offset);
@@ -665,10 +658,8 @@ RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                                  bool has_exceptions_table) {
-#if !defined(PRODUCT)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                            "BytecodeMetadataHelper::ReadExceptionsTable");
-#endif  // !defined(PRODUCT)
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
+                    "BytecodeMetadataHelper::ReadExceptionsTable");
 
   const intptr_t try_block_count =
       has_exceptions_table ? helper_->reader_.ReadListLength() : 0;

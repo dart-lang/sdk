@@ -14,10 +14,11 @@
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
-#include "vm/object.h"
 #include "vm/simulator.h"
 
 namespace dart {
+
+namespace compiler {
 
 // Dummy declaration to make things compile.
 class Address : public ValueObject {
@@ -27,9 +28,9 @@ class Address : public ValueObject {
 
 class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches = false)
-      : AssemblerBase(object_pool_wrapper) {}
+      : AssemblerBase(object_pool_builder) {}
   ~Assembler() {}
 
   void Bind(Label* label);
@@ -98,6 +99,10 @@ class Assembler : public AssemblerBase {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
+
+}  // namespace compiler
+
+using compiler::Address;
 
 }  // namespace dart
 

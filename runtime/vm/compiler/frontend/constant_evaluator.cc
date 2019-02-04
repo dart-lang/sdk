@@ -1293,9 +1293,6 @@ const Array& ConstantHelper::ReadConstantTable() {
         // Note: This is already lowered to InstanceConstant/ListConstant.
         UNREACHABLE();
         break;
-      case kEnvironmentBoolConstant:
-      case kEnvironmentIntConstant:
-      case kEnvironmentStringConstant:
       case kUnevaluatedConstant:
         // We should not see unevaluated constants in the constant table, they
         // should have been fully evaluated before we get them.

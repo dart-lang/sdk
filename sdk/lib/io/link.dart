@@ -50,11 +50,11 @@ abstract class Link implements FileSystemEntity {
    * components are created. The directories in the path of [target] are
    * not affected, unless they are also in [path].
    *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist. The link will be created as a Junction.
-   * Only absolute links will be created, and relative paths to the target
-   * will be converted to absolute paths by joining them with the path of the
-   * directory the link is contained in.
+   * On the Windows platform, this call will create a true symbolic link
+   * instead of a Junction. In order to create a symbolic link on Windows, Dart
+   * must be run in Administrator mode or the system must have Developer Mode
+   * enabled, otherwise a [FileSystemException] will be raised with 
+   * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
    * link containing the string [target].  If [target] is a relative path,
@@ -71,10 +71,11 @@ abstract class Link implements FileSystemEntity {
    * non-existing path components are created. The directories in
    * the path of [target] are not affected, unless they are also in [path].
    *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist. The link will be created as a Junction.
-   * Only absolute links will be created, and relative paths to the target
-   * will be converted to absolute paths.
+   * On the Windows platform, this call will create a true symbolic link
+   * instead of a Junction. In order to create a symbolic link on Windows, Dart
+   * must be run in Administrator mode or the system must have Developer Mode
+   * enabled, otherwise a [FileSystemException] will be raised with 
+   * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
    * link containing the string [target].  If [target] is a relative path,
@@ -85,9 +86,6 @@ abstract class Link implements FileSystemEntity {
   /**
    * Synchronously updates the link. Calling [updateSync] on a non-existing link
    * will throw an exception.
-   *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist.
    */
   void updateSync(String target);
 
@@ -95,9 +93,6 @@ abstract class Link implements FileSystemEntity {
    * Updates the link. Returns a [:Future<Link>:] that completes with the
    * link when it has been updated.  Calling [update] on a non-existing link
    * will complete its returned future with an exception.
-   *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist.
    */
   Future<Link> update(String target);
 
@@ -183,9 +178,6 @@ class _Link extends FileSystemEntity implements Link {
   Link get absolute => new Link.fromRawPath(_rawAbsolutePath);
 
   Future<Link> create(String target, {bool recursive: false}) {
-    if (Platform.isWindows) {
-      target = _makeWindowsLinkTarget(target);
-    }
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
@@ -204,26 +196,8 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       parent.createSync(recursive: true);
     }
-    if (Platform.isWindows) {
-      target = _makeWindowsLinkTarget(target);
-    }
     var result = _File._createLink(_Namespace._namespace, _rawPath, target);
     throwIfError(result, "Cannot create link", path);
-  }
-
-  // Put target into the form "\??\C:\my\target\dir".
-  String _makeWindowsLinkTarget(String target) {
-    Uri base = new Uri.file('${Directory.current.path}\\');
-    Uri link = new Uri.file(path);
-    Uri destination = new Uri.file(target);
-    String result = base.resolveUri(link).resolveUri(destination).toFilePath();
-    if (result.length > 3 && result[1] == ':' && result[2] == '\\') {
-      return '\\??\\$result';
-    } else {
-      throw new FileSystemException(
-          'Target $result of Link.create on Windows cannot be converted'
-          ' to start with a drive letter.  Unexpected error.');
-    }
   }
 
   void updateSync(String target) {

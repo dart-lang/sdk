@@ -46,7 +46,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier;
+        templateExpectedIdentifier,
+        templateUnexpectedToken;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
@@ -98,6 +99,12 @@ class AstBuilder extends StackListener {
 
   /// `true` if non-nullable behavior is enabled
   bool enableNonNullable = false;
+
+  /// `true` if spread-collections behavior is enabled
+  bool enableSpreadCollections = false;
+
+  /// `true` if control-flow-collections behavior is enabled
+  bool enableControlFlowCollections = false;
 
   /// Is `true` if [enableNonNullable] is enabled, and the library directive
   /// is annotated with `@pragma('analyzer:non-nullable')`.
@@ -268,6 +275,62 @@ class AstBuilder extends StackListener {
     debugEvent("Script");
 
     scriptTag = ast.scriptTag(token);
+  }
+
+  void beginIfControlFlow(Token ifToken) {
+    push(ifToken);
+  }
+
+  @override
+  void handleElseControlFlow(Token elseToken) {
+    push(elseToken);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    var thenElement = pop();
+    ParenthesizedExpression condition = pop();
+    Token ifToken = pop();
+    pushIfControlFlowInfo(ifToken, condition, thenElement, null, null);
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    var elseElement = pop();
+    Token elseToken = pop();
+    var thenElement = pop();
+    ParenthesizedExpression condition = pop();
+    Token ifToken = pop();
+    pushIfControlFlowInfo(
+        ifToken, condition, thenElement, elseToken, elseElement);
+  }
+
+  void pushIfControlFlowInfo(Token ifToken, ParenthesizedExpression condition,
+      var thenElement, Token elseToken, var elseElement) {
+    if (enableControlFlowCollections) {
+      push(new _IfControlFlowInfo(
+          ifToken,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          thenElement,
+          elseToken,
+          elseElement));
+    } else {
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+      push(thenElement);
+    }
+  }
+
+  @override
+  void handleSpreadExpression(Token spreadToken) {
+    if (enableSpreadCollections) {
+      push(ast.spreadElement(spreadOperator: spreadToken, expression: pop()));
+    } else {
+      handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
+          spreadToken, spreadToken);
+    }
   }
 
   void handleStringJuxtaposition(int literalCount) {
@@ -802,25 +865,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
     assert(optional('for', forKeyword));
     assert(optional('(', leftParen));
     assert(optional(';', leftSeparator));
-    debugEvent("ForStatement");
+    assert(updateExpressionCount >= 0);
 
-    Statement body = pop();
     List<Expression> updates = popTypedList(updateExpressionCount);
     Statement conditionStatement = pop();
     Object initializerPart = pop();
-
-    VariableDeclarationList variableList;
-    Expression initializer;
-    if (initializerPart is VariableDeclarationStatement) {
-      variableList = initializerPart.variables;
-    } else {
-      initializer = initializerPart as Expression;
-    }
 
     Expression condition;
     Token rightSeparator;
@@ -831,17 +885,89 @@ class AstBuilder extends StackListener {
       rightSeparator = (conditionStatement as EmptyStatement).semicolon;
     }
 
-    push(ast.forStatement(
-        forKeyword,
-        leftParen,
-        variableList,
-        initializer,
-        leftSeparator,
-        condition,
-        rightSeparator,
-        updates,
-        leftParen?.endGroup,
-        body));
+    ForParts forLoopParts;
+    if (initializerPart is VariableDeclarationStatement) {
+      forLoopParts = ast.forPartsWithDeclarations(
+        variables: initializerPart.variables,
+        leftSeparator: leftSeparator,
+        condition: condition,
+        rightSeparator: rightSeparator,
+        updaters: updates,
+      );
+    } else {
+      forLoopParts = ast.forPartsWithExpression(
+        initialization: initializerPart as Expression,
+        leftSeparator: leftSeparator,
+        condition: condition,
+        rightSeparator: rightSeparator,
+        updaters: updates,
+      );
+    }
+
+    push(forKeyword);
+    push(leftParen);
+    push(forLoopParts);
+  }
+
+  @override
+  void endForControlFlow(Token token) {
+    debugEvent("endForControlFlow");
+    var entry = pop();
+    ForParts forLoopParts = pop();
+    Token leftParen = pop();
+    Token forToken = pop();
+
+    pushForControlFlowInfo(null, forToken, leftParen, forLoopParts, entry);
+  }
+
+  void pushForControlFlowInfo(Token awaitToken, Token forToken,
+      Token leftParenthesis, ForLoopParts forLoopParts, Object entry) {
+    if (enableControlFlowCollections) {
+      push(new _ForControlFlowInfo(awaitToken, forToken, leftParenthesis,
+          forLoopParts, leftParenthesis.endGroup, entry));
+    } else {
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(forToken), forToken, forToken);
+      push(entry);
+    }
+  }
+
+  @override
+  void endForStatement(Token endToken) {
+    debugEvent("ForStatement");
+    Statement body = pop();
+    ForParts forLoopParts = pop();
+    Token leftParen = pop();
+    Token forToken = pop();
+
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      push(ast.forStatement2(
+        forKeyword: forToken,
+        leftParenthesis: leftParen,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParen.endGroup,
+        body: body,
+      ));
+    } else {
+      VariableDeclarationList variableList;
+      Expression initializer;
+      if (forLoopParts is ForPartsWithDeclarations) {
+        variableList = forLoopParts.variables;
+      } else {
+        initializer = (forLoopParts as ForPartsWithExpression).initialization;
+      }
+      push(ast.forStatement(
+          forToken,
+          leftParen,
+          variableList,
+          initializer,
+          forLoopParts.leftSeparator,
+          forLoopParts.condition,
+          forLoopParts.rightSeparator,
+          forLoopParts.updaters,
+          leftParen?.endGroup,
+          body));
+    }
   }
 
   void handleLiteralList(
@@ -851,10 +977,28 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    List<Expression> expressions = popTypedList(count);
-    TypeArgumentList typeArguments = pop();
-    push(ast.listLiteral(
-        constKeyword, typeArguments, leftBracket, expressions, rightBracket));
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<CollectionElement> elements = <CollectionElement>[];
+      popTypedList(count)?.forEach((element) {
+        elements.add(element is _EntryInfo
+            ? element.asCollectionElement(ast)
+            : element as CollectionElement);
+      });
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.listLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<Expression> expressions = popTypedList(count);
+      TypeArgumentList typeArguments = pop();
+      push(ast.listLiteral(
+          constKeyword, typeArguments, leftBracket, expressions, rightBracket));
+    }
   }
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
@@ -898,13 +1042,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     // TODO(danrubel): From a type resolution standpoint, this could be either
     // a set literal or a map literal depending upon the context
     // in which this expression occurs.
-    // For now, generate a map literal.
-    handleLiteralMap(0, leftBrace, constKeyword, rightBrace);
+    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
   }
 
   void handleLiteralSet(
@@ -914,10 +1057,28 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralSet");
 
-    List<Expression> entries = popTypedList(count) ?? <Expression>[];
-    TypeArgumentList typeArguments = pop();
-    push(ast.setLiteral(
-        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<CollectionElement> elements = <CollectionElement>[];
+      popTypedList(count)?.forEach((element) {
+        elements.add(element is _EntryInfo
+            ? element.asCollectionElement(ast)
+            : element as CollectionElement);
+      });
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.setLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<Expression> entries = popTypedList(count) ?? <Expression>[];
+      TypeArgumentList typeArguments = pop();
+      push(ast.setLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    }
   }
 
   void handleLiteralMap(
@@ -927,10 +1088,34 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralMap");
 
-    List<MapLiteralEntry> entries = popTypedList(count) ?? <MapLiteralEntry>[];
-    TypeArgumentList typeArguments = pop();
-    push(ast.mapLiteral(
-        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<MapElement> entries = <MapElement>[];
+      popTypedList(count)?.forEach((entry) {
+        entries.add(entry is _EntryInfo
+            ? entry.asMapElement(ast)
+            : entry as MapElement);
+      });
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.mapLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        entries: entries,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+      popTypedList(count)?.forEach((entry) {
+        if (entry is MapLiteralEntry) {
+          entries.add(entry);
+        }
+      });
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.mapLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    }
   }
 
   void handleLiteralMapEntry(Token colon, Token endToken) {
@@ -1154,33 +1339,29 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
     assert(optionalOrNull('await', awaitToken));
     assert(optional('for', forToken));
     assert(optional('(', leftParenthesis));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
-    debugEvent("ForInExpression");
 
-    Statement body = pop();
     Expression iterator = pop();
     Object variableOrDeclaration = pop();
+
+    ForEachParts forLoopParts;
     if (variableOrDeclaration is VariableDeclarationStatement) {
       VariableDeclarationList variableList = variableOrDeclaration.variables;
-      push(ast.forEachStatementWithDeclaration(
-          awaitToken,
-          forToken,
-          leftParenthesis,
-          ast.declaredIdentifier(
-              variableList.documentationComment,
-              variableList.metadata,
-              variableList.keyword,
-              variableList.type,
-              variableList.variables.first.name),
-          inKeyword,
-          iterator,
-          leftParenthesis?.endGroup,
-          body));
+      forLoopParts = ast.forEachPartsWithDeclaration(
+        loopVariable: ast.declaredIdentifier(
+            variableList.documentationComment,
+            variableList.metadata,
+            variableList.keyword,
+            variableList.type,
+            variableList.variables.first.name),
+        inKeyword: inKeyword,
+        iterable: iterator,
+      );
     } else {
       if (variableOrDeclaration is! SimpleIdentifier) {
         // Parser has already reported the error.
@@ -1192,13 +1373,70 @@ class AstBuilder extends StackListener {
         }
         variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next);
       }
+      forLoopParts = ast.forEachPartsWithIdentifier(
+        identifier: variableOrDeclaration,
+        inKeyword: inKeyword,
+        iterable: iterator,
+      );
+    }
+
+    push(awaitToken ?? NullValue.AwaitToken);
+    push(forToken);
+    push(leftParenthesis);
+    push(forLoopParts);
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    debugEvent("endForInControlFlow");
+
+    var entry = pop();
+    ForEachParts forLoopParts = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
+    pushForControlFlowInfo(
+        awaitToken, forToken, leftParenthesis, forLoopParts, entry);
+  }
+
+  @override
+  void endForIn(Token endToken) {
+    debugEvent("ForInExpression");
+
+    Statement body = pop();
+    ForEachParts forLoopParts = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      push(ast.forStatement2(
+        awaitKeyword: awaitToken,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup,
+        body: body,
+      ));
+    } else if (forLoopParts is ForEachPartsWithDeclaration) {
+      push(ast.forEachStatementWithDeclaration(
+          awaitToken,
+          forToken,
+          leftParenthesis,
+          forLoopParts.loopVariable,
+          forLoopParts.inKeyword,
+          forLoopParts.iterable,
+          leftParenthesis?.endGroup,
+          body));
+    } else {
       push(ast.forEachStatementWithReference(
           awaitToken,
           forToken,
           leftParenthesis,
-          variableOrDeclaration,
-          inKeyword,
-          iterator,
+          (forLoopParts as ForEachPartsWithIdentifier).identifier,
+          forLoopParts.inKeyword,
+          forLoopParts.iterable,
           leftParenthesis?.endGroup,
           body));
     }
@@ -3031,4 +3269,95 @@ class _ConstructorNameWithInvalidTypeArgs {
   final TypeArgumentList invalidTypeArgs;
 
   _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
+}
+
+abstract class _EntryInfo {
+  CollectionElement asCollectionElement(AstFactory ast);
+  MapElement asMapElement(AstFactory ast);
+}
+
+class _ForControlFlowInfo implements _EntryInfo {
+  final Token awaitToken;
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final ForLoopParts forLoopParts;
+  final Token rightParenthesis;
+  final entry;
+
+  _ForControlFlowInfo(this.awaitToken, this.forKeyword, this.leftParenthesis,
+      this.forLoopParts, this.rightParenthesis, this.entry);
+
+  @override
+  CollectionElement asCollectionElement(AstFactory ast) =>
+      ast.collectionForElement(
+        awaitKeyword: awaitToken,
+        forKeyword: forKeyword,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: rightParenthesis,
+        body: entry is _EntryInfo
+            ? entry.asCollectionElement(ast)
+            : entry as CollectionElement,
+      );
+
+  @override
+  MapElement asMapElement(AstFactory ast) => ast.mapForElement(
+        awaitKeyword: awaitToken,
+        forKeyword: forKeyword,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: rightParenthesis,
+        body:
+            entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement,
+      );
+}
+
+class _IfControlFlowInfo implements _EntryInfo {
+  final Token ifToken;
+  final Token leftParenthesis;
+  final Expression conditionExpression;
+  final Token rightParenthesis;
+  final thenElement;
+  final Token elseToken;
+  final elseElement;
+
+  _IfControlFlowInfo(
+      this.ifToken,
+      this.leftParenthesis,
+      this.conditionExpression,
+      this.rightParenthesis,
+      this.thenElement,
+      this.elseToken,
+      this.elseElement);
+
+  @override
+  CollectionElement asCollectionElement(AstFactory ast) =>
+      ast.collectionIfElement(
+        ifKeyword: ifToken,
+        leftParenthesis: leftParenthesis,
+        condition: conditionExpression,
+        rightParenthesis: rightParenthesis,
+        thenElement: thenElement is _EntryInfo
+            ? thenElement.asCollectionElement(ast)
+            : thenElement as CollectionElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement is _EntryInfo
+            ? elseElement.asCollectionElement(ast)
+            : elseElement as CollectionElement,
+      );
+
+  @override
+  MapElement asMapElement(AstFactory ast) => ast.mapIfElement(
+        ifKeyword: ifToken,
+        leftParenthesis: leftParenthesis,
+        condition: conditionExpression,
+        rightParenthesis: rightParenthesis,
+        thenElement: thenElement is _EntryInfo
+            ? thenElement.asMapElement(ast)
+            : thenElement as MapElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement is _EntryInfo
+            ? elseElement.asMapElement(ast)
+            : elseElement as MapElement,
+      );
 }

@@ -8,7 +8,6 @@
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/os.h"
-#include "vm/thread_stack_resource.h"
 
 namespace dart {
 
@@ -49,24 +48,9 @@ namespace dart {
 
 // Forward declarations.
 class ObjectPointerVisitor;
-class Thread;
+class HandleVisitor;
 
 DECLARE_FLAG(bool, verify_handles);
-
-class HandleVisitor {
- public:
-  explicit HandleVisitor(Thread* thread) : thread_(thread) {}
-  virtual ~HandleVisitor() {}
-
-  Thread* thread() const { return thread_; }
-
-  virtual void VisitHandle(uword addr) = 0;
-
- private:
-  Thread* thread_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
-};
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 class Handles {
@@ -108,7 +92,6 @@ class Handles {
   // Returns true if specified handle is a zone handle.
   static bool IsZoneHandle(uword handle);
 
- protected:
   // Allocates space for a scoped handle.
   uword AllocateScopedHandle() {
     if (scoped_blocks_->IsFull()) {
@@ -117,6 +100,7 @@ class Handles {
     return scoped_blocks_->AllocateHandle();
   }
 
+ protected:
   // Returns a count of active handles (used for testing purposes).
   int CountScopedHandles() const;
   int CountZoneHandles() const;
@@ -224,7 +208,7 @@ class Handles {
   friend class HandleScope;
   friend class Dart;
   friend class ObjectStore;
-  friend class Thread;
+  friend class ThreadState;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };
@@ -279,9 +263,9 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 //   code that creates some scoped handles.
 //   ....
 // }
-class HandleScope : public ThreadStackResource {
+class HandleScope : public StackResource {
  public:
-  explicit HandleScope(Thread* thread);
+  explicit HandleScope(ThreadState* thread);
   ~HandleScope();
 
  private:

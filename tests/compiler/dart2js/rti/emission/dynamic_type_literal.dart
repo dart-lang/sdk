@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-void main() {
+void main(bool b) {
   Expect.isTrue(dynamic is Type);
-  Expect.isFalse(dynamic == Type);
+  Expect.isFalse(dynamic == (b ? Type : dynamic)); // ?: avoids constant folding
 }

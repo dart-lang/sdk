@@ -9,13 +9,11 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DivisionOptimizationTest);
     defineReflectiveTests(DivisionOptimizationTest_Driver);
   });
 }
 
-@reflectiveTest
-class DivisionOptimizationTest extends ResolverTestCase {
+abstract class DivisionOptimizationTest extends ResolverTestCase {
   test_divisionOptimization() async {
     await assertNoErrorsInCode(r'''
 f(int x, int y) {

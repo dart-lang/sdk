@@ -417,6 +417,38 @@ class B extends A {
     expect(_getSuper('B', 'foo'), isNull);
   }
 
+  test_getMember_super_forMixin_interface() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M implements A {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getSuperForElement(findElement.mixin('M'), 'foo'),
+      isNull,
+    );
+  }
+
+  test_getMember_super_forMixin_superclassConstraint() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getSuperForElement(findElement.mixin('M'), 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
   test_getMember_super_fromMixin() async {
     addTestFile('''
 mixin M {
@@ -496,7 +528,12 @@ class B extends A {
   }
 
   ExecutableElement _getSuper(String className, String name) {
-    var type = findElement.class_(className).type;
+    var element = findElement.class_(className);
+    return _getSuperForElement(element, name);
+  }
+
+  ExecutableElement _getSuperForElement(ClassElement element, String name) {
+    var type = element.type;
     return manager
         .getMember(type, new Name(null, name), forSuper: true)
         ?.element;

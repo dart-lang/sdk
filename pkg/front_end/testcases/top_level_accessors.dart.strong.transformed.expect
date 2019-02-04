@@ -2,6 +2,7 @@ library top_level_accessors;
 import self as self;
 import "dart:core" as core;
 
+part top_level_accessors_part.dart;
 static set /* from org-dartlang-testcase:///top_level_accessors_part.dart */ exitCode(core::int code) → void {
   core::print(code);
 }

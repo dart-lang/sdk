@@ -67,6 +67,8 @@ class MemoryEnvironment implements EvaluationEnvironment {
 
   bool get checkCasts => true;
 
+  bool get immediateUnderSetLiteral => _environment.immediateUnderSetLiteral;
+
   @override
   String readFromEnvironment(String name) => env[name];
 
@@ -127,6 +129,11 @@ class MemoryEnvironment implements EvaluationEnvironment {
   @override
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {
     return _environment.evaluateField(field, evaluate);
+  }
+
+  @override
+  ConstantValue evaluateMapBody(ConstantValue evaluate()) {
+    return _environment.evaluateMapBody(evaluate);
   }
 
   @override

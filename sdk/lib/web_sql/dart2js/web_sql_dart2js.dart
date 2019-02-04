@@ -80,6 +80,7 @@ class SqlDatabase extends Interceptor {
 
   final String version;
 
+  @JSName('changeVersion')
   /**
    * Atomically update the database version to [newVersion], asynchronously
    * running [callback] on the [SqlTransaction] representing this
@@ -94,14 +95,51 @@ class SqlDatabase extends Interceptor {
    *
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
-  void changeVersion(String oldVersion, String newVersion,
+  void _changeVersion(String oldVersion, String newVersion,
       [SqlTransactionCallback callback,
       SqlTransactionErrorCallback errorCallback,
       VoidCallback successCallback]) native;
 
-  void readTransaction(SqlTransactionCallback callback,
+  @JSName('changeVersion')
+  /**
+   * Atomically update the database version to [newVersion], asynchronously
+   * running [callback] on the [SqlTransaction] representing this
+   * [changeVersion] transaction.
+   *
+   * If [callback] runs successfully, then [successCallback] is called.
+   * Otherwise, [errorCallback] is called.
+   *
+   * [oldVersion] should match the database's current [version] exactly.
+   *
+   * See also:
+   *
+   * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
+   */
+  Future<SqlTransaction> changeVersion(String oldVersion, String newVersion) {
+    var completer = new Completer<SqlTransaction>();
+    _changeVersion(oldVersion, newVersion, (value) {
+      completer.complete(value);
+    }, (error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
+
+  @JSName('readTransaction')
+  void _readTransaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
       VoidCallback successCallback]) native;
+
+  @JSName('readTransaction')
+  Future<SqlTransaction> readTransaction() {
+    var completer = new Completer<SqlTransaction>();
+    _readTransaction((value) {
+      completer.complete(value);
+    }, (error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
 
   void transaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,

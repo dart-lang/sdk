@@ -1,4 +1,146 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:46:50: Error: The constructor returns type 'A<int, dynamic>' that isn't of expected type 'A<int, String>'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Change the type of the object being constructed or the context in which it is used.
+//         a4 = /*error:INVALID_CAST_NEW_EXPR*/ new A<int, dynamic>(3, "hello");
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:48:50: Error: The constructor returns type 'A<dynamic, dynamic>' that isn't of expected type 'A<int, String>'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Change the type of the object being constructed or the context in which it is used.
+//         a5 = /*error:INVALID_CAST_NEW_EXPR*/ new A<dynamic, dynamic>.named(
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:53:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:54:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:56:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:57:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:65:47: Error: A value of type 'B<String, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
+//  - 'B' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'A<int, String>'.
+//         a4 = /*error:INVALID_ASSIGNMENT*/ new B<String, dynamic>("hello", 3);
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:67:47: Error: A value of type 'B<dynamic, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
+//  - 'B' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'A<int, String>'.
+//         a5 = /*error:INVALID_ASSIGNMENT*/ new B<dynamic, dynamic>.named(
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:72:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3,
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:73:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello");
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:75:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3,
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:76:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello");
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:83:55: Error: A value of type 'C<dynamic>' can't be assigned to a variable of type 'A<int, int>'.
+//  - 'C' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'A<int, int>'.
+//     A<int, int> a4 = /*error:INVALID_ASSIGNMENT*/ new C<dynamic>(3);
+//                                                       ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:84:55: Error: A value of type 'C<dynamic>' can't be assigned to a variable of type 'A<int, int>'.
+//  - 'C' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'A<int, int>'.
+//     A<int, int> a5 = /*error:INVALID_ASSIGNMENT*/ new C<dynamic>.named(3);
+//                                                       ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:88:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello");
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:90:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello");
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:98:47: Error: A value of type 'D<num, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
+//  - 'D' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'A<int, String>'.
+//         a4 = /*error:INVALID_ASSIGNMENT*/ new D<num, dynamic>("hello");
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:100:47: Error: A value of type 'D<dynamic, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
+//  - 'D' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'A<int, String>'.
+//         a5 = /*error:INVALID_ASSIGNMENT*/ new D<dynamic, dynamic>.named(
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:105:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:107:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:118:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//           /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
+//                                                      ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:121:54: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//           /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
+//                                                      ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:129:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:130:48: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+// Try changing the type of the parameter, or casting the argument to 'String'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
+//                                                ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:134:48: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// Try changing the type of the parameter, or casting the argument to 'int'.
+//         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello");
+//                                                ^
+//
 import self as self;
 import "dart:core" as core;
 

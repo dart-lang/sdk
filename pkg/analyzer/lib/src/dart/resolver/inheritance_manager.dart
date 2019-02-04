@@ -798,7 +798,7 @@ class InheritanceManager {
     List<ParameterElement> parameters = executableElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameterElement = parameters[i];
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       if (parameterElement.parameterKind == parameterKind) {
         parameterCount++;
       }

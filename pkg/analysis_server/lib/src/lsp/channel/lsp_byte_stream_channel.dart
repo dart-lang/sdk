@@ -62,7 +62,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       onError: onError,
       onDone: () {
         close();
-        onDone();
+        if (onDone != null) {
+          onDone();
+        }
       },
     );
   }

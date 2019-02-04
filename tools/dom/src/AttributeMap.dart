@@ -107,11 +107,8 @@ class _ElementAttributeMap extends _AttributeMap {
     _element.setAttribute(key, value);
   }
 
-  String remove(Object key) {
-    String value = _element.getAttribute(key);
-    _element._removeAttribute(key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -121,6 +118,21 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == null;
+
+  // Inline this because almost all call sites of [remove] do not use [value],
+  // and the annotations on the `getAttribute` call allow it to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttribute(#)',
+        element,
+        key);
+    JS('', '#.removeAttribute(#)', element, key);
+    return value;
+  }
 }
 
 /**
@@ -143,11 +155,9 @@ class _NamespacedAttributeMap extends _AttributeMap {
     _element.setAttributeNS(_namespace, key, value);
   }
 
-  String remove(Object key) {
-    String value = this[key];
-    _element._removeAttributeNS(_namespace, key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) =>
+      key is String ? _remove(_namespace, _element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -157,6 +167,23 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == _namespace;
+
+  // Inline this because almost all call sites of [remove] do not use the
+  // returned [value], and the annotations on the `getAttributeNS` call allow it
+  // to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(String namespace, Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttributeNS(#, #)',
+        element,
+        namespace,
+        key);
+    JS('', '#.removeAttributeNS(#, #)', element, namespace, key);
+    return value;
+  }
 }
 
 /**

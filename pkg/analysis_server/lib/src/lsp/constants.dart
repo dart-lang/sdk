@@ -56,3 +56,7 @@ abstract class ServerErrorCodes {
   ///   if it crashes 5 times in the last 180 seconds."
   static const ClientServerInconsistentState = const ErrorCodes(-32010);
 }
+
+abstract class CustomMethods {
+  static const DiagnosticServer = const Method('dart/diagnosticServer');
+}

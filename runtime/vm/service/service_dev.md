@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.14-dev
+# Dart VM Service Protocol 3.15-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.14-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.15-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -842,6 +842,10 @@ The following flags may be set at runtime:
  * pause_isolates_on_start
  * pause_isolates_on_exit
  * pause_isolates_on_unhandled_exceptions
+ * profile_period
+
+Note: `profile_period` can be set to a minimum value of 50. Attempting to set
+`profile_period` to a lower value will result in a value of 50 being set.
 
 See [Success](#success).
 
@@ -2389,8 +2393,9 @@ class Script extends Object {
   // scripts.
   string source [optional];
 
-  // A table encoding a mapping from token position to line and column.
-  int[][] tokenPosTable;
+  // A table encoding a mapping from token position to line and column. This
+  // field is null if sources aren't available.
+  int[][] tokenPosTable [optional];
 }
 ```
 
@@ -2732,5 +2737,6 @@ version | comments
 3.11 | Rename 'invoke' parameter 'receiverId' to 'targetId.
 3.12 | Add 'getScripts' RPC and `ScriptList` object.
 3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
+3.14 | Flag 'profile_period' can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

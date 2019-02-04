@@ -767,7 +767,7 @@ class SourceLoader<L> extends Loader<L> {
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (!library.isPatch &&
-          (library.loader == this || library.fileUri.scheme == "dart")) {
+          (library.loader == this || library.uri.scheme == "dart")) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
         }
@@ -926,16 +926,12 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildClassHierarchy(
+  ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    if (!target.legacyMode) return;
-    ticker.logMs("Building class hierarchy");
-    ClassHierarchyBuilder classHierarchyBuilder =
-        new ClassHierarchyBuilder(objectClass);
-    for (int i = 0; i < sourceClasses.length; i++) {
-      classHierarchyBuilder.add(sourceClasses[i]);
-    }
+    ClassHierarchyBuilder hierarchy =
+        ClassHierarchyBuilder.build(objectClass, sourceClasses);
     ticker.logMs("Built class hierarchy");
+    return hierarchy;
   }
 
   void createTypeInferenceEngine() {
@@ -1117,6 +1113,8 @@ class SourceLoader<L> extends Loader<L> {
 const String defaultDartCoreSource = """
 import 'dart:_internal';
 import 'dart:async';
+
+export 'dart:async' show Future, Stream;
 
 print(object) {}
 

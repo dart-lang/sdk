@@ -41,7 +41,9 @@ class VirtualMemory {
   // the requested size cannot be allocated, NULL is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
-                                 const char* name);
+                                 const char* name) {
+    return AllocateAligned(size, PageSize(), is_executable, name);
+  }
   static VirtualMemory* AllocateAligned(intptr_t size,
                                         intptr_t alignment,
                                         bool is_executable,

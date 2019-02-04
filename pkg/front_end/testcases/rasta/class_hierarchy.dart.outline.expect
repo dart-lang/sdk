@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
 // class C = Object with Missing;
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Warning: Redirection constructor target not found: 'Missing'
 //   factory D() = Missing;
 //           ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

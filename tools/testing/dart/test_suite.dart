@@ -47,8 +47,6 @@ typedef void CreateTest(Path filePath, Path originTestPath,
     {bool hasSyntaxError,
     bool hasCompileError,
     bool hasRuntimeError,
-    bool isNegativeIfChecked,
-    bool hasCompileErrorIfChecked,
     bool hasStaticWarning,
     String multitestKey});
 
@@ -185,14 +183,6 @@ abstract class TestSuite {
         : '$buildDir/dart$executableBinarySuffix';
   }
 
-  /// Returns the name of the flutter engine executable.
-  String get flutterEngineBinaryFileName {
-    // Controlled by user with the option "--flutter".
-    var flutterExecutable = configuration.flutterPath;
-    TestUtils.ensureExists(flutterExecutable, configuration);
-    return flutterExecutable;
-  }
-
   String get dartPrecompiledBinaryFileName {
     // Controlled by user with the option "--dart_precompiled".
     var dartExecutable = configuration.dartPrecompiledPath;
@@ -287,8 +277,7 @@ abstract class TestSuite {
     var negative = info != null ? isNegative(info) : false;
     var testCase = new TestCase(
         displayName, commands, configuration, expectations,
-        isNegative: negative, info: info);
-
+        info: info);
     if (negative &&
         configuration.runtimeConfiguration.shouldSkipNegativeTests) {
       return;
@@ -314,8 +303,7 @@ abstract class TestSuite {
     if (configuration.hotReload || configuration.hotReloadRollback) {
       // Handle reload special cases.
       if (expectations.contains(Expectation.compileTimeError) ||
-          testCase.hasCompileError ||
-          testCase.expectCompileError) {
+          testCase.hasCompileError) {
         // Running a test that expects a compilation error with hot reloading
         // is redundant with a regular run of the test.
         return;
@@ -345,22 +333,9 @@ abstract class TestSuite {
     doTest(testCase);
   }
 
-  bool expectCompileError(TestInformation info) {
-    return info.hasCompileError ||
-        (configuration.isChecked && info.hasCompileErrorIfChecked);
-  }
-
-  bool isNegative(TestInformation info) {
-    if (info.hasRuntimeError && configuration.runtime != Runtime.none) {
-      return true;
-    }
-
-    if (info.isNegativeIfChecked && configuration.isChecked) {
-      return true;
-    }
-
-    return expectCompileError(info);
-  }
+  bool isNegative(TestInformation info) =>
+      info.hasCompileError ||
+      info.hasRuntimeError && configuration.runtime != Runtime.none;
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath) {
@@ -531,8 +506,6 @@ class TestInformation {
   bool hasSyntaxError;
   bool hasCompileError;
   bool hasRuntimeError;
-  bool isNegativeIfChecked;
-  bool hasCompileErrorIfChecked;
   bool hasStaticWarning;
   String multitestKey;
 
@@ -543,8 +516,6 @@ class TestInformation {
       this.hasSyntaxError,
       this.hasCompileError,
       this.hasRuntimeError,
-      this.isNegativeIfChecked,
-      this.hasCompileErrorIfChecked,
       this.hasStaticWarning,
       {this.multitestKey: ''}) {
     assert(filePath.isAbsolute);
@@ -784,7 +755,7 @@ class StandardTestSuite extends TestSuite {
       }
     }
     if (configuration.compilerConfiguration.hasCompiler &&
-        expectCompileError(info)) {
+        info.hasCompileError) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -875,7 +846,7 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (expectCompileError(info) &&
+    if (info.hasCompileError &&
         compilerConfiguration.hasCompiler &&
         !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
@@ -908,21 +879,11 @@ class StandardTestSuite extends TestSuite {
         {bool hasSyntaxError,
         bool hasCompileError,
         bool hasRuntimeError,
-        bool isNegativeIfChecked: false,
-        bool hasCompileErrorIfChecked: false,
         bool hasStaticWarning: false,
         String multitestKey}) {
       // Cache the test information for each test case.
-      var info = new TestInformation(
-          filePath,
-          originTestPath,
-          optionsFromFile,
-          hasSyntaxError,
-          hasCompileError,
-          hasRuntimeError,
-          isNegativeIfChecked,
-          hasCompileErrorIfChecked,
-          hasStaticWarning,
+      var info = new TestInformation(filePath, originTestPath, optionsFromFile,
+          hasSyntaxError, hasCompileError, hasRuntimeError, hasStaticWarning,
           multitestKey: multitestKey);
       cachedTests.add(info);
       enqueueTestCaseFromTestInformation(info);

@@ -24,11 +24,11 @@ class FlutterSwapWithParentTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-    body: new Center(
-      child: new /*caret*/GestureDetector(
+  return Scaffold(
+    body: Center(
+      child: /*caret*/GestureDetector(
         onTap: () => startResize(),
-        child: new Container(
+        child: Container(
           width: 200.0,
           height: 300.0,
         ),
@@ -42,12 +42,12 @@ startResize() {}
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-    body: new /*caret*/GestureDetector(
+  return Scaffold(
+    body: GestureDetector(
       onTap: () => startResize(),
-      child: new Center(
+      child: Center(
         key: null,
-        child: new Container(
+        child: Container(
           width: 200.0,
           height: 300.0,
         ),
@@ -66,15 +66,15 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => new _State();
+  _State createState() => _State();
 }
 
 class _State extends State<Foo> {
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new /*caret*/Expanded(
-        child: new Text(
+    return GestureDetector(
+      child: /*caret*/Expanded(
+        child: Text(
           'foo',
         ),
         flex: 2,
@@ -89,19 +89,19 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => new _State();
+  _State createState() => _State();
 }
 
 class _State extends State<Foo> {
   @override
   Widget build(BuildContext context) {
-    return new /*caret*/Expanded(
+    return Expanded(
       flex: 2,
-      child: new GestureDetector(
+      child: GestureDetector(
         onTap: () {
           print(42);
       },
-        child: new Text(
+        child: Text(
           'foo',
         ),
       ),
@@ -115,14 +115,14 @@ class _State extends State<Foo> {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: [
-      new Column(
+      Column(
         children: [
-          new Padding(
-            padding: new EdgeInsets.all(16.0),
-            child: new /*caret*/Center(
-              child: new Column(
+          Padding(
+            padding: EdgeInsets.all(16.0),
+            child: /*caret*/Center(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[],
               ),
@@ -137,14 +137,14 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: [
-      new Column(
+      Column(
         children: [
-          new /*caret*/Center(
-            child: new Padding(
-              padding: new EdgeInsets.all(16.0),
-              child: new Column(
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[],
               ),

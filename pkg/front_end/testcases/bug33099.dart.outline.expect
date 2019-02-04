@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:mirrors" as mir;
 
+import "dart:mirrors";
+
 class _FailingTest extends core::Object {
   const constructor •() → self::_FailingTest
     ;

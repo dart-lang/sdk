@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:46: Warning: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
 //   T /*@error=OverrideTypeVariablesMismatch*/ m<T>(
@@ -13,8 +15,7 @@
 // pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
 //   dynamic g(int x) => x;
 //           ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

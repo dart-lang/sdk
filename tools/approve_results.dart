@@ -197,6 +197,13 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
       }
       final name = result["name"];
       final test = new Test(bot, name, result, approvedResult, flakiness);
+      final dropApproval =
+          test.matches ? options["failures-only"] : options["successes-only"];
+      if (dropApproval && !test.isApproved) {
+        if (approvedResult == null) continue;
+        result.clear();
+        result.addAll(approvedResult);
+      }
       tests.add(test);
     }
     // If preapproving and the CL has introduced new tests, add the new tests
@@ -222,11 +229,16 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
 
 main(List<String> args) async {
   final parser = new ArgParser();
+  parser.addFlag("automated-approver",
+      help: "Record the approval as done by an automated process.",
+      negatable: false);
   parser.addMultiOption("bot",
       abbr: "b",
       help: "Select the bots matching the glob pattern [option is repeatable]",
       splitCommas: false);
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
+  parser.addFlag("failures-only",
+      help: "Approve failures only.", negatable: false);
   parser.addFlag("list",
       abbr: "l", help: "List the available bots.", negatable: false);
   parser.addFlag("no",
@@ -235,10 +247,17 @@ main(List<String> args) async {
       negatable: false);
   parser.addOption("preapprove",
       abbr: "p", help: "Preapprove the new failures in a gerrit CL.");
+  parser.addFlag("successes-only",
+      help: "Approve successes only.", negatable: false);
   parser.addFlag("verbose",
       abbr: "v", help: "Describe asynchronous operations.", negatable: false);
   parser.addFlag("yes",
       abbr: "y", help: "Approve the results.", negatable: false);
+  parser.addOption("table",
+      abbr: "T",
+      help: "Select table format.",
+      allowed: ["markdown", "indent"],
+      defaultsTo: "markdown");
 
   final options = parser.parse(args);
   if ((options["preapprove"] == null &&
@@ -261,6 +280,10 @@ ${parser.usage}""");
     exitCode = 1;
     return;
   }
+
+  // Locate gsutil.py.
+  gsutilPy =
+      Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
 
   // Load the list of bots according to the test matrix.
   final testMatrixPath =
@@ -427,7 +450,7 @@ ${parser.usage}""");
   for (final bot in bots) {
     if (options["preapprove"] != null &&
         changelistBuilds[bot]["status"] != "COMPLETED") {
-      stderr.writeln("error: The try run for $bot isn't complete yet" +
+      stderr.writeln("error: The try run for $bot isn't complete yet: " +
           changelistBuilds[bot]["status"]);
       anyIncomplete = true;
     }
@@ -493,26 +516,38 @@ ${parser.usage}""");
   int longestBot = "BOT/CONFIG".length;
   int longestTest = "TEST".length;
   int longestResult = "RESULT".length;
+  int longestExpected = "EXPECTED".length;
   for (final test in unapprovedTests) {
     unapprovedBots.add(test.bot);
     final botDisplayName = getBotDisplayName(test.bot, test.configuration);
     longestBot = max(longestBot, botDisplayName.length);
-    if (!test.matches) {
-      longestTest = max(longestTest, test.name.length);
-      longestResult = max(longestResult, test.result.length);
-    }
+    longestTest = max(longestTest, test.name.length);
+    longestResult = max(longestResult, test.result.length);
+    longestExpected = max(longestExpected, test.expected.length);
   }
   longestTest = min(longestTest, 120); // Some tests names are extremely long.
 
   // Table of lists that now succeed.
   if (fixedTests.isNotEmpty) {
     print("The following tests are now succeeding:\n");
-    print("${'BOT/CONFIG'.padRight(longestBot)}  "
-        "TEST");
+    if (options["table"] == "markdown") {
+      print("| ${'BOT/CONFIG'.padRight(longestBot)} "
+          "| ${'TEST'.padRight(longestTest)} |");
+      print("| ${'-' * longestBot} "
+          "| ${'-' * longestTest} |");
+    } else if (options["table"] == "indent") {
+      print("${'BOT/CONFIG'.padRight(longestBot)}  "
+          "TEST");
+    }
     for (final test in fixedTests) {
       final botDisplayName = getBotDisplayName(test.bot, test.configuration);
-      print("${botDisplayName.padRight(longestBot)}  "
-          "${test.name}");
+      if (options["table"] == "markdown") {
+        print("| ${botDisplayName.padRight(longestBot)} "
+            "| ${test.name.padRight(longestTest)} |");
+      } else if (options["table"] == "indent") {
+        print("${botDisplayName.padRight(longestBot)}  "
+            "${test.name}");
+      }
     }
     print("");
   }
@@ -520,16 +555,34 @@ ${parser.usage}""");
   /// Table of lists that now fail.
   if (brokenTests.isNotEmpty) {
     print("The following tests are now failing:\n");
-    print("${'BOT'.padRight(longestBot)}  "
-        "${'TEST'.padRight(longestTest)}  "
-        "${'RESULT'.padRight(longestResult)}  "
-        "EXPECTED");
+    if (options["table"] == "markdown") {
+      print("| ${'BOT'.padRight(longestBot)} "
+          "| ${'TEST'.padRight(longestTest)} "
+          "| ${'RESULT'.padRight(longestResult)} "
+          "| ${'EXPECTED'.padRight(longestExpected)} | ");
+      print("| ${'-' * longestBot} "
+          "| ${'-' * longestTest} "
+          "| ${'-' * longestResult} "
+          "| ${'-' * longestExpected} | ");
+    } else if (options["table"] == "indent") {
+      print("${'BOT'.padRight(longestBot)}  "
+          "${'TEST'.padRight(longestTest)}  "
+          "${'RESULT'.padRight(longestResult)}  "
+          "EXPECTED");
+    }
     for (final test in brokenTests) {
       final botDisplayName = getBotDisplayName(test.bot, test.configuration);
-      print("${botDisplayName.padRight(longestBot)}  "
-          "${test.name.padRight(longestTest)}  "
-          "${test.result.padRight(longestResult)}  "
-          "${test.expected}");
+      if (options["table"] == "markdown") {
+        print("| ${botDisplayName.padRight(longestBot)} "
+            "| ${test.name.padRight(longestTest)} "
+            "| ${test.result.padRight(longestResult)} "
+            "| ${test.expected.padRight(longestExpected)} |");
+      } else if (options["table"] == "indent") {
+        print("${botDisplayName.padRight(longestBot)}  "
+            "${test.name.padRight(longestTest)}  "
+            "${test.result.padRight(longestResult)}  "
+            "${test.expected}");
+      }
     }
     print("");
   }
@@ -602,9 +655,11 @@ ${parser.usage}""");
   print("");
 
   // Log who approved these results.
-  final username = Platform.environment["LOGNAME"] ??
-      Platform.environment["USER"] ??
-      Platform.environment["USERNAME"];
+  final username =
+      (options["automated-approver"] ? "automatic-approval" : null) ??
+          Platform.environment["LOGNAME"] ??
+          Platform.environment["USER"] ??
+          Platform.environment["USERNAME"];
   if (username == null || username == "") {
     stderr.writeln("error: Your identity could not be established. "
         "Please set one of the LOGNAME, USER, USERNAME environment variables.");
@@ -629,12 +684,14 @@ ${parser.usage}""");
     final futures = <Future>[];
     for (final String bot in unapprovedBots) {
       Map<String, dynamic> approveData(Test test) {
-        final data = new Map<String, dynamic>.from(test.resultData);
-        if (!test.isApproved) {
+        if (test.isApproved) {
+          return test.approvedResultData;
+        } else {
+          final data = new Map<String, dynamic>.from(test.resultData);
           data["approver"] = username;
           data["approved_at"] = now;
+          return data;
         }
-        return data;
       }
 
       final dataList = testsForBots[bot].map(approveData).toList();

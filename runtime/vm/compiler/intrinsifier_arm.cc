@@ -109,7 +109,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ bic(R2, R2, Operand(kObjectAlignment - 1));                               \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ ldr(R0, Address(THR, Thread::top_offset()));                              \
                                                                                \
   /* R2: allocation size. */                                                   \
@@ -176,7 +175,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));          \
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));                 \
   __ Ret();                                                                    \
   __ Bind(normal_ir_body);
 
@@ -1943,7 +1942,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ bic(length_reg, length_reg, Operand(kObjectAlignment - 1));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ ldr(R0, Address(THR, Thread::top_offset()));
 
   // length_reg: allocation size.
@@ -1993,7 +1991,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ LoadImmediate(TMP, 0);
   __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, String::hash_offset()), TMP);
 
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
   __ b(ok);
 
   __ Bind(&fail);
@@ -2227,10 +2225,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  if (!FLAG_support_timeline) {
-    __ LoadObject(R0, Bool::False());
-    __ Ret();
-  }
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadObject(R0, Bool::False());
+  __ Ret();
+#else
   // Load TimelineStream*.
   __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
   // Load uintptr_t from TimelineStream*.
@@ -2239,6 +2237,7 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(R0, Bool::True(), NE);
   __ LoadObject(R0, Bool::False(), EQ);
   __ Ret();
+#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,

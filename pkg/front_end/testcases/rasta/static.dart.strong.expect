@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/static.dart:28:9: Error: Getter not found: 'staticSetter'.
 //     Foo.staticSetter;
@@ -175,8 +177,7 @@
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     use(Foo.staticField());
 //                        ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
@@ -263,19 +264,19 @@ static method main() → dynamic {
     self::use(self::Foo::staticSetter = invalid-expression "pkg/front_end/testcases/rasta/static.dart:51:15: Error: Getter not found: 'staticSetter'.
     use(++Foo.staticSetter);
               ^^^^^^^^^^^^".+(1));
-    let final dynamic #t11 = self::Foo::staticConstant in invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'int'.
+    invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticConstant();
                       ^";
-    self::use(let final dynamic #t12 = self::Foo::staticConstant in invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'int'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticConstant());
                           ^");
-    let final dynamic #t13 = self::Foo::staticField in invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'int'.
+    invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticField();
                    ^";
-    self::use(let final dynamic #t14 = self::Foo::staticField in invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'int'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticField());
                        ^");
@@ -314,29 +315,29 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::Foo::staticConstant.{core::Object::==}(null) ?{core::int} invalid-expression "pkg/front_end/testcases/rasta/static.dart:75:9: Error: Setter not found: 'staticConstant'.
     Foo.staticConstant ??= 87;
         ^^^^^^^^^^^^^^" : null;
-    self::use(let final core::int #t15 = self::Foo::staticConstant in #t15.{core::Object::==}(null) ?{core::int} invalid-expression "pkg/front_end/testcases/rasta/static.dart:76:13: Error: Setter not found: 'staticConstant'.
+    self::use(let final core::int #t11 = self::Foo::staticConstant in #t11.{core::Object::==}(null) ?{core::int} invalid-expression "pkg/front_end/testcases/rasta/static.dart:76:13: Error: Setter not found: 'staticConstant'.
     use(Foo.staticConstant ??= 87);
-            ^^^^^^^^^^^^^^" : #t15);
+            ^^^^^^^^^^^^^^" : #t11);
     self::Foo::staticField.{core::num::==}(null) ?{core::int} self::Foo::staticField = 87 : null;
-    self::use(let final core::int #t16 = self::Foo::staticField in #t16.{core::num::==}(null) ?{core::int} self::Foo::staticField = 87 : #t16);
+    self::use(let final core::int #t12 = self::Foo::staticField in #t12.{core::num::==}(null) ?{core::int} self::Foo::staticField = 87 : #t12);
     self::Foo::staticFunction.{core::Object::==}(null) ?{core::Object} invalid-expression "pkg/front_end/testcases/rasta/static.dart:79:9: Error: Setter not found: 'staticFunction'.
     Foo.staticFunction ??= 87;
         ^^^^^^^^^^^^^^" : null;
-    self::use(let final () → dynamic #t17 = self::Foo::staticFunction in #t17.{core::Object::==}(null) ?{core::Object} invalid-expression "pkg/front_end/testcases/rasta/static.dart:80:13: Error: Setter not found: 'staticFunction'.
+    self::use(let final () → dynamic #t13 = self::Foo::staticFunction in #t13.{core::Object::==}(null) ?{core::Object} invalid-expression "pkg/front_end/testcases/rasta/static.dart:80:13: Error: Setter not found: 'staticFunction'.
     use(Foo.staticFunction ??= 87);
-            ^^^^^^^^^^^^^^" : #t17);
+            ^^^^^^^^^^^^^^" : #t13);
     self::Foo::staticGetter.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/static.dart:81:9: Error: Setter not found: 'staticGetter'.
     Foo.staticGetter ??= 87;
         ^^^^^^^^^^^^" : null;
-    self::use(let final dynamic #t18 = self::Foo::staticGetter in #t18.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/static.dart:82:13: Error: Setter not found: 'staticGetter'.
+    self::use(let final dynamic #t14 = self::Foo::staticGetter in #t14.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/static.dart:82:13: Error: Setter not found: 'staticGetter'.
     use(Foo.staticGetter ??= 87);
-            ^^^^^^^^^^^^" : #t18);
+            ^^^^^^^^^^^^" : #t14);
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:83:9: Error: Getter not found: 'staticSetter'.
     Foo.staticSetter ??= 87;
         ^^^^^^^^^^^^".{core::Object::==}(null) ?{dynamic} self::Foo::staticSetter = 87 : null;
-    self::use(let final dynamic #t19 = invalid-expression "pkg/front_end/testcases/rasta/static.dart:84:13: Error: Getter not found: 'staticSetter'.
+    self::use(let final dynamic #t15 = invalid-expression "pkg/front_end/testcases/rasta/static.dart:84:13: Error: Getter not found: 'staticSetter'.
     use(Foo.staticSetter ??= 87);
-            ^^^^^^^^^^^^" in #t19.{core::Object::==}(null) ?{dynamic} self::Foo::staticSetter = 87 : #t19);
+            ^^^^^^^^^^^^" in #t15.{core::Object::==}(null) ?{dynamic} self::Foo::staticSetter = 87 : #t15);
   }
   on core::NoSuchMethodError catch(no-exception-var) {
   }

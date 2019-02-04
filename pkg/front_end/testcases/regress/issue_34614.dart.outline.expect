@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34614.dart:5:14: Error: Expected an identifier, but got '}'.
 // class C { C. }
@@ -12,8 +14,7 @@
 // pkg/front_end/testcases/regress/issue_34614.dart:5:14: Error: Expected '{' before this.
 // class C { C. }
 //              ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

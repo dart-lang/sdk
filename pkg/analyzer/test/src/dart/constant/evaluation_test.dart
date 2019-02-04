@@ -29,9 +29,13 @@ main() {
     defineReflectiveTests(ConstantVisitorTest);
     defineReflectiveTests(ConstantVisitorTest_Driver);
     defineReflectiveTests(ConstantVisitorWithConstantUpdate2018Test);
+    defineReflectiveTests(
+        ConstantVisitorWithFlowControlAndSpreadCollectionsTest);
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport {
   test_visitAsExpression_instanceOfSameClass() async {
@@ -798,6 +802,9 @@ class ConstantVisitorTest_Driver extends ConstantVisitorTest {
 }
 
 class ConstantVisitorTestSupport extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments => [];
+
   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name,
       {List<ErrorCode> errorCodes,
       List<String> experiments,
@@ -808,9 +815,7 @@ class ConstantVisitorTestSupport extends ResolverTestCase {
         findTopLevelConstantExpression(compilationUnit, name);
 
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    if (experiments != null) {
-      options..enabledExperiments = experiments;
-    }
+    options.enabledExperiments = experiments ?? enabledExperiments;
 
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
@@ -841,8 +846,7 @@ class ConstantVisitorWithConstantUpdate2018Test
     CompilationUnit compilationUnit = await resolveSource('''
 const c = 0xFFFFFFFF >>> 8;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [EnableString.constant_update_2018]);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFFFFFF);
   }
@@ -851,8 +855,7 @@ const c = 0xFFFFFFFF >>> 8;
     CompilationUnit compilationUnit = await resolveSource('''
 const c = 0xFFFFFFFF >>> 33;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [EnableString.constant_update_2018]);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -862,27 +865,23 @@ const c = 0xFFFFFFFF >>> 33;
 const c = 0xFFFFFFFF >>> -2;
 ''');
     _evaluateConstant(compilationUnit, 'c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
-        experiments: [EnableString.constant_update_2018]);
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const c = 0xFFFFFFFF >>> 0;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [EnableString.constant_update_2018]);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFFFFFFFF);
   }
 
-//  @soloTest
   test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const c = 0xFF >>> 3;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [EnableString.constant_update_2018]);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0x1F);
   }
@@ -891,8 +890,7 @@ const c = 0xFF >>> 3;
     CompilationUnit compilationUnit = await resolveSource('''
 const c = 0xFF >>> 9;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [EnableString.constant_update_2018]);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -902,17 +900,243 @@ const c = 0xFF >>> 9;
 const c = 0xFF >>> -2;
 ''');
     _evaluateConstant(compilationUnit, 'c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
-        experiments: [EnableString.constant_update_2018]);
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const c = 0xFF >>> 0;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [EnableString.constant_update_2018]);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFF);
+  }
+}
+
+@reflectiveTest
+class ConstantVisitorWithFlowControlAndSpreadCollectionsTest
+    extends ConstantVisitorTestSupport {
+  @override
+  List<String> get enabledExperiments => [
+        EnableString.control_flow_collections,
+        EnableString.set_literals,
+        EnableString.spread_collections
+      ];
+
+  bool get enableNewAnalysisDriver => true;
+
+  test_listLiteral_nested() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = [1, if (1 > 0) if (2 > 1) 2, 3];
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    // The expected type ought to be `List<int>`, but type inference isn't yet
+    // implemented.
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3]);
+  }
+
+  test_listLiteral_withIf_false_withElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = [1, if (1 < 0) 2 else 3, 4];
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(result.toListValue().map((e) => e.toIntValue()), [1, 3, 4]);
+  }
+
+  test_listLiteral_withIf_false_withoutElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = [1, if (1 < 0) 2, 3];
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(result.toListValue().map((e) => e.toIntValue()), [1, 3]);
+  }
+
+  test_listLiteral_withIf_true_withElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = [1, if (1 > 0) 2 else 3, 4];
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 4]);
+  }
+
+  test_listLiteral_withIf_true_withoutElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = [1, if (1 > 0) 2, 3];
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3]);
+  }
+
+  test_listLiteral_withSpread() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = [1, ...[2, 3], 4];
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
+  }
+
+  @failingTest
+  test_mapLiteral_nested() async {
+    // Fails because we're not yet parsing nested elements.
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type,
+        typeProvider.mapType
+            .instantiate([typeProvider.intType, typeProvider.intType]));
+    Map<DartObject, DartObject> value = result.toMapValue();
+    expect(value.keys.map((e) => e.toStringValue()),
+        unorderedEquals(['a', 'b', 'c']));
+    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
+  }
+
+  test_mapLiteral_withIf_false_withElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type,
+        typeProvider.mapType
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
+    Map<DartObject, DartObject> value = result.toMapValue();
+    expect(value.keys.map((e) => e.toStringValue()),
+        unorderedEquals(['a', 'c', 'd']));
+    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3, 4]));
+  }
+
+  test_mapLiteral_withIf_false_withoutElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type,
+        typeProvider.mapType
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
+    Map<DartObject, DartObject> value = result.toMapValue();
+    expect(
+        value.keys.map((e) => e.toStringValue()), unorderedEquals(['a', 'c']));
+    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3]));
+  }
+
+  test_mapLiteral_withIf_true_withElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type,
+        typeProvider.mapType
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
+    Map<DartObject, DartObject> value = result.toMapValue();
+    expect(value.keys.map((e) => e.toStringValue()),
+        unorderedEquals(['a', 'b', 'd']));
+    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 4]));
+  }
+
+  test_mapLiteral_withIf_true_withoutElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type,
+        typeProvider.mapType
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
+    Map<DartObject, DartObject> value = result.toMapValue();
+    expect(value.keys.map((e) => e.toStringValue()),
+        unorderedEquals(['a', 'b', 'c']));
+    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
+  }
+
+  test_mapLiteral_withSpread() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type,
+        typeProvider.mapType
+            .instantiate([typeProvider.stringType, typeProvider.intType]));
+    Map<DartObject, DartObject> value = result.toMapValue();
+    expect(value.keys.map((e) => e.toStringValue()),
+        unorderedEquals(['a', 'b', 'c', 'd']));
+    expect(
+        value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3, 4]));
+  }
+
+  test_setLiteral_nested() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {1, if (1 > 0) if (2 > 1) 2, 3};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
+  }
+
+  test_setLiteral_withIf_false_withElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {1, if (1 < 0) 2 else 3, 4};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3, 4]);
+  }
+
+  test_setLiteral_withIf_false_withoutElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {1, if (1 < 0) 2, 3};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3]);
+  }
+
+  test_setLiteral_withIf_true_withElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {1, if (1 > 0) 2 else 3, 4};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 4]);
+  }
+
+  test_setLiteral_withIf_true_withoutElse() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {1, if (1 > 0) 2, 3};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
+  }
+
+  test_setLiteral_withSpread() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = {1, ...{2, 3}, 4};
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c');
+    expect(
+        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 }

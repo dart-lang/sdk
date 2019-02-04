@@ -61,6 +61,9 @@ abstract class CommonElements {
   /// The `Map` class defined in 'dart:core';
   ClassEntity get mapClass;
 
+  /// The `Set` class defined in 'dart:core';
+  ClassEntity get unmodifiableSetClass;
+
   /// The `Iterable` class defined in 'dart:core';
   ClassEntity get iterableClass;
 
@@ -652,6 +655,11 @@ class CommonElementsImpl
   /// The `Map` class defined in 'dart:core';
   ClassEntity _mapClass;
   ClassEntity get mapClass => _mapClass ??= _findClass(coreLibrary, 'Map');
+
+  /// The `_UnmodifiableSet` class defined in 'dart:collection';
+  ClassEntity _unmodifiableSetClass;
+  ClassEntity get unmodifiableSetClass => _unmodifiableSetClass ??=
+      _findClass(_env.lookupLibrary(Uris.dart_collection), '_UnmodifiableSet');
 
   /// The `Iterable` class defined in 'dart:core';
   ClassEntity _iterableClass;

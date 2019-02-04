@@ -84,8 +84,10 @@ class InheritanceManager2 {
       }
 
       if (classElement.isMixin) {
+        var superClassCandidates = <Name, List<FunctionType>>{};
         for (var constraint in type.superclassConstraints) {
           var interfaceObj = getInterface(constraint);
+          _addCandidates(superClassCandidates, interfaceObj);
           _addCandidates(namedCandidates, interfaceObj);
         }
 
@@ -93,9 +95,9 @@ class InheritanceManager2 {
 
         // `mixin M on S1, S2 {}` can call using `super` any instance member
         // from its superclass constraints, whether it is abstract or concrete.
-        Map<Name, FunctionType> mixinSuperClass = {};
-        _findMostSpecificFromNamedCandidates(mixinSuperClass, namedCandidates);
-        superImplemented.add(mixinSuperClass);
+        var superClass = <Name, FunctionType>{};
+        _findMostSpecificFromNamedCandidates(superClass, superClassCandidates);
+        superImplemented.add(superClass);
       } else {
         if (type.superclass != null) {
           superInterface = getInterface(type.superclass);
@@ -448,6 +450,11 @@ class Interface {
     this._superImplemented,
     this.conflicts,
   );
+
+  /// Return `true` if the [name] is implemented in the supertype.
+  bool isSuperImplemented(Name name) {
+    return _superImplemented.last.containsKey(name);
+  }
 }
 
 /// A public name, or a private name qualified by a library URI.

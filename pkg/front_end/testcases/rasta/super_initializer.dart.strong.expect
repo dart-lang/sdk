@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/super_initializer.dart:14:15: Error: Can't have initializers after 'super'.
 //       : super.arg0(),
@@ -11,8 +13,7 @@
 // pkg/front_end/testcases/rasta/super_initializer.dart:20:15: Error: Can't have initializers after 'super'.
 //       : super.arg2(a, b),
 //               ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
