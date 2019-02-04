@@ -62,6 +62,8 @@ class Features {
     return sb.toString();
   }
 
+  String toString() => 'Features(${getText()})';
+
   /// Creates a [Features] object by parse the [text] encoding.
   ///
   /// Single features will be parsed as strings and list features (features

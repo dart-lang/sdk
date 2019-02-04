@@ -10,6 +10,7 @@ import '../inferrer/types.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
+import 'logging.dart';
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -39,10 +40,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final CompilerOptions options;
   final CommonElements commonElements;
   final JClosedWorld closedWorld;
+  final OptimizationTestLog _log;
   String get name => 'SsaTypePropagator';
 
-  SsaTypePropagator(
-      this.results, this.options, this.commonElements, this.closedWorld);
+  SsaTypePropagator(this.results, this.options, this.commonElements,
+      this.closedWorld, this._log);
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -280,6 +282,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         receiverTypeCheckSelector: selector);
     instruction.block.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
+    _log?.registerTypeConversion(instruction, converted);
   }
 
   bool isCheckEnoughForNsmOrAe(HInstruction instruction, AbstractValue type) {

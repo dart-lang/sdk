@@ -43,7 +43,7 @@ class SsaOptimizerTask extends CompilerTask {
 
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
-  Map<MemberEntity, OptimizationLog> loggersForTesting;
+  Map<MemberEntity, OptimizationTestLog> loggersForTesting;
 
   SsaOptimizerTask(this._backend) : super(_backend.compiler.measurer);
 
@@ -69,10 +69,10 @@ class SsaOptimizerTask extends CompilerTask {
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
-    OptimizationLog log;
+    OptimizationTestLog log;
     if (retainDataForTesting) {
       loggersForTesting ??= {};
-      loggersForTesting[work.element] = log = new OptimizationLog();
+      loggersForTesting[work.element] = log = new OptimizationTestLog();
     }
 
     measure(() {
@@ -85,7 +85,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(globalInferenceResults, _options,
-            closedWorld.commonElements, closedWorld),
+            closedWorld.commonElements, closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
@@ -95,7 +95,7 @@ class SsaOptimizerTask extends CompilerTask {
             _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults, _options,
-            closedWorld.commonElements, closedWorld),
+            closedWorld.commonElements, closedWorld, log),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
         new SsaDeadCodeEliminator(closedWorld, this),
@@ -103,7 +103,7 @@ class SsaOptimizerTask extends CompilerTask {
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
         new SsaTypePropagator(globalInferenceResults, _options,
-            closedWorld.commonElements, closedWorld),
+            closedWorld.commonElements, closedWorld, log),
         codeMotion = new SsaCodeMotion(closedWorld.abstractValueDomain),
         loadElimination = new SsaLoadElimination(_compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
@@ -113,7 +113,7 @@ class SsaOptimizerTask extends CompilerTask {
         // learn from the refined type.
         new SsaTypeConversionInserter(closedWorld),
         new SsaTypePropagator(globalInferenceResults, _options,
-            closedWorld.commonElements, closedWorld),
+            closedWorld.commonElements, closedWorld, log),
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
@@ -136,7 +136,7 @@ class SsaOptimizerTask extends CompilerTask {
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(globalInferenceResults, _options,
-              closedWorld.commonElements, closedWorld),
+              closedWorld.commonElements, closedWorld, log),
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
@@ -149,7 +149,7 @@ class SsaOptimizerTask extends CompilerTask {
       } else {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(globalInferenceResults, _options,
-              closedWorld.commonElements, closedWorld),
+              closedWorld.commonElements, closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
           new SsaInstructionSimplifier(globalInferenceResults, _options,
@@ -196,7 +196,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
-  final OptimizationLog _log;
+  final OptimizationTestLog _log;
   HGraph _graph;
 
   SsaInstructionSimplifier(this._globalInferenceResults, this._options,
@@ -548,8 +548,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _globalInferenceResults,
         _options,
         commonElements,
-        _closedWorld);
-    if (instruction != null) return instruction;
+        _closedWorld,
+        _log);
+    if (instruction != null) {
+      return instruction;
+    }
 
     Selector selector = node.selector;
     AbstractValue mask = node.mask;
