@@ -1,7 +1,6 @@
 ---
-title: 'Breaking Change Request: <description>'
-labels: breaking-change-request
-assignees: mit-mit
+name: breakingchange
+about: Template for breaking change requests
 ---
 
 <TODO: provide a short introductory paragraph>
