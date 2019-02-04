@@ -3,14 +3,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Sources visible via dart:developer library.
-developer_runtime_sources = [
+developer_runtime_cc_files = [
   "developer.cc",
+  "profiler.cc",
+  "timeline.cc",
+]
 
+developer_runtime_dart_files = [
   # developer.dart needs to be the first dart file because it contains
   # imports.
   "developer.dart",
-  "profiler.cc",
   "profiler.dart",
-  "timeline.cc",
   "timeline.dart",
 ]
+
+developer_runtime_sources =
+    developer_runtime_cc_files + developer_runtime_dart_files

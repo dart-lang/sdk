@@ -1,3 +1,127 @@
+## 0.35.0
+* Added support in the AST structure for the control_flow_collections and
+  spread_collections experiments. This includes adding new visitor methods to
+  `AstVisitor`, which will need to be implemented by any classes that implement
+  `AstVisitor` directly. Concrete implementations were added to other visitor
+  classes (such as `RecursiveAstVisitor`) so that clients that extend those
+  other classes will not be impacted.
+* Removed `EMPTY_LIST` constants.  Please use `const <...>[]` instead.
+* Disabled support for the task model.  Please use the new `AnalysisSession`
+  API.
+* Removed `StrongTypeSystemImpl`.  Please use `Dart2TypeSystem` instead.
+* Made ERROR the default severity for StaticWarningCode.  We no longer need to
+  promote warnings to errors in "strong mode" because strong mode is the only
+  mode.
+* Added exact type analysis for set literals (#35742).
+* Bug fixes: #35305, #35750.
+
+## 0.34.3
+* Non-breaking AST changes in support for the control_flow_collections and
+  spread_collections experiments.  Clients who wish to begin adding support for
+  these experiments can depend on this release of the analyzer and begin writing
+  visit methods.  The visit methods won't be added to the AstVisitor base class
+  until 0.35.0.
+* Bug fixes: #35551, #35708, #35723.
+
+## 0.34.2
+* Removed support for the `@checked` annotation.  Please use the `covariant`
+  keyword instead (#28797).
+* Did additional work on the new set_literals and constant_update_2018 features.
+* Began adding a string representation of initializer expressions to summaries
+  (#35418).
+* Added a pub aware workspace so that pub packages can be handled properly.
+* Added logging in an effort to track down #35551.
+* Split off DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE from DEPRECATED_MEMBER_USE
+  (#30084).
+* Removed the unused hint code INVALID_ASSIGNMENT.
+* Added a hint enforcing the contract of `@literal`:
+  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR.
+* Added a hint INVALID_LITERAL_ANNOTATION (#34259).
+* Fixed handling of @immutable on mixins.
+* Did work on @sealed annotation for classes and mixins.
+* Bug fixes: #25860, #29394, #33930, #35090, #35441, #35458, #35467, #35548.
+
+## 0.34.1
+* Added logic to report a hint if a deprecated lint is specified in the user's
+  analysis_options.yaml file, or if a lint is specified twice.
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+* Improved parser recovery.
+* Speculative work on fine-grained dependency tracking (not yet enabled).
+* Initial support for new language features set_literals and
+  constant_update_2018.
+* Early speculative work on non-nullable types.
+* Added AnalysisDriver.resetUriResolution().
+* Deprecated TypeSystem.isStrong.
+* Added WorkspacePackage classes, for determining whether two files are in the
+  "same package."
+* Added a public API for the TypeSystem class.
+* Bug fixes: #33946, #35151, #35223, #35241, #35438.
+
+## 0.34.0
+* Support for `declarations-casts` has been removed and the `implicit-casts`
+  option now has the combined semantics of both options. This means that users
+  that disable `implicit-casts` might now see errors that were not previously
+  being reported.
+* Minor changes to the AnalysisSession and AnalysisDriver APIs to make it easier
+  for clients to transition away from using the task model.
+* Minor changes to the linter API to make it easier for lint rules to define
+  their own lint codes.
+* Add a version of getAncestor that matches by type without a closure.
+* Add an AST structure for set literals.
+* Bug fixes: #35162, #35230, #34733, #34741, #33553, #35090, #32815, #34387,
+  #34495, #35043, #33553, #34906, #34489.
+
+## 0.33.6+1
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+
+## 0.33.6
+* Deprecated `AstNode.getAncestor` and introduced
+  `AstNode.thisOrAncestorMatching` as its replacement.
+
+## 0.33.5
+* Add AnalysisSession.getResolvedLibrary()/ByElement() APIs.
+
+## 0.33.4
+* Add a hint when either Future or Stream are imported from dart:core in a package that is expected to work with an SDK before 2.1 where they were required to be imported from dart:async.
+* Add a new "deprecated" maturity for lints
+* Don't report DEPRECATED_MEMBER_USE for deprecated mixins, top-level variables, and class fields.
+* Various bug fixes.
+
+## 0.33.3+2
+* Update SDK requirement to 2.1.0-dev.5.0.  From now on, the analyzer may import
+  Future from dart:core. (#35158)
+
+## 0.33.3+1
+* Fix missing import of dart:async. (#35158)
+
+## 0.33.3
+* Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
+
+## 0.33.2
+* Protect against self-referencing classes in InheritanceManager2. (#34333)
+* Introduce API so that the linter can be migrated away from Element.context.
+
+## 0.33.1
+* Fix circular typedef stack overflow. (#33599)
+* Check that the implemented member is a valid override of the member from
+  the super constraint. (#34693)
+* Begin replacing InheritanceManager with InheritanceManager2 and
+  deprecate older members.
+* Performance fixups with Analysis Driver.
+* Verify the superconstraint signature invoked by a mixin. (#34896)
+* In_matchInterfaceSubtypeOf, account for mixins having null. (#34907)
+
+## 0.33.0
+* Support handling 'class C with M', with extends missing.
+* Report ABSTRACT_SUPER_MEMBER_REFERENCE as an error.
+* Further support and bugfixes for Dart 2.1-style mixin declarations.
+* Fixes for int2double support.
+* Performance improvements for analysis and summary generation.
+* Allow "yield" as a label, and "operator" as a static method name (#33672,
+  #33673)
+
 ## 0.33.0-alpha.0
 * Switch to using the parser from front_end.
 * Start implementing the new mixin syntax.

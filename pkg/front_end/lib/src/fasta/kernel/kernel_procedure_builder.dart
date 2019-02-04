@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionNode,
         Initializer,
+        InterfaceType,
         Member,
         Name,
         Procedure,
@@ -307,6 +308,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
+    if (library.legacyMode) return false;
     if (isInstanceMember) {
       if (returnType == null) return true;
       if (formals != null) {
@@ -331,7 +333,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
-    if (library.loader.target.strongMode &&
+    if (!library.loader.target.legacyMode &&
         (isSetter || (isOperator && name == '[]=')) &&
         returnType == null) {
       procedure.function.returnType = const VoidType();
@@ -450,9 +452,10 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
+    if (library.legacyMode) return false;
     if (formals != null) {
       for (var formal in formals) {
-        if (formal.type == null && formal.hasThis) return true;
+        if (formal.type == null && formal.isInitializingFormal) return true;
       }
     }
     return false;
@@ -469,9 +472,9 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);
     }
-    if (!library.disableTypeInference && isEligibleForTopLevelInference) {
+    if (isEligibleForTopLevelInference) {
       for (KernelFormalParameterBuilder formal in formals) {
-        if (formal.type == null && formal.hasThis) {
+        if (formal.type == null && formal.isInitializingFormal) {
           formal.declaration.type = null;
         }
       }
@@ -481,8 +484,18 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {
-    // TODO(ahe): Should complain if another type is explicitly set.
-    return super.buildFunction(library)..returnType = const VoidType();
+    // According to the specification §9.3 the return type of a constructor
+    // function is its enclosing class.
+    FunctionNode functionNode = super.buildFunction(library);
+    ClassBuilder enclosingClass = parent;
+    List<DartType> typeParameterTypes = new List<DartType>();
+    for (int i = 0; i < enclosingClass.target.typeParameters.length; i++) {
+      TypeParameter typeParameter = enclosingClass.target.typeParameters[i];
+      typeParameterTypes.add(new TypeParameterType(typeParameter));
+    }
+    functionNode.returnType =
+        new InterfaceType(enclosingClass.target, typeParameterTypes);
+    return functionNode;
   }
 
   Constructor get target => origin.constructor;
@@ -494,7 +507,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, noLength).desugared,
+        helper.desugarSyntheticExpression(
+            helper.buildProblem(message, charOffset, noLength)),
         charOffset);
     initializers.add(error..parent = constructor);
     initializers.add(lastInitializer);
@@ -518,10 +532,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       } else if (constructor.initializers.isNotEmpty) {
         Initializer first = constructor.initializers.first;
         Initializer error = helper.buildInvalidInitializer(
-            helper
-                .buildProblem(
-                    messageThisInitializerNotAlone, first.fileOffset, noLength)
-                .desugared,
+            helper.desugarSyntheticExpression(helper.buildProblem(
+                messageThisInitializerNotAlone, first.fileOffset, noLength)),
             first.fileOffset);
         initializers.add(error..parent = constructor);
       } else {

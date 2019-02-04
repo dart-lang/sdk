@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Fisk<TypeY extends self::Hest<dynamic> = dynamic> = () → void;
+class Hest<TypeX extends () → void = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::TypeX>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

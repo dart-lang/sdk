@@ -1,7 +1,6 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--supermixin
 
 // The following compile-time error is expected:
 //
@@ -14,7 +13,7 @@ class A {}
 
 class B<X, Y> {}
 
-class C<X> extends B<X, A> {}
+mixin C<X> on B<X, A> {}
 
 class /*@compile-error=unspecified*/ D<X, Y> extends B<X, Y> with C {}
 

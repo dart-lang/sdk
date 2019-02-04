@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,12 +6,11 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -256,21 +255,11 @@ class PostfixCompletion {
  * The context for computing a postfix completion.
  */
 class PostfixCompletionContext {
-  final String file;
-  final LineInfo lineInfo;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final String key;
-  final AnalysisDriver driver;
-  final CompilationUnit unit;
-  final CompilationUnitElement unitElement;
-  final List<engine.AnalysisError> errors;
 
-  PostfixCompletionContext(this.file, this.lineInfo, this.selectionOffset,
-      this.key, this.driver, this.unit, this.unitElement, this.errors) {
-    if (unitElement.context == null) {
-      throw new Error(); // not reached
-    }
-  }
+  PostfixCompletionContext(this.resolveResult, this.selectionOffset, this.key);
 }
 
 /**
@@ -309,42 +298,25 @@ class PostfixCompletionProcessor {
   AstNode node;
   PostfixCompletion completion;
   SourceChange change = new SourceChange('postfix-completion');
-  final Map<String, LinkedEditGroup> linkedPositionGroups =
-      <String, LinkedEditGroup>{};
+  final Map<String, LinkedEditGroup> linkedPositionGroups = {};
   Position exitPosition = null;
-  TypeProvider _typeProvider;
 
   PostfixCompletionProcessor(this.completionContext)
-      : utils = new CorrectionUtils(completionContext.unit);
-
-  AnalysisDriver get driver => completionContext.driver;
+      : utils = new CorrectionUtils(completionContext.resolveResult);
 
   String get eol => utils.endOfLine;
 
-  String get file => completionContext.file;
+  String get file => completionContext.resolveResult.path;
 
   String get key => completionContext.key;
 
-  LineInfo get lineInfo => completionContext.lineInfo;
-
-  int get requestLine => lineInfo.getLocation(selectionOffset).lineNumber;
+  LineInfo get lineInfo => completionContext.resolveResult.lineInfo;
 
   int get selectionOffset => completionContext.selectionOffset;
 
-  /**
-   * Return the analysis session to be used to create the change builder.
-   */
-  AnalysisSession get session => driver.currentSession;
+  AnalysisSession get session => completionContext.resolveResult.session;
 
-  Source get source => completionContext.unitElement.source;
-
-  TypeProvider get typeProvider {
-    return _typeProvider ??= unitElement.context.typeProvider;
-  }
-
-  CompilationUnit get unit => completionContext.unit;
-
-  CompilationUnitElement get unitElement => completionContext.unitElement;
+  TypeProvider get typeProvider => completionContext.resolveResult.typeProvider;
 
   Future<PostfixCompletion> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -593,7 +565,8 @@ class PostfixCompletionProcessor {
   }
 
   AstNode _selectedNode({int at: null}) =>
-      new NodeLocator(at == null ? selectionOffset : at).searchWithin(unit);
+      new NodeLocator(at == null ? selectionOffset : at)
+          .searchWithin(completionContext.resolveResult.unit);
 
   void _setCompletionFromBuilder(
       DartChangeBuilder builder, PostfixCompletionKind kind,

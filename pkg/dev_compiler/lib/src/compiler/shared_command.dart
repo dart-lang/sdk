@@ -2,11 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
-import 'dart:io' show Platform;
+import 'dart:io';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show InitializedCompilerState;
 import 'package:path/path.dart' as path;
 import 'module_builder.dart';
+import '../analyzer/command.dart' as analyzer_compiler;
+import '../analyzer/driver.dart' show CompilerAnalysisDriver;
+import '../kernel/command.dart' as kernel_compiler;
 
 /// Shared code between Analyzer and Kernel CLI interfaces.
 ///
@@ -41,7 +48,7 @@ Map<String, String> sdkLibraryVariables = {
   'dart.library.web_sql': 'true',
 };
 
-/// Shared compiler options between `dartdevc` and `dartdevk`.
+/// Shared compiler options between `dartdevc` kernel and analyzer backends.
 class SharedCompilerOptions {
   /// Whether to emit the source mapping file.
   ///
@@ -74,6 +81,18 @@ class SharedCompilerOptions {
 
   final List<ModuleFormat> moduleFormats;
 
+  /// Experimental language features that are enabled/disabled, see
+  /// [the spec](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md)
+  /// for more details.
+  final Map<String, bool> experiments;
+
+  /// The name of the module.
+  ///
+  /// This used when to support file concatenation. The JS module will contain
+  /// its module name inside itself, allowing it to declare the module name
+  /// independently of the file.
+  String moduleName;
+
   SharedCompilerOptions(
       {this.sourceMap = true,
       this.summarizeApi = true,
@@ -82,7 +101,9 @@ class SharedCompilerOptions {
       this.replCompile = false,
       this.bazelMapping = const {},
       this.summaryModules = const {},
-      this.moduleFormats = const []});
+      this.moduleFormats = const [],
+      this.experiments = const {},
+      this.moduleName});
 
   SharedCompilerOptions.fromArguments(ArgResults args,
       [String moduleRoot, String summaryExtension])
@@ -91,20 +112,26 @@ class SharedCompilerOptions {
             summarizeApi: args['summarize'] as bool,
             emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
+            experiments:
+                _parseExperiments(args['enable-experiment'] as List<String>),
             bazelMapping:
                 _parseBazelMappings(args['bazel-mapping'] as List<String>),
             summaryModules: _parseCustomSummaryModules(
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
-            moduleFormats: parseModuleFormatOption(args));
+            moduleFormats: parseModuleFormatOption(args),
+            moduleName: _getModuleName(args, moduleRoot));
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
-    addModuleFormatOptions(parser, allowMultiple: true, hide: hide);
+    addModuleFormatOptions(parser, hide: hide);
 
     parser
       ..addMultiOption('summary',
           abbr: 's',
           help: 'summary file(s) of imported libraries, optionally\n'
               'with module import path: -s path.sum=js/import/path')
+      ..addMultiOption('enable-experiment',
+          help: 'used to enable/disable experimental language features',
+          hide: hide)
       ..addFlag('summarize',
           help: 'emit an API summary file', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
@@ -113,12 +140,44 @@ class SharedCompilerOptions {
           help: 'emit metadata annotations queriable via mirrors', hide: hide)
       ..addFlag('enable-asserts',
           help: 'enable assertions', defaultsTo: true, hide: hide)
+      ..addOption('module-name',
+          help: 'The output module name, used in some JS module formats.\n'
+              'Defaults to the output file name (without .js).')
       // TODO(jmesserly): rename this, it has nothing to do with bazel.
       ..addMultiOption('bazel-mapping',
           help: '--bazel-mapping=gen/to/library.dart,to/library.dart\n'
               'adjusts the path in source maps.',
           splitCommas: false,
           hide: hide);
+  }
+
+  static String _getModuleName(ArgResults args, String moduleRoot) {
+    var moduleName = args['module-name'] as String;
+    if (moduleName == null) {
+      var outPaths = args['out'];
+      var outPath = outPaths is String
+          ? outPaths
+          : (outPaths as List<String>)
+              .firstWhere((_) => true, orElse: () => null);
+
+      // TODO(jmesserly): fix the debugger console so it's not passing invalid
+      // options.
+      if (outPath == null) return null;
+      if (moduleRoot != null) {
+        // TODO(jmesserly): remove this legacy support after a deprecation
+        // period. (Mainly this is to give time for migrating build rules.)
+        moduleName =
+            path.withoutExtension(path.relative(outPath, from: moduleRoot));
+      } else {
+        moduleName = path.basenameWithoutExtension(outPath);
+      }
+    }
+    // TODO(jmesserly): this should probably use sourcePathToUri.
+    //
+    // Also we should not need this logic if the user passed in the module name
+    // explicitly. It is here for backwards compatibility until we can confirm
+    // that build systems do not depend on passing windows-style paths here.
+    return path.toUri(moduleName).toString();
   }
 }
 
@@ -154,6 +213,20 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
     pathToModule[summaryPath] = modulePath;
   }
   return pathToModule;
+}
+
+Map<String, bool> _parseExperiments(List<String> arguments) {
+  var result = <String, bool>{};
+  for (var argument in arguments) {
+    for (var feature in argument.split(',')) {
+      if (feature.startsWith('no-')) {
+        result[feature.substring(3)] = false;
+      } else {
+        result[feature] = true;
+      }
+    }
+  }
+  return result;
 }
 
 Map<String, String> _parseBazelMappings(List<String> argument) {
@@ -211,7 +284,10 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
 
 /// Convert a [source] string to a Uri, where the source may be a
 /// dart/file/package URI or a local win/mac/linux path.
+///
+/// If [source] is null, this will return null.
 Uri sourcePathToUri(String source, {bool windows}) {
+  if (source == null) return null;
   if (windows == null) {
     // Running on the web the Platform check will fail, and we can't use
     // fromEnvironment because internally it's set to true for dart.library.io.
@@ -286,4 +362,185 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
   }
   map['file'] = makeRelative(map['file'] as String);
   return map;
+}
+
+/// Invoke the compiler with [args], optionally with the kernel backend if
+/// [isKernel] is set.
+///
+/// Returns a [CompilerResult], with a success flag indicating whether the
+/// program compiled without any fatal errors.
+///
+/// The result may also contain a [previousResult], which can be passed back in
+/// for batch/worker executions to attempt to existing state.
+Future<CompilerResult> compile(ParsedArguments args,
+    {CompilerResult previousResult}) {
+  if (previousResult != null && !args.isBatchOrWorker) {
+    throw ArgumentError(
+        'previousResult requires --batch or --bazel_worker mode/');
+  }
+  if (args.isKernel) {
+    return kernel_compiler.compile(args.rest,
+        compilerState: previousResult?.kernelState);
+  } else {
+    var result = analyzer_compiler.compile(args.rest,
+        compilerState: previousResult?.analyzerState);
+    if (args.isBatchOrWorker) {
+      AnalysisEngine.instance.clearCaches();
+    }
+    return Future.value(result);
+  }
+}
+
+/// The result of a single `dartdevc` compilation.
+///
+/// Typically used for exiting the proceess with [exitCode] or checking the
+/// [success] of the compilation.
+///
+/// For batch/worker compilations, the [compilerState] provides an opprotunity
+/// to reuse state from the previous run, if the options/input summaries are
+/// equiavlent. Otherwise it will be discarded.
+class CompilerResult {
+  /// Optionally provides the front_end state from the previous compilation,
+  /// which can be passed to [compile] to potentially speeed up the next
+  /// compilation.
+  ///
+  /// This field is unused when using the Analyzer-backend for DDC.
+  final InitializedCompilerState kernelState;
+
+  /// Optionally provides the analyzer state from the previous compilation,
+  /// which can be passed to [compile] to potentially speeed up the next
+  /// compilation.
+  ///
+  /// This field is unused when using the Kernel-backend for DDC.
+  final CompilerAnalysisDriver analyzerState;
+
+  /// The process exit code of the compiler.
+  final int exitCode;
+
+  CompilerResult(this.exitCode, {this.kernelState, this.analyzerState}) {
+    assert(kernelState == null || analyzerState == null,
+        'kernel and analyzer state should not both be supplied');
+  }
+
+  /// Gets the kernel or analyzer compiler state, if any.
+  Object get compilerState => kernelState ?? analyzerState;
+
+  /// Whether the program compiled without any fatal errors (equivalent to
+  /// [exitCode] == 0).
+  bool get success => exitCode == 0;
+
+  /// Whether the compiler crashed (i.e. threw an unhandled exeception,
+  /// typically indicating an internal error in DDC itself or its front end).
+  bool get crashed => exitCode == 70;
+}
+
+/// Stores the result of preprocessing `dartdevc` command line arguments.
+///
+/// `dartdevc` preprocesses arguments to support some features that
+/// `package:args` does not handle (training `@` to reference arguments in a
+/// file).
+///
+/// [isBatch]/[isWorker] mode are preprocessed because they can combine
+/// argument lists from the initial invocation and from batch/worker jobs.
+///
+/// [isKernel] is also preprocessed because the Kernel backend supports
+/// different options compared to the Analyzer backend.
+class ParsedArguments {
+  /// The user's arguments to the compiler for this compialtion.
+  final List<String> rest;
+
+  /// Whether to run in `--batch` mode, e.g the Dart SDK and Language tests.
+  ///
+  /// Similar to [isWorker] but with a different protocol.
+  /// See also [isBatchOrWorker].
+  final bool isBatch;
+
+  /// Whether to run in `--bazel_worker` mode, e.g. for Bazel builds.
+  ///
+  /// Similar to [isBatch] but with a different protocol.
+  /// See also [isBatchOrWorker].
+  final bool isWorker;
+
+  /// Whether to use the Kernel-based back end for dartdevc.
+  ///
+  /// This is similar to the Analyzer-based back end, but uses Kernel trees
+  /// instead of Analyzer trees for representing the Dart code.
+  final bool isKernel;
+
+  ParsedArguments._(this.rest,
+      {this.isBatch = false, this.isWorker = false, this.isKernel = false});
+
+  /// Preprocess arguments to determine whether DDK is used in batch mode or as a
+  /// persistent worker.
+  ///
+  /// When used in batch mode, we expect a `--batch` parameter last.
+  ///
+  /// When used as a persistent bazel worker, the `--persistent_worker` might be
+  /// present, and an argument of the form `@path/to/file` might be provided. The
+  /// latter needs to be replaced by reading all the contents of the
+  /// file and expanding them into the resulting argument list.
+  factory ParsedArguments.from(List<String> args) {
+    if (args.isEmpty) return ParsedArguments._(args);
+
+    var newArgs = <String>[];
+    bool isWorker = false;
+    bool isBatch = false;
+    bool isKernel = false;
+    var len = args.length;
+    for (int i = 0; i < len; i++) {
+      var arg = args[i];
+      var isLastArg = i == len - 1;
+      if (isLastArg && arg.startsWith('@')) {
+        var extra = _readLines(arg.substring(1)).toList();
+        if (extra.remove('--kernel') || extra.remove('-k')) {
+          isKernel = true;
+        }
+        newArgs.addAll(extra);
+      } else if (arg == '--persistent_worker') {
+        isWorker = true;
+      } else if (isLastArg && arg == '--batch') {
+        isBatch = true;
+      } else if (arg == '--kernel' || arg == '-k') {
+        isKernel = true;
+      } else {
+        newArgs.add(arg);
+      }
+    }
+    return ParsedArguments._(newArgs,
+        isWorker: isWorker, isBatch: isBatch, isKernel: isKernel);
+  }
+
+  /// Whether the compiler is running in [isBatch] or [isWorker] mode.
+  ///
+  /// Both modes are generally equivalent from the compiler's perspective,
+  /// the main difference is that they use distinct protocols to communicate
+  /// jobs to the compiler.
+  bool get isBatchOrWorker => isBatch || isWorker;
+
+  /// Merge [args] and return the new parsed arguments.
+  ///
+  /// Typically used when [isBatchOrWorker] is set to merge the compilation's
+  /// arguments with any global ones that were provided when the worker started.
+  ParsedArguments merge(List<String> arguments) {
+    // Parse the arguments again so `--kernel` can be passed. This provides
+    // added safety that we are really compiling in Kernel mode, if somehow the
+    // worker was not initialized correctly.
+    var newArgs = ParsedArguments.from(arguments);
+    if (newArgs.isBatchOrWorker) {
+      throw ArgumentError('cannot change batch or worker mode after startup.');
+    }
+    return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
+        isWorker: isWorker,
+        isBatch: isBatch,
+        isKernel: isKernel || newArgs.isKernel);
+  }
+}
+
+/// Return all lines in a file found at [path].
+Iterable<String> _readLines(String path) {
+  try {
+    return File(path).readAsLinesSync().where((String line) => line.isNotEmpty);
+  } on FileSystemException catch (e) {
+    throw Exception('Failed to read $path: $e');
+  }
 }

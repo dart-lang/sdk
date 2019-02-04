@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "./infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
+
+import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles.dart";
+
+class B extends test::A {
+  synthetic constructor •() → self::B
+    : super test::A::•()
+    ;
+}
+static method main() → dynamic {}
+
+library test;
+import self as test;
+import "./infer_type_regardless_of_declaration_order_or_cycles_b.dart" as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles_b.dart";
+
+class C extends self::B {
+  synthetic constructor •() → test::C
+    : super self::B::•()
+    ;
+  get x() → dynamic
+    return null;
+}
+class A extends core::Object {
+  synthetic constructor •() → test::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 0;
+}
+static method foo() → dynamic {
+  core::int y = new test::C::•().x;
+  core::String z = new test::C::•().x;
+}
+static method main() → dynamic {
+  test::foo();
+}

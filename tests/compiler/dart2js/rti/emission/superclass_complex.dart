@@ -7,7 +7,7 @@ import 'package:meta/dart2js.dart';
 /*class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A<T> {}
 
-/*class: B:checkedInstance,checks=[]*/
+/*class: B:checkedInstance,checks=[],indirectInstance*/
 class B<T> {}
 
 /*class: C:checks=[$asB],instance*/

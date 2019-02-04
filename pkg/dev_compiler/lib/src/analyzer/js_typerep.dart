@@ -4,26 +4,24 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl;
+import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 import '../compiler/js_typerep.dart';
-import 'element_helpers.dart' show getClass;
+import 'driver.dart';
 
 class JSTypeRep extends SharedJSTypeRep<DartType> {
-  final StrongTypeSystemImpl rules;
+  final Dart2TypeSystem rules;
   final TypeProvider types;
 
   final ClassElement _jsBool;
   final ClassElement _jsNumber;
   final ClassElement _jsString;
 
-  JSTypeRep(this.rules, AnalysisContext c)
-      : types = c.typeProvider,
-        _jsBool = getClass(c, 'dart:_interceptors', 'JSBool'),
-        _jsString = getClass(c, 'dart:_interceptors', 'JSString'),
-        _jsNumber = getClass(c, 'dart:_interceptors', 'JSNumber');
+  JSTypeRep(this.rules, LinkedAnalysisDriver driver)
+      : types = driver.typeProvider,
+        _jsBool = driver.getClass('dart:_interceptors', 'JSBool'),
+        _jsString = driver.getClass('dart:_interceptors', 'JSString'),
+        _jsNumber = driver.getClass('dart:_interceptors', 'JSNumber');
 
   @override
   JSType typeFor(DartType type) {

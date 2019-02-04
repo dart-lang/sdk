@@ -83,7 +83,8 @@ for command; do
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
-      out/ReleaseIA32/dart_bootstrap \
+      out/ReleaseIA32/gen_snapshot \
+      out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       third_party/d8/linux/ia32/d8 \
       sdk samples-dev/swarm \
@@ -131,7 +132,7 @@ for command; do
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/dart_bootstrap
+      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/gen_snapshot
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -151,25 +152,6 @@ for command; do
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
       -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/run_vm_tests
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' third_party/d8/linux/ia32/d8
     tar -czf linux-ia32.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -182,7 +164,8 @@ for command; do
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
-      out/ReleaseIA32/dart_bootstrap \
+      out/ReleaseIA32/gen_snapshot \
+      out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       third_party/d8/linux/ia32/d8 \
       sdk \
@@ -211,7 +194,7 @@ EOF
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --trust-type-annotations --trust-primitives --fast-startup --packages=.packages --out=out.js -m hello.dart
+    out/ReleaseIA32/dart-sdk/bin/dart2js --benchmarking-production --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --use-kernel --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
@@ -222,15 +205,15 @@ EOF
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     out/ReleaseIA32/run_vm_tests InitialRSS
+    out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     ./tools/build.py --mode=release --arch=x64 create_sdk
     ./tools/build.py --mode=release --arch=x64 runtime
-    ./tools/build.py --mode=release --arch=x64 dart_bootstrap
+    ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
     ./tools/build.py --mode=release --arch=simdbc64 runtime
-    ./tools/build.py --mode=release --arch=x64 runtime_kernel
     tar -czf linux-x64_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -241,9 +224,9 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
-      out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
-      out/ReleaseX64/dart_bootstrap \
+      out/ReleaseX64/gen_snapshot \
+      out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64/d8 \
       out/ReleaseX64/dart_precompiled_runtime \
@@ -293,7 +276,7 @@ EOF
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dart_bootstrap
+      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/gen_snapshot
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -331,25 +314,6 @@ EOF
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' third_party/d8/linux/x64/d8
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
       -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dart_precompiled_runtime
     tar -czf linux-x64.tar.gz \
       --exclude .git \
@@ -361,9 +325,9 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
-      out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
-      out/ReleaseX64/dart_bootstrap \
+      out/ReleaseX64/gen_snapshot \
+      out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64/d8 \
       out/ReleaseX64/dart_precompiled_runtime \
@@ -400,9 +364,9 @@ EOF
     echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
-    out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --implementation=minimal --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests InitialRSS
+    out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
     cd ..
     rm -rf tmp
   else

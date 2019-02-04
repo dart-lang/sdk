@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ class DartFixesRequestImpl implements DartFixesRequest {
   final List<AnalysisError> errorsToFix;
 
   @override
-  final ResolveResult result;
+  final ResolvedUnitResult result;
 
   /**
    * Initialize a newly create request with the given data.

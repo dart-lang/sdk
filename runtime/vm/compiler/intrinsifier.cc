@@ -87,7 +87,7 @@ struct LibraryInstrinsicsDesc {
   IntrinsicDesc* intrinsics;
 };
 
-#define DEFINE_INTRINSIC(class_name, function_name, destination, type, fp)     \
+#define DEFINE_INTRINSIC(class_name, function_name, destination, fp)           \
   {#class_name, #function_name},
 
 // clang-format off
@@ -218,23 +218,19 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   ASSERT(!parsed_function.function().HasOptionalParameters());
   PrologueInfo prologue_info(-1, -1);
 
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new ZoneGrowableArray<const ICData*>();
-  FlowGraphBuilder builder(parsed_function, *ic_data_array,
-                           /* not building var desc */ NULL,
-                           /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
+  auto graph_entry =
+      new GraphEntryInstr(parsed_function, Compiler::kNoOSRDeoptId);
 
-  intptr_t block_id = builder.AllocateBlockId();
-  TargetEntryInstr* normal_entry =
-      new TargetEntryInstr(block_id, CatchClauseNode::kInvalidTryIndex,
-                           CompilerState::Current().GetNextDeoptId());
-  GraphEntryInstr* graph_entry = new GraphEntryInstr(
-      parsed_function, normal_entry, Compiler::kNoOSRDeoptId);
+  intptr_t block_id = 1;  // 0 is GraphEntry.
+  graph_entry->set_normal_entry(
+      new FunctionEntryInstr(graph_entry, block_id, kInvalidTryIndex,
+                             CompilerState::Current().GetNextDeoptId()));
+
   FlowGraph* graph =
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name:                                         \
     if (!Build_##enum_name(graph)) return false;                               \
     break;
@@ -251,6 +247,14 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     FlowGraphPrinter printer(*graph);
     printer.PrintBlocks();
   }
+
+  // Prepare for register allocation (cf. FinalizeGraph).
+  graph->RemoveRedefinitions();
+
+  // Ensure loop hierarchy has been computed.
+  GrowableArray<BitVector*> dominance_frontier;
+  graph->ComputeDominators(&dominance_frontier);
+  graph->GetLoopHierarchy();
 
   // Perform register allocation on the SSA graph.
   FlowGraphAllocator allocator(*graph, true);  // Intrinsic mode.
@@ -299,7 +303,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 #define EMIT_BREAKPOINT()
 #endif
 
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name: {                                       \
     compiler->assembler()->Comment("Intrinsic");                               \
     Label normal_ir_body;                                                      \
@@ -383,7 +387,7 @@ static Representation RepresentationForCid(intptr_t cid) {
 //
 class BlockBuilder : public ValueObject {
  public:
-  BlockBuilder(FlowGraph* flow_graph, TargetEntryInstr* entry)
+  BlockBuilder(FlowGraph* flow_graph, BlockEntryInstr* entry)
       : flow_graph_(flow_graph),
         entry_(entry),
         current_(entry),
@@ -395,7 +399,8 @@ class BlockBuilder : public ValueObject {
 
   Definition* AddToInitialDefinitions(Definition* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    flow_graph_->AddToInitialDefinitions(def);
+    auto normal_entry = flow_graph_->graph_entry()->normal_entry();
+    flow_graph_->AddToInitialDefinitions(normal_entry, def);
     return def;
   }
 
@@ -475,34 +480,32 @@ class BlockBuilder : public ValueObject {
   Environment* fall_through_env_;
 };
 
-static void PrepareIndexedOp(BlockBuilder* builder,
-                             Definition* array,
-                             Definition* index,
-                             intptr_t length_offset) {
+static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
+                                    BlockBuilder* builder,
+                                    Definition* array,
+                                    Definition* index,
+                                    const Slot& length_field) {
   Definition* length = builder->AddDefinition(new LoadFieldInstr(
-      new Value(array), length_offset, Type::ZoneHandle(Type::SmiType()),
-      TokenPosition::kNoSource));
-  builder->AddInstruction(new CheckArrayBoundInstr(
-      new Value(length), new Value(index), DeoptId::kNone));
+      new Value(array), length_field, TokenPosition::kNoSource));
+  // Note that the intrinsifier must always use deopting array bound
+  // checks, because intrinsics currently don't support calls.
+  Definition* safe_index = new CheckArrayBoundInstr(
+      new Value(length), new Value(index), DeoptId::kNone);
+  builder->AddDefinition(safe_index);
+  return safe_index;
 }
 
 static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* index = builder.AddParameter(1);
   Definition* array = builder.AddParameter(2);
 
-  intptr_t length_offset = Array::length_offset();
-  if (RawObject::IsTypedDataClassId(array_cid)) {
-    length_offset = TypedData::length_offset();
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    length_offset = ExternalTypedData::length_offset();
-  }
-
-  PrepareIndexedOp(&builder, array, index, length_offset);
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::GetLengthFieldForArrayCid(array_cid));
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
@@ -572,21 +575,15 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
 static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* value = builder.AddParameter(1);
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  intptr_t length_offset = Array::length_offset();
-  if (RawObject::IsTypedDataClassId(array_cid)) {
-    length_offset = TypedData::length_offset();
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    length_offset = ExternalTypedData::length_offset();
-  }
-
-  PrepareIndexedOp(&builder, array, index, length_offset);
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::GetLengthFieldForArrayCid(array_cid));
 
   // Value check/conversion.
   switch (array_cid) {
@@ -687,7 +684,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                         MethodRecognizer::k##enum_name##SetIndexed));          \
   }
 
-DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)  // Setter in intrinsifier_<arch>.cc.
+DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)
 DEFINE_ARRAY_GETTER_INTRINSIC(ImmutableArray)
 
 #define DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                       \
@@ -775,12 +772,14 @@ DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
 
 static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* index = builder.AddParameter(1);
   Definition* str = builder.AddParameter(2);
-  PrepareIndexedOp(&builder, str, index, String::length_offset());
+
+  index =
+      PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
 
   // For external strings: Load external data.
   if (cid == kExternalOneByteStringCid) {
@@ -823,7 +822,7 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
 
   Zone* zone = flow_graph->zone();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* right = builder.AddParameter(1);
@@ -867,7 +866,7 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
     return false;
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* receiver = builder.AddParameter(1);
@@ -905,70 +904,68 @@ bool Intrinsifier::Build_Float32x4ShuffleW(FlowGraph* flow_graph) {
                                MethodRecognizer::kFloat32x4ShuffleW);
 }
 
-static bool BuildLoadField(FlowGraph* flow_graph, intptr_t offset) {
+static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* array = builder.AddParameter(1);
 
-  Definition* length = builder.AddDefinition(new LoadFieldInstr(
-      new Value(array), offset, Type::ZoneHandle(), builder.TokenPos()));
+  Definition* length = builder.AddDefinition(
+      new LoadFieldInstr(new Value(array), field, builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(length));
   return true;
 }
 
 bool Intrinsifier::Build_ObjectArrayLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, Array::length_offset());
+  return BuildLoadField(flow_graph, Slot::Array_length());
 }
 
 bool Intrinsifier::Build_ImmutableArrayLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, Array::length_offset());
+  return BuildLoadField(flow_graph, Slot::Array_length());
 }
 
 bool Intrinsifier::Build_GrowableArrayLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, GrowableObjectArray::length_offset());
+  return BuildLoadField(flow_graph, Slot::GrowableObjectArray_length());
 }
 
 bool Intrinsifier::Build_StringBaseLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, String::length_offset());
+  return BuildLoadField(flow_graph, Slot::String_length());
 }
 
 bool Intrinsifier::Build_TypedDataLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, TypedData::length_offset());
+  return BuildLoadField(flow_graph, Slot::TypedData_length());
 }
 
 bool Intrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* array = builder.AddParameter(1);
 
-  Definition* backing_store = builder.AddDefinition(
-      new LoadFieldInstr(new Value(array), GrowableObjectArray::data_offset(),
-                         Type::ZoneHandle(), builder.TokenPos()));
-  Definition* capacity = builder.AddDefinition(
-      new LoadFieldInstr(new Value(backing_store), Array::length_offset(),
-                         Type::ZoneHandle(), builder.TokenPos()));
+  Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
+      new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));
+  Definition* capacity = builder.AddDefinition(new LoadFieldInstr(
+      new Value(backing_store), Slot::Array_length(), builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(capacity));
   return true;
 }
 
 bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* index = builder.AddParameter(1);
   Definition* growable_array = builder.AddParameter(2);
 
-  PrepareIndexedOp(&builder, growable_array, index,
-                   GrowableObjectArray::length_offset());
+  index = PrepareIndexedOp(flow_graph, &builder, growable_array, index,
+                           Slot::GrowableObjectArray_length());
 
-  Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
-      new Value(growable_array), GrowableObjectArray::data_offset(),
-      Type::ZoneHandle(), builder.TokenPos()));
+  Definition* backing_store = builder.AddDefinition(
+      new LoadFieldInstr(new Value(growable_array),
+                         Slot::GrowableObjectArray_data(), builder.TokenPos()));
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(backing_store), new Value(index),
       Instance::ElementSizeFor(kArrayCid),  // index scale
@@ -977,13 +974,34 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
-void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler,
-                                         Label* normal_ir_body) {
+bool Intrinsifier::Build_ObjectArraySetIndexed(FlowGraph* flow_graph) {
   if (Isolate::Current()->argument_type_checks()) {
-    return;
+    return false;
   }
 
-  ObjectArraySetIndexedUnchecked(assembler, normal_ir_body);
+  return Build_ObjectArraySetIndexedUnchecked(flow_graph);
+}
+
+bool Intrinsifier::Build_ObjectArraySetIndexedUnchecked(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* value = builder.AddParameter(1);
+  Definition* index = builder.AddParameter(2);
+  Definition* array = builder.AddParameter(3);
+
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::Array_length());
+
+  builder.AddInstruction(new StoreIndexedInstr(
+      new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
+      Instance::ElementSizeFor(kArrayCid),  // index scale
+      kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+  // Return null.
+  Definition* null_def = builder.AddNullDefinition();
+  builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
 }
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
@@ -997,19 +1015,18 @@ bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
 bool Intrinsifier::Build_GrowableArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* value = builder.AddParameter(1);
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  PrepareIndexedOp(&builder, array, index,
-                   GrowableObjectArray::length_offset());
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::GrowableObjectArray_length());
 
-  Definition* backing_store = builder.AddDefinition(
-      new LoadFieldInstr(new Value(array), GrowableObjectArray::data_offset(),
-                         Type::ZoneHandle(), builder.TokenPos()));
+  Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
+      new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(backing_store), new Value(index), new Value(value),
@@ -1024,7 +1041,7 @@ bool Intrinsifier::Build_GrowableArraySetIndexedUnchecked(
 
 bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* data = builder.AddParameter(1);
@@ -1036,7 +1053,7 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
                                              *value_check, builder.TokenPos()));
 
   builder.AddInstruction(new StoreInstanceFieldInstr(
-      GrowableObjectArray::data_offset(), new Value(growable_array),
+      Slot::GrowableObjectArray_data(), new Value(growable_array),
       new Value(data), kEmitStoreBarrier, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -1046,7 +1063,7 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
 
 bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* length = builder.AddParameter(1);
@@ -1055,7 +1072,7 @@ bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.TokenPos()));
   builder.AddInstruction(new StoreInstanceFieldInstr(
-      GrowableObjectArray::length_offset(), new Value(growable_array),
+      Slot::GrowableObjectArray_length(), new Value(growable_array),
       new Value(length), kNoStoreBarrier, builder.TokenPos()));
   Definition* null_def = builder.AddNullDefinition();
   builder.AddIntrinsicReturn(new Value(null_def));
@@ -1067,7 +1084,7 @@ bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
     return false;
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* receiver = builder.AddParameter(1);
@@ -1113,7 +1130,7 @@ bool Intrinsifier::Build_MathSin(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathSin);
@@ -1123,7 +1140,7 @@ bool Intrinsifier::Build_MathCos(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathCos);
@@ -1133,7 +1150,7 @@ bool Intrinsifier::Build_MathTan(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathTan);
@@ -1143,7 +1160,7 @@ bool Intrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAsin);
@@ -1153,7 +1170,7 @@ bool Intrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAcos);
@@ -1163,7 +1180,7 @@ bool Intrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan);
@@ -1173,7 +1190,7 @@ bool Intrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan2,
@@ -1184,7 +1201,7 @@ bool Intrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleMod,
@@ -1198,7 +1215,7 @@ bool Intrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
   if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleCeil);
@@ -1211,7 +1228,7 @@ bool Intrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
   if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleFloor);
@@ -1224,7 +1241,7 @@ bool Intrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
   if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleTruncate);
@@ -1234,7 +1251,7 @@ bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound);

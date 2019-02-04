@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -88,6 +89,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _iterableDynamicType;
 
   /**
+   * The type representing 'Iterable<Object>'
+   */
+  InterfaceType _iterableObjectType;
+
+  /**
    * The type representing the built-in type 'Iterable'.
    */
   InterfaceType _iterableType;
@@ -108,6 +114,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _mapType;
 
   /**
+   * The type representing the built-in type 'Map<Object, Object>'.
+   */
+  InterfaceType _mapObjectObjectType;
+
+  /**
    * An shared object representing the value 'null'.
    */
   DartObjectImpl _nullObject;
@@ -126,6 +137,11 @@ class TestTypeProvider extends TypeProviderBase {
    * The type representing the built-in type 'Object'.
    */
   InterfaceType _objectType;
+
+  /**
+   * The type representing the built-in type 'Set'.
+   */
+  InterfaceType _setType;
 
   /**
    * The type representing the built-in type 'StackTrace'.
@@ -168,15 +184,22 @@ class TestTypeProvider extends TypeProviderBase {
    */
   AnalysisContext _context;
 
-  TestTypeProvider([this._context]);
+  /**
+   * The analysis driver, if any. Used to create an appropriate 'dart:async'
+   * library to back `Future<T>`.
+   */
+  AnalysisDriver _driver;
+
+  TestTypeProvider([this._context, this._driver]);
 
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
       ClassElementImpl boolElement = ElementFactory.classElement2("bool");
       _boolType = boolElement.type;
-      ConstructorElementImpl fromEnvironment = ElementFactory
-          .constructorElement(boolElement, "fromEnvironment", true);
+      ConstructorElementImpl fromEnvironment =
+          ElementFactory.constructorElement(
+              boolElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
         ElementFactory.namedParameter3("defaultValue",
@@ -210,8 +233,8 @@ class TestTypeProvider extends TypeProviderBase {
       deprecatedElement.accessors = <PropertyAccessorElement>[
         expiresField.getter
       ];
-      ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(deprecatedElement, '', true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          deprecatedElement, '', true, [stringType]);
       (constructor.parameters[0] as ParameterElementImpl).name = 'expires';
       ConstructorFieldInitializer expiresInit =
           AstTestFactory.constructorFieldInitializer(
@@ -311,6 +334,14 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get iterableObjectType {
+    if (_iterableObjectType == null) {
+      _iterableObjectType = iterableType.instantiate(<DartType>[objectType]);
+    }
+    return _iterableObjectType;
+  }
+
+  @override
   InterfaceType get iterableType {
     if (_iterableType == null) {
       ClassElementImpl iterableElement =
@@ -366,13 +397,22 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
       listElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", eType, [intType]),
-        ElementFactory
-            .methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [intType, eType]),
         ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
       ];
       _propagateTypeArguments(listElement);
     }
     return _listType;
+  }
+
+  @override
+  InterfaceType get mapObjectObjectType {
+    if (_mapObjectObjectType == null) {
+      _mapObjectObjectType =
+          mapType.instantiate(<DartType>[objectType, objectType]);
+    }
+    return _mapObjectObjectType;
   }
 
   @override
@@ -388,8 +428,8 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
       mapElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", vType, [objectType]),
-        ElementFactory
-            .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [kType, vType])
       ];
       mapElement.constructors = <ConstructorElement>[
         ElementFactory.constructorElement(mapElement, '', false)
@@ -421,8 +461,8 @@ class TestTypeProvider extends TypeProviderBase {
       // Create a library element for "dart:core"
       // This enables the "isDartCoreNull" getter.
       var library = new LibraryElementImpl.forNode(
-          _context, AstTestFactory.libraryIdentifier2(["dart.core"]));
-      var unit = new CompilationUnitElementImpl("core.dart");
+          _context, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+      var unit = new CompilationUnitElementImpl();
       library.definingCompilationUnit = unit;
       unit.librarySource = unit.source = new StringSource('', null);
 
@@ -460,6 +500,15 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
     }
     return _objectType;
+  }
+
+  @override
+  InterfaceType get setType {
+    if (_setType == null) {
+      ClassElementImpl setElement = ElementFactory.classElement2("Set", ["E"]);
+      _setType = setElement.type;
+    }
+    return _setType;
   }
 
   @override
@@ -507,8 +556,9 @@ class TestTypeProvider extends TypeProviderBase {
         ElementFactory.methodElement("toLowerCase", _stringType),
         ElementFactory.methodElement("toUpperCase", _stringType)
       ];
-      ConstructorElementImpl fromEnvironment = ElementFactory
-          .constructorElement(stringElement, "fromEnvironment", true);
+      ConstructorElementImpl fromEnvironment =
+          ElementFactory.constructorElement(
+              stringElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
         ElementFactory.namedParameter3("defaultValue", type: _stringType)
@@ -524,8 +574,8 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(symbolClass, '', true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          symbolClass, '', true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
@@ -556,12 +606,16 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   void _initDartAsync() {
-    Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-    _context.setContents(asyncSource, "");
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
+    Source asyncSource;
+    if (_driver == null) {
+      asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      _context.setContents(asyncSource, "");
+    } else {
+      asyncSource = _driver.sourceFactory.forUri(DartSdk.DART_ASYNC);
+    }
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        _context, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
 
@@ -620,10 +674,10 @@ class TestTypeProvider extends TypeProviderBase {
       ElementFactory.methodElement("toInt", _intType),
       ElementFactory.methodElement("toDouble", _doubleType),
       ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-      ElementFactory
-          .methodElement("toStringAsExponential", _stringType, [_intType]),
-      ElementFactory
-          .methodElement("toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsExponential", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
     ];
     numElement.accessors = [

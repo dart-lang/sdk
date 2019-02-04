@@ -1,11 +1,8 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.sdk_test;
-
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -13,6 +10,7 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -112,12 +110,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 }
 
 @reflectiveTest
-class FolderBasedDartSdkTest {
-  /**
-   * The resource provider used by these tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
+class FolderBasedDartSdkTest with ResourceProviderMixin {
   void test_addExtensions() {
     FolderBasedDartSdk sdk = _createDartSdk();
     String uri = 'dart:my.internal';
@@ -154,10 +147,7 @@ class FolderBasedDartSdkTest {
 
   void test_fromFile_invalid() {
     FolderBasedDartSdk sdk = _createDartSdk();
-    expect(
-        sdk.fromFileUri(
-            resourceProvider.getFile("/not/in/the/sdk.dart").toUri()),
-        isNull);
+    expect(sdk.fromFileUri(getFile("/not/in/the/sdk.dart").toUri()), isNull);
   }
 
   void test_fromFile_library() {
@@ -264,9 +254,7 @@ class FolderBasedDartSdkTest {
   }
 
   FolderBasedDartSdk _createDartSdk() {
-    resourceProvider = new MemoryResourceProvider();
-    Folder sdkDirectory =
-        resourceProvider.getFolder(resourceProvider.convertPath('/sdk'));
+    Folder sdkDirectory = getFolder('/sdk');
     _createFile(sdkDirectory,
         ['lib', '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'],
         content: _librariesFileContent());
@@ -292,7 +280,7 @@ class FolderBasedDartSdkTest {
       parent = parent.getChildAssumingFolder(segments[i]);
     }
     File file = parent.getChildAssumingFile(segments[last]);
-    resourceProvider.newFile(file.path, content);
+    newFile(file.path, content: content);
   }
 
   String _librariesFileContent() => '''
@@ -327,14 +315,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 }
 
 @reflectiveTest
-class SdkExtensionFinderTest {
-  MemoryResourceProvider resourceProvider;
-
+class SdkExtensionFinderTest with ResourceProviderMixin {
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-    resourceProvider.newFolder(resourceProvider.convertPath('/empty'));
-    resourceProvider.newFolder(resourceProvider.convertPath('/tmp'));
-    resourceProvider.newFile(resourceProvider.convertPath('/tmp/_sdkext'), r'''
+    newFile('/tmp/_sdkext', content: r'''
 {
   "dart:fox": "slippy.dart",
   "dart:bear": "grizzly.dart",
@@ -346,9 +329,7 @@ class SdkExtensionFinderTest {
 
   test_create_noSdkExtPackageMap() {
     var resolver = new SdkExtensionFinder({
-      'fox': <Folder>[
-        resourceProvider.getResource(resourceProvider.convertPath('/empty'))
-      ]
+      'fox': <Folder>[getFolder('/empty')]
     });
     expect(resolver.urlMappings.length, equals(0));
   }
@@ -360,40 +341,25 @@ class SdkExtensionFinderTest {
 
   test_create_sdkExtPackageMap() {
     var resolver = new SdkExtensionFinder({
-      'fox': <Folder>[
-        resourceProvider.getResource(resourceProvider.convertPath('/tmp'))
-      ]
+      'fox': <Folder>[getFolder('/tmp')]
     });
     // We have four mappings.
     Map<String, String> urlMappings = resolver.urlMappings;
     expect(urlMappings.length, equals(4));
     // Check that they map to the correct paths.
-    expect(urlMappings['dart:fox'],
-        equals(resourceProvider.convertPath("/tmp/slippy.dart")));
-    expect(urlMappings['dart:bear'],
-        equals(resourceProvider.convertPath("/tmp/grizzly.dart")));
-    expect(urlMappings['dart:relative'],
-        equals(resourceProvider.convertPath("/relative.dart")));
+    expect(urlMappings['dart:fox'], equals(convertPath("/tmp/slippy.dart")));
+    expect(urlMappings['dart:bear'], equals(convertPath("/tmp/grizzly.dart")));
+    expect(urlMappings['dart:relative'], equals(convertPath("/relative.dart")));
     expect(urlMappings['dart:deep'],
-        equals(resourceProvider.convertPath("/tmp/deep/directory/file.dart")));
+        equals(convertPath("/tmp/deep/directory/file.dart")));
   }
 }
 
 @reflectiveTest
-class SdkLibrariesReaderTest extends EngineTestCase {
-  /**
-   * The resource provider used by these tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
-  @override
-  void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-  }
-
+class SdkLibrariesReaderTest extends EngineTestCase with ResourceProviderMixin {
   void test_readFrom_dart2js() {
-    LibraryMap libraryMap = new SdkLibrariesReader(true)
-        .readFromFile(resourceProvider.getFile("/libs.dart"), r'''
+    LibraryMap libraryMap =
+        new SdkLibrariesReader(true).readFromFile(getFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -416,15 +382,15 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   }
 
   void test_readFrom_empty() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false)
-        .readFromFile(resourceProvider.getFile("/libs.dart"), "");
+    LibraryMap libraryMap =
+        new SdkLibrariesReader(false).readFromFile(getFile("/libs.dart"), "");
     expect(libraryMap, isNotNull);
     expect(libraryMap.size(), 0);
   }
 
   void test_readFrom_normal() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false)
-        .readFromFile(resourceProvider.getFile("/libs.dart"), r'''
+    LibraryMap libraryMap =
+        new SdkLibrariesReader(false).readFromFile(getFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',

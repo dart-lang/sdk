@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<U extends core::Object = dynamic, V extends core::Object = dynamic> = (U) → V;
 class Foo<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo<self::Foo::T>
     ;
   get v1() → self::Bar<self::Foo::T>
     ;
@@ -26,7 +26,7 @@ class Foo<T extends core::Object = dynamic> extends core::Object {
     ;
 }
 class Bar<T extends core::Object = dynamic> extends core::Object {
-  const constructor •() → void
+  const constructor •() → self::Bar<self::Bar::T>
     ;
 }
 static method main() → dynamic

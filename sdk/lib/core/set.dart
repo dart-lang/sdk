@@ -180,8 +180,16 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * If an object equal to [object] is in the set, return it.
    *
-   * Checks if there is an object in the set that is equal to [object].
-   * If so, that object is returned, otherwise returns null.
+   * Checks whether [object] is in the set, like [contains], and if so,
+   * returns the object in the set, otherwise returns `null`.
+   *
+   * If the equality relation used by the set is not identity,
+   * then the returned object may not be *identical* to [object].
+   * Some set implementations may not be able to implement this method.
+   * If the [contains] method is computed,
+   * rather than being based on an actual object instance,
+   * then there may not be a specific object instance representing the
+   * set element.
    */
   E lookup(Object object);
 

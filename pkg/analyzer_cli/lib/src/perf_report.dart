@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
 const _JSON = const JsonEncoder.withIndent("  ");
 
-String _osType = () {
+final String _osType = () {
   if (Platform.isLinux) {
     return "linux";
   } else if (Platform.isMacOS) {

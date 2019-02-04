@@ -9,7 +9,7 @@ import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 
-/// Performs strong-mode type checking on the kernel IR.
+/// Performs type checking on the kernel IR.
 ///
 /// A concrete subclass of [TypeChecker] must implement [checkAssignable] and
 /// [fail] in order to deal with subtyping requirements and error handling.
@@ -20,10 +20,9 @@ abstract class TypeChecker {
   TypeEnvironment environment;
 
   TypeChecker(this.coreTypes, this.hierarchy,
-      {bool strongMode: false, this.ignoreSdk: true}) {
-    environment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
-  }
+      {bool legacyMode: false, this.ignoreSdk: true})
+      : environment =
+            new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
   void checkComponent(Component component) {
     for (var library in component.libraries) {
@@ -35,7 +34,7 @@ abstract class TypeChecker {
         });
       }
     }
-    var visitor = new TypeCheckingVisitor(this, environment);
+    var visitor = new TypeCheckingVisitor(this, environment, hierarchy);
     for (var library in component.libraries) {
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
@@ -117,12 +116,12 @@ class TypeCheckingVisitor
         InitializerVisitor<Null> {
   final TypeChecker checker;
   final TypeEnvironment environment;
+  final ClassHierarchy hierarchy;
 
   CoreTypes get coreTypes => environment.coreTypes;
-  ClassHierarchy get hierarchy => environment.hierarchy;
   Class get currentClass => environment.thisType.classNode;
 
-  TypeCheckingVisitor(this.checker, this.environment);
+  TypeCheckingVisitor(this.checker, this.environment, this.hierarchy);
 
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     checker.checkAssignable(where, from, to);
@@ -516,6 +515,15 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitSetLiteral(SetLiteral node) {
+    for (int i = 0; i < node.expressions.length; ++i) {
+      node.expressions[i] =
+          checkAndDowncastExpression(node.expressions[i], node.typeArgument);
+    }
+    return environment.literalSetType(node.typeArgument);
+  }
+
+  @override
   DartType visitLogicalExpression(LogicalExpression node) {
     node.left = checkAndDowncastExpression(node.left, environment.boolType);
     node.right = checkAndDowncastExpression(node.right, environment.boolType);
@@ -819,8 +827,7 @@ class TypeCheckingVisitor
       if (iteratorGetter == null) return const DynamicType();
       var castedIterable = hierarchy.getTypeAsInstanceOf(
           iterable, iteratorGetter.enclosingClass);
-      var iteratorType = Substitution
-          .fromInterfaceType(castedIterable)
+      var iteratorType = Substitution.fromInterfaceType(castedIterable)
           .substituteType(iteratorGetter.getterType);
       if (iteratorType is InterfaceType) {
         var currentGetter =
@@ -828,8 +835,7 @@ class TypeCheckingVisitor
         if (currentGetter == null) return const DynamicType();
         var castedIteratorType = hierarchy.getTypeAsInstanceOf(
             iteratorType, currentGetter.enclosingClass);
-        return Substitution
-            .fromInterfaceType(castedIteratorType)
+        return Substitution.fromInterfaceType(castedIteratorType)
             .substituteType(currentGetter.getterType);
       }
     }

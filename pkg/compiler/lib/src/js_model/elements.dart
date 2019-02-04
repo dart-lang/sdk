@@ -9,7 +9,9 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
+import 'closure.dart';
 
 /// Map from 'frontend' to 'backend' elements.
 ///
@@ -104,146 +106,6 @@ abstract class JsToFrontendMapBase extends JsToFrontendMap {
   TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable);
 }
 
-// TODO(johnniwinther): Merge this with [JsKernelToElementMap].
-class JsElementCreatorMixin {
-  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
-    return new JLibrary(name, canonicalUri);
-  }
-
-  IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract}) {
-    return new JClass(library, name, isAbstract: isAbstract);
-  }
-
-  IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    return new JTypedef(library, name);
-  }
-
-  TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index) {
-    return new JTypeVariable(typeDeclaration, name, index);
-  }
-
-  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst}) {
-    return new JGenerativeConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal, isConst: isConst);
-  }
-
-  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
-    return new JFactoryConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal,
-        isConst: isConst,
-        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
-  }
-
-  JConstructorBody createConstructorBody(ConstructorEntity constructor) {
-    return new JConstructorBody(constructor);
-  }
-
-  JGeneratorBody createGeneratorBody(
-      FunctionEntity function, DartType elementType) {
-    return new JGeneratorBody(function, elementType);
-  }
-
-  IndexedFunction createGetter(LibraryEntity library,
-      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JGetter(library, enclosingClass, name, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createMethod(
-      LibraryEntity library,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract}) {
-    return new JMethod(
-        library, enclosingClass, name, parameterStructure, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createSetter(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JSetter(library, enclosingClass, name,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedField createField(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst}) {
-    return new JField(library, enclosingClass, name,
-        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
-  }
-
-  LibraryEntity convertLibrary(IndexedLibrary library) {
-    return createLibrary(library.name, library.canonicalUri);
-  }
-
-  ClassEntity convertClass(LibraryEntity library, IndexedClass cls) {
-    return createClass(library, cls.name, isAbstract: cls.isAbstract);
-  }
-
-  TypedefEntity convertTypedef(LibraryEntity library, IndexedTypedef typedef) {
-    return createTypedef(library, typedef.name);
-  }
-
-  MemberEntity convertMember(
-      LibraryEntity library, ClassEntity cls, IndexedMember member) {
-    Name memberName = new Name(member.memberName.text, library,
-        isSetter: member.memberName.isSetter);
-    if (member.isField) {
-      IndexedField field = member;
-      return createField(library, cls, memberName,
-          isStatic: field.isStatic,
-          isAssignable: field.isAssignable,
-          isConst: field.isConst);
-    } else if (member.isConstructor) {
-      IndexedConstructor constructor = member;
-      if (constructor.isFactoryConstructor) {
-        // TODO(redemption): This should be a JFunction.
-        return createFactoryConstructor(
-            cls, memberName, constructor.parameterStructure,
-            isExternal: constructor.isExternal,
-            isConst: constructor.isConst,
-            isFromEnvironmentConstructor:
-                constructor.isFromEnvironmentConstructor);
-      } else {
-        return createGenerativeConstructor(
-            cls, memberName, constructor.parameterStructure,
-            isExternal: constructor.isExternal, isConst: constructor.isConst);
-      }
-    } else if (member.isGetter) {
-      IndexedFunction getter = member;
-      return createGetter(library, cls, memberName, getter.asyncMarker,
-          isStatic: getter.isStatic,
-          isExternal: getter.isExternal,
-          isAbstract: getter.isAbstract);
-    } else if (member.isSetter) {
-      IndexedFunction setter = member;
-      return createSetter(library, cls, memberName,
-          isStatic: setter.isStatic,
-          isExternal: setter.isExternal,
-          isAbstract: setter.isAbstract);
-    } else {
-      IndexedFunction function = member;
-      return createMethod(library, cls, memberName, function.parameterStructure,
-          function.asyncMarker,
-          isStatic: function.isStatic,
-          isExternal: function.isExternal,
-          isAbstract: function.isAbstract);
-    }
-  }
-}
-
 typedef Entity EntityConverter(Entity cls);
 
 class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
@@ -318,21 +180,78 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
 const String jsElementPrefix = 'j:';
 
 class JLibrary extends IndexedLibrary {
+  /// Tag used for identifying serialized [JLibrary] objects in a
+  /// debugging data stream.
+  static const String tag = 'library';
+
   final String name;
   final Uri canonicalUri;
 
   JLibrary(this.name, this.canonicalUri);
 
+  /// Deserializes a [JLibrary] object from [source].
+  factory JLibrary.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    String name = source.readString();
+    Uri canonicalUri = source.readUri();
+    source.end(tag);
+    return new JLibrary(name, canonicalUri);
+  }
+
+  /// Serializes this [JLibrary] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeString(name);
+    sink.writeUri(canonicalUri);
+    sink.end(tag);
+  }
+
   String toString() => '${jsElementPrefix}library($name)';
 }
 
+/// Enum used for identifying [JClass] subclasses in serialization.
+enum JClassKind { node, closure, record }
+
 class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
+  /// Tag used for identifying serialized [JClass] objects in a
+  /// debugging data stream.
+  static const String tag = 'class';
+
   final JLibrary library;
 
   final String name;
   final bool isAbstract;
 
   JClass(this.library, this.name, {this.isAbstract});
+
+  /// Deserializes a [JClass] object from [source].
+  factory JClass.readFromDataSource(DataSource source) {
+    JClassKind kind = source.readEnum(JClassKind.values);
+    switch (kind) {
+      case JClassKind.node:
+        source.begin(tag);
+        JLibrary library = source.readLibrary();
+        String name = source.readString();
+        bool isAbstract = source.readBool();
+        source.end(tag);
+        return new JClass(library, name, isAbstract: isAbstract);
+      case JClassKind.closure:
+        return new JClosureClass.readFromDataSource(source);
+      case JClassKind.record:
+        return new JRecord.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unexpected ClassKind $kind");
+  }
+
+  /// Serializes this [JClass] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JClassKind.node);
+    sink.begin(tag);
+    sink.writeLibrary(library);
+    sink.writeString(name);
+    sink.writeBool(isAbstract);
+    sink.end(tag);
+  }
 
   @override
   bool get isClosure => false;
@@ -341,13 +260,50 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
 }
 
 class JTypedef extends IndexedTypedef {
+  /// Tag used for identifying serialized [JTypedef] objects in a
+  /// debugging data stream.
+  static const String tag = 'typedef';
+
   final JLibrary library;
 
   final String name;
 
   JTypedef(this.library, this.name);
 
+  /// Deserializes a [JTypedef] object from [source].
+  factory JTypedef.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JLibrary library = source.readLibrary();
+    String name = source.readString();
+    source.end(tag);
+    return new JTypedef(library, name);
+  }
+
+  /// Serializes this [JTypedef] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeLibrary(library);
+    sink.writeString(name);
+    sink.end(tag);
+  }
+
   String toString() => '${jsElementPrefix}typedef($name)';
+}
+
+/// Enum used for identifying [JMember] subclasses in serialization.
+enum JMemberKind {
+  generativeConstructor,
+  factoryConstructor,
+  constructorBody,
+  field,
+  getter,
+  setter,
+  method,
+  closureField,
+  closureCallMethod,
+  generatorBody,
+  signatureMethod,
+  recordField,
 }
 
 abstract class JMember extends IndexedMember {
@@ -358,6 +314,41 @@ abstract class JMember extends IndexedMember {
 
   JMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
       : _isStatic = isStatic;
+
+  /// Deserializes a [JMember] object from [source].
+  factory JMember.readFromDataSource(DataSource source) {
+    JMemberKind kind = source.readEnum(JMemberKind.values);
+    switch (kind) {
+      case JMemberKind.generativeConstructor:
+        return new JGenerativeConstructor.readFromDataSource(source);
+      case JMemberKind.factoryConstructor:
+        return new JFactoryConstructor.readFromDataSource(source);
+      case JMemberKind.constructorBody:
+        return new JConstructorBody.readFromDataSource(source);
+      case JMemberKind.field:
+        return new JField.readFromDataSource(source);
+      case JMemberKind.getter:
+        return new JGetter.readFromDataSource(source);
+      case JMemberKind.setter:
+        return new JSetter.readFromDataSource(source);
+      case JMemberKind.method:
+        return new JMethod.readFromDataSource(source);
+      case JMemberKind.closureField:
+        return new JClosureField.readFromDataSource(source);
+      case JMemberKind.closureCallMethod:
+        return new JClosureCallMethod.readFromDataSource(source);
+      case JMemberKind.generatorBody:
+        return new JGeneratorBody.readFromDataSource(source);
+      case JMemberKind.signatureMethod:
+        return new JSignatureMethod.readFromDataSource(source);
+      case JMemberKind.recordField:
+        return new JRecordField.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unexpected JMemberKind $kind");
+  }
+
+  /// Serializes this [JMember] to [sink].
+  void writeToDataSink(DataSink sink);
 
   String get name => _name.text;
 
@@ -444,11 +435,41 @@ abstract class JConstructor extends JFunction
 }
 
 class JGenerativeConstructor extends JConstructor {
+  /// Tag used for identifying serialized [JGenerativeConstructor] objects in a
+  /// debugging data stream.
+  static const String tag = 'generative-constructor';
+
   JGenerativeConstructor(
       JClass enclosingClass, Name name, ParameterStructure parameterStructure,
       {bool isExternal, bool isConst})
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
+
+  factory JGenerativeConstructor.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JClass enclosingClass = source.readClass();
+    String name = source.readString();
+    ParameterStructure parameterStructure =
+        new ParameterStructure.readFromDataSource(source);
+    bool isExternal = source.readBool();
+    bool isConst = source.readBool();
+    source.end(tag);
+    return new JGenerativeConstructor(enclosingClass,
+        new Name(name, enclosingClass.library), parameterStructure,
+        isExternal: isExternal, isConst: isConst);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.generativeConstructor);
+    sink.begin(tag);
+    sink.writeClass(enclosingClass);
+    sink.writeString(name);
+    parameterStructure.writeToDataSink(sink);
+    sink.writeBool(isExternal);
+    sink.writeBool(isConst);
+    sink.end(tag);
+  }
 
   @override
   bool get isFactoryConstructor => false;
@@ -458,6 +479,10 @@ class JGenerativeConstructor extends JConstructor {
 }
 
 class JFactoryConstructor extends JConstructor {
+  /// Tag used for identifying serialized [JFactoryConstructor] objects in a
+  /// debugging data stream.
+  static const String tag = 'factory-constructor';
+
   @override
   final bool isFromEnvironmentConstructor;
 
@@ -467,6 +492,36 @@ class JFactoryConstructor extends JConstructor {
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
+  factory JFactoryConstructor.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JClass enclosingClass = source.readClass();
+    String name = source.readString();
+    ParameterStructure parameterStructure =
+        new ParameterStructure.readFromDataSource(source);
+    bool isExternal = source.readBool();
+    bool isConst = source.readBool();
+    bool isFromEnvironmentConstructor = source.readBool();
+    source.end(tag);
+    return new JFactoryConstructor(enclosingClass,
+        new Name(name, enclosingClass.library), parameterStructure,
+        isExternal: isExternal,
+        isConst: isConst,
+        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.factoryConstructor);
+    sink.begin(tag);
+    sink.writeClass(enclosingClass);
+    sink.writeString(name);
+    parameterStructure.writeToDataSink(sink);
+    sink.writeBool(isExternal);
+    sink.writeBool(isConst);
+    sink.writeBool(isFromEnvironmentConstructor);
+    sink.end(tag);
+  }
+
   @override
   bool get isFactoryConstructor => true;
 
@@ -475,7 +530,11 @@ class JFactoryConstructor extends JConstructor {
 }
 
 class JConstructorBody extends JFunction implements ConstructorBodyEntity {
-  final ConstructorEntity constructor;
+  /// Tag used for identifying serialized [JConstructorBody] objects in a
+  /// debugging data stream.
+  static const String tag = 'constructor-body';
+
+  final JConstructor constructor;
 
   JConstructorBody(this.constructor)
       : super(
@@ -487,10 +546,29 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
             isStatic: false,
             isExternal: false);
 
+  factory JConstructorBody.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JConstructor constructor = source.readMember();
+    source.end(tag);
+    return new JConstructorBody(constructor);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.constructorBody);
+    sink.begin(tag);
+    sink.writeMember(constructor);
+    sink.end(tag);
+  }
+
   String get _kind => 'constructor_body';
 }
 
 class JMethod extends JFunction {
+  /// Tag used for identifying serialized [JMethod] objects in a
+  /// debugging data stream.
+  static const String tag = 'method';
+
   final bool isAbstract;
 
   JMethod(JLibrary library, JClass enclosingClass, Name name,
@@ -499,6 +577,53 @@ class JMethod extends JFunction {
       : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
+  factory JMethod.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberContextKind kind = source.readEnum(MemberContextKind.values);
+    JLibrary library;
+    JClass enclosingClass;
+    switch (kind) {
+      case MemberContextKind.library:
+        library = source.readLibrary();
+        break;
+      case MemberContextKind.cls:
+        enclosingClass = source.readClass();
+        library = enclosingClass.library;
+        break;
+    }
+    String name = source.readString();
+    ParameterStructure parameterStructure =
+        new ParameterStructure.readFromDataSource(source);
+    AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
+    bool isStatic = source.readBool();
+    bool isExternal = source.readBool();
+    bool isAbstract = source.readBool();
+    source.end(tag);
+    return new JMethod(library, enclosingClass, new Name(name, library),
+        parameterStructure, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.method);
+    sink.begin(tag);
+    if (enclosingClass != null) {
+      sink.writeEnum(MemberContextKind.cls);
+      sink.writeClass(enclosingClass);
+    } else {
+      sink.writeEnum(MemberContextKind.library);
+      sink.writeLibrary(library);
+    }
+    sink.writeString(name);
+    parameterStructure.writeToDataSink(sink);
+    sink.writeEnum(asyncMarker);
+    sink.writeBool(isStatic);
+    sink.writeBool(isExternal);
+    sink.writeBool(isAbstract);
+    sink.end(tag);
+  }
+
   @override
   bool get isFunction => true;
 
@@ -506,7 +631,11 @@ class JMethod extends JFunction {
 }
 
 class JGeneratorBody extends JFunction {
-  final FunctionEntity function;
+  /// Tag used for identifying serialized [JGeneratorBody] objects in a
+  /// debugging data stream.
+  static const String tag = 'generator-body';
+
+  final JFunction function;
   final DartType elementType;
   final int hashCode;
 
@@ -516,10 +645,31 @@ class JGeneratorBody extends JFunction {
             function.parameterStructure, function.asyncMarker,
             isStatic: function.isStatic, isExternal: false);
 
+  factory JGeneratorBody.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JFunction function = source.readMember();
+    DartType elementType = source.readDartType();
+    source.end(tag);
+    return new JGeneratorBody(function, elementType);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.generatorBody);
+    sink.begin(tag);
+    sink.writeMember(function);
+    sink.writeDartType(elementType);
+    sink.end(tag);
+  }
+
   String get _kind => 'generator_body';
 }
 
 class JGetter extends JFunction {
+  /// Tag used for identifying serialized [JGetter] objects in a
+  /// debugging data stream.
+  static const String tag = 'getter';
+
   final bool isAbstract;
 
   JGetter(JLibrary library, JClass enclosingClass, Name name,
@@ -529,6 +679,50 @@ class JGetter extends JFunction {
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
+  factory JGetter.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberContextKind kind = source.readEnum(MemberContextKind.values);
+    JLibrary library;
+    JClass enclosingClass;
+    switch (kind) {
+      case MemberContextKind.library:
+        library = source.readLibrary();
+        break;
+      case MemberContextKind.cls:
+        enclosingClass = source.readClass();
+        library = enclosingClass.library;
+        break;
+    }
+    String name = source.readString();
+    AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
+    bool isStatic = source.readBool();
+    bool isExternal = source.readBool();
+    bool isAbstract = source.readBool();
+    source.end(tag);
+    return new JGetter(
+        library, enclosingClass, new Name(name, library), asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.getter);
+    sink.begin(tag);
+    if (enclosingClass != null) {
+      sink.writeEnum(MemberContextKind.cls);
+      sink.writeClass(enclosingClass);
+    } else {
+      sink.writeEnum(MemberContextKind.library);
+      sink.writeLibrary(library);
+    }
+    sink.writeString(name);
+    sink.writeEnum(asyncMarker);
+    sink.writeBool(isStatic);
+    sink.writeBool(isExternal);
+    sink.writeBool(isAbstract);
+    sink.end(tag);
+  }
+
   @override
   bool get isGetter => true;
 
@@ -536,6 +730,10 @@ class JGetter extends JFunction {
 }
 
 class JSetter extends JFunction {
+  /// Tag used for identifying serialized [JSetter] objects in a
+  /// debugging data stream.
+  static const String tag = 'setter';
+
   final bool isAbstract;
 
   JSetter(JLibrary library, JClass enclosingClass, Name name,
@@ -543,6 +741,48 @@ class JSetter extends JFunction {
       : super(library, enclosingClass, name, const ParameterStructure.setter(),
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
+
+  factory JSetter.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberContextKind kind = source.readEnum(MemberContextKind.values);
+    JLibrary library;
+    JClass enclosingClass;
+    switch (kind) {
+      case MemberContextKind.library:
+        library = source.readLibrary();
+        break;
+      case MemberContextKind.cls:
+        enclosingClass = source.readClass();
+        library = enclosingClass.library;
+        break;
+    }
+    String name = source.readString();
+    bool isStatic = source.readBool();
+    bool isExternal = source.readBool();
+    bool isAbstract = source.readBool();
+    source.end(tag);
+    return new JSetter(
+        library, enclosingClass, new Name(name, library, isSetter: true),
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.setter);
+    sink.begin(tag);
+    if (enclosingClass != null) {
+      sink.writeEnum(MemberContextKind.cls);
+      sink.writeClass(enclosingClass);
+    } else {
+      sink.writeEnum(MemberContextKind.library);
+      sink.writeLibrary(library);
+    }
+    sink.writeString(name);
+    sink.writeBool(isStatic);
+    sink.writeBool(isExternal);
+    sink.writeBool(isAbstract);
+    sink.end(tag);
+  }
 
   @override
   bool get isAssignable => true;
@@ -554,12 +794,57 @@ class JSetter extends JFunction {
 }
 
 class JField extends JMember implements FieldEntity, IndexedField {
+  /// Tag used for identifying serialized [JField] objects in a
+  /// debugging data stream.
+  static const String tag = 'field';
+
   final bool isAssignable;
   final bool isConst;
 
   JField(JLibrary library, JClass enclosingClass, Name name,
       {bool isStatic, this.isAssignable, this.isConst})
       : super(library, enclosingClass, name, isStatic: isStatic);
+
+  factory JField.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberContextKind kind = source.readEnum(MemberContextKind.values);
+    JLibrary library;
+    JClass enclosingClass;
+    switch (kind) {
+      case MemberContextKind.library:
+        library = source.readLibrary();
+        break;
+      case MemberContextKind.cls:
+        enclosingClass = source.readClass();
+        library = enclosingClass.library;
+        break;
+    }
+    String name = source.readString();
+    bool isStatic = source.readBool();
+    bool isAssignable = source.readBool();
+    bool isConst = source.readBool();
+    source.end(tag);
+    return new JField(library, enclosingClass, new Name(name, library),
+        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.field);
+    sink.begin(tag);
+    if (enclosingClass != null) {
+      sink.writeEnum(MemberContextKind.cls);
+      sink.writeClass(enclosingClass);
+    } else {
+      sink.writeEnum(MemberContextKind.library);
+      sink.writeLibrary(library);
+    }
+    sink.writeString(name);
+    sink.writeBool(isStatic);
+    sink.writeBool(isAssignable);
+    sink.writeBool(isConst);
+    sink.end(tag);
+  }
 
   @override
   bool get isField => true;
@@ -568,11 +853,36 @@ class JField extends JMember implements FieldEntity, IndexedField {
 }
 
 class JClosureCallMethod extends JMethod {
+  /// Tag used for identifying serialized [JClosureCallMethod] objects in a
+  /// debugging data stream.
+  static const String tag = 'closure-call-method';
+
   JClosureCallMethod(ClassEntity enclosingClass,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker)
       : super(enclosingClass.library, enclosingClass, Names.call,
             parameterStructure, asyncMarker,
             isStatic: false, isExternal: false, isAbstract: false);
+
+  factory JClosureCallMethod.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JClass enclosingClass = source.readClass();
+    ParameterStructure parameterStructure =
+        new ParameterStructure.readFromDataSource(source);
+    AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
+    source.end(tag);
+    return new JClosureCallMethod(
+        enclosingClass, parameterStructure, asyncMarker);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.closureCallMethod);
+    sink.begin(tag);
+    sink.writeClass(enclosingClass);
+    parameterStructure.writeToDataSink(sink);
+    sink.writeEnum(asyncMarker);
+    sink.end(tag);
+  }
 
   String get _kind => 'closure_call';
 }
@@ -580,21 +890,99 @@ class JClosureCallMethod extends JMethod {
 /// A method that returns the signature of the Dart closure/tearoff that this
 /// method's parent class is representing.
 class JSignatureMethod extends JMethod {
-  JSignatureMethod(LibraryEntity enclosingLibrary, ClassEntity enclosingClass,
-      ParameterStructure parameterStructure, AsyncMarker asyncMarker)
-      : super(enclosingLibrary, enclosingClass, Names.signature,
-            parameterStructure, asyncMarker,
+  /// Tag used for identifying serialized [JSignatureMethod] objects in a
+  /// debugging data stream.
+  static const String tag = 'signature-method';
+
+  JSignatureMethod(ClassEntity enclosingClass)
+      : super(enclosingClass.library, enclosingClass, Names.signature,
+            const ParameterStructure(0, 0, const [], 0), AsyncMarker.SYNC,
             isStatic: false, isExternal: false, isAbstract: false);
+
+  factory JSignatureMethod.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JClass cls = source.readClass();
+    source.end(tag);
+    return new JSignatureMethod(cls);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberKind.signatureMethod);
+    sink.begin(tag);
+    sink.writeClass(enclosingClass);
+    sink.end(tag);
+  }
 
   String get _kind => 'signature';
 }
 
+/// Enum used for identifying [JTypeVariable] variants in serialization.
+enum JTypeVariableKind { cls, member, typedef, local }
+
 class JTypeVariable extends IndexedTypeVariable {
+  /// Tag used for identifying serialized [JTypeVariable] objects in a
+  /// debugging data stream.
+  static const String tag = 'type-variable';
+
   final Entity typeDeclaration;
   final String name;
   final int index;
 
   JTypeVariable(this.typeDeclaration, this.name, this.index);
+
+  /// Deserializes a [JTypeVariable] object from [source].
+  factory JTypeVariable.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    JTypeVariableKind kind = source.readEnum(JTypeVariableKind.values);
+    Entity typeDeclaration;
+    switch (kind) {
+      case JTypeVariableKind.cls:
+        typeDeclaration = source.readClass();
+        break;
+      case JTypeVariableKind.member:
+        typeDeclaration = source.readMember();
+        break;
+      case JTypeVariableKind.typedef:
+        typeDeclaration = source.readTypedef();
+        break;
+      case JTypeVariableKind.local:
+        // Type variables declared by local functions don't point to their
+        // declaration, since the corresponding closure call methods is created
+        // after the type variable.
+        // TODO(johnniwinther): Fix this.
+        break;
+    }
+    String name = source.readString();
+    int index = source.readInt();
+    source.end(tag);
+    return new JTypeVariable(typeDeclaration, name, index);
+  }
+
+  /// Serializes this [JTypeVariable] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    if (typeDeclaration is IndexedClass) {
+      IndexedClass cls = typeDeclaration;
+      sink.writeEnum(JTypeVariableKind.cls);
+      sink.writeClass(cls);
+    } else if (typeDeclaration is IndexedMember) {
+      IndexedMember member = typeDeclaration;
+      sink.writeEnum(JTypeVariableKind.member);
+      sink.writeMember(member);
+    } else if (typeDeclaration is IndexedTypedef) {
+      IndexedTypedef typedef = typeDeclaration;
+      sink.writeEnum(JTypeVariableKind.typedef);
+      sink.writeTypedef(typedef);
+    } else if (typeDeclaration == null) {
+      sink.writeEnum(JTypeVariableKind.local);
+    } else {
+      throw new UnsupportedError(
+          "Unexpected type variable declarer $typeDeclaration.");
+    }
+    sink.writeString(name);
+    sink.writeInt(index);
+    sink.end(tag);
+  }
 
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';

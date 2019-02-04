@@ -191,7 +191,7 @@ abstract class OaMiIJ = O with MiIJ;
 
 // Concrete subclass of abstract mixin appliction
 class COaMiIJ extends OaMiIJ {
-  String toString() => "${super.toString()}:$COaMiIJ";
+  String toString() => "${super.toString()}:COaMiIJ";
   String methodI() => "COaMiIJ:${this}.I";
   String methodJ() => "COaMiIJ:${this}.J";
 }
@@ -201,7 +201,7 @@ abstract class OaMiIJ_2 extends O with MiIJ {}
 
 // Concrete subclass of abstract mixin appliction
 class COaMiIJ_2 extends OaMiIJ_2 {
-  String toString() => "${super.toString()}:$COaMiIJ";
+  String toString() => "${super.toString()}:COaMiIJ";
   String methodI() => "COaMiIJ:${this}.I";
   String methodJ() => "COaMiIJ:${this}.J";
 }
@@ -222,7 +222,7 @@ void main() {
   }
 
   {
-    for (var o in [CBaM(), CBaM_2()]) {
+    for (dynamic o in [CBaM(), CBaM_2()]) {
       Expect.type<B>(o);
       Expect.type<M>(o);
       Expect.equals("?&M", "$o");
@@ -241,7 +241,7 @@ void main() {
   }
 
   {
-    for (var o in [CBaMO(), CBaMO_2()]) {
+    for (dynamic o in [CBaMO(), CBaMO_2()]) {
       Expect.type<B>(o);
       Expect.type<MO>(o);
       Expect.equals("B&MO", "$o");
@@ -288,7 +288,7 @@ void main() {
   }
 
   {
-    for (var o in [CBaMA(), CBaMA_2()]) {
+    for (dynamic o in [CBaMA(), CBaMA_2()]) {
       Expect.type<B>(o);
       Expect.type<MA>(o);
       Expect.equals("B&MA", "$o");
@@ -332,7 +332,7 @@ void main() {
       Expect.type<MBC>(o);
       Expect.equals("BC&MBC", "$o");
       Expect.equals("MBC:$o.MBC", o.methodMBC());
-      Expect.equals("MBC:$o.A->BC:$o.A->C:$o.A->$A:$o.A", o.methodA());
+      Expect.equals("MBC:$o.A->BC:$o.A->C:$o.A->A:$o.A", o.methodA());
       Expect.equals("MBC:$o.B->BC:$o.B", o.methodB());
       Expect.equals("MBC:$o.C->BC:$o.C->C:$o.C", o.methodC());
     }
@@ -346,7 +346,7 @@ void main() {
       Expect.equals("A&MAiBC&MBC", "$o");
       Expect.equals("MBC:$o.MBC", (o as MBC).methodMBC());
       Expect.equals("MAiBC:$o.MAiBC", o.methodMAiBC());
-      Expect.equals("MBC:$o.A->MAiBC:$o.A->$A:$o.A", o.methodA());
+      Expect.equals("MBC:$o.A->MAiBC:$o.A->A:$o.A", o.methodA());
       Expect.equals("MBC:$o.B->MAiBC:$o.B", o.methodB());
       Expect.equals("MBC:$o.C->MAiBC:$o.C", o.methodC());
     }
@@ -360,7 +360,7 @@ void main() {
       Expect.type<J>(o);
       Expect.equals("BC&MBCiIJ", "$o");
       Expect.equals("MBCiIJ:$o.MBCiIJ", o.methodMBCiIJ());
-      Expect.equals("MBCiIJ:$o.A->BC:$o.A->C:$o.A->$A:$o.A", o.methodA());
+      Expect.equals("MBCiIJ:$o.A->BC:$o.A->C:$o.A->A:$o.A", o.methodA());
       Expect.equals("MBCiIJ:$o.B->BC:$o.B", o.methodB());
       Expect.equals("MBCiIJ:$o.C->BC:$o.C->C:$o.C", o.methodC());
       Expect.equals("MBCiIJ:$o.I", o.methodI());
@@ -378,7 +378,7 @@ void main() {
       Expect.equals("A&MAiBC&MBCiIJ", "$o");
       Expect.equals("MBCiIJ:$o.MBCiIJ", o.methodMBCiIJ());
       Expect.equals("MAiBC:$o.MAiBC", (o as CAaMAiBC).methodMAiBC());
-      Expect.equals("MBCiIJ:$o.A->MAiBC:$o.A->$A:$o.A", o.methodA());
+      Expect.equals("MBCiIJ:$o.A->MAiBC:$o.A->A:$o.A", o.methodA());
       Expect.equals("MBCiIJ:$o.B->MAiBC:$o.B", o.methodB());
       Expect.equals("MBCiIJ:$o.C->MAiBC:$o.C", o.methodC());
       Expect.equals("MBCiIJ:$o.I", o.methodI());
@@ -402,4 +402,19 @@ void main() {
   }
 
   Expect.equals(CeOwithM().toString(), CwithM().toString());
+
+  {
+    // Regression test for private fields.
+    var c = PrivateFieldClass();
+    Expect.equals(42, c._foo);
+  }
+}
+
+
+mixin PrivateFieldMixin {
+  int _foo = 40;
+}
+
+class PrivateFieldClass with PrivateFieldMixin {
+  int get _foo => super._foo + 2;
 }

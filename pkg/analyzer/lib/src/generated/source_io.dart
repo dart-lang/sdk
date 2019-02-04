@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.source_io;
 
 import 'dart:collection';
 
@@ -35,8 +33,7 @@ class ExplicitSourceResolver extends UriResolver {
     JavaFile file = uriToFileMap[uri];
     actualUri ??= uri;
     if (file == null) {
-      return new NonExistingSource(
-          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+      return null;
     } else {
       return new FileBasedSource(file, actualUri);
     }
@@ -413,8 +410,8 @@ class PackageUriResolver extends UriResolver {
             String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
             if (sourceUri.startsWith(pkgCanonicalUri)) {
               String relPath = sourceUri.substring(pkgCanonicalUri.length);
-              return Uri
-                  .parse("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
+              return Uri.parse(
+                  "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
           } catch (e) {}
         }

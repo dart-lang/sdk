@@ -13,13 +13,14 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
+import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/universe/selector.dart';
-import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/check_helpers.dart';
 import '../equivalence/id_equivalence.dart';
@@ -35,7 +36,6 @@ runTests(List<String> args, [int shardIndex]) {
     await checkTests(dataDir, const RtiNeedDataComputer(),
         options: [],
         args: args,
-        testOmit: true,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1);
   });
@@ -230,7 +230,7 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
   }
 }
 
-class RtiNeedDataComputer extends DataComputer {
+class RtiNeedDataComputer extends DataComputer<String> {
   const RtiNeedDataComputer();
 
   @override
@@ -240,14 +240,14 @@ class RtiNeedDataComputer extends DataComputer {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, backendStrategy.closureDataLookup)
+            member, compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -256,13 +256,16 @@ class RtiNeedDataComputer extends DataComputer {
   /// Fills [actualMap] with the data.
   @override
   void computeClassData(
-      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
         .computeClassValue(cls);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 abstract class IrMixin implements ComputeValueMixin {
@@ -302,8 +305,8 @@ abstract class IrMixin implements ComputeValueMixin {
 
   @override
   Local getFrontendClosure(MemberEntity member) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    ir.Node node = backendStrategy.elementMap.getMemberDefinition(member).node;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    ir.Node node = closedWorld.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap frontendElementMap = frontendStrategy.elementMap;
@@ -313,11 +316,11 @@ abstract class IrMixin implements ComputeValueMixin {
   }
 }
 
-class RtiClassNeedIrComputer extends DataRegistry
+class RtiClassNeedIrComputer extends DataRegistry<String>
     with ComputeValueMixin, IrMixin {
   final Compiler compiler;
   final JsToElementMap _elementMap;
-  final Map<Id, ActualData> actualMap;
+  final Map<Id, ActualData<String>> actualMap;
 
   RtiClassNeedIrComputer(this.compiler, this._elementMap, this.actualMap);
 
@@ -332,15 +335,15 @@ class RtiClassNeedIrComputer extends DataRegistry
 }
 
 /// AST visitor for computing inference data for a member.
-class RtiMemberNeedIrComputer extends IrDataExtractor
+class RtiMemberNeedIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin, IrMixin {
   final JsToElementMap _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberNeedIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
       this.compiler,

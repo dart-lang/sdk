@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+part part_as_entry_point.dart;
+static method main() → dynamic
+  ;

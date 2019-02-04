@@ -3,40 +3,40 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T1
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T2
     : super core::Object::•()
     ;
 }
 class T3 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T3
     : super core::Object::•()
     ;
 }
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  method foo() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method foo() → dynamic
     return new self::T1::•();
-  method bar() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bar() → dynamic
     return new self::T2::•();
-  method bazz() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bazz() → dynamic
     return new self::T3::•();
 }
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method foo() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method foo() → dynamic
     return new self::T1::•();
-  method bar() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bar() → dynamic
     return new self::T2::•();
-  method bazz() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bazz() → dynamic
     return new self::T3::•();
 }
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;

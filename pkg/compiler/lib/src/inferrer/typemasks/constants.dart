@@ -29,12 +29,6 @@ class ConstantValueTypeMasks
   }
 
   @override
-  TypeMask visitDeferred(
-      DeferredConstantValue constant, JClosedWorld closedWorld) {
-    return constant.referenced.accept(this, closedWorld);
-  }
-
-  @override
   TypeMask visitDeferredGlobal(
       DeferredGlobalConstantValue constant, JClosedWorld closedWorld) {
     return constant.referenced.accept(this, closedWorld);

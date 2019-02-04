@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,11 +8,11 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/comment.dart';
 
 /**
  * Determine the number of arguments.
@@ -197,11 +197,11 @@ class ArgListContributor extends DartCompletionContributor {
     // for a method or a constructor or an annotation
     SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
     if (targetId == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
     Element elem = targetId.staticElement;
     if (elem == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Generate argument list suggestion based upon the type of element
@@ -221,7 +221,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addSuggestions(elem.parameters);
       return suggestions;
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
@@ -280,6 +280,7 @@ class ArgListContributor extends DartCompletionContributor {
       if (parameter is FieldFormalParameterElement) {
         _setDocumentation(suggestion, parameter.field?.documentationComment);
         suggestion.element = convertElement(parameter);
+        suggestion.elementUri = parameter.source.toString();
       }
 
       suggestions.add(suggestion);
@@ -341,7 +342,7 @@ class ArgListContributor extends DartCompletionContributor {
   static void _setDocumentation(
       CompletionSuggestion suggestion, String comment) {
     if (comment != null) {
-      String doc = removeDartDocDelimiters(comment);
+      String doc = getDartDocPlainText(comment);
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }

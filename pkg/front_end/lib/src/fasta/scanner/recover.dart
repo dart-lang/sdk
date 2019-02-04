@@ -209,6 +209,10 @@ Token defaultRecoveryStrategy(
     goodTail = current;
   }
 
+  if (error == null) {
+    // All of the errors are in the scanner's error list.
+    return tokens;
+  }
   new Token.eof(-1).setNext(error);
   Token tail;
   if (good != null) {

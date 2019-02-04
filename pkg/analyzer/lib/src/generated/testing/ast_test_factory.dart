@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.testing.ast_test_factory;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -613,9 +611,12 @@ class AstTestFactory {
           parameters: formalParameterList(parameters));
 
   static GenericFunctionType genericFunctionType(TypeAnnotation returnType,
-          TypeParameterList typeParameters, FormalParameterList parameters) =>
+          TypeParameterList typeParameters, FormalParameterList parameters,
+          {bool question: false}) =>
       astFactory.genericFunctionType(returnType,
-          TokenFactory.tokenFromString("Function"), typeParameters, parameters);
+          TokenFactory.tokenFromString("Function"), typeParameters, parameters,
+          question:
+              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
 
   static GenericTypeAlias genericTypeAlias(String name,
           TypeParameterList typeParameters, GenericFunctionType functionType) =>
@@ -840,6 +841,10 @@ class AstTestFactory {
   static MapLiteralEntry mapLiteralEntry2(Expression key, Expression value) =>
       astFactory.mapLiteralEntry(
           key, TokenFactory.tokenFromType(TokenType.COLON), value);
+
+  static MapLiteralEntry mapLiteralEntry3(String key, String value) =>
+      astFactory.mapLiteralEntry(string2(key),
+          TokenFactory.tokenFromType(TokenType.COLON), string2(value));
 
   static MethodDeclaration methodDeclaration(
           Keyword modifier,
@@ -1068,6 +1073,15 @@ class AstTestFactory {
   static ScriptTag scriptTag(String scriptTag) =>
       astFactory.scriptTag(TokenFactory.tokenFromString(scriptTag));
 
+  static SetLiteral setLiteral(Keyword keyword, TypeArgumentList typeArguments,
+          List<Expression> elements) =>
+      astFactory.setLiteral(
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          typeArguments,
+          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          elements,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
   static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) =>
       astFactory.showCombinator(
           TokenFactory.tokenFromString("show"), identifiers);
@@ -1257,8 +1271,11 @@ class AstTestFactory {
           [List<TypeAnnotation> arguments]) =>
       astFactory.typeName(name, typeArgumentList(arguments));
 
-  static TypeName typeName4(String name, [List<TypeAnnotation> arguments]) =>
-      astFactory.typeName(identifier3(name), typeArgumentList(arguments));
+  static TypeName typeName4(String name,
+          [List<TypeAnnotation> arguments, bool question = false]) =>
+      astFactory.typeName(identifier3(name), typeArgumentList(arguments),
+          question:
+              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
 
   static TypeParameter typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);

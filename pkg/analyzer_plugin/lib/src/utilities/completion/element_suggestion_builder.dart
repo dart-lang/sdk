@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 /**
  * Common mixin for sharing behavior.
  */
-abstract class ElementSuggestionBuilder {
+mixin ElementSuggestionBuilder {
   // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
   /**
    * A collection of completion suggestions.

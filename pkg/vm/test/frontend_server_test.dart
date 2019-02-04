@@ -50,44 +50,6 @@ Future<int> main() async {
         generator: anyNamed('generator'),
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['strong'], equals(false));
-    });
-
-    test('compile from command line (strong mode)', () async {
-      final List<String> args = <String>[
-        'server.dart',
-        '--sdk-root',
-        'sdkroot',
-        '--strong',
-      ];
-      await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['strong'], equals(true));
-      expect(capturedArgs.single['sync-async'], equals(true));
-    });
-
-    test('compile from command line (no-sync-async)', () async {
-      final List<String> args = <String>[
-        'server.dart',
-        '--sdk-root',
-        'sdkroot',
-        '--strong',
-        '--no-sync-async',
-      ];
-      await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['strong'], equals(true));
-      expect(capturedArgs.single['sync-async'], equals(false));
     });
 
     test('compile from command line with link platform', () async {
@@ -105,7 +67,6 @@ Future<int> main() async {
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['link-platform'], equals(true));
-      expect(capturedArgs.single['strong'], equals(false));
     });
   });
 
@@ -126,7 +87,6 @@ Future<int> main() async {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(false));
         compileCalled.sendPort.send(true);
       });
 
@@ -150,11 +110,6 @@ Future<int> main() async {
       '--sdk-root',
       'sdkroot',
     ];
-    final List<String> strongArgs = <String>[
-      '--sdk-root',
-      'sdkroot',
-      '--strong',
-    ];
 
     test('compile one file', () async {
       final StreamController<List<int>> inputStreamController =
@@ -165,37 +120,11 @@ Future<int> main() async {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(false));
         compileCalled.sendPort.send(true);
       });
 
       Future<int> result = starter(
         args,
-        compiler: compiler,
-        input: inputStreamController.stream,
-      );
-      inputStreamController.add('compile server.dart\n'.codeUnits);
-      await compileCalled.first;
-      inputStreamController.add('quit\n'.codeUnits);
-      expect(await result, 0);
-      inputStreamController.close();
-    });
-
-    test('compile one file (strong mode)', () async {
-      final StreamController<List<int>> inputStreamController =
-          new StreamController<List<int>>();
-      final ReceivePort compileCalled = new ReceivePort();
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) {
-        expect(invocation.positionalArguments[0], equals('server.dart'));
-        expect(
-            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(true));
-        compileCalled.sendPort.send(true);
-      });
-
-      Future<int> result = starter(
-        strongArgs,
         compiler: compiler,
         input: inputStreamController.stream,
       );
@@ -217,7 +146,6 @@ Future<int> main() async {
             equals('server${counter++}.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(false));
         compileCalled.sendPort.send(true);
       });
 
@@ -462,7 +390,6 @@ Future<int> main() async {
           generator: anyNamed('generator'),
         )).captured;
         expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-        expect(capturedArgs.single['strong'], equals(false));
       });
     });
   });
@@ -489,7 +416,6 @@ Future<int> main() async {
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -598,7 +524,6 @@ Future<int> main() async {
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -727,7 +652,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -792,6 +716,127 @@ true
       inputStreamController.close();
     });
 
+    test('unsafe-package-serialization', () async {
+      // Package A.
+      var file = new File('${tempDir.path}/pkgA/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA() {}");
+
+      // Package B.
+      file = new File('${tempDir.path}/pkgB/.packages')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA: ../pkgA");
+      file = new File('${tempDir.path}/pkgB/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgB_a() {}");
+      file = new File('${tempDir.path}/pkgB/b.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("import 'package:pkgA/a.dart';"
+          "pkgB_b() { pkgA(); }");
+
+      // Application.
+      file = new File('${tempDir.path}/app/.packages')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA:../pkgA\n"
+          "pkgB:../pkgB");
+
+      // Entry point A uses both package A and B.
+      file = new File('${tempDir.path}/app/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("import 'package:pkgB/b.dart';"
+          "import 'package:pkgB/a.dart';"
+          "appA() { pkgB_a(); pkgB_b(); }");
+
+      // Entry point B uses only package B.
+      var fileB = new File('${tempDir.path}/app/B.dart')
+        ..createSync(recursive: true);
+      fileB.writeAsStringSync("import 'package:pkgB/a.dart';"
+          "appB() { pkgB_a(); }");
+
+      // Other setup.
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+
+      // First compile app entry point A.
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--unsafe-package-serialization',
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<String> receivedResults = new StreamController<String>();
+
+      String boundaryKey;
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((String s) {
+        const String RESULT_OUTPUT_SPACE = 'result ';
+        if (boundaryKey == null) {
+          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          }
+        } else {
+          if (s.startsWith(boundaryKey)) {
+            receivedResults.add(s.substring(boundaryKey.length + 1));
+            boundaryKey = null;
+          }
+        }
+      });
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        CompilationResult result =
+            new CompilationResult.parse(outputFilenameAndErrorCount);
+        switch (count) {
+          case 0:
+            expect(dillFile.existsSync(), equals(true));
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+            count += 1;
+            inputStreamController.add('accept\n'.codeUnits);
+            inputStreamController.add('reset\n'.codeUnits);
+
+            inputStreamController.add('recompile ${fileB.path} abc\n'
+                '${fileB.path}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 1:
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+            inputStreamController.add('quit\n'.codeUnits);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contains (at least) the 2 files we want.
+            component.libraries
+                    .where((l) =>
+                        l.importUri.toString() == "package:pkgB/a.dart" ||
+                        l.fileUri.toString().contains(fileB.path))
+                    .length ==
+                2;
+
+            // Verifiable (together with the platform file).
+            component =
+                loadComponentFromBinary(platformKernel.toFilePath(), component);
+            verifyComponent(component);
+        }
+      });
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
     test('compile and recompile report non-zero error count', () async {
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() { foo(); bar(); }\n");
@@ -799,7 +844,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -885,7 +929,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
@@ -897,6 +940,35 @@ true
       expect(await starter(args), 0);
     });
 
+    test('compile "package:"-file', () async {
+      Directory lib = new Directory('${tempDir.path}/lib')..createSync();
+      new File('${lib.path}/foo.dart')
+        ..createSync()
+        ..writeAsStringSync("main() {}\n");
+      File packages = new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync('test:lib/\n');
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      var depFile = new File('${tempDir.path}/the depfile');
+      expect(depFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--depfile=${depFile.path}',
+        '--packages=${packages.path}',
+        'package:test/foo.dart'
+      ];
+      expect(await starter(args), 0);
+      expect(depFile.existsSync(), true);
+      var depContents = depFile.readAsStringSync();
+      var depContentsParsed = depContents.split(': ');
+      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
+      expect(depContentsParsed[1], isNotEmpty);
+    });
+
     test('compile and produce deps file', () async {
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
@@ -906,7 +978,6 @@ true
       expect(depFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
@@ -941,7 +1012,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',

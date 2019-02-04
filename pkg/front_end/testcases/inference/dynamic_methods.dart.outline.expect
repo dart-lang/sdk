@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     ;
   method foo(core::int x) → core::int
     ;

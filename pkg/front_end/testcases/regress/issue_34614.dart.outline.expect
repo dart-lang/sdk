@@ -1,0 +1,26 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34614.dart:5:14: Error: Expected an identifier, but got '}'.
+// class C { C. }
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_34614.dart:5:11: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+// class C { C. }
+//           ^
+//
+// pkg/front_end/testcases/regress/issue_34614.dart:5:14: Error: Expected '{' before this.
+// class C { C. }
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;

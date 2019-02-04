@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -29,7 +29,8 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_endEnd() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
     expect(range.endEnd(mainName, mainBody), new SourceRange(4, 5));
@@ -37,14 +38,16 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_endLength() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     expect(range.endLength(mainName, 3), new SourceRange(4, 3));
   }
 
   test_endStart() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
     expect(range.endStart(mainName, mainBody), new SourceRange(4, 3));
@@ -58,14 +61,16 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_node() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     expect(range.node(mainName), new SourceRange(0, 4));
   }
 
   test_nodes() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
     expect(range.nodes([mainName, mainBody]), new SourceRange(1, 9));
@@ -82,7 +87,8 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_startEnd_nodeNode() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
     expect(range.startEnd(mainName, mainBody), new SourceRange(1, 9));
@@ -90,7 +96,8 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_startLength_node() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     expect(range.startLength(mainName, 10), new SourceRange(1, 10));
   }
@@ -101,7 +108,8 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_startStart_nodeNode() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
     expect(range.startStart(mainName, mainBody), new SourceRange(0, 7));
@@ -109,7 +117,8 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   test_token() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    FunctionDeclaration mainFunction =
+        testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     expect(range.token(mainName.beginToken), new SourceRange(1, 4));
   }

@@ -6,7 +6,7 @@ library compiler.tool.generate_kernel_test;
 
 import 'dart:io';
 import 'generate_kernel.dart' as m;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
+import 'package:front_end/src/api_unstable/dart2js.dart'
     show computePlatformBinariesLocation;
 
 main() async {

@@ -27,7 +27,8 @@ class KernelMixinApplicationBuilder
 
   KernelMixinApplicationBuilder(
       KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins)
-      : super(supertype, mixins);
+      : assert(mixins != null),
+        super(supertype, mixins);
 
   @override
   InterfaceType build(LibraryBuilder library) {
@@ -49,7 +50,7 @@ class KernelMixinApplicationBuilder
   }
 
   @override
-  buildInvalidType(LocatedMessage message) {
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
     return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 

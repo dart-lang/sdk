@@ -2,7 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' show TypeParameter;
+import 'package:kernel/ast.dart'
+    show
+        BottomType,
+        DartType,
+        DartTypeVisitor,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        InvalidType,
+        NamedType,
+        TypeParameter,
+        TypeParameterType,
+        TypedefType,
+        VoidType;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
@@ -111,7 +124,6 @@ KernelTypeBuilder substituteRange(
               formal.modifiers,
               parameterType,
               formal.name,
-              formal.hasThis,
               formal.parent,
               formal.charOffset);
           changed = true;
@@ -771,5 +783,57 @@ void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
     for (TypeBuilder argument in type.arguments) {
       findGenericFunctionTypes(argument, result: result);
     }
+  }
+}
+
+/// Returns true if [type] contains any type variables whatsoever. This should
+/// only be used for working around transitional issues.
+// TODO(ahe): Remove this method.
+bool hasAnyTypeVariables(DartType type) {
+  return type.accept(const TypeVariableSearch());
+}
+
+/// Don't use this directly, use [hasAnyTypeVariables] instead. But don't use
+/// that either.
+// TODO(ahe): Remove this class.
+class TypeVariableSearch implements DartTypeVisitor<bool> {
+  const TypeVariableSearch();
+
+  bool defaultDartType(DartType node) => throw "unsupported";
+
+  bool anyTypeVariables(List<DartType> types) {
+    for (DartType type in types) {
+      if (type.accept(this)) return true;
+    }
+    return false;
+  }
+
+  bool visitInvalidType(InvalidType node) => false;
+
+  bool visitDynamicType(DynamicType node) => false;
+
+  bool visitVoidType(VoidType node) => false;
+
+  bool visitBottomType(BottomType node) => false;
+
+  bool visitInterfaceType(InterfaceType node) {
+    return anyTypeVariables(node.typeArguments);
+  }
+
+  bool visitFunctionType(FunctionType node) {
+    if (anyTypeVariables(node.positionalParameters)) return true;
+    for (TypeParameter variable in node.typeParameters) {
+      if (variable.bound.accept(this)) return true;
+    }
+    for (NamedType type in node.namedParameters) {
+      if (type.type.accept(this)) return true;
+    }
+    return false;
+  }
+
+  bool visitTypeParameterType(TypeParameterType node) => true;
+
+  bool visitTypedefType(TypedefType node) {
+    return anyTypeVariables(node.typeArguments);
   }
 }

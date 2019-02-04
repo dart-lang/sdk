@@ -8,6 +8,8 @@
  */
 library expect;
 
+import 'package:meta/meta.dart';
+
 /**
  * Expect is used for tests that do not want to make use of the
  * Dart unit test library - for example, the core language tests.
@@ -265,6 +267,7 @@ class Expect {
   }
 
   // Unconditional failure.
+  @alwaysThrows
   static void fail(String msg) {
     _fail("Expect.fail('$msg')");
   }
@@ -647,6 +650,7 @@ class Expect {
   static String _getMessage(String reason) =>
       (reason == null) ? "" : ", '$reason'";
 
+  @alwaysThrows
   static void _fail(String message) {
     throw new ExpectException(message);
   }
@@ -668,20 +672,6 @@ class ExpectException implements Exception {
 /// declarations to disable inlining of the annotated method.
 class NoInline {
   const NoInline();
-}
-
-/// Annotation class for testing of dart2js. Use this as metadata on method
-/// declarations to make the type inferrer trust the parameter and return types,
-/// effectively asserting the runtime values will (at least) be subtypes of the
-/// annotated types.
-///
-/// While the actually inferred type is guaranteed to be a subtype of the
-/// annotation, it often is more precise. In particular, if a method is only
-/// called with `null`, the inferrer will still infer null. To ensure that
-/// the annotated type is also the inferred type, additionally use
-/// [AssumeDynamic].
-class TrustTypeAnnotations {
-  const TrustTypeAnnotations();
 }
 
 /// Annotation class for testing of dart2js. Use this as metadata on method

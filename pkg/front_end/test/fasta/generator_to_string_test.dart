@@ -59,7 +59,6 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPrefixUseGenerator,
@@ -101,7 +100,8 @@ main() {
         new KernelTarget(
                 null,
                 false,
-                new DillTarget(null, null, new NoneTarget(new TargetFlags())),
+                new DillTarget(null, null,
+                    new NoneTarget(new TargetFlags(legacyMode: true))),
                 null)
             .loader,
         null,
@@ -222,8 +222,6 @@ main() {
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",
         new KernelReadOnlyAccessGenerator(helper, token, expression, "foo"));
-    check("LargeIntAccessGenerator(offset: 4, lexeme: myToken)",
-        new KernelLargeIntAccessGenerator(helper, token));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",

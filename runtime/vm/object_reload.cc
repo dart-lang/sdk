@@ -82,14 +82,29 @@ void Code::ResetICDatas(Zone* zone) const {
   }
 #else
   const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
-  Object& object = Object::Handle(zone);
   ASSERT(!pool.IsNull());
-  for (intptr_t i = 0; i < pool.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool.TypeAt(i);
-    if (entry_type != ObjectPool::kTaggedObject) {
+  pool.ResetICDatas(zone);
+#endif
+}
+
+void Bytecode::ResetICDatas(Zone* zone) const {
+  // Iterate over the Bytecode's object pool and reset all ICDatas.
+  const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
+  ASSERT(!pool.IsNull());
+  pool.ResetICDatas(zone);
+}
+
+void ObjectPool::ResetICDatas(Zone* zone) const {
+#ifdef TARGET_ARCH_IA32
+  UNREACHABLE();
+#else
+  Object& object = Object::Handle(zone);
+  for (intptr_t i = 0; i < Length(); i++) {
+    ObjectPool::EntryType entry_type = TypeAt(i);
+    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
       continue;
     }
-    object = pool.ObjectAt(i);
+    object = ObjectAt(i);
     if (object.IsICData()) {
       ICData::Cast(object).Reset(zone);
     }
@@ -159,12 +174,12 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
   set_constants(old_constants);
 }
 
-void Class::CopyCanonicalType(const Class& old_cls) const {
-  const Type& old_canonical_type = Type::Handle(old_cls.canonical_type());
-  if (old_canonical_type.IsNull()) {
+void Class::CopyDeclarationType(const Class& old_cls) const {
+  const Type& old_declaration_type = Type::Handle(old_cls.declaration_type());
+  if (old_declaration_type.IsNull()) {
     return;
   }
-  set_canonical_type(old_canonical_type);
+  set_declaration_type(old_declaration_type);
 }
 
 class EnumMapTraits {
@@ -689,13 +704,36 @@ void ICData::Reset(Zone* zone) const {
   if (rule == kInstance) {
     const intptr_t num_args = NumArgsTested();
     const bool tracking_exactness = IsTrackingExactness();
-    if (num_args == 2) {
-      ClearWithSentinel();
-    } else {
-      const Array& data_array = Array::Handle(
-          zone, CachedEmptyICDataArray(num_args, tracking_exactness));
-      set_ic_data_array(data_array);
+    const intptr_t len = Length();
+    // We need at least one non-sentinel entry to require a check
+    // for the smi fast path case.
+    if (num_args == 2 && len >= 2) {
+      if (IsImmutable()) {
+        return;
+      }
+      Zone* zone = Thread::Current()->zone();
+      const String& name = String::Handle(target_name());
+      const Class& smi_class = Class::Handle(Smi::Class());
+      const Function& smi_op_target = Function::Handle(
+          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+      GrowableArray<intptr_t> class_ids(2);
+      Function& target = Function::Handle();
+      GetCheckAt(0, &class_ids, &target);
+      if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
+          (class_ids[1] == kSmiCid)) {
+        // The smi fast path case, preserve the initial entry but reset the
+        // count.
+        ClearCountAt(0);
+        WriteSentinelAt(1);
+        const Array& array = Array::Handle(ic_data());
+        array.Truncate(2 * TestEntryLength());
+        return;
+      }
+      // Fall back to the normal behavior with cached empty ICData arrays.
     }
+    const Array& data_array = Array::Handle(
+        zone, CachedEmptyICDataArray(num_args, tracking_exactness));
+    set_ic_data_array(data_array);
     return;
   } else if (rule == kNoRebind || rule == kNSMDispatch) {
     // TODO(30877) we should account for addition/removal of NSM.
@@ -716,7 +754,10 @@ void ICData::Reset(Zone* zone) const {
              old_target.kind() == RawFunction::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupStaticFunction(selector);
+      new_target = cls.LookupFunction(selector);
+      if (new_target.kind() != old_target.kind()) {
+        new_target = Function::null();
+      }
     } else {
       // Super call.
       Function& caller = Function::Handle(zone);

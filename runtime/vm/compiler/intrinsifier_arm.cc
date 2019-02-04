@@ -53,31 +53,6 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->mov(LR, Operand(CALLEE_SAVED_TEMP));
 }
 
-// Intrinsify only for Smi index.
-void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler,
-                                                  Label* normal_ir_body) {
-  __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
-  __ tst(R1, Operand(kSmiTagMask));
-  // Index not Smi.
-  __ b(normal_ir_body, NE);
-  __ ldr(R0, Address(SP, 2 * kWordSize));  // Array.
-
-  // Range check.
-  __ ldr(R3, FieldAddress(R0, Array::length_offset()));  // Array length.
-  __ cmp(R1, Operand(R3));
-  // Runtime throws exception.
-  __ b(normal_ir_body, CS);
-
-  // Note that R1 is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
-  __ add(R1, R0, Operand(R1, LSL, 1));     // R1 is Smi.
-  __ StoreIntoObject(R0, FieldAddress(R1, Array::data_offset()), R2);
-  // Caller is responsible for preserving the value if necessary.
-  __ Ret();
-  __ Bind(normal_ir_body);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -112,40 +87,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-// Add an element to growable array if it doesn't need to grow, otherwise
-// call into regular code.
-// On stack: growable array (+1), value (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->argument_type_checks()) {
-    return;
-  }
-  // R0: Array.
-  __ ldr(R0, Address(SP, 1 * kWordSize));
-  // R1: length.
-  __ ldr(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
-  // R2: data.
-  __ ldr(R2, FieldAddress(R0, GrowableObjectArray::data_offset()));
-  // R3: capacity.
-  __ ldr(R3, FieldAddress(R2, Array::length_offset()));
-  // Compare length with capacity.
-  __ cmp(R1, Operand(R3));
-  __ b(normal_ir_body, EQ);  // Must grow data.
-  const int32_t value_one = reinterpret_cast<int32_t>(Smi::New(1));
-  // len = len + 1;
-  __ add(R3, R1, Operand(value_one));
-  __ StoreIntoSmiField(FieldAddress(R0, GrowableObjectArray::length_offset()),
-                       R3);
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Value.
-  ASSERT(kSmiTagShift == 1);
-  __ add(R1, R2, Operand(R1, LSL, 1));
-  __ StoreIntoObject(R2, FieldAddress(R1, Array::data_offset()), R0);
-  __ LoadObject(R0, Object::null_object());
-  __ Ret();
-  __ Bind(normal_ir_body);
-}
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
@@ -168,7 +109,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler,
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ bic(R2, R2, Operand(kObjectAlignment - 1));                               \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ ldr(R0, Address(THR, Thread::top_offset()));                              \
                                                                                \
   /* R2: allocation size. */                                                   \
@@ -235,7 +175,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler,
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));          \
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));                 \
   __ Ret();                                                                    \
   __ Bind(normal_ir_body);
 
@@ -770,7 +710,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ teq(NOTFP, Operand(R8));
   __ b(&loop, NE);
   __ str(R9, Address(R6, -kBytesPerBigIntDigit, Address::PreIndex));
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -813,7 +753,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ teq(R6, Operand(R8));
   __ b(&loop, NE);
   __ str(R9, Address(R6, 0));
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -872,7 +812,7 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
   __ adc(R4, R4, Operand(0));
   __ str(R4, Address(R8, 0));
 
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -927,7 +867,7 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ b(&carry_loop, NE);
 
   __ Bind(&done);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -1627,7 +1567,7 @@ static void JumpIfNotString(Assembler* assembler,
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
 
@@ -1635,7 +1575,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(normal_ir_body, EQ);  // Instance is a closure.
 
   __ CompareImmediate(R1, kNumPredefinedCids);
-  __ b(&use_canonical_type, HI);
+  __ b(&use_declaration_type, HI);
 
   __ CompareImmediate(R1, kDoubleCid);
   __ b(&not_double, NE);
@@ -1653,19 +1593,19 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ Ret();
 
   __ Bind(&not_integer);
-  JumpIfNotString(assembler, R1, R0, &use_canonical_type);
+  JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
   __ LoadFromOffset(kWord, R0, R0, Isolate::object_store_offset());
   __ LoadFromOffset(kWord, R0, R0, ObjectStore::string_type_offset());
   __ Ret();
 
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);  // Overwrites R1.
   __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::declaration_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(normal_ir_body, EQ);
   __ Ret();
@@ -2002,7 +1942,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ bic(length_reg, length_reg, Operand(kObjectAlignment - 1));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ ldr(R0, Address(THR, Thread::top_offset()));
 
   // length_reg: allocation size.
@@ -2052,7 +1991,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ LoadImmediate(TMP, 0);
   __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, String::hash_offset()), TMP);
 
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
   __ b(ok);
 
   __ Bind(&fail);
@@ -2286,10 +2225,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  if (!FLAG_support_timeline) {
-    __ LoadObject(R0, Bool::False());
-    __ Ret();
-  }
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadObject(R0, Bool::False());
+  __ Ret();
+#else
   // Load TimelineStream*.
   __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
   // Load uintptr_t from TimelineStream*.
@@ -2298,6 +2237,7 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(R0, Bool::True(), NE);
   __ LoadObject(R0, Bool::False(), EQ);
   __ Ret();
+#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,

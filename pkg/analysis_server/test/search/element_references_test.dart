@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -688,6 +688,18 @@ main(F f) {
 }
 ''');
     await findElementReferences('F()', false);
+    expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'F f');
+  }
+
+  Future<void> test_typeReference_genericTypeAlias_function() async {
+    addTestFile('''
+typedef F = Function();
+main(F f) {
+}
+''');
+    await findElementReferences('F =', false);
     expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'F f');

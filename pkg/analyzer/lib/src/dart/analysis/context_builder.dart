@@ -11,16 +11,18 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart' as old
     show ContextBuilder, ContextBuilderOptions;
 import 'package:analyzer/src/context/context_root.dart' as old;
+import 'package:analyzer/src/dart/analysis/byte_store.dart'
+    show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
+import 'package:analyzer/src/dart/analysis/performance_logger.dart'
+    show PerformanceLog;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
-import 'package:front_end/src/base/performance_logger.dart' show PerformanceLog;
-import 'package:front_end/src/byte_store/byte_store.dart' show MemoryByteStore;
 import 'package:meta/meta.dart';
 
 /**
@@ -50,18 +52,30 @@ class ContextBuilderImpl implements ContextBuilder {
 
   @override
   AnalysisContext createContext(
-      {@required ContextRoot contextRoot,
+      {@deprecated ByteStore byteStore,
+      @required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
-      String sdkPath}) {
-    PerformanceLog performanceLog = new PerformanceLog(new StringBuffer());
-    AnalysisDriverScheduler scheduler =
-        new AnalysisDriverScheduler(performanceLog);
+      bool enableIndex: false,
+      @deprecated FileContentOverlay fileContentOverlay,
+      List<String> librarySummaryPaths,
+      @deprecated PerformanceLog performanceLog,
+      @deprecated AnalysisDriverScheduler scheduler,
+      String sdkPath,
+      String sdkSummaryPath}) {
+    byteStore ??= new MemoryByteStore();
+    fileContentOverlay ??= new FileContentOverlay();
+    performanceLog ??= new PerformanceLog(new StringBuffer());
+
     sdkPath ??= _defaultSdkPath;
     if (sdkPath == null) {
       throw new ArgumentError('Cannot find path to the SDK');
     }
     DartSdkManager sdkManager = new DartSdkManager(sdkPath, true);
-    scheduler.start();
+
+    if (scheduler == null) {
+      scheduler = new AnalysisDriverScheduler(performanceLog);
+      scheduler.start();
+    }
 
     // TODO(brianwilkerson) Move the required implementation from the old
     // ContextBuilder to this class and remove the old class.
@@ -69,14 +83,21 @@ class ContextBuilderImpl implements ContextBuilder {
     if (declaredVariables != null) {
       options.declaredVariables = _toMap(declaredVariables);
     }
+    if (sdkSummaryPath != null) {
+      options.dartSdkSummaryPath = sdkSummaryPath;
+    }
+    if (librarySummaryPaths != null) {
+      options.librarySummaryPaths = librarySummaryPaths;
+    }
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
     old.ContextBuilder builder = new old.ContextBuilder(
         resourceProvider, sdkManager, new ContentCache(),
         options: options);
     builder.analysisDriverScheduler = scheduler;
-    builder.byteStore = new MemoryByteStore();
-    builder.fileContentOverlay = new FileContentOverlay();
+    builder.byteStore = byteStore;
+    builder.fileContentOverlay = fileContentOverlay;
+    builder.enableIndex = enableIndex;
     builder.performanceLog = performanceLog;
 
     old.ContextRoot oldContextRoot = new old.ContextRoot(

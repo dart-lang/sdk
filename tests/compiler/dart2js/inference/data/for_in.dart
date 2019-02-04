@@ -32,7 +32,7 @@ forInDirect() {
 // Return element from a for-in loop on a list literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*strong.element: forInReturn:[null|subclass=JSInt]*/
+/*element: forInReturn:[null|subclass=JSInt]*/
 forInReturn() {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
@@ -78,7 +78,7 @@ forInReturnRefined() {
   for (var a in [1, 2, 3]) {
     // TODO(johnniwinther): We should know the type of [a] here. Even if [a] has
     // type `dynamic`.
-    a. /*strong.[null|subclass=JSInt]*/ isEven;
+    a. /*[null|subclass=JSInt]*/ isEven;
     a. /*[subclass=JSInt]*/ isEven;
     return a;
   }

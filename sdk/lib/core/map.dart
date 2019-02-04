@@ -175,8 +175,11 @@ abstract class Map<K, V> {
   /**
    * Creates a new map and adds all entries.
    *
-   * Creates a new map like `new Map<K, V>()` and then adds the key
-   * and value of eacy entry in [entries] in iteration order.
+   * Returns a new `Map<K, V>` where all entries of [entries]
+   * have been added in iteration order.
+   *
+   * If multiple [entries] have the same key,
+   * later occurrences overwrite the earlier ones.
    */
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);

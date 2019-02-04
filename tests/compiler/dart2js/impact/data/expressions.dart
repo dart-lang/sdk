@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*element: main:static=[
-  testAs(0),
-  testAsGeneric(0),
-  testAsGenericDynamic(0),
-  testAsGenericRaw(0),
+  testAs(1),
+  testAsGeneric(1),
+  testAsGenericDynamic(1),
+  testAsGenericRaw(1),
   testConditional(0),
   testIfNotNull(1),
   testIfNotNullSet(1),
@@ -31,6 +31,7 @@
   testPreInc(1),
   testSetIfNull(1),
   testThrow(0),
+  testTypedIfNotNull(1),
   testUnaryMinus(0)
 ],type=[inst:JSNull]
  */
@@ -55,12 +56,13 @@ main() {
   testIsTypedefGenericRaw();
   testIsTypedefGenericDynamic();
   testIsTypedefDeep();
-  testAs();
-  testAsGeneric();
-  testAsGenericRaw();
-  testAsGenericDynamic();
+  testAs(null);
+  testAsGeneric(null);
+  testAsGenericRaw(null);
+  testAsGenericDynamic(null);
   testThrow();
   testIfNotNull(null);
+  testTypedIfNotNull(null);
   testIfNotNullSet(null);
   testIfNull(null);
   testSetIfNull(null);
@@ -108,12 +110,12 @@ testIs() => null is Class;
 
 /*element: testIsGeneric:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -141,12 +143,12 @@ testIsNot() => null is! Class;
 
 /*element: testIsNotGeneric:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -171,12 +173,12 @@ testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
 
 /*element: testIsTypedef:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -191,12 +193,12 @@ testIsTypedef() => null is Typedef;
 
 /*element: testIsTypedefGeneric:
  static=[
- checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+ checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -210,12 +212,12 @@ testIsTypedefGeneric() => null is GenericTypedef<int, String>;
 
 /*element: testIsTypedefGenericRaw:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -229,12 +231,12 @@ testIsTypedefGenericRaw() => null is GenericTypedef;
 
 /*element: testIsTypedefGenericDynamic:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -248,12 +250,12 @@ testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
 
 /*element: testIsTypedefDeep:
  static=[
-  checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo],
+  checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:JSArray<dynamic>,
   inst:JSBool,
@@ -266,19 +268,19 @@ testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
 testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
 
 /*element: testAs:
- static=[throwRuntimeError],
- type=[as:Class,inst:JSBool,inst:JSNull]
+ static=[throwRuntimeError(1)],
+ type=[as:Class,inst:JSBool]
 */
 // ignore: UNNECESSARY_CAST
-testAs() => null as Class;
+testAs(dynamic o) => o as Class;
 
-/*element: testAsGeneric:static=[checkSubtype,
-  getRuntimeTypeArgument,
-  getRuntimeTypeArgumentIntercepted,
-  getRuntimeTypeInfo,
-  getTypeArgumentByIndex,
-  setRuntimeTypeInfo,
-  throwRuntimeError],
+/*element: testAsGeneric:static=[checkSubtype(4),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  setRuntimeTypeInfo(2),
+  throwRuntimeError(1)],
   type=[as:GenericClass<int,
   String>,
   inst:JSArray<dynamic>,
@@ -286,43 +288,47 @@ testAs() => null as Class;
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
-  inst:JSNull,
   inst:JSUnmodifiableArray<dynamic>]*/
 // ignore: UNNECESSARY_CAST
-testAsGeneric() => null as GenericClass<int, String>;
+testAsGeneric(dynamic o) => o as GenericClass<int, String>;
 
 /*element: testAsGenericRaw:
- static=[throwRuntimeError],
- type=[as:GenericClass<dynamic,dynamic>,inst:JSBool,inst:JSNull]
+ static=[throwRuntimeError(1)],
+ type=[as:GenericClass<dynamic,dynamic>,inst:JSBool]
 */
 // ignore: UNNECESSARY_CAST
-testAsGenericRaw() => null as GenericClass;
+testAsGenericRaw(dynamic o) => o as GenericClass;
 
 /*element: testAsGenericDynamic:
- static=[throwRuntimeError],
- type=[as:GenericClass<dynamic,dynamic>,inst:JSBool,inst:JSNull]
+ static=[throwRuntimeError(1)],
+ type=[as:GenericClass<dynamic,dynamic>,inst:JSBool]
 */
 // ignore: UNNECESSARY_CAST
-testAsGenericDynamic() => null as GenericClass<dynamic, dynamic>;
+testAsGenericDynamic(dynamic o) => o as GenericClass<dynamic, dynamic>;
 
 /*element: testThrow:
- static=[throwExpression,wrapException],
+ static=[throwExpression(1),wrapException(1)],
  type=[inst:JSString]*/
 testThrow() => throw '';
 
-/*element: testIfNotNull:dynamic=[==,foo],type=[inst:JSNull]*/
+/*element: testIfNotNull:dynamic=[Object.==,foo],type=[inst:JSNull]*/
 testIfNotNull(o) => o?.foo;
 
-/*element: testIfNotNullSet:dynamic=[==,foo=],type=[inst:JSBool,inst:JSNull]*/
+/*element: testTypedIfNotNull:dynamic=[Class.==,Class.field],type=[inst:JSBool,inst:JSNull,param:Class]*/
+testTypedIfNotNull(Class o) => o?.field;
+
+/*element: testIfNotNullSet:dynamic=[Object.==,foo=],type=[inst:JSBool,inst:JSNull]*/
 testIfNotNullSet(o) => o?.foo = true;
 
-/*element: testIfNull:dynamic=[==],type=[inst:JSBool,inst:JSNull]*/
+/*element: testIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
 testIfNull(o) => o ?? true;
 
-/*element: testSetIfNull:dynamic=[==],type=[inst:JSBool,inst:JSNull]*/
+/*element: testSetIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
 testSetIfNull(o) => o ??= true;
 
-class Class {}
+class Class {
+  var field;
+}
 
 class GenericClass<X, Y> {}
 

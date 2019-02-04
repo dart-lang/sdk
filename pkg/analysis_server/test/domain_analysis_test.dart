@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,17 +10,15 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
@@ -64,8 +62,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(response, isResponseSuccess('0'));
     // verify that unit is resolved eventually
     await server.onAnalysisComplete;
-    var unit = await serverRef.getResolvedCompilationUnit(file);
-    expect(unit, isNotNull);
+    var resolvedUnit = await serverRef.getResolvedUnit(file);
+    expect(resolvedUnit, isNotNull);
   }
 
   test_setAnalysisRoots_included_nonexistentFolder() async {
@@ -78,8 +76,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     // Non-existence of /project_a should not prevent files in /project_b
     // from being analyzed.
     await server.onAnalysisComplete;
-    var unit = await serverRef.getResolvedCompilationUnit(fileB);
-    expect(unit, isNotNull);
+    var resolvedUnit = await serverRef.getResolvedUnit(fileB);
+    expect(resolvedUnit, isNotNull);
   }
 
   test_setAnalysisRoots_included_notAbsolute() async {
@@ -107,8 +105,9 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setPriorityFiles_invalid() {
-    var request = new AnalysisSetPriorityFilesParams(['/project/lib.dart'])
-        .toRequest('0');
+    var request = new AnalysisSetPriorityFilesParams(
+      [convertPath('/project/lib.dart')],
+    ).toRequest('0');
     var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
   }
@@ -338,7 +337,7 @@ main(A a) {
 /**
  * A helper to test 'analysis.*' requests.
  */
-class AnalysisTestHelper extends Object with ResourceProviderMixin {
+class AnalysisTestHelper with ResourceProviderMixin {
   MockServerChannel serverChannel;
   AnalysisServer server;
   AnalysisDomainHandler handler;
@@ -356,7 +355,6 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
   AnalysisTestHelper() {
     projectPath = convertPath('/project');
     testFile = convertPath('/project/bin/test.dart');
-    processRequiredPlugins();
     serverChannel = new MockServerChannel();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
@@ -364,7 +362,7 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/'), false),
+        new DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -518,11 +516,6 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
     expect(response, isResponseSuccess('0'));
   }
 
-  void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-  }
-
   /**
    * Send an `updateContent` request for [testFile].
    */
@@ -661,7 +654,7 @@ class A {}
   }
 
   test_afterAnalysis_sdkFile() async {
-    String file = convertPath('/lib/core/core.dart');
+    String file = convertPath('/sdk/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially

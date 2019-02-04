@@ -20,19 +20,11 @@ import "testing/dart/utils.dart" show Path;
 // [STATUS_TUPLES] is a list of (suite-name, directory, status-file)-tuples.
 final STATUS_TUPLES = [
   ["corelib_2", "tests/corelib_2", "tests/corelib_2/corelib_2.status"],
-  ["corelib", "tests/corelib", "tests/corelib/corelib.status"],
-  ["html", "tests/html", "tests/html/html.status"],
-  ["isolate", "tests/isolate", "tests/isolate/isolate.status"],
-  ["language", "tests/language", "tests/language/language.status"],
-  ["language", "tests/language", "tests/language/language_analyzer2.status"],
-  ["language", "tests/language", "tests/language/language_analyzer.status"],
-  ["language", "tests/language", "tests/language/language_dart2js.status"],
-  ["lib", "tests/lib", "tests/lib/lib.status"],
   ["standalone", "tests/standalone", "tests/standalone/standalone.status"],
   ["pkg", "pkg", "pkg/pkg.status"],
   ["utils", "tests/utils", "tests/utils/utils.status"],
   ["samples", "samples", "samples/samples.status"],
-  ["analyze_library", "sdk", "tests/lib/analyzer/analyze_library.status"],
+  ["analyze_library", "sdk", "tests/lib_2/analyzer/analyze_library.status"],
   [
     "dart2js_extra",
     "tests/compiler/dart2js_extra",
@@ -53,12 +45,6 @@ final STATUS_TUPLES = [
     "tests/benchmark_smoke",
     "tests/benchmark_smoke/benchmark_smoke.status"
   ],
-  ["co19", "tests/co19/src", "tests/co19/co19-analyzer2.status"],
-  ["co19", "tests/co19/src", "tests/co19/co19-analyzer.status"],
-  ["co19", "tests/co19/src", "tests/co19/co19-dart2js.status"],
-  ["co19", "tests/co19/src", "tests/co19/co19-co19.status"],
-  ["co19", "tests/co19/src", "tests/co19/co19-dartium.status"],
-  ["co19", "tests/co19/src", "tests/co19/co19-runtime.status"],
 ];
 
 void main(List<String> args) {

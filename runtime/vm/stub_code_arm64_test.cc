@@ -55,11 +55,12 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  ObjectPoolBuilder object_pool_builder;
+  Assembler assembler(&object_pool_builder);
   GenerateCallToCallRuntimeStub(&assembler, length);
-  const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(*CreateFunction("Test_CallRuntimeStubCode"), nullptr,
+                         &assembler, Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Array& result = Array::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
@@ -95,12 +96,13 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   intptr_t rhs_index_value = 2;
   intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  ObjectPoolBuilder object_pool_builder;
+  Assembler assembler(&object_pool_builder);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler));
+      *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
+      Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

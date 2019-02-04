@@ -4,10 +4,8 @@
 
 part of masks;
 
-/**
- * A type mask that wraps an other one, and delegate all its
- * implementation methods to it.
- */
+/// A type mask that wraps an other one, and delegate all its
+/// implementation methods to it.
 abstract class ForwardingTypeMask implements TypeMask {
   TypeMask get forwardTo;
 
@@ -98,9 +96,8 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
-    return forwardTo.canHit(element, selector, closedWorld);
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+    return forwardTo.canHit(element, name, closedWorld);
   }
 
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
@@ -123,9 +120,9 @@ abstract class ForwardingTypeMask implements TypeMask {
   int get hashCode => throw "Subclass should implement hashCode getter";
 }
 
-abstract class AllocationTypeMask<T> extends ForwardingTypeMask {
-  // The [Node] where this type mask was created.
-  T get allocationNode;
+abstract class AllocationTypeMask extends ForwardingTypeMask {
+  // The [ir.TreeNode] where this type mask was created.
+  ir.TreeNode get allocationNode;
 
   // The [Entity] where this type mask was created.
   MemberEntity get allocationElement;

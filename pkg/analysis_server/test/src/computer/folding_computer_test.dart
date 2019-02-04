@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,7 +24,7 @@ class FoldingComputerTest extends AbstractContextTest {
 
   setUp() {
     super.setUp();
-    sourcePath = resourceProvider.convertPath('/p/lib/source.dart');
+    sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
   test_annotations() async {
@@ -449,7 +449,7 @@ main() {}
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolveResult result = await driver.getResult(sourcePath);
+    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
     DartUnitFoldingComputer computer =
         new DartUnitFoldingComputer(result.lineInfo, result.unit);
     return computer.compute();

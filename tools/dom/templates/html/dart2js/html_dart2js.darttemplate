@@ -53,6 +53,7 @@ import 'dart:_interceptors' show
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 
 export 'dart:math' show Rectangle, Point;
+export 'dart:_internal' show HttpStatus;
 
 $!GENERATED_DART_FILES
 
@@ -159,3 +160,5 @@ class HtmlElement extends Element implements NoncedElement {
  */
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+
+WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');

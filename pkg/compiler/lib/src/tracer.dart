@@ -11,10 +11,8 @@ import 'ssa/ssa_tracer.dart' show HTracer;
 import 'util/util.dart' show Indentation;
 import 'world.dart' show JClosedWorld;
 
-/**
- * If non-null, we only trace methods whose name match the regexp defined by the
- * given pattern.
- */
+/// If non-null, we only trace methods whose name match the regexp defined by
+/// the given pattern.
 String get TRACE_FILTER_PATTERN =>
     TRACE_FILTER_PATTERN_FROM_ENVIRONMENT ?? TRACE_FILTER_PATTERN_FOR_TEST;
 
@@ -22,10 +20,8 @@ const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
     const String.fromEnvironment("DUMP_IR");
 String TRACE_FILTER_PATTERN_FOR_TEST;
 
-/**
- * Dumps the intermediate representation after each phase in a format
- * readable by IR Hydra.
- */
+/// Dumps the intermediate representation after each phase in a format
+/// readable by IR Hydra.
 class Tracer extends TracerUtil {
   final JClosedWorld closedWorld;
   final Namer namer;

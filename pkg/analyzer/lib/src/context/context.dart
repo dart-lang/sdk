@@ -262,72 +262,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void set analysisOptions(AnalysisOptions options) {
-    bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
-            options.analyzeFunctionBodiesPredicate ||
-        this._options.generateImplicitErrors !=
-            options.generateImplicitErrors ||
-        this._options.generateSdkErrors != options.generateSdkErrors ||
-        this._options.dart2jsHint != options.dart2jsHint ||
-        _notEqual(
-            this._options.enabledPluginNames, options.enabledPluginNames) ||
-        _notEqual(this._options.errorProcessors, options.errorProcessors) ||
-        _notEqual(this._options.excludePatterns, options.excludePatterns) ||
-        (this._options.hint && !options.hint) ||
-        (this._options.lint && !options.lint) ||
-        _notEqual(this._options.lintRules, options.lintRules) ||
-        this._options.preserveComments != options.preserveComments ||
-        this._options.useFastaParser != options.useFastaParser ||
-        this._options.enableLazyAssignmentOperators !=
-            options.enableLazyAssignmentOperators ||
-        ((options is AnalysisOptionsImpl)
-            ? this._options.strongModeHints != options.strongModeHints
-            : false) ||
-        ((options is AnalysisOptionsImpl)
-            ? this._options.declarationCasts != options.declarationCasts
-            : false) ||
-        ((options is AnalysisOptionsImpl)
-            ? this._options.implicitCasts != options.implicitCasts
-            : false) ||
-        ((options is AnalysisOptionsImpl)
-            ? this._options.nonnullableTypes != options.nonnullableTypes
-            : false) ||
-        ((options is AnalysisOptionsImpl)
-            ? this._options.implicitDynamic != options.implicitDynamic
-            : false) ||
-        this._options.enableSuperMixins != options.enableSuperMixins ||
-        !_samePatchPaths(this._options.patchPaths, options.patchPaths);
-    this._options.analyzeFunctionBodiesPredicate =
-        options.analyzeFunctionBodiesPredicate;
-    this._options.generateImplicitErrors = options.generateImplicitErrors;
-    this._options.generateSdkErrors = options.generateSdkErrors;
-    this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableLazyAssignmentOperators =
-        options.enableLazyAssignmentOperators;
-    this._options.enableSuperMixins = options.enableSuperMixins;
-    this._options.enableTiming = options.enableTiming;
-    this._options.enabledPluginNames = options.enabledPluginNames;
-    this._options.errorProcessors = options.errorProcessors;
-    this._options.excludePatterns = options.excludePatterns;
-    this._options.hint = options.hint;
-    this._options.lint = options.lint;
-    this._options.lintRules = options.lintRules;
-    this._options.preserveComments = options.preserveComments;
-    this._options.useFastaParser = options.useFastaParser;
-    this._options.trackCacheDependencies = options.trackCacheDependencies;
-    this._options.disableCacheFlushing = options.disableCacheFlushing;
-    this._options.patchPaths = options.patchPaths;
-    if (options is AnalysisOptionsImpl) {
-      this._options.strongModeHints = options.strongModeHints;
-      this._options.declarationCasts = options.declarationCasts;
-      this._options.implicitCasts = options.implicitCasts;
-      this._options.nonnullableTypes = options.nonnullableTypes;
-      this._options.implicitDynamic = options.implicitDynamic;
-      this._options.isMixinSupportEnabled = options.isMixinSupportEnabled;
-    }
-    if (needsRecompute) {
-      for (WorkManager workManager in workManagers) {
-        workManager.onAnalysisOptionsChanged();
-      }
+    this._options = options;
+    for (WorkManager workManager in workManagers) {
+      workManager.onAnalysisOptionsChanged();
     }
   }
 
@@ -1661,19 +1598,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisEngine.instance.logger.logInformation(message);
   }
 
-  bool _notEqual<T>(List<T> first, List<T> second) {
-    int length = first.length;
-    if (length != second.length) {
-      return true;
-    }
-    for (int i = 0; i < length; i++) {
-      if (first[i] != second[i]) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * Notify all of the analysis listeners that the errors associated with the
    * given [source] has been updated to the given [errors].
@@ -1813,21 +1737,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     driver.reset();
     _removeFromCache(source);
     _removeFromPriorityOrder(source);
-  }
-
-  static bool _samePatchPaths(
-      Map<String, List<String>> a, Map<String, List<String>> b) {
-    if (a.length != b.length) return false;
-    for (var key in a.keys) {
-      if (!b.containsKey(key)) return false;
-      var aValue = a[key];
-      var bValue = b[key];
-      if (aValue.length != bValue.length) return false;
-      for (var i = 0; i < aValue.length; i++) {
-        if (aValue[i] != bValue[i]) return false;
-      }
-    }
-    return true;
   }
 }
 

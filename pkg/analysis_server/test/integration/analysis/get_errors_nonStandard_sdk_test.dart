@@ -1,17 +1,15 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../mock_sdk.dart';
 import '../support/integration_tests.dart';
 
 main() {
@@ -28,42 +26,56 @@ main() {
 class AnalysisDomainGetErrorsTest
     extends AbstractAnalysisServerIntegrationTest {
   String createNonStandardSdk() {
-    MockSdkLibrary fakeLibrary =
-        new MockSdkLibrary('dart:fake', '/lib/fake/fake.dart', '');
-    String sdkPath = path.join(sourceDirectory.path, 'sdk');
-    StringBuffer librariesContent = new StringBuffer();
-    librariesContent.writeln(
-        'final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {');
-    MockSdk.LIBRARIES.toList()
-      ..add(fakeLibrary)
-      ..forEach((SdkLibrary library) {
-        List<String> components = path.posix.split(library.path);
-        components[0] = sdkPath;
-        String libraryPath = path.joinAll(components);
-        new Directory(path.dirname(libraryPath)).createSync(recursive: true);
-        new File(libraryPath)
-            .writeAsStringSync((library as MockSdkLibrary).content);
+    var sdkPath = path.join(sourceDirectory.path, 'sdk');
 
-        String relativePath = path.joinAll(components.sublist(2));
-        librariesContent.write('"');
-        librariesContent
-            .write(library.shortName.substring(5)); // Remove the 'dart:' prefix
-        librariesContent.write('": const LibraryInfo("');
-        librariesContent.write(relativePath);
-        librariesContent.writeln('"),');
-      });
-    librariesContent.writeln('};');
+    new Directory(path.join(sdkPath, 'lib', 'core'))
+        .createSync(recursive: true);
+    new Directory(path.join(sdkPath, 'lib', 'async'))
+        .createSync(recursive: true);
+    new Directory(path.join(sdkPath, 'lib', 'fake'))
+        .createSync(recursive: true);
 
-    String librariesPath = path.joinAll([
+    new File(path.join(sdkPath, 'lib', 'core', 'core.dart'))
+        .writeAsStringSync(r'''
+library dart.core;
+import 'dart:async';
+class bool {}
+class double {}
+class int {}
+class num {}
+class Object {}
+class Map<K, V> {}
+class Null {}
+class String {}
+class Type {}
+''');
+
+    new File(path.join(sdkPath, 'lib', 'async', 'async.dart'))
+        .writeAsStringSync(r'''
+library dart.async;
+class Future<T> {}
+''');
+
+    new File(path.join(sdkPath, 'lib', 'fake', 'fake.dart'))
+        .writeAsStringSync(r'''
+class Fake {} 
+''');
+
+    var libsDir = path.join(
       sdkPath,
       'lib',
       '_internal',
       'sdk_library_metadata',
       'lib',
-      'libraries.dart'
-    ]);
-    new Directory(path.dirname(librariesPath)).createSync(recursive: true);
-    new File(librariesPath).writeAsStringSync(librariesContent.toString());
+    );
+    new Directory(libsDir).createSync(recursive: true);
+    new File(path.join(libsDir, 'libraries.dart')).writeAsStringSync(r'''
+final LIBRARIES = const <String, LibraryInfo> {
+  "core":  const LibraryInfo("core/core.dart"),
+  "async": const LibraryInfo("async/async.dart"),
+  "fake":  const LibraryInfo("fake/fake.dart"),
+};
+''');
 
     return sdkPath;
   }

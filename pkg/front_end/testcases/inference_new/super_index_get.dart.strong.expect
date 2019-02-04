@@ -2,15 +2,17 @@ library test;
 import self as self;
 import "dart:core" as core;
 
+import "dart:async";
+
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   operator [](core::int x) → core::num
     return null;
 }
 class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
   operator [](core::Object x) → core::int

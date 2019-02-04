@@ -6,8 +6,8 @@ library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
-import '../types/abstract_value_domain.dart';
 import '../util/util.dart' show Setlet;
+import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
@@ -249,11 +249,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
   }
 
-  /**
-   * Checks whether this is a call to a list adding method. The definition of
-   * what list adding means has to stay in sync with
-   * [isParameterOfListAddingMethod].
-   */
+  /// Checks whether this is a call to a list adding method. The definition of
+  /// what list adding means has to stay in sync with
+  /// [isParameterOfListAddingMethod].
   bool mightAddToContainer(DynamicCallSiteTypeInformation info) {
     if (info.arguments == null) return false;
     if (info.arguments.named.isNotEmpty) return false;
@@ -275,20 +273,16 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return currentUser == arguments[index];
   }
 
-  /**
-   * Checks whether the call site flows the currentUser to the key argument of
-   * an indexing setter. This must be kept in sync with
-   * [isParameterOfMapAddingMethod].
-   */
+  /// Checks whether the call site flows the currentUser to the key argument of
+  /// an indexing setter. This must be kept in sync with
+  /// [isParameterOfMapAddingMethod].
   bool isIndexSetKey(DynamicCallSiteTypeInformation info) {
     return isIndexSetArgument(info, 0);
   }
 
-  /**
-   * Checks whether the call site flows the currentUser to the value argument of
-   * an indexing setter. This must be kept in sync with
-   * [isParameterOfListAddingMethod] and [isParameterOfMapAddingMethod].
-   */
+  /// Checks whether the call site flows the currentUser to the value argument
+  /// of an indexing setter. This must be kept in sync with
+  /// [isParameterOfListAddingMethod] and [isParameterOfMapAddingMethod].
   bool isIndexSetValue(DynamicCallSiteTypeInformation info) {
     return isIndexSetArgument(info, 1);
   }
@@ -398,11 +392,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
   }
 
-  /**
-   * Check whether element is the parameter of a list adding method.
-   * The definition of what a list adding method is has to stay in sync with
-   * [mightAddToContainer].
-   */
+  /// Check whether element is the parameter of a list adding method.
+  /// The definition of what a list adding method is has to stay in sync with
+  /// [mightAddToContainer].
   bool isParameterOfListAddingMethod(ParameterTypeInformation parameterInfo) {
     if (!parameterInfo.isRegularParameter) return false;
     if (parameterInfo.method.enclosingClass !=
@@ -413,11 +405,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return (name == '[]=') || (name == 'add') || (name == 'insert');
   }
 
-  /**
-   * Check whether element is the parameter of a list adding method.
-   * The definition of what a list adding method is has to stay in sync with
-   * [isIndexSetKey] and [isIndexSetValue].
-   */
+  /// Check whether element is the parameter of a list adding method.
+  /// The definition of what a list adding method is has to stay in sync with
+  /// [isIndexSetKey] and [isIndexSetValue].
   bool isParameterOfMapAddingMethod(ParameterTypeInformation parameterInfo) {
     if (!parameterInfo.isRegularParameter) return false;
     if (parameterInfo.method.enclosingClass !=

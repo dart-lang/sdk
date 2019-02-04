@@ -25,6 +25,7 @@ class JSONObject;
 class ObjectPointerVisitor;
 class ObjectSet;
 class ForwardingPage;
+class GCMarker;
 
 // TODO(iposva): Determine heap sizes and tune the page size accordingly.
 static const intptr_t kPageSize = 256 * KB;
@@ -81,6 +82,32 @@ class HeapPage {
     return reinterpret_cast<HeapPage*>(addr & kPageMask);
   }
 
+  // 1 card = 128 slots.
+  static const intptr_t kSlotsPerCardLog2 = 7;
+  static const intptr_t kBytesPerCardLog2 = kWordSizeLog2 + kSlotsPerCardLog2;
+
+  intptr_t card_table_size() const {
+    return memory_->size() >> kBytesPerCardLog2;
+  }
+
+  static intptr_t card_table_offset() {
+    return OFFSET_OF(HeapPage, card_table_);
+  }
+
+  void RememberCard(RawObject* const* slot) {
+    ASSERT(Contains(reinterpret_cast<uword>(slot)));
+    if (card_table_ == NULL) {
+      card_table_ = reinterpret_cast<uint8_t*>(
+          calloc(card_table_size(), sizeof(uint8_t)));
+    }
+    intptr_t offset =
+        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    card_table_[index] = 1;
+  }
+  void VisitRememberedCards(ObjectPointerVisitor* visitor);
+
  private:
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
@@ -101,6 +128,7 @@ class HeapPage {
   uword object_end_;
   uword used_in_bytes_;
   ForwardingPage* forwarding_page_;
+  uint8_t* card_table_;  // Remembered set, not marking.
   PageType type_;
 
   friend class PageSpace;
@@ -150,6 +178,7 @@ class PageSpaceController {
   // This method can be called before allocation (e.g., pretenuring) or after
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
+  bool AlmostNeedsGarbageCollection(SpaceUsage after) const;
 
   // Returns whether an idle GC is worthwhile.
   bool NeedsIdleGarbageCollection(SpaceUsage current) const;
@@ -159,7 +188,7 @@ class PageSpaceController {
                                  SpaceUsage after,
                                  int64_t start,
                                  int64_t end);
-  void EvaluateSnapshotLoad(SpaceUsage after);
+  void EvaluateAfterLoading(SpaceUsage after);
 
   int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
   void set_last_code_collection_in_us(int64_t t) {
@@ -216,6 +245,7 @@ class PageSpaceController {
 class PageSpace {
  public:
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
+  enum Phase { kDone, kMarking, kAwaitingFinalization, kSweeping };
 
   PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
@@ -233,8 +263,11 @@ class PageSpace {
   bool NeedsGarbageCollection() const {
     return page_space_controller_.NeedsGarbageCollection(usage_);
   }
-  void EvaluateSnapshotLoad() {
-    page_space_controller_.EvaluateSnapshotLoad(usage_);
+  bool AlmostNeedsGarbageCollection() const {
+    return page_space_controller_.AlmostNeedsGarbageCollection(usage_);
+  }
+  void EvaluateAfterLoading() {
+    page_space_controller_.EvaluateAfterLoading(usage_);
   }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
@@ -271,6 +304,8 @@ class PageSpace {
   void VisitObjectsImagePages(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
+  void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
+
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;
 
@@ -279,7 +314,7 @@ class PageSpace {
   bool ShouldCollectCode();
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
-  void CollectGarbage(bool compact);
+  void CollectGarbage(bool compact, bool finalize);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
@@ -319,12 +354,20 @@ class PageSpace {
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
 #endif  // PRODUCT
 
+  void AllocateBlack(intptr_t size) {
+    AtomicOperations::IncrementBy(&allocated_black_in_words_,
+                                  size >> kWordSizeLog2);
+  }
+
   void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.
   void AcquireDataLock();
   void ReleaseDataLock();
+#if defined(DEBUG)
+  bool CurrentThreadOwnsDataLock();
+#endif
 
   uword TryAllocateDataLocked(intptr_t size, GrowthPolicy growth_policy) {
     bool is_protected = false;
@@ -339,6 +382,13 @@ class PageSpace {
     ASSERT(val >= 0);
     tasks_ = val;
   }
+  intptr_t concurrent_marker_tasks() const { return concurrent_marker_tasks_; }
+  void set_concurrent_marker_tasks(intptr_t val) {
+    ASSERT(val >= 0);
+    concurrent_marker_tasks_ = val;
+  }
+  Phase phase() const { return phase_; }
+  void set_phase(Phase val) { phase_ = val; }
 
   // Attempt to allocate from bump block rather than normal freelist.
   uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
@@ -350,6 +400,13 @@ class PageSpace {
 
   // Return any bump allocation block to the freelist.
   void AbandonBumpAllocation();
+  // Have threads release marking stack blocks, etc.
+  void AbandonMarkingForShutdown();
+
+  bool enable_concurrent_mark() const { return enable_concurrent_mark_; }
+  void set_enable_concurrent_mark(bool enable_concurrent_mark) {
+    enable_concurrent_mark_ = enable_concurrent_mark;
+  }
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -384,7 +441,7 @@ class PageSpace {
                                     bool is_locked);
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
-  HeapPage* AllocatePage(HeapPage::PageType type);
+  HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
@@ -392,6 +449,7 @@ class PageSpace {
   void FreePages(HeapPage* pages);
 
   void CollectGarbageAtSafepoint(bool compact,
+                                 bool finalize,
                                  int64_t pre_wait_for_sweepers,
                                  int64_t pre_safe_point);
   void BlockingSweep();
@@ -400,16 +458,13 @@ class PageSpace {
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
-  bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
+  bool CanIncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     if (max_capacity_in_words_ == 0) {
       // Unlimited.
       return true;
     }
-    // TODO(issue 27413): Make the check against capacity and the bump
-    // of capacity atomic so that CapacityInWords does not exceed
-    // max_capacity_in_words_.
     intptr_t free_capacity_in_words =
-        (max_capacity_in_words_ - CapacityInWords());
+        (max_capacity_in_words_ - usage_.capacity_in_words);
     return ((free_capacity_in_words > 0) &&
             (increase_in_words <= free_capacity_in_words));
   }
@@ -438,25 +493,32 @@ class PageSpace {
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;
+  intptr_t allocated_black_in_words_;
 
   // Keep track of running MarkSweep tasks.
   Monitor* tasks_lock_;
   intptr_t tasks_;
+  intptr_t concurrent_marker_tasks_;
+  Phase phase_;
+
 #if defined(DEBUG)
   Thread* iterating_thread_;
 #endif
   PageSpaceController page_space_controller_;
+  GCMarker* marker_;
 
   int64_t gc_time_micros_;
   intptr_t collections_;
   intptr_t mark_words_per_micro_;
+
+  bool enable_concurrent_mark_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;
   friend class ExclusiveLargePageIterator;
   friend class HeapIterationScope;
   friend class PageSpaceController;
-  friend class SweeperTask;
+  friend class ConcurrentSweeperTask;
   friend class GCCompactor;
   friend class CompactorTask;
 

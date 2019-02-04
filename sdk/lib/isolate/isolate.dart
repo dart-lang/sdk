@@ -554,8 +554,9 @@ class Isolate {
     StreamController controller;
     RawReceivePort port;
     void handleError(message) {
-      String errorDescription = message[0];
-      String stackDescription = message[1];
+      List listMessage = message;
+      String errorDescription = listMessage[0];
+      String stackDescription = listMessage[1];
       var error = new RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }

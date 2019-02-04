@@ -1,11 +1,11 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/analysis/base.dart';
@@ -332,7 +332,7 @@ abstract class B {
   String aaa;
 }
 class C implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/var aaa;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/var aaa;
 }
 ''';
     await checkFile(content);
@@ -354,7 +354,7 @@ class C implements A, B {
     await checkFile(content);
   }
 
-  Future<Null> _assertErrorOnlyLeft(List<String> operators) async {
+  Future<void> _assertErrorOnlyLeft(List<String> operators) async {
     String code = 'var a = 1;\n';
     for (var i = 0; i < operators.length; i++) {
       String operator = operators[i];
@@ -366,10 +366,6 @@ class C implements A, B {
 
 @reflectiveTest
 class TopLevelInferenceTest extends BaseAnalysisDriverTest {
-  void addFile(String path, String code) {
-    provider.newFile(_p(path), code);
-  }
-
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
 var vPlusIntInt = 1 + 2;
@@ -682,11 +678,11 @@ C f() {}
   }
 
   test_initializer_extractProperty_inOtherLibraryCycle() async {
-    addFile('/a.dart', r'''
+    newFile('/a.dart', content: r'''
 import 'b.dart';
 var x = new C().f;
 ''');
-    addFile('/b.dart', r'''
+    newFile('/b.dart', content: r'''
 class C {
   var f = 0;
 }
@@ -798,7 +794,6 @@ Future<int> vFuture;
 ''');
   }
 
-  @failingTest
   test_initializer_functionExpressionInvocation_noTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 var v = (() => 42)();
@@ -2533,8 +2528,7 @@ class C implements B<int, String> {
   }
 
   test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
-    String path = _p('/other.dart');
-    provider.newFile(path, r'''
+    newFile('/other.dart', content: r'''
 import 'test.dart';
 class B extends A2 {}
 ''');
@@ -2629,11 +2623,9 @@ class C extends A implements B {
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    String path = _p('/test.dart');
-    provider.newFile(path, text);
+    String path = convertPath('/test.dart');
+    newFile(path, content: text);
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.library;
   }
-
-  String _p(String path) => provider.convertPath(path);
 }

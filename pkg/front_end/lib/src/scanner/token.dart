@@ -1275,6 +1275,10 @@ class TokenType {
       '>>=', 'GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN,
       isOperator: true);
 
+  static const TokenType GT_GT_GT = const TokenType(
+      '>>>', 'GT_GT_GT', SHIFT_PRECEDENCE, GT_GT_GT_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
+
   static const TokenType HASH =
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 
@@ -1418,6 +1422,12 @@ class TokenType {
   static const TokenType PERIOD_PERIOD_PERIOD = const TokenType(
       '...', 'PERIOD_PERIOD_PERIOD', NO_PRECEDENCE, PERIOD_PERIOD_PERIOD_TOKEN);
 
+  static const TokenType PERIOD_PERIOD_PERIOD_QUESTION = const TokenType(
+      '...?',
+      'PERIOD_PERIOD_PERIOD_QUESTION',
+      NO_PRECEDENCE,
+      PERIOD_PERIOD_PERIOD_QUESTION_TOKEN);
+
   static const TokenType AS = Keyword.AS;
 
   static const TokenType IS = Keyword.IS;
@@ -1509,6 +1519,7 @@ class TokenType {
     TokenType.BACKPING,
     TokenType.BACKSLASH,
     TokenType.PERIOD_PERIOD_PERIOD,
+    TokenType.PERIOD_PERIOD_PERIOD_QUESTION,
 
     // TODO(danrubel): Should these be added to the "all" list?
     //TokenType.IS,

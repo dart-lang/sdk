@@ -3,6 +3,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import optparse
 import os
 import subprocess
 import sys
@@ -16,10 +17,19 @@ dependencies:
 """
 
 def Main():
+  parser = optparse.OptionParser()
+  parser.add_option('--mode', action='store', dest='mode', type='string',
+                    default='release')
+
+  (options, args) = parser.parse_args()
+
+  out_dir_subfolder = 'DebugX64' if options.mode == 'debug' else 'ReleaseX64'
+
   out_dir = 'xcodebuild' if sys.platform == 'darwin' else 'out'
   extension = '' if not sys.platform == 'win32' else '.bat'
   pub = os.path.abspath(
-    '%s/ReleaseX64/dart-sdk/bin/pub%s' % (out_dir, extension))
+    '%s/%s/dart-sdk/bin/pub%s' % (out_dir, out_dir_subfolder, extension))
+  print(pub)
 
   working_dir = tempfile.mkdtemp()
   try:

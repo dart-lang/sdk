@@ -12,17 +12,12 @@
 namespace dart {
 
 // Forward declaration.
-class Array;
 class Code;
-class ExternalLabel;
-class Function;
 class ICData;
 class RawArray;
 class RawCode;
 class RawFunction;
-class RawICData;
 class RawObject;
-class String;
 
 // Stack-allocated class to create a scope where the specified region
 // [address, address + size] has write access enabled. This is used
@@ -64,8 +59,6 @@ class CodePatcher : public AllStatic {
                                                  const Code& code,
                                                  ICData* ic_data);
 
-  static intptr_t InstanceCallSizeInBytes();
-
   static void InsertDeoptimizationCallAt(uword start);
 
   static void PatchPoolPointerCallAt(uword return_address,
@@ -106,20 +99,20 @@ class CodePatcher : public AllStatic {
   static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
 };
 
-// Beginning from [addr] we compare [size] bytes with [pattern].  All [0..255]
-// values in [pattern] have to match, negative values are skipped.
+// Beginning from [end - size] we compare [size] bytes with [pattern]. All
+// [0..255] values in [pattern] have to match, negative values are skipped.
 //
 // Example pattern: `[0x3d, 0x8b, -1, -1]`.
-bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size);
+bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size);
 
 class KBCPatcher : public AllStatic {
  public:
   static NativeFunctionWrapper GetNativeCallAt(uword return_address,
-                                               const Code& bytecode,
+                                               const Bytecode& bytecode,
                                                NativeFunction* function);
 
   static void PatchNativeCallAt(uword return_address,
-                                const Code& bytecode,
+                                const Bytecode& bytecode,
                                 NativeFunction function,
                                 NativeFunctionWrapper trampoline);
 };

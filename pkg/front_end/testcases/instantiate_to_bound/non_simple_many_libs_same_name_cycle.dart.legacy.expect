@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "./non_simple_many_libs_same_name_cycle_lib.dart" as non;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle_lib.dart" as lib;
+
+class Hest<TypeX extends non::Hest<dynamic> = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::TypeX>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+library non_simple_many_libs_same_name_cycle_lib;
+import self as non;
+import "./non_simple_many_libs_same_name_cycle.dart" as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle.dart" as lib;
+
+class Hest<TypeY extends self::Hest<dynamic> = dynamic> extends core::Object {
+  synthetic constructor •() → non::Hest<non::Hest::TypeY>
+    : super core::Object::•()
+    ;
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,7 +31,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
   }
 
   test_fileDoesNotExist() async {
-    String file = '$projectPath/doesNotExist.dart';
+    String file = convertPath('$projectPath/doesNotExist.dart');
     Response response = await _setPriorityFile(file);
     expect(response, isResponseSuccess('0'));
   }
@@ -48,7 +48,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
   test_fileInSdk() async {
     addTestFile('');
     // set priority files
-    String filePath = '/lib/convert/convert.dart';
+    String filePath = convertPath('/lib/convert/convert.dart');
     Response response = await _setPriorityFile(filePath);
     expect(response, isResponseSuccess('0'));
     // verify
@@ -56,14 +56,14 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
   }
 
   test_fileNotInAnalysisRoot() async {
-    String path = '/other/file.dart';
+    String path = convertPath('/other/file.dart');
     newFile(path);
     await _setPriorityFile(path);
     _verifyPriorityFiles(path);
   }
 
   test_ignoredInAnalysisOptions() async {
-    String sampleFile = '$projectPath/samples/sample.dart';
+    String sampleFile = convertPath('$projectPath/samples/sample.dart');
     newFile('$projectPath/.analysis_options', content: r'''
 analyzer:
   exclude:
@@ -78,7 +78,7 @@ analyzer:
   test_ignoredInAnalysisOptions_inChildContext() async {
     newFile('$projectPath/.packages');
     newFile('$projectPath/child/.packages');
-    String sampleFile = '$projectPath/child/samples/sample.dart';
+    String sampleFile = convertPath('$projectPath/child/samples/sample.dart');
     newFile('$projectPath/child/.analysis_options', content: r'''
 analyzer:
   exclude:
@@ -93,7 +93,7 @@ analyzer:
   test_ignoredInAnalysisOptions_inRootContext() async {
     newFile('$projectPath/.packages');
     newFile('$projectPath/child/.packages');
-    String sampleFile = '$projectPath/child/samples/sample.dart';
+    String sampleFile = convertPath('$projectPath/child/samples/sample.dart');
     newFile('$projectPath/.analysis_options', content: r'''
 analyzer:
   exclude:
@@ -103,6 +103,26 @@ analyzer:
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request =
+        new AnalysisSetPriorityFilesParams(['test.dart']).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request = new AnalysisSetPriorityFilesParams(
+        [convertPath('/foo/../bar/test.dart')]).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_sentToPlugins() async {

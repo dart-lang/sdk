@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo(core::int x) → dynamic
+    return x;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method foo(core::int x, {core::int y = null}) → dynamic
+    return y;
+}
+class C extends self::A implements self::B {
+  synthetic constructor •() → self::C
+    : super self::A::•()
+    ;
+  method noSuchMethod(dynamic i) → dynamic {
+    core::print("No such method!");
+    return 42;
+  }
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  method foo(core::int x) → dynamic
+    return x;
+}
+class E extends self::D {
+  synthetic constructor •() → self::E
+    : super self::D::•()
+    ;
+  abstract method foo(core::int x, {core::int y = null}) → dynamic;
+  method noSuchMethod(dynamic i) → dynamic {
+    core::print(i.namedArguments);
+    return 42;
+  }
+}
+static method main() → dynamic {
+  self::C c = new self::C::•();
+  self::E e = new self::E::•();
+}

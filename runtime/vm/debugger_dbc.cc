@@ -40,13 +40,14 @@ void CodeBreakpoint::PatchCode() {
         // DebugBreak has an A operand matching the call it replaces.
         // This ensures that Return instructions continue to work - as they
         // look at calls to figure out how many arguments to drop.
-        *CallInstructionFromReturnAddress(pc_) = Bytecode::Encode(
-            Bytecode::kDebugBreak, Bytecode::DecodeArgc(saved_value_), 0, 0);
+        *CallInstructionFromReturnAddress(pc_) = SimulatorBytecode::Encode(
+            SimulatorBytecode::kDebugBreak,
+            SimulatorBytecode::DecodeArgc(saved_value_), 0, 0);
         break;
       }
 
       case RawPcDescriptors::kRuntimeCall: {
-        *CallInstructionFromReturnAddress(pc_) = Bytecode::kDebugBreak;
+        *CallInstructionFromReturnAddress(pc_) = SimulatorBytecode::kDebugBreak;
         break;
       }
 
@@ -56,13 +57,15 @@ void CodeBreakpoint::PatchCode() {
 
     // If this call is the fall-through for a fast Smi op, also disable the fast
     // Smi op.
-    if ((Bytecode::DecodeOpcode(saved_value_) == Bytecode::kInstanceCall2) &&
-        Bytecode::IsFastSmiOpcode(*FastSmiInstructionFromReturnAddress(pc_))) {
+    if ((SimulatorBytecode::DecodeOpcode(saved_value_) ==
+         SimulatorBytecode::kInstanceCall2) &&
+        SimulatorBytecode::IsFastSmiOpcode(
+            *FastSmiInstructionFromReturnAddress(pc_))) {
       saved_value_fastsmi_ = *FastSmiInstructionFromReturnAddress(pc_);
       *FastSmiInstructionFromReturnAddress(pc_) =
-          Bytecode::Encode(Bytecode::kNop, 0, 0, 0);
+          SimulatorBytecode::Encode(SimulatorBytecode::kNop, 0, 0, 0);
     } else {
-      saved_value_fastsmi_ = Bytecode::kTrap;
+      saved_value_fastsmi_ = SimulatorBytecode::kTrap;
     }
   }
   is_enabled_ = true;
@@ -85,9 +88,10 @@ void CodeBreakpoint::RestoreCode() {
         UNREACHABLE();
     }
 
-    if (saved_value_fastsmi_ != Bytecode::kTrap) {
+    if (saved_value_fastsmi_ != SimulatorBytecode::kTrap) {
       Instr current_instr = *FastSmiInstructionFromReturnAddress(pc_);
-      ASSERT(Bytecode::DecodeOpcode(current_instr) == Bytecode::kNop);
+      ASSERT(SimulatorBytecode::DecodeOpcode(current_instr) ==
+             SimulatorBytecode::kNop);
       *FastSmiInstructionFromReturnAddress(pc_) = saved_value_fastsmi_;
     }
   }

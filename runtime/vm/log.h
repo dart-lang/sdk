@@ -11,8 +11,8 @@
 
 namespace dart {
 
+class Isolate;
 class LogBlock;
-class Thread;
 
 #if defined(_MSC_VER)
 #define THR_Print(format, ...) Log::Current()->Print(format, __VA_ARGS__)
@@ -22,7 +22,7 @@ class Thread;
 
 #define THR_VPrint(format, args) Log::Current()->VPrint(format, args)
 
-typedef void (*LogPrinter)(const char* str, ...);
+typedef void (*LogPrinter)(const char* str, ...) PRINTF_ATTRIBUTE(1, 2);
 
 class Log {
  public:
@@ -74,13 +74,13 @@ class Log {
 // Can be nested.
 class LogBlock : public StackResource {
  public:
-  LogBlock(Thread* thread, Log* log)
+  LogBlock(ThreadState* thread, Log* log)
       : StackResource(thread), log_(log), cursor_(log->cursor()) {
     Initialize();
   }
 
   LogBlock()
-      : StackResource(Thread::Current()),
+      : StackResource(ThreadState::Current()),
         log_(Log::Current()),
         cursor_(Log::Current()->cursor()) {
     Initialize();

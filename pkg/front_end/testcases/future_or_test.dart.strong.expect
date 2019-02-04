@@ -3,8 +3,10 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+import "dart:async";
+
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   method foo() → dynamic
@@ -12,7 +14,7 @@ class A extends core::Object {
 }
 class B extends core::Object {
   field self::A a = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   method bar() → asy::Future<dynamic> async 
@@ -20,7 +22,7 @@ class B extends core::Object {
 }
 class C extends core::Object {
   field self::B b = new self::B::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method baz() → asy::Future<core::int> async 

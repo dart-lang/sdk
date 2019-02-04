@@ -67,8 +67,8 @@
  * check out
  * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).
  *
- * [IndexedDB reference](http://docs.webplatform.org/wiki/apis/indexeddb)
- * provides wiki-style docs about indexedDB
+ * MDN provides [API
+ * documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
  *
  * {@category Web}
  */
@@ -82,6 +82,7 @@ import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_js_helper' show convertDartClosureToJS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1039,7 +1040,8 @@ class Observer extends Interceptor {
   }
 
   factory Observer(ObserverCallback callback) {
-    return Observer._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 1);
+    return Observer._create_1(callback_1);
   }
   static Observer _create_1(callback) =>
       JS('Observer', 'new IDBObserver(#)', callback);

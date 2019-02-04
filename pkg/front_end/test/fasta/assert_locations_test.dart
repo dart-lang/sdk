@@ -12,13 +12,9 @@ import 'package:kernel/ast.dart'
     show Component, RecursiveVisitor, Procedure, AssertStatement;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
-
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 /// Span of the condition expression in the assert statement.
 class ConditionSpan {
@@ -137,11 +133,10 @@ void main() {
   asyncTest(() async {
     Test test = generateTest();
     CompilerOptions options = new CompilerOptions()
-      ..onProblem = (FormattedMessage message, Severity severity,
-          List<FormattedMessage> context) {
-        Expect.fail("Unexpected error: ${message.formatted}");
-      }
-      ..strongMode = true;
+      ..onDiagnostic = (DiagnosticMessage message) {
+        Expect.fail(
+            "Unexpected message: ${message.plainTextFormatted.join('\n')}");
+      };
     Component p = await compileScript(test.source,
         options: options, fileName: 'synthetic-test.dart');
     Expect.isNotNull(p);

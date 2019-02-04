@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,12 +6,16 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
@@ -24,15 +28,17 @@ import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:yaml/yaml.dart';
+
+AnalysisOptionsProvider _optionsProvider = new AnalysisOptionsProvider();
 
 Source createSource(Uri sourceUri) {
   return PhysicalResourceProvider.INSTANCE
@@ -48,8 +54,13 @@ void printAndFail(String message, {int exitCode: 15}) {
 
 AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+  if (options.analysisOptions != null) {
+    YamlMap map =
+        _optionsProvider.getOptionsFromString(options.analysisOptions);
+    applyToAnalysisOptions(analysisOptions, map);
+  }
+
   analysisOptions.hint = false;
-  analysisOptions.previewDart2 = options.previewDart2;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableTiming = options.enableTiming;
@@ -83,9 +94,6 @@ class DriverOptions {
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
 
-  /// Whether to use Dart 2.0 features.
-  bool previewDart2 = false;
-
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
   DartSdk mockSdk;
 
@@ -100,6 +108,13 @@ class DriverOptions {
   void set enableAssertInitializer(bool enable) {
     // Ignored because the option is now always enabled.
   }
+
+  /// Whether to use Dart 2.0 features.
+  @deprecated
+  bool get previewDart2 => true;
+
+  @deprecated
+  void set previewDart2(bool value) {}
 }
 
 class LintDriver {
@@ -250,7 +265,18 @@ class LintDriver {
 /// [errorSink].
 class StdLogger extends Logger {
   @override
-  void logError(String message, [exception]) => errorSink.writeln(message);
+  void logError(String message, [exception]) {
+    errorSink.writeln(message);
+    if (exception != null) {
+      errorSink.writeln(exception);
+    }
+  }
+
   @override
-  void logInformation(String message, [exception]) => outSink.writeln(message);
+  void logInformation(String message, [exception]) {
+    outSink.writeln(message);
+    if (exception != null) {
+      outSink.writeln(exception);
+    }
+  }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,14 +7,12 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
-
-const String DYNAMIC = 'dynamic';
 
 /**
  * Return a suggestion based upon the given element
@@ -48,11 +46,12 @@ CompletionSuggestion createSuggestion(Element element,
       false);
 
   // Attach docs.
-  String doc = removeDartDocDelimiters(element.documentationComment);
+  String doc = getDartDocPlainText(element.documentationComment);
   suggestion.docComplete = doc;
   suggestion.docSummary = getDartDocSummary(doc);
 
   suggestion.element = protocol.convertElement(element);
+  suggestion.elementUri = element.source.uri.toString();
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
     suggestion.declaringType = enclosingElement.displayName;
@@ -112,9 +111,9 @@ CompletionSuggestion createSuggestion(Element element,
 }
 
 /**
- * Common mixin for sharing behavior
+ * Common mixin for sharing behavior.
  */
-abstract class ElementSuggestionBuilder {
+mixin ElementSuggestionBuilder {
   /**
    * A collection of completion suggestions.
    */
@@ -167,6 +166,7 @@ abstract class ElementSuggestionBuilder {
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
+      suggestion.elementUri = element.source.uri.toString();
       if (element.isSynthetic && element is PropertyAccessorElement) {
         String cacheKey;
         if (element.isGetter) {

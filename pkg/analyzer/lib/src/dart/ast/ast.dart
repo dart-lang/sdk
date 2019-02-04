@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,6 +15,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -23,7 +24,6 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -899,14 +899,9 @@ abstract class AstNodeImpl implements AstNode {
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
   @override
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) {
-    // TODO(brianwilkerson) It is a bug that this method can return `this`.
-    AstNode node = this;
-    while (node != null && !predicate(node)) {
-      node = node.parent;
-    }
-    return node as E;
-  }
+  @deprecated
+  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) =>
+      thisOrAncestorMatching(predicate);
 
   @override
   E getProperty<E>(String name) {
@@ -931,6 +926,25 @@ abstract class AstNodeImpl implements AstNode {
       }
       _propertyMap[name] = value;
     }
+  }
+
+  @override
+  E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
+    // TODO(brianwilkerson) It is a bug that this method can return `this`.
+    AstNode node = this;
+    while (node != null && !predicate(node)) {
+      node = node.parent;
+    }
+    return node as E;
+  }
+
+  @override
+  T thisOrAncestorOfType<T extends AstNode>() {
+    AstNode node = this;
+    while (node != null && node is! T) {
+      node = node.parent;
+    }
+    return node as T;
   }
 
   @override
@@ -1003,7 +1017,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   }
 
   @override
-  int get precedence => 0;
+  int get precedence => 14;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -1044,6 +1058,9 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
    */
   @override
   MethodElement staticElement;
+
+  @override
+  FunctionType staticInvokeType;
 
   /**
    * Initialize a newly created binary expression.
@@ -1093,23 +1110,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   void set rightOperand(Expression expression) {
     _rightOperand = _becomeParentOf(expression as ExpressionImpl);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the right operand will be
-   * bound. Otherwise, return `null`.
-   */
-  ParameterElement get _staticParameterElementForRightOperand {
-    if (staticElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
   }
 
   @override
@@ -1605,7 +1605,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /**
  * Helper class to allow iteration of child entities of an AST node.
  */
-class ChildEntities extends Object
+class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
   /**
@@ -2056,6 +2056,128 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 }
 
+abstract class CollectionElementImpl extends AstNodeImpl
+    implements CollectionElement {}
+
+class CollectionForElementImpl extends CollectionElementImpl
+    with ForMixin
+    implements CollectionForElement {
+  /**
+   * The body of the loop.
+   */
+  CollectionElementImpl _body;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  CollectionForElementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      CollectionElementImpl body) {
+    this.awaitKeyword = awaitKeyword;
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _forLoopParts = _becomeParentOf(forLoopParts);
+    this.rightParenthesis = rightParenthesis;
+    _body = _becomeParentOf(body);
+  }
+
+  @override
+  CollectionElement get body => _body;
+
+  void set body(CollectionElement statement) {
+    _body = _becomeParentOf(statement as CollectionElementImpl);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_body);
+
+  @override
+  Token get endToken => _body.endToken;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionForElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _forLoopParts?.accept(visitor);
+    _body?.accept(visitor);
+  }
+}
+
+class CollectionIfElementImpl extends CollectionElementImpl
+    with IfMixin
+    implements CollectionIfElement {
+  /**
+   * The element to be executed if the condition is `true`.
+   */
+  CollectionElementImpl _thenElement;
+
+  /**
+   * The element to be executed if the condition is `false`, or `null` if there
+   * is no such element.
+   */
+  CollectionElementImpl _elseElement;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  CollectionIfElementImpl(
+      Token ifKeyword,
+      Token leftParenthesis,
+      ExpressionImpl condition,
+      Token rightParenthesis,
+      CollectionElementImpl thenElement,
+      Token elseKeyword,
+      CollectionElementImpl elseElement) {
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _condition = _becomeParentOf(condition);
+    this.rightParenthesis = rightParenthesis;
+    _thenElement = _becomeParentOf(thenElement);
+    this.elseKeyword = elseKeyword;
+    _elseElement = _becomeParentOf(elseElement);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_thenElement)
+    ..add(_elseElement);
+
+  @override
+  CollectionElement get elseElement => _elseElement;
+
+  set elseElement(CollectionElement element) {
+    _elseElement = _becomeParentOf(element as CollectionElementImpl);
+  }
+
+  @override
+  Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
+
+  @override
+  CollectionElement get thenElement => _thenElement;
+
+  set thenElement(CollectionElement element) {
+    _thenElement = _becomeParentOf(element as CollectionElementImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionIfElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _thenElement?.accept(visitor);
+    _elseElement?.accept(visitor);
+  }
+}
+
 /**
  * A combinator associated with an import or export directive.
  *
@@ -2340,6 +2462,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   LineInfo lineInfo;
 
   Map<int, AstNode> localDeclarations;
+
+  /**
+   * Is `true` if the non-nullable feature is enabled, and this library
+   * unit is annotated with `@pragma('analyzer:non-nullable')`.
+   */
+  bool hasPragmaAnalyzerNonNullable = false;
 
   /**
    * Initialize a newly created compilation unit to have the given directives
@@ -2696,17 +2824,21 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
         case CompileTimeErrorCode
             .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
           hasConstError = true;
       }
     }
@@ -4064,7 +4196,8 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
  *      | [ConditionalExpression] cascadeSection*
  *      | [ThrowExpression]
  */
-abstract class ExpressionImpl extends AstNodeImpl implements Expression {
+abstract class ExpressionImpl extends AstNodeImpl
+    implements CollectionElementImpl, Expression {
   /**
    * The static type of this expression, or `null` if the AST structure has not
    * been resolved.
@@ -4111,7 +4244,10 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
     AstNode child = this;
     while (child is Expression ||
         child is ArgumentList ||
-        child is MapLiteralEntry) {
+        child is MapLiteralEntry ||
+        child is SpreadElement ||
+        child is IfElement ||
+        child is ForElement) {
       AstNode parent = child.parent;
       if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
@@ -4163,7 +4299,11 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
       }
     } else if (parent is BinaryExpressionImpl) {
       if (identical(parent.rightOperand, this)) {
-        return parent._staticParameterElementForRightOperand;
+        var parameters = parent.staticInvokeType?.parameters;
+        if (parameters != null && parameters.isNotEmpty) {
+          return parameters[0];
+        }
+        return null;
       }
     } else if (parent is AssignmentExpressionImpl) {
       if (identical(parent.rightHandSide, this)) {
@@ -4535,6 +4675,134 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 }
 
+abstract class ForEachPartsImpl extends ForLoopPartsImpl
+    implements ForEachParts {
+  @override
+  Token inKeyword;
+
+  /**
+   * The expression evaluated to produce the iterator.
+   */
+  ExpressionImpl _iterable;
+
+  /**
+   * Initialize a newly created for-each statement whose loop control variable
+   * is declared internally (in the for-loop part). The [awaitKeyword] can be
+   * `null` if this is not an asynchronous for loop.
+   */
+  ForEachPartsImpl(this.inKeyword, ExpressionImpl iterator) {
+    _iterable = _becomeParentOf(iterator);
+  }
+
+  @override
+  Token get beginToken => inKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      new ChildEntities()..add(inKeyword)..add(_iterable);
+
+  @override
+  Token get endToken => _iterable.endToken;
+
+  @override
+  Expression get iterable => _iterable;
+
+  void set iterable(Expression expression) {
+    _iterable = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _iterable?.accept(visitor);
+  }
+}
+
+class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
+    implements ForEachPartsWithDeclaration {
+  /**
+   * The declaration of the loop variable.
+   */
+  DeclaredIdentifierImpl _loopVariable;
+
+  /**
+   * Initialize a newly created for-each statement whose loop control variable
+   * is declared internally (inside the for-loop part).
+   */
+  ForEachPartsWithDeclarationImpl(DeclaredIdentifierImpl loopVariable,
+      Token inKeyword, ExpressionImpl iterator)
+      : super(inKeyword, iterator) {
+    _loopVariable = _becomeParentOf(loopVariable);
+  }
+
+  @override
+  Token get beginToken => _loopVariable.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_loopVariable)
+    ..addAll(super.childEntities);
+
+  @override
+  DeclaredIdentifier get loopVariable => _loopVariable;
+
+  void set loopVariable(DeclaredIdentifier variable) {
+    _loopVariable = _becomeParentOf(variable as DeclaredIdentifierImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithDeclaration(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _loopVariable?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
+    implements ForEachPartsWithIdentifier {
+  /**
+   * The loop variable.
+   */
+  SimpleIdentifierImpl _identifier;
+
+  /**
+   * Initialize a newly created for-each statement whose loop control variable
+   * is declared externally (outside the for-loop part).
+   */
+  ForEachPartsWithIdentifierImpl(
+      SimpleIdentifierImpl identifier, Token inKeyword, ExpressionImpl iterator)
+      : super(inKeyword, iterator) {
+    _identifier = _becomeParentOf(identifier);
+  }
+
+  @override
+  Token get beginToken => _identifier.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_identifier)
+    ..addAll(super.childEntities);
+
+  @override
+  SimpleIdentifier get identifier => _identifier;
+
+  void set identifier(SimpleIdentifier identifier) {
+    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithIdentifier(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _identifier?.accept(visitor);
+    _iterable?.accept(visitor);
+  }
+}
+
 /**
  * A for-each statement.
  *
@@ -4634,7 +4902,7 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   }
 
   @override
-  Token get beginToken => forKeyword;
+  Token get beginToken => awaitKeyword ?? forKeyword;
 
   @override
   Statement get body => _body;
@@ -4694,6 +4962,8 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
     _body?.accept(visitor);
   }
 }
+
+abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 
 /**
  * A node representing a parameter to a function.
@@ -4856,6 +5126,243 @@ class FormalParameterListImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _parameters.accept(visitor);
+  }
+}
+
+mixin ForMixin on AstNodeImpl {
+  Token awaitKeyword;
+
+  Token forKeyword;
+
+  Token leftParenthesis;
+
+  ForLoopPartsImpl _forLoopParts;
+
+  Token rightParenthesis;
+
+  @override
+  Token get beginToken => awaitKeyword ?? forKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(awaitKeyword)
+    ..add(forKeyword)
+    ..add(leftParenthesis)
+    ..add(_forLoopParts)
+    ..add(rightParenthesis);
+
+  ForLoopParts get forLoopParts => _forLoopParts;
+
+  void set forLoopParts(ForLoopParts forLoopParts) {
+    _forLoopParts = _becomeParentOf(forLoopParts as ForLoopPartsImpl);
+  }
+}
+
+abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
+  @override
+  Token leftSeparator;
+
+  /**
+   * The condition used to determine when to terminate the loop, or `null` if
+   * there is no condition.
+   */
+  ExpressionImpl _condition;
+
+  @override
+  Token rightSeparator;
+
+  /**
+   * The list of expressions run after each execution of the loop body.
+   */
+  NodeList<Expression> _updaters;
+
+  /**
+   * Initialize a newly created for statement. Either the [variableList] or the
+   * [initialization] must be `null`. Either the [condition] and the list of
+   * [updaters] can be `null` if the loop does not have the corresponding
+   * attribute.
+   */
+  ForPartsImpl(this.leftSeparator, ExpressionImpl condition,
+      this.rightSeparator, List<Expression> updaters) {
+    _condition = _becomeParentOf(condition);
+    _updaters = new NodeListImpl<Expression>(this, updaters);
+  }
+
+  @override
+  Token get beginToken => leftSeparator;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(leftSeparator)
+    ..add(_condition)
+    ..add(rightSeparator)
+    ..addAll(_updaters);
+
+  @override
+  Expression get condition => _condition;
+
+  void set condition(Expression expression) {
+    _condition = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  Token get endToken => _updaters?.endToken ?? rightSeparator;
+
+  @override
+  NodeList<Expression> get updaters => _updaters;
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _condition?.accept(visitor);
+    _updaters.accept(visitor);
+  }
+}
+
+class ForPartsWithDeclarationsImpl extends ForPartsImpl
+    implements ForPartsWithDeclarations {
+  /**
+   * The declaration of the loop variables, or `null` if there are no variables.
+   * Note that a for statement cannot have both a variable list and an
+   * initialization expression, but can validly have neither.
+   */
+  VariableDeclarationListImpl _variableList;
+
+  /**
+   * Initialize a newly created for statement. Both the [condition] and the list
+   * of [updaters] can be `null` if the loop does not have the corresponding
+   * attribute.
+   */
+  ForPartsWithDeclarationsImpl(
+      VariableDeclarationListImpl variableList,
+      Token leftSeparator,
+      ExpressionImpl condition,
+      Token rightSeparator,
+      List<Expression> updaters)
+      : super(leftSeparator, condition, rightSeparator, updaters) {
+    _variableList = _becomeParentOf(variableList);
+  }
+
+  @override
+  Token get beginToken => _variableList?.beginToken ?? super.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_variableList)
+    ..addAll(super.childEntities);
+
+  @override
+  VariableDeclarationList get variables => _variableList;
+
+  void set variables(VariableDeclarationList variableList) {
+    _variableList =
+        _becomeParentOf(variableList as VariableDeclarationListImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithDeclarations(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _variableList?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+class ForPartsWithExpressionImpl extends ForPartsImpl
+    implements ForPartsWithExpression {
+  /**
+   * The initialization expression, or `null` if there is no initialization
+   * expression. Note that a for statement cannot have both a variable list and
+   * an initialization expression, but can validly have neither.
+   */
+  ExpressionImpl _initialization;
+
+  /**
+   * Initialize a newly created for statement. Both the [condition] and the list
+   * of [updaters] can be `null` if the loop does not have the corresponding
+   * attribute.
+   */
+  ForPartsWithExpressionImpl(ExpressionImpl initialization, Token leftSeparator,
+      ExpressionImpl condition, Token rightSeparator, List<Expression> updaters)
+      : super(leftSeparator, condition, rightSeparator, updaters) {
+    _initialization = _becomeParentOf(initialization);
+  }
+
+  @override
+  Token get beginToken => initialization?.beginToken ?? super.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_initialization)
+    ..addAll(super.childEntities);
+
+  @override
+  Expression get initialization => _initialization;
+
+  void set initialization(Expression initialization) {
+    _initialization = _becomeParentOf(initialization as ExpressionImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithExpression(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _initialization?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+class ForStatement2Impl extends StatementImpl
+    with ForMixin
+    implements ForStatement2 {
+  /**
+   * The body of the loop.
+   */
+  StatementImpl _body;
+
+  /**
+   * Initialize a newly created for statement.
+   */
+  ForStatement2Impl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      StatementImpl body) {
+    this.awaitKeyword = awaitKeyword;
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _forLoopParts = _becomeParentOf(forLoopParts);
+    this.rightParenthesis = rightParenthesis;
+    _body = _becomeParentOf(body);
+  }
+
+  @override
+  Statement get body => _body;
+
+  void set body(Statement statement) {
+    _body = _becomeParentOf(statement as StatementImpl);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_body);
+
+  @override
+  Token get endToken => _body.endToken;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _forLoopParts?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -5583,9 +6090,6 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
    */
   FormalParameterListImpl _parameters;
 
-  @override
-  Token question;
-
   /**
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
@@ -5599,8 +6103,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters,
-      this.question)
+      FormalParameterListImpl parameters)
       : super(comment, metadata, covariantKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
@@ -5717,34 +6220,35 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   FormalParameterListImpl _parameters;
 
   @override
+  Token question;
+
+  @override
   DartType type;
 
   /**
    * Initialize a newly created generic function type.
    */
-  GenericFunctionTypeImpl(
-      TypeAnnotationImpl returnType,
-      this.functionKeyword,
-      TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters) {
+  GenericFunctionTypeImpl(TypeAnnotationImpl returnType, this.functionKeyword,
+      TypeParameterListImpl typeParameters, FormalParameterListImpl parameters,
+      {this.question}) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
 
   @override
-  Token get beginToken =>
-      _returnType == null ? functionKeyword : _returnType.beginToken;
+  Token get beginToken => _returnType?.beginToken ?? functionKeyword;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_returnType)
     ..add(functionKeyword)
     ..add(_typeParameters)
-    ..add(_parameters);
+    ..add(_parameters)
+    ..add(question);
 
   @override
-  Token get endToken => _parameters.endToken;
+  Token get endToken => question ?? _parameters.endToken;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -5939,6 +6443,43 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
 
   @override
   bool get isAssignable => true;
+}
+
+mixin IfMixin on AstNodeImpl {
+  Token ifKeyword;
+
+  Token leftParenthesis;
+
+  /**
+   * The condition used to determine which of the branches is executed next.
+   */
+  ExpressionImpl _condition;
+
+  Token rightParenthesis;
+
+  Token elseKeyword;
+
+  @override
+  Token get beginToken => ifKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
+    ..add(elseKeyword);
+
+  Expression get condition => _condition;
+
+  void set condition(Expression expression) {
+    _condition = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _condition?.accept(visitor);
+  }
 }
 
 /**
@@ -6403,11 +6944,13 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
  *
  *    newExpression ::=
  *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
- *
- * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
+  // TODO(brianwilkerson) Consider making InstanceCreationExpressionImpl extend
+  // InvocationExpressionImpl. This would probably be a breaking change, but is
+  // also probably worth it.
+
   /**
    * The 'new' or 'const' keyword used to indicate how an object should be
    * created, or `null` if the keyword is implicit.
@@ -6419,6 +6962,14 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * The name of the constructor to be invoked.
    */
   ConstructorNameImpl _constructorName;
+
+  /**
+   * The type arguments associated with the constructor, rather than with the
+   * class in which the constructor is defined. It is always an error if there
+   * are type arguments because Dart doesn't currently support generic
+   * constructors, but we capture them in the AST in order to recover better.
+   */
+  TypeArgumentListImpl _typeArguments;
 
   /**
    * The list of arguments to the constructor.
@@ -6437,8 +6988,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * Initialize a newly created instance creation expression.
    */
   InstanceCreationExpressionImpl(this.keyword,
-      ConstructorNameImpl constructorName, ArgumentListImpl argumentList) {
+      ConstructorNameImpl constructorName, ArgumentListImpl argumentList,
+      {TypeArgumentListImpl typeArguments}) {
     _constructorName = _becomeParentOf(constructorName);
+    _typeArguments = _becomeParentOf(typeArguments);
     _argumentList = _becomeParentOf(argumentList);
   }
 
@@ -6457,6 +7010,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(keyword)
     ..add(_constructorName)
+    ..add(_typeArguments)
     ..add(_argumentList);
 
   @override
@@ -6481,13 +7035,29 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   /**
    * Return `true` if this is an implicit constructor invocations.
-   *
-   * This can only be `true` when the previewDart2 option is enabled.
    */
   bool get isImplicit => keyword == null;
 
   @override
   int get precedence => 16;
+
+  /**
+   * Return the type arguments associated with the constructor, rather than with
+   * the class in which the constructor is defined. It is always an error if
+   * there are type arguments because Dart doesn't currently support generic
+   * constructors, but we capture them in the AST in order to recover better.
+   */
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  /**
+   * Return the type arguments associated with the constructor, rather than with
+   * the class in which the constructor is defined. It is always an error if
+   * there are type arguments because Dart doesn't currently support generic
+   * constructors, but we capture them in the AST in order to recover better.
+   */
+  void set typeArguments(TypeArgumentList typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl);
+  }
 
   @override
   E accept<E>(AstVisitor<E> visitor) =>
@@ -6507,7 +7077,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    *
    * Also note that this method can cause constant evaluation to occur, which
    * can be computationally expensive.
+   * 
+   * Deprecated: Use `LinterContext.canBeConst` instead.
    */
+  @deprecated
   bool canBeConst() {
     //
     // Verify that the invoked constructor is a const constructor.
@@ -6576,6 +7149,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _constructorName?.accept(visitor);
+    _typeArguments?.accept(visitor);
     _argumentList?.accept(visitor);
   }
 }
@@ -7233,7 +7807,81 @@ class LibraryIdentifierImpl extends IdentifierImpl
  * A list literal.
  *
  *    listLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '[' ([CollectionLiteralElement] ','?)? ']'
+ *
+ * This is the class that is used to represent a list literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [ListLiteral] will be used.
+ */
+class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements used to compute the elements of the list.
+   */
+  NodeList<CollectionElement> _elements;
+
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created list literal. The [constKeyword] can be `null`
+   * if the literal is not a constant. The [typeArguments] can be `null` if no
+   * type arguments were declared. The list of [elements] can be `null` if the
+   * list is empty.
+   */
+  ListLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(_elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
+  }
+}
+
+/**
+ * A list literal.
+ *
+ *    listLiteral ::=
  *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
+ *
+ * This is the class that is used to represent a list literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [ListLiteral2] will be used.
  */
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
@@ -7330,11 +7978,201 @@ class LocalVariableInfo {
       new Set<VariableElement>();
 
   /**
-   * The set of local variables and parameters that are potentiall mutated
+   * The set of local variables and parameters that are potentially mutated
    * within the scope of their declarations.
    */
   final Set<VariableElement> potentiallyMutatedInScope =
       new Set<VariableElement>();
+}
+
+abstract class MapElementImpl extends AstNodeImpl implements MapElement {}
+
+class MapForElementImpl extends MapElementImpl
+    with ForMixin
+    implements MapForElement {
+  /**
+   * The body of the loop.
+   */
+  MapElementImpl _body;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  MapForElementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      MapElementImpl body) {
+    this.awaitKeyword = awaitKeyword;
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _forLoopParts = _becomeParentOf(forLoopParts);
+    this.rightParenthesis = rightParenthesis;
+    _body = _becomeParentOf(body);
+  }
+
+  @override
+  MapElement get body => _body;
+
+  void set body(MapElement statement) {
+    _body = _becomeParentOf(statement as MapElementImpl);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_body);
+
+  @override
+  Token get endToken => _body.endToken;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapForElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _forLoopParts?.accept(visitor);
+    _body?.accept(visitor);
+  }
+}
+
+class MapIfElementImpl extends MapElementImpl
+    with IfMixin
+    implements MapIfElement {
+  /**
+   * The element to be executed if the condition is `true`.
+   */
+  MapElementImpl _thenElement;
+
+  /**
+   * The element to be executed if the condition is `false`, or `null` if there
+   * is no such element.
+   */
+  MapElementImpl _elseElement;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  MapIfElementImpl(
+      Token ifKeyword,
+      Token leftParenthesis,
+      ExpressionImpl condition,
+      Token rightParenthesis,
+      MapElementImpl thenElement,
+      Token elseKeyword,
+      MapElementImpl elseElement) {
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _condition = _becomeParentOf(condition);
+    this.rightParenthesis = rightParenthesis;
+    _thenElement = _becomeParentOf(thenElement);
+    this.elseKeyword = elseKeyword;
+    _elseElement = _becomeParentOf(elseElement);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_thenElement)
+    ..add(_elseElement);
+
+  @override
+  MapElement get elseElement => _elseElement;
+
+  set elseElement(MapElement element) {
+    _elseElement = _becomeParentOf(element as MapElementImpl);
+  }
+
+  @override
+  Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
+
+  @override
+  MapElement get thenElement => _thenElement;
+
+  set thenElement(MapElement element) {
+    _thenElement = _becomeParentOf(element as MapElementImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapIfElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _thenElement?.accept(visitor);
+    _elseElement?.accept(visitor);
+  }
+}
+
+/**
+ * A literal map.
+ *
+ *    mapLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
+ *        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
+ *
+ * This is the class that is used to represent a map literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [MapLiteral] will be used.
+ */
+class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
+  @override
+  Token leftBracket;
+
+  /**
+   * The entries in the map.
+   */
+  NodeList<MapElement> _entries;
+
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created map literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [entries] can be `null` if the map is empty.
+   */
+  MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<MapElement> entries, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _entries = new NodeListImpl<MapElement>(this, entries);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(entries)
+    ..add(rightBracket);
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  NodeList<MapElement> get entries => _entries;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _entries.accept(visitor);
+  }
 }
 
 /**
@@ -7343,7 +8181,7 @@ class LocalVariableInfo {
  *    mapLiteralEntry ::=
  *        [Expression] ':' [Expression]
  */
-class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
+class MapLiteralEntryImpl extends MapElementImpl implements MapLiteralEntry {
   /**
    * The expression computing the key with which the value will be associated.
    */
@@ -7728,6 +8566,12 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   SimpleIdentifierImpl _methodName;
 
   /**
+   * The invoke type of the [methodName] if the target element is a getter,
+   * or `null` otherwise.
+   */
+  DartType _methodNameType;
+
+  /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
    */
@@ -7775,6 +8619,26 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   void set methodName(SimpleIdentifier identifier) {
     _methodName = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  }
+
+  /**
+   * The invoke type of the [methodName].
+   *
+   * If the target element is a [MethodElement], this is the same as the
+   * [staticInvokeType]. If the target element is a getter, presumably
+   * returning an [ExecutableElement] so that it can be invoked in this
+   * [MethodInvocation], then this type is the type of the getter, and the
+   * [staticInvokeType] is the invoked type of the returned element.
+   */
+  DartType get methodNameType => _methodNameType ?? staticInvokeType;
+
+  /**
+   * Set the [methodName] invoke type, only if the target element is a getter.
+   * Otherwise, the target element itself is invoked, [_methodNameType] is
+   * `null`, and the getter will return [staticInvokeType].
+   */
+  set methodNameType(DartType methodNameType) {
+    _methodNameType = methodNameType;
   }
 
   @override
@@ -8227,9 +9091,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /**
  * A list of AST nodes that have a common parent.
  */
-class NodeListImpl<E extends AstNode> extends Object
-    with ListMixin<E>
-    implements NodeList<E> {
+class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /**
    * The node that is the parent of each of the elements in the list.
    */
@@ -9435,6 +10297,152 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 }
 
 /**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [CollectionElement] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * This is the class that is used to represent a set literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [SetLiteral] will be used.
+ */
+class SetLiteral2Impl extends TypedLiteralImpl implements SetLiteral2 {
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements in the set.
+   */
+  NodeList<CollectionElement> _elements;
+
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
+  }
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * This is the class that is used to represent a set literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [SetLiteral2] will be used.
+ */
+class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
+  /**
+   * The left curly bracket.
+   */
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements in the set.
+   */
+  NodeList<Expression> _elements;
+
+  /**
+   * The right curly bracket.
+   */
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<Expression> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<Expression>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<Expression> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
+  }
+}
+
+/**
  * A combinator that restricts the names being imported to those in a given list.
  *
  *    showCombinator ::=
@@ -9858,6 +10866,44 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
  */
 abstract class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
+
+class SpreadElementImpl extends AstNodeImpl
+    implements CollectionElementImpl, MapElementImpl, SpreadElement {
+  Token spreadOperator;
+
+  ExpressionImpl _expression;
+
+  SpreadElementImpl(this.spreadOperator, ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => spreadOperator;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      new ChildEntities()..add(spreadOperator)..add(_expression);
+
+  @override
+  Token get endToken => _expression.endToken;
+
+  @override
+  Expression get expression => _expression;
+
+  set expression(Expression expression) {
+    _expression = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitSpreadElement(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _expression?.accept(visitor);
+  }
+}
 
 /**
  * A node that represents a statement.
@@ -10924,7 +11970,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
  * The name of a type, which can optionally include type arguments.
  *
  *    typeName ::=
- *        [Identifier] typeArguments?
+ *        [Identifier] typeArguments? '?'?
  */
 class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   /**
@@ -10950,8 +11996,8 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeNameImpl(
-      IdentifierImpl name, TypeArgumentListImpl typeArguments, this.question) {
+  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments,
+      {this.question}) {
     _name = _becomeParentOf(name);
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -10961,15 +12007,10 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
-      new ChildEntities()..add(_name)..add(_typeArguments);
+      new ChildEntities()..add(_name)..add(_typeArguments)..add(question);
 
   @override
-  Token get endToken {
-    if (_typeArguments != null) {
-      return _typeArguments.endToken;
-    }
-    return _name.endToken;
-  }
+  Token get endToken => question ?? _typeArguments?.endToken ?? _name.endToken;
 
   @override
   bool get isDeferred {

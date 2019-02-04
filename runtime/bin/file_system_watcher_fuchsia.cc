@@ -7,16 +7,18 @@
 
 #include "bin/file_system_watcher.h"
 
+#include <errno.h>
+
 namespace dart {
 namespace bin {
 
 Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return DartUtils::NewDartOSError();
 }
 
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
@@ -25,7 +27,6 @@ bool FileSystemWatcher::IsSupported() {
 }
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
-  UNIMPLEMENTED();
 }
 
 intptr_t FileSystemWatcher::Init() {
@@ -33,7 +34,6 @@ intptr_t FileSystemWatcher::Init() {
 }
 
 void FileSystemWatcher::Close(intptr_t id) {
-  UNIMPLEMENTED();
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
@@ -41,7 +41,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,
                                       int events,
                                       bool recursive) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 

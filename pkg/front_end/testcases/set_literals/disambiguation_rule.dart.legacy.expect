@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "dart:async" as asy;
+
+import "dart:async";
+import "dart:collection";
+
+static method main() → dynamic async {
+  core::Map<core::int, core::bool> m = <dynamic, dynamic>{};
+  core::Set<core::int> s = <dynamic, dynamic>{};
+  core::Iterable<core::int> i = <dynamic, dynamic>{};
+  col::LinkedHashSet<core::int> lhs = <dynamic, dynamic>{};
+  col::LinkedHashMap<core::int, core::bool> lhm = <dynamic, dynamic>{};
+  core::Map<core::int, core::bool> fm = await self::mapfun();
+  core::Set<core::int> fs = await self::setfun();
+  core::Iterable<core::int> fi = await self::iterablefun();
+  col::LinkedHashSet<core::int> flhs = await self::lhsfun();
+  col::LinkedHashMap<core::int, core::bool> flhm = await self::lhmfun();
+  core::Map<core::int, core::bool> fm2 = await self::mapfun2();
+  core::Set<core::int> fs2 = await self::setfun2();
+  core::Iterable<core::int> fi2 = await self::iterablefun2();
+  col::LinkedHashSet<core::int> flhs2 = await self::lhsfun2();
+  col::LinkedHashMap<core::int, core::bool> flhm2 = await self::lhmfun2();
+}
+static method mapfun() → asy::Future<core::Map<core::int, core::bool>> async 
+  return <dynamic, dynamic>{};
+static method setfun() → asy::Future<core::Set<core::int>> async 
+  return <dynamic, dynamic>{};
+static method iterablefun() → asy::Future<core::Iterable<core::int>> async 
+  return <dynamic, dynamic>{};
+static method lhsfun() → asy::Future<col::LinkedHashSet<core::int>> async 
+  return <dynamic, dynamic>{};
+static method lhmfun() → asy::Future<col::LinkedHashMap<core::int, core::bool>> async 
+  return <dynamic, dynamic>{};
+static method mapfun2() → asy::FutureOr<core::Map<core::int, core::bool>>
+  return <dynamic, dynamic>{};
+static method setfun2() → asy::FutureOr<core::Set<core::int>>
+  return <dynamic, dynamic>{};
+static method iterablefun2() → asy::FutureOr<core::Iterable<core::int>>
+  return <dynamic, dynamic>{};
+static method lhsfun2() → asy::FutureOr<col::LinkedHashSet<core::int>>
+  return <dynamic, dynamic>{};
+static method lhmfun2() → asy::FutureOr<col::LinkedHashMap<core::int, core::bool>>
+  return <dynamic, dynamic>{};

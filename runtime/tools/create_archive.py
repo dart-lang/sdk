@@ -76,13 +76,14 @@ def WriteCCFile(output_file,
                 name,
                 tar_archive,
                 ):
-  cc_text = '''
+  with open(output_file, 'w') as out:
+    out.write('''
 // Copyright (c) %d, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-''' % date.today().year
-  cc_text += '''
+''' % date.today().year)
+    out.write('''
 
 #if defined(_WIN32)
 typedef unsigned __int8 uint8_t;
@@ -92,31 +93,31 @@ typedef unsigned __int8 uint8_t;
 #endif
 #include <stddef.h>
 
-'''
-  cc_text += 'namespace %s {\n' % outer_namespace
-  if inner_namespace != None:
-    cc_text += 'namespace %s {\n' % inner_namespace
-  cc_text += '\n\n'
-  # Write the archive.
-  cc_text += 'static const uint8_t %s_[] = {\n   ' % name
-  lineCounter = 0
-  for byte in tar_archive:
-    cc_text += r" %d," % ord(byte)
-    lineCounter += 1
-    if lineCounter == 10:
-      cc_text += '\n   '
-      lineCounter = 0
-  if lineCounter != 0:
-    cc_text += '\n   '
-  cc_text += '\n};\n'
-  cc_text += '\nunsigned int %s_len = %d;\n' % (name, len(tar_archive))
-  cc_text += '\nconst uint8_t* %s = %s_;\n\n' % (name, name)
-  if inner_namespace != None:
-    cc_text += '}  // namespace %s\n' % inner_namespace
-  cc_text += '} // namespace %s\n' % outer_namespace
-
-  open(output_file, 'w').write(cc_text)
-
+''')
+    out.write('namespace %s {\n' % outer_namespace)
+    if inner_namespace != None:
+      out.write('namespace %s {\n' % inner_namespace)
+    out.write('\n\n')
+    # Write the byte contents of the archive as a comma separated list of
+    # integers, one integer for each byte.
+    out.write('static const uint8_t %s_[] = {\n' % name)
+    line = '   '
+    lineCounter = 0
+    for byte in tar_archive:
+      line += r" %d," % ord(byte)
+      lineCounter += 1
+      if lineCounter == 10:
+        out.write(line + '\n')
+        line = '   '
+        lineCounter = 0
+    if lineCounter != 0:
+      out.write(line + '\n')
+    out.write('};\n')
+    out.write('\nunsigned int %s_len = %d;\n' % (name, len(tar_archive)))
+    out.write('\nconst uint8_t* %s = %s_;\n\n' % (name, name))
+    if inner_namespace != None:
+      out.write('}  // namespace %s\n' % inner_namespace)
+    out.write('} // namespace %s\n' % outer_namespace)
 
 def MakeCCFile(options):
   if not options.output:
@@ -179,7 +180,7 @@ def Main(args):
       return MakeCCFile(options)
 
   except Exception, inst:
-    sys.stderr.write('create_resources.py exception\n')
+    sys.stderr.write('create_archive.py exception\n')
     sys.stderr.write(str(inst))
     sys.stderr.write('\n')
     return -1

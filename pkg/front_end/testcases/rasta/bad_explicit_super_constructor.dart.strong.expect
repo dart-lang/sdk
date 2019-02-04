@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_explicit_super_constructor.dart:10:20: Error: Too few positional arguments: 1 required, 0 given.
+//   const B() : super();
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •(dynamic x) → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  const constructor •() → self::B
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_explicit_super_constructor.dart:10:20: Error: Too few positional arguments: 1 required, 0 given.
+  const B() : super();
+                   ^"
+    ;
+}
+static method main() → dynamic {
+  new self::B::•();
+  const self::B::•();
+}

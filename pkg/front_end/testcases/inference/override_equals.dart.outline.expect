@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class NullEquality extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::NullEquality
     ;
   operator ==(core::Object other) → core::Null
     ;
 }
 class SubNullEquality extends self::NullEquality {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::SubNullEquality
     ;
   method test() → void
     ;

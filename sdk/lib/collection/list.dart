@@ -163,7 +163,7 @@ abstract class ListMixin<E> implements List<E> {
 
   E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
-    E match = null;
+    E match;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -346,7 +346,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     int length = this.length;
     while (length > 1) {
       int pos = random.nextInt(length);
@@ -370,7 +370,7 @@ abstract class ListMixin<E> implements List<E> {
 
   List<E> sublist(int start, [int end]) {
     int listLength = this.length;
-    if (end == null) end = listLength;
+    end ??= listLength;
     RangeError.checkValidRange(start, end, listLength);
     int length = end - start;
     List<E> result = <E>[]..length = length;
@@ -486,15 +486,12 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void insert(int index, E element) {
+    ArgumentError.checkNotNull(index, "index");
     RangeError.checkValueInInterval(index, 0, length, "index");
     if (index == this.length) {
       add(element);
       return;
     }
-    // We are modifying the length just below the is-check. Without the check
-    // Array.copy could throw an exception, leaving the list in a bad state
-    // (with a length that has been increased, but without a new element).
-    if (index is! int) throw new ArgumentError(index);
     this.length++;
     setRange(index + 1, this.length, this, index);
     this[index] = element;

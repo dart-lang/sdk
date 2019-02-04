@@ -1,17 +1,20 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.build_mode;
-
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -34,9 +37,6 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/byte_store/cache.dart';
 
 /**
  * Persistent Bazel worker.
@@ -57,6 +57,15 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         resourceProvider, logger, 256 * 1024 * 1024);
   }
 
+  factory AnalyzerWorkerLoop.sendPort(
+      ResourceProvider resourceProvider, SendPort sendPort,
+      {String dartSdkPath}) {
+    AsyncWorkerConnection connection =
+        new SendPortAsyncWorkerConnection(sendPort);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
+  }
+
   factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
     AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
@@ -68,7 +77,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   /**
    * Performs analysis with given [options].
    */
-  Future<Null> analyze(
+  Future<void> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -138,7 +147,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    * Run the worker loop.
    */
   @override
-  Future<Null> run() async {
+  Future<void> run() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     errorSink = errorBuffer;
@@ -164,7 +173,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 /**
  * Analyzer used when the "--build-mode" option is supplied.
  */
-class BuildMode extends Object with HasContextMixin {
+class BuildMode with HasContextMixin {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
@@ -182,14 +191,19 @@ class BuildMode extends Object with HasContextMixin {
   AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
-  final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
+
+  // May be null.
+  final DependencyTracker dependencyTracker;
 
   BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
       {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
       : logger = logger ?? new PerformanceLog(null),
         packageBundleProvider = packageBundleProvider ??
-            new DirectPackageBundleProvider(resourceProvider);
+            new DirectPackageBundleProvider(resourceProvider),
+        dependencyTracker = options.summaryDepsOutput != null
+            ? DependencyTracker(options.summaryDepsOutput)
+            : null;
 
   bool get _shouldOutputSummary =>
       options.buildSummaryOutput != null ||
@@ -298,6 +312,11 @@ class BuildMode extends Object with HasContextMixin {
         }
       }
 
+      if (dependencyTracker != null) {
+        io.File file = new io.File(dependencyTracker.outputPath);
+        file.writeAsStringSync(dependencyTracker.dependencies.join('\n'));
+      }
+
       if (options.buildSummaryOnly) {
         return ErrorSeverity.NONE;
       } else {
@@ -315,11 +334,25 @@ class BuildMode extends Object with HasContextMixin {
    */
   void _computeLinkedLibraries(Set<String> libraryUris) {
     logger.run('Link output summary', () {
-      LinkedLibrary getDependency(String absoluteUri) =>
-          summaryDataStore.linkedMap[absoluteUri];
+      void trackDependency(String absoluteUri) {
+        if (dependencyTracker != null) {
+          var summaryUri = summaryDataStore.uriToSummaryPath[absoluteUri];
+          if (summaryUri != null) {
+            dependencyTracker.record(summaryUri);
+          }
+        }
+      }
 
-      UnlinkedUnit getUnit(String absoluteUri) =>
-          summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
+      LinkedLibrary getDependency(String absoluteUri) {
+        trackDependency(absoluteUri);
+        return summaryDataStore.linkedMap[absoluteUri];
+      }
+
+      UnlinkedUnit getUnit(String absoluteUri) {
+        trackDependency(absoluteUri);
+        return summaryDataStore.unlinkedMap[absoluteUri] ??
+            uriToUnit[absoluteUri];
+      }
 
       Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
           getDependency, getUnit, analysisDriver.declaredVariables.get);
@@ -450,6 +483,8 @@ class BuildMode extends Object with HasContextMixin {
       }
       Uri uri = Uri.parse(sourceFile.substring(0, pipeIndex));
       String path = sourceFile.substring(pipeIndex + 1);
+      path = resourceProvider.pathContext.absolute(path);
+      path = resourceProvider.pathContext.normalize(path);
       uriToFileMap[uri] = resourceProvider.getFile(path);
     }
     return uriToFileMap;
@@ -462,7 +497,7 @@ class BuildMode extends Object with HasContextMixin {
    *
    * Otherwise compute it and store into the [uriToUnit] and [assembler].
    */
-  Future<Null> _prepareUnlinkedUnit(String absoluteUri) async {
+  Future<void> _prepareUnlinkedUnit(String absoluteUri) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Maybe an input package contains the source.
@@ -487,7 +522,7 @@ class BuildMode extends Object with HasContextMixin {
    * Print errors for all explicit sources.  If [outputPath] is supplied, output
    * is sent to a new file at that path.
    */
-  Future<Null> _printErrors({String outputPath}) async {
+  Future<void> _printErrors({String outputPath}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     await logger.runAsync('Compute and print analysis errors', () async {
@@ -556,8 +591,7 @@ class ExplicitSourceResolver extends UriResolver {
     File file = uriToFileMap[uri];
     actualUri ??= uri;
     if (file == null) {
-      return new NonExistingSource(
-          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+      return null;
     } else {
       return new FileSource(file, actualUri);
     }
@@ -684,4 +718,20 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
   PackageBundle get(String path) {
     return cache.get(inputs, path);
   }
+}
+
+/**
+ * Tracks paths to dependencies, really just a thin api around a Set<String>.
+ */
+class DependencyTracker {
+  final _dependencies = Set<String>();
+
+  Iterable<String> get dependencies => _dependencies;
+
+  /// The path to the file to create once tracking is done.
+  final String outputPath;
+
+  DependencyTracker(this.outputPath);
+
+  void record(String path) => _dependencies.add(path);
 }

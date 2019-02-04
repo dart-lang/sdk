@@ -20,11 +20,10 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
-import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
-import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
@@ -58,11 +57,6 @@ class TestCompiler extends apiimpl.CompilerImpl {
   Future<bool> run(Uri uri) {
     test('Compiler.run');
     return super.run(uri);
-  }
-
-  void processLoadedLibraries(LoadedLibraries loadedLibraries) {
-    test('Compiler.processLoadedLibraries');
-    super.processLoadedLibraries(loadedLibraries);
   }
 
   test(String marker) {
@@ -109,7 +103,6 @@ class TestBackend extends JavaScriptBackend {
       : this.compiler = compiler,
         super(compiler,
             generateSourceMap: compiler.options.generateSourceMap,
-            useStartupEmitter: compiler.options.useStartupEmitter,
             useMultiSourceInfo: compiler.options.useMultiSourceInfo,
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 
@@ -189,8 +182,7 @@ Future testExitCode(
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
-      // TODO(sigmund): convert to support the new CFE
-      ..add("--library-root=${Uri.base.resolve('sdk/')}")
+      ..add("--libraries-spec=${Uri.base.resolve('sdk/lib/libraries.json')}")
       ..add("tests/compiler/dart2js/end_to_end/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {
@@ -240,7 +232,6 @@ void main() {
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
-    'Compiler.processLoadedLibraries': beforeRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.codegen': duringRun,
   };

@@ -1,0 +1,33 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field core::bool staticValue = self::o;
+  field core::bool instanceValue = self::o;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static field core::Object o = 1;
+static field core::bool topLevelValue = self::o;
+static method main() → dynamic {
+  try {
+    self::topLevelValue;
+    throw "no exception";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+  try {
+    self::C::staticValue;
+    throw "no exception";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+  try {
+    new self::C::•();
+    throw "no exception";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}

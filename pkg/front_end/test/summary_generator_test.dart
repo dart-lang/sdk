@@ -123,7 +123,7 @@ main() {
 
   test('summarization by default is not hermetic', () async {
     var errors = [];
-    var options = new CompilerOptions()..onError = (e) => errors.add(e);
+    var options = new CompilerOptions()..onDiagnostic = errors.add;
     await summarize(['b.dart'], allSources, options: options);
     expect(errors, isEmpty);
   });

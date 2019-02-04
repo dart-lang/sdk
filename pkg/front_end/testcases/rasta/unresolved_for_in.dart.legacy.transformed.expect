@@ -1,0 +1,156 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Warning: Getter not found: 'key'.
+//       print(key);
+//             ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Warning: Setter not found: 'key'.
+//     for (key in x) {
+//          ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Warning: Setter not found: 'Fisk'.
+//     for (Fisk in x) {
+//          ^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:18:13: Error: A prefix can't be used as an expression.
+//       print(collection);
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
+//     for (collection in x) {
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Warning: Setter not found: 'VoidFunction'.
+//     for (VoidFunction in x) {
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected an identifier, but got '1'.
+//     for (1 in x) {
+//          ^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Warning: Getter not found: 'key'.
+//       print(key);
+//             ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+//     for (1 in x) {
+//          ^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Warning: Getter not found: 'key'.
+//     print(key);
+//           ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:31:8: Warning: Setter not found: 'key'.
+//   for (key in arguments) {
+//        ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Warning: Setter not found: 'Fisk'.
+//   for (Fisk in arguments) {
+//        ^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:38:11: Error: A prefix can't be used as an expression.
+//     print(collection);
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
+//   for (collection in arguments) {
+//        ^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Warning: Setter not found: 'VoidFunction'.
+//   for (VoidFunction in arguments) {
+//        ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected an identifier, but got '1'.
+//   for (1 in arguments) {
+//        ^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Warning: Getter not found: 'key'.
+//     print(key);
+//           ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+//   for (1 in arguments) {
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:collection" as collection;
+
+typedef VoidFunction = () → void;
+class Fisk extends core::Object {
+  synthetic constructor •() → self::Fisk
+    : super core::Object::•()
+    ;
+  method it1(dynamic x) → dynamic {
+    for (final dynamic #t1 in x) {
+      this.key = #t1;
+      core::print(this.key);
+    }
+    for (final dynamic #t2 in x) {
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t2]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+      core::print(self::Fisk);
+    }
+    for (final dynamic #t3 in x) {
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
+    for (collection in x) {
+         ^^^^^^^^^^";
+      core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:18:13: Error: A prefix can't be used as an expression.
+      print(collection);
+            ^^^^^^^^^^");
+    }
+    for (final dynamic #t4 in x) {
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t4]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+      core::print(() → void);
+    }
+    {
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (1 in x) {
+         ^";
+      for (final dynamic #t5 in x) {
+        invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (1 in x) {
+         ^";
+        1;
+        core::print(this.key);
+      }
+    }
+  }
+}
+static method main(dynamic arguments) → dynamic {
+  new self::Fisk::•();
+  for (final dynamic #t6 in arguments) {
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t6]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  }
+  for (final dynamic #t7 in arguments) {
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t7]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    core::print(self::Fisk);
+  }
+  for (final dynamic #t8 in arguments) {
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
+  for (collection in arguments) {
+       ^^^^^^^^^^";
+    core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:38:11: Error: A prefix can't be used as an expression.
+    print(collection);
+          ^^^^^^^^^^");
+  }
+  for (final dynamic #t9 in arguments) {
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t9]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    core::print(() → void);
+  }
+  {
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+  for (1 in arguments) {
+       ^";
+    for (final dynamic #t10 in arguments) {
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+  for (1 in arguments) {
+       ^";
+      1;
+      core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    }
+  }
+}

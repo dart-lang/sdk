@@ -5,7 +5,7 @@
 class Cake {
   final name;
   const Cake(this.name);
-  const factory BakeMeACake()
+  const factory Cake.BakeMeACake()
       native "Cake_BakeMeACake"; /*@compile-error=unspecified*/
 }
 

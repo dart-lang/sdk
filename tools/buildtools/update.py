@@ -5,10 +5,10 @@
 
 """Pulls down tools required to build Dart."""
 
+import errno
 import os
 import platform
 import subprocess
-import shutil
 import sys
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -20,34 +20,6 @@ sys.path.insert(0, os.path.join(DART_ROOT, 'tools'))
 import find_depot_tools
 
 DEPOT_PATH = find_depot_tools.add_depot_tools_to_path()
-
-
-def Update():
-  path = os.path.join(BUILDTOOLS, 'update.sh')
-  command = ['/bin/bash', path, '--clang', '--gn']
-  return subprocess.call(command, cwd=DART_ROOT)
-
-
-def UpdateGNOnWindows():
-  sha1_file = os.path.join(TOOLS_BUILDTOOLS, 'win', 'gn.exe.sha1')
-  output_dir = os.path.join(BUILDTOOLS, 'win', 'gn.exe')
-  downloader_script = os.path.join(
-      DEPOT_PATH, 'download_from_google_storage.py')
-  download_cmd = [
-    'python',
-    downloader_script,
-    '--no_auth',
-    '--no_resume',
-    '--quiet',
-    '--platform=win*',
-    '--bucket',
-    'chromium-gn',
-    '-s',
-    sha1_file,
-    '-o',
-    output_dir
-  ]
-  return subprocess.call(download_cmd)
 
 
 def UpdateClangFormatOnWindows():
@@ -72,9 +44,20 @@ def UpdateClangFormatOnWindows():
   return subprocess.call(download_cmd)
 
 
-# On Mac and Linux we copy clang-format and gn to the place where git cl format
-# expects them to be.
-def CopyClangFormat():
+def CreateSymlink(symlink, link_name):
+  try:
+    os.symlink(symlink, link_name)
+  except OSError, e:
+    if e.errno == errno.EEXIST:
+      os.remove(link_name)
+      os.symlink(symlink, link_name)
+    else:
+      raise e
+
+
+# On Mac and Linux we symlink clang-format and gn to the place where
+# 'git cl format' expects them to be.
+def LinksForGitCLFormat():
   if sys.platform == 'darwin':
     platform = 'darwin'
     tools = 'mac'
@@ -89,14 +72,14 @@ def CopyClangFormat():
 
   clang_format = os.path.join(
       BUILDTOOLS, toolchain, 'clang', 'bin', 'clang-format')
-  gn = os.path.join(BUILDTOOLS, toolchain, 'gn')
+  gn = os.path.join(BUILDTOOLS, 'gn')
   dest_dir = os.path.join(BUILDTOOLS, tools)
   if not os.path.exists(dest_dir):
     os.makedirs(dest_dir)
   clang_format_dest = os.path.join(dest_dir, 'clang-format')
   gn_dest = os.path.join(dest_dir, 'gn')
-  shutil.copy2(clang_format, clang_format_dest)
-  shutil.copy2(gn, gn_dest)
+  CreateSymlink(clang_format, clang_format_dest)
+  CreateSymlink(gn, gn_dest)
   return 0
 
 
@@ -107,15 +90,8 @@ def main(argv):
     print('Not downloading buildtools binaries for ' + arch_id)
     return 0
   if sys.platform.startswith('win'):
-    result = UpdateGNOnWindows()
-    if result != 0:
-      return result
-    # TODO(zra): Re-enable clang-format download when gs is fixed for the bots.
-    # return UpdateClangFormatOnWindows()
-    return 0
-  if Update() != 0:
-    return 1
-  return CopyClangFormat()
+    return UpdateClangFormatOnWindows()
+  return LinksForGitCLFormat()
 
 
 if __name__ == '__main__':

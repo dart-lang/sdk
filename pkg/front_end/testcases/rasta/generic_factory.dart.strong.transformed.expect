@@ -1,0 +1,84 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Couldn't find constructor 'Missing'.
+//   factory A.c() = Missing;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Redirection constructor target not found: 'Missing'
+//   factory A.c() = Missing;
+//           ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
+//  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//   factory A.b() = B<C1>.a;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
+//  - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//   factory B.b() = C<C2>;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
+//   factory A.c() = Missing;
+//           ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  synthetic constructor •() → self::C3
+    : super core::Object::•()
+    ;
+}
+class A<T extends core::Object = dynamic> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::a, self::A::b, self::A::c];
+  constructor internal() → self::A<self::A::T>
+    : super core::Object::•()
+    ;
+  static factory a<T extends core::Object = dynamic>() → self::A<self::A::a::T>
+    let <S extends core::Object = dynamic>() → self::B<self::B::a::S> #redirecting_factory = self::B::a in let self::A::a::T #typeArg0 = null in invalid-expression;
+  static factory b<T extends core::Object = dynamic>() → self::A<self::A::b::T>
+    let <S extends core::Object = dynamic>() → self::B<self::B::a::S> #redirecting_factory = self::B::a in let self::C1 #typeArg0 = null in invalid-expression;
+  static factory c<T extends core::Object = dynamic>() → self::A<self::A::c::T>
+    let core::String #redirecting_factory = "Missing" in invalid-expression;
+}
+class B<S extends core::Object = dynamic> extends self::A<self::B::S> {
+  static field dynamic _redirecting# = <dynamic>[self::B::a, self::B::b];
+  constructor internal() → self::B<self::B::S>
+    : super self::A::internal()
+    ;
+  static factory a<S extends core::Object = dynamic>() → self::B<self::B::a::S>
+    let<BottomType> #redirecting_factory = self::C::• in let self::B::a::S #typeArg0 = null in invalid-expression;
+  static factory b<S extends core::Object = dynamic>() → self::B<self::B::b::S>
+    let<BottomType> #redirecting_factory = self::C::• in let self::C2 #typeArg0 = null in invalid-expression;
+}
+class C<U extends core::Object = dynamic> extends self::B<self::C::U> {
+  constructor •() → self::C<self::C::U>
+    : super self::B::internal()
+    ;
+}
+static method main() → dynamic {
+  new self::C::•<self::C3>();
+  new self::C::•<self::C1>();
+  new self::C::•<self::C3>();
+  new self::C::•<self::C2>();
+  invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
+  factory A.c() = Missing;
+          ^^^^^^^";
+}

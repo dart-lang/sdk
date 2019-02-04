@@ -1,16 +1,27 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/call_corner_cases.dart:27:69: Error: 'fieldB' isn't a function or method and can't be invoked.
+//   var /*@type=dynamic*/ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();
+//                                                                     ^
+//
+// pkg/front_end/testcases/inference/call_corner_cases.dart:28:65: Error: 'getB' isn't a function or method and can't be invoked.
+//   var /*@type=dynamic*/ callGetB = new D(). /*@target=D::getB*/ getB();
+//                                                                 ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   method call() → core::int
     return 0;
 }
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   get call() → self::A
@@ -19,7 +30,7 @@ class B extends core::Object {
 class D extends core::Object {
   field self::A fieldA = new self::A::•();
   field self::B fieldB = new self::B::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super core::Object::•()
     ;
   get getA() → self::A
@@ -31,11 +42,11 @@ static method test() → dynamic {
   core::int callA = new self::A::•().{self::A::call}();
   core::int callFieldA = new self::D::•().{self::D::fieldA}();
   core::int callGetA = new self::D::•().{self::D::getA}();
-  dynamic callFieldB = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/call_corner_cases.dart:27:69: Error: 'fieldB' isn't a function or method and can't be invoked.
+  dynamic callFieldB = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/call_corner_cases.dart:27:69: Error: 'fieldB' isn't a function or method and can't be invoked.
   var /*@type=dynamic*/ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();
-                                                                    ^" in let final dynamic #t2 = new self::D::•().{self::D::fieldB}() in null;
-  dynamic callGetB = let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/call_corner_cases.dart:28:65: Error: 'getB' isn't a function or method and can't be invoked.
+                                                                    ^" in new self::D::•().{self::D::fieldB}();
+  dynamic callGetB = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/call_corner_cases.dart:28:65: Error: 'getB' isn't a function or method and can't be invoked.
   var /*@type=dynamic*/ callGetB = new D(). /*@target=D::getB*/ getB();
-                                                                ^" in let final dynamic #t4 = new self::D::•().{self::D::getB}() in null;
+                                                                ^" in new self::D::•().{self::D::getB}();
 }
 static method main() → dynamic {}

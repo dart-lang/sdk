@@ -1,0 +1,26 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/property_set_bad_setter.dart:9:13: Error: A setter should have exactly one formal parameter.
+//   void set x() {}
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  set x(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/inference/property_set_bad_setter.dart:9:13: Error: A setter should have exactly one formal parameter.
+  void set x() {}
+            ^";
+    {}
+  }
+}
+static method f(self::A a) → void {
+  dynamic x = a.x = 0;
+}
+static method main() → dynamic {}

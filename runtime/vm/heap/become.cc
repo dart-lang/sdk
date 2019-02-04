@@ -40,7 +40,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   return result;
 }
 
-void ForwardingCorpse::InitOnce() {
+void ForwardingCorpse::Init() {
   ASSERT(sizeof(ForwardingCorpse) == kObjectAlignment);
   ASSERT(OFFSET_OF(ForwardingCorpse, tags_) == Object::tags_offset());
 }
@@ -277,8 +277,8 @@ void Become::FollowForwardingPointers(Thread* thread) {
   Heap* heap = isolate->heap();
 
   // Clear the store buffer; will be rebuilt as we forward the heap.
-  isolate->PrepareForGC();  // Have all threads flush their store buffers.
-  isolate->store_buffer()->Reset();  // Drop all store buffers.
+  isolate->ReleaseStoreBuffers();
+  isolate->store_buffer()->Reset();
 
   ForwardPointersVisitor pointer_visitor(thread);
 

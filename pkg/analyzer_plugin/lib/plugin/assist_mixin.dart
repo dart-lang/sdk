@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,10 +17,10 @@ import 'package:analyzer_plugin/utilities/generator.dart';
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for handling assist requests.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class AssistsMixin implements ServerPlugin {
+mixin AssistsMixin implements ServerPlugin {
   /**
    * Return a list containing the assist contributors that should be used to
    * create assists for the file with the given [path].
@@ -45,7 +45,7 @@ abstract class AssistsMixin implements ServerPlugin {
     AssistGenerator generator =
         new AssistGenerator(getAssistContributors(path));
     GeneratorResult<EditGetAssistsResult> result =
-        await generator.generateAssistsResponse(request);
+        generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -67,7 +67,7 @@ abstract class DartAssistsMixin implements AssistsMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = parameters.file;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

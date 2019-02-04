@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class CallableClass extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::CallableClass
     : super core::Object::•()
     ;
   method call() → core::int
@@ -11,12 +11,12 @@ class CallableClass extends core::Object {
 }
 class C extends core::Object {
   field self::CallableClass f = new self::CallableClass::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   method g() → void {

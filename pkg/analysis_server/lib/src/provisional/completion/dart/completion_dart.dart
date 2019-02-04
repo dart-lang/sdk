@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,16 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
-export 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show EMPTY_LIST;
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
-
-/**
- * An object used to instantiate a [DartCompletionContributor] instance
- * for each 'completion.getSuggestions' request.
- * Contributors should *not* be cached between requests.
- */
-typedef DartCompletionContributor DartCompletionContributorFactory();
 
 /**
  * An object used to produce completions

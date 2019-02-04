@@ -3021,6 +3021,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   static const EventStreamProvider<MouseEvent> contextMenuEvent =
       const EventStreamProvider<MouseEvent>('contextmenu');
 
+  @DomName('SVGElement.dblclickEvent')
   static const EventStreamProvider<Event> doubleClickEvent =
       const EventStreamProvider<Event>('dblclick');
 
@@ -3215,6 +3216,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   ElementStream<MouseEvent> get onContextMenu =>
       contextMenuEvent.forElement(this);
 
+  @DomName('SVGElement.ondblclick')
   ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
 
   ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);

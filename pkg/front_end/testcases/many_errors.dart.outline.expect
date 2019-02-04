@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/many_errors.dart:8:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const A.named1() sync* {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/many_errors.dart:13:1: Error: An external or native method can't have a body.
+// external foo(String x) {
+// ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field dynamic x;
+  constructor named1() → self::A
+    ;
+  const constructor named2() → self::A
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends core::Object {
+  field self::B b;
+  synthetic constructor •() → self::C
+    ;
+}
+abstract class AbstractClass extends core::Object {
+  const constructor id() → self::AbstractClass
+    ;
+}
+external static method foo(core::String x) → dynamic;
+static method m() → dynamic
+  ;
+static method main() → dynamic
+  ;

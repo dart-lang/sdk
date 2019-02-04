@@ -1,0 +1,27 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:8:42: Error: Can't access platform private library.
+// /*error:IMPORT_INTERNAL_LIBRARY*/ import 'dart:_foreign_helper' show JS;
+//                                          ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:11:43: Warning: Method not found: 'JS'.
+//   String x = /*error:INVALID_ASSIGNMENT*/ JS('int', '42');
+//                                           ^^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:12:28: Warning: Method not found: 'JS'.
+//   var /*@type=String*/ y = JS('String', '"hello"');
+//                            ^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:_foreign_helper";
+
+static method main() → dynamic {
+  core::String x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["int", "42"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["String", "\"hello\""]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  y = "world";
+  y = 42;
+}

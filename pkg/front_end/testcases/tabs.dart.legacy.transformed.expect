@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/tabs.dart:9:8: Warning: Getter not found: 'one'.
+// 	print(one);
+// 	      ^^^
+//
+// pkg/front_end/testcases/tabs.dart:10:9: Warning: Getter not found: 'two'.
+// 		print(two);
+// 		      ^^^
+//
+// pkg/front_end/testcases/tabs.dart:11:11: Warning: Getter not found: 'three'.
+// 		  print(three);
+// 		        ^^^^^
+//
+// pkg/front_end/testcases/tabs.dart:12:12: Warning: Getter not found: 'four'.
+// 	   	print(four);
+// 	   	      ^^^^
+//
+// pkg/front_end/testcases/tabs.dart:13:14: Warning: Getter not found: 'five'.
+// 	   	  print(five);
+// 	   	        ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#one, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#two, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#three, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#four, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#five, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+}
+static method main() → dynamic {}

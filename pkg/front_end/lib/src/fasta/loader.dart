@@ -8,12 +8,14 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
-import 'builder/builder.dart' show Declaration, LibraryBuilder;
+import 'builder/builder.dart'
+    show ClassBuilder, Declaration, LibraryBuilder, TypeBuilder;
 
 import 'crash.dart' show firstSourceUri;
 
 import 'messages.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         noLength,
@@ -25,15 +27,11 @@ import 'messages.dart'
 
 import 'problems.dart' show internalProblem, unhandled;
 
-import 'rewrite_severity.dart' show rewriteSeverity;
-
 import 'severity.dart' show Severity;
 
 import 'target_implementation.dart' show TargetImplementation;
 
 import 'ticker.dart' show Ticker;
-
-import 'type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
@@ -60,6 +58,10 @@ abstract class Loader<L> {
   /// [handledErrors].
   final List<LocatedMessage> unhandledErrors = <LocatedMessage>[];
 
+  /// List of all problems seen so far by libraries loaded by this loader that
+  /// does not belong directly to a library.
+  final List<FormattedMessage> allComponentProblems = <FormattedMessage>[];
+
   final Set<String> seenMessages = new Set<String>();
 
   LibraryBuilder coreLibrary;
@@ -77,8 +79,6 @@ abstract class Loader<L> {
   Ticker get ticker => target.ticker;
 
   Template<SummaryTemplate> get outlineSummaryTemplate;
-
-  TypeInferenceEngine get typeInferenceEngine => null;
 
   bool get isSourceLoader => false;
 
@@ -157,6 +157,7 @@ abstract class Loader<L> {
     } else {
       builder.recordAccess(charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
+          !accessor.isPart &&
           !target.backendTarget
               .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
         accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
@@ -216,41 +217,54 @@ abstract class Loader<L> {
 
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
-  void addProblem(Message message, int charOffset, int length, Uri fileUri,
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
       {bool wasHandled: false,
       List<LocatedMessage> context,
-      Severity severity}) {
-    severity ??= message.code.severity;
-    if (severity == Severity.errorLegacyWarning) {
-      severity =
-          target.backendTarget.strongMode ? Severity.error : Severity.warning;
-    }
-    addMessage(message, charOffset, length, fileUri, severity,
-        wasHandled: wasHandled, context: context);
+      Severity severity,
+      bool problemOnLibrary: false}) {
+    return addMessage(message, charOffset, length, fileUri, severity,
+        wasHandled: wasHandled,
+        context: context,
+        problemOnLibrary: problemOnLibrary);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
   /// through this method.
   ///
-  /// Returns true if the message is new, that is, not previously
+  /// Returns a FormattedMessage if the message is new, that is, not previously
   /// reported. This is important as some parser errors may be reported up to
   /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
+  /// If the message is not new, [null] is reported.
   ///
   /// If [severity] is `Severity.error`, the message is added to
   /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
   /// [wasHandled] is false.
-  bool addMessage(Message message, int charOffset, int length, Uri fileUri,
-      Severity severity,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    severity = rewriteSeverity(severity, message.code, fileUri);
-    if (severity == Severity.ignored) return false;
+  FormattedMessage addMessage(Message message, int charOffset, int length,
+      Uri fileUri, Severity severity,
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      bool problemOnLibrary: false}) {
+    severity = target.fixSeverity(severity, message, fileUri);
+    if (severity == Severity.ignored) return null;
     String trace = """
 message: ${message.message}
 charOffset: $charOffset
 fileUri: $fileUri
 severity: $severity
 """;
-    if (!seenMessages.add(trace)) return false;
+    // TODO(askesc): Swap message and context around for interface checks
+    // and mixin overrides to make comparing context here unnecessary.
+    if (context != null) {
+      for (LocatedMessage contextMessage in context) {
+        trace += """
+message: ${contextMessage.message}
+charOffset: ${contextMessage.charOffset}
+fileUri: ${contextMessage.uri}
+""";
+      }
+    }
+    if (!seenMessages.add(trace)) return null;
     if (message.code.severity == Severity.context) {
       internalProblem(
           templateInternalProblemContextSeverity
@@ -267,7 +281,12 @@ severity: $severity
       (wasHandled ? handledErrors : unhandledErrors)
           .add(message.withLocation(fileUri, charOffset, length));
     }
-    return true;
+    FormattedMessage formattedMessage = target.createFormattedMessage(
+        message, charOffset, length, fileUri, context, severity);
+    if (!problemOnLibrary) {
+      allComponentProblems.add(formattedMessage);
+    }
+    return formattedMessage;
   }
 
   Declaration getAbstractClassInstantiationError() {
@@ -285,4 +304,7 @@ severity: $severity
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
       {List<LocatedMessage> context}) {}
+
+  ClassBuilder<TypeBuilder, Object> computeClassBuilderFromTargetClass(
+      covariant Object cls);
 }

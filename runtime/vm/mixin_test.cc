@@ -29,9 +29,6 @@ TEST_CASE(Mixin_PrivateSuperResolution) {
       "main() {\n"
       "  return new C().bar();\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -87,19 +84,7 @@ TEST_CASE(Mixin_PrivateSuperResolutionCrossLibraryShouldFail) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       /* resolver= */ NULL, /* finalize= */ true, /* incrementally= */ true);
-  if (FLAG_strong) {
-    EXPECT_ERROR(lib, "Error: Superclass has no method named '_bar'.");
-  } else {
-    EXPECT_VALID(lib);
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-    const char* result_str = NULL;
-    EXPECT(Dart_IsString(result));
-    EXPECT_VALID(Dart_StringToCString(result, &result_str));
-    EXPECT_STREQ(
-        "NoSuchMethodError: Super class of class 'D' has no instance method "
-        "'_bar'.",
-        result_str);
-  }
+  EXPECT_ERROR(lib, "Error: Superclass has no method named '_bar'.");
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 

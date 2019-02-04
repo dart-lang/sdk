@@ -368,10 +368,6 @@ class _LocalClassMirror extends _LocalObjectMirror
   final bool isAbstract;
   final bool _isGeneric;
 
-  // Only used for Dart 1 named mixin applications.
-  // TODO(alexmarkov): Clean up after Dart 1 is gone.
-  final bool _isMixinAlias;
-
   // Since Dart 2, mixins are erased by kernel transformation.
   // Resulting classes have this flag set, and mixed-in type is pulled into
   // the end of interfaces list.
@@ -388,7 +384,6 @@ class _LocalClassMirror extends _LocalObjectMirror
       this._owner,
       this.isAbstract,
       this._isGeneric,
-      this._isMixinAlias,
       this._isTransformedMixinApplication,
       this._isGenericDeclaration,
       this.isEnum)
@@ -455,7 +450,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   }
 
   ClassMirror get superclass {
-    return _isMixinAlias ? _trueSuperclass._trueSuperclass : _trueSuperclass;
+    return _trueSuperclass;
   }
 
   var _superinterfaces;
@@ -492,19 +487,13 @@ class _LocalClassMirror extends _LocalObjectMirror
   var _mixin;
   ClassMirror get mixin {
     if (_mixin == null) {
-      if (_isMixinAlias) {
-        Type mixinType = _nativeMixinInstantiated(
-            _trueSuperclass._reflectedType, _instantiator);
-        _mixin = reflectType(mixinType);
+      Type mixinType =
+          _nativeMixinInstantiated(_reflectedType, _instantiator);
+      if (mixinType == null) {
+        // The reflectee is not a mixin application.
+        _mixin = this;
       } else {
-        Type mixinType =
-            _nativeMixinInstantiated(_reflectedType, _instantiator);
-        if (mixinType == null) {
-          // The reflectee is not a mixin application.
-          _mixin = this;
-        } else {
-          _mixin = reflectType(mixinType);
-        }
+        _mixin = reflectType(mixinType);
       }
     }
     return _mixin;
@@ -572,9 +561,8 @@ class _LocalClassMirror extends _LocalObjectMirror
 
     var decls = new Map<Symbol, DeclarationMirror>();
 
-    var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
     var members = (mixin as _LocalClassMirror)._computeMembers(
-        _instantiator, (whoseMembers.mixin as _LocalClassMirror)._reflectee);
+        _instantiator, (mixin as _LocalClassMirror)._reflectee);
     for (var member in members) {
       decls[member.simpleName] = member;
     }
@@ -596,7 +584,6 @@ class _LocalClassMirror extends _LocalObjectMirror
 
   // Note: returns correct result only for Dart 1 anonymous mixin applications.
   bool get _isAnonymousMixinApplication {
-    if (_isMixinAlias) return false; // Named mixin application.
     if (mixin == this) return false; // Not a mixin application.
     return true;
   }
@@ -760,7 +747,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   final _functionReflectee;
   _LocalFunctionTypeMirror(reflectee, this._functionReflectee, reflectedType)
       : super(reflectee, reflectedType, null, null, false, false, false, false,
-            false, false);
+            false);
 
   bool get _isAnonymousMixinApplication => false;
 

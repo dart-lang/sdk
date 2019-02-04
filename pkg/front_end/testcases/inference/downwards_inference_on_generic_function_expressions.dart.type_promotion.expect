@@ -1,0 +1,60 @@
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:12:7: Context: Write to v@374
+    v = <T> /*@returnType=Null*/ (int x) => null;
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:13:7: Context: Write to v@374
+    v = <T> /*@returnType=String*/ (int x) => "hello";
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:14:7: Context: Write to v@374
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (String x) =>
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:16:7: Context: Write to v@374
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (int x) => 3;
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:17:7: Context: Write to v@374
+    v = <T> /*@returnType=String*/ (int x) {
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:24:7: Context: Write to v@862
+    v = <T> /*@returnType=Null*/ (/*@type=int*/ x) => null;
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:25:7: Context: Write to v@862
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) => "hello";
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:26:7: Context: Write to v@862
+    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:29:7: Context: Write to v@862
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:32:7: Context: Write to v@862
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:39:7: Context: Write to v@1467
+    v = <T> /*@returnType=Null*/ (int x) => null;
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:40:7: Context: Write to v@1467
+    v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:43:7: Context: Write to v@1467
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=List<String>*/ (String
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:45:7: Context: Write to v@1467
+    v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:48:7: Context: Write to v@1467
+    v = <T> /*@returnType=List<String>*/ (int x) {
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:59:7: Context: Write to x@2239
+    x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x;
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:60:7: Context: Write to x@2239
+    x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x /*@target=num::+*/ + 1;
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:62:7: Context: Write to y@2449
+    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:65:7: Context: Write to y@2449
+    y = <T> /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ x
+      ^
+pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:69:7: Context: Write to z@2791
+    z = <T> /*@returnType=String*/ (/*@type=String*/ x) =>
+      ^

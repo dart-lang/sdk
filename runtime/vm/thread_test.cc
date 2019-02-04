@@ -8,6 +8,7 @@
 #include "vm/lockers.h"
 #include "vm/profiler.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
 
@@ -385,6 +386,143 @@ TEST_CASE(ThreadRegistry) {
   // Original zone should be preserved.
   EXPECT_EQ(orig_zone, Thread::Current()->zone());
   EXPECT_STREQ("foo", orig_str);
+}
+
+// A helper thread that repeatedly reads ICData
+class ICDataTestTask : public ThreadPool::Task {
+ public:
+  static const intptr_t kTaskCount;
+
+  ICDataTestTask(Isolate* isolate,
+                 const Array& ic_datas,
+                 Monitor* monitor,
+                 intptr_t* exited,
+                 bool* done)
+      : isolate_(isolate),
+        ic_datas_(ic_datas),
+        len_(ic_datas.Length()),
+        monitor_(monitor),
+        exited_(exited),
+        done_(done) {}
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+
+    Thread* thread = Thread::Current();
+
+    {
+      StackZone stack_zone(thread);
+      HANDLESCOPE(thread);
+
+      ICData& ic_data = ICData::Handle();
+      Array& arr = Array::Handle();
+      while (true) {
+        for (intptr_t cnt = 0; cnt < 0x1000; cnt++) {
+          for (intptr_t i = 0; i < len_; i++) {
+            ic_data ^= ic_datas_.AtAcquire(i);
+            arr = ic_data.ic_data();
+            intptr_t num_checks = arr.Length() / 3;
+            if (num_checks < 0 || num_checks > 5) {
+              OS::PrintErr("Failure: %" Pd " checks!\n", num_checks);
+              abort();
+            }
+          }
+        }
+
+        if (AtomicOperations::LoadAcquire(done_)) {
+          break;
+        }
+
+        TransitionVMToBlocked blocked(thread);
+      }
+    }
+
+    Thread::ExitIsolateAsHelper();
+    {
+      MonitorLocker ml(monitor_);
+      ++*exited_;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  const Array& ic_datas_;
+  const intptr_t len_;
+  Monitor* monitor_;
+  intptr_t* exited_;  // # tasks that are no longer running.
+  bool* done_;        // Signal that helper threads can stop working.
+};
+
+static Function* CreateFunction(const char* name) {
+  const String& class_name =
+      String::Handle(Symbols::New(Thread::Current(), "ownerClass"));
+  const Script& script = Script::Handle();
+  const Library& lib = Library::Handle(Library::New(class_name));
+  const Class& owner_class = Class::Handle(
+      Class::New(lib, class_name, script, TokenPosition::kNoSource));
+  const String& function_name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  Function& function = Function::ZoneHandle(Function::New(
+      function_name, RawFunction::kRegularFunction, true, false, false, false,
+      false, owner_class, TokenPosition::kNoSource));
+  return &function;
+}
+
+const intptr_t ICDataTestTask::kTaskCount = 1;
+
+// Test that checks that other threads only see a fully initialized ICData
+// whenever ICData is updated.
+ISOLATE_UNIT_TEST_CASE(ICDataTest) {
+  Isolate* isolate = thread->isolate();
+  USE(isolate);
+  Monitor monitor;
+  intptr_t exited = 0;
+  bool done = false;
+
+  const intptr_t kNumICData = 0x10;
+
+  const Array& ic_datas = Array::Handle(Array::New(kNumICData));
+  ICData& ic_data = ICData::Handle();
+  Function& owner = *CreateFunction("DummyFunction");
+  String& name = String::Handle(String::New("foo"));
+  const Array& args_desc =
+      Array::Handle(ArgumentsDescriptor::New(0, 0, Object::empty_array()));
+  for (intptr_t i = 0; i < kNumICData; i++) {
+    ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
+                          /*num_args_tested=*/1, ICData::kInstance,
+                          Object::null_abstract_type());
+    ic_datas.SetAtRelease(i, ic_data);
+  }
+
+  for (int i = 0; i < ICDataTestTask::kTaskCount; i++) {
+    Dart::thread_pool()->Run(
+        new ICDataTestTask(isolate, ic_datas, &monitor, &exited, &done));
+  }
+
+  for (int i = 0; i < 0x10000; i++) {
+    for (intptr_t i = 0; i < kNumICData; i++) {
+      ic_data ^= ic_datas.At(i);
+      if (ic_data.NumberOfChecks() < 4) {
+        ic_data.AddReceiverCheck(kInstanceCid + ic_data.NumberOfChecks(), owner,
+                                 1);
+      } else {
+        ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
+                              /*num_args_tested=*/1, ICData::kInstance,
+                              Object::null_abstract_type());
+        ic_datas.SetAtRelease(i, ic_data);
+      }
+    }
+  }
+  // Ensure we looped long enough to allow all helpers to succeed and exit.
+  {
+    AtomicOperations::StoreRelease(&done, true);
+    MonitorLocker ml(&monitor);
+    while (exited != ICDataTestTask::kTaskCount) {
+      ml.Wait();
+    }
+    EXPECT_EQ(ICDataTestTask::kTaskCount, exited);
+  }
 }
 
 // A helper thread that alternatingly cooperates and organizes

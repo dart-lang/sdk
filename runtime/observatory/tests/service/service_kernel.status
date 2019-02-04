@@ -3,120 +3,55 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == app_jitk ]
-add_breakpoint_rpc_test: RuntimeError
-async_generator_breakpoint_test: Skip # No incremental compiler available.
-async_next_regession_18877_test: RuntimeError
-async_next_test: RuntimeError
-async_scope_test: RuntimeError
-async_single_step_exception_test: RuntimeError
-async_single_step_into_test: RuntimeError
-async_single_step_out_test: RuntimeError
-async_star_single_step_into_test: RuntimeError
-async_star_step_out_test: RuntimeError
-async_step_out_test: RuntimeError
+add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
+async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: RuntimeError
-break_on_activation_test: Skip # No incremental compiler available.
-break_on_function_test: RuntimeError
-breakpoint_in_parts_class_test: RuntimeError
-breakpoint_two_args_checked_test: RuntimeError
-code_test: RuntimeError # Issue 34143
+break_on_activation_test: SkipByDesign # No incremental compiler available.
 complex_reload_test: RuntimeError
-debugger_inspect_test: Skip # No incremental compiler available.
+debugger_inspect_test: SkipByDesign # No incremental compiler available.
 debugger_location_second_test: RuntimeError
-debugging_inlined_finally_test: RuntimeError
-debugging_test: RuntimeError
-developer_service_get_isolate_id_test: Skip #  No incremental compiler available.
-eval_internal_class_test: Skip # No incremental compiler available.
-eval_regression_flutter20255_test: Skip # No incremental compiler available.
-eval_test: Skip # No incremental compiler available.
-evaluate_activation_in_method_class_test: RuntimeError
-evaluate_activation_test: Skip # No incremental compiler available.
-evaluate_async_closure_test: Skip # No incremental compiler available.
-evaluate_class_type_parameters_test: RuntimeError
-evaluate_in_async_activation_test: RuntimeError
-evaluate_in_async_star_activation_test: RuntimeError
-evaluate_in_frame_rpc_test: RuntimeError
-evaluate_in_frame_with_scope_test: Skip # No incremental compiler available.
-evaluate_in_sync_star_activation_test: RuntimeError
-evaluate_with_scope_test: Skip # No incremental compiler available.
-get_instances_rpc_test: Skip # No incremental compiler available.
-get_object_rpc_test: Skip # No incremental compiler available.
-get_retained_size_rpc_test: Skip # No incremental compiler available.
-get_retaining_path_rpc_test: Skip # No incremental compiler available.
-get_source_report_test: RuntimeError
-get_user_level_retaining_path_rpc_test: Skip # No incremental compiler available.
-get_vm_rpc_test: RuntimeError
-get_vm_timeline_rpc_test: RuntimeError
-instance_field_order_rpc_test: Skip # No incremental compiler available.
-issue_25465_test: RuntimeError
-issue_27238_test: RuntimeError
-local_variable_declaration_test: RuntimeError
-mixin_break_test: RuntimeError
-next_through_assign_call_test: RuntimeError
-next_through_assign_int_test: RuntimeError
-next_through_call_on_field_in_class_test: RuntimeError
-next_through_call_on_field_test: RuntimeError
-next_through_call_on_static_field_in_class_test: RuntimeError
-next_through_catch_test: RuntimeError
-next_through_closure_test: RuntimeError
-next_through_create_list_and_map_test: RuntimeError
-next_through_for_each_loop_test: RuntimeError
-next_through_for_loop_with_break_and_continue_test: RuntimeError
-next_through_function_expression_test: RuntimeError
-next_through_implicit_call_test: RuntimeError
-next_through_is_and_as_test: RuntimeError
-next_through_multi_catch_test: RuntimeError
-next_through_new_test: RuntimeError
-next_through_operator_bracket_on_super_test: RuntimeError
-next_through_operator_bracket_on_this_test: RuntimeError
-next_through_operator_bracket_test: RuntimeError
-next_through_simple_async_test: RuntimeError
-next_through_simple_async_with_returns_test: RuntimeError
-next_through_simple_linear_2_test: RuntimeError
-next_through_simple_linear_test: RuntimeError
-pause_on_exceptions_test: Skip # No incremental compiler available.
-positive_token_pos_test: RuntimeError
-regress_28443_test: RuntimeError
-regress_28980_test: RuntimeError
-rewind_optimized_out_test: RuntimeError
-rewind_test: RuntimeError
-set_name_rpc_test: RuntimeError
-set_vm_name_rpc_test: RuntimeError
-simple_reload_test: RuntimeError
-steal_breakpoint_test: RuntimeError
-step_into_async_no_await_test: RuntimeError
-step_over_await_test: RuntimeError
-step_test: RuntimeError # Issue 34143
-step_through_arithmetic_test: RuntimeError
-step_through_constructor_calls_test: RuntimeError
-step_through_constructor_test: RuntimeError
-step_through_for_each_sync_star_2_test: RuntimeError
-step_through_for_each_sync_star_test: RuntimeError
-step_through_function_2_test: RuntimeError
-step_through_function_test: RuntimeError
-step_through_getter_test: RuntimeError
-step_through_mixin_from_sdk_test: RuntimeError
-step_through_property_get_test: RuntimeError
-step_through_property_set_test: RuntimeError
-step_through_setter_test: RuntimeError
-step_through_switch_test: RuntimeError
-step_through_switch_with_continue_test: RuntimeError
+developer_service_get_isolate_id_test: SkipByDesign # No incremental compiler available.
+eval_internal_class_test: SkipByDesign # No incremental compiler available.
+eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
+eval_test: SkipByDesign # No incremental compiler available.
+evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
+evaluate_activation_test: SkipByDesign # No incremental compiler available.
+evaluate_async_closure_test: SkipByDesign # No incremental compiler available.
+evaluate_class_type_parameters_test: SkipByDesign # No incremental compiler available.
+evaluate_in_async_activation_test: SkipByDesign # No incremental compiler available.
+evaluate_in_async_star_activation_test: SkipByDesign # No incremental compiler available.
+evaluate_in_frame_rpc_test: SkipByDesign # No incremental compiler available.
+evaluate_in_frame_with_scope_test: SkipByDesign # No incremental compiler available.
+evaluate_in_sync_star_activation_test: SkipByDesign # No incremental compiler available.
+evaluate_with_scope_test: SkipByDesign # No incremental compiler available.
+get_instances_rpc_test: SkipByDesign # No incremental compiler available.
+get_object_rpc_test: SkipByDesign # No incremental compiler available.
+get_retained_size_rpc_test: SkipByDesign # No incremental compiler available.
+get_retaining_path_rpc_test: SkipByDesign # No incremental compiler available.
+get_user_level_retaining_path_rpc_test: SkipByDesign # No incremental compiler available.
+instance_field_order_rpc_test: SkipByDesign # No incremental compiler available.
+pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
+regress_34841_test: RuntimeError # http://dartbug.com/34841
+rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
+rewind_test: SkipByDesign # No incremental compiler available.
+simple_reload_test: RuntimeError, Timeout # Issue 35506
 unused_changes_in_last_reload_test: RuntimeError
-valid_source_locations_test: RuntimeError
 
 # Kernel works slightly different. There are kernel specific versions.
 # These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk ]
 add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
 bad_reload_test: RuntimeError # Issue 34025
-evaluate_activation_in_method_class_test: RuntimeError
+coverage_optimized_function_test: Pass, Slow
+evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
-step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
+pause_on_unhandled_async_exceptions2_test: Pass, Slow
+regress_34841_test: RuntimeError # http://dartbug.com/34841
 unused_changes_in_last_reload_test: RuntimeError
 
 [ $compiler == dartkp ]
-*: Skip # Non-kernel also skips precompiled mode.
+*: SkipByDesign # Non-kernel also skips precompiled mode.
 
 [ $fasta ]
 developer_extension_test: CompileTimeError
@@ -125,32 +60,36 @@ get_isolate_after_language_error_test: CompileTimeError
 [ $arch == arm64 && $compiler == dartk ]
 coverage_optimized_function_test: Pass, Slow
 
+[ $arch == arm64 && $compiler == dartk && $mode == release ]
+get_object_rpc_test: Pass, RuntimeError # Please triage / issue #27806
+
+[ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
+eval_regression_flutter20255_test: SkipSlow # Timeout
+get_vm_timeline_rpc_test: Pass, Slow
+rewind_optimized_out_test: SkipSlow # Timeout
+
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
+eval_test: RuntimeError, Timeout # Issue #34736
+evaluate_in_frame_rpc_test: RuntimeError, Timeout # Issue #34736
 get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
 
-[ $arch == x64 && $compiler == dartk && $mode == release && $system == windows ]
-regexp_function_test: Pass, Crash # Issue http://dartbug.com/34422
-
-[ $compiler == app_jitk && $mode == debug ]
-code_test: RuntimeError
-step_test: RuntimeError
-
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
+rewind_optimized_out_test: Pass, Slow
 
 [ $compiler == dartk && $system == windows ]
+add_breakpoint_rpc_kernel_test: Skip # Timeout
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
-coverage_leaf_function_test: RuntimeError
+breakpoint_in_parts_class_test: Skip # Timeout
 coverage_optimized_function_test: Skip # Timeout
 field_script_test: Skip # Timeout
-get_source_report_test: RuntimeError
 get_vm_timeline_rpc_test: Skip # Issue 32137.
 issue_25465_test: Skip # Issues 32137 and 32138.
 issue_30555_test: Skip # Issues 32137 and 32138.
@@ -158,95 +97,75 @@ next_through_assign_call_test: Skip # Issues 32137 and 32138.
 next_through_assign_int_test: Skip # Issues 32137 and 32138.
 next_through_call_on_field_in_class_test: Skip # Issues 32137 and 32138.
 next_through_call_on_field_test: Skip # Issues 32137 and 32138.
+next_through_call_on_static_field_in_class_test: Skip # Timeout
 next_through_catch_test: Skip # Issues 32137 and 32138.
+next_through_closure_test: Skip # Timeout
 next_through_create_list_and_map_test: Skip # Issues 32137 and 32138.
+next_through_for_each_loop_test: Skip # Timeout
 next_through_for_loop_with_break_and_continue_test: Skip # Timeout
 next_through_function_expression_test: Skip # Issues 32137 and 32138.
+next_through_implicit_call_test: Skip # Timeout
 next_through_is_and_as_test: Skip # Issues 32137 and 32138.
 next_through_multi_catch_test: Skip # Issues 32137 and 32138.
+next_through_new_test: Skip # Timeout
+next_through_operator_bracket_on_super_test: Skip # Timeout
+next_through_operator_bracket_on_this_test: Skip # Timeout
+next_through_operator_bracket_test: Skip # Timeout
+next_through_simple_async_test: Skip # Timeout
 next_through_simple_async_with_returns_test: Skip # Issues 32137 and 32138.
 next_through_simple_linear_2_test: Skip # Issues 32137 and 32138.
 next_through_simple_linear_test: Skip # Issues 32137 and 32138.
 pause_idle_isolate_test: Skip # Issues 32137 and 32138.
 pause_on_start_and_exit_test: Skip # Issues 32225, 32138.
+pause_on_start_and_exit_with_child_test: Skip # Timeout
 pause_on_start_then_step_test: Skip # Issue 32225, 32138.
 regress_28443_test: Skip # Times out.
 regress_28980_test: Skip # Issues 32137 and 32138.
 reload_sources_test: RuntimeError
 set_vm_name_rpc_test: Skip # Times out. Issue 32137.
 step_test: Skip # Issues 32137 and 32138.
+step_through_constructor_calls_test: Skip # Timeout
 step_through_constructor_test: Skip # Timeout
 step_through_function_2_test: Skip # Issues 32137 and 32138.
 step_through_function_test: Skip # Issues 32137 and 32138.
+step_through_getter_test: Skip # Timeout
 step_through_property_get_test: Skip # Times out. Issue 32137.
+step_through_property_set_test: Skip # Timeout
 step_through_setter_test: Skip # Issues 32137 and 32138.
 step_through_switch_test: Skip # Times out. Issue 32137.
 step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
-[ $compiler == dartk && $system == windows && $strong ]
-add_breakpoint_rpc_kernel_test: Skip # Timeout
-breakpoint_in_parts_class_test: Skip # Timeout
-code_test: RuntimeError
-get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
-next_through_call_on_static_field_in_class_test: Skip # Timeout
-next_through_closure_test: Skip # Timeout
-next_through_for_each_loop_test: Skip # Timeout
-next_through_implicit_call_test: Skip # Timeout
-next_through_new_test: Skip # Timeout
-next_through_operator_bracket_on_super_test: Skip # Timeout
-next_through_operator_bracket_on_this_test: Skip # Timeout
-next_through_operator_bracket_test: Skip # Timeout
-next_through_simple_async_test: Skip # Timeout
-pause_on_start_and_exit_with_child_test: Skip # Timeout
-step_through_constructor_calls_test: Skip # Timeout
-step_through_getter_test: Skip # Timeout
-step_through_property_set_test: Skip # Timeout
-
-[ $compiler == dartk && $system == windows && !$strong ]
-code_test: RuntimeError
-get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
-next_through_simple_async_test: Skip # Timeout
-step_test: Skip # Timeout
-step_through_constructor_test: Skip # Timeout
-
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
-async_single_step_exception_test: RuntimeError
-
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-add_breakpoint_rpc_kernel_test: RuntimeError # Issue #33087
-async_generator_breakpoint_test: Skip # No incremental compiler available.
-async_single_step_out_test: RuntimeError
+add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
+async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
-break_on_activation_test: RuntimeError # Issue #33087
+break_on_activation_test: RuntimeError # Issue #34736
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
-debugger_inspect_test: RuntimeError, Timeout # Issue #33087
-developer_service_get_isolate_id_test: RuntimeError # Issue #33087
-eval_internal_class_test: RuntimeError # Issue #33087
-eval_regression_flutter20255_test: RuntimeError # "No incremental compiler available for this isolate"
-eval_test: RuntimeError # Issue #33087
-evaluate_activation_test/none: RuntimeError # Issue #33087
-evaluate_async_closure_test: RuntimeError # Issue #33087
-evaluate_class_type_parameters_test: RuntimeError # Issue 33087
-evaluate_function_type_parameters_test: RuntimeError # Issue 33087
-evaluate_in_async_activation_test: RuntimeError # Issue #33087
-evaluate_in_async_star_activation_test: RuntimeError # Issue #33087
-evaluate_in_frame_rpc_test: RuntimeError # Issue #33087
-evaluate_in_frame_with_scope_test: RuntimeError # Issue #33087
-evaluate_in_sync_star_activation_test: RuntimeError # "No incremental compiler available for this isolate"
-evaluate_with_scope_test: RuntimeError # Issue #33087
-get_instances_rpc_test: RuntimeError # Issue #33087
+debugger_inspect_test: RuntimeError, Timeout # Issue #34736
+developer_service_get_isolate_id_test: RuntimeError # Issue #34736
+eval_internal_class_test: RuntimeError # Issue #34736
+eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
+eval_test: RuntimeError # Issue #34736
+evaluate_activation_test/none: RuntimeError # Issue #34736
+evaluate_async_closure_test: RuntimeError # Issue #34736
+evaluate_class_type_parameters_test: RuntimeError # Issue 34736
+evaluate_function_type_parameters_test: RuntimeError # Issue 34736
+evaluate_in_async_activation_test: RuntimeError # Issue #34736
+evaluate_in_async_star_activation_test: RuntimeError # Issue #34736
+evaluate_in_frame_rpc_test: RuntimeError # Issue #34736
+evaluate_in_frame_with_scope_test: RuntimeError # Issue #34736
+evaluate_in_sync_star_activation_test: SkipByDesign # No incremental compiler available.
+evaluate_with_scope_test: RuntimeError # Issue #34736
+get_instances_rpc_test: RuntimeError # Issue #34736
 get_object_rpc_test: RuntimeError # Please triage.
-get_retaining_path_rpc_test: RuntimeError # Issue #33087
-get_user_level_retaining_path_rpc_test: RuntimeError # Issue #33087
-instance_field_order_rpc_test: RuntimeError # Issue #33087
-pause_on_exceptions_test: RuntimeError, Timeout # Issue #33087
-positive_token_pos_test: Pass, RuntimeError
+get_retaining_path_rpc_test: RuntimeError # Issue #34736
+get_user_level_retaining_path_rpc_test: RuntimeError # Issue #34736
+instance_field_order_rpc_test: RuntimeError # Issue #34736
+pause_on_exceptions_test: RuntimeError, Timeout # Issue #34736
 reload_sources_test: Skip # Times out.
-rewind_optimized_out_test: RuntimeError # Issue #33087
+rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
 unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
-valid_source_locations_test: Pass, Slow, Timeout # Issue 33087
+valid_source_locations_test: Pass, Slow, Timeout # Issue 34736

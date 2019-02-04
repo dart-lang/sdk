@@ -12,7 +12,6 @@
 
 #include "platform/globals.h"
 
-#include "vm/ast_printer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/jit/compiler.h"
@@ -37,15 +36,21 @@ namespace dart {
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
-DEFINE_FLAG(bool,
-            use_dart_frontend,
-            false,
-            "Parse scripts with Dart-to-Kernel parser");
+const uint8_t* TesterState::vm_snapshot_data = NULL;
+Dart_IsolateCreateCallback TesterState::create_callback = NULL;
+Dart_IsolateShutdownCallback TesterState::shutdown_callback = NULL;
+Dart_IsolateCleanupCallback TesterState::cleanup_callback = NULL;
+const char** TesterState::argv = NULL;
+int TesterState::argc = 0;
 
-DECLARE_FLAG(bool, strong);
+void KernelBufferList::AddBufferToList(const uint8_t* kernel_buffer) {
+  next_ = new KernelBufferList(kernel_buffer_, next_);
+  kernel_buffer_ = kernel_buffer;
+}
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
+KernelBufferList* TestCaseBase::current_kernel_buffers_ = NULL;
 
 TestCaseBase::TestCaseBase(const char* name)
     : raw_test_(false), next_(NULL), name_(name) {
@@ -62,6 +67,7 @@ void TestCaseBase::RunAllRaw() {
   while (test != NULL) {
     if (test->raw_test_) {
       test->RunTest();
+      CleanupState();
     }
     test = test->next_;
   }
@@ -72,8 +78,25 @@ void TestCaseBase::RunAll() {
   while (test != NULL) {
     if (!test->raw_test_) {
       test->RunTest();
+      CleanupState();
     }
     test = test->next_;
+  }
+}
+
+void TestCaseBase::CleanupState() {
+  if (current_kernel_buffers_ != NULL) {
+    delete current_kernel_buffers_;
+    current_kernel_buffers_ = NULL;
+  }
+}
+
+void TestCaseBase::AddToKernelBuffers(const uint8_t* kernel_buffer) {
+  ASSERT(kernel_buffer != NULL);
+  if (current_kernel_buffers_ == NULL) {
+    current_kernel_buffers_ = new KernelBufferList(kernel_buffer);
+  } else {
+    current_kernel_buffers_->AddBufferToList(kernel_buffer);
   }
 }
 
@@ -85,7 +108,6 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
@@ -103,16 +125,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
 }
 
 Dart_Isolate TestCase::CreateTestIsolate(const char* name, void* data) {
-  if (FLAG_use_dart_frontend) {
-    return CreateIsolate(
-        platform_strong_dill, platform_strong_dill_size,
-        NULL, /* There is no instr buffer in case of dill buffers. */
-        name, data);
-  } else {
-    return CreateIsolate(bin::core_isolate_snapshot_data,
-                         0 /* Snapshots have length encoded within them. */,
-                         bin::core_isolate_snapshot_instructions, name, data);
-  }
+  return CreateIsolate(bin::core_isolate_snapshot_data,
+                       0 /* Snapshots have length encoded within them. */,
+                       bin::core_isolate_snapshot_instructions, name, data);
 }
 
 static const char* kPackageScheme = "package:";
@@ -130,7 +145,7 @@ struct TestLibEntry {
 static MallocGrowableArray<TestLibEntry>* test_libs_ = NULL;
 
 const char* TestCase::url() {
-  return (FLAG_use_dart_frontend) ? RESOLVED_USER_TEST_URI : USER_TEST_URI;
+  return RESOLVED_USER_TEST_URI;
 }
 
 void TestCase::AddTestLib(const char* url, const char* source) {
@@ -167,8 +182,7 @@ static const char* kIsolateReloadTestLibSource =
     "void reloadTest() native 'Reload_Test';\n";
 
 static const char* IsolateReloadTestLibUri() {
-  return FLAG_use_dart_frontend ? "test:isolate_reload_helper"
-                                : "file:///test:isolate_reload_helper";
+  return "test:isolate_reload_helper";
 }
 
 static bool IsIsolateReloadTestLib(const char* url_name) {
@@ -178,13 +192,9 @@ static bool IsIsolateReloadTestLib(const char* url_name) {
                   kIsolateReloadTestLibUriLen) == 0);
 }
 
-static Dart_Handle IsolateReloadTestLibSource() {
-  // Special library with one function.
-  return DartUtils::NewString(kIsolateReloadTestLibSource);
-}
-
 static void ReloadTest(Dart_NativeArguments native_args) {
-  Dart_Handle result = TestCase::TriggerReload();
+  Dart_Handle result = TestCase::TriggerReload(/* kernel_buffer= */ NULL,
+                                               /* kernel_buffer_size= */ 0);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
@@ -213,16 +223,6 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
                      dart_args);
 }
 
-static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
-
-bool TestCase::UsingDartFrontend() {
-  return FLAG_use_dart_frontend;
-}
-
-bool TestCase::UsingStrongMode() {
-  return FLAG_strong;
-}
-
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
                                          const uint8_t** kernel_buffer,
@@ -237,7 +237,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       url, source,
     },
     {
-      "file:///.packages", "untitled:/"
+      "file:///.packages", ""
     }};
   // clang-format on
   return CompileTestScriptWithDFE(
@@ -322,10 +322,18 @@ char* TestCase::ValidateCompilationResult(
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
     free(compilation_result.error);
+    if (compilation_result.kernel != NULL) {
+      free(const_cast<uint8_t*>(compilation_result.kernel));
+    }
+    *kernel_buffer = NULL;
+    *kernel_buffer_size = 0;
     return result;
   }
   *kernel_buffer = compilation_result.kernel;
   *kernel_buffer_size = compilation_result.kernel_size;
+  if (compilation_result.error != NULL) {
+    free(compilation_result.error);
+  }
   if (kernel_buffer == NULL) {
     return OS::SCreate(zone, "front end generated a NULL kernel file");
   }
@@ -344,12 +352,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
   if (tag == Dart_kScriptTag) {
     // Reload request.
-    ASSERT(script_reload_key != kUnsetThreadLocalKey);
-    const char* script_source = reinterpret_cast<const char*>(
-        OSThread::GetThreadLocal(script_reload_key));
-    ASSERT(script_source != NULL);
-    OSThread::SetThreadLocal(script_reload_key, 0);
-    return Dart_LoadScript(url, Dart_Null(), NewString(script_source), 0, 0);
+    UNREACHABLE();
+    return Dart_Null();
   }
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
@@ -387,29 +391,21 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
   const char* lib_source = TestCase::GetTestLib(url_chars);
   if (lib_source != NULL) {
-    Dart_Handle source = Dart_NewStringFromCString(lib_source);
-    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+    UNREACHABLE();
   }
 #if !defined(PRODUCT)
   if (IsIsolateReloadTestLib(url_chars)) {
-    Dart_Handle library =
-        Dart_LoadLibrary(url, Dart_Null(), IsolateReloadTestLibSource(), 0, 0);
-    DART_CHECK_VALID(library);
-    Dart_SetNativeResolver(library, IsolateReloadTestNativeResolver, 0);
-    return library;
+    UNREACHABLE();
+    return Dart_Null();
   }
 #endif
   if (is_io_library) {
-    ASSERT(tag == Dart_kSourceTag);
-    return Dart_LoadSource(library, url, Dart_Null(),
-                           Builtin::PartSource(Builtin::kIOLibrary, url_chars),
-                           0, 0);
+    UNREACHABLE();
+    return Dart_Null();
   }
   if (is_standalone_library) {
-    ASSERT(tag == Dart_kSourceTag);
-    return Dart_LoadSource(library, url, Dart_Null(),
-                           Builtin::PartSource(Builtin::kCLILibrary, url_chars),
-                           0, 0);
+    UNREACHABLE();
+    return Dart_Null();
   }
   Dart_Handle resolved_url = url;
   const char* resolved_url_chars = url_chars;
@@ -424,37 +420,19 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   Dart_Handle source = DartUtils::ReadStringFromFile(resolved_url_chars);
   EXPECT_VALID(source);
   if (tag == Dart_kImportTag) {
-    return Dart_LoadLibrary(url, resolved_url, source, 0, 0);
+    UNREACHABLE();
+    return Dart_Null();
   } else {
     ASSERT(tag == Dart_kSourceTag);
-    return Dart_LoadSource(library, url, resolved_url, source, 0, 0);
+    UNREACHABLE();
+    return Dart_Null();
   }
-}
-
-static Dart_Handle LoadTestScriptWithVMParser(const char* script,
-                                              Dart_NativeEntryResolver resolver,
-                                              const char* lib_url,
-                                              bool finalize_classes) {
-  Dart_Handle url = NewString(lib_url);
-  Dart_Handle source = NewString(script);
-  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
-  EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
-  DART_CHECK_VALID(lib);
-  result = Dart_SetNativeResolver(lib, resolver, NULL);
-  DART_CHECK_VALID(result);
-  if (finalize_classes) {
-    result = Dart_FinalizeLoading(false);
-    DART_CHECK_VALID(result);
-  }
-  return lib;
 }
 
 static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
                                       const char* script) {
   ASSERT(sourcefiles != NULL);
   ASSERT(script != NULL);
-  ASSERT(FLAG_use_dart_frontend);
 
   intptr_t num_test_libs = 0;
   if (test_libs_ != NULL) {
@@ -484,7 +462,6 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      const char* lib_url,
                                      bool finalize_classes,
                                      bool allow_compile_errors) {
-  if (FLAG_use_dart_frontend) {
 #ifndef PRODUCT
     if (strstr(script, IsolateReloadTestLibUri()) != NULL) {
       Dart_Handle result = LoadIsolateReloadTestLib();
@@ -498,16 +475,11 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                               finalize_classes, true, allow_compile_errors);
     delete[] sourcefiles;
     return result;
-  } else {
-    return LoadTestScriptWithVMParser(script, resolver, lib_url,
-                                      finalize_classes);
-  }
 }
 
 Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
                                       const char* script,
                                       Dart_NativeEntryResolver resolver) {
-  if (FLAG_use_dart_frontend) {
     const char* prefixed_lib_uri =
         OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
     Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
@@ -524,6 +496,9 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
         Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
 
+    // Ensure kernel buffer isn't leaked after test is run.
+    AddToKernelBuffers(kernel_buffer);
+
     // TODO(32618): Kernel doesn't correctly represent the root library.
     lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
     DART_CHECK_VALID(lib);
@@ -532,11 +507,6 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
 
     Dart_SetNativeResolver(lib, resolver, NULL);
     return lib;
-  } else {
-    Dart_Handle url = NewString(lib_uri);
-    Dart_Handle source = NewString(script);
-    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
-  }
 }
 
 Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
@@ -566,6 +536,9 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
   DART_CHECK_VALID(lib);
 
+  // Ensure kernel buffer isn't leaked after test is run.
+  AddToKernelBuffers(kernel_buffer);
+
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(
       entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri));
@@ -585,7 +558,6 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 #ifndef PRODUCT
 
 Dart_Handle TestCase::SetReloadTestScript(const char* script) {
-  if (FLAG_use_dart_frontend) {
     Dart_SourceFile* sourcefiles = NULL;
     intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
     Dart_KernelCompilationResult compilation_result =
@@ -597,30 +569,20 @@ Dart_Handle TestCase::SetReloadTestScript(const char* script) {
       return result;
     }
     return Api::Success();
-  } else {
-    if (script_reload_key == kUnsetThreadLocalKey) {
-      script_reload_key = OSThread::CreateThreadLocal();
-    }
-    ASSERT(script_reload_key != kUnsetThreadLocalKey);
-    ASSERT(OSThread::GetThreadLocal(script_reload_key) == 0);
-    // Store the new script in TLS.
-    OSThread::SetThreadLocal(script_reload_key,
-                             reinterpret_cast<uword>(script));
-    return Api::Success();
-  }
 }
 
-Dart_Handle TestCase::TriggerReload() {
+Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   JSONStream js;
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success = isolate->ReloadSources(&js,
-                                     false,  // force_reload
-                                     NULL, NULL,
-                                     true);  // dont_delete_reload_context
+    success = isolate->ReloadKernel(&js,
+                                    false,  // force_reload
+                                    kernel_buffer, kernel_buffer_size,
+                                    true);  // dont_delete_reload_context
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -647,7 +609,6 @@ Dart_Handle TestCase::TriggerReload() {
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
-  if (FLAG_use_dart_frontend) {
     Dart_SourceFile* sourcefiles = NULL;
     intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
     Dart_KernelCompilationResult compilation_result =
@@ -656,18 +617,18 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       Dart_Handle result = Dart_NewApiError(compilation_result.error);
       free(compilation_result.error);
+      if (compilation_result.kernel != NULL) {
+        free(const_cast<uint8_t*>(compilation_result.kernel));
+      }
       return result;
     }
-  } else {
-    SetReloadTestScript(script);
-  }
 
-  return TriggerReload();
+  return TriggerReload(/* kernel_buffer= */ NULL, /* kernel_buffer_size= */ 0);
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-  return TriggerReload();
+  return TriggerReload(kernel_buffer, kernel_buffer_size);
 }
 
 #endif  // !PRODUCT
@@ -702,16 +663,13 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
 
   Object& val = Object::Handle();
   if (!KernelIsolate::IsRunning()) {
-    val = lib.Evaluate(expr, param_names, param_values);
+    UNREACHABLE();
   } else {
-    Dart_KernelCompilationResult compilation_result;
-    {
-      TransitionVMToNative transition(thread);
-      compilation_result = KernelIsolate::CompileExpressionToKernel(
-          expr.ToCString(), param_names, Array::empty_array(),
-          String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
-          /* is_static= */ false);
-    }
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::CompileExpressionToKernel(
+            expr.ToCString(), param_names, Array::empty_array(),
+            String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
+            /* is_static= */ false);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(compilation_result.error);
     }
@@ -744,14 +702,14 @@ void AssemblerTest::Assemble() {
   const Script& script = Script::Handle(
       Script::New(function_name, String::Handle(String::New(kDummyScript)),
                   RawScript::kSourceTag));
-  script.Tokenize(String::Handle());
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction, true, false,
                     false, false, false, cls, TokenPosition::kMinSource));
-  code_ = Code::FinalizeCode(function, nullptr, assembler_);
+  code_ = Code::FinalizeCode(function, nullptr, assembler_,
+                             Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
 #ifndef PRODUCT
@@ -783,44 +741,6 @@ void AssemblerTest::Assemble() {
     }
   }
 #endif  // !PRODUCT
-}
-
-CodeGenTest::CodeGenTest(const char* name)
-    : function_(Function::ZoneHandle()),
-      node_sequence_(new SequenceNode(TokenPosition::kMinSource,
-                                      new LocalScope(NULL, 0, 0))),
-      default_parameter_values_(new ZoneGrowableArray<const Instance*>()) {
-  ASSERT(name != NULL);
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), name));
-  // Add function to a class and that class to the class dictionary so that
-  // frame walking can be used.
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::ZoneHandle(Class::New(
-      lib, function_name, Script::Handle(), TokenPosition::kMinSource));
-  function_ =
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
-  function_.set_result_type(Type::Handle(Type::DynamicType()));
-  const Array& functions = Array::Handle(Array::New(1));
-  functions.SetAt(0, function_);
-  cls.SetFunctions(functions);
-  lib.AddClass(cls);
-}
-
-void CodeGenTest::Compile() {
-  if (function_.HasCode()) return;
-  ParsedFunction* parsed_function =
-      new ParsedFunction(Thread::Current(), function_);
-  parsed_function->SetNodeSequence(node_sequence_);
-  parsed_function->set_default_parameter_values(default_parameter_values_);
-  node_sequence_->scope()->AddVariable(parsed_function->current_context_var());
-  parsed_function->EnsureExpressionTemp();
-  node_sequence_->scope()->AddVariable(parsed_function->expression_temp_var());
-  parsed_function->AllocateVariables();
-  const Error& error =
-      Error::Handle(Compiler::CompileParsedFunction(parsed_function));
-  EXPECT(error.IsNull());
 }
 
 bool CompilerTest::TestCompileScript(const Library& library,

@@ -29,6 +29,24 @@ class RawSocket {
 }
 
 @patch
+class RawSocketOption {
+  static final List<int> _optionsCache =
+      List<int>(_RawSocketOptions.values.length);
+
+  @patch
+  static int _getOptionValue(int key) {
+    if (key > _RawSocketOptions.values.length) {
+      throw ArgumentError.value(key, 'key');
+    }
+    _optionsCache[key] ??= _getNativeOptionValue(key);
+    return _optionsCache[key];
+  }
+
+  static int _getNativeOptionValue(int key)
+      native "RawSocketOption_GetOptionValue";
+}
+
+@patch
 class InternetAddress {
   @patch
   static InternetAddress get LOOPBACK_IP_V4 {
@@ -92,6 +110,12 @@ class NetworkInterface {
 void _throwOnBadPort(int port) {
   if ((port == null) || (port < 0) || (port > 0xFFFF)) {
     throw new ArgumentError("Invalid port $port");
+  }
+}
+
+void _throwOnBadTtl(int ttl) {
+  if (ttl == null || ttl < 1 || ttl > 255) {
+    throw new ArgumentError('Invalid ttl $ttl');
   }
 }
 
@@ -578,14 +602,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<_NativeSocket> bindDatagram(
-      host, int port, bool reuseAddress) async {
+      host, int port, bool reuseAddress, bool reusePort, int ttl) async {
     _throwOnBadPort(port);
+    _throwOnBadTtl(ttl);
 
     final address = await _resolveHost(host);
 
     var socket = new _NativeSocket.datagram(address);
-    var result =
-        socket.nativeCreateBindDatagram(address._in_addr, port, reuseAddress);
+    var result = socket.nativeCreateBindDatagram(
+        address._in_addr, port, reuseAddress, reusePort, ttl);
     if (result is OSError) {
       throw new SocketException("Failed to create datagram socket",
           osError: result, address: address, port: port);
@@ -1064,16 +1089,34 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   getOption(SocketOption option) {
-    if (option is! SocketOption) throw new ArgumentError(option);
+    if (option == null) throw new ArgumentError.notNull("option");
     var result = nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
 
   bool setOption(SocketOption option, value) {
-    if (option is! SocketOption) throw new ArgumentError(option);
+    if (option == null) throw new ArgumentError.notNull("option");
     var result = nativeSetOption(option._value, address.type._value, value);
-    if (result is OSError) throw result;
+    if (result != null) throw result;
+    return true;
+  }
+
+  Uint8List getRawOption(RawSocketOption option) {
+    if (option == null) throw new ArgumentError.notNull("option");
+    if (option.value == null) throw new ArgumentError.notNull("option.value");
+
+    var result = nativeGetRawOption(option.level, option.option, option.value);
+    if (result != null) throw result;
+    return option.value;
+  }
+
+  void setRawOption(RawSocketOption option) {
+    if (option == null) throw new ArgumentError.notNull("option");
+    if (option.value == null) throw new ArgumentError.notNull("option.value");
+
+    var result = nativeSetRawOption(option.level, option.option, option.value);
+    if (result != null) throw result;
   }
 
   InternetAddress multicastAddress(
@@ -1130,16 +1173,20 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool isBindError(int errorNumber) native "SocketBase_IsBindError";
   nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
       bool shared) native "ServerSocket_CreateBindListen";
-  nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress)
-      native "Socket_CreateBindDatagram";
+  nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress,
+      bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";
   nativeGetOption(int option, int protocol) native "Socket_GetOption";
-  bool nativeSetOption(int option, int protocol, value)
+  OSError nativeGetRawOption(int level, int option, Uint8List data)
+      native "Socket_GetRawOption";
+  OSError nativeSetOption(int option, int protocol, value)
       native "Socket_SetOption";
+  OSError nativeSetRawOption(int level, int option, Uint8List data)
+      native "Socket_SetRawOption";
   OSError nativeJoinMulticast(List<int> addr, List<int> interfaceAddr,
       int interfaceIndex) native "Socket_JoinMulticast";
   bool nativeLeaveMulticast(List<int> addr, List<int> interfaceAddr,
@@ -1368,6 +1415,10 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 
   bool setOption(SocketOption option, bool enabled) =>
       _socket.setOption(option, enabled);
+
+  Uint8List getRawOption(RawSocketOption option) =>
+      _socket.getRawOption(option);
+  void setRawOption(RawSocketOption option) => _socket.setRawOption(option);
 
   _pause() {
     _socket.setListening(read: false, write: false);
@@ -1634,6 +1685,15 @@ class _Socket extends Stream<List<int>> implements Socket {
     return _raw.setOption(option, enabled);
   }
 
+  Uint8List getRawOption(RawSocketOption option) {
+    if (_raw == null) return null;
+    return _raw.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _raw?.setRawOption(option);
+  }
+
   int get port {
     if (_raw == null) throw const SocketException.closed();
     ;
@@ -1775,8 +1835,8 @@ class _Socket extends Stream<List<int>> implements Socket {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true}) {
-    return _RawDatagramSocket.bind(host, port, reuseAddress);
+      {bool reuseAddress: true, bool reusePort: false, int ttl: 1}) {
+    return _RawDatagramSocket.bind(host, port, reuseAddress, reusePort, ttl);
   }
 }
 
@@ -1814,9 +1874,11 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
         }));
   }
 
-  static Future<RawDatagramSocket> bind(host, int port, bool reuseAddress) {
+  static Future<RawDatagramSocket> bind(
+      host, int port, bool reuseAddress, bool reusePort, int ttl) {
     _throwOnBadPort(port);
-    return _NativeSocket.bindDatagram(host, port, reuseAddress)
+    _throwOnBadTtl(ttl);
+    return _NativeSocket.bindDatagram(host, port, reuseAddress, reusePort, ttl)
         .then((socket) => new _RawDatagramSocket(socket));
   }
 
@@ -1903,6 +1965,10 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
       _socket.close();
     }
   }
+
+  Uint8List getRawOption(RawSocketOption option) =>
+      _socket.getRawOption(option);
+  void setRawOption(RawSocketOption option) => _socket.setRawOption(option);
 }
 
 @pragma("vm:entry-point")

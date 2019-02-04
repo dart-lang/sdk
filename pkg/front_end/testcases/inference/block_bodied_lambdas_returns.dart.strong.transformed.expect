@@ -1,4 +1,15 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:35:44: Warning: Must explicitly return a value from a non-void function.
+//       /*@warning=ReturnWithoutExpression*/ return;
+//                                            ^
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:65:44: Warning: Must explicitly return a value from a non-void function.
+//       /*@warning=ReturnWithoutExpression*/ return;
+//                                            ^
+//
 import self as self;
 import "dart:core" as core;
 

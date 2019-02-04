@@ -113,6 +113,8 @@ bool _supportsAnsiEscapes(sink) {
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool computeEnableColors(CompilerContext context) {
+  // TODO(ahe): Remove this method.
+
   bool stderrSupportsColors = _supportsAnsiEscapes(stdout);
   bool stdoutSupportsColors = _supportsAnsiEscapes(stderr);
 
@@ -172,7 +174,7 @@ bool computeEnableColors(CompilerContext context) {
   }
 
   String numberOfColors = lines[0];
-  if (int.parse(numberOfColors, onError: (_) => -1) < 8) {
+  if ((int.tryParse(numberOfColors) ?? -1) < 8) {
     if (context.options.verbose) {
       print("Not enabling colors, less than 8 colors supported: "
           "${jsonEncode(numberOfColors)}.");

@@ -11,11 +11,10 @@ import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
-import 'native/native.dart';
-import 'types/abstract_value_domain.dart';
+import 'kernel/dart2js_target.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -61,6 +60,9 @@ abstract class CommonElements {
 
   /// The `Map` class defined in 'dart:core';
   ClassEntity get mapClass;
+
+  /// The `Set` class defined in 'dart:core';
+  ClassEntity get unmodifiableSetClass;
 
   /// The `Iterable` class defined in 'dart:core';
   ClassEntity get iterableClass;
@@ -216,7 +218,6 @@ abstract class CommonElements {
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element);
 
   // From dart:async
-  FunctionEntity get asyncHelperStart;
   FunctionEntity get asyncHelperStartSync;
   FunctionEntity get asyncHelperAwait;
   FunctionEntity get asyncHelperReturn;
@@ -249,8 +250,6 @@ abstract class CommonElements {
   FunctionEntity get syncStarIterableFactory;
 
   FunctionEntity get asyncAwaitCompleterFactory;
-
-  FunctionEntity get syncCompleterFactory;
 
   FunctionEntity get asyncStarStreamControllerFactory;
 
@@ -474,8 +473,6 @@ abstract class CommonElements {
 
   ClassEntity get expectNoInlineClass;
 
-  ClassEntity get expectTrustTypeAnnotationsClass;
-
   ClassEntity get expectAssumeDynamicClass;
 
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
@@ -501,6 +498,10 @@ abstract class KCommonElements implements CommonElements {
   ClassEntity get noInlineClass;
 
   ClassEntity get forceInlineClass;
+
+  ClassEntity get pragmaClass;
+  FieldEntity get pragmaClassNameField;
+  FieldEntity get pragmaClassOptionsField;
 
   bool isCreateInvocationMirrorHelper(MemberEntity member);
 
@@ -654,6 +655,11 @@ class CommonElementsImpl
   /// The `Map` class defined in 'dart:core';
   ClassEntity _mapClass;
   ClassEntity get mapClass => _mapClass ??= _findClass(coreLibrary, 'Map');
+
+  /// The `_UnmodifiableSet` class defined in 'dart:collection';
+  ClassEntity _unmodifiableSetClass;
+  ClassEntity get unmodifiableSetClass => _unmodifiableSetClass ??=
+      _findClass(_env.lookupLibrary(Uris.dart_collection), '_UnmodifiableSet');
 
   /// The `Iterable` class defined in 'dart:core';
   ClassEntity _iterableClass;
@@ -1026,8 +1032,6 @@ class CommonElementsImpl
   FunctionEntity _findAsyncHelperFunction(String name) =>
       _findLibraryMember(asyncLibrary, name);
 
-  FunctionEntity get asyncHelperStart =>
-      _findAsyncHelperFunction("_asyncStart");
   FunctionEntity get asyncHelperStartSync =>
       _findAsyncHelperFunction("_asyncStartSync");
   FunctionEntity get asyncHelperAwait =>
@@ -1079,10 +1083,6 @@ class CommonElementsImpl
   FunctionEntity get asyncAwaitCompleterFactory =>
       _asyncAwaitCompleterFactory ??=
           _findAsyncHelperFunction('_makeAsyncAwaitCompleter');
-
-  FunctionEntity _syncCompleterFactory;
-  FunctionEntity get syncCompleterFactory =>
-      _syncCompleterFactory ??= _findAsyncHelperFunction('_makeSyncCompleter');
 
   FunctionEntity _asyncStarStreamControllerFactory;
   FunctionEntity get asyncStarStreamControllerFactory =>
@@ -1236,7 +1236,9 @@ class CommonElementsImpl
     }
     return selector.applies(_jsStringSplit) &&
         (receiver == null ||
-            abstractValueDomain.canHit(receiver, jsStringSplit, selector));
+            abstractValueDomain
+                .isTargetingMember(receiver, jsStringSplit, selector.memberName)
+                .isPotentiallyTrue);
   }
 
   FunctionEntity _jsStringSplit;
@@ -1321,6 +1323,18 @@ class CommonElementsImpl
   ClassEntity get forceInlineClass =>
       _forceInlineClass ??= _findHelperClass('ForceInline');
 
+  ClassEntity _pragmaClass;
+  ClassEntity get pragmaClass =>
+      _pragmaClass ??= _findClass(coreLibrary, 'pragma');
+
+  FieldEntity _pragmaClassNameField;
+  FieldEntity get pragmaClassNameField =>
+      _pragmaClassNameField ??= _findClassMember(pragmaClass, 'name');
+
+  FieldEntity _pragmaClassOptionsField;
+  FieldEntity get pragmaClassOptionsField =>
+      _pragmaClassOptionsField ??= _findClassMember(pragmaClass, 'options');
+
   ClassEntity _jsInvocationMirrorClass;
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
@@ -1400,17 +1414,7 @@ class CommonElementsImpl
   FunctionEntity get boolConversionCheck =>
       _findHelperFunction('boolConversionCheck');
 
-  FunctionEntity get _consoleTraceHelper =>
-      _findHelperFunction('consoleTraceHelper');
-
-  FunctionEntity get _postTraceHelper => _findHelperFunction('postTraceHelper');
-
-  FunctionEntity _traceHelper;
-  FunctionEntity get traceHelper {
-    return _traceHelper ??= JavaScriptBackend.TRACE_METHOD == 'console'
-        ? _consoleTraceHelper
-        : _postTraceHelper;
-  }
+  FunctionEntity get traceHelper => _findHelperFunction('traceHelper');
 
   FunctionEntity get closureFromTearOff =>
       _findHelperFunction('closureFromTearOff');
@@ -1659,7 +1663,6 @@ class CommonElementsImpl
 
   bool _expectAnnotationChecked = false;
   ClassEntity _expectNoInlineClass;
-  ClassEntity _expectTrustTypeAnnotationsClass;
   ClassEntity _expectAssumeDynamicClass;
 
   void _ensureExpectAnnotations() {
@@ -1668,15 +1671,10 @@ class CommonElementsImpl
       LibraryEntity library = _env.lookupLibrary(PACKAGE_EXPECT);
       if (library != null) {
         _expectNoInlineClass = _env.lookupClass(library, 'NoInline');
-        _expectTrustTypeAnnotationsClass =
-            _env.lookupClass(library, 'TrustTypeAnnotations');
         _expectAssumeDynamicClass = _env.lookupClass(library, 'AssumeDynamic');
-        if (_expectNoInlineClass == null ||
-            _expectTrustTypeAnnotationsClass == null ||
-            _expectAssumeDynamicClass == null) {
+        if (_expectNoInlineClass == null || _expectAssumeDynamicClass == null) {
           // This is not the package you're looking for.
           _expectNoInlineClass = null;
-          _expectTrustTypeAnnotationsClass = null;
           _expectAssumeDynamicClass = null;
         }
       }
@@ -1686,11 +1684,6 @@ class CommonElementsImpl
   ClassEntity get expectNoInlineClass {
     _ensureExpectAnnotations();
     return _expectNoInlineClass;
-  }
-
-  ClassEntity get expectTrustTypeAnnotationsClass {
-    _ensureExpectAnnotations();
-    return _expectTrustTypeAnnotationsClass;
   }
 
   ClassEntity get expectAssumeDynamicClass {
@@ -1920,18 +1913,11 @@ abstract class ElementEnvironment {
   /// Returns the function type variables defined on [function].
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function);
 
-  /// Returns the 'element' type of a function with an async, async* or sync*
-  /// marker. The return type of the method is inspected to determine the type
-  /// parameter of the Future, Stream or Iterable.
-  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
-
-  /// Returns the 'element' type of a function with the async, async* or sync*
-  /// marker [marker]. [returnType] is the return type marked function.
-  DartType getAsyncOrSyncStarElementType(
-      AsyncMarker marker, DartType returnType);
-
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
+
+  /// Returns the type of [field].
+  DartType getFieldType(FieldEntity field);
 
   /// Returns the 'unaliased' type of [type]. For typedefs this is the function
   /// type it is an alias of, for other types it is the type itself.
@@ -2009,6 +1995,13 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// argument is passed.
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
 
-  /// Returns the type of [field].
-  DartType getFieldType(FieldEntity field);
+  /// Returns the 'element' type of a function with the async, async* or sync*
+  /// marker [marker]. [returnType] is the return type marked function.
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker marker, DartType returnType);
+
+  /// Returns the 'element' type of a function with an async, async* or sync*
+  /// marker. The return type of the method is inspected to determine the type
+  /// parameter of the Future, Stream or Iterable.
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
 }

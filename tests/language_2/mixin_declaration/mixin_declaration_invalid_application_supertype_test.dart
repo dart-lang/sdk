@@ -26,6 +26,14 @@ mixin M2 on UnaryNum, UnaryInt {}
 class _ = UnaryInt with M2;  //# 04: compile-time error
 class _ = UnaryNum with M2;  //# 05: compile-time error
 
+// Note that it is not sufficient for the application to declare that it
+// implements the super-interface.
+abstract class _ = Object with M1 implements UnaryNum;  //# 06: compile-time error
+
+// Nor is it sufficient, in the case of an anonymous mixin application, for the
+// containing class to declare that it implements the super-interface.
+abstract class _ extends Object with M1 implements UnaryNum {}  //# 07: compile-time error
+
 main() {
   // M1 and M2 are valid types.
   Expect.notType<M1>(null);

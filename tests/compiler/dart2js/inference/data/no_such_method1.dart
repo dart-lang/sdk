@@ -5,13 +5,17 @@
 /*element: A.:[exact=A]*/
 class A {
   /*element: A.noSuchMethod:[exact=JSUInt31]*/
-  noSuchMethod(/*[null|subclass=Object]*/ im) => 42;
+  noSuchMethod(
+          /*strong.[null|subclass=Object]*/
+          /*omit.[null|exact=JSInvocationMirror]*/
+          im) =>
+      42;
 }
 
 /*element: B.:[exact=B]*/
 class B extends A {
-  /*strong.element: B.foo:[exact=JSUInt31]*/
-  /*strong.invoke: [subclass=B]*/ foo();
+  /*element: B.foo:[exact=JSUInt31]*/
+  /*invoke: [subclass=B]*/ foo();
 }
 
 /*element: C.:[exact=C]*/

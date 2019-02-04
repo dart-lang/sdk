@@ -6,8 +6,6 @@ library dart._js_helper;
 
 import 'dart:collection';
 
-import 'dart:_debugger' show stackTraceMapper;
-
 import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT, JSExportName;
 
 import 'dart:_interceptors';
@@ -576,53 +574,6 @@ class UnknownJsTypeError extends Error {
   UnknownJsTypeError(this._message);
 
   String toString() => _message.isEmpty ? 'Error' : 'Error: $_message';
-}
-
-/**
- * Called by generated code to fetch the stack trace from a Dart
- * exception. Should never return null.
- */
-final _stackTrace = JS('', 'Symbol("_stackTrace")');
-StackTrace getTraceFromException(exception) {
-  var error = dart.recordJsError(exception);
-  StackTrace trace = JS('', '#[#]', error, _stackTrace);
-  if (trace != null) return trace;
-  trace = _StackTrace(error);
-  JS('', '#[#] = #', error, _stackTrace, trace);
-  return trace;
-}
-
-/**
- * Called on rethrow to (potentially) set a different trace.
- */
-void setTraceForException(exception, StackTrace trace) {
-  var error = dart.recordJsError(exception);
-  JS('', '#[#] = #', error, _stackTrace, trace);
-}
-
-class _StackTrace implements StackTrace {
-  var _exception;
-  String _trace;
-
-  _StackTrace(this._exception);
-
-  String toString() {
-    if (_trace != null) return _trace;
-
-    String trace;
-    if (JS('bool', '# !== null', _exception) &&
-        JS('bool', 'typeof # === "object"', _exception)) {
-      if (_exception is NativeError) {
-        trace = _exception.dartStack();
-      } else {
-        trace = JS("", r"#.stack", _exception);
-      }
-      if (trace != null && stackTraceMapper != null) {
-        trace = stackTraceMapper(trace);
-      }
-    }
-    return _trace = (trace == null) ? '' : trace;
-  }
 }
 
 /**

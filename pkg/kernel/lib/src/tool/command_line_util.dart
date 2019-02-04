@@ -68,13 +68,13 @@ List<ProgramRoot> parseProgramRoots(List<String> embedderEntryPointManifests) {
 }
 
 class CommandLineHelper {
-  static requireExactlyOneArgument(
-      bool requireExistingFile, List<String> args, void Function() usage) {
+  static requireExactlyOneArgument(List<String> args, void Function() usage,
+      {bool requireFileExists: false}) {
     if (args.length != 1) {
       print("Expected exactly 1 argument, got ${args.length}.");
       usage();
     }
-    requireFileExists(args[0], usage);
+    if (requireFileExists) CommandLineHelper.requireFileExists(args[0]);
   }
 
   static requireVariableArgumentCount(
@@ -86,19 +86,20 @@ class CommandLineHelper {
     }
   }
 
-  static requireFileExists(String file, void Function() usage) {
+  static requireFileExists(String file) {
     if (!new File(file).existsSync()) {
-      print("Argument '$file' isn't an existing file.");
-      usage();
+      print("File $file doesn't exist.");
+      exit(1);
     }
   }
 
-  static Component tryLoadDill(String file, void Function() usage) {
+  static Component tryLoadDill(String file) {
     try {
       return loadComponentFromBinary(file);
     } catch (e) {
-      print("Argument '$file' isn't a dill file that can be loaded.");
-      usage();
+      print("$file can't be loaded.");
+      print(e);
+      exit(1);
     }
     return null;
   }

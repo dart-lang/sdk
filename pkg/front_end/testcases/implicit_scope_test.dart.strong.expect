@@ -3,8 +3,10 @@ import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
 
+import "package:expect/expect.dart";
+
 class ImplicitScopeTest extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::ImplicitScopeTest
     : super core::Object::•()
     ;
   static method alwaysTrue() → core::bool {

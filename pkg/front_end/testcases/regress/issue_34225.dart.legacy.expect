@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34225.dart:6:14: Error: A class member can't have the same name as the enclosing class.
+//   static set C(v) {} //# 01: compile-time error
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_34225.dart:10:7: Error: A class member can't have the same name as the enclosing class.
+//   set D(v) {} //# 02: compile-time error
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static set C(dynamic v) → dynamic {}
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  set D(dynamic v) → dynamic {}
+}
+static method main() → dynamic {
+  dynamic c = new self::C::•();
+  c.C = 5;
+  dynamic d = new self::D::•();
+  d.D = 5;
+}

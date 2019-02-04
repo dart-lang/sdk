@@ -1,27 +1,32 @@
-// Formatted problems:
+library test;
 //
-// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 // Try changing the type of the variable.
 //   for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
 //                                                       ^
 //
-// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 // Try changing the type of the variable.
 //   await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
 //                                                             ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+import "dart:async";
+
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
@@ -46,22 +51,24 @@ static method test() → dynamic async {
     b = #t4 as{TypeError} self::B;
   }
   for (final self::A #t5 in iterable) {
-    i = let dynamic _ = null in let final dynamic #t6 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+    i = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
-                                                      ^" in let final dynamic #t7 = #t5 in null;
+                                                      ^" in #t5 as{TypeError} core::int;
   }
-  await for (final self::A #t8 in stream) {
-    i = let dynamic _ = null in let final dynamic #t9 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+  await for (final self::A #t7 in stream) {
+    i = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
-                                                            ^" in let final dynamic #t10 = #t8 in null;
+                                                            ^" in #t7 as{TypeError} core::int;
   }
-  for (final self::A #t11 in self::f<core::Iterable<self::A>>()) {
-    a = #t11;
+  for (final self::A #t9 in self::f<core::Iterable<self::A>>()) {
+    a = #t9;
   }
-  await for (final self::A #t12 in self::f<asy::Stream<self::A>>()) {
-    a = #t12;
+  await for (final self::A #t10 in self::f<asy::Stream<self::A>>()) {
+    a = #t10;
   }
 }
 static method main() → dynamic {}

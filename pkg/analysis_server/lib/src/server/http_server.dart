@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,24 +19,6 @@ abstract class AbstractGetHandler {
 }
 
 /**
- * An [AbstractGetHandler] that always returns the given error message.
- */
-class ErrorGetHandler extends AbstractGetHandler {
-  final String message;
-
-  ErrorGetHandler(this.message);
-
-  @override
-  void handleGetRequest(HttpRequest request) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.notFound;
-    response.headers.contentType = ContentType.text;
-    response.write(message);
-    response.close();
-  }
-}
-
-/**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
  * server:
  *
@@ -53,7 +35,7 @@ class HttpAnalysisServer {
    * An object that can handle either a WebSocket connection or a connection
    * to the client over stdio.
    */
-  SocketServer socketServer;
+  AbstractSocketServer socketServer;
 
   /**
    * An object that can handle GET requests.
@@ -68,7 +50,7 @@ class HttpAnalysisServer {
   /**
    * Last PRINT_BUFFER_LENGTH lines printed.
    */
-  List<String> _printBuffer = <String>[];
+  final List<String> _printBuffer = <String>[];
 
   /**
    * Initialize a newly created HTTP server.

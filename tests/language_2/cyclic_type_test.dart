@@ -6,25 +6,33 @@
 
 import "package:expect/expect.dart";
 
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Base<T> {
   get t => T;
 }
 
 // Derived<T> is contractive.
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived<T> extends Base<Derived<T>> {} // //# 00: ok
 
 // Derived<T> is contractive.
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived<T> extends Base<Derived<Derived<int>>> {} // //# 01: ok
 
 // Derived<T> is non-contractive.
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived<T> extends Base<Derived<Derived<T>>> {} // //# 02: ok
 
 // Derived1<U> and Derived2<V> are contractive.
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived1<U> extends Base<Derived2<U>> {} //  //# 03: ok
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived2<V> extends Base<Derived1<V>> {} //  //# 03: ok
 
 // Derived1<U> and Derived2<V> are non-contractive.
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived1<U> extends Base<Derived2<U>> {} //  //# 04: ok
+@pragma("vm:entry-point")  // Prevent obfuscation
 class Derived2<V> extends Base<Derived1<Derived2<V>>> {} //  //# 04: ok
 
 main() {

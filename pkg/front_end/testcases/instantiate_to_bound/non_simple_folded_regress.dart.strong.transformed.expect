@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class Hest<TypeX extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Hest<self::Hest::TypeX>
     : super core::Object::•()
     ;
 }
 class Fisk<TypeY extends self::Hest<self::Hest<core::Object>> = self::Hest<self::Hest<core::Object>>> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Fisk<self::Fisk::TypeY>
     : super core::Object::•()
     ;
 }

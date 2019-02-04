@@ -21,7 +21,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/tags.h"
 
 namespace dart {
 
@@ -37,7 +36,7 @@ class StackTraceBuilder : public ValueObject {
   StackTraceBuilder() {}
   virtual ~StackTraceBuilder() {}
 
-  virtual void AddFrame(const Code& code, const Smi& offset) = 0;
+  virtual void AddFrame(const Object& code, const Smi& offset) = 0;
 };
 
 class RegularStackTraceBuilder : public StackTraceBuilder {
@@ -52,7 +51,7 @@ class RegularStackTraceBuilder : public StackTraceBuilder {
   const GrowableObjectArray& code_list() const { return code_list_; }
   const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
 
-  virtual void AddFrame(const Code& code, const Smi& offset) {
+  virtual void AddFrame(const Object& code, const Smi& offset) {
     code_list_.Add(code);
     pc_offset_list_.Add(offset);
   }
@@ -75,7 +74,7 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   }
   ~PreallocatedStackTraceBuilder() {}
 
-  virtual void AddFrame(const Code& code, const Smi& offset);
+  virtual void AddFrame(const Object& code, const Smi& offset);
 
  private:
   static const int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
@@ -87,11 +86,11 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   DISALLOW_COPY_AND_ASSIGN(PreallocatedStackTraceBuilder);
 };
 
-void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
+void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
                                              const Smi& offset) {
   if (cur_index_ >= StackTrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
-    Code& frame_code = Code::Handle();
+    Object& frame_code = Object::Handle();
     Smi& frame_offset = Smi::Handle();
     intptr_t start = StackTrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
@@ -129,13 +128,21 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
+  Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
-      code = frame->LookupDartCode();
-      ASSERT(code.ContainsInstructionAt(frame->pc()));
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      builder->AddFrame(code, offset);
+      if (frame->is_interpreted()) {
+        bytecode = frame->LookupDartBytecode();
+        ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
+        offset = Smi::New(frame->pc() - bytecode.PayloadStart());
+        builder->AddFrame(bytecode, offset);
+      } else {
+        code = frame->LookupDartCode();
+        ASSERT(code.ContainsInstructionAt(frame->pc()));
+        offset = Smi::New(frame->pc() - code.PayloadStart());
+        builder->AddFrame(code, offset);
+      }
     }
     frame = frames.NextFrame();
   }
@@ -241,7 +248,7 @@ class ExceptionHandlerFinder : public StackResource {
       switch (move.source_kind()) {
         case CatchEntryMove::SourceKind::kConstant:
           if (pool == nullptr) {
-            pool = &ObjectPool::Handle(code_->object_pool());
+            pool = &ObjectPool::Handle(code_->GetObjectPool());
           }
           value = pool->ObjectAt(move.src_slot());
           break;
@@ -441,8 +448,7 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
         (*pending_deopts)[i].set_pc(program_counter);
 
         // Jump to the deopt stub instead of the catch handler.
-        program_counter =
-            StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint();
+        program_counter = StubCode::DeoptimizeLazyFromThrow().EntryPoint();
         if (FLAG_trace_deoptimization) {
           THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
                     frame_pointer);
@@ -509,7 +515,7 @@ static void JumpToExceptionHandler(Thread* thread,
   thread->set_active_exception(exception_object);
   thread->set_active_stacktrace(stacktrace_object);
   thread->set_resume_pc(remapped_pc);
-  uword run_exception_pc = StubCode::RunExceptionHandler_entry()->EntryPoint();
+  uword run_exception_pc = StubCode::RunExceptionHandler().EntryPoint();
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
                           frame_pointer, false /* do not clear deopt */);
 }
@@ -540,7 +546,7 @@ void Exceptions::JumpToFrame(Thread* thread,
   // TODO(regis): We still possibly need to unwind interpreter frames if they
   // are callee frames of the C++ frame handling the exception.
   if (FLAG_enable_interpreter) {
-    Interpreter* interpreter = thread->isolate()->interpreter();
+    Interpreter* interpreter = thread->interpreter();
     if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
       interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
                                thread);
@@ -556,8 +562,8 @@ void Exceptions::JumpToFrame(Thread* thread,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
   typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
-  ExcpHandler func = reinterpret_cast<ExcpHandler>(
-      StubCode::JumpToFrame_entry()->EntryPoint());
+  ExcpHandler func =
+      reinterpret_cast<ExcpHandler>(StubCode::JumpToFrame().EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = OSThread::GetCurrentStackPointer() - 1024;
@@ -612,10 +618,12 @@ RawStackTrace* Exceptions::CurrentStackTrace() {
   return GetStackTraceForException();
 }
 
+DART_NORETURN
 static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   bool use_preallocated_stacktrace = false;
@@ -745,18 +753,14 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const AbstractType& src_type,
                                          const AbstractType& dst_type,
-                                         const String& dst_name,
-                                         const String& bound_error_msg) {
+                                         const String& dst_name) {
   ASSERT(!dst_name.IsNull());  // Pass Symbols::Empty() instead.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Array& args = Array::Handle(zone, Array::New(4));
 
   ExceptionType exception_type =
-      (bound_error_msg.IsNull() &&
-       (dst_name.raw() == Symbols::InTypeCast().raw()))
-          ? kCast
-          : kType;
+      (dst_name.raw() == Symbols::InTypeCast().raw()) ? kCast : kType;
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -780,51 +784,38 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New(20));
 
-  // Print bound error first, if any.
-  if (!bound_error_msg.IsNull() && (bound_error_msg.Length() > 0)) {
-    pieces.Add(bound_error_msg);
-    pieces.Add(Symbols::NewLine());
-  }
-
   // If dst_type is malformed or malbounded, only print the embedded error.
   if (!dst_type.IsNull()) {
-    const LanguageError& error = LanguageError::Handle(zone, dst_type.error());
-    if (!error.IsNull()) {
-      // Print the embedded error only.
-      pieces.Add(String::Handle(zone, String::New(error.ToErrorCString())));
-      pieces.Add(Symbols::NewLine());
-    } else {
-      // Describe the type error.
-      if (!src_type.IsNull()) {
-        pieces.Add(Symbols::TypeQuote());
-        pieces.Add(String::Handle(zone, src_type.UserVisibleName()));
-        pieces.Add(Symbols::QuoteIsNotASubtypeOf());
-      }
+    // Describe the type error.
+    if (!src_type.IsNull()) {
       pieces.Add(Symbols::TypeQuote());
-      pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
+      pieces.Add(String::Handle(zone, src_type.UserVisibleName()));
+      pieces.Add(Symbols::QuoteIsNotASubtypeOf());
+    }
+    pieces.Add(Symbols::TypeQuote());
+    pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
+    pieces.Add(Symbols::SingleQuote());
+    if (exception_type == kCast) {
+      pieces.Add(dst_name);
+    } else if (dst_name.Length() > 0) {
+      pieces.Add(Symbols::SpaceOfSpace());
       pieces.Add(Symbols::SingleQuote());
-      if (exception_type == kCast) {
-        pieces.Add(dst_name);
-      } else if (dst_name.Length() > 0) {
-        pieces.Add(Symbols::SpaceOfSpace());
-        pieces.Add(Symbols::SingleQuote());
-        pieces.Add(dst_name);
-        pieces.Add(Symbols::SingleQuote());
-      }
-      // Print ambiguous URIs of src and dst types.
-      URIs uris(zone, 12);
-      if (!src_type.IsNull()) {
-        src_type.EnumerateURIs(&uris);
-      }
-      if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
-        dst_type.EnumerateURIs(&uris);
-      }
-      const String& formatted_uris =
-          String::Handle(zone, AbstractType::PrintURIs(&uris));
-      if (formatted_uris.Length() > 0) {
-        pieces.Add(Symbols::SpaceWhereNewLine());
-        pieces.Add(formatted_uris);
-      }
+      pieces.Add(dst_name);
+      pieces.Add(Symbols::SingleQuote());
+    }
+    // Print ambiguous URIs of src and dst types.
+    URIs uris(zone, 12);
+    if (!src_type.IsNull()) {
+      src_type.EnumerateURIs(&uris);
+    }
+    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+      dst_type.EnumerateURIs(&uris);
+    }
+    const String& formatted_uris =
+        String::Handle(zone, AbstractType::PrintURIs(&uris));
+    if (formatted_uris.Length() > 0) {
+      pieces.Add(Symbols::SpaceWhereNewLine());
+      pieces.Add(formatted_uris);
     }
   }
   const Array& arr = Array::Handle(zone, Array::MakeFixedLength(pieces));
@@ -868,9 +859,10 @@ void Exceptions::ReThrow(Thread* thread,
 }
 
 void Exceptions::PropagateError(const Error& error) {
+  ASSERT(!error.IsNull());
   Thread* thread = Thread::Current();
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
-  ASSERT(thread->top_exit_frame_info() != 0);
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
     // rethrow the exception in the normal fashion.

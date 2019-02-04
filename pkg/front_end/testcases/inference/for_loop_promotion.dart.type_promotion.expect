@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/for_loop_promotion.dart:9:47: Context: Write to x@287
+  for (num x = 0; x /*@target=num::<*/ < 10; x++) {
+                                              ^^
+pkg/front_end/testcases/inference/for_loop_promotion.dart:10:11: Context: Possible promotion of x@287
+    if (x is int) {
+          ^^

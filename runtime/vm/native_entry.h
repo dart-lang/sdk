@@ -8,14 +8,13 @@
 #include "platform/memory_sanitizer.h"
 
 #include "vm/allocation.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
 #include "vm/heap/verifier.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
+#include "vm/native_function.h"
 #include "vm/runtime_entry.h"
 
-#include "include/dart_api.h"
 
 namespace dart {
 
@@ -23,23 +22,7 @@ namespace dart {
 class Class;
 class String;
 
-// We have three variants of native functions:
-//  - bootstrap natives, which are called directly from stub code. The callee is
-//    responsible for safepoint transitions and setting up handle scopes as
-//    needed. Only VM-defined natives are bootstrap natives; they cannot be
-//    defined by embedders or native extensions.
-//  - no scope natives, which are called through a wrapper function. The wrapper
-//    function handles the safepoint transition. The callee is responsible for
-//    setting up API scopes as needed.
-//  - auto scope natives, which are called through a wrapper function. The
-//    wrapper function handles the safepoint transition and sets up an API
-//    scope.
-
-typedef void (*NativeFunction)(NativeArguments* arguments);
-typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
-                                      Dart_NativeFunction func);
-
-#ifndef PRODUCT
+#ifdef DEBUG
 #define TRACE_NATIVE_CALL(format, name)                                        \
   if (FLAG_trace_natives) {                                                    \
     THR_Print("Calling native: " format "\n", name);                           \
@@ -61,7 +44,7 @@ typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
 #define SET_NATIVE_RETVAL(arguments, value) arguments->SetReturnUnsafe(value);
 #endif
 
-#define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
+#define DEFINE_NATIVE_ENTRY(name, type_argument_count, argument_count)         \
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments);   \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
@@ -71,6 +54,8 @@ typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
     /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
     MSAN_UNPOISON(arguments, sizeof(*arguments));                              \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
+    /* Note: a longer type arguments vector may be passed */                   \
+    ASSERT(arguments->NativeTypeArgCount() >= type_argument_count);            \
     TRACE_NATIVE_CALL("%s", "" #name);                                         \
     {                                                                          \
       Thread* thread = arguments->thread();                                    \
@@ -192,6 +177,9 @@ class NativeEntryData : public ValueObject {
   static Payload* FromTypedArray(RawTypedData* data);
 
   const TypedData& data_;
+
+  friend class Interpreter;
+  friend class ObjectPoolSerializationCluster;
   DISALLOW_COPY_AND_ASSIGN(NativeEntryData);
 };
 

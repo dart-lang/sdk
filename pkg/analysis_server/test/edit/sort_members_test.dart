@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -35,7 +35,8 @@ class SortMembersTest extends AbstractAnalysisTest {
   test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     Request request =
-        new EditSortMembersParams('/no/such/file.dart').toRequest('0');
+        new EditSortMembersParams(convertPath('/no/such/file.dart'))
+            .toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
@@ -54,11 +55,32 @@ main() {
   }
 
   test_BAD_notDartFile() async {
-    Request request =
-        new EditSortMembersParams('/not-a-Dart-file.txt').toRequest('0');
+    Request request = new EditSortMembersParams(
+      convertPath('/not-a-Dart-file.txt'),
+    ).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new EditSortMembersParams('test.dart').toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        new EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
+            .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_OK_afterWaitForAnalysis() async {

@@ -76,8 +76,12 @@ class DeduplicateMixinsTransformer extends Transformer {
     }
 
     if (c.supertype != null) {
-      _transformSupertype(c);
+      c.supertype = _transformSupertype(c.supertype, c, true);
     }
+    if (c.mixedInType != null) {
+      throw 'All mixins should be transformed already.';
+    }
+    transformSupertypeList(c.implementedTypes, this);
 
     if (!c.isAnonymousMixin) {
       return c;
@@ -97,18 +101,24 @@ class DeduplicateMixinsTransformer extends Transformer {
     return c;
   }
 
-  void _transformSupertype(Class c) {
-    Class oldSuper = c.superclass;
-    if (oldSuper == null) {
-      return;
-    }
+  @override
+  Supertype visitSupertype(Supertype node) {
+    return _transformSupertype(node, null, false);
+  }
+
+  Supertype _transformSupertype(
+      Supertype supertype, Class cls, bool isSuperclass) {
+    Class oldSuper = supertype.classNode;
     Class newSuper = visitClass(oldSuper);
     if (newSuper == null) {
       Class canonicalSuper = _duplicatedMixins[oldSuper];
       assert(canonicalSuper != null);
-      c.supertype = new Supertype(canonicalSuper, c.supertype.typeArguments);
-      _correctForwardingConstructors(c, oldSuper, canonicalSuper);
+      supertype = new Supertype(canonicalSuper, supertype.typeArguments);
+      if (isSuperclass) {
+        _correctForwardingConstructors(cls, oldSuper, canonicalSuper);
+      }
     }
+    return supertype;
   }
 
   @override
@@ -116,26 +126,24 @@ class DeduplicateMixinsTransformer extends Transformer {
       throw 'Unexpected node ${node.runtimeType}: $node';
 }
 
-/// Corrects synthetic forwarding constructors inserted by mixin resolution
-/// after replacing superclass.
+/// Corrects forwarding constructors inserted by mixin resolution after
+/// replacing superclass.
 void _correctForwardingConstructors(Class c, Class oldSuper, Class newSuper) {
   for (var constructor in c.constructors) {
-    if (constructor.isSynthetic) {
-      for (var initializer in constructor.initializers) {
-        if ((initializer is SuperInitializer) &&
-            initializer.target.enclosingClass == oldSuper) {
-          Constructor replacement = null;
-          for (var c in newSuper.constructors) {
-            if (c.name == initializer.target.name) {
-              replacement = c;
-              break;
-            }
+    for (var initializer in constructor.initializers) {
+      if ((initializer is SuperInitializer) &&
+          initializer.target.enclosingClass == oldSuper) {
+        Constructor replacement = null;
+        for (var c in newSuper.constructors) {
+          if (c.name == initializer.target.name) {
+            replacement = c;
+            break;
           }
-          if (replacement == null) {
-            throw 'Unable to find a replacement for $c in $newSuper';
-          }
-          initializer.target = replacement;
         }
+        if (replacement == null) {
+          throw 'Unable to find a replacement for $c in $newSuper';
+        }
+        initializer.target = replacement;
       }
     }
   }

@@ -29,8 +29,6 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   bool get isTypeDeclaration => true;
 
-  bool get isMixinApplication => false;
-
   @override
   String get fullNameForErrors => name;
 

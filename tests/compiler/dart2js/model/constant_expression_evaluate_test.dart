@@ -31,10 +31,7 @@ class TestData {
   /// Tested constants.
   final List<ConstantData> constants;
 
-  final bool strongModeOnly;
-
-  const TestData(this.name, this.declarations, this.constants,
-      {this.strongModeOnly: false});
+  const TestData(this.name, this.declarations, this.constants);
 }
 
 class ConstantData {
@@ -67,6 +64,10 @@ class MemoryEnvironment implements EvaluationEnvironment {
   final List<EvaluationError> errors = <EvaluationError>[];
 
   MemoryEnvironment(this._environment, [this.env = const <String, String>{}]);
+
+  bool get checkCasts => true;
+
+  bool get immediateUnderSetLiteral => _environment.immediateUnderSetLiteral;
 
   @override
   String readFromEnvironment(String name) => env[name];
@@ -128,6 +129,11 @@ class MemoryEnvironment implements EvaluationEnvironment {
   @override
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {
     return _environment.evaluateField(field, evaluate);
+  }
+
+  @override
+  ConstantValue evaluateMapBody(ConstantValue evaluate()) {
+    return _environment.evaluateMapBody(evaluate);
   }
 
   @override
@@ -539,9 +545,7 @@ class B extends A {
     const ConstantData(r'const D(0)',
         'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
   ]),
-  const TestData(
-      'instantiations',
-      '''
+  const TestData('instantiations', '''
 T identity<T>(T t) => t;
 class C<T> {
   final T defaultValue;
@@ -549,21 +553,30 @@ class C<T> {
 
   const C(this.defaultValue, this.identityFunction);
 }
-  ''',
-      const <ConstantData>[
-        const ConstantData('identity', 'FunctionConstant(identity)'),
-        const ConstantData(
-            'const C<int>(0, identity)',
-            'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
-            'identityFunction=InstantiationConstant([int],'
-            'FunctionConstant(identity))))'),
-        const ConstantData(
-            'const C<double>(0.5, identity)',
-            'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
-            'identityFunction=InstantiationConstant([double],'
-            'FunctionConstant(identity))))'),
-      ],
-      strongModeOnly: true)
+  ''', const <ConstantData>[
+    const ConstantData('identity', 'FunctionConstant(identity)'),
+    const ConstantData(
+        'const C<int>(0, identity)',
+        'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
+        'identityFunction=InstantiationConstant([int],'
+        'FunctionConstant(identity))))'),
+    const ConstantData(
+        'const C<double>(0.5, identity)',
+        'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
+        'identityFunction=InstantiationConstant([double],'
+        'FunctionConstant(identity))))'),
+  ]),
+  const TestData('generic class', '''
+class C<T> {
+  const C.generative();
+  const C.redirect() : this.generative();
+}
+  ''', const <ConstantData>[
+    const ConstantData(
+        'const C<int>.generative()', 'ConstructedConstant(C<int>())'),
+    const ConstantData(
+        'const C<int>.redirect()', 'ConstructedConstant(C<int>())'),
+  ])
 ];
 
 main(List<String> args) {

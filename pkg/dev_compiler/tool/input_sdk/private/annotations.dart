@@ -30,7 +30,7 @@ class NoReifyGeneric {
   const NoReifyGeneric();
 }
 
-/// Enables/disables reificiation of functions within the body of this function.
+/// Enables/disables reification of functions within the body of this function.
 /// ****CAUTION******
 /// This is currently unchecked, and hence should be used very carefully for
 /// internal SDK APIs only.

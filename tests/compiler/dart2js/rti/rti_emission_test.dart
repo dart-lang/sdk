@@ -13,8 +13,8 @@ import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/js_model/js_world.dart';
+import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -24,14 +24,14 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
-    await checkTests(dataDir, const RtiEmissionDataComputer(),
-        args: args, testOmit: true);
+    await checkTests(dataDir, const RtiEmissionDataComputer(), args: args);
   });
 }
 
 class Tags {
   static const String isChecks = 'checks';
-  static const String instance = 'instance';
+  static const String indirectInstance = 'indirectInstance';
+  static const String directInstance = 'instance';
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
@@ -61,9 +61,12 @@ abstract class ComputeValueMixin {
     }
     ClassUse classUse = checksBuilder.classUseMapForTesting[element];
     if (classUse != null) {
-      if (classUse.instance) {
-        features.add(Tags.instance);
+      if (classUse.directInstance) {
+        features.add(Tags.directInstance);
+      } else if (classUse.instance) {
+        features.add(Tags.indirectInstance);
       }
+
       if (classUse.checkedInstance) {
         features.add(Tags.checkedInstance);
       }
@@ -88,39 +91,43 @@ abstract class ComputeValueMixin {
   }
 }
 
-class RtiEmissionDataComputer extends DataComputer {
+class RtiEmissionDataComputer extends DataComputer<String> {
   const RtiEmissionDataComputer();
 
   @override
   bool get computesClassData => true;
 
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, backendStrategy.closureDataLookup)
+            member, compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
   @override
   void computeClassData(
-      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
         .computeClassValue(cls);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
-class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
+class RtiClassEmissionIrComputer extends DataRegistry<String>
+    with ComputeValueMixin {
   final Compiler compiler;
   final JsToElementMap _elementMap;
-  final Map<Id, ActualData> actualMap;
+  final Map<Id, ActualData<String>> actualMap;
 
   RtiClassEmissionIrComputer(this.compiler, this._elementMap, this.actualMap);
 
@@ -134,15 +141,15 @@ class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
   }
 }
 
-class RtiMemberEmissionIrComputer extends IrDataExtractor
+class RtiMemberEmissionIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin {
   final JsToElementMap _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberEmissionIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
       this.compiler,

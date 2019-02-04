@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'non_hint_code_test.dart';
+import 'non_hint_code.dart';
 
 main() {
   defineReflectiveSuite(() {

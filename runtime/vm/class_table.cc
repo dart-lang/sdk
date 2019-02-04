@@ -126,6 +126,14 @@ void ClassTable::Register(const Class& cls) {
     if (top_ == capacity_) {
       // Grow the capacity of the class table.
       // TODO(koda): Add ClassTable::Grow to share code.
+
+#ifndef PRODUCT
+      // Wait for any marking tasks to complete. Allocation stats in the
+      // marker rely on the class table size not changing.
+      Thread* thread = Thread::Current();
+      thread->heap()->WaitForMarkerTasks(thread);
+#endif
+
       intptr_t new_capacity = capacity_ + capacity_increment_;
       ClassAndSize* new_table = reinterpret_cast<ClassAndSize*>(
           malloc(new_capacity * sizeof(ClassAndSize)));  // NOLINT
@@ -159,6 +167,14 @@ void ClassTable::AllocateIndex(intptr_t index) {
   if (index >= capacity_) {
     // Grow the capacity of the class table.
     // TODO(koda): Add ClassTable::Grow to share code.
+
+#ifndef PRODUCT
+    // Wait for any marking tasks to complete. Allocation stats in the
+    // marker rely on the class table size not changing.
+    Thread* thread = Thread::Current();
+    thread->heap()->WaitForMarkerTasks(thread);
+#endif
+
     intptr_t new_capacity = index + capacity_increment_;
     if (!Class::is_valid_id(index) || new_capacity < capacity_) {
       FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",

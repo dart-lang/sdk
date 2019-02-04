@@ -10,6 +10,7 @@
 #include "vm/heap/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -298,9 +299,21 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
   }
 
+#if defined(DEBUG)
   ASSERT(size != 0);
-  ASSERT(size == Size());
+  const intptr_t expected_size = Size();
+
+  // In general we expect that visitors return exactly the same size that Size
+  // would compute. However in case of Arrays we might have a discrepancy when
+  // concurrently visiting an array that is being shrunk with
+  // Array::MakeFixedLength: the visitor might have visited the full array while
+  // here we are observing a smaller Size().
+  ASSERT(size == expected_size ||
+         (class_id == kArrayCid && size > expected_size));
+  return size;  // Prefer larger size.
+#else
   return size;
+#endif
 }
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {
@@ -369,20 +382,16 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
   }
 
 REGULAR_VISITOR(Class)
-REGULAR_VISITOR(UnresolvedClass)
+REGULAR_VISITOR(Bytecode)
 REGULAR_VISITOR(Type)
 REGULAR_VISITOR(TypeRef)
 REGULAR_VISITOR(TypeParameter)
-REGULAR_VISITOR(BoundedType)
-REGULAR_VISITOR(MixinAppType)
 REGULAR_VISITOR(PatchClass)
 COMPRESSED_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
 REGULAR_VISITOR(RedirectionData)
 REGULAR_VISITOR(Field)
-REGULAR_VISITOR(LiteralToken)
-REGULAR_VISITOR(TokenStream)
 REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
 REGULAR_VISITOR(LibraryPrefix)
@@ -488,6 +497,9 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
 #else
   visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
 
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&raw_obj->ptr()->bytecode_));
+
   if (ShouldVisitCode(raw_obj->ptr()->code_)) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&raw_obj->ptr()->code_));
@@ -506,9 +518,8 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
 }
 
 bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
-  uint32_t tags = raw_obj->ptr()->tags_;
-  if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
-    RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
+  if (raw_obj->IsCode()) {
+    RawCode* raw_code = static_cast<RawCode*>(raw_obj);
     return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
   }
   return false;
@@ -542,6 +553,16 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 #endif
 }
 
+bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
+  if (raw_obj->IsBytecode()) {
+    RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
+    uword start = raw_bytecode->ptr()->instructions_;
+    uword size = raw_bytecode->ptr()->instructions_size_;
+    return (pc - start) < size;
+  }
+  return false;
+}
+
 intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   const intptr_t length = raw_obj->ptr()->length_;
@@ -550,7 +571,8 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
         ObjectPool::TypeBits::decode(entry_bits[i]);
-    if (entry_type == ObjectPool::kTaggedObject) {
+    if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
+        (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }
@@ -590,5 +612,20 @@ intptr_t RawImmutableArray::VisitImmutableArrayPointers(
     ObjectPointerVisitor* visitor) {
   return RawArray::VisitArrayPointers(raw_obj, visitor);
 }
+
+void RawObject::RememberCard(RawObject* const* slot) {
+  HeapPage::Of(this)->RememberCard(slot);
+}
+
+DEFINE_LEAF_RUNTIME_ENTRY(void,
+                          RememberCard,
+                          2,
+                          RawObject* object,
+                          RawObject** slot) {
+  ASSERT(object->IsOldObject());
+  ASSERT(object->IsCardRemembered());
+  HeapPage::Of(object)->RememberCard(slot);
+}
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

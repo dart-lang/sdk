@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35260.dart:7:11: Error: 'Supertype' is already declared in this scope.
+//   factory Supertype() = X;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/regress/issue_35260.dart:6:11: Context: Previous declaration of 'Supertype'.
+//   factory Supertype() = X;
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_35260.dart:15:13: Error: Can't use 'Supertype' because it is declared more than once.
+//   X x = new Supertype();
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Supertype extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::Supertype::•];
+  static factory •() → self::Supertype
+    let<BottomType> #redirecting_factory = self::X::• in invalid-expression;
+}
+class X extends core::Object implements self::Supertype {
+  constructor •() → self::X
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::X x = invalid-expression "pkg/front_end/testcases/regress/issue_35260.dart:15:13: Error: Can't use 'Supertype' because it is declared more than once.
+  X x = new Supertype();
+            ^" as{TypeError} self::X;
+}

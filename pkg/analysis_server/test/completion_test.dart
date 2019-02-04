@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -163,19 +163,13 @@ interface A<X> default B<X extends !1List!2> {}''',
         <String>["1+DateTime", "2+List"],
         failingTests: '12');
 
-    buildTests(
-        'testCommentSnippets030',
-        '''
+    buildTests('testCommentSnippets030', '''
 class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}final T!6 f = null;}''',
-        <String>["1+T", "2+T", "3+T", "4+T", "5+T", "6+T"],
-        failingTests: '123456');
+        <String>["1+T", "2+T", "3+T", "4+T", "5+T", "6+T"]);
 
-    buildTests(
-        'testCommentSnippets031',
-        '''
+    buildTests('testCommentSnippets031', '''
 class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is!!!2)}}''',
-        <String>["1+Bar", "1+T", "2+T", "2+Bar"],
-        failingTests: '12');
+        <String>["1+Bar", "1+T", "2+T", "2+Bar"]);
 
     buildTests(
         'testCommentSnippets032',
@@ -1709,8 +1703,7 @@ throw new Seria!1lizationException();}''',
     buildTests(
         'testLibrary002',
         '''t2() {var q=[0],z=q.!1length;q.!2clear();}''',
-        <String>["1+length", "1+isEmpty", "2+clear"],
-        failingTests: '1');
+        <String>["1+length", "1+isEmpty", "2+clear"]);
 
     // TODO Include corelib analysis
     buildTests('testLibrary003', '''class X{var q; f() {q.!1a!2}}''',

@@ -28,7 +28,7 @@ class _FileStream extends Stream<List<int>> {
   bool _atEnd = false;
 
   _FileStream(this._path, this._position, this._end) {
-    if (_position == null) _position = 0;
+    _position ??= 0;
   }
 
   _FileStream.forStdin() : _position = 0;
@@ -207,17 +207,13 @@ class _File extends FileSystemEntity implements File {
   Uint8List _rawPath;
 
   _File(String path) {
-    if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} is not a String');
-    }
+    ArgumentError.checkNotNull(path, 'path');
     _path = path;
     _rawPath = FileSystemEntity._toUtf8Array(path);
   }
 
   _File.fromRawPath(Uint8List rawPath) {
-    if (rawPath == null) {
-      throw new ArgumentError('rawPath cannot be null');
-    }
+    ArgumentError.checkNotNull(rawPath, 'rawPath');
     _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
     _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
   }
@@ -746,9 +742,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<List<int>> read(int bytes) {
-    if (bytes is! int) {
-      throw new ArgumentError(bytes);
-    }
+    ArgumentError.checkNotNull(bytes, 'bytes');
     return _dispatch(_IOService.fileRead, [null, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
@@ -761,9 +755,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   List<int> readSync(int bytes) {
     _checkAvailable();
-    if (bytes is! int) {
-      throw new ArgumentError(bytes);
-    }
+    ArgumentError.checkNotNull(bytes, 'bytes');
     var result = _ops.read(bytes);
     if (result is OSError) {
       throw new FileSystemException("readSync failed", path, result);
@@ -815,9 +807,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeByte(int value) {
-    if (value is! int) {
-      throw new ArgumentError(value);
-    }
+    ArgumentError.checkNotNull(value, 'value');
     return _dispatch(_IOService.fileWriteByte, [null, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
@@ -829,9 +819,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   int writeByteSync(int value) {
     _checkAvailable();
-    if (value is! int) {
-      throw new ArgumentError(value);
-    }
+    ArgumentError.checkNotNull(value, 'value');
     var result = _ops.writeByte(value);
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
@@ -895,17 +883,13 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> writeString(String string,
       {Encoding encoding: utf8}) {
-    if (encoding is! Encoding) {
-      throw new ArgumentError(encoding);
-    }
+    ArgumentError.checkNotNull(encoding, 'encoding');
     var data = encoding.encode(string);
     return writeFrom(data, 0, data.length);
   }
 
   void writeStringSync(String string, {Encoding encoding: utf8}) {
-    if (encoding is! Encoding) {
-      throw new ArgumentError(encoding);
-    }
+    ArgumentError.checkNotNull(encoding, 'encoding');
     var data = encoding.encode(string);
     writeFromSync(data, 0, data.length);
   }

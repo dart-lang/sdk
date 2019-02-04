@@ -549,6 +549,7 @@ class PositionTraceListener extends TraceListener
             CallPosition.getSemanticPositionForCall(node);
         registerPosition(callPosition.sourcePositionKind);
         break;
+      case StepKind.ACCESS:
       case StepKind.NEW:
       case StepKind.RETURN:
       case StepKind.BREAK:
@@ -771,6 +772,7 @@ enum StepKind {
   FUN_EXIT,
   CALL,
   NEW,
+  ACCESS,
   RETURN,
   BREAK,
   CONTINUE,
@@ -1010,6 +1012,18 @@ class JavaScriptTracer extends js.BaseVisitor {
   @override
   visitAccess(js.PropertyAccess node) {
     visit(node.receiver);
+    notifyStep(
+        node,
+        // Technically we'd like to use the offset of the `.` in the property
+        // access, but the js_ast doesn't expose it. Since this is only used to
+        // search backwards for inlined frames, we use the receiver's END offset
+        // instead as an approximation. Note that the END offset points one
+        // character after the end of the node, so it is likely always the
+        // offset we want.
+        getOffsetForNode(
+            node, getSyntaxOffset(node.receiver, kind: CodePositionKind.END)),
+        StepKind.ACCESS);
+    steps.add(node);
     visit(node.selector);
   }
 

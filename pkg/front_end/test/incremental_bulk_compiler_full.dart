@@ -7,7 +7,7 @@ import 'dart:async' show Future;
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator;
@@ -15,12 +15,8 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart' show Component;
 
@@ -56,21 +52,18 @@ class Context extends ChainContext {
 }
 
 CompilerOptions getOptions(bool strong) {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      // ignore
+    ..onDiagnostic = (DiagnosticMessage message) {
+      // Ignored.
     }
-    ..strongMode = strong;
+    ..legacyMode = !strong;
   if (strong) {
-    options.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
+    options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   } else {
-    options.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform.dill");
+    options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
   }
   return options;
 }
@@ -155,7 +148,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     }
     for (int i = 0; i < length; ++i) {
       if (a[i] != b[i]) {
-        Expect.fail("Data differs at byte ${i+1}.");
+        Expect.fail("Data differs at byte ${i + 1}.");
       }
     }
     Expect.equals(a.length, b.length);

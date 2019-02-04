@@ -173,19 +173,17 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (type is InterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
       if (_rtiNeed.classNeedsTypeArguments(type.element)) {
+        FunctionEntity helper = _commonElements.setRuntimeTypeInfo;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            _commonElements.setRuntimeTypeInfo,
-            null));
+            helper, helper.parameterStructure.callStructure));
       }
       if (type.element == _commonElements.typeLiteralClass) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
+        FunctionEntity helper = _commonElements.createRuntimeType;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            _commonElements.createRuntimeType,
-            null));
+            helper, helper.parameterStructure.callStructure));
       }
     }
   }

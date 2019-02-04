@@ -11,7 +11,7 @@ abstract class C<T extends core::Object = dynamic> extends core::Object {
 }
 class CImpl<T extends core::Object = dynamic> extends core::Object implements self::C<self::CImpl::T> {
   generic-covariant-impl field self::CImpl::T t;
-  constructor _(self::CImpl::T t) → void
+  constructor _(self::CImpl::T t) → self::CImpl<self::CImpl::T>
     : self::CImpl::t = t, super core::Object::•()
     ;
   static factory •<T extends core::Object = dynamic>(self::CImpl::•::T t) → self::CImpl<self::CImpl::•::T>

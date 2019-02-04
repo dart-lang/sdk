@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 import 'function_ast_visitor.dart';
 
+/// Helper for finding elements declared in the resolved [unit].
 class FindElement {
   final CompilationUnit unit;
 
@@ -22,18 +23,18 @@ class FindElement {
         return class_;
       }
     }
-    fail('Not found class: $name');
+    fail('Not found: $name');
   }
 
-  ConstructorElement constructor(String name, {String className}) {
+  ConstructorElement constructor(String name, {String of}) {
     assert(name != '');
     ConstructorElement result;
     for (var class_ in unitElement.types) {
-      if (className == null || class_.name == className) {
+      if (of == null || class_.name == of) {
         for (var constructor in class_.constructors) {
           if (constructor.name == name) {
             if (result != null) {
-              throw new StateError('Not constructor name: $name');
+              fail('Not unique: $name');
             }
             result = constructor;
           }
@@ -43,7 +44,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found constructor: $name');
+    fail('Not found: $name');
   }
 
   ClassElement enum_(String name) {
@@ -52,42 +53,67 @@ class FindElement {
         return enum_;
       }
     }
-    fail('Not found enum: $name');
+    fail('Not found: $name');
   }
 
   ExportElement export(String targetUri) {
-    ExportElement exportElement;
+    ExportElement result;
+
     for (var export in unitElement.library.exports) {
       var exportedUri = export.exportedLibrary.source.uri.toString();
       if (exportedUri == targetUri) {
-        if (exportElement != null) {
-          throw new StateError('Not unique $targetUri export.');
+        if (result != null) {
+          fail('Not unique: $targetUri');
         }
-        exportElement = export;
+        result = export;
       }
     }
-    if (exportElement != null) {
-      return exportElement;
+
+    if (result != null) {
+      return result;
     }
-    fail('Not found export: $targetUri');
+    fail('Not found: $targetUri');
   }
 
-  FieldElement field(String name) {
-    for (var type in unitElement.mixins) {
-      for (var field in type.fields) {
+  FieldElement field(String name, {String of}) {
+    FieldElement result;
+
+    void findIn(List<FieldElement> fields) {
+      for (var field in fields) {
         if (field.name == name) {
-          return field;
+          if (result != null) {
+            fail('Not unique: $name');
+          }
+          result = field;
         }
       }
     }
-    for (var type in unitElement.types) {
-      for (var field in type.fields) {
-        if (field.name == name) {
-          return field;
-        }
+
+    for (var enum_ in unitElement.enums) {
+      if (of != null && enum_.name != of) {
+        continue;
       }
+      findIn(enum_.fields);
     }
-    fail('Not found class field: $name');
+
+    for (var class_ in unitElement.types) {
+      if (of != null && class_.name != of) {
+        continue;
+      }
+      findIn(class_.fields);
+    }
+
+    for (var mixin in unitElement.mixins) {
+      if (of != null && mixin.name != of) {
+        continue;
+      }
+      findIn(mixin.fields);
+    }
+
+    if (result != null) {
+      return result;
+    }
+    fail('Not found: $name');
   }
 
   FunctionElement function(String name) {
@@ -96,59 +122,120 @@ class FindElement {
         return function;
       }
     }
-    fail('Not found top-level function: $name');
+    fail('Not found: $name');
   }
 
-  PropertyAccessorElement getter(String name, {String className}) {
-    for (var class_ in unitElement.types) {
-      if (className != null && class_.name != className) {
-        continue;
+  GenericTypeAliasElement genericTypeAlias(String name) {
+    for (var element in unitElement.functionTypeAliases) {
+      if (element is GenericTypeAliasElement && element.name == name) {
+        return element;
       }
-      for (var accessor in class_.accessors) {
+    }
+    fail('Not found: $name');
+  }
+
+  PropertyAccessorElement getter(String name, {String of}) {
+    PropertyAccessorElement result;
+
+    void findIn(List<PropertyAccessorElement> accessors) {
+      for (var accessor in accessors) {
         if (accessor.isGetter && accessor.displayName == name) {
-          return accessor;
+          if (result != null) {
+            fail('Not unique: $name');
+          }
+          result = accessor;
         }
       }
     }
-    fail('Not found class accessor: $name');
+
+    for (var enum_ in unitElement.enums) {
+      if (of != null && enum_.name != of) {
+        continue;
+      }
+      findIn(enum_.accessors);
+    }
+
+    for (var class_ in unitElement.types) {
+      if (of != null && class_.name != of) {
+        continue;
+      }
+      findIn(class_.accessors);
+    }
+
+    for (var mixin in unitElement.mixins) {
+      if (of != null && mixin.name != of) {
+        continue;
+      }
+      findIn(mixin.accessors);
+    }
+
+    if (result != null) {
+      return result;
+    }
+    fail('Not found: $name');
   }
 
   ImportElement import(String targetUri) {
     ImportElement importElement;
+
     for (var import in unitElement.library.imports) {
       var importedUri = import.importedLibrary.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement != null) {
-          throw new StateError('Not unique $targetUri import.');
+          fail('Not unique: $targetUri');
         }
         importElement = import;
       }
     }
+
     if (importElement != null) {
       return importElement;
     }
-    fail('Not found import: $targetUri');
+    fail('Not found: $targetUri');
   }
 
   InterfaceType interfaceType(String name) {
     return class_(name).type;
   }
 
-  LocalVariableElement localVar(String name) {
-    LocalVariableElement result;
+  FunctionElement localFunction(String name) {
+    FunctionElement result;
+
     unit.accept(new FunctionAstVisitor(
-      variableDeclaration: (node) {
-        var element = node.declaredElement;
-        if (element is LocalVariableElement) {
+      functionDeclarationStatement: (node) {
+        var element = node.functionDeclaration.declaredElement;
+        if (element is FunctionElement) {
           if (result != null) {
-            throw new StateError('Local variable name $name is not unique.');
+            fail('Not unique: $name');
           }
           result = element;
         }
       },
     ));
+
     if (result == null) {
-      fail('Not found local variable: $name');
+      fail('Not found: $name');
+    }
+    return result;
+  }
+
+  LocalVariableElement localVar(String name) {
+    LocalVariableElement result;
+
+    unit.accept(new FunctionAstVisitor(
+      variableDeclaration: (node) {
+        var element = node.declaredElement;
+        if (element is LocalVariableElement && element.name == name) {
+          if (result != null) {
+            fail('Not unique: $name');
+          }
+          result = element;
+        }
+      },
+    ));
+
+    if (result == null) {
+      fail('Not found: $name');
     }
     return result;
   }
@@ -160,7 +247,7 @@ class FindElement {
       for (var method in methods) {
         if (method.name == name) {
           if (result != null) {
-            throw new StateError('Method name $name is not unique.');
+            fail('Not unique: $name');
           }
           result = method;
         }
@@ -184,7 +271,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found class method: $name');
+    fail('Not found: $name');
   }
 
   ClassElement mixin(String name) {
@@ -193,73 +280,92 @@ class FindElement {
         return mixin;
       }
     }
-    fail('Not found mixin: $name');
+    fail('Not found: $name');
   }
 
   ParameterElement parameter(String name) {
-    ParameterElement parameterElement;
-    void considerParameter(ParameterElement parameter) {
-      if (parameter.name == name) {
-        if (parameterElement != null) {
-          throw new StateError('Parameter name $name is not unique.');
+    ParameterElement result;
+
+    void findIn(List<ParameterElement> parameters) {
+      for (var parameter in parameters) {
+        if (parameter.name == name) {
+          if (result != null) {
+            fail('Not unique: $name');
+          }
+          result = parameter;
         }
-        parameterElement = parameter;
       }
     }
 
     for (var accessor in unitElement.accessors) {
-      accessor.parameters.forEach(considerParameter);
+      findIn(accessor.parameters);
     }
+
     for (var function in unitElement.functions) {
-      function.parameters.forEach(considerParameter);
+      findIn(function.parameters);
     }
+
     for (var function in unitElement.functionTypeAliases) {
-      function.parameters.forEach(considerParameter);
+      findIn(function.parameters);
     }
+
     for (var class_ in unitElement.types) {
       for (var constructor in class_.constructors) {
-        constructor.parameters.forEach(considerParameter);
+        findIn(constructor.parameters);
       }
       for (var method in class_.methods) {
-        method.parameters.forEach(considerParameter);
+        findIn(method.parameters);
       }
     }
-    if (parameterElement != null) {
-      return parameterElement;
+
+    if (result != null) {
+      return result;
     }
-    fail('No parameter found with name $name');
+    fail('Not found: $name');
   }
 
   PrefixElement prefix(String name) {
     for (var import_ in unitElement.library.imports) {
       var prefix = import_.prefix;
-      if (prefix != null && prefix.name == name) {
+      if (prefix?.name == name) {
         return prefix;
       }
     }
-    fail('Prefix not found: $name');
+    fail('Not found: $name');
   }
 
-  PropertyAccessorElement setter(String name, {String className}) {
+  PropertyAccessorElement setter(String name, {String of}) {
     PropertyAccessorElement result;
-    for (var class_ in unitElement.types) {
-      if (className != null && class_.name != className) {
-        continue;
-      }
-      for (var accessor in class_.accessors) {
+
+    void findIn(List<PropertyAccessorElement> accessors) {
+      for (var accessor in accessors) {
         if (accessor.isSetter && accessor.displayName == name) {
-          if (result == null) {
-            result = accessor;
-          } else {
-            throw new StateError('Class setter $name is not unique.');
+          if (result != null) {
+            fail('Not unique: $name');
           }
+          result = accessor;
         }
       }
     }
-    if (result == null) {
-      fail('Not found class setter: $name');
+
+    for (var class_ in unitElement.types) {
+      if (of != null && class_.name != of) {
+        continue;
+      }
+      findIn(class_.accessors);
     }
-    return result;
+
+    for (var mixin in unitElement.mixins) {
+      if (of != null && mixin.name != of) {
+        continue;
+      }
+      findIn(mixin.accessors);
+    }
+
+    if (result != null) {
+      return result;
+    }
+    fail('Not found: $name');
   }
 
   FunctionElement topFunction(String name) {
@@ -268,7 +374,7 @@ class FindElement {
         return function;
       }
     }
-    fail('Not found top-level function: $name');
+    fail('Not found: $name');
   }
 
   PropertyAccessorElement topGet(String name) {
@@ -285,31 +391,42 @@ class FindElement {
         return variable;
       }
     }
-    fail('Not found top-level variable: $name');
+    fail('Not found: $name');
   }
 
   TypeParameterElement typeParameter(String name) {
     TypeParameterElement result;
 
-    void consider(TypeParameterElement candidate) {
-      if (candidate.name == name) {
-        if (result != null) {
-          throw new StateError('Type parameter $name is not unique.');
+    void findIn(List<TypeParameterElement> typeParameters) {
+      for (var typeParameter in typeParameters) {
+        if (typeParameter.name == name) {
+          if (result != null) {
+            fail('Not unique: $name');
+          }
+          result = typeParameter;
         }
-        result = candidate;
       }
     }
 
     for (var type in unitElement.functionTypeAliases) {
-      type.typeParameters.forEach(consider);
+      findIn(type.typeParameters);
+      if (type is GenericTypeAliasElement) {
+        findIn(type.function.typeParameters);
+      }
     }
-    for (var type in unitElement.types) {
-      type.typeParameters.forEach(consider);
+
+    for (var class_ in unitElement.types) {
+      findIn(class_.typeParameters);
     }
+
+    for (var mixin in unitElement.mixins) {
+      findIn(mixin.typeParameters);
+    }
+
     if (result != null) {
       return result;
     }
-    fail('Not found type parameter: $name');
+    fail('Not found: $name');
   }
 
   ConstructorElement unnamedConstructor(String name) {

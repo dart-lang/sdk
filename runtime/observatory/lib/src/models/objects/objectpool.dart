@@ -12,7 +12,7 @@ abstract class ObjectPool extends Object implements ObjectPoolRef {
   Iterable<ObjectPoolEntry> get entries;
 }
 
-enum ObjectPoolEntryKind { object, immediate, nativeEntry }
+enum ObjectPoolEntryKind { object, immediate, nativeEntryData, nativeEntry }
 
 abstract class ObjectPoolEntry {
   int get offset;

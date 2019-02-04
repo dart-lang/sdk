@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Warning: Expected 1 type arguments.
+//   C<String, String> field;
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  field self::C<dynamic> field = null;
+  synthetic constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  core::print(new self::C::•<dynamic>());
+}

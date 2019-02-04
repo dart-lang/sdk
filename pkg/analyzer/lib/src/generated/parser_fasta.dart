@@ -27,6 +27,7 @@ abstract class ParserAdapter implements Parser {
       {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true) {
+    fastaParser.enableSetLiterals = IsEnabledByDefault.set_literals;
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -37,11 +38,49 @@ abstract class ParserAdapter implements Parser {
     astBuilder.allowNativeClause = value;
   }
 
+  /// Enables or disables non-nullable by default.
+  void set enableNonNullable(bool value) {
+    if (IsExpired.non_nullable && value != IsEnabledByDefault.non_nullable) {
+      throw new StateError(
+          'non_nullable may only be set to ${IsEnabledByDefault.non_nullable}');
+    }
+    astBuilder.enableNonNullable = value;
+  }
+
   @override
   bool get enableOptionalNewAndConst => false;
 
   @override
   void set enableOptionalNewAndConst(bool enable) {}
+
+  @override
+  void set enableSetLiterals(bool value) {
+    if (IsExpired.set_literals && value != IsEnabledByDefault.set_literals) {
+      throw new StateError(
+          'set_literals may only be set to ${IsEnabledByDefault.set_literals}');
+    }
+    fastaParser.enableSetLiterals = value;
+  }
+
+  @override
+  void set enableSpreadCollections(bool value) {
+    if (IsExpired.spread_collections &&
+        value != IsEnabledByDefault.spread_collections) {
+      throw new StateError('spread_collections may only be set'
+          ' to ${IsEnabledByDefault.spread_collections}');
+    }
+    astBuilder.enableSpreadCollections = value;
+  }
+
+  @override
+  void set enableControlFlowCollections(bool value) {
+    if (IsExpired.control_flow_collections &&
+        value != IsEnabledByDefault.control_flow_collections) {
+      throw new StateError('control_flow_collections may only be set'
+          ' to ${IsEnabledByDefault.control_flow_collections}');
+    }
+    astBuilder.enableControlFlowCollections = value;
+  }
 
   @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
@@ -150,6 +189,8 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseUnit(currentToken);
     CompilationUnitImpl compilationUnit = astBuilder.pop();
     compilationUnit.localDeclarations = astBuilder.localDeclarations;
+    compilationUnit.hasPragmaAnalyzerNonNullable =
+        astBuilder.hasPragmaAnalyzerNonNullable;
     return compilationUnit;
   }
 
@@ -370,9 +411,6 @@ class _Parser2 extends ParserAdapter {
 
   @override
   bool enableUriInPartOf = true;
-
-  @override
-  bool enableNnbd = false;
 
   factory _Parser2(Source source, AnalysisErrorListener errorListener,
       {bool allowNativeClause: false}) {

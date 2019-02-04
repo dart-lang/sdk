@@ -132,10 +132,12 @@ interface HTMLMediaElement {
 
 [DartSupplemental]
 interface RTCPeerConnection {
-  [DartSuppress, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
+  [DartSuppress] Promise<void> createOffer(RTCSessionDescriptionCallback successCallback, RTCPeerConnectionErrorCallback failureCallback, optional Dictionary rtcOfferOptions);
+  [DartSuppress] Promise<void> createAnswer(RTCSessionDescriptionCallback successCallback, RTCPeerConnectionErrorCallback failureCallback, optional Dictionary mediaConstraints);
+  [DartSuppress] void addIceCandidate(RTCIceCandidate candidate);
   [DartSuppress] Promise<void> getStats(RTCStatsCallback successCallback, optional MediaStreamTrack? selector);
-  [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description);
-  [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description);
+  [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description, VoidCallback successCallback, [Default=Undefined] optional RTCPeerConnectionErrorCallback failureCallback);
+  [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description, VoidCallback successCallback, [Default=Undefined] optional RTCPeerConnectionErrorCallback failureCallback);
 };
 
 // See implementation in tools/dom/templates for canvas and offscreenCanvas.

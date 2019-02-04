@@ -14,8 +14,8 @@ class Mutex;
 
 class NativeSymbolResolver : public AllStatic {
  public:
-  static void InitOnce();
-  static void ShutdownOnce();
+  static void Init();
+  static void Cleanup();
   static char* LookupSymbolName(uintptr_t pc, uintptr_t* start);
   static bool LookupSharedObject(uword pc, uword* dso_base, char** dso_name);
   static void FreeSymbolName(char* name);

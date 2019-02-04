@@ -4,7 +4,11 @@
 
 library fasta.target_implementation;
 
+import 'package:kernel/ast.dart' show Source;
+
 import 'package:kernel/target/targets.dart' as backend show Target;
+
+import '../base/processed_options.dart' show ProcessedOptions;
 
 import 'builder/builder.dart' show Declaration, ClassBuilder, LibraryBuilder;
 
@@ -12,11 +16,19 @@ import 'compiler_context.dart' show CompilerContext;
 
 import 'loader.dart' show Loader;
 
+import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
+
+import 'rewrite_severity.dart' show rewriteSeverity;
+
+import 'severity.dart' show Severity;
+
 import 'target.dart' show Target;
 
 import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
+
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
@@ -26,6 +38,9 @@ abstract class TargetImplementation extends Target {
 
   final CompilerContext context = CompilerContext.current;
 
+  /// Shared with [CompilerContext].
+  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+
   Declaration cachedAbstractClassInstantiationError;
   Declaration cachedCompileTimeError;
   Declaration cachedDuplicatedFieldInitializerError;
@@ -33,8 +48,15 @@ abstract class TargetImplementation extends Target {
   Declaration cachedNativeAnnotation;
   Declaration cachedNativeExtensionAnnotation;
 
+  bool enableSetLiterals;
+  bool enableConstantUpdate2018;
+
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : super(ticker);
+      : enableSetLiterals = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.setLiterals),
+        enableConstantUpdate2018 = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.constantUpdate2018),
+        super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
@@ -45,9 +67,6 @@ abstract class TargetImplementation extends Target {
   /// [origin] is non-null if the created library is a patch to [origin].
   LibraryBuilder createLibraryBuilder(
       Uri uri, Uri fileUri, covariant LibraryBuilder origin);
-
-  /// Add the classes extended or implemented directly by [cls] to [set].
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set);
 
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and
@@ -109,4 +128,26 @@ abstract class TargetImplementation extends Target {
       Uri uri, List<int> lineStarts, List<int> sourceCode);
 
   void readPatchFiles(covariant LibraryBuilder library) {}
+
+  FormattedMessage createFormattedMessage(
+      Message message,
+      int charOffset,
+      int length,
+      Uri fileUri,
+      List<LocatedMessage> messageContext,
+      Severity severity) {
+    ProcessedOptions processedOptions = context.options;
+    return processedOptions.format(
+        message.withLocation(fileUri, charOffset, length),
+        severity,
+        messageContext);
+  }
+
+  Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
+    severity ??= message.code.severity;
+    if (severity == Severity.errorLegacyWarning) {
+      severity = backendTarget.legacyMode ? Severity.warning : Severity.error;
+    }
+    return rewriteSeverity(severity, message.code, fileUri);
+  }
 }

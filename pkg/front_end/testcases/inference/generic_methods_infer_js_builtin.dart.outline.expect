@@ -1,0 +1,14 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:8:42: Error: Can't access platform private library.
+// /*error:IMPORT_INTERNAL_LIBRARY*/ import 'dart:_foreign_helper' show JS;
+//                                          ^
+//
+import self as self;
+
+import "dart:_foreign_helper";
+
+static method main() → dynamic
+  ;

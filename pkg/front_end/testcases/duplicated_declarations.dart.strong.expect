@@ -1,0 +1,525 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:7:1: Error: Import directives must preceed part directives.
+// Try moving the import directives before the part directives.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+// ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:9:1: Error: Import directives must preceed part directives.
+// Try moving the import directives before the part directives.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+// ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:13:9: Error: 'Typedef' is already declared in this scope.
+// typedef Typedef = Object Function();
+//         ^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:11:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = void Function();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:15:1: Error: Directives must appear before any declarations.
+// Try moving the directive before any declarations.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+// ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:19:16: Error: 'OldTypedef' is already declared in this scope.
+// typedef Object OldTypedef();
+//                ^^^^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:17:14: Context: Previous declaration of 'OldTypedef'.
+// typedef void OldTypedef();
+//              ^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:23:5: Error: 'field' is already declared in this scope.
+// var field = "2nd";
+//     ^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:21:5: Context: Previous declaration of 'field'.
+// var field = "1st";
+//     ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:29:1: Error: 'main' is already declared in this scope.
+// main() {
+// ^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:25:1: Context: Previous declaration of 'main'.
+// main() {
+// ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:41:3: Error: 'C' is already declared in this scope.
+//   C(a, b);
+//   ^
+// pkg/front_end/testcases/duplicated_declarations.dart:40:3: Context: Previous declaration of 'C'.
+//   C(a);
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:44:7: Error: 'field' is already declared in this scope.
+//   var field = "2nd";
+//       ^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:42:7: Context: Previous declaration of 'field'.
+//   var field = "1st";
+//       ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:50:3: Error: 'm' is already declared in this scope.
+//   m() {
+//   ^
+// pkg/front_end/testcases/duplicated_declarations.dart:46:3: Context: Previous declaration of 'm'.
+//   m() {
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:58:10: Error: 's' is already declared in this scope.
+//   static s() {
+//          ^
+// pkg/front_end/testcases/duplicated_declarations.dart:54:10: Context: Previous declaration of 's'.
+//   static s() {
+//          ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:70:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/duplicated_declarations.dart:39:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:75:3: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
+//   Enum,
+//   ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:77:3: Error: 'a' is already declared in this scope.
+//   a,
+//   ^
+// pkg/front_end/testcases/duplicated_declarations.dart:76:3: Context: Previous declaration of 'a'.
+//   a,
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:81:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:74:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:91:3: Error: '_name' is already declared in this scope.
+//   _name,
+//   ^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:87:6: Context: Previous declaration of '_name' is implied by this definition.
+// enum AnotherEnum {
+//      ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:92:3: Error: 'index' is already declared in this scope.
+//   index,
+//   ^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:87:6: Context: Previous declaration of 'index' is implied by this definition.
+// enum AnotherEnum {
+//      ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:93:3: Error: 'toString' is already declared in this scope.
+//   toString,
+//   ^^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:87:6: Context: Previous declaration of 'toString' is implied by this definition.
+// enum AnotherEnum {
+//      ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:94:3: Error: 'values' is already declared in this scope.
+//   values,
+//   ^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:87:6: Context: Previous declaration of 'values' is implied by this definition.
+// enum AnotherEnum {
+//      ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:11:9: Error: 'Typedef' is already declared in this scope.
+// typedef Typedef = void Function();
+//         ^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:13:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = Object Function();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:17:14: Error: 'OldTypedef' is already declared in this scope.
+// typedef void OldTypedef();
+//              ^^^^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:19:16: Context: Previous declaration of 'OldTypedef'.
+// typedef Object OldTypedef();
+//                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:21:5: Error: 'field' is already declared in this scope.
+// var field = "3rd";
+//     ^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:23:5: Context: Previous declaration of 'field'.
+// var field = "2nd";
+//     ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:27:1: Error: 'main' is already declared in this scope.
+// main() {
+// ^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:29:1: Context: Previous declaration of 'main'.
+// main() {
+// ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:39:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/duplicated_declarations.dart:70:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:73:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:81:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:7:1: Error: The part-of directive must be the only directive in a part.
+// Try removing the other directives, or moving them to the library for which this is a part.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+// ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:9:1: Error: The part-of directive must be the only directive in a part.
+// Try removing the other directives, or moving them to the library for which this is a part.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+// ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:13:9: Error: 'Typedef' is already declared in this scope.
+// typedef Typedef = Object Function();
+//         ^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:11:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = void Function();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:15:1: Error: The part-of directive must be the only directive in a part.
+// Try removing the other directives, or moving them to the library for which this is a part.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+// ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:19:16: Error: 'OldTypedef' is already declared in this scope.
+// typedef Object OldTypedef();
+//                ^^^^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:17:14: Context: Previous declaration of 'OldTypedef'.
+// typedef void OldTypedef();
+//              ^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:23:5: Error: 'field' is already declared in this scope.
+// var field = 4;
+//     ^^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:21:5: Context: Previous declaration of 'field'.
+// var field = "3rd";
+//     ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:25:5: Error: 'field' is already declared in this scope.
+// var field = 5.0;
+//     ^^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:23:5: Context: Previous declaration of 'field'.
+// var field = 4;
+//     ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:31:1: Error: 'main' is already declared in this scope.
+// main() {
+// ^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:27:1: Context: Previous declaration of 'main'.
+// main() {
+// ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:35:1: Error: 'main' is already declared in this scope.
+// main() {
+// ^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:31:1: Context: Previous declaration of 'main'.
+// main() {
+// ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:41:3: Error: 'C' is already declared in this scope.
+//   C(a, b);
+//   ^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:40:3: Context: Previous declaration of 'C'.
+//   C(a);
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:44:7: Error: 'field' is already declared in this scope.
+//   var field = "2nd";
+//       ^^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:42:7: Context: Previous declaration of 'field'.
+//   var field = "1st";
+//       ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:50:3: Error: 'm' is already declared in this scope.
+//   m() {
+//   ^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:46:3: Context: Previous declaration of 'm'.
+//   m() {
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:58:10: Error: 's' is already declared in this scope.
+//   static s() {
+//          ^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:54:10: Context: Previous declaration of 's'.
+//   static s() {
+//          ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:65:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:39:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:69:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:65:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:74:3: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
+//   Enum,
+//   ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:76:3: Error: 'a' is already declared in this scope.
+//   a,
+//   ^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:75:3: Context: Previous declaration of 'a'.
+//   a,
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:80:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:73:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:86:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:80:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:7:46: Error: 'Typedef' is already declared in this scope.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+//                                              ^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations_part.dart:13:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = Object Function();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
+// class Sub extends C {
+//                   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:34:3: Error: Can't use 'main' because it is declared more than once.
+//   main();
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:35:9: Error: Can't use 'field' because it is declared more than once.
+//   print(field);
+//         ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:36:3: Error: Can't use 'C' because it is declared more than once.
+//   C.s();
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:62:17: Error: Can't use 's' because it is declared more than once.
+//   static f() => s;
+//                 ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:66:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   Sub() : super(null);
+//                ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:67:16: Error: Superclass has no method named 'm'.
+//   m() => super.m();
+//                ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:102:38: Error: Can't use '_name' because it is declared more than once.
+//     "AnotherEnum._name": AnotherEnum._name,
+//                                      ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:103:38: Error: Can't use 'index' because it is declared more than once.
+//     "AnotherEnum.index": AnotherEnum.index,
+//                                      ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:104:41: Error: Can't use 'toString' because it is declared more than once.
+//     "AnotherEnum.toString": AnotherEnum.toString,
+//                                         ^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:105:39: Error: Can't use 'values' because it is declared more than once.
+//     "AnotherEnum.values": AnotherEnum.values,
+//                                       ^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:62:17: Error: Can't use 's' because it is declared more than once.
+//   static f() => s;
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+
+part duplicated_declarations_part.dart;
+typedef Typedef = () → void;
+typedef OldTypedef = () → void;
+class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  constructor _() → self::C#4
+    : super core::Object::•()
+    ;
+}
+class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  constructor _() → self::C#3
+    : super core::Object::•()
+    ;
+}
+class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  field core::String field = null;
+  constructor •(dynamic a) → self::C#2
+    : super core::Object::•()
+    ;
+  method m() → dynamic {
+    "1st";
+  }
+  static method s() → dynamic {
+    "1st";
+  }
+  static method f() → dynamic
+    return invalid-expression "pkg/front_end/testcases/duplicated_declarations_part.dart:62:17: Error: Can't use 's' because it is declared more than once.
+  static f() => s;
+                ^";
+}
+class C#1 extends core::Object {
+  constructor _() → self::C#1
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  field core::String field = null;
+  constructor •(dynamic a) → self::C
+    : super core::Object::•()
+    ;
+  method m() → dynamic {
+    "1st";
+  }
+  static method s() → dynamic {
+    "1st";
+  }
+  static method f() → dynamic
+    return invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:62:17: Error: Can't use 's' because it is declared more than once.
+  static f() => s;
+                ^";
+}
+class Sub extends core::Object {
+  constructor •() → self::Sub
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:66:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  Sub() : super(null);
+               ^"
+    ;
+  method m() → dynamic
+    return super.m();
+}
+class Enum#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum#4> values = const <self::Enum#4>[self::Enum#4::a];
+  static const field self::Enum#4 a = const self::Enum#4::•(0, "Enum.a");
+  const constructor •(core::int index, core::String _name) → self::Enum#4
+    : self::Enum#4::index = index, self::Enum#4::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum#4::_name};
+}
+class Enum#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum#3> values = const <self::Enum#3>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
+  static const field self::Enum#3 a = const self::Enum#3::•(0, "Enum.a");
+  static const field self::Enum#3 b = const self::Enum#3::•(1, "Enum.b");
+  static const field self::Enum#3 c = const self::Enum#3::•(2, "Enum.c");
+  const constructor •(core::int index, core::String _name) → self::Enum#3
+    : self::Enum#3::index = index, self::Enum#3::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum#3::_name};
+}
+class Enum#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum#2> values = const <self::Enum#2>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
+  static const field self::Enum#2 Enum = const self::Enum#2::•(0, "Enum.Enum");
+  static const field self::Enum#2 a = const self::Enum#2::•(1, "Enum.a");
+  static const field self::Enum#2 b = const self::Enum#2::•(2, "Enum.b");
+  const constructor •(core::int index, core::String _name) → self::Enum#2
+    : self::Enum#2::index = index, self::Enum#2::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum#2::_name};
+}
+class Enum#1 extends core::Object {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum#1> values = const <self::Enum#1>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
+  static const field self::Enum#1 a = const self::Enum#1::•(0, "Enum.a");
+  static const field self::Enum#1 b = const self::Enum#1::•(1, "Enum.b");
+  static const field self::Enum#1 c = const self::Enum#1::•(2, "Enum.c");
+  const constructor •(core::int index, core::String _name) → self::Enum#1
+    : self::Enum#1::index = index, self::Enum#1::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum#1::_name};
+}
+class Enum extends core::Object {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::Enum, self::Enum::a, self::Enum::b];
+  static const field self::Enum Enum = const self::Enum::•(0, "Enum.Enum");
+  static const field self::Enum a = const self::Enum::•(1, "Enum.a");
+  static const field self::Enum b = const self::Enum::•(2, "Enum.b");
+  const constructor •(core::int index, core::String _name) → self::Enum
+    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum::_name};
+}
+class AnotherEnum extends core::Object {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::AnotherEnum> values = const <self::AnotherEnum>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c];
+  static const field self::AnotherEnum a = const self::AnotherEnum::•(0, "AnotherEnum.a");
+  static const field self::AnotherEnum b = const self::AnotherEnum::•(1, "AnotherEnum.b");
+  static const field self::AnotherEnum c = const self::AnotherEnum::•(2, "AnotherEnum.c");
+  const constructor •(core::int index, core::String _name) → self::AnotherEnum
+    : self::AnotherEnum::index = index, self::AnotherEnum::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::AnotherEnum::_name};
+}
+static field core::String field;
+static method main() → dynamic {
+  "1st";
+}
+static method foo() → dynamic {
+  invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:34:3: Error: Can't use 'main' because it is declared more than once.
+  main();
+  ^".call();
+  core::print(invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:35:9: Error: Can't use 'field' because it is declared more than once.
+  print(field);
+        ^");
+  invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:36:3: Error: Can't use 'C' because it is declared more than once.
+  C.s();
+  ^".s();
+}
+static method useAnotherEnum() → dynamic {
+  <core::String, core::Object>{"AnotherEnum.a": self::AnotherEnum::a, "AnotherEnum.b": self::AnotherEnum::b, "AnotherEnum.c": self::AnotherEnum::c, "AnotherEnum._name": invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:102:38: Error: Can't use '_name' because it is declared more than once.
+    \"AnotherEnum._name\": AnotherEnum._name,
+                                     ^^^^^", "AnotherEnum.index": invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:103:38: Error: Can't use 'index' because it is declared more than once.
+    \"AnotherEnum.index\": AnotherEnum.index,
+                                     ^^^^^", "AnotherEnum.toString": invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:104:41: Error: Can't use 'toString' because it is declared more than once.
+    \"AnotherEnum.toString\": AnotherEnum.toString,
+                                        ^^^^^^^^", "AnotherEnum.values": invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:105:39: Error: Can't use 'values' because it is declared more than once.
+    \"AnotherEnum.values\": AnotherEnum.values,
+                                      ^^^^^^"};
+}
+
+library;
+import self as self2;

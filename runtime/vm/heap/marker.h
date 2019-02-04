@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HEAP_MARKER_H_
 
 #include "vm/allocation.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"  // Mutex.
 
 namespace dart {
@@ -17,41 +18,63 @@ class Isolate;
 class ObjectPointerVisitor;
 class PageSpace;
 class RawWeakProperty;
+template <bool sync>
+class MarkingVisitorBase;
 
 // The class GCMarker is used to mark reachable old generation objects as part
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
-class GCMarker : public ValueObject {
+// Instances have a lifetime that spans from the beginining of concurrent
+// marking (or stop-the-world marking) until marking is complete. In particular,
+// an instance may be created and destroyed on different threads if the isolate
+// is exited during concurrent marking.
+class GCMarker {
  public:
-  explicit GCMarker(Heap* heap) : heap_(heap), marked_bytes_(0) {}
-  ~GCMarker() {}
+  GCMarker(Isolate* isolate, Heap* heap);
+  ~GCMarker();
 
-  void MarkObjects(Isolate* isolate, PageSpace* page_space, bool collect_code);
+  // Mark roots synchronously, then spawn tasks to concurrently drain the
+  // marking queue. Only called when no marking or sweeping is in progress.
+  // Marking must later be finalized by calling MarkObjects.
+  void StartConcurrentMark(PageSpace* page_space, bool collect_code);
 
-  intptr_t marked_words() { return marked_bytes_ >> kWordSizeLog2; }
+  // (Re)mark roots, drain the marking queue and finalize weak references.
+  // Does not required StartConcurrentMark to have been previously called.
+  void MarkObjects(PageSpace* page_space, bool collect_code);
+
+  intptr_t marked_words() const { return marked_bytes_ >> kWordSizeLog2; }
+  intptr_t MarkedWordsPerMicro() const;
 
  private:
-  void Prologue(Isolate* isolate);
-  void Epilogue(Isolate* isolate);
-  void IterateRoots(Isolate* isolate,
-                    ObjectPointerVisitor* visitor,
-                    intptr_t slice_index,
-                    intptr_t num_slices);
-  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  void Prologue();
+  void Epilogue();
+  void ResetRootSlices();
+  void IterateRoots(ObjectPointerVisitor* visitor);
+  void IterateWeakRoots(HandleVisitor* visitor);
   template <class MarkingVisitorType>
-  void IterateWeakReferences(Isolate* isolate, MarkingVisitorType* visitor);
+  void IterateWeakReferences(MarkingVisitorType* visitor);
   void ProcessWeakTables(PageSpace* page_space);
-  void ProcessObjectIdTable(Isolate* isolate);
+  void ProcessObjectIdTable();
 
   // Called by anyone: finalize and accumulate stats from 'visitor'.
   template <class MarkingVisitorType>
   void FinalizeResultsFrom(MarkingVisitorType* visitor);
 
-  Heap* heap_;
+  Isolate* const isolate_;
+  Heap* const heap_;
+  MarkingStack marking_stack_;
+  MarkingStack deferred_marking_stack_;
+  MarkingVisitorBase<true>** visitors_;
+
+  Monitor root_slices_monitor_;
+  intptr_t root_slices_not_started_;
+  intptr_t root_slices_not_finished_;
 
   Mutex stats_mutex_;
   uintptr_t marked_bytes_;
+  int64_t marked_micros_;
 
-  friend class MarkTask;
+  friend class ConcurrentMarkTask;
+  friend class ParallelMarkTask;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 

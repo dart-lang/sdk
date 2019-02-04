@@ -715,6 +715,21 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
   UnorderedHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
   UnorderedHashSet(Object* key, Smi* value, Array* data)
       : BaseSet(key, value, data) {}
+
+  void Dump() const {
+    Object& entry = Object::Handle();
+    for (intptr_t i = 0; i < this->data_->Length(); i++) {
+      entry = this->data_->At(i);
+      if (entry.raw() == Object::sentinel().raw() ||
+          entry.raw() == Object::transition_sentinel().raw() || entry.IsSmi()) {
+        // empty, deleted, num_used/num_deleted
+        OS::PrintErr("%" Pd ": %s\n", i, entry.ToCString());
+      } else {
+        intptr_t hash = KeyTraits::Hash(entry);
+        OS::PrintErr("%" Pd ": %" Pd ", %s\n", i, hash, entry.ToCString());
+      }
+    }
+  }
 };
 
 }  // namespace dart

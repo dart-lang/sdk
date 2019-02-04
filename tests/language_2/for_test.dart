@@ -81,4 +81,10 @@ class ForTest {
 
 main() {
   ForTest.testMain();
+  testShadowLocal();
+}
+
+void testShadowLocal() {
+  List<int> x = [1, 2, 3];
+  for (var x = x;;) break; //# 01: compile-time error
 }

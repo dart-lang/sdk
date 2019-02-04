@@ -2,43 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This part contains helpers for supporting runtime type information.
- *
- * The helper use a mixture of Dart and JavaScript objects. To indicate which is
- * used where we adopt the scheme of using explicit type annotation for Dart
- * objects and 'var' or omitted return type for JavaScript objects.
- *
- * Since bool, int, and String values are represented by the same JavaScript
- * primitives, type annotations are used for these types in all cases.
- *
- * Several methods use a common JavaScript encoding of runtime type information.
- * This encoding is referred to as the type representation which is one of
- * these:
- *  1) a JavaScript constructor for a class C: the represented type is the raw
- *     type C.
- *  2) a JavaScript array: the first entry is of type 1 and contains the
- *     subtyping flags and the substitution of the type and the rest of the
- *     array are the type arguments.
- *  3) `null`: the dynamic type.
- *  4) a JavaScript object representing the function type. For instance, it has
- *     the form {ret: rti, args: [rti], opt: [rti], named: {name: rti}} for a
- *     function with a return type, regular, optional and named arguments.
- *     Generic function types have a 'bounds' property.
- *
- * To check subtype relations between generic classes we use a JavaScript
- * expression that describes the necessary substitution for type arguments.
- * Such a substitution expression can be:
- *  1) `null`, if no substituted check is necessary, because the
- *     type variables are the same or there are no type variables in the class
- *     that is checked for.
- *  2) A list expression describing the type arguments to be used in the
- *     subtype check, if the type arguments to be used in the check do not
- *     depend on the type arguments of the object.
- *  3) A function mapping the type variables of the object to be checked to
- *     a list expression. The function may also return null, which is equivalent
- *     to an array containing only null values.
- */
+/// This part contains helpers for supporting runtime type information.
+///
+/// The helper use a mixture of Dart and JavaScript objects. To indicate which
+/// is used where we adopt the scheme of using explicit type annotation for Dart
+/// objects and 'var' or omitted return type for JavaScript objects.
+///
+/// Since bool, int, and String values are represented by the same JavaScript
+/// primitives, type annotations are used for these types in all cases.
+///
+/// Several methods use a common JavaScript encoding of runtime type
+/// information.  This encoding is referred to as the type representation which
+/// is one of these:
+///  1) a JavaScript constructor for a class C: the represented type is the raw
+///     type C.
+///  2) a JavaScript array: the first entry is of type 1 and contains the
+///     subtyping flags and the substitution of the type and the rest of the
+///     array are the type arguments.
+///  3) `null`: the dynamic type.
+///  4) a JavaScript object representing the function type. For instance, it has
+///     the form {ret: rti, args: [rti], opt: [rti], named: {name: rti}} for a
+///     function with a return type, regular, optional and named arguments.
+///     Generic function types have a 'bounds' property.
+///
+/// To check subtype relations between generic classes we use a JavaScript
+/// expression that describes the necessary substitution for type arguments.
+/// Such a substitution expression can be:
+///  1) `null`, if no substituted check is necessary, because the
+///     type variables are the same or there are no type variables in the class
+///     that is checked for.
+///  2) A list expression describing the type arguments to be used in the
+///     subtype check, if the type arguments to be used in the check do not
+///     depend on the type arguments of the object.
+///  3) A function mapping the type variables of the object to be checked to a
+///     list expression. The function may also return null, which is equivalent
+///     to an array containing only null values.
 
 part of _js_helper;
 
@@ -62,17 +60,16 @@ class TypeImpl implements Type {
   // TODO(ahe): This is a poor hashCode as it collides with its name.
   int get hashCode => _hashCode ??= _typeName.hashCode;
 
+  @pragma('dart2js:noInline')
   bool operator ==(other) {
     return (other is TypeImpl) && _typeName == other._typeName;
   }
 }
 
-/**
- * Represents a type variable.
- *
- * This class holds the information needed when reflecting on generic classes
- * and their members.
- */
+/// Represents a type variable.
+///
+/// This class holds the information needed when reflecting on generic classes
+/// and their members.
 class TypeVariable {
   final Type owner;
   final String name;
@@ -157,10 +154,8 @@ getTypeArgumentByIndex(Object target, int index) {
   return rti == null ? null : getIndex(rti, index);
 }
 
-/**
- * Retrieves the class name from type information stored on the constructor
- * of [object].
- */
+/// Retrieves the class name from type information stored on the constructor
+/// of [object].
 String getClassName(var object) {
   return rawRtiToJsConstructorName(getRawRuntimeType(getInterceptor(object)));
 }
@@ -327,11 +322,9 @@ String _functionRtiToString(var rti, List<String> genericContext) {
   return '${typeParameters}(${argumentsText}) => ${returnTypeText}';
 }
 
-/**
- * Creates a comma-separated string of human-readable representations of the
- * type representations in the JavaScript array [types] starting at index
- * [startIndex].
- */
+/// Creates a comma-separated string of human-readable representations of the
+/// type representations in the JavaScript array [types] starting at index
+/// [startIndex].
 String joinArguments(var types, int startIndex) {
   return _joinArguments(types, startIndex, null);
 }
@@ -354,11 +347,9 @@ String _joinArguments(var types, int startIndex, List<String> genericContext) {
   return '<$buffer>';
 }
 
-/**
- * Returns a human-readable representation of the type of [object].
- *
- * In minified mode does *not* use unminified identifiers (even when present).
- */
+/// Returns a human-readable representation of the type of [object].
+///
+/// In minified mode does *not* use unminified identifiers (even when present).
 String getRuntimeTypeString(var object) {
   if (object is Closure) {
     // This excludes classes that implement Function via a `call` method, but
@@ -403,12 +394,10 @@ Type getRuntimeType(var object) {
   return new TypeImpl(getRti(object));
 }
 
-/**
- * Applies the [substitution] on the [arguments].
- *
- * See the comment in the beginning of this file for a description of the
- * possible values for [substitution].
- */
+/// Applies the [substitution] on the [arguments].
+///
+/// See the comment in the beginning of this file for a description of the
+/// possible values for [substitution].
 substitute(var substitution, var arguments) {
   if (substitution == null) return arguments;
   assert(isJsFunction(substitution));
@@ -429,18 +418,16 @@ substitute(var substitution, var arguments) {
   return arguments;
 }
 
-/**
- * Perform a type check with arguments on the Dart object [object].
- *
- * Parameters:
- * - [isField]: the name of the flag/function to check if the object
- *   is of the correct class.
- * - [checks]: the (JavaScript) list of type representations for the
- *   arguments to check against.
- * - [asField]: the name of the function that transforms the type
- *   arguments of [objects] to an instance of the class that we check
- *   against.
- */
+/// Perform a type check with arguments on the Dart object [object].
+///
+/// Parameters:
+/// - [isField]: the name of the flag/function to check if the object
+///   is of the correct class.
+/// - [checks]: the (JavaScript) list of type representations for the
+///   arguments to check against.
+/// - [asField]: the name of the function that transforms the type
+///   arguments of [objects] to an instance of the class that we check
+///   against.
 bool checkSubtype(Object object, String isField, List checks, String asField) {
   if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
@@ -463,7 +450,7 @@ String computeTypeName(String isField, List arguments) {
   // Extract the class name from the is field and append the textual
   // representation of the type arguments.
   return Primitives.formatType(
-      isCheckPropertyToJsConstructorName(isField), arguments);
+      unminifyOrTag(isCheckPropertyToJsConstructorName(isField)), arguments);
 }
 
 /// Called from generated code.
@@ -507,17 +494,15 @@ bool checkArguments(
   return areSubtypes(substitute(substitution, arguments), sEnv, checks, tEnv);
 }
 
-/**
- * Checks whether the types of [s] are all subtypes of the types of [t].
- *
- * [s] and [t] are either `null` or JavaScript arrays of type representations,
- * A `null` argument is interpreted as the arguments of a raw type, that is a
- * list of `dynamic`. If [s] and [t] are JavaScript arrays they must be of the
- * same length.
- *
- * See the comment in the beginning of this file for a description of type
- * representations.
- */
+/// Checks whether the types of [s] are all subtypes of the types of [t].
+///
+/// [s] and [t] are either `null` or JavaScript arrays of type representations,
+/// A `null` argument is interpreted as the arguments of a raw type, that is a
+/// list of `dynamic`. If [s] and [t] are JavaScript arrays they must be of the
+/// same length.
+///
+/// See the comment in the beginning of this file for a description of type
+/// representations.
 
 bool areSubtypes(var s, var sEnv, var t, var tEnv) {
   // `null` means a raw type.
@@ -545,10 +530,8 @@ bool areSubtypes(var s, var sEnv, var t, var tEnv) {
   return true;
 }
 
-/**
- * Computes the signature by applying the type arguments of [context] as an
- * instance of [contextName] to the signature function [signature].
- */
+/// Computes the signature by applying the type arguments of [context] as an
+/// instance of [contextName] to the signature function [signature].
 computeSignature(var signature, var context, var contextName) {
   var interceptor = getInterceptor(context);
   var typeArguments =
@@ -619,13 +602,11 @@ Object getFutureOrArgument(var type) {
       : null;
 }
 
-/**
- * Tests whether the Dart object [o] is a subtype of the runtime type
- * representation [t].
- *
- * See the comment in the beginning of this file for a description of type
- * representations.
- */
+/// Tests whether the Dart object [o] is a subtype of the runtime type
+/// representation [t].
+///
+/// See the comment in the beginning of this file for a description of type
+/// representations.
 bool checkSubtypeOfRuntimeType(o, t) {
   if (o == null) return isSupertypeOfNull(t);
   if (isTopType(t)) return true;
@@ -678,24 +659,20 @@ Object assertSubtypeOfRuntimeType(Object object, var type) {
   return object;
 }
 
-/**
- * Extracts the type arguments from a type representation. The result is a
- * JavaScript array or `null`.
- */
+/// Extracts the type arguments from a type representation. The result is a
+/// JavaScript array or `null`.
 getArguments(var type) {
   return isJsArray(type) ? JS('var', r'#.slice(1)', type) : null;
 }
 
-/**
- * Checks whether the type represented by the type representation [s] is a
- * subtype of the type represented by the type representation [t].
- *
- * See the comment in the beginning of this file for a description of type
- * representations.
- *
- * The arguments [s] and [t] must be types, usually represented by the
- * constructor of the class, or an array (for generic class types).
- */
+/// Checks whether the type represented by the type representation [s] is a
+/// subtype of the type represented by the type representation [t].
+///
+/// See the comment in the beginning of this file for a description of type
+/// representations.
+///
+/// The arguments [s] and [t] must be types, usually represented by the
+/// constructor of the class, or an array (for generic class types).
 bool isSubtype(var s, var t) {
   return _isSubtype(s, null, t, null);
 }
@@ -1075,16 +1052,12 @@ bindInstantiatedTypes(rti, parameters, int depth) {
   return array;
 }
 
-/**
- * Calls the JavaScript [function] with the [arguments] with the global scope
- * as the `this` context.
- */
+/// Calls the JavaScript [function] with the [arguments] with the global scope
+/// as the `this` context.
 invoke(var function, var arguments) => invokeOn(function, null, arguments);
 
-/**
- * Calls the JavaScript [function] with the [arguments] with [receiver] as the
- * `this` context.
- */
+/// Calls the JavaScript [function] with the [arguments] with [receiver] as the
+/// `this` context.
 Object invokeOn(function, receiver, arguments) {
   assert(isJsFunction(function));
   assert(arguments == null || isJsArray(arguments));
@@ -1132,18 +1105,14 @@ bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);
 /// Returns `true` if [o] is a JavaScript object.
 bool isJsObject(var o) => JS('bool', r"typeof # == 'object'", o);
 
-/**
- * Returns `true` if the JavaScript values [s] and [t] are identical. We use
- * this helper instead of [identical] because `identical` needs to merge
- * `null` and `undefined` (which we can avoid).
- */
+/// Returns `true` if the JavaScript values [s] and [t] are identical. We use
+/// this helper instead of [identical] because `identical` needs to merge
+/// `null` and `undefined` (which we can avoid).
 bool isIdentical(var s, var t) => JS('bool', '# === #', s, t);
 
-/**
- * Returns `true` if the JavaScript values [s] and [t] are not identical. We use
- * this helper instead of [identical] because `identical` needs to merge
- * `null` and `undefined` (which we can avoid).
- */
+/// Returns `true` if the JavaScript values [s] and [t] are not identical. We
+/// use this helper instead of [identical] because `identical` needs to merge
+/// `null` and `undefined` (which we can avoid).
 bool isNotIdentical(var s, var t) => JS('bool', '# !== #', s, t);
 
 /// 'Top' bounds are uninteresting: null/undefined and Object.

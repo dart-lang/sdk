@@ -323,7 +323,6 @@ class HtmlDartGenerator(object):
                                              info.operations[0],
                                              info.name,
                                              'call:')
-
     if not method_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -612,7 +611,7 @@ class HtmlDartGenerator(object):
             args = constructor_info.ParametersAsArgumentList(argument_count)
 
             # Handle converting Maps to Dictionaries, etc.
-            (factory_params, converted_arguments) = self._ConvertArgumentTypes(
+            (factory_params, converted_arguments, calling_params) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
             call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
@@ -621,7 +620,7 @@ class HtmlDartGenerator(object):
                 '$FACTORY.$NAME',
                 FACTORY=factory_name,
                 NAME=name)
-            (factory_params, converted_arguments) = self._ConvertArgumentTypes(
+            (factory_params, converted_arguments, calling_params) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
             call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
@@ -709,6 +708,27 @@ class HtmlDartGenerator(object):
       future_generic = '<%s>' % self._DartType(callback_info.param_infos[-1].type_id)
 
     param_list = info.ParametersAsArgumentList(None, ignore_named_parameters)
+    dictionary_argument = info.dictionaryArgumentName();
+
+    convert_map = ''
+    if dictionary_argument is not None:
+      mapArg = dictionary_argument[0]
+      tempVariable = '%s_dict' % mapArg
+      mapArgOptional = dictionary_argument[1]
+
+      if not(extensions):
+        if not(param_list.endswith(', mapArg') or param_list.endswith(', options') or param_list == mapArg):
+          print "ERROR: %s.%s - Last parameter or only parameter %s is not of type Map" % (self._interface.id, html_name, mapArg)
+        param_list = '%s_dict' % param_list
+
+        if mapArgOptional:
+          convert_map = '    var %s = null;\n'\
+                        '    if (%s != null) {\n'\
+                        '      %s = convertDartToNative_Dictionary(%s);\n'\
+                        '    }\n' % (tempVariable, mapArg, tempVariable, mapArg)
+        else:
+          convert_map = '    var %s = convertDartToNative_Dictionary(%s);\n' % (tempVariable, mapArg)
+
     metadata = ''
     if '_RenamingAnnotation' in dir(self):
       metadata = (self._RenamingAnnotation(info.declared_name, html_name) +
@@ -716,6 +736,7 @@ class HtmlDartGenerator(object):
     self._members_emitter.Emit(
         '\n'
         '  $METADATA$MODIFIERS$TYPE$FUTURE_GENERIC $NAME($PARAMS) {\n'
+        '    $CONVERT_DICTIONARY'
         '    var completer = new Completer$(FUTURE_GENERIC)();\n'
         '    $ORIGINAL_FUNCTION($PARAMS_LIST\n'
         '        $NAMED_PARAM($VARIABLE_NAME) { '
@@ -730,6 +751,7 @@ class HtmlDartGenerator(object):
         NAME=html_name[1:],
         PARAMS=info.ParametersAsDeclaration(self._NarrowInputType
             if '_NarrowInputType' in dir(self) else self._DartType),
+        CONVERT_DICTIONARY=convert_map,
         PARAMS_LIST='' if param_list == '' else param_list + ',',
         NAMED_PARAM=('%s : ' % info.callback_args[0].name
             if info.requires_named_arguments and
@@ -882,23 +904,37 @@ class HtmlDartGenerator(object):
   def _TypeInfo(self, type_name):
     return self._type_registry.TypeInfo(type_name)
 
+  def _CallbackConvert(self, argType, info):
+    if self._database.HasInterface(argType):
+      interface = self._database.GetInterface(argType)
+      if "Callback" in interface.ext_attrs:
+          return interface.ext_attrs['Callback']
+    return None
+
   def _ConvertArgumentTypes(self, stmts_emitter, arguments, argument_count, info):
     temp_version = [0]
     converted_arguments = []
     target_parameters = []
+    calling_parameters = []
     for position, arg in enumerate(arguments[:argument_count]):
-      conversion = self._InputConversion(arg.type.id, info.declared_name)
+      callBackInfo = self._CallbackConvert(arg.type.id, info)   # Returns callback arity (# of parameters)
+      if callBackInfo is None:
+        conversion = self._InputConversion(arg.type.id, info.declared_name)
+      else:
+        conversion = self._InputConversion('Callback', info.declared_name)
+
       param_name = arguments[position].id
       if conversion:
         temp_version[0] += 1
         temp_name = '%s_%s' % (param_name, temp_version[0])
         temp_type = conversion.output_type
         stmts_emitter.Emit(
-            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
+            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n' if callBackInfo is None else '$(INDENT)$TYPE $NAME = $CONVERT($ARG, $ARITY);\n',
             TYPE=TypeOrVar(temp_type),
             NAME=temp_name,
             CONVERT=conversion.function_name,
-            ARG=info.param_infos[position].name)
+            ARG=info.param_infos[position].name,
+            ARITY=callBackInfo)
         converted_arguments.append(temp_name)
         param_type = temp_type
         verified_type = temp_type  # verified by assignment in checked mode.
@@ -921,8 +957,9 @@ class HtmlDartGenerator(object):
 
       target_parameters.append(
           '%s%s' % (TypeOrNothing(param_type), param_name))
+      calling_parameters.append(',%s ' % param_name)
 
-    return target_parameters, converted_arguments
+    return target_parameters, converted_arguments, calling_parameters
 
   def _InputType(self, type_name, info):
     conversion = self._InputConversion(type_name, info.declared_name)

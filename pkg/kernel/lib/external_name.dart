@@ -27,7 +27,7 @@ String getExternalName(Member procedure) {
     } else if (annotation is ConstantExpression) {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
-        if (_isExternalName(constant.klass)) {
+        if (_isExternalName(constant.classNode)) {
           return (constant.fieldValues.values.single as StringConstant).value;
         }
       }

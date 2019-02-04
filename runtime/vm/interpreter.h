@@ -24,8 +24,39 @@ class RawImmutableArray;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
+class RawString;
 class RawSubtypeTestCache;
 class ObjectPointerVisitor;
+
+class LookupCache : public ValueObject {
+ public:
+  LookupCache() {
+    ASSERT(Utils::IsPowerOfTwo(sizeof(Entry)));
+    ASSERT(Utils::IsPowerOfTwo(sizeof(kNumEntries)));
+    Clear();
+  }
+
+  void Clear();
+  bool Lookup(intptr_t receiver_cid,
+              RawString* function_name,
+              RawFunction** target) const;
+  void Insert(intptr_t receiver_cid,
+              RawString* function_name,
+              RawFunction* target);
+
+ private:
+  struct Entry {
+    intptr_t receiver_cid;
+    RawString* function_name;
+    RawFunction* target;
+    intptr_t padding;
+  };
+
+  static const intptr_t kNumEntries = 1024;
+  static const intptr_t kTableMask = kNumEntries - 1;
+
+  Entry entries_[kNumEntries];
+};
 
 // Interpreter intrinsic handler. It is invoked on entry to the intrinsified
 // function via Intrinsic bytecode before the frame is setup.
@@ -49,6 +80,8 @@ class Interpreter {
 
   // Low address (KBC stack grows up).
   uword stack_base() const { return stack_base_; }
+  // Limit for StackOverflowError.
+  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // High address (KBC stack grows up).
   uword stack_limit() const { return stack_limit_; }
 
@@ -56,11 +89,11 @@ class Interpreter {
   // TODO(regis): We should rely on a new thread vm_tag to identify an
   // interpreter frame and not need this HasFrame() method.
   bool HasFrame(uword frame) const {
-    return frame >= stack_base() && frame <= get_fp();
+    return frame >= stack_base() && frame < stack_limit();
   }
 
-  // Call on program start.
-  static void InitOnce();
+  // Identify an entry frame by looking at its pc marker value.
+  static bool IsEntryFrameMarker(uword pc) { return (pc & 2) != 0; }
 
   RawObject* Call(const Function& function,
                   const Array& arguments_descriptor,
@@ -79,23 +112,13 @@ class Interpreter {
   uword get_fp() const { return reinterpret_cast<uword>(fp_); }
   uword get_pc() const { return pc_; }
 
-  enum IntrinsicId {
-#define V(test_class_name, test_function_name, enum_name, type, fp)            \
-  k##enum_name##Intrinsic,
-    ALL_INTRINSICS_LIST(V) GRAPH_INTRINSICS_LIST(V)
-#undef V
-        kIntrinsicCount,
-  };
-
-  static bool IsSupportedIntrinsic(IntrinsicId id) {
-    return intrinsics_[id] != NULL;
-  }
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+  void MajorGC() { lookup_cache_.Clear(); }
 
  private:
   uintptr_t* stack_;
   uword stack_base_;
+  uword overflow_stack_limit_;
   uword stack_limit_;
 
   RawObject** fp_;
@@ -109,21 +132,12 @@ class Interpreter {
                        // call instruction and the function entry.
   RawObject* special_[KernelBytecode::kSpecialIndexCount];
 
-  static IntrinsicHandler intrinsics_[kIntrinsicCount];
+  LookupCache lookup_cache_;
 
   void Exit(Thread* thread,
             RawObject** base,
             RawObject** exit_frame,
             uint32_t* pc);
-
-  void CallRuntime(Thread* thread,
-                   RawObject** base,
-                   RawObject** exit_frame,
-                   uint32_t* pc,
-                   intptr_t argc_tag,
-                   RawObject** args,
-                   RawObject** result,
-                   uword target);
 
   bool Invoke(Thread* thread,
               RawObject** call_base,
@@ -149,12 +163,6 @@ class Interpreter {
                       RawObject*** FP,
                       RawObject*** SP);
 
-  bool Deoptimize(Thread* thread,
-                  uint32_t** pc,
-                  RawObject*** FP,
-                  RawObject*** SP,
-                  bool is_lazy);
-
   void InlineCacheMiss(int checked_args,
                        Thread* thread,
                        RawICData* icdata,
@@ -163,6 +171,14 @@ class Interpreter {
                        uint32_t* pc,
                        RawObject** FP,
                        RawObject** SP);
+
+  bool InterfaceCall(Thread* thread,
+                     RawString* target_name,
+                     RawObject** call_base,
+                     RawObject** call_top,
+                     uint32_t** pc,
+                     RawObject*** FP,
+                     RawObject*** SP);
 
   bool InstanceCall1(Thread* thread,
                      RawICData* icdata,
@@ -182,12 +198,6 @@ class Interpreter {
                      RawObject*** SP,
                      bool optimized);
 
-  void PrepareForTailCall(RawCode* code,
-                          RawImmutableArray* args_desc,
-                          RawObject** FP,
-                          RawObject*** SP,
-                          uint32_t** pc);
-
   bool AssertAssignable(Thread* thread,
                         uint32_t* pc,
                         RawObject** FP,
@@ -195,12 +205,31 @@ class Interpreter {
                         RawObject** args,
                         RawSubtypeTestCache* cache);
 
+  bool AllocateInt64Box(Thread* thread,
+                        int64_t value,
+                        uint32_t* pc,
+                        RawObject** FP,
+                        RawObject** SP);
+
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;
 
   // Prints bytecode instruction at given pc for instruction tracing.
   void TraceInstruction(uint32_t* pc) const;
+
+  bool IsWritingTraceFile() const;
+  void FlushTraceBuffer();
+  void WriteInstructionToTrace(uint32_t* pc);
+
+  void* trace_file_;
+  uint64_t trace_file_bytes_written_;
+
+  static const intptr_t kTraceBufferSizeInBytes = 10 * KB;
+  static const intptr_t kTraceBufferInstrs =
+      kTraceBufferSizeInBytes / sizeof(KBCInstr);
+  KBCInstr* trace_buffer_;
+  intptr_t trace_buffer_idx_;
 #endif  // defined(DEBUG)
 
   // Longjmp support for exceptions.

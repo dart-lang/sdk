@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,22 +36,22 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
       library libAB;
-      part "${convertPathForImport('/partAB.dart')}";
+      part "ab_part.dart";
       class A { }
       class B { }''');
-    addSource('/partAB.dart', '''
+    addSource('/home/test/lib/ab_part.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
-      import "${convertPathForImport("/testAB.dart")}" hide ^;
-      import "${convertPathForImport("/testCD.dart")}";
+      import "ab.dart" hide ^;
+      import "cd.dart";
       class X {}''');
 
     await computeSuggestions();
@@ -76,25 +76,25 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
       library libAB;
-      part "${convertPathForImport('/partAB.dart')}";
+      part "ab_part.dart";
       class A { }
       class B { }
       class _AB''');
-    addSource('/partAB.dart', '''
+    addSource('/home/test/lib/ab_part.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
-      import "${convertPathForImport("/testAB.dart")}" show ^;
-      import "${convertPathForImport("/testCD.dart")}";
+      import "ab.dart" show ^;
+      import "cd.dart";
       class X {}''');
 
     await computeSuggestions();
@@ -124,11 +124,11 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
   }
 
   test_Combinator_show_export_withShow() async {
-    addSource('/a.dart', r'''
+    addSource('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
-    addSource('/b.dart', r'''
+    addSource('/home/test/lib/b.dart', r'''
 export 'a.dart' show A;
 ''');
     addTestSource(r'''
@@ -149,16 +149,16 @@ import 'b.dart' show ^;
   }
 
   test_Combinator_show_recursive() async {
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {}
 ''');
-    addSource('/testB.dart', '''
-export 'testA.dart';
-export 'testB.dart';
+    addSource('/home/test/lib/b.dart', '''
+export 'a.dart';
+export 'b.dart';
 class B {}
 ''');
     addTestSource('''
-import "${convertPathForImport("/testB.dart")}" show ^;
+import "b.dart" show ^;
 ''');
     await computeSuggestions();
     assertSuggestClass('A',

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::String foo;
-  constructor •(core::String foo) → void
+  constructor •(core::String foo) → self::A
     : self::A::foo = foo, super core::Object::•()
     ;
   operator ==(core::Object other) → core::bool {

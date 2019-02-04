@@ -22,10 +22,8 @@ main(List<String> arguments) {
       Uri platformDill = tmp.resolve("vm_platform.dill");
       Uri outlineDill = tmp.resolve("vm_outline_strong.dill");
       ProcessResult result = await Process.run(dartVm.toFilePath(), <String>[
-        "--no_preview_dart_2",
         compilePlatform.toFilePath(),
         "-v",
-        "--strong",
         "dart:core",
         librariesJson.toFilePath(),
         outlineDill.toFilePath(),

@@ -1,0 +1,347 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:21:7: Context: Override was introduced in the mixin application class 'A0'.
+// class A0 = S with M;
+//       ^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:22:7: Context: Override was introduced in the mixin application class 'A1'.
+// class A1 = S with M1, M;
+//       ^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:23:7: Context: Override was introduced in the mixin application class 'A2'.
+// class A2 = S with M1, M2, M;
+//       ^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:25:7: Context: Override was introduced when the mixin 'M' was applied to 'S'.
+// class A0X = S with M, MX;
+//       ^^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:26:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
+// class A1X = S with M1, M, MX;
+//       ^^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:27:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
+// class A2X = S with M1, M2, M, MX;
+//       ^^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:29:7: Context: Override was introduced when the mixin 'M' was applied to 'S'.
+// class B0 extends S with M {}
+//       ^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:31:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
+// class B1 extends S with M1, M {}
+//       ^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:33:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
+// class B2 extends S with M1, M2, M {}
+//       ^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:35:7: Context: Override was introduced when the mixin 'M' was applied to 'S'.
+// class B0X extends S with M, MX {}
+//       ^^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:37:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
+// class B1X extends S with M1, M, MX {}
+//       ^^^
+//
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
+//   foo() {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
+//   foo([x]) {}
+//   ^
+// pkg/front_end/testcases/mixin_application_override.dart:39:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
+// class B2X extends S with M1, M2, M, MX {}
+//       ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class S extends core::Object {
+  synthetic constructor •() → self::S
+    : super core::Object::•()
+    ;
+  method foo([dynamic x = null]) → dynamic {}
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+}
+class M1 extends core::Object {
+  synthetic constructor •() → self::M1
+    : super core::Object::•()
+    ;
+}
+class M2 extends core::Object {
+  synthetic constructor •() → self::M2
+    : super core::Object::•()
+    ;
+}
+class MX extends core::Object {
+  synthetic constructor •() → self::MX
+    : super core::Object::•()
+    ;
+}
+class A0 extends self::S implements self::M {
+  synthetic constructor •() → self::A0
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _A1&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_A1&S&M1
+    : super self::S::•()
+    ;
+}
+class A1 extends self::_A1&S&M1 implements self::M {
+  synthetic constructor •() → self::A1
+    : super self::_A1&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _A2&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_A2&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _A2&S&M1&M2 extends self::_A2&S&M1 implements self::M2 {
+  synthetic constructor •() → self::_A2&S&M1&M2
+    : super self::_A2&S&M1::•()
+    ;
+}
+class A2 extends self::_A2&S&M1&M2 implements self::M {
+  synthetic constructor •() → self::A2
+    : super self::_A2&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _A0X&S&M extends self::S implements self::M {
+  synthetic constructor •() → self::_A0X&S&M
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+class A0X extends self::_A0X&S&M implements self::MX {
+  synthetic constructor •() → self::A0X
+    : super self::_A0X&S&M::•()
+    ;
+}
+abstract class _A1X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_A1X&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _A1X&S&M1&M extends self::_A1X&S&M1 implements self::M {
+  synthetic constructor •() → self::_A1X&S&M1&M
+    : super self::_A1X&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+class A1X extends self::_A1X&S&M1&M implements self::MX {
+  synthetic constructor •() → self::A1X
+    : super self::_A1X&S&M1&M::•()
+    ;
+}
+abstract class _A2X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_A2X&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _A2X&S&M1&M2 extends self::_A2X&S&M1 implements self::M2 {
+  synthetic constructor •() → self::_A2X&S&M1&M2
+    : super self::_A2X&S&M1::•()
+    ;
+}
+abstract class _A2X&S&M1&M2&M extends self::_A2X&S&M1&M2 implements self::M {
+  synthetic constructor •() → self::_A2X&S&M1&M2&M
+    : super self::_A2X&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+class A2X extends self::_A2X&S&M1&M2&M implements self::MX {
+  synthetic constructor •() → self::A2X
+    : super self::_A2X&S&M1&M2&M::•()
+    ;
+}
+abstract class _B0&S&M extends self::S implements self::M {
+  synthetic constructor •() → self::_B0&S&M
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+class B0 extends self::_B0&S&M {
+  synthetic constructor •() → self::B0
+    : super self::_B0&S&M::•()
+    ;
+}
+abstract class _B1&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_B1&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _B1&S&M1&M extends self::_B1&S&M1 implements self::M {
+  synthetic constructor •() → self::_B1&S&M1&M
+    : super self::_B1&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+class B1 extends self::_B1&S&M1&M {
+  synthetic constructor •() → self::B1
+    : super self::_B1&S&M1&M::•()
+    ;
+}
+abstract class _B2&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_B2&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _B2&S&M1&M2 extends self::_B2&S&M1 implements self::M2 {
+  synthetic constructor •() → self::_B2&S&M1&M2
+    : super self::_B2&S&M1::•()
+    ;
+}
+abstract class _B2&S&M1&M2&M extends self::_B2&S&M1&M2 implements self::M {
+  synthetic constructor •() → self::_B2&S&M1&M2&M
+    : super self::_B2&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+class B2 extends self::_B2&S&M1&M2&M {
+  synthetic constructor •() → self::B2
+    : super self::_B2&S&M1&M2&M::•()
+    ;
+}
+abstract class _B0X&S&M extends self::S implements self::M {
+  synthetic constructor •() → self::_B0X&S&M
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _B0X&S&M&MX extends self::_B0X&S&M implements self::MX {
+  synthetic constructor •() → self::_B0X&S&M&MX
+    : super self::_B0X&S&M::•()
+    ;
+}
+class B0X extends self::_B0X&S&M&MX {
+  synthetic constructor •() → self::B0X
+    : super self::_B0X&S&M&MX::•()
+    ;
+}
+abstract class _B1X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_B1X&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _B1X&S&M1&M extends self::_B1X&S&M1 implements self::M {
+  synthetic constructor •() → self::_B1X&S&M1&M
+    : super self::_B1X&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _B1X&S&M1&M&MX extends self::_B1X&S&M1&M implements self::MX {
+  synthetic constructor •() → self::_B1X&S&M1&M&MX
+    : super self::_B1X&S&M1&M::•()
+    ;
+}
+class B1X extends self::_B1X&S&M1&M&MX {
+  synthetic constructor •() → self::B1X
+    : super self::_B1X&S&M1&M&MX::•()
+    ;
+}
+abstract class _B2X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → self::_B2X&S&M1
+    : super self::S::•()
+    ;
+}
+abstract class _B2X&S&M1&M2 extends self::_B2X&S&M1 implements self::M2 {
+  synthetic constructor •() → self::_B2X&S&M1&M2
+    : super self::_B2X&S&M1::•()
+    ;
+}
+abstract class _B2X&S&M1&M2&M extends self::_B2X&S&M1&M2 implements self::M {
+  synthetic constructor •() → self::_B2X&S&M1&M2&M
+    : super self::_B2X&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _B2X&S&M1&M2&M&MX extends self::_B2X&S&M1&M2&M implements self::MX {
+  synthetic constructor •() → self::_B2X&S&M1&M2&M&MX
+    : super self::_B2X&S&M1&M2&M::•()
+    ;
+}
+class B2X extends self::_B2X&S&M1&M2&M&MX {
+  synthetic constructor •() → self::B2X
+    : super self::_B2X&S&M1&M2&M&MX::•()
+    ;
+}
+static method main() → dynamic {}

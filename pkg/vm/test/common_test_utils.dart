@@ -5,9 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show
+        CompilerOptions,
+        DiagnosticMessage,
+        computePlatformBinariesLocation,
+        kernelForProgram;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
@@ -29,15 +32,13 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target, bool enableSuperMixins: false}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-  target ??= new TestingVmTarget(new TargetFlags(strongMode: true))
+  target ??= new TestingVmTarget(new TargetFlags())
     ..enableSuperMixins = enableSuperMixins;
   final options = new CompilerOptions()
-    ..strongMode = true
     ..target = target
     ..linkedDependencies = <Uri>[platformKernel]
-    ..reportMessages = true
-    ..onError = (CompilationMessage error) {
-      fail("Compilation error: ${error}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
   final Component component = await kernelForProgram(sourceUri, options);
@@ -53,7 +54,9 @@ String kernelLibraryToString(Library library) {
   final StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showExternal: false, showMetadata: true)
       .writeLibraryFile(library);
-  return buffer.toString();
+  return buffer
+      .toString()
+      .replaceAll(library.importUri.toString(), library.name);
 }
 
 class DevNullSink<T> extends Sink<T> {

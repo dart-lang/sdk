@@ -20,11 +20,6 @@ class AotCallSpecializer : public CallSpecializer {
 
   virtual ~AotCallSpecializer() {}
 
-  // TODO(dartbug.com/30633) these method has nothing to do with
-  // specialization of calls. They are here for historical reasons.
-  // Find a better place for them.
-  static void ReplaceArrayBoundChecks(FlowGraph* flow_graph);
-
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitPolymorphicInstanceCall(
@@ -32,8 +27,6 @@ class AotCallSpecializer : public CallSpecializer {
 
   virtual bool TryReplaceInstanceOfWithRangeCheck(InstanceCallInstr* call,
                                                   const AbstractType& type);
-  virtual bool TryReplaceTypeCastWithRangeCheck(InstanceCallInstr* call,
-                                                const AbstractType& type);
 
  private:
   // Attempt to build ICData for call using propagated class-ids.
@@ -50,11 +43,21 @@ class AotCallSpecializer : public CallSpecializer {
   bool IsSupportedIntOperandForStaticDoubleOp(CompileType* operand_type);
   Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
 
-  Value* PrepareReceiverOfDevirtualizedCall(Value* input, intptr_t cid);
+  CompileType BuildStrengthenedReceiverType(Value* input, intptr_t cid);
 
   bool TryOptimizeInstanceCallUsingStaticTypes(InstanceCallInstr* instr);
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
+
+  // Try to replace a call with a more specialized instruction working on
+  // integers (e.g. BinaryInt64OpInstr, CheckedSmiComparisonInstr,
+  // RelationalOpInstr)
+  bool TryOptimizeIntegerOperation(TemplateDartCall<0>* call, Token::Kind kind);
+
+  // Try to replace a call with a more specialized instruction working on
+  // doubles (e.g. BinaryDoubleOpInstr, CheckedSmiComparisonInstr,
+  // RelationalOpInstr)
+  bool TryOptimizeDoubleOperation(TemplateDartCall<0>* call, Token::Kind kind);
 
   // Check if o.m(...) [call] is actually an invocation through a getter
   // o.get:m().call(...) given that the receiver of the call is a subclass
@@ -62,6 +65,11 @@ class AotCallSpecializer : public CallSpecializer {
   // o.get:m.call(...) to avoid hitting dispatch through noSuchMethod.
   bool TryExpandCallThroughGetter(const Class& receiver_class,
                                   InstanceCallInstr* call);
+
+  Definition* TryOptimizeMod(TemplateDartCall<0>* instr,
+                             Token::Kind op_kind,
+                             Value* left_value,
+                             Value* right_value);
 
   Precompiler* precompiler_;
 

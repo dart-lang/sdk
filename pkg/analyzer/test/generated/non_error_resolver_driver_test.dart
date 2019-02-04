@@ -1,41 +1,74 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'non_error_resolver_test.dart';
+import 'non_error_resolver.dart';
+import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonErrorResolverTest_Driver);
+    defineReflectiveTests(NonConstantValueInInitializer);
   });
 }
 
 @reflectiveTest
-class NonErrorResolverTest_Driver extends NonErrorResolverTest {
+class NonConstantValueInInitializer extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments => [EnableString.constant_update_2018];
+
   @override
   bool get enableNewAnalysisDriver => true;
 
-  @override // Passes with driver
-  test_infer_mixin() => super.test_infer_mixin();
+  test_intLiteralInDoubleContext_const_exact() async {
+    Source source = addSource(r'''
+const double x = 0;
+class C {
+  const C(double y) : assert(y is double), assert(x is double);
+}
+@C(0)
+@C(-0)
+@C(0x0)
+@C(-0x0)
+void main() {
+  const C(0);
+  const C(-0);
+  const C(0x0);
+  const C(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
 
-  @override // Passes with driver
-  test_infer_mixin_multiplyConstrained() =>
-      super.test_infer_mixin_multiplyConstrained();
+  test_isCheckInConstAssert() async {
+    Source source = addSource(r'''
+class C {
+  const C() : assert(1 is int);
+}
 
-  @override // Passes with driver
-  test_infer_mixin_with_substitution() =>
-      super.test_infer_mixin_with_substitution();
+void main() {
+  const C();
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+}
 
-  @override // Passes with driver
-  test_infer_mixin_with_substitution_functionType() =>
-      super.test_infer_mixin_with_substitution_functionType();
+@reflectiveTest
+class NonErrorResolverTest_Driver extends NonErrorResolverTestBase {
+  @override
+  bool get enableNewAnalysisDriver => true;
 
-  @override // Passes with driver
-  test_issue_32394() => super.test_issue_32394();
-
-  @override // Passes with driver
-  test_mixinInference_with_actual_mixins() =>
-      super.test_mixinInference_with_actual_mixins();
+  @override
+  @failingTest
+  test_null_callOperator() {
+    return super.test_null_callOperator();
+  }
 }

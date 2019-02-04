@@ -1,12 +1,10 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -18,18 +16,15 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
  */
 class Fix {
   /**
-   * An empty list of fixes.
-   */
-  static const List<Fix> EMPTY_LIST = const <Fix>[];
-
-  /**
    * A comparator that can be used to sort fixes by their relevance. The most
    * relevant fixes will be sorted before fixes with a lower relevance. Fixes
    * with the same relevance are sorted alphabetically.
    */
   static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix a, Fix b) {
     if (a.kind.priority != b.kind.priority) {
-      return a.kind.priority - b.kind.priority;
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
     }
     return a.change.message.compareTo(b.change.message);
   };
@@ -67,25 +62,9 @@ class Fix {
  */
 abstract class FixContext {
   /**
-   * The analysis driver used to access analysis results.
-   */
-  AnalysisDriver get analysisDriver;
-
-  /**
-   * The error to fix, should be reported by the given [analysisDriver].
+   * The error to fix.
    */
   AnalysisError get error;
-
-  /**
-   * All of the errors in the file. This is used to compute additional fixes
-   * such "Fix all instances in file."
-   */
-  List<AnalysisError> get errors;
-
-  /**
-   * The [ResourceProvider] to access files and folders.
-   */
-  ResourceProvider get resourceProvider;
 }
 
 /**
@@ -99,5 +78,5 @@ abstract class FixContributor {
   /**
    * Return a list of fixes for the given [context].
    */
-  Future<List<Fix>> computeFixes(FixContext context);
+  Future<List<Fix>> computeFixes(covariant FixContext context);
 }

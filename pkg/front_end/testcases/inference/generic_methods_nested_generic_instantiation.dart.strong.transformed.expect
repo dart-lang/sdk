@@ -3,15 +3,17 @@ import self as self;
 import "dart:core" as core;
 import "dart:math" as math;
 
+import "dart:math" as math;
+
 class Trace extends core::Object {
   field core::List<self::Frame> frames = <self::Frame>[];
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Trace
     : super core::Object::•()
     ;
 }
 class Frame extends core::Object {
   field core::String location = "";
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Frame
     : super core::Object::•()
     ;
 }

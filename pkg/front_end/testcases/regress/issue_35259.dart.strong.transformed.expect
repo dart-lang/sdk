@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:7:11: Error: 'Supertype' is already declared in this scope.
+//   factory Supertype() = Unresolved;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/regress/issue_35259.dart:6:11: Context: Previous declaration of 'Supertype'.
+//   factory Supertype() = Unresolved;
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Couldn't find constructor 'Unresolved'.
+//   factory Supertype() = Unresolved;
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:7:25: Error: Couldn't find constructor 'Unresolved'.
+//   factory Supertype() = Unresolved;
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:7:11: Error: Redirection constructor target not found: 'Unresolved'
+//   factory Supertype() = Unresolved;
+//           ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:6:11: Error: Redirection constructor target not found: 'Unresolved'
+//   factory Supertype() = Unresolved;
+//           ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:11:13: Error: Can't use 'Supertype' because it is declared more than once.
+//   print(new Supertype());
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Supertype extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::Supertype::•];
+  static factory •() → self::Supertype
+    let core::String #redirecting_factory = "Unresolved" in invalid-expression;
+}
+static method main() → dynamic {
+  core::print(invalid-expression "pkg/front_end/testcases/regress/issue_35259.dart:11:13: Error: Can't use 'Supertype' because it is declared more than once.
+  print(new Supertype());
+            ^");
+}

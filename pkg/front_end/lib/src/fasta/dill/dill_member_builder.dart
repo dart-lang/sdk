@@ -62,6 +62,8 @@ class DillMemberBuilder extends MemberBuilder {
         name == "" &&
         (charOffset == parent.charOffset || charOffset == -1);
   }
+
+  bool get isField => member is Field;
 }
 
 int computeModifiers(Member member) {

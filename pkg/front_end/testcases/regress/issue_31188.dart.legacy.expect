@@ -1,0 +1,30 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:17: Error: Expected ';' after this.
+// type T = Map<A, B>
+//                 ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected a declaration, but got '>'.
+// type T = Map<A, B>
+//                  ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Warning: Type 'type' not found.
+// type T = Map<A, B>
+// ^^^^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Warning: Getter not found: 'A'.
+// type T = Map<A, B>
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Warning: 'type' isn't a type.
+// type T = Map<A, B>
+// ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static field invalid-type T = core::Map<dynamic, dynamic>.<(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#A, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+static field invalid-type B;
+static method main() → dynamic {}

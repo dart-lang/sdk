@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -208,7 +208,7 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] is the file cannot be analyzed or if the driver
    * associated with the file is not an [AnalysisDriver].
    */
-  Future<ResolveResult> getResolveResult(String path) async {
+  Future<ResolvedUnitResult> getResolvedUnitResult(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AnalysisDriverGeneric driver = driverForPath(path);
@@ -217,7 +217,8 @@ abstract class ServerPlugin {
       throw new RequestFailure(
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
-    ResolveResult result = await (driver as AnalysisDriver).getResult(path);
+    ResolvedUnitResult result =
+        await (driver as AnalysisDriver).getResult(path);
     ResultState state = result.state;
     if (state != ResultState.VALID) {
       // Return an error from the request.
@@ -226,6 +227,16 @@ abstract class ServerPlugin {
     }
     return result;
   }
+
+  /**
+   * Return the result of analyzing the file with the given [path].
+   *
+   * Throw a [RequestFailure] is the file cannot be analyzed or if the driver
+   * associated with the file is not an [AnalysisDriver].
+   */
+  @deprecated
+  Future<ResolveResult> getResolveResult(String path) =>
+      getResolvedUnitResult(path);
 
   /**
    * Handle an 'analysis.getNavigation' request.

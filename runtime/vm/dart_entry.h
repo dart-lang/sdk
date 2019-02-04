@@ -73,7 +73,10 @@ class ArgumentsDescriptor : public ValueObject {
   static RawArray* New(intptr_t type_args_len, intptr_t num_arguments);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
-  static void InitOnce();
+  static void Init();
+
+  // Clear the preallocated fixed length arguments descriptors cache.
+  static void Cleanup();
 
   enum { kCachedDescriptorCount = 32 };
 
@@ -83,7 +86,6 @@ class ArgumentsDescriptor : public ValueObject {
   enum {
     kTypeArgsLenIndex,
     kCountIndex,
-
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
   };

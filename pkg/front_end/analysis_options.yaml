@@ -3,14 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
-  language:
-    enableSuperMixins: false
   exclude:
     - testcases/**
   errors:
     # Allow having TODOs in the code
     todo: ignore
 
-    # Allow deprecated calls (although it would be nice to have a distinction
-    # between internal and external deprecated calls).
-    deprecated_member_use: ignore
+    # Allow deprecated calls from within the same package
+    deprecated_member_use_from_same_package: ignore

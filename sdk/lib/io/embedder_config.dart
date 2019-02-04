@@ -11,6 +11,7 @@ part of dart.io;
 /// permitted to use (e.g. exit()). By default, the whole dart:io API is
 /// enabled. When a disallowed operation is attempted, an `UnsupportedError` is
 /// thrown.
+@pragma('vm:entry-point')
 abstract class _EmbedderConfig {
   /// The Isolate may set Directory.current.
   static bool _mayChdir = true;
@@ -20,12 +21,15 @@ abstract class _EmbedderConfig {
   static bool _mayExit = true;
 
   // The Isolate may set Stdin.echoMode.
+  @pragma('vm:entry-point')
   static bool _maySetEchoMode = true;
 
   // The Isolate may set Stdin.lineMode.
+  @pragma('vm:entry-point')
   static bool _maySetLineMode = true;
 
   /// The Isolate may call sleep().
+  @pragma('vm:entry-point')
   static bool _maySleep = true;
 
   // TODO(zra): Consider adding:

@@ -1,0 +1,68 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:7:10: Error: Superclass has no method named '[]='.
+//     super[4] = 42;
+//          ^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:8:10: Error: Superclass has no method named '[]'.
+//     super[4] += 5;
+//          ^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:8:10: Error: Superclass has no method named '[]='.
+//     super[4] += 5;
+//          ^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:9:17: Error: Superclass has no method named '[]'.
+//     return super[2];
+//                 ^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:3: Error: 'on' isn't a type.
+//   on Exception catch (e) { }
+//   ^^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:6: Error: Expected ';' after this.
+//   on Exception catch (e) { }
+//      ^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:16: Error: Expected an identifier, but got 'catch'.
+//   on Exception catch (e) { }
+//                ^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:23: Error: Getter not found: 'e'.
+//   on Exception catch (e) { }
+//                       ^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:16: Error: Method not found: 'catch'.
+//   on Exception catch (e) { }
+//                ^^^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:24: Error: Expected ';' after this.
+//   on Exception catch (e) { }
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::Object {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {
+    super.[]=(4, 42);
+    let final core::int #t1 = 4 in super.[]=(#t1, super.[](#t1).+(5));
+    return super.[](2);
+  }
+}
+static method beforeTestMissingTry() → dynamic {
+  self::testMissingTry();
+}
+static method testMissingTry() → dynamic {
+  invalid-type Exception;
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:16: Error: Method not found: 'catch'.
+  on Exception catch (e) { }
+               ^^^^^";
+  {}
+}
+static method main() → dynamic {}

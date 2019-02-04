@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: A field can only be initialized in it's declaring class
+// Try passing a value into the superclass constructor, or moving the initialization into the constructor body.
+//   B() : super.a = 42;
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int a;
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  constructor •() → self::B
+    ;
+}
+class C extends core::Object {
+  constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;

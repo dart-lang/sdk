@@ -43,11 +43,6 @@ RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
   return call.TargetCode();
 }
 
-intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  UNREACHABLE();
-  return 0;
-}
-
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
                                                      ICData* ic_data_result) {

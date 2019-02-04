@@ -11,7 +11,7 @@ import 'dart:convert' show jsonEncode;
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
-export 'deprecated_problems.dart' show withCrashReporting;
+import 'problems.dart' show DebugAbort;
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -93,7 +93,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       int port = request?.connectionInfo?.remotePort;
       await note(" to $host:$port");
       await request
-        ..headers.contentType = ContentType.JSON
+        ..headers.contentType = ContentType.json
         ..write(json);
       await request.close();
       await note(".");
@@ -112,5 +112,19 @@ String safeToString(Object object) {
     return "$object";
   } catch (e) {
     return "Error when converting ${object.runtimeType} to string.";
+  }
+}
+
+Future<T> withCrashReporting<T>(
+    Future<T> Function() action, Uri Function() currentUri) async {
+  resetCrashReporting();
+  try {
+    return await action();
+  } on Crash {
+    rethrow;
+  } on DebugAbort {
+    rethrow;
+  } catch (e, s) {
+    return reportCrash(e, s, currentUri());
   }
 }

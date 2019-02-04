@@ -4,8 +4,7 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper'
-    show notNull, patch, setTraceForException, ReifyFunctionTypes;
+import 'dart:_js_helper' show notNull, patch, ReifyFunctionTypes;
 import 'dart:_isolate_helper'
     show TimerImpl, global, leaveJsAsync, enterJsAsync;
 import 'dart:_foreign_helper' show JS, JSExportName;
@@ -30,7 +29,7 @@ typedef void _TakeCallback(_Callback callback);
 _async<T>(Function() initGenerator) {
   var iter;
   Object Function(Object) onValue;
-  Object Function(Object) onError;
+  Object Function(Object, StackTrace) onError;
 
   onAwait(Object value) {
     _Future f;
@@ -60,8 +59,9 @@ _async<T>(Function() initGenerator) {
   //
   // In essence, we are giving the code inside the generator a chance to
   // use try-catch-finally.
-  onError = (value) {
-    var iteratorResult = JS('', '#.throw(#)', iter, value);
+  onError = (value, stackTrace) {
+    var iteratorResult = JS(
+        '', '#.throw(#)', iter, dart.createErrorWithStack(value, stackTrace));
     value = JS('', '#.value', iteratorResult);
     return JS('bool', '#.done', iteratorResult) ? value : onAwait(value);
   };
@@ -69,7 +69,7 @@ _async<T>(Function() initGenerator) {
   var zone = Zone.current;
   if (!identical(zone, _rootZone)) {
     onValue = zone.registerUnaryCallback(onValue);
-    onError = zone.registerUnaryCallback(onError);
+    onError = zone.registerBinaryCallback(onError);
   }
 
   var asyncFuture = _Future<T>();
@@ -243,8 +243,7 @@ class Timer {
 
 @patch
 void _rethrow(Object error, StackTrace stackTrace) {
-  setTraceForException(error, stackTrace);
-  dart.throw_(error);
+  JS('', 'throw #', dart.createErrorWithStack(error, stackTrace));
 }
 
 /// Used by the compiler to implement `async*` functions.
@@ -328,9 +327,12 @@ class _AsyncStarImpl<T> {
     if (_handleErrorCallback == null) {
       _handleErrorCallback = (error, StackTrace stackTrace) {
         try {
-          JS('', '#.throw(#)', jsIterator, error);
-        } catch (e) {
-          addError(e, stackTrace);
+          JS('', '#.throw(#)', jsIterator,
+              dart.createErrorWithStack(error, stackTrace));
+        } catch (e, newStack) {
+          // The generator didn't catch the error, or it threw a new one.
+          // Make sure to propagate the new error.
+          addError(e, newStack);
         }
       };
       var zone = Zone.current;
@@ -377,7 +379,6 @@ class _AsyncStarImpl<T> {
       iterResult = JS('', '#.next(#)', jsIterator, awaitValue);
     } catch (e, s) {
       addError(e, s);
-      close();
       return null;
     }
 
@@ -466,18 +467,17 @@ class _AsyncStarImpl<T> {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
       cancellationCompleter.completeError(error, stackTrace);
-      return;
+    } else if (controller.hasListener) {
+      controller.addError(error, stackTrace);
     }
-    // If stream is cancelled, tell caller to exit the async generator.
-    if (!controller.hasListener) return;
-    controller.addError(error, stackTrace);
     // No need to schedule the generator body here. This code is only
     // called from the catch clause of the implicit try-catch-finally
     // around the generator body. That is, we are on the error path out
     // of the generator and do not need to run the generator again.
+    close();
   }
 
-  close() {
+  void close() {
     if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.

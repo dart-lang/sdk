@@ -21,6 +21,13 @@ class _ProcessUtils {
  * This does not wait for any asynchronous operations to terminate. Using
  * [exit] is therefore very likely to lose data.
  *
+ * While debugging, the VM will not respect the `--pause-isolates-on-exit`
+ * flag if [exit] is called as invoking this method causes the Dart VM
+ * process to shutdown immediately. To properly break on exit, consider
+ * calling [debugger] from `dart:developer` or [Isolate.pause] from
+ * `dart:isolate` on [Isolate.current] to pause the isolate before
+ * invoking [exit].
+ *
  * The handling of exit codes is platform specific.
  *
  * On Linux and OS X an exit code for normal termination will always
@@ -43,9 +50,7 @@ class _ProcessUtils {
  * cross-platform issues.
  */
 void exit(int code) {
-  if (code is! int) {
-    throw new ArgumentError("Integer value for exit code expected");
-  }
+  ArgumentError.checkNotNull(code, "code");
   if (!_EmbedderConfig._mayExit) {
     throw new UnsupportedError(
         "This embedder disallows calling dart:io's exit()");
@@ -66,9 +71,7 @@ void exit(int code) {
  * exit code.
  */
 void set exitCode(int code) {
-  if (code is! int) {
-    throw new ArgumentError("Integer value for exit code expected");
-  }
+  ArgumentError.checkNotNull(code, "code");
   _ProcessUtils._setExitCode(code);
 }
 
@@ -655,7 +658,7 @@ class SignalException implements IOException {
   final String message;
   final osError;
 
-  const SignalException(this.message, [this.osError = null]);
+  const SignalException(this.message, [this.osError]);
 
   String toString() {
     var msg = "";

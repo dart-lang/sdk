@@ -52,29 +52,6 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
-// Intrinsify only for Smi index.
-void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler,
-                                                  Label* normal_ir_body) {
-  __ movl(EBX, Address(ESP, +2 * kWordSize));  // Index.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  // Index not Smi.
-  __ j(NOT_ZERO, normal_ir_body);
-  __ movl(EAX, Address(ESP, +3 * kWordSize));  // Array.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, Array::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, normal_ir_body);
-  // Note that EBX is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  // Destroy ECX (ic data) as we will not continue in the function.
-  __ movl(ECX, Address(ESP, +1 * kWordSize));  // Value.
-  __ StoreIntoObject(EAX, FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()),
-                     ECX);
-  // Caller is responsible of preserving the value if necessary.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -110,35 +87,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-// Add an element to growable array if it doesn't need to grow, otherwise
-// call into regular code.
-// On stack: growable array (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->argument_type_checks()) return;
-
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Array.
-  __ movl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
-  // EBX: length.
-  __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
-  // EDI: data.
-  // Compare length with capacity.
-  __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
-  __ j(EQUAL, normal_ir_body);  // Must grow data.
-  __ IncrementSmiField(FieldAddress(EAX, GrowableObjectArray::length_offset()),
-                       1);
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Value
-  ASSERT(kSmiTagShift == 1);
-  __ StoreIntoObject(EDI, FieldAddress(EDI, EBX, TIMES_2, Array::data_offset()),
-                     EAX);
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<int32_t>(Object::null()));
-  __ movl(EAX, raw_null);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EDI, normal_ir_body, false));    \
@@ -165,7 +113,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler,
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ movl(EAX, Address(THR, Thread::top_offset()));                            \
   __ movl(EBX, EAX);                                                           \
                                                                                \
@@ -184,7 +131,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movl(Address(THR, Thread::top_offset()), EBX);                            \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));      \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));             \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -785,7 +732,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -830,7 +777,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -889,7 +836,7 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -944,7 +891,7 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&done);
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -1689,7 +1636,7 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
 
@@ -1697,7 +1644,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
 
   __ cmpl(EDI, Immediate(kNumPredefinedCids));
-  __ j(ABOVE, &use_canonical_type);
+  __ j(ABOVE, &use_declaration_type);
 
   // If object is a instance of _Double return double type.
   __ cmpl(EDI, Immediate(kDoubleCid));
@@ -1722,7 +1669,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movl(EAX, EDI);
-  JumpIfNotString(assembler, EAX, &use_canonical_type);
+  JumpIfNotString(assembler, EAX, &use_declaration_type);
 
   __ LoadIsolate(EAX);
   __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
@@ -1730,12 +1677,12 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   // Object is neither double, nor integer, nor string.
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(EBX, EDI);
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EBX, Class::canonical_type_offset()));
+  __ movl(EAX, FieldAddress(EBX, Class::declaration_type_offset()));
   __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -1988,7 +1935,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ movl(EAX, Address(THR, Thread::top_offset()));
   __ movl(EBX, EAX);
 
@@ -2008,7 +1954,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movl(Address(THR, Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -2254,10 +2200,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  if (!FLAG_support_timeline) {
-    __ LoadObject(EAX, Bool::False());
-    __ ret();
-  }
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadObject(EAX, Bool::False());
+  __ ret();
+#else
   Label true_label;
   // Load TimelineStream*.
   __ movl(EAX, Address(THR, Thread::dart_stream_offset()));
@@ -2272,6 +2218,7 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ Bind(&true_label);
   __ LoadObject(EAX, Bool::True());
   __ ret();
+#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,

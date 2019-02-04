@@ -9,10 +9,6 @@ html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
 async/slow_consumer_test: CompileTimeError
-convert/chunked_conversion_utf82_test: RuntimeError
-convert/chunked_conversion_utf86_test: RuntimeError
-convert/chunked_conversion_utf87_test: RuntimeError
-convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
@@ -43,8 +39,7 @@ convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid va
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/json_utf8_chunk_test: Slow, Pass
 convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
-convert/streamed_conversion_utf8_decode_test: Slow, Pass
-convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
+convert/streamed_conversion_utf8_decode_test: Slow, Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922

@@ -1,11 +1,11 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 
-String flutterPkgLibPath = '/packages/flutter/lib';
+const String flutterPkgLibPath = '/packages/flutter/lib';
 
 /**
  * Add some Flutter libraries and types to the given [provider] and return
@@ -27,6 +27,7 @@ export 'src/material/scaffold.dart';
 ''');
 
   newFile('$flutterPkgLibPath/widgets.dart', r'''
+export 'src/widgets/async.dart';
 export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
@@ -159,6 +160,25 @@ class ValueKey<T> extends LocalKey {
   }
 
   void createSrcWidgets() {
+    newFile('$flutterPkgLibPath/src/widgets/async.dart', r'''
+import 'framework.dart';
+
+class AsyncSnapshot<T> {}
+
+typedef AsyncWidgetBuilder<T> = Widget Function(BuildContext context, AsyncSnapshot<T> snapshot);
+
+class StreamBuilder<T> {
+  const StreamBuilder({
+    Key key,
+    this.initialData,
+    Stream<T> stream,
+    @required this.builder
+  });
+  final T initialData;
+  final AsyncWidgetBuilder<T> builder;
+}
+''');
+
     newFile('$flutterPkgLibPath/src/widgets/basic.dart', r'''
 import 'package:flutter/rendering.dart';
 

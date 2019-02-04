@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -133,13 +133,6 @@ class StringsTest {
     expect(isWhitespace('A'.codeUnitAt(0)), isFalse);
   }
 
-  void test_remove() {
-    expect(remove(null, 'x'), null);
-    expect(remove('abc', null), 'abc');
-    expect(remove('abc abbc abbbc', 'b'), 'ac ac ac');
-    expect(remove('abc abbc abbbc', 'bc'), 'a ab abb');
-  }
-
   void test_removeEnd() {
     expect(removeEnd(null, 'x'), null);
     expect(removeEnd('abc', null), 'abc');
@@ -164,12 +157,5 @@ class StringsTest {
     expect(shorten('0123456789abcdef', 10), '0123...def');
     expect(shorten('0123456789abcdef', 11), '0123...cdef');
     expect(shorten('0123456789abcdef', 12), '01234...cdef');
-  }
-
-  void test_substringAfterLast() {
-    expect(substringAfterLast('', '/'), '');
-    expect(substringAfterLast('abc', ''), '');
-    expect(substringAfterLast('abc', 'd'), 'abc');
-    expect(substringAfterLast('abcbde', 'b'), 'de');
   }
 }

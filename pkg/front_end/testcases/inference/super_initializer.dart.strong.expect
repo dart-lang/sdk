@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class C extends self::B {
-  constructor •() → void
+  constructor •() → self::C
     : super self::B::•(self::f<core::int>())
     ;
 }
 class B extends core::Object {
-  constructor •(core::int x) → void
+  constructor •(core::int x) → self::B
     : super core::Object::•()
     ;
 }

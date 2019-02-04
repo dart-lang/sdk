@@ -22,6 +22,7 @@ check(String path, int start, int end, FileLock mode, {bool locked}) {
     ..add(mode == FileLock.exclusive ? 'EXCLUSIVE' : 'SHARED')
     ..add('$start')
     ..add('$end');
+  var stacktrace = StackTrace.current;
   return Process
       .run(Platform.executable, arguments)
       .then((ProcessResult result) {
@@ -33,6 +34,8 @@ check(String path, int start, int end, FileLock mode, {bool locked}) {
       print(result.stderr);
       print("  arguments:");
       print(arguments);
+      print("  call stack:");
+      print(stacktrace);
       Expect.fail('Client subprocess exit code: ${result.exitCode}');
     }
   });

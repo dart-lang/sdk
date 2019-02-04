@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -54,6 +54,8 @@ abstract class File implements Resource {
   /**
    * Synchronously rename this file.
    * Return a [File] instance for the renamed file.
+   *
+   * The [newPath] must be absolute and normalized.
    *
    * If [newPath] identifies an existing file, that file is replaced.
    * If [newPath] identifies an existing resource the operation might fail and
@@ -112,7 +114,9 @@ abstract class Folder implements Resource {
   String canonicalizePath(String path);
 
   /**
-   * Return `true` if absolute [path] references a resource in this folder.
+   * Return `true` if the [path] references a resource in this folder.
+   *
+   * The [path] must be absolute and normalized.
    */
   bool contains(String path);
 
@@ -204,6 +208,8 @@ abstract class Resource {
   /**
    * Return `true` if absolute [path] references this resource or a resource in
    * this folder.
+   *
+   * The [path] must be absolute and normalized.
    */
   bool isOrContains(String path);
 
@@ -232,12 +238,16 @@ abstract class ResourceProvider {
   /**
    * Return a [File] that corresponds to the given [path].
    *
+   * The [path] must be absolute and normalized.
+   *
    * A file may or may not exist at this location.
    */
   File getFile(String path);
 
   /**
    * Return a [Folder] that corresponds to the given [path].
+   *
+   * The [path] must be absolute and normalized.
    *
    * A folder may or may not exist at this location.
    */
@@ -253,6 +263,8 @@ abstract class ResourceProvider {
 
   /**
    * Return the [Resource] that corresponds to the given [path].
+   *
+   * The [path] must be absolute and normalized.
    */
   Resource getResource(String path);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -90,22 +90,7 @@ var w = new Foo();
     expect(getWidgetPresentationText(w), isNull);
   }
 
-  test_identifyWidgetExpression_identifier() async {
-    await resolveTestUnit('''
-import 'package:flutter/widgets.dart';
-
-main() {
-  var text = new Text('abc');
-  text;
-}
-''');
-    {
-      Expression expression = findNodeAtString("text;");
-      expect(identifyWidgetExpression(expression), expression);
-    }
-  }
-
-  test_identifyWidgetExpression_instanceCreation() async {
+  test_identifyWidgetExpression_node_instanceCreation() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -155,7 +140,7 @@ class MyWidget extends StatelessWidget {
     }
   }
 
-  test_identifyWidgetExpression_invocation() async {
+  test_identifyWidgetExpression_node_invocation() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -185,7 +170,7 @@ Text createText(String txt) => new Text(txt);
     }
   }
 
-  test_identifyWidgetExpression_namedExpression() async {
+  test_identifyWidgetExpression_node_namedExpression() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -197,6 +182,50 @@ Text createEmptyText() => new Text('');
 ''');
     Expression childExpression = findNodeAtString('child: ');
     expect(identifyWidgetExpression(childExpression), isNull);
+  }
+
+  test_identifyWidgetExpression_node_prefixedIdentifier_identifier() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  foo.bar; // ref
+}
+''');
+    SimpleIdentifier bar = findNodeAtString('bar; // ref');
+    expect(identifyWidgetExpression(bar), bar.parent);
+  }
+
+  test_identifyWidgetExpression_node_prefixedIdentifier_prefix() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  foo.bar; // ref
+}
+''');
+    SimpleIdentifier foo = findNodeAtString('foo.bar');
+    expect(identifyWidgetExpression(foo), foo.parent);
+  }
+
+  test_identifyWidgetExpression_node_simpleIdentifier() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(Widget widget) {
+  widget; // ref
+}
+''');
+    Expression expression = findNodeAtString('widget; // ref');
+    expect(identifyWidgetExpression(expression), expression);
   }
 
   test_identifyWidgetExpression_null() async {
@@ -220,6 +249,72 @@ Text createEmptyText() => new Text('');
       Expression expression = findNodeAtString("intVariable;");
       expect(identifyWidgetExpression(expression), isNull);
     }
+  }
+
+  test_identifyWidgetExpression_parent_argumentList() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  var text = new Text('abc');
+  useWidget(text); // ref
+}
+
+void useWidget(Widget w) {}
+''');
+    Expression expression = findNodeAtString("text); // ref");
+    expect(identifyWidgetExpression(expression), expression);
+  }
+
+  test_identifyWidgetExpression_parent_expressionStatement() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(Widget widget) {
+  widget; // ref
+}
+''');
+    Expression expression = findNodeAtString("widget; // ref");
+    expect(identifyWidgetExpression(expression), expression);
+  }
+
+  test_identifyWidgetExpression_parent_listLiteral() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(Widget widget) {
+  return [widget]; // ref
+}
+''');
+    Expression expression = findNodeAtString("widget]; // ref");
+    expect(identifyWidgetExpression(expression), expression);
+  }
+
+  test_identifyWidgetExpression_parent_namedExpression() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  var text = new Text('abc');
+  useWidget(child: text); // ref
+}
+
+void useWidget({Widget child}) {}
+''');
+    Expression expression = findNodeAtString("text); // ref");
+    expect(identifyWidgetExpression(expression), expression);
+  }
+
+  test_identifyWidgetExpression_parent_returnStatement() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(Widget widget) {
+  return widget; // ref
+}
+''');
+    Expression expression = findNodeAtString("widget; // ref");
+    expect(identifyWidgetExpression(expression), expression);
   }
 
   test_isWidget() async {

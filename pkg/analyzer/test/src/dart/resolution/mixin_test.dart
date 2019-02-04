@@ -10,12 +10,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinDriverResolutionTest);
-    defineReflectiveTests(MixinTaskResolutionTest);
   });
 }
 
@@ -23,7 +21,7 @@ main() {
 class MixinDriverResolutionTest extends DriverResolutionTest
     with MixinResolutionMixin {}
 
-abstract class MixinResolutionMixin implements ResolutionTest {
+mixin MixinResolutionMixin implements ResolutionTest {
   test_accessor_getter() async {
     addTestFile(r'''
 mixin M {
@@ -169,6 +167,10 @@ mixin M {}
     expect(element.typeParameters, isEmpty);
 
     expect(element.supertype, isNull);
+    expect(element.isAbstract, isTrue);
+    expect(element.isEnum, isFalse);
+    expect(element.isMixin, isTrue);
+    expect(element.isMixinApplication, isFalse);
     expect(element.type.isObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
@@ -898,6 +900,24 @@ abstract class X extends B with M {}
     ]);
   }
 
+  test_error_mixinApplicationConcreteSuperInvokedMemberType_OK_method_overriddenInMixin() async {
+    addTestFile(r'''
+class A<T> {
+  void remove(T x) {}
+}
+
+mixin M<U> on A<U> {
+  void remove(Object x) {
+    super.remove(x as U);
+  }
+}
+
+class X<T> = A<T> with M<T>;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() async {
     addTestFile(r'''
 abstract class A {
@@ -915,6 +935,50 @@ abstract class X extends A with M {}
     await resolveTestFile();
     assertTestErrors([
       CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_inNextMixin() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M1 on A {
+  void foo() {
+    super.foo();
+  }
+}
+
+mixin M2 on A {
+  void foo() {}
+}
+
+class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_inSameMixin() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void foo() {
+    super.foo();
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
     ]);
   }
 
@@ -936,6 +1000,54 @@ abstract class X extends A with M {}
     assertTestErrors([
       CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
     ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C implements A {
+  noSuchMethod(_) {}
+}
+
+class X extends C with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM2() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+/// Class `B` has noSuchMethod forwarder for `foo`.
+class B implements A {
+  noSuchMethod(_) {}
+}
+
+/// Class `C` is abstract, but it inherits noSuchMethod forwarders from `B`.
+abstract class C extends B {}
+
+class X extends C with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inPreviousMixin() async {
@@ -960,6 +1072,30 @@ class X extends A with M1, M2 {}
     assertNoTestErrors();
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inSuper_fromMixin() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M1 {
+  void foo() {}
+}
+
+class B extends A with M1 {}
+
+mixin M2 on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class X extends B with M2 {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_notInvoked() async {
     addTestFile(r'''
 abstract class A {
@@ -969,6 +1105,28 @@ abstract class A {
 mixin M on A {}
 
 abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_super_covariant() async {
+    addTestFile(r'''
+class A {
+  bar(num n) {}
+}
+
+mixin M on A {
+  test() {
+    super.bar(3.14);
+  }
+}
+
+class B implements A {
+  bar(covariant int i) {}
+}
+
+class C extends B with M {}
 ''');
     await resolveTestFile();
     assertNoTestErrors();
@@ -1015,6 +1173,30 @@ class A<T> {}
 mixin M on A<int> {}
 
 class X = A<double> with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_noMemberErrors() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C {
+  noSuchMethod(_) {}
+}
+
+class X = C with M;
 ''');
     await resolveTestFile();
     assertTestErrors([
@@ -1154,6 +1336,24 @@ main() {
     var creation = findNode.instanceCreation('M.named();');
     var m = findElement.mixin('M');
     assertInstanceCreation(creation, m, 'M', constructorName: 'named');
+  }
+
+  test_error_mixinInstantiate_undefined() async {
+    addTestFile(r'''
+mixin M {}
+
+main() {
+  new M.named();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+    ]);
+
+    var creation = findNode.instanceCreation('M.named();');
+    var m = findElement.mixin('M');
+    assertElement(creation.constructorName.type.name, m);
   }
 
   test_error_onClause_deferredClass() async {
@@ -1351,7 +1551,7 @@ mixin M implements A, B {} // M
     assertTypeName(bRef, findElement.class_('B'), 'B');
   }
 
-  test_inconsistentMethodInheritance_implements_parameterType() async {
+  test_inconsistentInheritance_implements_parameterType() async {
     addTestFile(r'''
 abstract class A {
   x(int i);
@@ -1363,11 +1563,11 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_implements_requiredParameters() async {
+  test_inconsistentInheritance_implements_requiredParameters() async {
     addTestFile(r'''
 abstract class A {
   x();
@@ -1379,11 +1579,11 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_implements_returnType() async {
+  test_inconsistentInheritance_implements_returnType() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1395,11 +1595,11 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_on_parameterType() async {
+  test_inconsistentInheritance_on_parameterType() async {
     addTestFile(r'''
 abstract class A {
   x(int i);
@@ -1411,11 +1611,11 @@ mixin M on A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_on_requiredParameters() async {
+  test_inconsistentInheritance_on_requiredParameters() async {
     addTestFile(r'''
 abstract class A {
   x();
@@ -1427,11 +1627,11 @@ mixin M on A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_on_returnType() async {
+  test_inconsistentInheritance_on_returnType() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1443,11 +1643,11 @@ mixin M on A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_implements_getter_method() async {
+  test_inconsistentInheritanceGetterAndMethod_implements_getter_method() async {
     addTestFile(r'''
 abstract class A {
   int get x;
@@ -1459,11 +1659,11 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_implements_method_getter() async {
+  test_inconsistentInheritanceGetterAndMethod_implements_method_getter() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1475,11 +1675,11 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_on_getter_method() async {
+  test_inconsistentInheritanceGetterAndMethod_on_getter_method() async {
     addTestFile(r'''
 abstract class A {
   int get x;
@@ -1491,11 +1691,11 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_on_method_getter() async {
+  test_inconsistentInheritanceGetterAndMethod_on_method_getter() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1507,8 +1707,56 @@ mixin M implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
+  }
+
+  test_invalid_unresolved_before_mixin() async {
+    addTestFile(r'''
+abstract class A {
+  int foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+abstract class X extends A with U1, U2, M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+      CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+    ]);
+  }
+
+  test_isMoreSpecificThan() async {
+    addTestFile(r'''
+mixin M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var element = findElement.mixin('M');
+    var type = element.type;
+    expect(type.isMoreSpecificThan(intType), isFalse);
+  }
+
+  test_lookUpMemberInInterfaces_Object() async {
+    addTestFile(r'''
+class Foo {}
+
+mixin UnhappyMixin on Foo {
+  String toString() => '$runtimeType';
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
   }
 
   test_metadata() async {
@@ -1531,6 +1779,24 @@ mixin M {}
     var annotation = findNode.annotation('@a');
     assertElement(annotation, a);
     expect(annotation.elementAnnotation, same(metadata[0]));
+  }
+
+  test_methodCallTypeInference_mixinType() async {
+    addTestFile('''
+main() {
+  C<int> c = f();
+}
+
+class C<T> {}
+
+mixin M<T> on C<T> {}
+
+M<T> f<T>() => null;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var fInvocation = findNode.methodInvocation('f()');
+    expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
   }
 
   test_onClause() async {
@@ -1654,14 +1920,5 @@ class X extends A with M {}
     assertElement(access, findElement.setter('foo'));
     // Hm... Does it need any type?
     assertTypeDynamic(access);
-  }
-}
-
-@reflectiveTest
-class MixinTaskResolutionTest extends TaskResolutionTest
-    with MixinResolutionMixin {
-  @failingTest
-  test_conflictingGenericInterfaces() {
-    return super.test_conflictingGenericInterfaces();
   }
 }

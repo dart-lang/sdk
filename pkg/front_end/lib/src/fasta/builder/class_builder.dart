@@ -13,8 +13,6 @@ import 'builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        MixinApplicationBuilder,
-        NamedTypeBuilder,
         Scope,
         ScopeBuilder,
         TypeBuilder,
@@ -22,11 +20,7 @@ import 'builder.dart'
         TypeVariableBuilder;
 
 import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        templateInternalProblemNotFoundIn,
-        templateInternalProblemSuperclassNotFound;
+    show LocatedMessage, Message, templateInternalProblemNotFoundIn;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -67,6 +61,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// superclass.
   bool get isMixinApplication => mixedInType != null;
 
+  @override
   bool get isNamedMixinApplication {
     return isMixinApplication && super.isNamedMixinApplication;
   }
@@ -129,94 +124,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     return constructors.lookup(name, charOffset, uri);
   }
 
-  /// Returns a map which maps the type variables of [superclass] to their
-  /// respective values as defined by the superclass clause of this class (and
-  /// its superclasses).
-  ///
-  /// It's assumed that [superclass] is a superclass of this class.
-  ///
-  /// For example, given:
-  ///
-  ///     class Box<T> {}
-  ///     class BeatBox extends Box<Beat> {}
-  ///     class Beat {}
-  ///
-  /// We have:
-  ///
-  ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
-  ///
-  /// This method returns null if the map is empty, and it's an error if
-  /// [superclass] isn't a superclass.
-  Map<TypeVariableBuilder, TypeBuilder> getSubstitutionMap(
-      ClassBuilder superclass,
-      Uri fileUri,
-      int charOffset,
-      TypeBuilder dynamicType) {
-    TypeBuilder supertype = this.supertype;
-    Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
-    List arguments;
-    List variables;
-    Declaration declaration;
-
-    /// If [application] is mixing in [superclass] directly or via other named
-    /// mixin applications, return it.
-    NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
-      for (TypeBuilder t in application.mixins) {
-        if (t is NamedTypeBuilder) {
-          if (t.declaration == superclass) return t;
-        } else if (t is MixinApplicationBuilder) {
-          NamedTypeBuilder s = findSuperclass(t);
-          if (s != null) return s;
-        }
-      }
-      return null;
-    }
-
-    void handleNamedTypeBuilder(NamedTypeBuilder t) {
-      declaration = t.declaration;
-      arguments = t.arguments ?? const [];
-      if (declaration is ClassBuilder) {
-        ClassBuilder cls = declaration;
-        variables = cls.typeVariables;
-        supertype = cls.supertype;
-      }
-    }
-
-    while (declaration != superclass) {
-      variables = null;
-      if (supertype is NamedTypeBuilder) {
-        handleNamedTypeBuilder(supertype);
-      } else if (supertype is MixinApplicationBuilder) {
-        MixinApplicationBuilder t = supertype;
-        NamedTypeBuilder s = findSuperclass(t);
-        if (s != null) {
-          handleNamedTypeBuilder(s);
-        }
-        supertype = t.supertype;
-      } else {
-        internalProblem(
-            templateInternalProblemSuperclassNotFound
-                .withArguments(superclass.fullNameForErrors),
-            charOffset,
-            fileUri);
-      }
-      if (variables != null) {
-        Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
-            <TypeVariableBuilder, TypeBuilder>{};
-        for (int i = 0; i < variables.length; i++) {
-          TypeBuilder argument =
-              i < arguments.length ? arguments[i] : dynamicType;
-          if (substitutionMap != null) {
-            argument = argument.subst(substitutionMap);
-          }
-          directSubstitutionMap[variables[i]] = argument;
-        }
-        substitutionMap = directSubstitutionMap;
-      }
-    }
-    return substitutionMap;
-  }
-
   void forEach(void f(String name, MemberBuilder builder)) {
     scope.forEach(f);
   }
@@ -239,7 +146,21 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         wasHandled: wasHandled, context: context);
   }
 
-  void prepareTopLevelInference() {}
+  /// Find the first member of this class with [name]. This method isn't
+  /// suitable for scope lookups as it will throw an error if the name isn't
+  /// declared. The [scope] should be used for that. This method is used to
+  /// find a member that is known to exist and it wil pick the first
+  /// declaration if the name is ambiguous.
+  ///
+  /// For example, this method is convenient for use when building synthetic
+  /// members, such as those of an enum.
+  MemberBuilder firstMemberNamed(String name) {
+    Declaration declaration = this[name];
+    while (declaration.next != null) {
+      declaration = declaration.next;
+    }
+    return declaration;
+  }
 }
 
 class ConstructorRedirection {

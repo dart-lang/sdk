@@ -36,6 +36,10 @@ void main(List<String> args) {
         help: 'Platform to run on (node|d8|chrome).  Default is node.',
         allowed: ['node', 'd8', 'chrome'],
         defaultsTo: 'node')
+    ..addOption('port',
+        abbr: 'p',
+        help: 'Run with the corresponding chrome/V8 debugging port open.',
+        defaultsTo: '9222')
     ..addOption('binary', abbr: 'b', help: 'Runtime binary path.');
 
   var options = parser.parse(args);
@@ -49,6 +53,7 @@ void main(List<String> args) {
   var debug = options['debug'] as bool;
   var kernel = options['kernel'] as bool;
   var binary = options['binary'] as String;
+  var port = int.parse(options['port'] as String);
 
   var dartBinary = Platform.resolvedExecutable;
   var dartPath = path.dirname(dartBinary);
@@ -112,7 +117,8 @@ void main(List<String> args) {
   }
   ProcessResult result;
   if (kernel) {
-    result = runDdc('dartdevk', [
+    result = runDdc('dartdevc', [
+      '--kernel',
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
       '-o',
@@ -166,7 +172,6 @@ void main(List<String> args) {
     'use strict';
     sdk._debugger.registerDevtoolsFormatter();
     sdk.dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
-    sdk._isolate_helper.startRootIsolate(() => {}, []);
     app.$basename.main();
   });
 </script>
@@ -175,8 +180,13 @@ void main(List<String> args) {
     new File(htmlFile).writeAsStringSync(html);
     var tmp = path.join(Directory.systemTemp.path, 'ddc');
 
-    result = Process.runSync(chromeBinary,
-        ['--auto-open-devtools-for-tabs', '--user-data-dir=$tmp', htmlFile]);
+    result = Process.runSync(chromeBinary, [
+      '--auto-open-devtools-for-tabs',
+      '--allow-file-access-from-files',
+      '--remote-debugging-port=$port',
+      '--user-data-dir=$tmp',
+      htmlFile
+    ]);
   } else if (node) {
     var nodePath = '$sdkJsPath:$libRoot';
     var runjs = '''
@@ -195,15 +205,16 @@ void main(List<String> args) {
       if (!source_maps) {
         console.log('For Dart source maps: npm install source-map-support');
       }
-      console.error(e.toString(), sdk.dart.stackTrace(e).toString());
+      console.error(e);
       process.exit(1);
     }
     ''';
     var nodeFile = '$libRoot/$basename.run.js';
     new File(nodeFile).writeAsStringSync(runjs);
     var nodeBinary = binary ?? 'node';
-    result = Process
-        .runSync(nodeBinary, [nodeFile], environment: {'NODE_PATH': nodePath});
+    result = Process.runSync(
+        nodeBinary, ['--inspect=localhost:$port', nodeFile],
+        environment: {'NODE_PATH': nodePath});
     stdout
       ..write(result.stdout)
       ..flush();
@@ -217,7 +228,7 @@ void main(List<String> args) {
       _isolate_helper.startRootIsolate(() => {}, []);
       main();
     } catch(e) {
-      console.error(e.toString(), dart.stackTrace(e).toString());
+      console.error(e);
     }
     ''';
     var d8File = '$libRoot/$basename.d8.js';

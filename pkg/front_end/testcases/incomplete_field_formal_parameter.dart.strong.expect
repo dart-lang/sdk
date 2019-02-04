@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/incomplete_field_formal_parameter.dart:6:11: Error: Expected '.' before this.
+//   C.a(this);
+//           ^
+//
+// pkg/front_end/testcases/incomplete_field_formal_parameter.dart:6:11: Error: Expected an identifier, but got ')'.
+//   C.a(this);
+//           ^
+//
+// pkg/front_end/testcases/incomplete_field_formal_parameter.dart:7:12: Error: Expected an identifier, but got ')'.
+//   C.b(this.);
+//            ^
+//
+// pkg/front_end/testcases/incomplete_field_formal_parameter.dart:8:11: Error: Expected '.' before this.
+//   C.c(this, p);
+//           ^
+//
+// pkg/front_end/testcases/incomplete_field_formal_parameter.dart:8:11: Error: Expected an identifier, but got ','.
+//   C.c(this, p);
+//           ^
+//
+// pkg/front_end/testcases/incomplete_field_formal_parameter.dart:9:12: Error: Expected an identifier, but got ','.
+//   C.d(this., p);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor a() → self::C
+    : super core::Object::•()
+    ;
+  constructor b() → self::C
+    : super core::Object::•()
+    ;
+  constructor c() → self::C
+    : super core::Object::•()
+    ;
+  constructor d() → self::C
+    : super core::Object::•()
+    ;
+}

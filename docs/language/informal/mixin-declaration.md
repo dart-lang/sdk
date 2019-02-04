@@ -2,4 +2,4 @@
 
 **Status**: This is now background material.
 
-## The canonical version of this document now resides [here](https://github.com/dart-lang/language/blob/master/working/0006.%20Super-invocations%20in%20mixins/0007.%20Mixin%20declarations/lrhn-strawman.md).
+## The canonical version of this document now resides [here](https://github.com/dart-lang/language/blob/master/accepted/2.1/super-mixins/feature-specification.md).

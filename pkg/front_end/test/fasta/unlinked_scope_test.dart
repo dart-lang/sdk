@@ -9,7 +9,10 @@ import 'package:kernel/ast.dart' show Expression, ProcedureKind;
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, FormattedMessage, ProblemHandler;
+    show CompilerOptions;
+
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -36,9 +39,7 @@ import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
 import 'package:front_end/src/fasta/scope.dart' show Scope;
 
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-
-ProblemHandler handler;
+DiagnosticMessageHandler handler;
 
 class MockLibraryBuilder extends KernelLibraryBuilder {
   MockLibraryBuilder(Uri uri)
@@ -48,8 +49,8 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
             new KernelTarget(
                     null,
                     false,
-                    new DillTarget(
-                        null, null, new NoneTarget(new TargetFlags())),
+                    new DillTarget(null, null,
+                        new NoneTarget(new TargetFlags(legacyMode: true))),
                     null)
                 .loader,
             null,
@@ -77,9 +78,8 @@ Expression compileExpression(String source) {
       "<test>",
       new UnlinkedScope());
 
-  handler = (FormattedMessage problem, Severity severity,
-      List<FormattedMessage> context) {
-    throw problem.formatted;
+  handler = (DiagnosticMessage message) {
+    throw message.plainTextFormatted.join("\n");
   };
 
   Token token = scanString(source).tokens;
@@ -101,9 +101,8 @@ void testExpression(String source, [String expected]) {
 main() {
   CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
-        ..onProblem = (FormattedMessage problem, Severity severity,
-            List<FormattedMessage> context) {
-          handler(problem, severity, context);
+        ..onDiagnostic = (DiagnosticMessage message) {
+          handler(message);
         }));
   context.runInContext((_) {
     testExpression("unresolved");

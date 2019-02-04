@@ -10,7 +10,6 @@ library dart2js.source_information.kernel;
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../js_model/element_map.dart';
-import '../kernel/element_map.dart';
 import '../js_model/js_strategy.dart';
 import '../universe/call_structure.dart';
 import 'source_information.dart';

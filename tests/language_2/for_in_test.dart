@@ -6,47 +6,59 @@ import "package:expect/expect.dart";
 
 // Dart test for testing for in on a list literal.
 
-class ForInTest {
-  static testMain() {
-    testSimple();
-    testGenericSyntax1();
-    testGenericSyntax2();
-    testGenericSyntax3();
-    testGenericSyntax4();
-  }
+main() {
+  testSimple();
+  testGenericSyntax1();
+  testGenericSyntax2();
+  testGenericSyntax3();
+  testGenericSyntax4();
+  testShadowLocal1();
+  testShadowLocal2();
+}
 
-  static void testSimple() {
-    var list = [1, 3, 5];
-    var sum = 0;
-    for (var i in list) {
-      sum += i;
-    }
-    Expect.equals(9, sum);
+void testSimple() {
+  var list = [1, 3, 5];
+  var sum = 0;
+  for (var i in list) {
+    sum += i;
   }
+  Expect.equals(9, sum);
+}
 
-  static void testGenericSyntax1() {
-    List<List<String>> aCollection = [];
-    for (List<String> strArrArr in aCollection) {}
-  }
+void testGenericSyntax1() {
+  List<List<String>> aCollection = [];
+  for (List<String> strArrArr in aCollection) {}
+}
 
-  static void testGenericSyntax2() {
-    List<List<String>> aCollection = [];
-    List<String> strArrArr;
-    for (strArrArr in aCollection) {}
-  }
+void testGenericSyntax2() {
+  List<List<String>> aCollection = [];
+  List<String> strArrArr;
+  for (strArrArr in aCollection) {}
+}
 
-  static void testGenericSyntax3() {
-    List<List<List<String>>> aCollection = [];
-    for (List<List<String>> strArrArr in aCollection) {}
-  }
+void testGenericSyntax3() {
+  List<List<List<String>>> aCollection = [];
+  for (List<List<String>> strArrArr in aCollection) {}
+}
 
-  static void testGenericSyntax4() {
-    List<List<List<String>>> aCollection = [];
-    List<List<String>> strArrArr;
-    for (strArrArr in aCollection) {}
+void testGenericSyntax4() {
+  List<List<List<String>>> aCollection = [];
+  List<List<String>> strArrArr;
+  for (strArrArr in aCollection) {}
+}
+
+void testShadowLocal1() {
+  List<int> x = [1, 2, 3];
+  var i = 0;
+  for (var x in x) {
+    Expect.equals(x, ++i);
   }
 }
 
-main() {
-  ForInTest.testMain();
+void testShadowLocal2() {
+  Object x = [1, 2, 3];
+  var i = 0;
+  for (x in x) {
+    Expect.equals(x, ++i);
+  }
 }

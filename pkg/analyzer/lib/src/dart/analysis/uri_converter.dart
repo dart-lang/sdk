@@ -18,8 +18,8 @@ class DriverBasedUriConverter implements UriConverter {
   final AnalysisDriver driver;
 
   /**
-   * Initialize a newly created URI converter to use the given [context] and
-   * [driver] to perform the conversions.
+   * Initialize a newly created URI converter to use the given [driver] to =
+   * perform the conversions.
    */
   DriverBasedUriConverter(this.driver);
 
@@ -43,5 +43,5 @@ class DriverBasedUriConverter implements UriConverter {
   }
 
   @override
-  String uriToPath(Uri uri) => driver.sourceFactory.forUri2(uri).fullName;
+  String uriToPath(Uri uri) => driver.sourceFactory.forUri2(uri)?.fullName;
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,8 +6,6 @@
  * This file contains code for collecting statistics about the use of fields in
  * a summary file.
  */
-library analyzer.tool.summary.stats;
-
 import 'dart:io';
 import 'dart:mirrors';
 

@@ -5,20 +5,20 @@
 # Test that invalidating a part of a package works with package URI.
 
 type: basic
-entry: "package:dummy/main.dart"
+entry: "package:example/main.dart"
 strong: false
 invalidate:
-  - "package:dummy/b.dart"
+  - "package:example/b.dart"
 sources:
-  main.dart: |
+  pkg/example/main.dart: |
     part "b.dart";
     main() {
       print("hello");
       b();
     }
-  b.dart: |
+  pkg/example/b.dart: |
     part of "main.dart";
     b() {
       print("b1");
     }
-  .packages: dummy:${outDirUri}
+  .packages: example:pkg/example

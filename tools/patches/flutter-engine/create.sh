@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -15,13 +15,13 @@
 # (run inside the root of a flutter engine checkout)
 
 set -e
-if [ ! -e src/third_party/dart ]; then
-  echo "$0: error: "\
-       "This script must be run from the root of a flutter engine checkout" >&2
-  exit 1
-fi
-pinned_dart_sdk=$(grep -E "'dart_revision':.*" src/flutter/DEPS |
-                  sed -E "s/.*'([^']*)',/\1/")
+
+DIR=$(dirname -- "$(which -- "$0")")
+. $DIR/../utils.sh
+
+ensure_in_checkout_root
+
+pinned_dart_sdk=$(get_pinned_dart_version)
 patch=src/third_party/dart/tools/patches/flutter-engine/$pinned_dart_sdk.patch
 rm -f src/third_party/dart/tools/patches/flutter-engine/*.patch
 (cd src/flutter && git diff) > $patch

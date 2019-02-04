@@ -12,7 +12,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
 import 'allocator_analysis.dart' show JAllocatorAnalysis;
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
@@ -22,13 +22,11 @@ typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
 typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
 
-/**
- * Generates the JavaScript expressions for constants.
- *
- * It uses a given [constantReferenceGenerator] to reference nested constants
- * (if there are some). It is hence up to that function to decide which
- * constants should be inlined or not.
- */
+/// Generates the JavaScript expressions for constants.
+///
+/// It uses a given [constantReferenceGenerator] to reference nested constants
+/// (if there are some). It is hence up to that function to decide which
+/// constants should be inlined or not.
 class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   // Matches blank lines, comment lines and trailing comments that can't be part
   // of a string.
@@ -45,11 +43,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   final _ConstantReferenceGenerator constantReferenceGenerator;
   final _ConstantListGenerator makeConstantList;
 
-  /**
-   * The given [constantReferenceGenerator] function must, when invoked with a
-   * constant, either return a reference or return its literal expression if it
-   * can be inlined.
-   */
+  /// The given [constantReferenceGenerator] function must, when invoked with a
+  /// constant, either return a reference or return its literal expression if it
+  /// can be inlined.
   ConstantEmitter(
       this._options,
       this._commonElements,
@@ -63,11 +59,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   Emitter get _emitter => _task.emitter;
 
-  /**
-   * Constructs a literal expression that evaluates to the constant. Uses a
-   * canonical name unless the constant can be emitted multiple times (as for
-   * numbers and strings).
-   */
+  /// Constructs a literal expression that evaluates to the constant. Uses a
+  /// canonical name unless the constant can be emitted multiple times (as for
+  /// numbers and strings).
   jsAst.Expression generate(ConstantValue constant) {
     return _visit(constant);
   }
@@ -171,11 +165,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     }
   }
 
-  /**
-   * Write the contents of the quoted string to a [CodeBuffer] in
-   * a form that is valid as JavaScript string literal content.
-   * The string is assumed quoted by double quote characters.
-   */
+  /// Write the contents of the quoted string to a [CodeBuffer] in
+  /// a form that is valid as JavaScript string literal content.
+  /// The string is assumed quoted by double quote characters.
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
     return js.escapedString(constant.stringValue, ascii: true);
@@ -382,11 +374,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }
     return new jsAst.ArrayInitializer(arguments);
-  }
-
-  @override
-  jsAst.Expression visitDeferred(DeferredConstantValue constant, [_]) {
-    return constantReferenceGenerator(constant.referenced);
   }
 
   @override

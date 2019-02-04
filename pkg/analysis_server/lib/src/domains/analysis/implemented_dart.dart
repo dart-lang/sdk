@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,26 +18,11 @@ class ImplementedComputer {
   ImplementedComputer(this.searchEngine, this.unitElement);
 
   compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    for (ClassElement type in unitElement.types) {
-      // Always include Object and its members.
-      if (type.supertype == null) {
-        _addImplementedClass(type);
-        type.accessors.forEach(_addImplementedMember);
-        type.fields.forEach(_addImplementedMember);
-        type.methods.forEach(_addImplementedMember);
-        continue;
-      }
-
-      // Analyze subtypes.
-      subtypeMembers = await searchEngine.membersOfSubtypes(type);
-      if (subtypeMembers != null) {
-        _addImplementedClass(type);
-        type.accessors.forEach(_addMemberIfImplemented);
-        type.fields.forEach(_addMemberIfImplemented);
-        type.methods.forEach(_addMemberIfImplemented);
-      }
+    for (var element in unitElement.mixins) {
+      await _computeForClassElement(element);
+    }
+    for (var element in unitElement.types) {
+      await _computeForClassElement(element);
     }
   }
 
@@ -59,6 +44,26 @@ class ImplementedComputer {
     }
     if (_hasOverride(element)) {
       _addImplementedMember(element);
+    }
+  }
+
+  Future<void> _computeForClassElement(ClassElement element) async {
+    // Always include Object and its members.
+    if (element.supertype == null && !element.isMixin) {
+      _addImplementedClass(element);
+      element.accessors.forEach(_addImplementedMember);
+      element.fields.forEach(_addImplementedMember);
+      element.methods.forEach(_addImplementedMember);
+      return;
+    }
+
+    // Analyze subtypes.
+    subtypeMembers = await searchEngine.membersOfSubtypes(element);
+    if (subtypeMembers != null) {
+      _addImplementedClass(element);
+      element.accessors.forEach(_addMemberIfImplemented);
+      element.fields.forEach(_addMemberIfImplemented);
+      element.methods.forEach(_addMemberIfImplemented);
     }
   }
 

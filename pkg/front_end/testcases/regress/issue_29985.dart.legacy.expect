@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: The non-ASCII character '🔛' (U+1F51B) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+//   🔛
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: Expected ';' after this.
+//   🔛
+//   ^^
+//
+// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Warning: Getter not found: '🔛'.
+//   🔛
+//   ^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method bad() → dynamic {
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#🔛, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → dynamic {}

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,34 +19,6 @@ main() {
     defineReflectiveTests(RequestErrorTest);
     defineReflectiveTests(ResponseTest);
   });
-}
-
-@reflectiveTest
-class InvalidParameterResponseMatcher extends Matcher {
-  static const String ERROR_CODE = 'INVALID_PARAMETER';
-
-  @override
-  Description describe(Description description) =>
-      description.add("an 'invalid parameter' response (code $ERROR_CODE)");
-
-  @override
-  bool matches(item, Map matchState) {
-    if (item is! RequestFailure) {
-      return false;
-    }
-    var response = item.response;
-    if (response is! Response) {
-      return false;
-    }
-    if (response.error is! RequestError) {
-      return false;
-    }
-    RequestError requestError = response.error;
-    if (requestError.code != ERROR_CODE) {
-      return false;
-    }
-    return true;
-  }
 }
 
 @reflectiveTest
@@ -209,21 +181,6 @@ class ResponseTest {
           Response.ERROR: {
             'code': 'INVALID_REQUEST',
             'message': 'Invalid request'
-          }
-        }));
-  }
-
-  void test_create_unanalyzedPriorityFiles() {
-    Response response = new Response.unanalyzedPriorityFiles('0', 'file list');
-    expect(response.id, equals('0'));
-    expect(response.error, isNotNull);
-    expect(
-        response.toJson(),
-        equals({
-          Response.ID: '0',
-          Response.ERROR: {
-            'code': 'UNANALYZED_PRIORITY_FILES',
-            'message': "Unanalyzed files cannot be a priority: 'file list'"
           }
         }));
   }

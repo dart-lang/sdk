@@ -9,6 +9,10 @@
 
 namespace dart {
 
+namespace compiler {
+class ObjectPoolBuilder;
+}
+
 class Array;
 class Function;
 class Isolate;
@@ -24,6 +28,15 @@ class MegamorphicCacheTable : public AllStatic {
  public:
   static RawFunction* miss_handler(Isolate* isolate);
   NOT_IN_PRECOMPILED(static void InitMissHandler(Isolate* isolate));
+
+  // Re-initializes the megamorphic miss handler function in the object store.
+  //
+  // Normally we initialize the megamorphic miss handler during isolate startup.
+  // Though if we AOT compile with bare instructions support, we need to
+  // re-generate the handler to ensure it uses the common object pool.
+  NOT_IN_PRECOMPILED(
+      static void ReInitMissHandlerCode(Isolate* isolate,
+                                        compiler::ObjectPoolBuilder* wrapper));
 
   static RawMegamorphicCache* Lookup(Isolate* isolate,
                                      const String& name,

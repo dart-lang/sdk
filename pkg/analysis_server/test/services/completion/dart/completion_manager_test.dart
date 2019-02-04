@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,7 +29,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   test_resolveDirectives() async {
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 library libA;
 /// My class.
 /// Short description.
@@ -38,22 +37,21 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    addSource('/libB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library libB;
-import "/libA.dart" as foo;
-part '${convertPathForImport(testFile)}';
+import "a.dart" as foo;
+part 'test.dart';
 ''');
     addTestSource('part of libB; main() {^}');
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        await driver.getResult(testFile),
+        await session.getResolvedUnit(testFile),
         completionOffset,
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl.from(baseRequest,
-            resultDescriptor: RESOLVED_UNIT1)
+    DartCompletionRequestImpl.from(baseRequest)
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });
@@ -83,6 +81,6 @@ part '${convertPathForImport(testFile)}';
 
     // Assert that the new imports each have an export namespace
     assertImportedLib('dart:core');
-    assertImportedLib('libA.dart');
+    assertImportedLib('a.dart');
   }
 }

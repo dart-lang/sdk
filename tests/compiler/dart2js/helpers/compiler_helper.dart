@@ -89,7 +89,6 @@ Future<String> compile(String code,
 
 Future<String> compileAll(String code,
     {bool disableInlining: true,
-    bool trustTypeAnnotations: false,
     bool minify: false,
     int expectedErrors,
     int expectedWarnings}) async {
@@ -98,9 +97,6 @@ Future<String> compileAll(String code,
   List<String> options = <String>[];
   if (disableInlining) {
     options.add(Flags.disableInlining);
-  }
-  if (trustTypeAnnotations) {
-    options.add(Flags.trustTypeAnnotations);
   }
   if (minify) {
     options.add(Flags.minify);

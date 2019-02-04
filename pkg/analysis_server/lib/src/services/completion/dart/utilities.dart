@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -102,28 +102,12 @@ protocol.Element createLocalElement(
 }
 
 /**
- * Create a new suggestion for the given [fieldDecl]. Return the new suggestion
- * or `null` if it could not be created.
- */
-CompletionSuggestion createLocalFieldSuggestion(
-    Source source, FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-  bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-  TypeAnnotation type = fieldDecl.fields.type;
-  return createLocalSuggestion(
-      varDecl.name, deprecated, DART_RELEVANCE_LOCAL_FIELD, type,
-      classDecl: fieldDecl.parent,
-      element: createLocalElement(
-          source, protocol.ElementKind.FIELD, varDecl.name,
-          returnType: type, isDeprecated: deprecated));
-}
-
-/**
  * Create a new suggestion based upon the given information. Return the new
  * suggestion or `null` if it could not be created.
  */
 CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
-    {ClassDeclaration classDecl,
+    {ClassOrMixinDeclaration classDecl,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
     protocol.Element element}) {
   if (id == null) {

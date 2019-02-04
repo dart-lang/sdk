@@ -25,8 +25,8 @@ const char* HostCPUFeatures::hardware_ = NULL;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 #if defined(DEBUG)
   initialized_ = true;

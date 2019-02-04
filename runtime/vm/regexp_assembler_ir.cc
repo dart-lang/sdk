@@ -11,6 +11,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/regexp.h"
 #include "vm/resolver.h"
@@ -39,7 +40,6 @@
 
 namespace dart {
 
-static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
 static const intptr_t kMinStackSize = 512;
 
 /*
@@ -114,11 +114,12 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
                                              kMinStackSize / 4, Heap::kOld)));
 
   // Create and generate all preset blocks.
-  entry_block_ = new (zone) GraphEntryInstr(
-      *parsed_function_,
-      new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex,
-                                  GetNextDeoptId()),
-      osr_id);
+  entry_block_ = new (zone) GraphEntryInstr(*parsed_function_, osr_id);
+
+  auto function_entry = new (zone) FunctionEntryInstr(
+      entry_block_, block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
+  entry_block_->set_normal_entry(function_entry);
+
   start_block_ = new (zone)
       JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
   success_block_ = new (zone)
@@ -321,6 +322,9 @@ RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
 
   const Object& retval =
       Object::Handle(zone, DartEntry::InvokeFunction(fun, args));
+  if (retval.IsUnwindError()) {
+    Exceptions::PropagateError(Error::Cast(retval));
+  }
   if (retval.IsError()) {
     const Error& error = Error::Cast(retval);
     OS::PrintErr("%s\n", error.ToErrorCString());
@@ -385,9 +389,14 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
       regexp_class.LookupStaticFieldAllowPrivate(Symbols::_wordCharacterMap()));
   ASSERT(!word_character_field.IsNull());
 
+  DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsSetJump());
   if (word_character_field.IsUninitialized()) {
     ASSERT(!Compiler::IsBackgroundCompilation());
-    word_character_field.EvaluateInitializer();
+    const Error& error =
+        Error::Handle(Z, word_character_field.EvaluateInitializer());
+    if (!error.IsNull()) {
+      Report::LongJump(error);
+    }
   }
   ASSERT(!word_character_field.IsUninitialized());
 

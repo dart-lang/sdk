@@ -1,10 +1,9 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHO@override S file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide MapEntry;
 import 'dart:collection';
-import 'package:analyzer/analyzer.dart' as a;
 import 'package:analyzer/dart/element/element.dart' as a;
 import 'package:analyzer/dart/element/type.dart' as a;
 import 'package:analyzer/file_system/physical_file_system.dart' as a;
@@ -21,7 +20,8 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart' as a;
 import 'package:analyzer/src/summary/summary_sdk.dart' as a;
 import 'package:analyzer/src/generated/resolver.dart' as a
     show NamespaceBuilder, TypeProvider;
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show RedirectingFactoryBody;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -73,17 +73,17 @@ class AnalyzerToKernel {
   final a.StoreBasedSummaryResynthesizer _resynth;
   final a.SummaryDataStore _summaryData;
   final a.TypeProvider types;
-  final a.StrongTypeSystemImpl rules;
+  final a.Dart2TypeSystem rules;
 
   final _references = HashMap<a.Element, Reference>();
   final _typeParams = HashMap<a.TypeParameterElement, TypeParameter>();
   final _namespaceBuilder = a.NamespaceBuilder();
 
-  AnalyzerToKernel._(a.AnalysisContext context, this._summaryData)
-      : _resynth = a.StoreBasedSummaryResynthesizer(
-            context, context.sourceFactory, /*strongMode*/ true, _summaryData),
+  AnalyzerToKernel._(a.AnalysisContextImpl context, this._summaryData)
+      : _resynth = (context.resultProvider as a.InputPackagesResultProvider)
+            .resynthesizer,
         types = context.typeProvider,
-        rules = context.typeSystem as a.StrongTypeSystemImpl;
+        rules = context.typeSystem as a.Dart2TypeSystem;
 
   /// Create an Analyzer summary to Kernel tree converter, using the provided
   /// [analyzerSdkSummary] and [summaryPaths].
@@ -96,8 +96,9 @@ class AnalyzerToKernel {
     var summaryData = a.SummaryDataStore(summaryPaths,
         resourceProvider: a.PhysicalResourceProvider.INSTANCE,
         disallowOverlappingSummaries: false);
-    var context = _createContextForSummaries(summaryData, analyzerSdkSummary);
-    return AnalyzerToKernel._(context, summaryData);
+    var resynthesizer =
+        _createSummaryResynthesizer(summaryData, analyzerSdkSummary);
+    return AnalyzerToKernel._(resynthesizer.context, summaryData);
   }
 
   /// Converts the SDK summary to a Kernel component and returns it.
@@ -185,6 +186,7 @@ class AnalyzerToKernel {
     library ??= visitLibraryElement(e.library);
     library.addClass(class_);
 
+    class_.isMixinDeclaration = e.isMixin;
     class_.typeParameters
         .addAll(e.typeParameters.map(visitTypeParameterElement));
 
@@ -309,7 +311,7 @@ class AnalyzerToKernel {
 
       var c = Class(
           name: runningName,
-          isAbstract: e.isAbstract,
+          isAbstract: true,
           mixedInType: mixedInType,
           supertype: supertype,
           typeParameters: typeParameters,
@@ -320,7 +322,7 @@ class AnalyzerToKernel {
       // Compute the superclass to use for the next iteration of this loop.
       //
       // Any type arguments are in terms of the original class type parameters.
-      // This allows us to perform consistent subsititions and have the correct
+      // This allows us to perform consistent substitutions and have the correct
       // type arguments for the final supertype (that we return).
       supertype = Supertype(
           c,
@@ -349,9 +351,9 @@ class AnalyzerToKernel {
       // TODO(jmesserly): CFE does not respect the synthetic bit on constructors
       // so we set a bogus offset. This causes CFE to treat it as not synthetic.
       //
-      // (The bug is in DillMemberBuilder.isSythetic. Sythetic constructors have
-      // different semantics/optimizations in some cases, so it is important
-      // that the constructor is correctly marked.)
+      // (The bug is in DillMemberBuilder.isSynthetic. Synthetic constructors
+      // have different semantics/optimizations in some cases, so it is
+      // important that the constructor is correctly marked.)
       result.fileOffset = 1;
     }
     _visitAnnotations(e.metadata, result.addAnnotation);
@@ -475,7 +477,7 @@ class AnalyzerToKernel {
     }
     t.typeParameters.addAll(typeParams.map(visitTypeParameterElement));
     setParents(t.typeParameters, t);
-    t.type = _visitDartType(type);
+    t.type = _visitDartType(type, originTypedef: t.thisType);
     _visitAnnotations(e.metadata, t.addAnnotation);
     return t;
   }
@@ -501,6 +503,9 @@ class AnalyzerToKernel {
 
     _visitUnit(a.CompilationUnitElement u) {
       for (var t in u.types) {
+        visitClassElement(t, library);
+      }
+      for (var t in u.mixins) {
         visitClassElement(t, library);
       }
       for (var t in u.functionTypeAliases) {
@@ -610,7 +615,8 @@ class AnalyzerToKernel {
   /// populated with the node (creating it if needed). Many members on
   /// [InterfaceType] and [TypedefType] rely on having a node present, so this
   /// enables the use of those members if they're needed by the converter.
-  DartType _visitDartType(a.DartType type, {bool ensureNode = false}) {
+  DartType _visitDartType(a.DartType type,
+      {bool ensureNode = false, TypedefType originTypedef}) {
     if (type.isVoid) {
       return const VoidType();
     } else if (type.isDynamic) {
@@ -653,7 +659,8 @@ class AnalyzerToKernel {
     return FunctionType(positional, visit(f.returnType),
         typeParameters: f.typeFormals.map(visitTypeParameterElement).toList(),
         namedParameters: named,
-        requiredParameterCount: params.where((p) => !p.isOptional).length);
+        requiredParameterCount: params.where((p) => !p.isOptional).length,
+        typedefType: originTypedef);
   }
 
   Supertype _typeToSupertype(a.InterfaceType t) {
@@ -857,10 +864,17 @@ AsyncMarker _getAsyncMarker(a.ExecutableElement e) {
       : (e.isAsynchronous ? AsyncMarker.Async : AsyncMarker.Sync);
 }
 
+a.StoreBasedSummaryResynthesizer _createSummaryResynthesizer(
+    a.SummaryDataStore summaryData, String dartSdkPath) {
+  var context = _createContextForSummaries(summaryData, dartSdkPath);
+  return a.StoreBasedSummaryResynthesizer(
+      context, null, context.sourceFactory, /*strongMode*/ true, summaryData);
+}
+
 /// Creates a dummy Analyzer context so we can use summary resynthesizer.
 ///
 /// This is similar to Analyzer's `LibraryContext._createResynthesizingContext`.
-a.AnalysisContext _createContextForSummaries(
+a.AnalysisContextImpl _createContextForSummaries(
     a.SummaryDataStore summaryData, String dartSdkPath) {
   var sdk = a.SummaryBasedDartSdk(dartSdkPath, true,
       resourceProvider: a.PhysicalResourceProvider.INSTANCE);
@@ -869,8 +883,7 @@ a.AnalysisContext _createContextForSummaries(
     summaryData.addBundle(null, sdkSummaryBundle);
   }
 
-  // TODO(jmesserly): can we avoid creating an analysis context entirely?
-  // It doesn't look like StoreBasedSummaryResynthesizer uses much of it.
+  // TODO(jmesserly): use RestrictedAnalysisContext.
   var context = a.AnalysisEngine.instance.createAnalysisContext()
       as a.AnalysisContextImpl;
   context.sourceFactory = a.SourceFactory(

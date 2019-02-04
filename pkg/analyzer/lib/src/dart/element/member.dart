@@ -1,9 +1,8 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.element.member;
-
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -43,6 +42,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   bool get isConst => baseElement.isConst;
 
   @override
+  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
+
+  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
@@ -62,6 +64,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode() => baseElement.computeNode();
 
@@ -158,6 +161,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isOperator => baseElement.isOperator;
 
   @override
+  bool get isSimplyBounded => baseElement.isSimplyBounded;
+
+  @override
   bool get isStatic => baseElement.isStatic;
 
   @override
@@ -244,8 +250,12 @@ class FieldMember extends VariableMember implements FieldElement {
       PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  bool get isCovariant => baseElement.isCovariant;
+
+  @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
+  @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
 
@@ -260,6 +270,7 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => baseElement.computeNode();
 
@@ -318,6 +329,7 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 
+  @deprecated
   @override
   FunctionDeclaration computeNode() => baseElement.computeNode();
 
@@ -410,6 +422,9 @@ abstract class Member implements Element {
   bool get hasJS => _baseElement.hasJS;
 
   @override
+  bool get hasLiteral => _baseElement.hasLiteral;
+
+  @override
   bool get hasOverride => _baseElement.hasOverride;
 
   @override
@@ -488,14 +503,19 @@ abstract class Member implements Element {
   int get nameOffset => _baseElement.nameOffset;
 
   @override
+  AnalysisSession get session => _baseElement.session;
+
+  @override
   Source get source => _baseElement.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => _baseElement.unit;
 
   @override
   String computeDocumentationComment() => documentationComment;
 
+  @deprecated
   @override
   AstNode computeNode() => _baseElement.computeNode();
 
@@ -578,6 +598,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
+  @deprecated
   @override
   MethodDeclaration computeNode() => baseElement.computeNode();
 
@@ -615,7 +636,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
         buffer.write(", ");
       }
       ParameterElement parameter = parameters[i];
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind != kind) {
         if (closing != null) {
@@ -721,6 +742,7 @@ class ParameterMember extends VariableMember
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
+  @deprecated
   @override
   FormalParameter computeNode() => baseElement.computeNode();
 
@@ -1005,6 +1027,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isConst => baseElement.isConst;
+
+  @override
+  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
 
   @override
   bool get isFinal => baseElement.isFinal;

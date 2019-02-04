@@ -12,6 +12,7 @@
 #include "vm/constants_arm.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
+#include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
 
@@ -143,6 +144,37 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   return start;
 }
 
+void InstructionPattern::EncodeLoadWordImmediate(uword end,
+                                                 Register reg,
+                                                 intptr_t value) {
+  uint16_t low16 = value & 0xffff;
+  uint16_t high16 = (value >> 16) & 0xffff;
+
+  // movw reg, #imm_lo
+  uint32_t movw_instr = 0xe3000000;
+  movw_instr |= (low16 >> 12) << 16;
+  movw_instr |= (reg << 12);
+  movw_instr |= (low16 & 0xfff);
+
+  // movt reg, #imm_hi
+  uint32_t movt_instr = 0xe3400000;
+  movt_instr |= (high16 >> 12) << 16;
+  movt_instr |= (reg << 12);
+  movt_instr |= (high16 & 0xfff);
+
+  uint32_t* cursor = reinterpret_cast<uint32_t*>(end);
+  *(--cursor) = movt_instr;
+  *(--cursor) = movw_instr;
+
+#if defined(DEBUG)
+  Register decoded_reg;
+  intptr_t decoded_value;
+  DecodeLoadWordImmediate(end, &decoded_reg, &decoded_value);
+  ASSERT(reg == decoded_reg);
+  ASSERT(value == decoded_value);
+#endif
+}
+
 static bool IsLoadWithOffset(int32_t instr,
                              Register base,
                              intptr_t* offset,
@@ -199,9 +231,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   if (IsLoadWithOffset(instr, PP, &offset, &dst)) {
     intptr_t index = ObjectPool::IndexFromOffset(offset);
     const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-    if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-      *obj = pool.ObjectAt(index);
-      return true;
+    if (!pool.IsNull()) {
+      if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
     }
   } else if (IsLoadWithOffset(instr, THR, &offset, &dst)) {
     return Thread::ObjectAtOffset(offset, obj);
@@ -230,10 +264,22 @@ void CallPattern::SetTargetCode(const Code& target_code) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target_code);
 }
 
-SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),
-      target_pool_index_(-1) {
+      target_pool_index_(-1) {}
+
+RawObject* SwitchableCallPatternBase::data() const {
+  return object_pool_.ObjectAt(data_pool_index_);
+}
+
+void SwitchableCallPatternBase::SetData(const Object& data) const {
+  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(data_pool_index_, data);
+}
+
+SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+    : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
   ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
@@ -247,22 +293,48 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == CODE_REG);
 }
 
-RawObject* SwitchableCallPattern::data() const {
-  return object_pool_.ObjectAt(data_pool_index_);
-}
-
 RawCode* SwitchableCallPattern::target() const {
   return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
-
-void SwitchableCallPattern::SetData(const Object& data) const {
-  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(data_pool_index_, data);
-}
-
 void SwitchableCallPattern::SetTarget(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
   object_pool_.SetObjectAt(target_pool_index_, target);
+}
+
+BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
+    : SwitchableCallPatternBase(code) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blx lr.
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+
+  Register reg;
+  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      pc - Instr::kInstrSize, &reg, &data_pool_index_);
+  ASSERT(reg == R9);
+
+  InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
+                                             &target_pool_index_);
+  ASSERT(reg == LR);
+}
+
+RawCode* BareSwitchableCallPattern::target() const {
+  const uword pc = object_pool_.RawValueAt(target_pool_index_);
+  auto rct = Isolate::Current()->reverse_pc_lookup_cache();
+  if (rct->Contains(pc)) {
+    return rct->Lookup(pc);
+  }
+  rct = Dart::vm_isolate()->reverse_pc_lookup_cache();
+  if (rct->Contains(pc)) {
+    return rct->Lookup(pc);
+  }
+  UNREACHABLE();
+}
+
+void BareSwitchableCallPattern::SetTarget(const Code& target) const {
+  ASSERT(object_pool_.TypeAt(target_pool_index_) ==
+         ObjectPool::EntryType::kImmediate);
+  object_pool_.SetRawValueAt(target_pool_index_,
+                             target.MonomorphicEntryPoint());
 }
 
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}
@@ -283,6 +355,66 @@ bool ReturnPattern::IsValid() const {
     return bx_lr->InstructionBits() == instruction;
   }
   return false;
+}
+
+bool PcRelativeCallPattern::IsValid() const {
+  // bl.<cond> <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x05;
+  return ((word >> kTypeShift) & ((1 << kTypeBits) - 1)) == branch_link;
+}
+
+void PcRelativeTrampolineJumpPattern::Initialize() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint32_t* add_pc =
+      reinterpret_cast<uint32_t*>(pattern_start_ + 2 * Instr::kInstrSize);
+  *add_pc = kAddPcEncoding;
+  set_distance(0);
+#else
+  UNREACHABLE();
+#endif
+}
+
+int32_t PcRelativeTrampolineJumpPattern::distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uword end = pattern_start_ + 2 * Instr::kInstrSize;
+  Register reg;
+  intptr_t value;
+  InstructionPattern::DecodeLoadWordImmediate(end, &reg, &value);
+  value -= kDistanceOffset;
+  ASSERT(reg == TMP);
+  return value;
+#else
+  UNREACHABLE();
+  return 0;
+#endif
+}
+
+void PcRelativeTrampolineJumpPattern::set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uword end = pattern_start_ + 2 * Instr::kInstrSize;
+  InstructionPattern::EncodeLoadWordImmediate(end, TMP,
+                                              distance + kDistanceOffset);
+#else
+  UNREACHABLE();
+#endif
+}
+
+bool PcRelativeTrampolineJumpPattern::IsValid() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uword end = pattern_start_ + 2 * Instr::kInstrSize;
+  Register reg;
+  intptr_t value;
+  InstructionPattern::DecodeLoadWordImmediate(end, &reg, &value);
+
+  uint32_t* add_pc =
+      reinterpret_cast<uint32_t*>(pattern_start_ + 2 * Instr::kInstrSize);
+
+  return reg == TMP && *add_pc == kAddPcEncoding;
+#else
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {

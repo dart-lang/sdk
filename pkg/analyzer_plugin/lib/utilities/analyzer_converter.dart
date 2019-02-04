@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,7 +36,8 @@ class AnalyzerConverter {
     int startLine = -1;
     int startColumn = -1;
     if (lineInfo != null) {
-      analyzer.CharacterLocation lineLocation = lineInfo.getLocation(offset);
+      analyzer.CharacterLocation lineLocation =
+          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
         startColumn = lineLocation.columnNumber;
@@ -125,6 +126,8 @@ class AnalyzerConverter {
     } else if (kind == analyzer.ElementKind.FUNCTION) {
       return plugin.ElementKind.FUNCTION;
     } else if (kind == analyzer.ElementKind.FUNCTION_TYPE_ALIAS) {
+      return plugin.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == analyzer.ElementKind.GENERIC_FUNCTION_TYPE) {
       return plugin.ElementKind.FUNCTION_TYPE_ALIAS;
     } else if (kind == analyzer.ElementKind.GETTER) {
       return plugin.ElementKind.GETTER;
@@ -340,7 +343,7 @@ class AnalyzerConverter {
       analyzer.LineInfo lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
         analyzer.CharacterLocation offsetLocation =
-            lineInfo.getLocation(range.offset);
+            lineInfo.getLocation(range.offset) as analyzer.CharacterLocation;
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;
       }

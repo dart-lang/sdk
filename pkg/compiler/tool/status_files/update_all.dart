@@ -17,9 +17,6 @@ const List<String> strongSuites = const <String>[
 const List<String> nonStrongSuites = const <String>[
   'dart2js_native',
   'dart2js_extra',
-  'language',
-  'corelib',
-  'html',
 ];
 
 main(List<String> args) {
@@ -113,8 +110,8 @@ main(List<String> args) {
   }
 
   print('build create_sdk');
-  ProcessResult result = Process
-      .runSync(python, ['./tools/build.py', '-m', 'release', 'create_sdk']);
+  ProcessResult result = Process.runSync(
+      python, ['./tools/build.py', '-m', 'release', 'create_sdk']);
   if (result.exitCode != 0) {
     print(result.stdout);
     print(result.stderr);

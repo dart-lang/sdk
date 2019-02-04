@@ -83,7 +83,8 @@ class JSONStream : ValueObject {
              bool parameters_are_dart_objects = false);
   void SetupError();
 
-  void PrintError(intptr_t code, const char* details_format, ...);
+  void PrintError(intptr_t code, const char* details_format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
 
   void PostReply();
 

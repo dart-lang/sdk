@@ -2,13 +2,15 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "package:expect/expect.dart";
+
 class A<N extends core::Object = dynamic, S extends core::Object = dynamic, U extends core::Object = dynamic> extends core::Object {
   final field core::List<self::A::U> field;
-  constructor •(self::A::N n, self::A::S s) → void
+  constructor •(self::A::N n, self::A::S s) → self::A<self::A::N, self::A::S, self::A::U>
     ;
-  constructor empty() → void
+  constructor empty() → self::A<self::A::N, self::A::S, self::A::U>
     ;
-  const constructor c(self::A::U u, self::A::S s) → void
+  const constructor c(self::A::U u, self::A::S s) → self::A<self::A::N, self::A::S, self::A::U>
     ;
   static factory f<N extends core::Object = dynamic, S extends core::Object = dynamic, U extends core::Object = dynamic>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U>
     ;
@@ -18,11 +20,11 @@ class A<N extends core::Object = dynamic, S extends core::Object = dynamic, U ex
     ;
 }
 abstract class J<Aa extends core::Object = dynamic, B extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::J<self::J::Aa, self::J::B>
     ;
 }
 abstract class I<H extends core::Object = dynamic, C extends core::Object = dynamic, K extends core::Object = dynamic> extends self::J<self::I::C, self::I::K> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I<self::I::H, self::I::C, self::I::K>
     ;
 }
 static method main() → dynamic

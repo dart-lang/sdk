@@ -17,9 +17,9 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
-    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
-    var outputUnitForMember =
-        compiler.backend.outputUnitData.outputUnitForMember;
+    var closedWorld = compiler.backendClosedWorldForTesting;
+    var env = closedWorld.elementEnvironment;
+    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var inlineMeAway = env.lookupLibraryMember(lib1, "inlineMeAway");
@@ -57,7 +57,8 @@ void main() {
 
     // Test that inlineSameContext was inlined into lib1.
     RegExp re4 = new RegExp(r"inline same context");
-    Expect.isFalse(re4.hasMatch(lib3Output));
+    // Output can be null when it contains no code.
+    Expect.isTrue(lib3Output == null || !re4.hasMatch(lib3Output));
     Expect.isTrue(re4.hasMatch(lib1Output));
   });
 }

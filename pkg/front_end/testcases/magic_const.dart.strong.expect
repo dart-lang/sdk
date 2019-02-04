@@ -1,21 +1,22 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/magic_const.dart:18:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   const NotConstant();
 //         ^^^^^^^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
 class Constant extends core::Object {
-  const constructor •() → void
+  const constructor •() → self::Constant
     : super core::Object::•()
     ;
 }
 class NotConstant extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::NotConstant
     : super core::Object::•()
     ;
 }

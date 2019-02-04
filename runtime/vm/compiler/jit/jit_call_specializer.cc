@@ -80,11 +80,6 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
-    return;
-  }
-
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
 
@@ -190,7 +185,7 @@ void JitCallSpecializer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = instr->field();
+    const Field& field = instr->slot().field();
     const String& field_name = String::Handle(Z, field.name());
     const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
@@ -217,12 +212,10 @@ void JitCallSpecializer::VisitStoreInstanceField(
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {
-          OS::PrintErr("  setter usage count: %" Pd "\n",
-                       setter.usage_counter());
+          THR_Print("  setter usage count: %" Pd "\n", setter.usage_counter());
         }
         if (!getter.IsNull()) {
-          OS::PrintErr("  getter usage count: %" Pd "\n",
-                       getter.usage_counter());
+          THR_Print("  getter usage count: %" Pd "\n", getter.usage_counter());
         }
       }
       ASSERT(field.IsOriginal());
@@ -238,23 +231,24 @@ void JitCallSpecializer::VisitStoreInstanceField(
 // allocation and explicit initializing stores.
 // If context_value is not NULL then newly allocated context is a populated
 // with values copied from it, otherwise it is initialized with null.
-void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
-                                                intptr_t num_context_variables,
-                                                Value* context_value) {
+void JitCallSpecializer::LowerContextAllocation(
+    Definition* alloc,
+    const GrowableArray<LocalVariable*>& context_variables,
+    Value* context_value) {
   ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
   AllocateUninitializedContextInstr* replacement =
       new AllocateUninitializedContextInstr(alloc->token_pos(),
-                                            num_context_variables);
+                                            context_variables.length());
   alloc->ReplaceWith(replacement, current_iterator());
 
-  Definition* cursor = replacement;
+  Instruction* cursor = replacement;
 
   Value* initial_value;
   if (context_value != NULL) {
-    LoadFieldInstr* load = new (Z)
-        LoadFieldInstr(context_value->CopyWithType(Z), Context::parent_offset(),
-                       AbstractType::ZoneHandle(Z), alloc->token_pos());
+    LoadFieldInstr* load =
+        new (Z) LoadFieldInstr(context_value->CopyWithType(Z),
+                               Slot::Context_parent(), alloc->token_pos());
     flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
     cursor = load;
     initial_value = new (Z) Value(load);
@@ -262,20 +256,18 @@ void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
     initial_value = new (Z) Value(flow_graph()->constant_null());
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      Context::parent_offset(), new (Z) Value(replacement), initial_value,
-      kNoStoreBarrier, alloc->token_pos());
-  // Storing into uninitialized memory; remember to prevent dead store
-  // elimination and ensure proper GC barrier.
-  store->set_is_initialization(true);
-  flow_graph()->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+      Slot::Context_parent(), new (Z) Value(replacement), initial_value,
+      kNoStoreBarrier, alloc->token_pos(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
+  flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
   cursor = replacement;
 
-  for (intptr_t i = 0; i < num_context_variables; ++i) {
-    if (context_value != NULL) {
+  for (auto variable : context_variables) {
+    const auto& field = Slot::GetContextVariableSlotFor(thread(), *variable);
+    if (context_value != nullptr) {
       LoadFieldInstr* load = new (Z) LoadFieldInstr(
-          context_value->CopyWithType(Z), Context::variable_offset(i),
-          AbstractType::ZoneHandle(Z), alloc->token_pos());
-      flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
+          context_value->CopyWithType(Z), field, alloc->token_pos());
+      flow_graph()->InsertAfter(cursor, load, nullptr, FlowGraph::kValue);
       cursor = load;
       initial_value = new (Z) Value(load);
     } else {
@@ -283,27 +275,19 @@ void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
     }
 
     store = new (Z) StoreInstanceFieldInstr(
-        Context::variable_offset(i), new (Z) Value(replacement), initial_value,
-        kNoStoreBarrier, alloc->token_pos());
-    // Storing into uninitialized memory; remember to prevent dead store
-    // elimination and ensure proper GC barrier.
-    store->set_is_initialization(true);
-    flow_graph()->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+        field, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
+        alloc->token_pos(), StoreInstanceFieldInstr::Kind::kInitializing);
+    flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
     cursor = store;
   }
 }
 
 void JitCallSpecializer::VisitAllocateContext(AllocateContextInstr* instr) {
-  LowerContextAllocation(instr, instr->num_context_variables(), NULL);
+  LowerContextAllocation(instr, instr->context_variables(), nullptr);
 }
 
 void JitCallSpecializer::VisitCloneContext(CloneContextInstr* instr) {
-  if (instr->num_context_variables() ==
-      CloneContextInstr::kUnknownContextSize) {
-    return;
-  }
-
-  LowerContextAllocation(instr, instr->num_context_variables(),
+  LowerContextAllocation(instr, instr->context_variables(),
                          instr->context_value());
 }
 

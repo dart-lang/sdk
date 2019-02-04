@@ -23,7 +23,7 @@ import 'constness.dart' show Constness;
 import 'forest.dart' show Forest;
 
 import 'kernel_builder.dart'
-    show KernelTypeBuilder, PrefixBuilder, UnresolvedType;
+    show Declaration, KernelTypeBuilder, PrefixBuilder, UnresolvedType;
 
 import 'kernel_ast_api.dart'
     show
@@ -49,8 +49,6 @@ import 'kernel_builder.dart'
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get library;
 
-  Uri get uri;
-
   TypePromoter get typePromoter;
 
   int get functionNestingLevel;
@@ -58,6 +56,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   ConstantContext get constantContext;
 
   Forest get forest;
+
+  bool get legacyMode;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -72,8 +72,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
-  Initializer buildFieldInitializer(
-      bool isSynthetic, String name, int offset, Expression expression,
+  Initializer buildFieldInitializer(bool isSynthetic, String name,
+      int fieldNameOffset, int assignmentOffset, Expression expression,
       {DartType formalType});
 
   Initializer buildSuperInitializer(
@@ -85,7 +85,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {Constness constness, int charOffset, Expression error});
+      {Constness constness, int charOffset});
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
@@ -94,7 +94,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       bool isGetter,
       bool isSetter,
       bool isStatic,
-      LocatedMessage argMessage});
+      LocatedMessage message});
 
   LocatedMessage checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);
@@ -108,8 +108,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {Expression error,
-      bool isConstantExpression,
+      {bool isConstantExpression,
       bool isNullAware,
       bool isImplicitCall,
       bool isSuper,
@@ -150,4 +149,21 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   List<DartType> buildDartTypeArguments(
       List<UnresolvedType<KernelTypeBuilder>> unresolvedTypes);
+
+  void reportDuplicatedDeclaration(
+      Declaration existing, String name, int charOffset);
+
+  Expression wrapSyntheticExpression(Expression node, int charOffset);
+
+  Expression wrapInvalidConstructorInvocation(Expression desugared,
+      Member constructor, Arguments arguments, int charOffset);
+
+  Expression wrapInvalidWrite(
+      Expression desugared, Expression expression, int charOffset);
+
+  Expression wrapUnresolvedTargetInvocation(
+      Expression desugared, Arguments arguments, int charOffset);
+
+  Expression wrapUnresolvedVariableAssignment(
+      Expression desugared, bool isCompound, Expression rhs, int charOffset);
 }

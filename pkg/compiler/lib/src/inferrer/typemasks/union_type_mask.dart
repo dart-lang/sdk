@@ -5,7 +5,9 @@
 part of masks;
 
 class UnionTypeMask implements TypeMask {
-  final Iterable<FlatTypeMask> disjointMasks;
+  /// Tag used for identifying serialized [UnionTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'union-type-mask';
 
   static const int MAX_UNION_LENGTH = 4;
 
@@ -14,9 +16,30 @@ class UnionTypeMask implements TypeMask {
   // helpful in debugging.
   static const bool PERFORM_EXTRA_CONTAINS_CHECK = false;
 
+  final List<FlatTypeMask> disjointMasks;
+
   UnionTypeMask._internal(this.disjointMasks) {
     assert(disjointMasks.length > 1);
     assert(disjointMasks.every((TypeMask mask) => !mask.isUnion));
+  }
+
+  /// Deserializes a [UnionTypeMask] object from [source].
+  factory UnionTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    List<FlatTypeMask> disjointMasks = source
+        .readList(() => new TypeMask.readFromDataSource(source, closedWorld));
+    source.end(tag);
+    return new UnionTypeMask._internal(disjointMasks);
+  }
+
+  /// Serializes this [UnionTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.union);
+    sink.begin(tag);
+    sink.writeList(
+        disjointMasks, (FlatTypeMask mask) => mask.writeToDataSink(sink));
+    sink.end(tag);
   }
 
   static TypeMask unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {
@@ -193,7 +216,7 @@ class UnionTypeMask implements TypeMask {
     Iterable<FlatTypeMask> newIterable = disjointMasks.map((e) {
       FlatTypeMask r = e.nonNullable();
       return r;
-    });
+    }).toList();
     return new UnionTypeMask._internal(newIterable);
   }
 
@@ -209,14 +232,12 @@ class UnionTypeMask implements TypeMask {
   bool get isForwarding => false;
   bool get isValue => false;
 
-  /**
-   * Checks whether [other] is contained in this union.
-   *
-   * Invariants:
-   * - [other] may not be a [UnionTypeMask] itself
-   * - the cheap test matching against individual members of [disjointMasks]
-   *   must have failed.
-   */
+  /// Checks whether [other] is contained in this union.
+  ///
+  /// Invariants:
+  /// - [other] may not be a [UnionTypeMask] itself
+  /// - the cheap test matching against individual members of [disjointMasks]
+  ///   must have failed.
   bool slowContainsCheck(TypeMask other, JClosedWorld closedWorld) {
     // Unions should never make it here.
     assert(!other.isUnion);
@@ -334,9 +355,8 @@ class UnionTypeMask implements TypeMask {
         .any((e) => e.needsNoSuchMethodHandling(selector, closedWorld));
   }
 
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
-    return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+    return disjointMasks.any((e) => e.canHit(element, name, closedWorld));
   }
 
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {

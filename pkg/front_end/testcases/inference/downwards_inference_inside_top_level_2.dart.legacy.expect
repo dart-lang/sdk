@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object = dynamic> extends core::Object {
+  constructor •(self::A::T x) → self::A<self::A::T>
+    : super core::Object::•()
+    ;
+}
+static field dynamic t1 = <self::A<core::int>>[new self::A::•<dynamic>(1)];
+static method main() → dynamic {}

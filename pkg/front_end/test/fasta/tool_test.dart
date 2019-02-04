@@ -15,18 +15,15 @@ const String toolPath = "pkg/front_end/tool/fasta";
 
 const List<String> subtools = const <String>[
   "abcompile",
-  "analyzer-compile",
   "compile",
   "compile-platform",
   "log",
   "logd",
   "outline",
   "parser",
-  "run",
   "scanner",
   "dump-partial",
   "dump-ir",
-  "kernel-service",
   "testing",
   "generate-messages",
 ];
@@ -64,12 +61,6 @@ main() {
 Expected -DbRoot=/absolute/path/to/other/sdk/repo
 """,
       "stderr": "",
-    },
-    "analyzer-compile": {
-      "exitCode": 2,
-      "stdout": "",
-      "stderr": "'analyzer-compile' isn't supported anymore,"
-          " please use 'compile' instead.\n",
     },
     "compile": {
       "exitCode": 1,
@@ -120,12 +111,6 @@ Error: No Dart file specified.
       "stdout": "",
       "stderr": "",
     },
-    "run": {
-      "exitCode": 2,
-      "stdout": "",
-      "stderr": "'run' isn't supported anymore,"
-          " please use 'kernel-service' instead.\n",
-    },
     "scanner": {
       "exitCode": 0,
       "stderr": "",
@@ -140,10 +125,6 @@ Error: No Dart file specified.
       "exitCode": 2,
       "stdout": "",
       "stderr": "Usage: dump-ir dillfile [output]\n",
-    },
-    "kernel-service": {
-      "exitCode": 255,
-      "stdout": "",
     },
   };
 
@@ -165,11 +146,6 @@ ${result.stderr}
       case "scanner":
         Expect.isTrue(result.stdout.startsWith("Reading files took: "));
         Expect.stringEquals(expectation["stderr"], result.stderr);
-        break;
-
-      case "kernel-service":
-        Expect.stringEquals(expectation["stdout"], result.stdout);
-        Expect.isTrue(result.stderr.startsWith("Usage: dart ["));
         break;
 
       default:

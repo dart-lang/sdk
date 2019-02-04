@@ -5,8 +5,13 @@
 library universe.side_effects;
 
 import '../elements/entities.dart';
+import '../serialization/serialization.dart';
 
 class SideEffects {
+  /// Tag used for identifying serialized [SideEffects] objects in a debugging
+  /// data stream.
+  static const String tag = 'side-effects';
+
   // Changes flags.
   static const int FLAG_CHANGES_INDEX = 0;
   static const int FLAG_CHANGES_INSTANCE_PROPERTY = FLAG_CHANGES_INDEX + 1;
@@ -36,6 +41,21 @@ class SideEffects {
   }
 
   SideEffects.fromFlags(this._flags);
+
+  /// Deserializes a [SideEffects] object from [source].
+  factory SideEffects.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    int flags = source.readInt();
+    source.end(tag);
+    return new SideEffects.fromFlags(flags);
+  }
+
+  /// Serializes this [SideEffects] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(_flags);
+    sink.end(tag);
+  }
 
   bool operator ==(other) => _flags == other._flags;
 

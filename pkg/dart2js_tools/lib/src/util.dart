@@ -22,6 +22,27 @@ class CachingFileProvider implements FileProvider {
   Dart2jsMapping mappingFor(Uri uri) => _mappings[uri] ??= parseMappingFor(uri);
 }
 
+/// A provider that converts `http:` URLs to a `file:` URI assuming that all
+/// files were downloaded on the current working directory.
+///
+/// Typically used when downloading the source and source-map files and applying
+/// deobfuscation locally for debugging purposes.
+class DownloadedFileProvider extends CachingFileProvider {
+  _localize(uri) {
+    if (uri.scheme == 'http' || uri.scheme == 'https') {
+      String filename = uri.path.substring(uri.path.lastIndexOf('/') + 1);
+      return Uri.base.resolve(filename);
+    }
+    return uri;
+  }
+
+  String sourcesFor(Uri uri) => super.sourcesFor(_localize(uri));
+
+  SourceFile fileFor(Uri uri) => super.fileFor(_localize(uri));
+
+  Dart2jsMapping mappingFor(Uri uri) => super.mappingFor(_localize(uri));
+}
+
 warn(String message) {
   if (_seenMessages.add(message)) {
     print(message);

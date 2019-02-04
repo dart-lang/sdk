@@ -8,24 +8,24 @@ import 'package:args/args.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:update_homebrew/update_homebrew.dart';
 
-main(List<String> args) async {
-  final parser = new ArgParser()
+void main(List<String> args) async {
+  final parser = ArgParser()
     ..addOption('revision', abbr: 'r')
-    ..addOption('channel', abbr: 'c', allowed: ['dev', 'stable'])
+    ..addOption('channel', abbr: 'c', allowed: supportedChannels)
     ..addOption('key', abbr: 'k');
   final options = parser.parse(args);
-  final revision = options['revision'];
-  final channel = options['channel'];
+  final revision = options['revision'] as String;
+  final channel = options['channel'] as String;
   if ([revision, channel].contains(null)) {
     print("Usage: update_homebrew.dart -r revision -c channel [-k ssh_key]\n"
-        "  ssh_key should allow pushes to ${GITHUB_REPO} on github");
+        "  ssh_key should allow pushes to $githubRepo on github");
     exitCode = 1;
     return;
   }
 
   Map<String, String> gitEnvironment;
 
-  final key = options['key'];
+  final key = options['key'] as String;
   if (key != null) {
     final sshWrapper = Platform.script.resolve('ssh_with_key').toFilePath();
     gitEnvironment = {'GIT_SSH': sshWrapper, 'SSH_KEY_PATH': key};
@@ -37,8 +37,8 @@ main(List<String> args) async {
     try {
       var repository = tempDir.path;
 
-      await runGit(['clone', 'git@github.com:${GITHUB_REPO}.git', '.'],
-          repository, gitEnvironment);
+      await runGit(['clone', 'git@github.com:$githubRepo.git', '.'], repository,
+          gitEnvironment);
       await writeHomebrewInfo(channel, revision, repository);
       await runGit([
         'commit',

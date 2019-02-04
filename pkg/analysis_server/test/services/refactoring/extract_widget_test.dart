@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1235,7 +1235,7 @@ void main() {
 
   void _createRefactoring(int offset, int length) {
     refactoring = new ExtractWidgetRefactoring(
-        searchEngine, driver.currentSession, testUnit, offset, length);
+        searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'Test';
   }
 

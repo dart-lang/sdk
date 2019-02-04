@@ -4,10 +4,8 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
-import 'package:front_end/src/api_prototype/compilation_message.dart'
-    show CompilationMessage;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerOptions, DiagnosticMessage;
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
@@ -26,19 +24,21 @@ runTestCase(Uri source) async {
       enableSuperMixins: enableSuperMixins);
 
   final options = new CompilerOptions()
-    ..strongMode = true
-    ..reportMessages = true
-    ..onError = (CompilationMessage error) {
-      fail("Compilation error: ${error}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
   await runWithFrontEndCompilerContext(source, options, component, () {
     // Need to omit source positions from bytecode as they are different on
     // Linux and Windows (due to differences in newline characters).
-    generateBytecode(component, strongMode: true, omitSourcePositions: true);
+    generateBytecode(component, omitAssertSourcePositions: true);
   });
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+
+  // Remove absolute library URIs.
+  actual = actual.replaceAll(new Uri.file(pkgVmDir).toString(), '#pkg/vm');
+
   compareResultWithExpectationsFile(source, actual);
 }
 

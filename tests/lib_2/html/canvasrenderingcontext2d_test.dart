@@ -431,8 +431,8 @@ main() {
   //   avconv -i small.mp4 small.webm
   //   python -m base64 -e small.mp4
   //   python -m base64 -e small.webm
-  var mp4VideoUrl = '/root_dart/tests/html/small.mp4';
-  var webmVideoUrl = '/root_dart/tests/html/small.webm';
+  var mp4VideoUrl = '/root_dart/tests/lib_2/html/small.mp4';
+  var webmVideoUrl = '/root_dart/tests/lib_2/html/small.webm';
   var mp4VideoDataUrl =
       'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAA'
       'AIZnJlZQAAAsdtZGF0AAACmwYF//+X3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlID'

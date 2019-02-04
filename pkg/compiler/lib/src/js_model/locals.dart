@@ -12,15 +12,60 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
-import '../kernel/element_map.dart';
 import '../ir/util.dart';
+import '../serialization/serialization.dart';
 
 import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
 
 class GlobalLocalsMap {
-  Map<MemberEntity, KernelToLocalsMap> _localsMaps =
-      <MemberEntity, KernelToLocalsMap>{};
+  /// Tag used for identifying serialized [GlobalLocalsMap] objects in a
+  /// debugging data stream.
+  static const String tag = 'global-locals-map';
+
+  final Map<MemberEntity, KernelToLocalsMap> _localsMaps;
+
+  GlobalLocalsMap() : _localsMaps = {};
+
+  GlobalLocalsMap.internal(this._localsMaps);
+
+  /// Deserializes a [GlobalLocalsMap] object from [source].
+  factory GlobalLocalsMap.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Map<MemberEntity, KernelToLocalsMap> _localsMaps = {};
+    int mapCount = source.readInt();
+    for (int i = 0; i < mapCount; i++) {
+      KernelToLocalsMap localsMap =
+          new KernelToLocalsMapImpl.readFromDataSource(source);
+      List<MemberEntity> members = source.readMembers();
+      for (MemberEntity member in members) {
+        _localsMaps[member] = localsMap;
+      }
+    }
+    source.end(tag);
+    return new GlobalLocalsMap.internal(_localsMaps);
+  }
+
+  /// Serializes this [GlobalLocalsMap] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    // [KernelToLocalsMap]s are shared between members and their nested
+    // closures, so we reverse [_localsMaps] to ensure that [KernelToLocalsMap]s
+    // are shared upon deserialization. The sharing is needed for correctness
+    // since captured variables will otherwise have distinct locals for their
+    // non-captured and captured uses.
+    Map<KernelToLocalsMap, List<MemberEntity>> reverseMap = {};
+    _localsMaps.forEach((MemberEntity member, KernelToLocalsMap localsMap) {
+      reverseMap.putIfAbsent(localsMap, () => []).add(member);
+    });
+    sink.writeInt(reverseMap.length);
+    reverseMap
+        .forEach((KernelToLocalsMap localsMap, List<MemberEntity> members) {
+      localsMap.writeToDataSink(sink);
+      sink.writeMembers(members);
+    });
+    sink.end(tag);
+  }
 
   /// Returns the [KernelToLocalsMap] for [member].
   KernelToLocalsMap getLocalsMap(MemberEntity member) {
@@ -48,12 +93,84 @@ class GlobalLocalsMap {
 }
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
-  final MemberEntity currentMember;
+  /// Tag used for identifying serialized [KernelToLocalsMapImpl] objects in a
+  /// debugging data stream.
+  static const String tag = 'locals-map';
+
+  MemberEntity _currentMember;
   final EntityDataMap<JLocal, LocalData> _locals =
       new EntityDataMap<JLocal, LocalData>();
-  Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
+  Map<ir.VariableDeclaration, JLocal> _variableMap =
+      <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
-  Set<ir.BreakStatement> _breaksAsContinue;
+  Iterable<ir.BreakStatement> _breaksAsContinue;
+
+  KernelToLocalsMapImpl(this._currentMember);
+
+  /// Deserializes a [KernelToLocalsMapImpl] object from [source].
+  KernelToLocalsMapImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    _currentMember = source.readMember();
+    int localsCount = source.readInt();
+    for (int i = 0; i < localsCount; i++) {
+      int index = source.readInt();
+      String name = source.readStringOrNull();
+      bool isRegularParameter = source.readBool();
+      ir.VariableDeclaration node = source.readTreeNode();
+      JLocal local = new JLocal(name, currentMember,
+          isRegularParameter: isRegularParameter);
+      LocalData data = new LocalData(node);
+      _locals.registerByIndex(index, local, data);
+      _variableMap[node] = local;
+    }
+    int jumpCount = source.readInt();
+    if (jumpCount > 0) {
+      _jumpTargetMap = {};
+      for (int i = 0; i < jumpCount; i++) {
+        JJumpTarget target = new JJumpTarget.readFromDataSource(source);
+        List<ir.TreeNode> nodes = source.readTreeNodes();
+        for (ir.TreeNode node in nodes) {
+          _jumpTargetMap[node] = target;
+        }
+      }
+    }
+    _breaksAsContinue = source.readTreeNodes();
+    source.end(tag);
+  }
+
+  /// Serializes this [KernelToLocalsMapImpl] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMember(currentMember);
+    sink.writeInt(_locals.size);
+    _locals.forEach((JLocal local, LocalData data) {
+      assert(local.memberContext == currentMember);
+      sink.writeInt(local.localIndex);
+      sink.writeStringOrNull(local.name);
+      sink.writeBool(local.isRegularParameter);
+      sink.writeTreeNode(data.node);
+    });
+    if (_jumpTargetMap != null) {
+      // [JJumpTarget]s are shared between nodes, so we reverse
+      // [_jumpTargetMap] to ensure that [JJumpTarget]s are shared upon
+      // deserialization. This sharing is needed for correctness since for
+      // instance a label statement containing a for loop both constitutes the
+      // same jump target and the SSA graph builder dependents on this property.
+      Map<JJumpTarget, List<ir.TreeNode>> reversedMap = {};
+      _jumpTargetMap.forEach((ir.TreeNode node, JJumpTarget target) {
+        reversedMap.putIfAbsent(target, () => []).add(node);
+      });
+      sink.writeInt(reversedMap.length);
+      reversedMap.forEach((JJumpTarget target, List<ir.TreeNode> nodes) {
+        target.writeToDataSink(sink);
+        sink.writeTreeNodes(nodes);
+      });
+    } else {
+      sink.writeInt(0);
+    }
+    sink.writeTreeNodes(_breaksAsContinue, allowNull: true);
+    sink.end(tag);
+  }
 
   // TODO(johnniwinther): Compute this eagerly from the root of the member.
   void _ensureJumpMap(ir.TreeNode node) {
@@ -71,7 +188,11 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     }
   }
 
-  KernelToLocalsMapImpl(this.currentMember);
+  MemberEntity get currentMember => _currentMember;
+
+  Local getLocalByIndex(int index) {
+    return _locals.getEntity(index);
+  }
 
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
@@ -138,7 +259,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
-    return _map.putIfAbsent(node, () {
+    return _variableMap.putIfAbsent(node, () {
       JLocal local = new JLocal(node.name, currentMember,
           isRegularParameter: node.parent is ir.FunctionNode);
       _locals.register<JLocal, LocalData>(local, new LocalData(node));
@@ -326,17 +447,71 @@ class JumpVisitor extends ir.Visitor {
 }
 
 class JJumpTarget extends JumpTarget {
+  /// Tag used for identifying serialized [JJumpTarget] objects in a
+  /// debugging data stream.
+  static const String tag = 'jump-target';
+
   final MemberEntity memberContext;
   final int nestingLevel;
   List<LabelDefinition> _labels;
   final bool isSwitch;
   final bool isSwitchCase;
+  bool isBreakTarget;
+  bool isContinueTarget;
 
   JJumpTarget(this.memberContext, this.nestingLevel,
-      {this.isSwitch: false, this.isSwitchCase: false});
+      {this.isSwitch: false,
+      this.isSwitchCase: false,
+      this.isBreakTarget: false,
+      this.isContinueTarget: false});
 
-  bool isBreakTarget = false;
-  bool isContinueTarget = false;
+  /// Deserializes a [JJumpTarget] object from [source].
+  factory JJumpTarget.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberEntity memberContext = source.readMember();
+    int nestingLevel = source.readInt();
+    bool isSwitch = source.readBool();
+    bool isSwitchCase = source.readBool();
+    bool isBreakTarget = source.readBool();
+    bool isContinueTarget = source.readBool();
+    JJumpTarget target = new JJumpTarget(memberContext, nestingLevel,
+        isSwitch: isSwitch,
+        isSwitchCase: isSwitchCase,
+        isBreakTarget: isBreakTarget,
+        isContinueTarget: isContinueTarget);
+    int labelCount = source.readInt();
+    for (int i = 0; i < labelCount; i++) {
+      String labelName = source.readString();
+      bool isBreakTarget = source.readBool();
+      bool isContinueTarget = source.readBool();
+      target.addLabel(labelName,
+          isBreakTarget: isBreakTarget, isContinueTarget: isContinueTarget);
+    }
+    source.end(tag);
+    return target;
+  }
+
+  /// Serializes this [JJumpTarget] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMember(memberContext);
+    sink.writeInt(nestingLevel);
+    sink.writeBool(isSwitch);
+    sink.writeBool(isSwitchCase);
+    sink.writeBool(isBreakTarget);
+    sink.writeBool(isContinueTarget);
+    if (_labels != null) {
+      sink.writeInt(_labels.length);
+      for (LabelDefinition definition in _labels) {
+        sink.writeString(definition.name);
+        sink.writeBool(definition.isBreakTarget);
+        sink.writeBool(definition.isContinueTarget);
+      }
+    } else {
+      sink.writeInt(0);
+    }
+    sink.end(tag);
+  }
 
   @override
   LabelDefinition addLabel(String labelName,

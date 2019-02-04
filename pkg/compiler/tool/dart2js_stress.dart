@@ -24,8 +24,8 @@ void main(List<String> args) {
   args = [
     "--suppress-warnings",
     "--suppress-hints",
-    "--library-root="
-        "${Platform.script.resolve('../../../sdk').toFilePath()}"
+    "--libraries-spec="
+        "${Platform.script.resolve('../../../sdk/lib/libraries.json').toFilePath()}"
   ]..addAll(args);
   void iterate() {
     count++;

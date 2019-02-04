@@ -1,0 +1,191 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:32:10: Error: Expected an identifier, but got 'super'.
+//     for (super.superInstanceField in []) {}
+//          ^^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:33:10: Error: Expected an identifier, but got 'super'.
+//     for (super.untypedSuperInstanceField in []) {}
+//          ^^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:35:11: Error: Unexpected token '.'.
+//     for (c.instanceField in []) {}
+//           ^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:36:11: Error: Unexpected token '.'.
+//     for (c.untypedSuperInstanceField in []) {}
+//           ^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:37:10: Error: Setter not found: 'unresolved'.
+//     for (unresolved in []) {}
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:38:10: Error: Getter not found: 'unresolved'.
+//     for (unresolved.foo in []) {}
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:38:20: Error: Unexpected token '.'.
+//     for (unresolved.foo in []) {}
+//                    ^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:39:11: Error: Unexpected token '.'.
+//     for (c.unresolved in []) {}
+//           ^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:40:14: Error: Unexpected token '('.
+//     for (main() in []) {}
+//              ^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:40:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+//     for (main() in []) {}
+//          ^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:41:15: Error: Unexpected token ','.
+//     for (var x, y in <int>[]) {
+//               ^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
+//     for (var x, y in <int>[]) {
+//          ^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:46:10: Error: Setter not found: 'constant'.
+//     for (constant in []) {}
+//          ^^^^^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:37:10: Error: The setter 'unresolved' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     for (unresolved in []) {}
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:38:21: Error: The setter 'foo' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
+//     for (unresolved.foo in []) {}
+//                     ^^^
+//
+// pkg/front_end/testcases/for_in_without_declaration.dart:39:12: Error: The setter 'unresolved' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     for (c.unresolved in []) {}
+//            ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field core::int superInstanceField = null;
+  field dynamic untypedSuperInstanceField = null;
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+class C extends self::Super {
+  field core::int instanceField = null;
+  field dynamic untypedInstanceField = null;
+  static field core::double staticField = null;
+  static field dynamic untypedStaticField = null;
+  synthetic constructor •() → self::C
+    : super self::Super::•()
+    ;
+  method m() → dynamic {
+    core::String local;
+    dynamic untypedLocal;
+    for (final core::String #t1 in <core::String>[]) {
+      local = #t1;
+    }
+    for (final dynamic #t2 in <dynamic>[]) {
+      untypedLocal = #t2;
+    }
+    for (final core::int #t3 in <core::int>[]) {
+      this.{self::C::instanceField} = #t3;
+    }
+    for (final dynamic #t4 in <dynamic>[]) {
+      this.{self::C::untypedInstanceField} = #t4;
+    }
+    for (final core::double #t5 in <core::double>[]) {
+      self::C::staticField = #t5;
+    }
+    for (final dynamic #t6 in <dynamic>[]) {
+      self::C::untypedStaticField = #t6;
+    }
+    for (final core::bool #t7 in <core::bool>[]) {
+      self::topLevelField = #t7;
+    }
+    for (final dynamic #t8 in <dynamic>[]) {
+      self::untypedTopLevelField = #t8;
+    }
+    for (final core::int #t9 in <core::int>[]) {
+      super.{self::Super::superInstanceField} = #t9;
+    }
+    for (final dynamic #t10 in <dynamic>[]) {
+      super.{self::Super::untypedSuperInstanceField} = #t10;
+    }
+    self::C c = new self::C::•();
+    for (final core::int #t11 in <core::int>[]) {
+      c.{self::C::instanceField} = #t11;
+    }
+    for (final dynamic #t12 in <dynamic>[]) {
+      c.{self::Super::untypedSuperInstanceField} = #t12;
+    }
+    for (final dynamic #t13 in <dynamic>[]) {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:37:10: Error: The setter 'unresolved' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    for (unresolved in []) {}
+         ^^^^^^^^^^";
+    }
+    for (final dynamic #t14 in <dynamic>[]) {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:38:21: Error: The setter 'foo' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
+    for (unresolved.foo in []) {}
+                    ^^^";
+    }
+    for (final dynamic #t15 in <dynamic>[]) {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:39:12: Error: The setter 'unresolved' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/for_in_without_declaration.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    for (c.unresolved in []) {}
+           ^^^^^^^^^^";
+    }
+    {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:40:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (main() in []) {}
+         ^^^^";
+      for (final dynamic #t16 in <dynamic>[]) {
+        invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:40:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (main() in []) {}
+         ^^^^";
+        self::main();
+      }
+    }
+    {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
+    for (var x, y in <int>[]) {
+         ^^^";
+      for (final core::int #t17 in <core::int>[]) {
+        invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
+    for (var x, y in <int>[]) {
+         ^^^";
+        dynamic x;
+        dynamic y;
+        {
+          core::print(x);
+          core::print(y);
+        }
+      }
+    }
+    const core::int constant = 0;
+    for (final dynamic #t18 in <dynamic>[]) {
+      invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:46:10: Error: Setter not found: 'constant'.
+    for (constant in []) {}
+         ^^^^^^^^";
+    }
+  }
+}
+static field core::bool topLevelField;
+static field dynamic untypedTopLevelField;
+static method main() → dynamic {}

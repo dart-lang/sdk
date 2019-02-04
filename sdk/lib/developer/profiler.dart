@@ -64,15 +64,9 @@ class Gauge extends Metric {
 
   Gauge(String name, String description, this.min, this.max)
       : super(name, description) {
-    if (min is! double) {
-      throw new ArgumentError('min must be a double');
-    }
-    if (max is! double) {
-      throw new ArgumentError('max must be a double');
-    }
-    if (!(min < max)) {
-      throw new ArgumentError('min must be less than max');
-    }
+    ArgumentError.checkNotNull(min, 'min');
+    ArgumentError.checkNotNull(max, 'max');
+    if (!(min < max)) throw new ArgumentError('min must be less than max');
     _value = min;
   }
 
@@ -117,9 +111,7 @@ class Metrics {
 
   /// Register [Metric]s to make them visible to Observatory.
   static void register(Metric metric) {
-    if (metric is! Metric) {
-      throw new ArgumentError('metric must be a Metric');
-    }
+    ArgumentError.checkNotNull(metric, 'metric');
     if (_metrics[metric.name] != null) {
       throw new ArgumentError('Registered metrics have unique names');
     }
@@ -128,9 +120,7 @@ class Metrics {
 
   /// Deregister [Metric]s to make them not visible to Observatory.
   static void deregister(Metric metric) {
-    if (metric is! Metric) {
-      throw new ArgumentError('metric must be a Metric');
-    }
+    ArgumentError.checkNotNull(metric, 'metric');
     _metrics.remove(metric.name);
   }
 

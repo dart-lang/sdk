@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/argument_mismatch.dart:10:34: Warning: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   /*@warning=MethodNotFound*/ foo(null);
+//                                  ^
+// pkg/front_end/testcases/argument_mismatch.dart:7:29: Context: Found this candidate, but the arguments don't match.
+// /*@context=CandidateFound*/ foo() {}
+//                             ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {}
+static method test() → dynamic {
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[null]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → dynamic {}

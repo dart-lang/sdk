@@ -1,0 +1,99 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/mixin_conflicts.dart:22:7: Error: The non-abstract class 'N2' is missing implementations for these members:
+//  - M.foo
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class N2 = Object with M2;
+//       ^^
+// pkg/front_end/testcases/mixin_conflicts.dart:7:3: Context: 'M.foo' is defined here.
+//   foo() {}
+//   ^^^
+//
+// pkg/front_end/testcases/mixin_conflicts.dart:29:7: Error: The non-abstract class 'C2' is missing implementations for these members:
+//  - M.foo
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class C2 extends Object with M2 {}
+//       ^^
+// pkg/front_end/testcases/mixin_conflicts.dart:7:3: Context: 'M.foo' is defined here.
+//   foo() {}
+//   ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class M extends core::Object {
+  synthetic constructor •() → self::M
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+}
+class N extends core::Object implements self::M {
+  const synthetic constructor •() → self::N
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _C&Object&N extends core::Object implements self::N {
+  const synthetic constructor •() → self::_C&Object&N
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+}
+class C extends self::_C&Object&N {
+  synthetic constructor •() → self::C
+    : super self::_C&Object&N::•()
+    ;
+}
+abstract class M2 extends core::Object implements self::M {
+  synthetic constructor •() → self::M2
+    : super core::Object::•()
+    ;
+  method bar() → dynamic {}
+}
+class N2 extends core::Object implements self::M2 {
+  const synthetic constructor •() → self::N2
+    : super core::Object::•()
+    ;
+  method bar() → dynamic {}
+}
+abstract class N3 extends core::Object implements self::M2 {
+  const synthetic constructor •() → self::N3
+    : super core::Object::•()
+    ;
+  method bar() → dynamic {}
+}
+abstract class _C2&Object&M2 extends core::Object implements self::M2 {
+  const synthetic constructor •() → self::_C2&Object&M2
+    : super core::Object::•()
+    ;
+  method bar() → dynamic {}
+}
+class C2 extends self::_C2&Object&M2 {
+  synthetic constructor •() → self::C2
+    : super self::_C2&Object&M2::•()
+    ;
+}
+abstract class _C3&Object&M2 extends core::Object implements self::M2 {
+  const synthetic constructor •() → self::_C3&Object&M2
+    : super core::Object::•()
+    ;
+  method bar() → dynamic {}
+}
+abstract class C3 extends self::_C3&Object&M2 {
+  synthetic constructor •() → self::C3
+    : super self::_C3&Object&M2::•()
+    ;
+}
+static method main() → dynamic {}

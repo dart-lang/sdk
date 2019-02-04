@@ -30,6 +30,6 @@ class Export {
         if (combinator.isHide && combinator.names.contains(name)) return false;
       }
     }
-    return exporter.addToExportScope(name, member);
+    return exporter.addToExportScope(name, member, charOffset);
   }
 }

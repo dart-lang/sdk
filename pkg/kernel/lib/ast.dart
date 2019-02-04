@@ -83,7 +83,7 @@ abstract class Node {
   const Node();
 
   accept(Visitor v);
-  visitChildren(Visitor v);
+  void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
   ///
@@ -278,6 +278,11 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
+  static const int ExternalFlag = 1 << 0;
+  static const int SyntheticFlag = 1 << 1;
+
+  int flags = 0;
+
   /// If true, the library is part of another build unit and its contents
   /// are only partially loaded.
   ///
@@ -285,11 +290,27 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// other than [ClassLevel.Body].  Members in an external library have no
   /// body, but have their typed interface present.
   ///
-  /// If the libary is non-external, then its classes are at [ClassLevel.Body]
+  /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
-  bool isExternal;
+  bool get isExternal => (flags & ExternalFlag) != 0;
+  void set isExternal(bool value) {
+    flags = value ? (flags | ExternalFlag) : (flags & ~ExternalFlag);
+  }
+
+  /// If true, the library is synthetic, for instance library that doesn't
+  /// represents an actual file and is created as the result of error recovery.
+  bool get isSynthetic => flags & SyntheticFlag != 0;
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
+  }
 
   String name;
+
+  /// Problems in this [Library] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   @nocoq
   final List<Expression> annotations;
@@ -312,7 +333,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   Library(this.importUri,
       {this.name,
-      this.isExternal: false,
+      bool isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
       List<LibraryPart> parts,
@@ -330,6 +351,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
+    this.isExternal = isExternal;
     setParents(this.dependencies, this);
     setParents(this.parts, this);
     setParents(this.typedefs, this);
@@ -383,16 +405,20 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
-    for (var typedef_ in typedefs) {
+    for (int i = 0; i < typedefs.length; ++i) {
+      Typedef typedef_ = typedefs[i];
       canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
     }
-    for (var field in fields) {
+    for (int i = 0; i < fields.length; ++i) {
+      Field field = fields[i];
       canonicalName.getChildFromMember(field).bindTo(field.reference);
     }
-    for (var member in procedures) {
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var class_ in classes) {
+    for (int i = 0; i < classes.length; ++i) {
+      Class class_ = classes[i];
       canonicalName.getChild(class_.name).bindTo(class_.reference);
       class_.computeCanonicalNames();
     }
@@ -606,6 +632,10 @@ class Typedef extends NamedNode implements FileUriNode {
 
   Library get enclosingLibrary => parent;
 
+  TypedefType get thisType {
+    return new TypedefType(this, _getAsTypeArguments(typeParameters));
+  }
+
   accept(TreeVisitor v) {
     return v.visitTypedef(this);
   }
@@ -728,6 +758,7 @@ class Class extends NamedNode implements FileUriNode {
   static const int FlagEnum = 1 << 3;
   static const int FlagAnonymousMixin = 1 << 4;
   static const int FlagEliminatedMixin = 1 << 5;
+  static const int FlagMixinDeclaration = 1 << 6;
 
   int flags = 0;
 
@@ -752,10 +783,10 @@ class Class extends NamedNode implements FileUriNode {
   /// class C {}
   /// class D {}
   /// ...creates:
-  /// abstract class A&B extends A mixedIn B {}
-  /// abstract class A&B&C extends A&B mixedIn C {}
-  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
-  /// class Z extends A&B&C&D {}
+  /// abstract class _Z&A&B extends A mixedIn B {}
+  /// abstract class _Z&A&B&C extends A&B mixedIn C {}
+  /// abstract class _Z&A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends _Z&A&B&C&D {}
   /// All X&Y classes are marked as synthetic.
   bool get isAnonymousMixin => flags & FlagAnonymousMixin != 0;
 
@@ -772,6 +803,40 @@ class Class extends NamedNode implements FileUriNode {
   void set isEliminatedMixin(bool value) {
     flags =
         value ? (flags | FlagEliminatedMixin) : (flags & ~FlagEliminatedMixin);
+  }
+
+  /// True if this class was a mixin declaration in Dart.
+  ///
+  /// Mixins are declared in Dart with the `mixin` keyword.  They are compiled
+  /// to Kernel classes.
+  bool get isMixinDeclaration => flags & FlagMixinDeclaration != 0;
+
+  void set isMixinDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagMixinDeclaration)
+        : (flags & ~FlagMixinDeclaration);
+  }
+
+  List<Supertype> superclassConstraints() {
+    var constraints = <Supertype>[];
+
+    // Not a mixin declaration.
+    if (!isMixinDeclaration) return constraints;
+
+    // Otherwise we have a left-linear binary tree (subtrees are supertype and
+    // mixedInType) of constraints, where all the interior nodes are anonymous
+    // mixin applications.
+    Supertype current = supertype;
+    while (current != null && current.classNode.isAnonymousMixin) {
+      Class currentClass = current.classNode;
+      assert(currentClass.implementedTypes.length == 2);
+      Substitution substitution = Substitution.fromSupertype(current);
+      constraints.add(
+          substitution.substituteSupertype(currentClass.implementedTypes[1]));
+      current =
+          substitution.substituteSupertype(currentClass.implementedTypes[0]);
+    }
+    return constraints..add(current);
   }
 
   /// The URI of the source file this class was loaded from.
@@ -839,16 +904,20 @@ class Class extends NamedNode implements FileUriNode {
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
-    for (var member in fields) {
+    for (int i = 0; i < fields.length; ++i) {
+      Field member = fields[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in procedures) {
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in constructors) {
+    for (int i = 0; i < constructors.length; ++i) {
+      Constructor member = constructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in redirectingFactoryConstructors) {
+    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
+      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -866,6 +935,22 @@ class Class extends NamedNode implements FileUriNode {
   Class get mixin => mixedInClass?.mixin ?? this;
 
   bool get isMixinApplication => mixedInType != null;
+
+  String get demangledName {
+    if (isAnonymousMixin) return nameAsMixinApplication;
+    assert(!name.contains('&'));
+    return name;
+  }
+
+  String get nameAsMixinApplication {
+    assert(isAnonymousMixin);
+    return demangleMixinApplicationName(name);
+  }
+
+  String get nameAsMixinApplicationSubclass {
+    assert(isAnonymousMixin);
+    return demangleMixinApplicationSubclassName(name);
+  }
 
   /// Members declared in this class.
   ///
@@ -2098,15 +2183,15 @@ enum AsyncMarker {
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   DartType getStaticType(TypeEnvironment types);
 
   /// Returns the static type of the expression as an instantiation of
   /// [superclass].
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   ///
   /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].
@@ -2127,7 +2212,7 @@ abstract class Expression extends TreeNode {
       type = (type as TypeParameterType).parameter.bound;
     }
     if (type is InterfaceType) {
-      var upcastType = types.hierarchy.getTypeAsInstanceOf(type, superclass);
+      var upcastType = types.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
     } else if (type is BottomType) {
       return superclass.bottomType;
@@ -2495,8 +2580,7 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
+    var receiver = types.getTypeAsInstanceOf(types.thisType, declaringClass);
     return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
@@ -2818,8 +2902,7 @@ class SuperMethodInvocation extends InvocationExpression {
   DartType getStaticType(TypeEnvironment types) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
+    var receiverType = types.getTypeAsInstanceOf(types.thisType, superclass);
     var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
@@ -3350,6 +3433,35 @@ class ListLiteral extends Expression {
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitListLiteral(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(expressions, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(expressions, v, this);
+  }
+}
+
+class SetLiteral extends Expression {
+  bool isConst;
+  DartType typeArgument; // Not null, defaults to DynamicType.
+  final List<Expression> expressions;
+
+  SetLiteral(this.expressions,
+      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+    assert(typeArgument != null);
+    setParents(expressions, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalSetType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitSetLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -4487,6 +4599,7 @@ abstract class DartType extends Node {
   const DartType();
 
   accept(DartTypeVisitor v);
+  accept1(DartTypeVisitor1 v, arg);
 
   bool operator ==(Object other);
 
@@ -4511,6 +4624,7 @@ class InvalidType extends DartType {
   const InvalidType();
 
   accept(DartTypeVisitor v) => v.visitInvalidType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitInvalidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
@@ -4522,6 +4636,7 @@ class DynamicType extends DartType {
   const DynamicType();
 
   accept(DartTypeVisitor v) => v.visitDynamicType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitDynamicType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
@@ -4533,6 +4648,7 @@ class VoidType extends DartType {
   const VoidType();
 
   accept(DartTypeVisitor v) => v.visitVoidType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitVoidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
@@ -4544,6 +4660,7 @@ class BottomType extends DartType {
   const BottomType();
 
   accept(DartTypeVisitor v) => v.visitBottomType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitBottomType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is BottomType;
@@ -4576,6 +4693,7 @@ class InterfaceType extends DartType {
   }
 
   accept(DartTypeVisitor v) => v.visitInterfaceType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitInterfaceType(this, arg);
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
@@ -4615,8 +4733,7 @@ class FunctionType extends DartType {
   final List<NamedType> namedParameters; // Must be sorted.
 
   /// The [Typedef] this function type is created for.
-  @nocoq
-  Reference typedefReference;
+  final TypedefType typedefType;
 
   final DartType returnType;
   int _hashCode;
@@ -4625,20 +4742,24 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      this.typedefReference})
+      this.typedefType})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
 
-  /// The [Typedef] this function type is created for.
+  @nocoq
+  Reference get typedefReference => typedefType?.typedefReference;
+
   Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitFunctionType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeParameters, v);
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
+    typedefType?.accept(v);
     returnType.accept(v);
   }
 
@@ -4684,7 +4805,7 @@ class FunctionType extends DartType {
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
-        typedefReference: typedefReference);
+        typedefType: typedefType);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -4749,6 +4870,7 @@ class TypedefType extends DartType {
   Typedef get typedefNode => typedefReference.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitTypedefType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypedefType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeArguments, v);
@@ -4837,6 +4959,7 @@ class TypeParameterType extends DartType {
   TypeParameterType(this.parameter, [this.promotedBound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
 
   visitChildren(Visitor v) {}
 
@@ -4912,11 +5035,13 @@ class TypeParameter extends TreeNode {
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     bound.accept(v);
     defaultType?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     bound = v.visitDartType(bound);
     if (defaultType != null) {
       defaultType = v.visitDartType(defaultType);
@@ -5001,6 +5126,10 @@ abstract class Constant extends Node {
 
   /// Gets the type of this constant.
   DartType getType(TypeEnvironment types);
+
+  Expression asExpression() {
+    return new ConstantExpression(this);
+  }
 }
 
 abstract class PrimitiveConstant<T> extends Constant {
@@ -5055,8 +5184,7 @@ class DoubleConstant extends PrimitiveConstant<double> {
 
   int get hashCode => value.isNaN ? 199 : super.hashCode;
   bool operator ==(Object other) =>
-      other is DoubleConstant &&
-      (other.value == value || identical(value, other.value) /* For NaN */);
+      other is DoubleConstant && identical(value, other.value);
 
   DartType getType(TypeEnvironment types) => types.doubleType;
 }
@@ -5194,7 +5322,7 @@ class InstanceConstant extends Constant {
 
   InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
 
-  Class get klass => classReference.asClass;
+  Class get classNode => classReference.asClass;
 
   visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
@@ -5242,7 +5370,7 @@ class InstanceConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) =>
-      new InterfaceType(klass, typeArguments);
+      new InterfaceType(classNode, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
@@ -5338,6 +5466,26 @@ class TypeLiteralConstant extends Constant {
   DartType getType(TypeEnvironment types) => types.typeType;
 }
 
+class UnevaluatedConstant extends Constant {
+  final Expression expression;
+
+  UnevaluatedConstant(this.expression) {
+    expression?.parent = null;
+  }
+
+  visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitUnevaluatedConstant(this);
+  acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => expression.getStaticType(types);
+
+  @override
+  Expression asExpression() => expression;
+}
+
 // ------------------------------------------------------------------------
 //                                COMPONENT
 // ------------------------------------------------------------------------
@@ -5345,6 +5493,12 @@ class TypeLiteralConstant extends Constant {
 /// A way to bundle up libraries in a component.
 class Component extends TreeNode {
   final CanonicalName root;
+
+  /// Problems in this [Component] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   final List<Library> libraries;
 
@@ -5383,8 +5537,8 @@ class Component extends TreeNode {
   }
 
   void computeCanonicalNames() {
-    for (var library in libraries) {
-      computeCanonicalNamesForLibrary(library);
+    for (int i = 0; i < libraries.length; ++i) {
+      computeCanonicalNamesForLibrary(libraries[i]);
     }
   }
 
@@ -5479,6 +5633,8 @@ abstract class MetadataRepository<T> {
 }
 
 abstract class BinarySink {
+  int getBufferOffset();
+
   void writeByte(int byte);
   void writeBytes(List<int> bytes);
   void writeUInt32(int value);
@@ -5487,7 +5643,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeCanonicalNameReference(CanonicalName name);
+  void writeNullAllowedCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
@@ -5508,6 +5664,7 @@ abstract class BinarySource {
   List<int> get bytes;
 
   int readByte();
+  List<int> readBytes(int length);
   int readUInt();
   int readUint32();
 
@@ -5625,7 +5782,7 @@ class Source {
   /// number. The returned line contains no line separators.
   String getTextLine(int line) {
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
-    if (source == null) return null;
+    if (source == null || source.isEmpty) return null;
 
     cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.
@@ -5768,4 +5925,33 @@ Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }
+}
+
+/// Convert the synthetic name of an implicit mixin application class
+/// into a name suitable for user-faced strings.
+///
+/// For example, when compiling "class A extends S with M1, M2", the
+/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
+/// This function will return "S with M1" and "S with M1, M2", respectively.
+String demangleMixinApplicationName(String name) {
+  List<String> nameParts = name.split('&');
+  if (nameParts.length < 2) return name;
+  String demangledName = nameParts[1];
+  for (int i = 2; i < nameParts.length; i++) {
+    demangledName += (i == 2 ? " with " : ", ") + nameParts[i];
+  }
+  return demangledName;
+}
+
+/// Extract from the synthetic name of an implicit mixin application class
+/// the name of the final subclass of the mixin application.
+///
+/// For example, when compiling "class A extends S with M1, M2", the
+/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
+/// This function will return "A" for both classes.
+String demangleMixinApplicationSubclassName(String name) {
+  List<String> nameParts = name.split('&');
+  if (nameParts.length < 2) return name;
+  assert(nameParts[0].startsWith('_'));
+  return nameParts[0].substring(1);
 }

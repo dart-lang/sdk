@@ -1,0 +1,24 @@
+pkg/front_end/testcases/inference/bug31133.dart:10:9: Context: Write to i@296
+  for (i++; i /*@target=num::<*/ < 10; i++) {}
+        ^^
+pkg/front_end/testcases/inference/bug31133.dart:10:41: Context: Write to i@296
+  for (i++; i /*@target=num::<*/ < 10; i++) {}
+                                        ^^
+pkg/front_end/testcases/inference/bug31133.dart:11:8: Context: Write to i@296
+  for (++i; i /*@target=num::<*/ < 10; i++) {}
+       ^^
+pkg/front_end/testcases/inference/bug31133.dart:11:41: Context: Write to i@296
+  for (++i; i /*@target=num::<*/ < 10; i++) {}
+                                        ^^
+pkg/front_end/testcases/inference/bug31133.dart:12:9: Context: Write to i@296
+  for (i--; i /*@target=num::>=*/ >= 0; i--) {}
+        ^^
+pkg/front_end/testcases/inference/bug31133.dart:12:42: Context: Write to i@296
+  for (i--; i /*@target=num::>=*/ >= 0; i--) {}
+                                         ^^
+pkg/front_end/testcases/inference/bug31133.dart:13:8: Context: Write to i@296
+  for (--i; i /*@target=num::>=*/ >= 0; i--) {}
+       ^^
+pkg/front_end/testcases/inference/bug31133.dart:13:42: Context: Write to i@296
+  for (--i; i /*@target=num::>=*/ >= 0; i--) {}
+                                         ^^

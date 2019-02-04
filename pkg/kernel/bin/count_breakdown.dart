@@ -18,8 +18,9 @@ void usage() {
 }
 
 main(List<String> args) {
-  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
-  Component component = CommandLineHelper.tryLoadDill(args[0], usage);
+  CommandLineHelper.requireExactlyOneArgument(args, usage,
+      requireFileExists: true);
+  Component component = CommandLineHelper.tryLoadDill(args[0]);
   TypeCounter counter = new TypeCounter();
   component.accept(counter);
   counter.printStats();

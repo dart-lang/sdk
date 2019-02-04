@@ -6,8 +6,10 @@
 
 import "package:expect/expect.dart";
 
+@pragma("vm:entry-point")
 class A<T extends B<dynamic>> {}
 
+@pragma("vm:entry-point")
 class B<T extends Object> {}
 
 main() {

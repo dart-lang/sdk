@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T>
+    : super core::Object::•()
+    ;
+}
+class B<T extends core::Object = dynamic> extends self::A<self::B::T> {
+  synthetic constructor •() → self::B<self::B::T>
+    : super self::A::•()
+    ;
+  method foo() → dynamic {}
+}
+static field self::A<core::num> a = new self::B::•<core::int>();
+static field dynamic b = self::a as self::B<core::int>;
+static method main() → dynamic {
+  self::A<core::num> a = new self::B::•<core::int>();
+  dynamic b = a as self::B<core::int>;
+}

@@ -9,13 +9,11 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -23,6 +21,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * Instances of the class `InheritanceManager` manage the knowledge of where class members
  * (methods, getters & setters) are inherited from.
  */
+@Deprecated('Use InheritanceManager2 instead.')
 class InheritanceManager {
   /**
    * The [LibraryElement] that is managed by this manager.
@@ -48,29 +47,12 @@ class InheritanceManager {
   Map<ClassElement, Map<String, ExecutableElement>> _interfaceLookup;
 
   /**
-   * A map between each visited [ClassElement] and the set of [AnalysisError]s found on
-   * the class element.
-   */
-  Map<ClassElement, Set<AnalysisError>> _errorsInClassElement =
-      new HashMap<ClassElement, Set<AnalysisError>>();
-
-  /**
-   * Indicates whether errors should be ignored.
-   *
-   * When this bool is `true`, we skip the logic that figures out which error
-   * to report; this avoids a crash when the inheritance manager is used in the
-   * context of summary linking (where there is not enough information available
-   * to determine error locations).
-   */
-  final bool ignoreErrors;
-
-  /**
    * Initialize a newly created inheritance manager.
    *
    * @param library the library element context that the inheritance mappings are being generated
    */
   InheritanceManager(LibraryElement library,
-      {bool includeAbstractFromSuperclasses: false, this.ignoreErrors: false}) {
+      {bool includeAbstractFromSuperclasses: false}) {
     this._library = library;
     _includeAbstractFromSuperclasses = includeAbstractFromSuperclasses;
     _classLookup = new HashMap<ClassElement, Map<String, ExecutableElement>>();
@@ -86,17 +68,6 @@ class InheritanceManager {
   void set libraryElement(LibraryElement library) {
     this._library = library;
   }
-
-  /**
-   * Return the set of [AnalysisError]s found on the passed [ClassElement], or
-   * `null` if there are none.
-   *
-   * @param classElt the class element to query
-   * @return the set of [AnalysisError]s found on the passed [ClassElement], or
-   *         `null` if there are none
-   */
-  Set<AnalysisError> getErrors(ClassElement classElt) =>
-      _errorsInClassElement[classElt];
 
   /**
    * Get and return a mapping between the set of all string names of the members inherited from the
@@ -129,6 +100,7 @@ class InheritanceManager {
    * passed [ClassElement]'s superclass hierarchy, and the associated executable
    * element.
    */
+  @deprecated
   Map<String, ExecutableElement> getMembersInheritedFromClasses(
           ClassElement classElt) =>
       _computeClassChainLookupMap(classElt, new HashSet<ClassElement>());
@@ -138,6 +110,7 @@ class InheritanceManager {
    * passed [ClassElement]'s interface hierarchy, and the associated executable
    * element.
    */
+  @deprecated
   Map<String, ExecutableElement> getMembersInheritedFromInterfaces(
           ClassElement classElt) =>
       _computeInterfaceLookupMap(classElt, new HashSet<ClassElement>());
@@ -153,6 +126,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
+  @Deprecated('Use InheritanceManager2.getInherited() instead.')
   ExecutableElement lookupInheritance(
       ClassElement classElt, String memberName) {
     if (memberName == null || memberName.isEmpty) {
@@ -177,6 +151,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
+  @Deprecated('Use InheritanceManager2.getMember() instead.')
   ExecutableElement lookupMember(ClassElement classElt, String memberName) {
     ExecutableElement element = _lookupMemberInClass(classElt, memberName);
     if (element != null) {
@@ -195,6 +170,7 @@ class InheritanceManager {
    * @param memberName the name of the class member to query
    * @return a list of overridden methods
    */
+  @Deprecated('Use InheritanceManager2.getOverridden() instead.')
   List<ExecutableElement> lookupOverrides(
       ClassElement classElt, String memberName) {
     List<ExecutableElement> result = new List<ExecutableElement>();
@@ -219,47 +195,6 @@ class InheritanceManager {
       }
     }
     return result;
-  }
-
-  /**
-   * This method takes some inherited [FunctionType], and resolves all the parameterized types
-   * in the function type, dependent on the class in which it is being overridden.
-   *
-   * @param baseFunctionType the function type that is being overridden
-   * @param memberName the name of the member, this is used to lookup the inheritance path of the
-   *          override
-   * @param definingType the type that is overriding the member
-   * @return the passed function type with any parameterized types substituted
-   */
-  // TODO(jmesserly): investigate why this is needed in ErrorVerifier's override
-  // checking. There seems to be some rare cases where we get partially
-  // substituted type arguments, and the function types don't compare equally.
-  FunctionType substituteTypeArgumentsInMemberFromInheritance(
-      FunctionType baseFunctionType,
-      String memberName,
-      InterfaceType definingType) {
-    // if the baseFunctionType is null, or does not have any parameters,
-    // return it.
-    if (baseFunctionType == null || baseFunctionType.typeArguments.isEmpty) {
-      return baseFunctionType;
-    }
-    // First, generate the path from the defining type to the overridden member
-    Queue<InterfaceType> inheritancePath = new Queue<InterfaceType>();
-    _computeInheritancePath(inheritancePath, definingType, memberName);
-    if (inheritancePath == null || inheritancePath.isEmpty) {
-      // TODO(jwren) log analysis engine error
-      return baseFunctionType;
-    }
-    FunctionType functionTypeToReturn = baseFunctionType;
-    // loop backward through the list substituting as we go:
-    while (!inheritancePath.isEmpty) {
-      InterfaceType lastType = inheritancePath.removeLast();
-      List<DartType> parameterTypes = lastType.element.type.typeArguments;
-      List<DartType> argumentTypes = lastType.typeArguments;
-      functionTypeToReturn =
-          functionTypeToReturn.substitute2(argumentTypes, parameterTypes);
-    }
-    return functionTypeToReturn;
   }
 
   /**
@@ -362,78 +297,6 @@ class InheritanceManager {
     }
     _classLookup[classElt] = resultMap;
     return resultMap;
-  }
-
-  /**
-   * Compute and return the inheritance path given the context of a type and a member that is
-   * overridden in the inheritance path (for which the type is in the path).
-   *
-   * @param chain the inheritance path that is built up as this method calls itself recursively,
-   *          when this method is called an empty [Queue] should be provided
-   * @param currentType the current type in the inheritance path
-   * @param memberName the name of the member that is being looked up the inheritance path
-   */
-  void _computeInheritancePath(Queue<InterfaceType> chain,
-      InterfaceType currentType, String memberName) {
-    // TODO (jwren) create a public version of this method which doesn't require
-    // the initial chain to be provided, then provided tests for this
-    // functionality in InheritanceManagerTest
-    chain.add(currentType);
-    ClassElement classElt = currentType.element;
-    // Base case- reached Object
-    if (currentType.isObject) {
-      // Looked up the chain all the way to Object, return null.
-      // This should never happen.
-      return;
-    }
-    // If we are done, return the chain
-    // We are not done if this is the first recursive call on this method.
-    if (chain.length != 1) {
-      // We are done however if the member is in this classElt
-      if (_lookupMemberInClass(classElt, memberName) != null) {
-        return;
-      }
-    }
-    // Mixins- note that mixins call lookupMemberInClass, not lookupMember
-    List<InterfaceType> mixins = classElt.mixins;
-    for (int i = mixins.length - 1; i >= 0; i--) {
-      ClassElement mixinElement = mixins[i].element;
-      if (mixinElement != null) {
-        ExecutableElement elt = _lookupMemberInClass(mixinElement, memberName);
-        if (elt != null) {
-          // this is equivalent (but faster than) calling this method
-          // recursively
-          // (return computeInheritancePath(chain, mixins[i], memberName);)
-          chain.add(mixins[i]);
-          return;
-        }
-      }
-    }
-    // Superclass
-    InterfaceType supertype = classElt.supertype;
-    if (supertype != null &&
-        lookupMember(supertype.element, memberName) != null) {
-      _computeInheritancePath(chain, supertype, memberName);
-      return;
-    }
-    // Superclass constraints
-    for (InterfaceType interfaceType in classElt.superclassConstraints) {
-      ClassElement interfaceElement = interfaceType.element;
-      if (interfaceElement != null &&
-          lookupMember(interfaceElement, memberName) != null) {
-        _computeInheritancePath(chain, interfaceType, memberName);
-        return;
-      }
-    }
-    // Interfaces
-    for (InterfaceType interfaceType in classElt.interfaces) {
-      ClassElement interfaceElement = interfaceType.element;
-      if (interfaceElement != null &&
-          lookupMember(interfaceElement, memberName) != null) {
-        _computeInheritancePath(chain, interfaceType, memberName);
-        return;
-      }
-    }
   }
 
   /**
@@ -717,33 +580,9 @@ class InheritanceManager {
   }
 
   /**
-   * This method is used to report errors on when they are found computing inheritance information.
-   * See [ErrorVerifier.checkForInconsistentMethodInheritance] to see where these generated
-   * error codes are reported back into the analysis engine.
-   *
-   * @param classElt the location of the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  void _reportError(
-      ClassElement classElt, ErrorCode errorCode, List<Object> arguments) {
-    if (ignoreErrors) {
-      return;
-    }
-    HashSet<AnalysisError> errorSet = _errorsInClassElement.putIfAbsent(
-        classElt, () => new HashSet<AnalysisError>());
-    errorSet.add(new AnalysisError(classElt.source, classElt.nameOffset,
-        classElt.nameLength, errorCode, arguments));
-  }
-
-  /**
    * Given the set of methods defined by classes above [classElt] in the class hierarchy,
    * apply the appropriate inheritance rules to determine those methods inherited by or overridden
-   * by [classElt]. Also report static warnings
-   * [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE] and
-   * [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD] if appropriate.
+   * by [classElt].
    *
    * @param classElt the class element to query.
    * @param unionMap a mapping from method name to the set of unique (in terms of signature) methods
@@ -838,38 +677,7 @@ class InheritanceManager {
             //
             resultMap[key] = elements[subtypesOfAllOtherTypesIndexes[0]];
           } else {
-            if (subtypesOfAllOtherTypesIndexes.isEmpty) {
-              //
-              // Determine if the current class has a method or accessor with
-              // the member name, if it does then then this class does not
-              // "inherit" from any of the supertypes. See issue 16134.
-              //
-              bool classHasMember = false;
-              if (allMethods) {
-                classHasMember = classElt.getMethod(key) != null;
-              } else {
-                List<PropertyAccessorElement> accessors = classElt.accessors;
-                for (int i = 0; i < accessors.length; i++) {
-                  if (accessors[i].name == key) {
-                    classHasMember = true;
-                  }
-                }
-              }
-              //
-              // Example: class A inherited only 2 method named 'm'.
-              // One has the function type '() -> int' and one has the function
-              // type '() -> String'. Since neither is a subtype of the other,
-              // we create a warning, and have this class inherit nothing.
-              //
-              if (!classHasMember) {
-                String firstTwoFunctionTypesStr =
-                    "${executableElementTypes[0]}, ${executableElementTypes[1]}";
-                _reportError(
-                    classElt,
-                    StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
-                    [key, firstTwoFunctionTypesStr]);
-              }
-            } else {
+            if (!subtypesOfAllOtherTypesIndexes.isEmpty) {
               //
               // Example: class A inherits 2 methods named 'm'.
               // One has the function type '(int) -> dynamic' and one has the
@@ -896,12 +704,6 @@ class InheritanceManager {
               resultMap[key] = mergedExecutableElement;
             }
           }
-        } else {
-          _reportError(
-              classElt,
-              StaticWarningCode
-                  .INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
-              [key]);
         }
       }
     });
@@ -997,7 +799,7 @@ class InheritanceManager {
     List<ParameterElement> parameters = executableElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameterElement = parameters[i];
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       if (parameterElement.parameterKind == parameterKind) {
         parameterCount++;
       }

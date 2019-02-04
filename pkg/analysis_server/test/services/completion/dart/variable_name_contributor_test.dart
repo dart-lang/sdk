@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -54,6 +54,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
   }
 
   test_ExpressionStatement_long_semicolon() async {
@@ -68,6 +74,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
   }
 
   test_ExpressionStatement_prefixed() async {
@@ -82,6 +94,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
   }
 
   test_ExpressionStatement_prefixed_semicolon() async {
@@ -96,6 +114,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
   }
 
   test_ExpressionStatement_short() async {
@@ -106,6 +130,8 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestName('a');
+    // private version
+    assertNotSuggested('_a');
   }
 
   test_ExpressionStatement_short_semicolon() async {
@@ -116,6 +142,8 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestName('a');
+    // private version
+    assertNotSuggested('_a');
   }
 
   test_TopLevelVariableDeclaration_dont_suggest_type() async {
@@ -126,6 +154,8 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
+    // private version
+    assertNotSuggested('_a');
   }
 
   test_TopLevelVariableDeclaration_dont_suggest_type_semicolon() async {
@@ -136,6 +166,8 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
+    // private version
+    assertNotSuggested('_a');
   }
 
   test_TopLevelVariableDeclaration_long() async {
@@ -150,6 +182,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertSuggestName('_abstractCrazyNonsenseClassName');
+    assertSuggestName('_crazyNonsenseClassName');
+    assertSuggestName('_nonsenseClassName');
+    assertSuggestName('_className');
+    assertSuggestName('_name');
   }
 
   test_TopLevelVariableDeclaration_long_semicolon() async {
@@ -164,6 +202,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertSuggestName('_abstractCrazyNonsenseClassName');
+    assertSuggestName('_crazyNonsenseClassName');
+    assertSuggestName('_nonsenseClassName');
+    assertSuggestName('_className');
+    assertSuggestName('_name');
   }
 
   test_TopLevelVariableDeclaration_partial() async {
@@ -178,6 +222,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertSuggestName('_abstractCrazyNonsenseClassName');
+    assertSuggestName('_crazyNonsenseClassName');
+    assertSuggestName('_nonsenseClassName');
+    assertSuggestName('_className');
+    assertSuggestName('_name');
   }
 
   test_TopLevelVariableDeclaration_partial_semicolon() async {
@@ -192,6 +242,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertSuggestName('_abstractCrazyNonsenseClassName');
+    assertSuggestName('_crazyNonsenseClassName');
+    assertSuggestName('_nonsenseClassName');
+    assertSuggestName('_className');
+    assertSuggestName('_name');
   }
 
   test_TopLevelVariableDeclaration_prefixed() async {
@@ -206,6 +262,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertSuggestName('_abstractCrazyNonsenseClassName');
+    assertSuggestName('_crazyNonsenseClassName');
+    assertSuggestName('_nonsenseClassName');
+    assertSuggestName('_className');
+    assertSuggestName('_name');
   }
 
   test_TopLevelVariableDeclaration_prefixed_semicolon() async {
@@ -220,6 +282,12 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('nonsenseClassName');
     assertSuggestName('className');
     assertSuggestName('name');
+    // private versions
+    assertSuggestName('_abstractCrazyNonsenseClassName');
+    assertSuggestName('_crazyNonsenseClassName');
+    assertSuggestName('_nonsenseClassName');
+    assertSuggestName('_className');
+    assertSuggestName('_name');
   }
 
   test_TopLevelVariableDeclaration_short() async {
@@ -230,6 +298,8 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestName('a');
+    // private version
+    assertSuggestName('_a');
   }
 
   test_TopLevelVariableDeclaration_short_semicolon() async {
@@ -240,5 +310,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestName('a');
+    // private version
+    assertSuggestName('_a');
   }
 }

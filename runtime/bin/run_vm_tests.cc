@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/console.h"
+#include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/eventhandler.h"
@@ -150,17 +151,24 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     isolate = Dart_CreateIsolate(
         DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
         isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
+    if (*error != NULL) {
+      free(*error);
+      *error = NULL;
+    }
   }
   if (isolate == NULL) {
+    delete isolate_data;
+    isolate_data = NULL;
+
     bin::dfe.Init();
     bin::dfe.LoadKernelService(&kernel_service_buffer,
                                &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != NULL);
     isolate_data =
         new bin::IsolateData(script_uri, package_root, packages_config, NULL);
-    isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
-                                    kernel_service_buffer_size,
-                                    false /* take_ownership */);
+    isolate_data->SetKernelBufferUnowned(
+        const_cast<uint8_t*>(kernel_service_buffer),
+        kernel_service_buffer_size);
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, main, kernel_service_buffer, kernel_service_buffer_size,
         flags, isolate_data, error);
@@ -202,6 +210,15 @@ static void CleanupIsolate(void* callback_data) {
   delete isolate_data;
 }
 
+void ShiftArgs(int* argc, const char** argv) {
+  // Remove the first flag from the list by shifting all arguments down.
+  for (intptr_t i = 1; i < *argc - 1; i++) {
+    argv[i] = argv[i + 1];
+  }
+  argv[*argc - 1] = nullptr;
+  (*argc)--;
+}
+
 static int Main(int argc, const char** argv) {
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
@@ -237,19 +254,28 @@ static int Main(int argc, const char** argv) {
 
   int arg_pos = 1;
   bool start_kernel_isolate = false;
-  if (strstr(argv[arg_pos], "--dfe") == argv[arg_pos]) {
-    const char* delim = strstr(argv[1], "=");
+  bool suppress_core_dump = false;
+  if (strcmp(argv[arg_pos], "--suppress-core-dump") == 0) {
+    suppress_core_dump = true;
+    ShiftArgs(&argc, argv);
+  }
+
+  if (suppress_core_dump) {
+    bin::Platform::SetCoreDumpResourceLimit(0);
+  } else {
+    bin::InitializeCrashpadClient();
+  }
+
+  if (strncmp(argv[arg_pos], "--dfe", strlen("--dfe")) == 0) {
+    const char* delim = strstr(argv[arg_pos], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
-      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[1]);
+      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[arg_pos]);
       PrintUsage();
       return 1;
     }
     kernel_snapshot = strdup(delim + 1);
-    // VM needs '--use-dart-frontend' option, which we will insert in place
-    // of '--dfe' option.
-    argv[arg_pos] = strdup("--use-dart-frontend");
     start_kernel_isolate = true;
-    ++arg_pos;
+    ShiftArgs(&argc, argv);
   }
 
   if (arg_pos == argc - 1 && strcmp(argv[arg_pos], "--benchmarks") == 0) {
@@ -264,37 +290,35 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
-  bin::Thread::InitOnce();
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
-  const char* error;
-  if (!start_kernel_isolate) {
-    int extra_argc = dart_argc + 3;
-    const char** extra_argv = new const char*[extra_argc];
-    for (intptr_t i = 0; i < dart_argc; i++) {
-      extra_argv[i] = dart_argv[i];
-    }
-    extra_argv[dart_argc] = "--no-strong";
-    extra_argv[dart_argc + 1] = "--no-reify_generic_functions";
-    extra_argv[dart_argc + 2] = "--no-sync-async";
-    error = Flags::ProcessCommandLineFlags(extra_argc, extra_argv);
-    delete[] extra_argv;
-    ASSERT(error == NULL);
-  } else {
-    error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-    ASSERT(error == NULL);
+  char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  if (error != NULL) {
+    bin::Log::PrintErr("Failed to parse flags: %s\n", error);
+    free(error);
+    return 1;
   }
 
-  error = Dart::InitOnce(
+  TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
+  TesterState::create_callback = CreateIsolateAndSetup;
+  TesterState::cleanup_callback = CleanupIsolate;
+  TesterState::argv = dart_argv;
+  TesterState::argc = dart_argc;
+
+  error = Dart::Init(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
-      CreateIsolateAndSetup /* create */, NULL /* shutdown */,
-      CleanupIsolate /* cleanup */, NULL /* thread_exit */,
+      CreateIsolateAndSetup /* create */, nullptr /* shutdown */,
+      CleanupIsolate /* cleanup */, nullptr /* thread_exit */,
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
-      NULL /* entropy_source */, NULL /* get_service_assets */,
+      nullptr /* entropy_source */, nullptr /* get_service_assets */,
       start_kernel_isolate);
-  ASSERT(error == NULL);
+  if (error != nullptr) {
+    bin::Log::PrintErr("Failed to initialize VM: %s\n", error);
+    free(error);
+    return 1;
+  }
 
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
@@ -302,11 +326,16 @@ static int Main(int argc, const char** argv) {
   Benchmark::RunAll(argv[0]);
 
   error = Dart::Cleanup();
-  ASSERT(error == NULL);
+  if (error != nullptr) {
+    bin::Log::PrintErr("Failed shutdown VM: %s\n", error);
+    free(error);
+    return 1;
+  }
+
+  TestCaseBase::RunAllRaw();
 
   bin::EventHandler::Stop();
 
-  TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     bin::Log::PrintErr("No tests matched: %s\n", run_filter);

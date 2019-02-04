@@ -1,7 +1,6 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -45,12 +44,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(449, 26),
-      'endPos': ifKernel(499, 38),
+      'startPos': ifKernel(392, 26),
+      'endPos': ifKernel(442, 38),
       'compiled': true,
       'coverage': {
         'hits': ifKernel([], []),
-        'misses': ifKernel([449], [26])
+        'misses': ifKernel([392], [26])
       }
     };
 
@@ -86,11 +85,11 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(449, 26),
-      'endPos': ifKernel(499, 38),
+      'startPos': ifKernel(392, 26),
+      'endPos': ifKernel(442, 38),
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([449], [26]),
+        'hits': ifKernel([392], [26]),
         'misses': ifKernel([], [])
       }
     };

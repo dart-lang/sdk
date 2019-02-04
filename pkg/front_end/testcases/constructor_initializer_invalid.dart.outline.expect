@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:5:24: Error: Expected an initializer.
+// class C1 { int f; C1() : ; }
+//                        ^
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:6:26: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+// class C2 { int f; C2() : f; }
+//                          ^
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:7:26: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+// class C3 { int f; C3() : f++; }
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int f;
+  constructor •() → self::C1
+    ;
+}
+class C2 extends core::Object {
+  field core::int f;
+  constructor •() → self::C2
+    ;
+}
+class C3 extends core::Object {
+  field core::int f;
+  constructor •() → self::C3
+    ;
+}
+static method main() → dynamic
+  ;

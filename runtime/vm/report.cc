@@ -30,12 +30,6 @@ RawString* Report::PrependSnippet(Kind kind,
     case kError:
       message_header = "error";
       break;
-    case kMalformedType:
-      message_header = "malformed type";
-      break;
-    case kMalboundedType:
-      message_header = "malbounded type";
-      break;
     case kBailout:
       message_header = "bailout";
       break;
@@ -120,6 +114,14 @@ void Report::LongJumpV(const Error& prev_error,
                        TokenPosition token_pos,
                        const char* format,
                        va_list args) {
+  // If an isolate is being killed a [UnwindError] will be propagated up the
+  // stack. In such a case we cannot wrap the unwind error in a new
+  // [LanguageError]. Instead we simply continue propagating the [UnwindError]
+  // upwards.
+  if (prev_error.IsUnwindError()) {
+    LongJump(prev_error);
+    UNREACHABLE();
+  }
   const Error& error = Error::Handle(LanguageError::NewFormattedV(
       prev_error, script, token_pos, Report::AtLocation, kError, Heap::kOld,
       format, args));

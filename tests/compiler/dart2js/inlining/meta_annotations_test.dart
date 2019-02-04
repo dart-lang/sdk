@@ -40,10 +40,6 @@ main() {
         compiler.resolutionWorldBuilder.closedWorldForTesting;
     KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
-    Expect.isNotNull(closedWorld.commonElements.metaNoInlineClass,
-        'NoInlineClass is unresolved.');
-    Expect.isNotNull(closedWorld.commonElements.metaTryInlineClass,
-        'TryInlineClass is unresolved.');
 
     void test(String name,
         {bool expectNoInline: false, bool expectTryInline: false}) {

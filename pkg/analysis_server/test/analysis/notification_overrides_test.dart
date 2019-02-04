@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -303,6 +303,38 @@ class C extends B {
     assertHasOverride('m() {} // in C');
     assertNoSuperMember();
     assertHasInterfaceMember('m() {} // in A');
+  }
+
+  test_inMixin_interface_method_direct_single() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+
+mixin M implements A {
+  m() {} // in M
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in M');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
+  }
+
+  test_inMixin_superclassConstraint_method_direct() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+
+mixin M on A {
+  m() {} // in M
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in M');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
   }
 
   test_interface_method_direct_multiple() async {

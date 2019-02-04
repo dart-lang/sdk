@@ -31,22 +31,24 @@ declare_args() {
   # Available options are: arm, arm64, x64, ia32, and dbc.
   dart_target_arch = target_cpu
 
-  # The optimization level to use for debug builds.
+  # The optimization level to use for debug builds. Defaults to 0 for builds with
+  # code coverage enabled.
   dart_debug_optimization_level = "2"
+
+  # Whether to enable code coverage for the standalone VM.
+  dart_vm_code_coverage = false
 
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
 
-  # The BUILD.gn file that we pull from chromium as part of zlib has a
-  # dependence on //base, which we don't pull in. In a standalone build of the
-  # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
-  # a dependence on //base.
-  dart_zlib_path = "//third_party/zlib"
-
   # Whether to link the standalone VM against tcmalloc. The standalone build of
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false
+
+  # Whether to link Crashpad library for crash handling. Only supported on
+  # Windows for now.
+  dart_use_crashpad = false
 
   # Controls the kind of core snapshot linked into the standalone VM. Using a
   # core-jit snapshot breaks the ability to change various flags that affect
@@ -84,6 +86,9 @@ declare_args() {
   # Whether the VM includes the kernel service in all modes (debug, release,
   # product).
   exclude_kernel_service = false
+
+  # Whether libdart should export the symbols of the Dart API.
+  dart_lib_export_symbols = true
 }
 
 declare_args() {

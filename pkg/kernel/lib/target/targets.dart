@@ -11,18 +11,15 @@ import '../transformations/treeshaker.dart' show ProgramRoot;
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  final bool strongMode;
+  final bool legacyMode;
   final bool treeShake;
 
-  /// Whether `async` functions start synchronously.
-  final bool syncAsync;
   final List<ProgramRoot> programRoots;
   final Uri kernelRuntime;
 
   TargetFlags(
-      {this.strongMode: false,
+      {this.legacyMode: false,
       this.treeShake: false,
-      this.syncAsync: false,
       this.programRoots: const <ProgramRoot>[],
       this.kernelRuntime});
 }
@@ -37,6 +34,11 @@ Target getTarget(String name, TargetFlags flags) {
   var builder = targets[name];
   if (builder == null) return null;
   return builder(flags);
+}
+
+abstract class DiagnosticReporter<M, C> {
+  void report(M message, int charOffset, int length, Uri fileUri,
+      {List<C> context});
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -59,14 +61,7 @@ abstract class Target {
   /// transformations.
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
 
-  bool get strongMode;
-
-  /// A derived class may change this to `true` to disable type inference and
-  /// type promotion phases of analysis.
-  ///
-  /// This is intended for profiling, to ensure that type inference and type
-  /// promotion do not slow down compilation too much.
-  bool get disableTypeInference => false;
+  bool get legacyMode;
 
   /// A derived class may change this to `true` to enable forwarders to
   /// user-defined `noSuchMethod` that are generated for each abstract member
@@ -104,8 +99,12 @@ abstract class Target {
   void performOutlineTransformations(Component component) {}
 
   /// Perform target-specific modular transformations on the given libraries.
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)});
 
   /// Perform target-specific modular transformations on the given program.
@@ -158,6 +157,12 @@ abstract class Target {
   /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
   bool get errorOnUnexactWebIntLiterals => false;
 
+  /// Whether set literals are natively supported by this target. If set
+  /// literals are not supported by the target, they will be desugared into
+  /// explicit `Set` creation (for non-const set literals) or wrapped map
+  /// literals (for const set literals).
+  bool get supportsSetLiterals => false;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -176,19 +181,6 @@ abstract class Target {
       bool isConstructor: false,
       bool isTopLevel: false});
 
-  /// Builds an expression that throws [error] as compile-time error. The
-  /// target must be able to handle this expression in a constant expression.
-  Expression throwCompileConstantError(CoreTypes coreTypes, Expression error) {
-    return error;
-  }
-
-  /// Builds an expression that represents a compile-time error which is
-  /// suitable for being passed to [throwCompileConstantError].
-  Expression buildCompileTimeError(
-      CoreTypes coreTypes, String message, int offset) {
-    return new InvalidExpression(message)..fileOffset = offset;
-  }
-
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
@@ -200,6 +192,9 @@ abstract class Target {
 
   Class concreteMapLiteralClass(CoreTypes coreTypes) => null;
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 }
 
 class NoneTarget extends Target {
@@ -207,11 +202,15 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
-  bool get strongMode => flags.strongMode;
+  bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 
   @override

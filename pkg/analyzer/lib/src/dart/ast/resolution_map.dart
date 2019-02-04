@@ -90,6 +90,10 @@ class ResolutionMapImpl implements ResolutionMap {
       node.declaredElement;
 
   @override
+  ClassElement elementDeclaredByMixinDeclaration(MixinDeclaration node) =>
+      node.declaredElement;
+
+  @override
   VariableElement elementDeclaredByVariableDeclaration(
           VariableDeclaration node) =>
       node.declaredElement;

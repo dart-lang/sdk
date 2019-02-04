@@ -3,16 +3,18 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+import "dart:async";
+
 class X extends core::Object {
   final field dynamic x;
   final field dynamic y;
-  constructor •(dynamic x, dynamic y) → void
+  constructor •(dynamic x, dynamic y) → self::X
     ;
   method toString() → dynamic
     ;
 }
 class Y extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Y
     ;
   method f(dynamic _) → dynamic
     ;

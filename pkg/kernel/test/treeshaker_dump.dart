@@ -27,7 +27,7 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('output',
       help: 'The --diff files are written to the given directory instead of '
           'the working directory')
-  ..addFlag('strong', help: 'Run the tree shaker in strong mode');
+  ..addFlag('legacy-mode', help: 'Run the tree shaker in legacy mode');
 
 String usage = '''
 Usage: treeshaker_dump [options] FILE.dill
@@ -63,13 +63,13 @@ main(List<String> args) {
     exit(1);
   }
 
-  bool strong = options['strong'];
+  bool legacyMode = options['legacy-mode'];
 
   Component component = loadComponentFromBinary(filename);
   CoreTypes coreTypes = new CoreTypes(component);
   ClassHierarchy hierarchy = new ClassHierarchy(component);
   TreeShaker shaker =
-      new TreeShaker(coreTypes, hierarchy, component, strongMode: strong);
+      new TreeShaker(coreTypes, hierarchy, component, legacyMode: legacyMode);
   int totalClasses = 0;
   int totalInstantiationCandidates = 0;
   int totalMembers = 0;
@@ -132,7 +132,7 @@ main(List<String> args) {
     StringBuffer before = new StringBuffer();
     new Printer(before, syntheticNames: names).writeComponentFile(component);
     new File(beforeFile).writeAsStringSync('$before');
-    new TreeShaker(coreTypes, hierarchy, component, strongMode: strong)
+    new TreeShaker(coreTypes, hierarchy, component, legacyMode: legacyMode)
         .transform(component);
     StringBuffer after = new StringBuffer();
     new Printer(after, syntheticNames: names).writeComponentFile(component);

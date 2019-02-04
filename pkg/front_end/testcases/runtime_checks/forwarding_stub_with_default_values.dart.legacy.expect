@@ -1,0 +1,40 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  field core::Object _x = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method f([core::num x = 10]) → void {
+    this.{self::B::_x} = x;
+  }
+  method g({core::num x = 20}) → void {
+    this.{self::B::_x} = x;
+  }
+  method check(core::Object expectedValue) → void {
+    if(!this.{self::B::_x}.==(expectedValue)) {
+      throw "Expected _x == ${expectedValue}; got ${this.{self::B::_x}}";
+    }
+  }
+}
+abstract class I<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T>
+    : super core::Object::•()
+    ;
+  abstract method f([self::I::T x = null]) → void;
+  abstract method g({self::I::T x = null}) → void;
+}
+class C extends self::B implements self::I<core::num> {
+  synthetic constructor •() → self::C
+    : super self::B::•()
+    ;
+}
+static method main() → dynamic {
+  self::C c = new self::C::•();
+  c.f();
+  c.check(10);
+  c.g();
+  c.check(20);
+}

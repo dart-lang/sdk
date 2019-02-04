@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,8 +10,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -201,12 +199,16 @@ void contextFunction() {
     Response response = await waitResponse(request);
 
     var result = new ExecutionGetSuggestionsResult.fromResponse(response);
-    expect(result.suggestions, isNotEmpty);
+//    expect(result.suggestions, isNotEmpty);
+//
+//    expect(
+//        result.suggestions,
+//        contains(
+//            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
 
-    expect(
-        result.suggestions,
-        contains(
-            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
+    // TODO(brianwilkerson) Restore the expectations above (and delete the line
+    // below) after the functionality has been re-enabled.
+    expect(result.suggestions, isEmpty);
   }
 
   void test_mapUri_file() {
@@ -258,16 +260,4 @@ void contextFunction() {
     expect(response, isResponseSuccess('2'));
     return new ExecutionMapUriResult.fromResponse(response);
   }
-}
-
-/**
- * A [Source] that knows it's [fullName].
- */
-class TestSource implements Source {
-  String fullName;
-
-  TestSource(this.fullName);
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -25,8 +25,8 @@ main() {
   });
 }
 
-const Matcher _throwsFileSystemException =
-    const Throws(const isInstanceOf<FileSystemException>());
+final Matcher _throwsFileSystemException =
+    throwsA(const TypeMatcher<FileSystemException>());
 
 @reflectiveTest
 class DirectoryTest extends _BaseTest {
@@ -197,7 +197,7 @@ class StandardFileSystemTest extends _BaseTest {
     ]) {
       if (!uri.path.startsWith('/')) {
         expect(() => StandardFileSystem.instance.entityForUri(uri),
-            throwsA(new isInstanceOf<Error>()));
+            throwsA(const TypeMatcher<Error>()));
       }
     }
   }

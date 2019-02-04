@@ -15,6 +15,8 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+import '../transformations/list_factory_specializer.dart'
+    as listFactorySpecializer;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
@@ -24,11 +26,14 @@ class VmTarget extends Target {
   Class _immutableList;
   Class _internalLinkedHashMap;
   Class _immutableMap;
+  Class _oneByteString;
+  Class _twoByteString;
+  Class _smi;
 
   VmTarget(this.flags);
 
   @override
-  bool get strongMode => flags.strongMode;
+  bool get legacyMode => flags.legacyMode;
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -63,16 +68,22 @@ class VmTarget extends Target {
       ];
 
   @override
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
         doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
 
     // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformLibraries(coreTypes, libraries, flags.syncAsync);
+    transformAsync.transformLibraries(coreTypes, libraries);
     logger?.call("Transformed async methods");
+
+    listFactorySpecializer.transformLibraries(libraries, coreTypes);
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);
@@ -83,25 +94,22 @@ class VmTarget extends Target {
   void performTransformationsOnProcedure(
       CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
       {void logger(String msg)}) {
-    transformAsync.transformProcedure(coreTypes, procedure, flags.syncAsync);
+    transformAsync.transformProcedure(coreTypes, procedure);
     logger?.call("Transformed async functions");
   }
 
-  @override
-  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
-      String name, Arguments arguments, int offset, bool isSuper) {
-    // See [_InvocationMirror]
-    // (../../../../runtime/lib/invocation_mirror_patch.dart).
-    // The _InvocationMirror._withoutType constructor takes the following arguments:
-    // * Method name (a string).
-    // * List of type arguments.
-    // * List of positional arguments.
-    // * List of named arguments.
-    // * Whether it's a super invocation or not.
+  Expression _instantiateInvocationMirrorWithType(
+      CoreTypes coreTypes,
+      Expression receiver,
+      String name,
+      Arguments arguments,
+      int offset,
+      int type) {
     return new ConstructorInvocation(
-        coreTypes.invocationMirrorWithoutTypeConstructor,
+        coreTypes.invocationMirrorWithTypeConstructor,
         new Arguments(<Expression>[
-          new StringLiteral(name)..fileOffset = offset,
+          new SymbolLiteral(name)..fileOffset = offset,
+          new IntLiteral(type)..fileOffset = offset,
           _fixedLengthList(
               coreTypes,
               coreTypes.typeClass.rawType,
@@ -125,10 +133,32 @@ class VmTarget extends Target {
                 coreTypes.symbolClass.rawType,
                 new DynamicType()
               ]))
-            ..fileOffset = arguments.fileOffset,
-          new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset
-        ]))
-      ..fileOffset = offset;
+            ..fileOffset = offset
+        ]));
+  }
+
+  @override
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    bool isGetter = false, isSetter = false, isMethod = false;
+    if (name.startsWith("set:")) {
+      isSetter = true;
+      name = name.substring(4) + "=";
+    } else if (name.startsWith("get:")) {
+      isGetter = true;
+      name = name.substring(4);
+    } else {
+      isMethod = true;
+    }
+
+    int type = _invocationType(
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isMethod: isMethod,
+        isSuper: isSuper);
+
+    return _instantiateInvocationMirrorWithType(
+        coreTypes, receiver, name, arguments, offset, type);
   }
 
   @override
@@ -159,37 +189,8 @@ class VmTarget extends Target {
         coreTypes.noSuchMethodErrorDefaultConstructor,
         new Arguments(<Expression>[
           receiver,
-          new ConstructorInvocation(
-              coreTypes.invocationMirrorWithTypeConstructor,
-              new Arguments(<Expression>[
-                new SymbolLiteral(name)..fileOffset = offset,
-                new IntLiteral(type)..fileOffset = offset,
-                _fixedLengthList(
-                    coreTypes,
-                    coreTypes.typeClass.rawType,
-                    arguments.types.map((t) => new TypeLiteral(t)).toList(),
-                    arguments.fileOffset),
-                _fixedLengthList(coreTypes, const DynamicType(),
-                    arguments.positional, arguments.fileOffset),
-                new StaticInvocation(
-                    coreTypes.mapUnmodifiable,
-                    new Arguments([
-                      new MapLiteral(new List<MapEntry>.from(
-                          arguments.named.map((NamedExpression arg) {
-                        return new MapEntry(
-                            new SymbolLiteral(arg.name)
-                              ..fileOffset = arg.fileOffset,
-                            arg.value)
-                          ..fileOffset = arg.fileOffset;
-                      })), keyType: coreTypes.symbolClass.rawType)
-                        ..isConst = (arguments.named.length == 0)
-                        ..fileOffset = arguments.fileOffset
-                    ], types: [
-                      coreTypes.symbolClass.rawType,
-                      new DynamicType()
-                    ]))
-                  ..fileOffset = offset
-              ]))
+          _instantiateInvocationMirrorWithType(
+              coreTypes, receiver, name, arguments, offset, type)
         ]));
   }
 
@@ -320,5 +321,32 @@ class VmTarget extends Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _immutableMap ??=
         coreTypes.index.getClass('dart:core', '_ImmutableMap');
+  }
+
+  @override
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) {
+    const int bitsPerInt32 = 32;
+    const int smiBits32 = bitsPerInt32 - 2;
+    const int smiMin32 = -(1 << smiBits32);
+    const int smiMax32 = (1 << smiBits32) - 1;
+    if ((smiMin32 <= value) && (value <= smiMax32)) {
+      // Value fits into Smi on all platforms.
+      return _smi ??= coreTypes.index.getClass('dart:core', '_Smi');
+    }
+    // Otherwise, class could be either _Smi or _Mint depending on a platform.
+    return null;
+  }
+
+  @override
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
+    const int maxLatin1 = 0xff;
+    for (int i = 0; i < value.length; ++i) {
+      if (value.codeUnitAt(i) > maxLatin1) {
+        return _twoByteString ??=
+            coreTypes.index.getClass('dart:core', '_TwoByteString');
+      }
+    }
+    return _oneByteString ??=
+        coreTypes.index.getClass('dart:core', '_OneByteString');
   }
 }

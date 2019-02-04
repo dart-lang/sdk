@@ -114,12 +114,15 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   }
 
   var errorCode = token.errorCode;
-  switch (errorCode.analyzerCode) {
+  switch (errorCode.analyzerCodes?.first) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
+      // TODO(danrubel): Remove this once all analyzer clients
+      // can process errors via the scanner's errors list.
+      reportError(
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL, endOffset - 1, null);
+      return;
 
     case "UNTERMINATED_MULTI_LINE_COMMENT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
@@ -166,7 +169,24 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
-      throw new UnimplementedError('$errorCode "${errorCode.analyzerCode}"');
+      throw new UnimplementedError(
+          '$errorCode "${errorCode.analyzerCodes?.first}"');
+  }
+}
+
+void translateScanError(
+    Code errorCode, int charOffset, int length, ReportError reportError) {
+  switch (errorCode.analyzerCodes?.first) {
+    case "UNTERMINATED_STRING_LITERAL":
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // string; analyzer expects the end of the string.
+      reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          charOffset + length - 1, null);
+      break;
+
+    default:
+      throw new UnimplementedError(
+          '$errorCode "${errorCode.analyzerCodes?.first}"');
   }
 }
 

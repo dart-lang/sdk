@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -89,7 +89,7 @@ main(A a, B b, C c, D d) {
   }
 
   test_change_multipleFiles() async {
-    await indexUnit('/project/other.dart', r'''
+    await indexUnit('/home/test/lib/other.dart', r'''
 class A {
   int test() => 1;
 }
@@ -205,7 +205,7 @@ void test() {}
 
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = new ConvertMethodToGetterRefactoring(
-        searchEngine, astProvider, element);
+        searchEngine, testAnalysisResult.session, element);
   }
 
   void _createRefactoringForString(String search) {

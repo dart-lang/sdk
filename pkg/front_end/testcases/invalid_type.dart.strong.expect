@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/invalid_type.dart:7:5: Error: Expected identifier, but got 'this'.
+//     this.bar();
+//     ^^^^
+//
+// pkg/front_end/testcases/invalid_type.dart:12:12: Error: 'Missing' isn't a type.
+//   (null as Missing).bar();
+//            ^^^^^^^
+//
+// pkg/front_end/testcases/invalid_type.dart:13:8: Error: The method 'bar' isn't defined for the class 'Null'.
+// Try correcting the name to the name of an existing method, or defining a method named 'bar'.
+//   null.bar();
+//        ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static method foo() → dynamic {
+    invalid-expression "pkg/front_end/testcases/invalid_type.dart:7:5: Error: Expected identifier, but got 'this'.
+    this.bar();
+    ^^^^".bar();
+  }
+}
+static method test() → dynamic {
+  (null as invalid-type).bar();
+  invalid-expression "pkg/front_end/testcases/invalid_type.dart:13:8: Error: The method 'bar' isn't defined for the class 'Null'.
+Try correcting the name to the name of an existing method, or defining a method named 'bar'.
+  null.bar();
+       ^^^";
+}
+static method main() → dynamic {}

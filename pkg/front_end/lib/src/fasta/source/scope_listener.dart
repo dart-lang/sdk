@@ -10,7 +10,8 @@ import '../scope.dart' show Scope;
 
 import 'stack_listener.dart' show NullValue, StackListener;
 
-export 'stack_listener.dart' show NullValue;
+export 'stack_listener.dart'
+    show FixedNullableList, GrowableList, NullValue, ParserRecovery;
 
 enum JumpTargetKind {
   Break,

@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -28,6 +29,7 @@ class SnapshotWriter;
   V(DeoptForRewind)                                                            \
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
+  V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
@@ -117,39 +119,14 @@ class SnapshotWriter;
 // using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
 // does not require relocation.
 
-// class StubEntry is used to describe stub methods generated in dart to
-// abstract out common code executed from generated dart code.
-class StubEntry {
- public:
-  explicit StubEntry(const Code& code);
-  ~StubEntry() {}
-
-  const ExternalLabel& label() const { return label_; }
-  uword EntryPoint() const { return entry_point_; }
-  uword MonomorphicEntryPoint() const { return monomorphic_entry_point_; }
-  RawCode* code() const { return code_; }
-  intptr_t Size() const { return size_; }
-
-  // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
- private:
-  RawCode* code_;
-  uword entry_point_;
-  uword monomorphic_entry_point_;
-  intptr_t size_;
-  ExternalLabel label_;
-
-  DISALLOW_COPY_AND_ASSIGN(StubEntry);
-};
-
 // class StubCode is used to maintain the lifecycle of stubs.
 class StubCode : public AllStatic {
  public:
   // Generate all stubs which are shared across all isolates, this is done
   // only once and the stub code resides in the vm_isolate heap.
-  static void InitOnce();
+  static void Init();
 
+  static void Cleanup();
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.
@@ -167,28 +144,43 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const StubEntry* name##_entry() { return entries_[k##name##Index]; }  \
-  static intptr_t name##Size() { return name##_entry()->Size(); }
+  static const Code& name() { return *entries_[k##name##Index]; }              \
+  static intptr_t name##Size() { return name().Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
-  static const StubEntry* UnoptimizedStaticCallEntry(intptr_t num_args_tested);
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+  static RawCode* GetBuildMethodExtractorStub(ObjectPoolBuilder* pool);
+  static void GenerateBuildMethodExtractorStub(compiler::Assembler* assembler);
+#endif
+
+  static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;
   static const intptr_t kInstantiationSizeInWords = 3;
 
-  static StubEntry* EntryAt(intptr_t index) { return entries_[index]; }
-  static void EntryAtPut(intptr_t index, StubEntry* entry) {
+  static const Code& EntryAt(intptr_t index) { return *entries_[index]; }
+  static void EntryAtPut(intptr_t index, Code* entry) {
+    ASSERT(entry->IsReadOnlyHandle());
+    ASSERT(entries_[index] == nullptr);
     entries_[index] = entry;
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#define GENERATE_STUB(name)                                                    \
+  static RawCode* BuildIsolateSpecific##name##Stub(ObjectPoolBuilder* opw) {   \
+    return StubCode::Generate("_iso_stub_" #name, opw,                         \
+                              StubCode::Generate##name##Stub);                 \
+  }
+  VM_STUB_CODE_LIST(GENERATE_STUB);
+#undef GENERATE_STUB
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
  private:
   friend class MegamorphicCacheTable;
-
-  static const intptr_t kStubCodeSize = 4 * KB;
 
   enum {
 #define STUB_CODE_ENTRY(name) k##name##Index,
@@ -197,38 +189,41 @@ class StubCode : public AllStatic {
         kNumStubEntries
   };
 
-  static StubEntry* entries_[kNumStubEntries];
+  static Code* entries_[kNumStubEntries];
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define STUB_CODE_GENERATE(name)                                               \
-  static void Generate##name##Stub(Assembler* assembler);
+  static void Generate##name##Stub(compiler::Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
-  static RawCode* Generate(const char* name,
-                           void (*GenerateStub)(Assembler* assembler));
+  static RawCode* Generate(
+      const char* name,
+      ObjectPoolBuilder* object_pool_builder,
+      void (*GenerateStub)(compiler::Assembler* assembler));
 
-  static void GenerateSharedStub(Assembler* assembler,
+  static void GenerateSharedStub(compiler::Assembler* assembler,
                                  bool save_fpu_registers,
                                  const RuntimeEntry* target,
                                  intptr_t self_code_stub_offset_from_thread,
                                  bool allow_return);
 
-  static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(Assembler* assembler,
+  static void GenerateMegamorphicMissStub(compiler::Assembler* assembler);
+  static void GenerateAllocationStubForClass(compiler::Assembler* assembler,
                                              const Class& cls);
   static void GenerateNArgsCheckInlineCacheStub(
-      Assembler* assembler,
+      compiler::Assembler* assembler,
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
       bool optimized = false,
       bool exactness_check = false);
-  static void GenerateUsageCounterIncrement(Assembler* assembler,
+  static void GenerateUsageCounterIncrement(compiler::Assembler* assembler,
                                             Register temp_reg);
-  static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+  static void GenerateOptimizedUsageCounterIncrement(
+      compiler::Assembler* assembler);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 

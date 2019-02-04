@@ -431,6 +431,14 @@ class X = A with B implements C, D, E;
     expect(names, unorderedEquals(['A', 'B', 'C', 'D', 'E']));
   }
 
+  void test_mixinDeclaration() {
+    Set<String> names = _computeSubtypedNames('''
+import 'lib.dart';
+mixin M on A, B implements C, D {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   void test_prefixed() {
     Set<String> names = _computeSubtypedNames('''
 import 'lib.dart' as p;

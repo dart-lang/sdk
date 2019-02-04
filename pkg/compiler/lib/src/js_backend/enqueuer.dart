@@ -14,7 +14,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
+import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
         ConstantUse,
@@ -180,9 +181,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
         _registerInstantiatedType(type, nativeUsage: true);
         break;
       case TypeUseKind.IS_CHECK:
-      case TypeUseKind.AS_CAST:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
+        break;
+      case TypeUseKind.AS_CAST:
+        if (!_options.omitAsCasts) {
+          _registerIsCheck(type);
+        }
         break;
       case TypeUseKind.IMPLICIT_CAST:
         if (_options.implicitDowncastCheckPolicy.isEmitted) {
@@ -279,5 +284,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   Iterable<MemberEntity> get processedEntities => _processedEntities;
 
   @override
-  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
+  Iterable<ClassEntity> get processedClasses =>
+      _worldBuilder.instantiatedClasses;
 }

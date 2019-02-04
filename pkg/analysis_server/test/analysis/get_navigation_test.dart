@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../mocks.dart';
 import 'notification_navigation_test.dart';
 
 main() {
@@ -65,7 +66,7 @@ class Bar {
   }
 
   test_fileDoesNotExist() async {
-    String file = '$projectPath/doesNotExist.dart';
+    String file = convertPath('$projectPath/doesNotExist.dart');
     Request request = _createGetNavigationRequest(file, 0, 100);
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);
@@ -75,7 +76,7 @@ class Bar {
   }
 
   test_fileOutsideOfRoot() async {
-    testFile = resourceProvider.convertPath('/outside.dart');
+    testFile = convertPath('/outside.dart');
     addTestFile('''
 main() {
   var test = 0;
@@ -127,6 +128,25 @@ main() {
     assertHasRegionString("'dart:math'");
     expect(testTargets, hasLength(1));
     expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = _createGetNavigationRequest('test.dart', 0, 0);
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        _createGetNavigationRequest(convertPath('/foo/../bar/test.dart'), 0, 0);
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_multipleRegions() async {

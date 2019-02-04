@@ -28,8 +28,6 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
-bool UseKernelFrontEndFor(ParsedFunction* parsed_function);
-
 class CompilationPipeline : public ZoneAllocated {
  public:
   static CompilationPipeline* New(Zone* zone, const Function& function);
@@ -90,12 +88,6 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static RawError* Compile(const Library& library, const Script& script);
 
-  // Extracts function and field symbols from the class and populates
-  // the class.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* CompileClass(const Class& cls);
-
   // Generates code for given function without optimization and sets its code
   // field.
   //
@@ -149,7 +141,9 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
-  static RawError* ParseAllFunctions(const Class& cls);
+
+  // Eagerly read all bytecode.
+  static RawError* ReadAllBytecode(const Class& cls);
 
   // Notify the compiler that background (optimized) compilation has failed
   // because the mutator thread changed the state (e.g., deoptimization,

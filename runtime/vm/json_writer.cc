@@ -298,6 +298,10 @@ void JSONWriter::PrintPropertyName(const char* name) {
   buffer_.AddChar(':');
 }
 
+void JSONWriter::PrintNewline() {
+  buffer_.AddChar('\n');
+}
+
 void JSONWriter::PrintCommaIfNeeded() {
   if (NeedComma()) {
     buffer_.AddChar(',');

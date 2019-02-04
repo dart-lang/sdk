@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -63,6 +63,9 @@ class DartUnitOutlineComputer {
       } else if (unitMember is FunctionTypeAlias) {
         FunctionTypeAlias alias = unitMember;
         unitContents.add(_newFunctionTypeAliasOutline(alias));
+      } else if (unitMember is GenericTypeAlias) {
+        GenericTypeAlias alias = unitMember;
+        unitContents.add(_newGenericTypeAliasOutline(alias));
       }
     }
     Outline unitOutline = _newUnitOutline(unitContents);
@@ -209,6 +212,27 @@ class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
     FormalParameterList parameters = node.parameters;
+    String parametersStr = _safeToSource(parameters);
+    String returnTypeStr = _safeToSource(returnType);
+    Element element = new Element(
+        ElementKind.FUNCTION_TYPE_ALIAS,
+        name,
+        Element.makeFlags(
+            isPrivate: Identifier.isPrivateName(name),
+            isDeprecated: _isDeprecated(node)),
+        location: _getLocationNode(nameNode),
+        parameters: parametersStr,
+        returnType: returnTypeStr,
+        typeParameters: _getTypeParametersStr(node.typeParameters));
+    return _nodeOutline(node, element);
+  }
+
+  Outline _newGenericTypeAliasOutline(GenericTypeAlias node) {
+    var functionType = node.functionType;
+    TypeAnnotation returnType = functionType.returnType;
+    SimpleIdentifier nameNode = node.name;
+    String name = nameNode.name;
+    FormalParameterList parameters = functionType.parameters;
     String parametersStr = _safeToSource(parameters);
     String returnTypeStr = _safeToSource(returnType);
     Element element = new Element(

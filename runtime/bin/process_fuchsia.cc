@@ -11,7 +11,6 @@
 #include <fcntl.h>
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
-#include <lib/fdio/private.h>
 #include <lib/fdio/spawn.h>
 #include <lib/fdio/util.h>
 #include <poll.h>
@@ -35,6 +34,7 @@
 #include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/namespace.h"
+#include "bin/namespace_fuchsia.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
@@ -177,7 +177,7 @@ class ExitCodeHandler {
 
   static zx_status_t Add(zx_handle_t process) {
     MonitorLocker locker(monitor_);
-    LOG_INFO("ExitCodeHandler Adding Process: %ld\n", process);
+    LOG_INFO("ExitCodeHandler Adding Process: %u\n", process);
     return zx_object_wait_async(process, port_, static_cast<uint64_t>(process),
                                 ZX_TASK_TERMINATED, ZX_WAIT_ASYNC_ONCE);
   }
@@ -231,7 +231,7 @@ class ExitCodeHandler {
       zx_handle_t process = static_cast<zx_handle_t>(pkt.key);
       zx_signals_t observed = pkt.signal.observed;
       if ((observed & ZX_TASK_TERMINATED) == ZX_SIGNAL_NONE) {
-        LOG_ERR("ExitCodeHandler: Unexpected signals, process %ld: %lx\n",
+        LOG_ERR("ExitCodeHandler: Unexpected signals, process %u: %ux\n",
                 process, observed);
       }
       SendProcessStatus(process);
@@ -243,7 +243,7 @@ class ExitCodeHandler {
   }
 
   static void SendProcessStatus(zx_handle_t process) {
-    LOG_INFO("ExitCodeHandler thread getting process status: %ld\n", process);
+    LOG_INFO("ExitCodeHandler thread getting process status: %u\n", process);
     int return_code = -1;
     zx_info_process_t proc_info;
     zx_status_t status = zx_object_get_info(
@@ -255,11 +255,11 @@ class ExitCodeHandler {
       return_code = proc_info.return_code;
     }
     zx_handle_close(process);
-    LOG_INFO("ExitCodeHandler thread process %ld exited with %d\n", process,
+    LOG_INFO("ExitCodeHandler thread process %u exited with %d\n", process,
              return_code);
 
     const intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(process);
-    LOG_INFO("ExitCodeHandler thread sending %ld code %d on fd %ld\n", process,
+    LOG_INFO("ExitCodeHandler thread sending %u code %d on fd %ld\n", process,
              return_code, exit_code_fd);
     if (exit_code_fd != 0) {
       int exit_message[2];
@@ -275,11 +275,11 @@ class ExitCodeHandler {
       }
       LOG_INFO("ExitCodeHandler thread wrote %ld bytes to fd %ld\n", result,
                exit_code_fd);
-      LOG_INFO("ExitCodeHandler thread removing process %ld from list\n",
+      LOG_INFO("ExitCodeHandler thread removing process %u from list\n",
                process);
       ProcessInfoList::RemoveProcess(process);
     } else {
-      LOG_ERR("ExitCodeHandler: Process %ld not found\n", process);
+      LOG_ERR("ExitCodeHandler: Process %u not found\n", process);
     }
   }
 
@@ -347,18 +347,9 @@ bool Process::Wait(intptr_t pid,
                    intptr_t err,
                    intptr_t exit_event,
                    ProcessResult* result) {
-  // input not needed.
-  IOHandle* in_iohandle = reinterpret_cast<IOHandle*>(in);
-  in_iohandle->Close();
-  in_iohandle->Release();
-  in_iohandle = NULL;
-
   IOHandle* out_iohandle = reinterpret_cast<IOHandle*>(out);
   IOHandle* err_iohandle = reinterpret_cast<IOHandle*>(err);
   IOHandle* exit_iohandle = reinterpret_cast<IOHandle*>(exit_event);
-  IOHandleScope out_ioscope(out_iohandle);
-  IOHandleScope err_ioscope(err_iohandle);
-  IOHandleScope exit_ioscope(exit_iohandle);
 
   // There is no return from this function using Dart_PropagateError
   // as memory used by the buffer lists is freed through their
@@ -598,15 +589,14 @@ class ProcessStarter {
       return status;
     }
 
-    fdio_spawn_action_t actions[4];
-    memset(actions, 0, sizeof(actions));
-    AddPipe(0, &write_out_, &actions[0]);
-    AddPipe(1, &read_in_, &actions[1]);
-    AddPipe(2, &read_err_, &actions[2]);
-    actions[3] = {
-      .action = FDIO_SPAWN_ACTION_SET_NAME,
-      .name.data = program_arguments_[0],
-    };
+    fdio_spawn_action_t* actions;
+    const intptr_t actions_count = BuildSpawnActions(
+        namespc_->namespc()->fdio_ns(), &actions);
+    if (actions_count < 0) {
+      *os_error_message_ = DartUtils::ScopedCopyCString(
+          "Failed to build spawn actions array.");
+      return ZX_ERR_IO;
+    }
 
     // TODO(zra): Use the supplied working directory when fdio_spawn_vmo adds an
     // API to set it.
@@ -614,11 +604,13 @@ class ProcessStarter {
     LOG_INFO("ProcessStarter: Start() Calling fdio_spawn_vmo\n");
     zx_handle_t process = ZX_HANDLE_INVALID;
     char err_msg[FDIO_SPAWN_ERR_MSG_MAX_LENGTH];
-    uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_CLONE_LDSVC |
-        FDIO_SPAWN_CLONE_NAMESPACE;
-    status = fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
-                            program_environment_, 4, actions, &process, err_msg);
-
+    uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_CLONE_LDSVC;
+    status =
+        fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
+                       program_environment_, actions_count, actions, &process,
+                       err_msg);
+    // Handles are consumed by fdio_spawn_vmo even if it fails.
+    delete[] actions;
     if (status != ZX_OK) {
       LOG_ERR("ProcessStarter: Start() fdio_spawn_vmo failed\n");
       close(exit_pipe_fds[0]);
@@ -627,7 +619,7 @@ class ProcessStarter {
       return status;
     }
 
-    LOG_INFO("ProcessStarter: Start() adding %ld to list with exit_pipe %d\n",
+    LOG_INFO("ProcessStarter: Start() adding %u to list with exit_pipe %d\n",
              process, exit_pipe_fds[1]);
     ProcessInfoList::AddProcess(process, exit_pipe_fds[1]);
     ExitCodeHandler::Start();
@@ -679,6 +671,54 @@ class ProcessStarter {
     action->action = FDIO_SPAWN_ACTION_ADD_HANDLE;
     action->h.id = PA_HND(PA_HND_TYPE(action->h.id), target_fd);
     return ZX_OK;
+  }
+
+  // Fills in 'actions_out' and returns action count.
+  intptr_t BuildSpawnActions(fdio_ns_t* ns, fdio_spawn_action_t** actions_out) {
+    const intptr_t fixed_actions_cnt = 4;
+    intptr_t ns_cnt = 0;
+
+    // First, figure out how many namespace actions are needed.
+    fdio_flat_namespace_t* flat_ns = nullptr;
+    if (ns != nullptr) {
+      zx_status_t status = fdio_ns_export(ns, &flat_ns);
+      if (status != ZX_OK) {
+        LOG_ERR("ProcessStarter: BuildSpawnActions: fdio_ns_export: %s\n",
+                zx_status_get_string(status));
+        return -1;
+      }
+      ns_cnt = flat_ns->count;
+    }
+
+    // Allocate the actions array.
+    const intptr_t actions_cnt = ns_cnt + fixed_actions_cnt;
+    fdio_spawn_action_t* actions = new fdio_spawn_action_t[actions_cnt];
+
+    // Fill in the entries for passing stdin/out/err handles, and the program
+    // name.
+    AddPipe(0, &write_out_, &actions[0]);
+    AddPipe(1, &read_in_, &actions[1]);
+    AddPipe(2, &read_err_, &actions[2]);
+    actions[3] = {
+      .action = FDIO_SPAWN_ACTION_SET_NAME,
+      .name.data = program_arguments_[0],
+    };
+
+    // Then fill in the namespace actions.
+    if (ns != nullptr) {
+      for (size_t i = 0; i < flat_ns->count; i++) {
+        actions[fixed_actions_cnt + i] = {
+          .action = FDIO_SPAWN_ACTION_ADD_NS_ENTRY,
+          .ns.prefix = flat_ns->path[i],
+          .ns.handle = flat_ns->handle[i],
+        };
+      }
+      free(flat_ns);
+      flat_ns = nullptr;
+    }
+
+    *actions_out = actions;
+    return actions_cnt;
   }
 
   int read_in_;    // Pipe for stdout to child process.

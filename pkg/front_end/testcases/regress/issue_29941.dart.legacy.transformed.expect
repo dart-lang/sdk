@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29941.dart:7:5: Error: Expected an identifier, but got '""'.
+//   a."";
+//     ^^
+//
+import self as self;
+
+static method bad() → dynamic {
+  dynamic a = "";
+  invalid-expression "pkg/front_end/testcases/regress/issue_29941.dart:7:5: Error: Expected an identifier, but got '\"\"'.
+  a.\"\";
+    ^^";
+}
+static method main() → dynamic {}

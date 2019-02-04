@@ -1,0 +1,3 @@
+pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:17:5: Context: Write to f@369
+  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=Null*/ (/*@type=Object*/ x) =>
+    ^

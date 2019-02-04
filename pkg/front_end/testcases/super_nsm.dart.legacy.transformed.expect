@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+  abstract method interfaceMethod() → dynamic;
+}
+class C extends core::Object implements self::I {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method noSuchMethod(dynamic _) → dynamic
+    return "C";
+  no-such-method-forwarder method interfaceMethod() → dynamic
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+  method noSuchMethod(dynamic _) → dynamic
+    return "D";
+  method dMethod() → dynamic
+    return super.{self::C::interfaceMethod}();
+}
+static method main() → dynamic {
+  dynamic result = new self::D::•().dMethod();
+  if(!result.==("D"))
+    throw "Expected 'D' but got: '${result}'";
+}

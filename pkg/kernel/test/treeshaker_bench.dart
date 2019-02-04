@@ -20,8 +20,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Rebuild class hierarchy for each tree shaking', negatable: false)
   ..addFlag('diagnose',
       abbr: 'd', help: 'Print internal diagnostics', negatable: false)
-  ..addFlag('strong',
-      help: 'Run the tree shaker in strong mode', negatable: false);
+  ..addFlag('legacy-mode',
+      help: 'Run the tree shaker in legacy mode', negatable: false);
 
 String usage = '''
 Usage: treeshaker_bench [options] FILE.dill
@@ -43,7 +43,7 @@ void main(List<String> args) {
     exit(1);
   }
   String filename = options.rest.single;
-  bool strongMode = options['strong'];
+  bool legacyMode = options['legacy-mode'];
 
   Component component = loadComponentFromBinary(filename);
 
@@ -59,7 +59,7 @@ void main(List<String> args) {
   ClassHierarchy sharedClassHierarchy = buildClassHierarchy();
   int coldHierarchyTime = watch.elapsedMicroseconds;
   var shaker = new TreeShaker(coreTypes, sharedClassHierarchy, component,
-      strongMode: strongMode);
+      legacyMode: legacyMode);
   if (options['diagnose']) {
     print(shaker.getDiagnosticString());
   }
@@ -80,7 +80,7 @@ void main(List<String> args) {
     watch.reset();
     var hierarchy = getClassHierarchy();
     hotHierarchyTime += watch.elapsedMicroseconds;
-    new TreeShaker(coreTypes, hierarchy, component, strongMode: strongMode);
+    new TreeShaker(coreTypes, hierarchy, component, legacyMode: legacyMode);
     hotTreeShakingTime += watch.elapsedMicroseconds;
   }
   hotHierarchyTime ~/= numberOfTrials;

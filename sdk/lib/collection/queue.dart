@@ -525,7 +525,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
   _DoubleLinkedQueueSentinel<E> _sentinel;
-  _DoubleLinkedQueueEntry<E> _nextEntry = null;
+  _DoubleLinkedQueueEntry<E> _nextEntry;
   E _current;
 
   _DoubleLinkedQueueIterator(_DoubleLinkedQueueSentinel<E> sentinel)

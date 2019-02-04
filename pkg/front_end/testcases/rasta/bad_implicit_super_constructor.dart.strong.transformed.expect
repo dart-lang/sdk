@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
+//   A(this.x);
+//          ^
+//
+// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+//   const B();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •(dynamic x) → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
+  A(this.x);
+         ^"
+    ;
+}
+class B extends self::A {
+  const constructor •() → self::B
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+  const B();
+        ^"
+    ;
+}
+static method main() → dynamic {
+  new self::B::•();
+  const self::B::•();
+}

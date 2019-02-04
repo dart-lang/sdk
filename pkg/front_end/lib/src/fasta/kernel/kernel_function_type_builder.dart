@@ -11,7 +11,8 @@ import 'package:kernel/ast.dart'
         FunctionType,
         NamedType,
         Supertype,
-        TypeParameter;
+        TypeParameter,
+        TypedefType;
 
 import '../fasta_codes.dart'
     show LocatedMessage, messageSupertypeIsFunction, noLength;
@@ -37,7 +38,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       List<FormalParameterBuilder> formals)
       : super(returnType, typeVariables, formals);
 
-  FunctionType build(LibraryBuilder library) {
+  FunctionType build(LibraryBuilder library, [TypedefType origin]) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
@@ -68,7 +69,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     return new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount);
+        requiredParameterCount: requiredParameterCount,
+        typedefType: origin);
   }
 
   Supertype buildSupertype(
@@ -84,23 +86,28 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   @override
-  buildInvalidType(LocatedMessage message) {
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
     return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
-    List<TypeVariableBuilder> clonedTypeVariables =
-        new List<TypeVariableBuilder>(typeVariables.length);
-    for (int i = 0; i < clonedTypeVariables.length; i++) {
-      clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
+    List<TypeVariableBuilder> clonedTypeVariables;
+    if (typeVariables != null) {
+      clonedTypeVariables = new List<TypeVariableBuilder>(typeVariables.length);
+      for (int i = 0; i < clonedTypeVariables.length; i++) {
+        clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
+      }
     }
-    List<FormalParameterBuilder> clonedFormals =
-        new List<FormalParameterBuilder>(formals.length);
-    for (int i = 0; i < clonedFormals.length; i++) {
-      clonedFormals[i] = formals[i].clone(newTypes);
+    List<FormalParameterBuilder> clonedFormals;
+    if (formals != null) {
+      clonedFormals = new List<FormalParameterBuilder>(formals.length);
+      for (int i = 0; i < clonedFormals.length; i++) {
+        KernelFormalParameterBuilder formal = formals[i];
+        clonedFormals[i] = formal.clone(newTypes);
+      }
     }
     KernelFunctionTypeBuilder newType = new KernelFunctionTypeBuilder(
-        returnType.clone(newTypes), clonedTypeVariables, clonedFormals);
+        returnType?.clone(newTypes), clonedTypeVariables, clonedFormals);
     newTypes.add(newType);
     return newType;
   }

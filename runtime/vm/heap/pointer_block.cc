@@ -15,6 +15,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
 }
 END_LEAF_RUNTIME_ENTRY
 
+DEFINE_LEAF_RUNTIME_ENTRY(void, MarkingStackBlockProcess, 1, Thread* thread) {
+  thread->MarkingStackBlockProcess();
+}
+END_LEAF_RUNTIME_ENTRY
+
 template <int BlockSize>
 typename BlockStack<BlockSize>::List* BlockStack<BlockSize>::global_empty_ =
     NULL;
@@ -22,15 +27,17 @@ template <int BlockSize>
 Mutex* BlockStack<BlockSize>::global_mutex_ = NULL;
 
 template <int BlockSize>
-void BlockStack<BlockSize>::InitOnce() {
+void BlockStack<BlockSize>::Init() {
   global_empty_ = new List();
-  global_mutex_ = new Mutex();
+  if (global_mutex_ == NULL) {
+    global_mutex_ = new Mutex();
+  }
 }
 
 template <int BlockSize>
-void BlockStack<BlockSize>::ShutDown() {
+void BlockStack<BlockSize>::Cleanup() {
   delete global_empty_;
-  delete global_mutex_;
+  global_empty_ = NULL;
 }
 
 template <int BlockSize>

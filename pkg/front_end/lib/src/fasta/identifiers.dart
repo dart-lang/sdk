@@ -26,6 +26,8 @@ class Identifier {
 
   Expression get initializer => null;
 
+  int get endCharOffset => charOffset + name.length;
+
   QualifiedName withQualifier(Object qualifier) {
     return new QualifiedName._(qualifier, name, charOffset);
   }
@@ -47,6 +49,9 @@ class _TokenIdentifier implements Identifier {
 
   @override
   Expression get initializer => null;
+
+  @override
+  int get endCharOffset => charOffset + name.length;
 
   @override
   QualifiedName withQualifier(Object qualifier) {

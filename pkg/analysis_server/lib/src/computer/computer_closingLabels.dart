@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45,8 +45,7 @@ class DartUnitClosingLabelsComputer {
 /**
  * An AST visitor for [DartUnitClosingLabelsComputer].
  */
-class _DartUnitClosingLabelsComputerVisitor
-    extends RecursiveAstVisitor<Object> {
+class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitClosingLabelsComputer computer;
 
   int interpolatedStringsEntered = 0;
@@ -57,7 +56,7 @@ class _DartUnitClosingLabelsComputerVisitor
   ClosingLabel get _currentLabel => labelStack.isEmpty ? null : labelStack.last;
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ClosingLabel label;
 
     if (node.argumentList != null) {
@@ -75,14 +74,14 @@ class _DartUnitClosingLabelsComputerVisitor
     if (label != null) _pushLabel(label);
 
     try {
-      return super.visitInstanceCreationExpression(node);
+      super.visitInstanceCreationExpression(node);
     } finally {
       if (label != null) _popLabel();
     }
   }
 
   @override
-  Object visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     final NodeList<TypeAnnotation> args = node.typeArguments?.arguments;
     final String typeName = args != null ? args[0]?.toString() : null;
 
@@ -95,17 +94,17 @@ class _DartUnitClosingLabelsComputerVisitor
     if (label != null) _pushLabel(label);
 
     try {
-      return super.visitListLiteral(node);
+      super.visitListLiteral(node);
     } finally {
       if (label != null) _popLabel();
     }
   }
 
   @override
-  Object visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(StringInterpolation node) {
     interpolatedStringsEntered++;
     try {
-      return super.visitStringInterpolation(node);
+      super.visitStringInterpolation(node);
     } finally {
       interpolatedStringsEntered--;
     }

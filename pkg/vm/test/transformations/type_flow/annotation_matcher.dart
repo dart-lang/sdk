@@ -4,8 +4,8 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/utils.dart';
+import 'package:vm/transformations/pragma.dart';
 
 // Since we don't run the constants transformation in this test, we can't
 // recognize all pragma annotations precisely. Instead, we pattern match on

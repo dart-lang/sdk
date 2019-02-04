@@ -1,0 +1,92 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/warn_unresolved_sends.dart:49:39: Warning: Getter not found: 'missingField'.
+//     this. /*@warning=GetterNotFound*/ missingField;
+//                                       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/warn_unresolved_sends.dart:50:39: Warning: Setter not found: 'missingField'.
+//     this. /*@warning=SetterNotFound*/ missingField = 0;
+//                                       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/warn_unresolved_sends.dart:51:39: Warning: Method not found: 'missingMethod'.
+//     this. /*@warning=MethodNotFound*/ missingMethod();
+//                                       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/warn_unresolved_sends.dart:53:33: Warning: Getter not found: 'missingField'.
+//     /*@warning=GetterNotFound*/ missingField;
+//                                 ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/warn_unresolved_sends.dart:54:33: Warning: Setter not found: 'missingField'.
+//     /*@warning=SetterNotFound*/ missingField = 0;
+//                                 ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/warn_unresolved_sends.dart:55:33: Warning: Method not found: 'missingMethod'.
+//     /*@warning=MethodNotFound*/ missingMethod();
+//                                 ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic superField = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method superMethod() → dynamic {}
+  get setterOnly() → dynamic
+    return null;
+  set setterOnly(dynamic _) → void {}
+  get getterOnly() → dynamic
+    return null;
+  set getterOnly(dynamic _) → void {}
+}
+class D extends self::C {
+  field dynamic field = null;
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+  set setterOnly(dynamic _) → void {}
+  get getterOnly() → dynamic
+    return null;
+  method method() → dynamic {}
+  method test() → void {
+    this.{self::D::field};
+    this.{self::C::superField};
+    this.{self::D::field} = 0;
+    this.{self::C::superField} = 0;
+    this.{self::D::method}();
+    this.{self::C::superMethod}();
+    this.{self::C::setterOnly};
+    this.{self::D::setterOnly} = 0;
+    this.{self::D::getterOnly};
+    this.{self::C::getterOnly} = 0;
+    this.{self::D::field};
+    this.{self::C::superField};
+    this.{self::D::field} = 0;
+    this.{self::C::superField} = 0;
+    this.{self::D::method}();
+    this.{self::C::superMethod}();
+    this.{self::C::setterOnly};
+    this.{self::D::setterOnly} = 0;
+    this.{self::D::getterOnly};
+    this.{self::C::getterOnly} = 0;
+    this.missingField;
+    this.missingField = 0;
+    this.missingMethod();
+    this.missingField;
+    this.missingField = 0;
+    this.missingMethod();
+  }
+}
+class E extends self::D {
+  field dynamic missingField = null;
+  synthetic constructor •() → self::E
+    : super self::D::•()
+    ;
+  method missingMethod() → void {}
+}
+static method main() → dynamic {
+  new self::E::•().test();
+}

@@ -53,5 +53,5 @@ main() {
   testCallsToGenericFn();
   testGenericFnAsArg();
   testGenericFnAsGenericFnArg();
-  testGenericFnTypeToString();
+  testGenericFnTypeToString(); //# 01: ok
 }

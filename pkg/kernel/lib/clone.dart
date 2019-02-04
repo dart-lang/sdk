@@ -20,6 +20,7 @@ class CloneVisitor implements TreeVisitor {
       <LabeledStatement, LabeledStatement>{};
   final Map<SwitchCase, SwitchCase> switchCases = <SwitchCase, SwitchCase>{};
   final Map<TypeParameter, DartType> typeSubstitution;
+  final Map<TypeParameter, TypeParameter> typeParams;
   bool cloneAnnotations;
 
   /// Creates an instance of the cloning visitor for Kernel ASTs.
@@ -29,8 +30,10 @@ class CloneVisitor implements TreeVisitor {
   /// annotations in procedure bodies are cloned unconditionally.
   CloneVisitor(
       {Map<TypeParameter, DartType> typeSubstitution,
+      Map<TypeParameter, TypeParameter> typeParams,
       this.cloneAnnotations = true})
-      : this.typeSubstitution = ensureMutable(typeSubstitution);
+      : this.typeSubstitution = ensureMutable(typeSubstitution),
+        this.typeParams = typeParams ?? <TypeParameter, TypeParameter>{};
 
   static Map<TypeParameter, DartType> ensureMutable(
       Map<TypeParameter, DartType> map) {
@@ -221,6 +224,11 @@ class CloneVisitor implements TreeVisitor {
         typeArgument: visitType(node.typeArgument), isConst: node.isConst);
   }
 
+  visitSetLiteral(SetLiteral node) {
+    return new SetLiteral(node.expressions.map(clone).toList(),
+        typeArgument: visitType(node.typeArgument), isConst: node.isConst);
+  }
+
   visitMapLiteral(MapLiteral node) {
     return new MapLiteral(node.entries.map(clone).toList(),
         keyType: visitType(node.keyType),
@@ -320,7 +328,8 @@ class CloneVisitor implements TreeVisitor {
   visitForInStatement(ForInStatement node) {
     var newVariable = clone(node.variable);
     return new ForInStatement(
-        newVariable, clone(node.iterable), clone(node.body));
+        newVariable, clone(node.iterable), clone(node.body),
+        isAsync: node.isAsync);
   }
 
   visitSwitchStatement(SwitchStatement node) {
@@ -460,8 +469,11 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitTypeParameter(TypeParameter node) {
-    var newNode = new TypeParameter(node.name);
-    typeSubstitution[node] = new TypeParameterType(newNode);
+    TypeParameter newNode = typeParams[node];
+    if (newNode == null) {
+      newNode = new TypeParameter(node.name);
+      typeSubstitution[node] = new TypeParameterType(newNode);
+    }
     newNode.bound = visitType(node.bound);
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType);

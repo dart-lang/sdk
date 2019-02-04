@@ -65,10 +65,15 @@
     'runtime': {
       'filepath': '^runtime/',
     },
+    'vm_compiler': {
+      'filepath': '^runtime/(vm|docs)/compiler/',
+    },
   },
 
   'WATCHLISTS': {
     'build': [ 'zra@google.com', 'keertip@google.com' ],
+    'dart2js': [ 'johnniwinther@google.com', 'sigmund@google.com',
+                 'sra@google.com'],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
     'http': [ 'zra@google.com' ],
     'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com',
@@ -78,7 +83,6 @@
     'observatory': [ 'rmacnak@google.com' ],
     'package_vm': [ 'alexmarkov@google.com' ],
     'runtime': [ 'vm-dev@dartlang.org' ],
-    'dart2js': [ 'johnniwinther@google.com', 'sigmund@google.com',
-                 'sra@google.com'],
+    'vm_compiler': [ 'dart-vm-compiler-team+reviews@google.com' ],
   },
 }

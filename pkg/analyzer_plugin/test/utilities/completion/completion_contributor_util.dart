@@ -1,13 +1,11 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -16,7 +14,6 @@ import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 import 'package:test/test.dart';
 
 import '../../support/abstract_context.dart';
-import 'flutter_util.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -446,18 +443,15 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  /**
-   * Return a [Future] that completes with the containing library information
-   * after it is accessible via [context.getLibrariesContaining].
-   */
   Future<void> computeLibrariesContaining() {
     return driver.getResult(testFile).then((result) => null);
   }
 
   Future computeSuggestions() async {
-    ResolveResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     testSource = result.unit.declaredElement.source;
-    request = new DartCompletionRequestImpl(provider, completionOffset, result);
+    request = new DartCompletionRequestImpl(
+        resourceProvider, completionOffset, result);
 
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);
@@ -470,30 +464,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     await contributor.computeSuggestions(request, collector);
     suggestions = collector.suggestions;
     expect(suggestions, isNotNull, reason: 'expected suggestions');
-  }
-
-  /**
-   * Configures the [SourceFactory] to have the `flutter` package in
-   * `/packages/flutter/lib` folder.
-   */
-  void configureFlutterPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
-    });
-    // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'flutter': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'flutter' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:flutter/$path';")
-            .join('\n'));
   }
 
   CompletionContributor createContributor();
@@ -561,7 +531,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/completionTest.dart');
+    testFile = convertPath('/home/test/lib/test.dart');
     contributor = createContributor();
   }
 }

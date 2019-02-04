@@ -14,7 +14,7 @@
 namespace dart {
 
 // Unit test for Zone handle allocation.
-TEST_CASE(AllocateZoneHandle) {
+ISOLATE_UNIT_TEST_CASE(AllocateZoneHandle) {
 #if defined(DEBUG)
   FLAG_trace_handles = true;
 #endif
@@ -38,7 +38,7 @@ TEST_CASE(AllocateZoneHandle) {
 }
 
 // Unit test for Scope handle allocation.
-TEST_CASE(AllocateScopeHandle) {
+ISOLATE_UNIT_TEST_CASE(AllocateScopeHandle) {
 #if defined(DEBUG)
   FLAG_trace_handles = true;
 #endif
@@ -86,11 +86,11 @@ TEST_CASE(CheckHandleValidity) {
 #if defined(DEBUG)
   FLAG_trace_handles = true;
 #endif
-  Thread* current = Thread::Current();
   Dart_Handle handle = NULL;
   // Check validity using zone handles.
   {
-    StackZone sz(current);
+    TransitionNativeToVM transition(thread);
+    StackZone sz(thread);
     handle = reinterpret_cast<Dart_Handle>(&Smi::ZoneHandle(Smi::New(1)));
     EXPECT_VALID(handle);
   }
@@ -98,18 +98,26 @@ TEST_CASE(CheckHandleValidity) {
 
   // Check validity using scoped handles.
   {
-    HANDLESCOPE(current);
     Dart_EnterScope();
-    handle = reinterpret_cast<Dart_Handle>(&Smi::Handle(Smi::New(1)));
-    EXPECT_VALID(handle);
+    {
+      TransitionNativeToVM transition(thread);
+      HANDLESCOPE(thread);
+      handle = reinterpret_cast<Dart_Handle>(&Smi::Handle(Smi::New(1)));
+      EXPECT_VALID(handle);
+    }
     Dart_ExitScope();
   }
   EXPECT(!Api::IsValid(handle));
 
   // Check validity using persistent handle.
   Isolate* isolate = Isolate::Current();
+  Dart_Handle scoped_handle;
+  {
+    TransitionNativeToVM transition(thread);
+    scoped_handle = Api::NewHandle(thread, Smi::New(1));
+  }
   Dart_PersistentHandle persistent_handle =
-      Dart_NewPersistentHandle(Api::NewHandle(thread, Smi::New(1)));
+      Dart_NewPersistentHandle(scoped_handle);
   EXPECT_VALID(persistent_handle);
 
   Dart_DeletePersistentHandle(persistent_handle);

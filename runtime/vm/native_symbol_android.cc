@@ -10,26 +10,11 @@
 #include <cxxabi.h>  // NOLINT
 #include <dlfcn.h>   // NOLINT
 
-// Even though it's not used in a PRODUCT build, __cxa_demangle() still ends up
-// in the resulting binary for Android. Blowing it away by redefining it like
-// so saves >90KB of binary size.
-#if defined(PRODUCT)
-extern "C" char* __cxa_demangle(const char* mangled_name,
-                                char* buf,
-                                size_t* n,
-                                int* status) {
-  if (status) {
-    *status = -1;
-  }
-  return NULL;
-}
-#endif
-
 namespace dart {
 
-void NativeSymbolResolver::InitOnce() {}
+void NativeSymbolResolver::Init() {}
 
-void NativeSymbolResolver::ShutdownOnce() {}
+void NativeSymbolResolver::Cleanup() {}
 
 char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   Dl_info info;

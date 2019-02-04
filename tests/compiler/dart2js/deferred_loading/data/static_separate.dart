@@ -15,7 +15,9 @@ import "../libs/static_separate_lib2.dart" deferred as lib2;
 /*element: main:OutputUnit(main, {})*/
 void main() {
   asyncStart();
-  Expect.throws(/*OutputUnit(main, {})*/ () => new lib1.C());
+  Expect.throws(/*OutputUnit(main, {})*/ () {
+    new lib1.C();
+  });
   lib1.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     lib2.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
       print("HERE");

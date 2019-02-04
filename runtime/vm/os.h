@@ -13,7 +13,6 @@ struct tm;
 namespace dart {
 
 // Forward declarations.
-class Isolate;
 class Zone;
 
 // Interface to the underlying OS platform.
@@ -118,14 +117,14 @@ class OS {
   static void RegisterCodeObservers();
 
   // Initialize the OS class.
-  static void InitOnce();
+  static void Init();
 
-  // Shut down the OS class.
-  static void Shutdown();
+  // Cleanup the OS class.
+  static void Cleanup();
 
-  static DART_NORETURN void Abort();
+  DART_NORETURN static void Abort();
 
-  static DART_NORETURN void Exit(int code);
+  DART_NORETURN static void Exit(int code);
 };
 
 }  // namespace dart

@@ -1,0 +1,9 @@
+name: analysis_tool
+publish_to: none
+
+environment:
+  sdk: '>=2.1.0 <3.0.0'
+
+dependencies:
+  html: any
+  path: any

@@ -31,7 +31,7 @@ import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
-const int browserCrashExitCode = -10;
+const int unhandledCompilerExceptionExitCode = 253;
 const int parseFailExitCode = 245;
 const int slowTimeoutMultiplier = 4;
 const int extraSlowTimeoutMultiplier = 8;
@@ -76,14 +76,10 @@ const _excludedEnvironmentVariables = const [
  */
 class TestCase extends UniqueObject {
   // Flags set in _expectations from the optional argument info.
-  static final int IS_NEGATIVE = 1 << 0;
-  static final int HAS_RUNTIME_ERROR = 1 << 1;
-  static final int HAS_STATIC_WARNING = 1 << 2;
-  static final int IS_NEGATIVE_IF_CHECKED = 1 << 3;
-  static final int HAS_SYNTAX_ERROR = 1 << 4;
-  static final int HAS_COMPILE_ERROR = 1 << 5;
-  static final int HAS_COMPILE_ERROR_IF_CHECKED = 1 << 6;
-  static final int EXPECT_COMPILE_ERROR = 1 << 7;
+  static final int HAS_RUNTIME_ERROR = 1 << 0;
+  static final int HAS_SYNTAX_ERROR = 1 << 1;
+  static final int HAS_COMPILE_ERROR = 1 << 2;
+  static final int HAS_STATIC_WARNING = 1 << 3;
   /**
    * A list of commands to execute. Most test cases have a single command.
    * Dart2js tests have two commands, one to compile the source and another
@@ -102,13 +98,10 @@ class TestCase extends UniqueObject {
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {bool isNegative: false, TestInformation info}) {
+      {TestInformation info}) {
     // A test case should do something.
     assert(commands.isNotEmpty);
 
-    if (isNegative || displayName.contains("negative_test")) {
-      _expectations |= IS_NEGATIVE;
-    }
     if (info != null) {
       _setExpectations(info);
       hash = info.originTestPath.relativeTo(Repository.dir).toString().hashCode;
@@ -119,20 +112,11 @@ class TestCase extends UniqueObject {
     // We don't want to keep the entire (large) TestInformation structure,
     // so we copy the needed bools into flags set in a single integer.
     if (info.hasRuntimeError) _expectations |= HAS_RUNTIME_ERROR;
-    if (info.hasStaticWarning) _expectations |= HAS_STATIC_WARNING;
-    if (info.isNegativeIfChecked) _expectations |= IS_NEGATIVE_IF_CHECKED;
     if (info.hasSyntaxError) _expectations |= HAS_SYNTAX_ERROR;
     if (info.hasCompileError || info.hasSyntaxError) {
       _expectations |= HAS_COMPILE_ERROR;
     }
-    if (info.hasCompileErrorIfChecked) {
-      _expectations |= HAS_COMPILE_ERROR_IF_CHECKED;
-    }
-    if (info.hasCompileError ||
-        info.hasSyntaxError ||
-        (configuration.isChecked && info.hasCompileErrorIfChecked)) {
-      _expectations |= EXPECT_COMPILE_ERROR;
-    }
+    if (info.hasStaticWarning) _expectations |= HAS_STATIC_WARNING;
   }
 
   TestCase indexedCopy(int index) {
@@ -143,15 +127,14 @@ class TestCase extends UniqueObject {
       ..hash = hash;
   }
 
-  bool get isNegative => _expectations & IS_NEGATIVE != 0;
   bool get hasRuntimeError => _expectations & HAS_RUNTIME_ERROR != 0;
   bool get hasStaticWarning => _expectations & HAS_STATIC_WARNING != 0;
-  bool get isNegativeIfChecked => _expectations & IS_NEGATIVE_IF_CHECKED != 0;
   bool get hasSyntaxError => _expectations & HAS_SYNTAX_ERROR != 0;
   bool get hasCompileError => _expectations & HAS_COMPILE_ERROR != 0;
-  bool get hasCompileErrorIfChecked =>
-      _expectations & HAS_COMPILE_ERROR_IF_CHECKED != 0;
-  bool get expectCompileError => _expectations & EXPECT_COMPILE_ERROR != 0;
+  bool get isNegative =>
+      hasCompileError ||
+      hasRuntimeError && configuration.runtime != Runtime.none ||
+      displayName.contains("negative_test");
 
   bool get unexpectedOutput {
     var outcome = this.result;
@@ -163,19 +146,27 @@ class TestCase extends UniqueObject {
   Expectation get result => lastCommandOutput.result(this);
   Expectation get realResult => lastCommandOutput.realResult(this);
   Expectation get realExpected {
-    if (isNegative || (isNegativeIfChecked && configuration.isChecked)) {
-      return Expectation.fail;
-    }
     if (configuration.compiler == Compiler.specParser) {
       if (hasSyntaxError) {
         return Expectation.syntaxError;
       }
-    } else if ((hasCompileError) ||
-        (hasCompileErrorIfChecked && configuration.isChecked)) {
+    } else if (hasCompileError) {
+      if (hasRuntimeError && configuration.runtime != Runtime.none) {
+        return Expectation.fail;
+      }
       return Expectation.compileTimeError;
     }
-    if (configuration.runtime != Runtime.none && hasRuntimeError) {
-      return Expectation.runtimeError;
+    if (hasRuntimeError) {
+      if (configuration.runtime != Runtime.none) {
+        return Expectation.runtimeError;
+      }
+      return Expectation.pass;
+    }
+    if (displayName.contains("negative_test")) {
+      return Expectation.fail;
+    }
+    if (configuration.compiler == Compiler.dart2analyzer && hasStaticWarning) {
+      return Expectation.staticWarning;
     }
     return Expectation.pass;
   }
@@ -712,7 +703,7 @@ class BatchRunnerProcess {
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
-    if (outcome == "CRASH") exitCode = browserCrashExitCode;
+    if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     var output = createCommandOutput(

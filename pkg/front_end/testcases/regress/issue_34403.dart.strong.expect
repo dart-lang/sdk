@@ -1,0 +1,149 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:16:14: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var c1 = C.bar<int>();
+//              ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:18:18: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var c2 = new C.bar<int>();
+//                  ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:20:22: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var c3 = C<String>.bar<int>();
+//                      ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:22:26: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var c4 = new C<String>.bar<int>();
+//                          ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:25:16: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const d1 = D.foo<int>();
+//                ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:27:22: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const d2 = const D.foo<int>();
+//                      ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:29:24: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const d3 = D<String>.foo<int>();
+//                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:31:30: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const d4 = const D<String>.foo<int>();
+//                              ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:34:16: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var e1 = p.E.bar<int>();
+//                ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:36:20: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var e2 = new p.E.bar<int>();
+//                    ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:38:24: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var e3 = p.E<String>.bar<int>();
+//                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:40:28: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   var e4 = new p.E<String>.bar<int>();
+//                            ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:43:18: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const f1 = p.F.foo<int>();
+//                  ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:45:24: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const f2 = const p.F.foo<int>();
+//                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:47:26: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const f3 = p.F<String>.foo<int>();
+//                          ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:49:32: Error: A constructor invocation can't have type arguments on the constructor name.
+// Try to place the type arguments on the class name.
+//   const f4 = const p.F<String>.foo<int>();
+//                                ^^^
+//
+import self as self;
+import "dart:core" as core;
+import "./issue_34403_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue_34403_lib.dart" as p;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  constructor bar() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+}
+class D<T extends core::Object = dynamic> extends core::Object {
+  const constructor foo() → self::D<self::D::T>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::C<core::int> c1 = new self::C::bar<core::int>();
+  c1.{core::Object::toString}();
+  self::C<core::int> c2 = new self::C::bar<core::int>();
+  c2.{core::Object::toString}();
+  self::C<core::String> c3 = new self::C::bar<core::String>();
+  c3.{core::Object::toString}();
+  self::C<core::String> c4 = new self::C::bar<core::String>();
+  c4.{core::Object::toString}();
+  const self::D<core::int> d1 = const self::D::foo<core::int>();
+  d1.{core::Object::toString}();
+  const self::D<core::int> d2 = const self::D::foo<core::int>();
+  d2.{core::Object::toString}();
+  const self::D<core::String> d3 = const self::D::foo<core::String>();
+  d3.{core::Object::toString}();
+  const self::D<core::String> d4 = const self::D::foo<core::String>();
+  d4.{core::Object::toString}();
+  iss::E<core::int> e1 = new iss::E::bar<core::int>();
+  e1.{core::Object::toString}();
+  iss::E<dynamic> e2 = new iss::E::bar<dynamic>();
+  e2.{core::Object::toString}();
+  iss::E<core::String> e3 = new iss::E::bar<core::String>();
+  e3.{core::Object::toString}();
+  iss::E<core::String> e4 = new iss::E::bar<core::String>();
+  e4.{core::Object::toString}();
+  const iss::F<core::int> f1 = const iss::F::foo<core::int>();
+  f1.{core::Object::toString}();
+  const iss::F<dynamic> f2 = const iss::F::foo<dynamic>();
+  f2.{core::Object::toString}();
+  const iss::F<core::String> f3 = const iss::F::foo<core::String>();
+  f3.{core::Object::toString}();
+  const iss::F<core::String> f4 = const iss::F::foo<core::String>();
+  f4.{core::Object::toString}();
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class E<T extends core::Object = dynamic> extends core::Object {
+  constructor bar() → iss::E<iss::E::T>
+    : super core::Object::•()
+    ;
+}
+class F<T extends core::Object = dynamic> extends core::Object {
+  const constructor foo() → iss::F<iss::F::T>
+    : super core::Object::•()
+    ;
+}

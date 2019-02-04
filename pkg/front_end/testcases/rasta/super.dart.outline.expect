@@ -1,13 +1,14 @@
-// Formatted problems:
+library;
 //
-// pkg/front_end/testcases/rasta/super.dart:26:8: Warning: Can't declare a member that conflicts with an inherited one.
-//   void n() {}
-//        ^
-// pkg/front_end/testcases/rasta/super.dart:27:7: Warning: This is the inherited member.
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
 //   set n(_) {}
 //       ^
-
-library;
+// pkg/front_end/testcases/rasta/super.dart:26:8: Context: Previous declaration of 'n'.
+//   void n() {}
+//        ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -17,7 +18,7 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
   get e() → dynamic
     ;
@@ -48,7 +49,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   get b() → dynamic
     ;
@@ -58,7 +59,7 @@ class B extends self::A {
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   method test() → dynamic
     ;

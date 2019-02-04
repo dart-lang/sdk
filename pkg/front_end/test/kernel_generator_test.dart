@@ -14,7 +14,6 @@ import 'package:test/test.dart'
         isFalse,
         isNotEmpty,
         isNotNull,
-        isNull,
         isTrue,
         same,
         test;
@@ -42,11 +41,11 @@ main() {
         ..librariesSpecificationUri = invalidCoreLibsSpecUri
         ..sdkSummary = null
         ..compileSdk = true // To prevent FE from loading an sdk-summary.
-        ..onError = (e) => errors.add(e);
+        ..onDiagnostic = errors.add;
 
       var component =
           await compileScript('main() => print("hi");', options: options);
-      expect(component, isNull);
+      expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
@@ -55,11 +54,11 @@ main() {
       var options = new CompilerOptions()
         ..sdkSummary =
             Uri.parse('org-dartlang-test:///not_existing_summary_file')
-        ..onError = (e) => errors.add(e);
+        ..onDiagnostic = errors.add;
 
       var component =
           await compileScript('main() => print("hi");', options: options);
-      expect(component, isNull);
+      expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
@@ -82,7 +81,7 @@ main() {
 
     test('compiler requires a main method', () async {
       var errors = [];
-      var options = new CompilerOptions()..onError = (e) => errors.add(e);
+      var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileScript('a() => print("hi");', options: options);
       expect(errors.first.message, messageMissingMain.message);
     });
@@ -151,7 +150,7 @@ main() {
   group('kernelForComponent', () {
     test('compiler does not require a main method', () async {
       var errors = [];
-      var options = new CompilerOptions()..onError = (e) => errors.add(e);
+      var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileUnit(['a.dart'], {'a.dart': 'a() => print("hi");'},
           options: options);
       expect(errors, isEmpty);
@@ -159,7 +158,7 @@ main() {
 
     test('compiler is not hermetic by default', () async {
       var errors = [];
-      var options = new CompilerOptions()..onError = (e) => errors.add(e);
+      var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileUnit([
         'a.dart'
       ], {

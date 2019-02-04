@@ -53,7 +53,6 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
         "--compile-sdk=sdk/",
         "--output=${output.toFilePath()}",
         "--verify",
-        "--strong",
         input.toFilePath(),
       ],
       suppressOutput: false);

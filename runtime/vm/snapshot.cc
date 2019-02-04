@@ -157,14 +157,12 @@ const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
       return "full";
-    case kScript:
-      return "script";
-    case kMessage:
-      return "message";
     case kFullJIT:
       return "full-jit";
     case kFullAOT:
       return "full-aot";
+    case kMessage:
+      return "message";
     case kNone:
       return "none";
     case kInvalid:
@@ -189,9 +187,9 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 RawSmi* BaseReader::ReadAsSmi() {
-  intptr_t value = Read<int32_t>();
-  ASSERT((value & kSmiTagMask) == kSmiTag);
-  return reinterpret_cast<RawSmi*>(value);
+  RawSmi* value = Read<RawSmi*>();
+  ASSERT((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag);
+  return value;
 }
 
 intptr_t BaseReader::ReadSmiValue() {
@@ -221,7 +219,6 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_(AbstractType::Handle(zone_)),
       type_arguments_(TypeArguments::Handle(zone_)),
       tokens_(GrowableObjectArray::Handle(zone_)),
-      stream_(TokenStream::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
       function_(Function::Handle(zone_)),
@@ -238,8 +235,8 @@ RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    objects_to_rehash_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
-    types_to_postprocess_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
+    objects_to_rehash_ = GrowableObjectArray::New();
+    types_to_postprocess_ = GrowableObjectArray::New();
 
     PassiveObject& obj =
         PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
@@ -252,9 +249,6 @@ RawObject* SnapshotReader::ReadObject() {
     Object& result = Object::Handle(zone_);
     if (backward_references_->length() > 0) {
       ProcessDeferredCanonicalizations();
-      if (kind() == Snapshot::kScript) {
-        FixSubclassesAndImplementors();
-      }
       result = (*backward_references_)[0].reference()->raw();
     } else {
       result = obj.raw();
@@ -268,30 +262,30 @@ RawObject* SnapshotReader::ReadObject() {
     return result.raw();
   } else {
     // An error occurred while reading, return the error object.
-    const Error& err = Error::Handle(thread()->sticky_error());
-    thread()->clear_sticky_error();
-    return err.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
 void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
-  types_to_postprocess_.Add(type, HEAP_SPACE(kind_));
+  types_to_postprocess_.Add(type);
 }
 
 void SnapshotReader::RunDelayedTypePostprocessing() {
-  if (types_to_postprocess_.Length() > 0) {
-    AbstractType& type = AbstractType::Handle();
-    Instructions& instr = Instructions::Handle();
-    for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
-      type ^= types_to_postprocess_.At(i);
-      instr = TypeTestingStubGenerator::DefaultCodeForType(type);
-      type.SetTypeTestingStub(instr);
-    }
+  if (types_to_postprocess_.Length() == 0) {
+    return;
+  }
+
+  AbstractType& type = AbstractType::Handle();
+  Code& code = Code::Handle();
+  for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
+    type ^= types_to_postprocess_.At(i);
+    code = TypeTestingStubGenerator::DefaultCodeForType(type);
+    type.SetTypeTestingStub(code);
   }
 }
 
 void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
-  objects_to_rehash_.Add(map, HEAP_SPACE(kind_));
+  objects_to_rehash_.Add(map);
 }
 
 RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
@@ -303,8 +297,7 @@ RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
         collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
     ASSERT(!rehashing_function.IsNull());
 
-    const Array& arguments =
-        Array::Handle(zone_, Array::New(1, HEAP_SPACE(kind_)));
+    const Array& arguments = Array::Handle(zone_, Array::New(1));
     arguments.SetAt(0, objects_to_rehash_);
 
     return DartEntry::InvokeFunction(rehashing_function, arguments);
@@ -342,42 +335,6 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   }
   cls.EnsureIsFinalized(thread());
   return cls.raw();
-}
-
-RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
-  ASSERT(kind_ == Snapshot::kScript);
-  // Read the function header information and lookup the function.
-  intptr_t func_header = Read<int32_t>();
-  ASSERT((func_header & kSmiTagMask) != kSmiTag);
-  ASSERT(!IsVMIsolateObject(func_header) ||
-         !IsSingletonClassId(GetVMIsolateObjectId(func_header)));
-  ASSERT((SerializedHeaderTag::decode(func_header) != kObjectId) ||
-         !IsObjectStoreClassId(SerializedHeaderData::decode(func_header)));
-  Function& func = Function::ZoneHandle(zone(), Function::null());
-  AddBackRef(object_id, &func, kIsDeserialized);
-  // Read the library/class/function information and lookup the function.
-  str_ ^= ReadObjectImpl(func_header, kAsInlinedObject, kInvalidPatchIndex, 0);
-  library_ = Library::LookupLibrary(thread(), str_);
-  if (library_.IsNull() || !library_.Loaded()) {
-    SetReadException("Expected a library name, but found an invalid name.");
-  }
-  str_ ^= ReadObjectImpl(kAsInlinedObject);
-  if (str_.Equals(Symbols::TopLevel(), 0, Symbols::TopLevel().Length())) {
-    str_ ^= ReadObjectImpl(kAsInlinedObject);
-    func ^= library_.LookupLocalFunction(str_);
-  } else {
-    cls_ = library_.LookupClassAllowPrivate(str_);
-    if (cls_.IsNull()) {
-      SetReadException("Expected a class name, but found an invalid name.");
-    }
-    cls_.EnsureIsFinalized(thread());
-    str_ ^= ReadObjectImpl(kAsInlinedObject);
-    func ^= cls_.LookupFunctionAllowPrivate(str_);
-  }
-  if (func.IsNull()) {
-    SetReadException("Expected a function name, but found an invalid name.");
-  }
-  return func.raw();
 }
 
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
@@ -559,7 +516,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    *result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
+    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -643,31 +600,6 @@ class HeapLocker : public StackResource {
  private:
   PageSpace* page_space_;
 };
-
-RawObject* SnapshotReader::ReadScriptSnapshot() {
-  ASSERT(kind_ == Snapshot::kScript);
-
-  // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersionAndFeatures(Isolate::Current());
-  if (error != ApiError::null()) {
-    return error;
-  }
-
-  // The version string matches. Read the rest of the snapshot.
-  obj_ = ReadObject();
-  if (!obj_.IsLibrary()) {
-    if (!obj_.IsError()) {
-      const intptr_t kMessageBufferSize = 128;
-      char message_buffer[kMessageBufferSize];
-      Utils::SNPrint(message_buffer, kMessageBufferSize,
-                     "Invalid object %s found in script snapshot",
-                     obj_.ToCString());
-      const String& msg = String::Handle(String::New(message_buffer));
-      obj_ = ApiError::New(msg);
-    }
-  }
-  return obj_.raw();
-}
 
 RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
@@ -899,43 +831,6 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
   }
 }
 
-void SnapshotReader::FixSubclassesAndImplementors() {
-  Class& cls = Class::Handle(zone());
-  Class& supercls = Class::Handle(zone());
-  Array& interfaces = Array::Handle(zone());
-  AbstractType& interface = AbstractType::Handle(zone());
-  Class& interface_cls = Class::Handle(zone());
-  for (intptr_t i = 0; i < backward_references_->length(); i++) {
-    BackRefNode& backref = (*backward_references_)[i];
-    Object* objref = backref.reference();
-    if (objref->IsClass()) {
-      cls ^= objref->raw();
-      if (!cls.IsInFullSnapshot()) {
-        supercls = cls.SuperClass();
-        if (!supercls.IsNull() && !supercls.IsObjectClass() &&
-            supercls.IsInFullSnapshot()) {
-          supercls.AddDirectSubclass(cls);
-          supercls.DisableCHAOptimizedCode(cls);
-        }
-        interfaces = cls.interfaces();
-        for (intptr_t i = 0; i < interfaces.Length(); i++) {
-          interface ^= interfaces.At(i);
-          interface_cls = interface.type_class();
-
-          interface_cls.set_is_implemented();
-          interface_cls.DisableCHAOptimizedCode(cls);
-
-          if (!interface_cls.IsObjectClass() &&
-              interface_cls.IsInFullSnapshot()) {
-            interface_cls.AddDirectImplementor(cls);
-            interface_cls.DisableCHAImplementorUsers();
-          }
-        }
-      }
-    }
-  }
-}
-
 void SnapshotReader::ArrayReadFrom(intptr_t object_id,
                                    const Array& result,
                                    intptr_t len,
@@ -955,19 +850,6 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
         ReadObjectImpl(as_reference, object_id, (i + offset));
     result.SetAt(i, *PassiveObjectHandle());
   }
-}
-
-ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
-                                           intptr_t size,
-                                           Thread* thread)
-    : SnapshotReader(buffer,
-                     size,
-                     Snapshot::kScript,
-                     new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     thread) {}
-
-ScriptSnapshotReader::~ScriptSnapshotReader() {
-  ResetBackwardReferenceTable();
 }
 
 MessageSnapshotReader::MessageSnapshotReader(Message* message, Thread* thread)
@@ -1189,16 +1071,16 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
-  // Now check if it is an object from the VM isolate. These objects are shared
-  // by all isolates.
-  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
+  // Check if it is a code object in that case just write a Null object
+  // as we do not want code objects in the snapshot.
+  if ((cid == kCodeCid) || (cid == kBytecodeCid)) {
+    WriteVMIsolateObject(kNullObject);
     return true;
   }
 
-  // Check if it is a code object in that case just write a Null object
-  // as we do not want code objects in the snapshot.
-  if (cid == kCodeCid) {
-    WriteVMIsolateObject(kNullObject);
+  // Now check if it is an object from the VM isolate. These objects are shared
+  // by all isolates.
+  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
     return true;
   }
 
@@ -1357,22 +1239,6 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-}
-
-void SnapshotWriter::WriteFunctionId(RawFunction* func, bool owner_is_class) {
-  ASSERT(kind_ == Snapshot::kScript);
-  RawClass* cls = (owner_is_class)
-                      ? reinterpret_cast<RawClass*>(func->ptr()->owner_)
-                      : reinterpret_cast<RawPatchClass*>(func->ptr()->owner_)
-                            ->ptr()
-                            ->patched_class_;
-
-  // Write out the library url and class name.
-  RawLibrary* library = cls->ptr()->library_;
-  ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-  WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
 }
 
 void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
@@ -1568,7 +1434,12 @@ intptr_t SnapshotWriter::FindVmSnapshotObject(RawObject* rawobj) {
 
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
-  thread()->clear_sticky_error();
+  {
+    NoSafepointScope no_safepoint;
+    RawError* error = thread()->StealStickyError();
+    ASSERT(error == Object::snapshot_writer_error().raw());
+  }
+
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));
     const Array& args = Array::Handle(Array::New(1));
@@ -1593,47 +1464,6 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
              features_len + 1);
   free(const_cast<char*>(expected_features));
-}
-
-ScriptSnapshotWriter::ScriptSnapshotWriter(ReAlloc alloc)
-    : SnapshotWriter(Thread::Current(),
-                     Snapshot::kScript,
-                     alloc,
-                     NULL,
-                     kInitialSize,
-                     &forward_list_,
-                     true /* can_send_any_object */),
-      forward_list_(thread(), kMaxPredefinedObjectIds) {
-  ASSERT(alloc != NULL);
-}
-
-void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
-  ASSERT(kind() == Snapshot::kScript);
-  ASSERT(isolate() != NULL);
-  ASSERT(ClassFinalizer::AllClassesFinalized());
-
-  // Setup for long jump in case there is an exception while writing
-  // the snapshot.
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    // Reserve space in the output buffer for a snapshot header.
-    ReserveHeader();
-
-    // Write out the version string.
-    WriteVersionAndFeatures();
-
-    // Write out the library object.
-    {
-      NoSafepointScope no_safepoint;
-
-      // Write out the library object.
-      WriteObject(lib.raw());
-
-      FillHeader(kind());
-    }
-  } else {
-    ThrowException(exception_type(), exception_msg());
-  }
 }
 
 void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
@@ -1679,12 +1509,18 @@ Message* MessageWriter::WriteMessage(const Object& obj,
 
   // Setup for long jump in case there is an exception while writing
   // the message.
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    NoSafepointScope no_safepoint;
-    WriteObject(obj.raw());
-  } else {
-    FreeBuffer();
+  bool has_exception = false;
+  {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      NoSafepointScope no_safepoint;
+      WriteObject(obj.raw());
+    } else {
+      FreeBuffer();
+      has_exception = true;
+    }
+  }
+  if (has_exception) {
     ThrowException(exception_type(), exception_msg());
   }
 

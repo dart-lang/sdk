@@ -4,7 +4,9 @@
 
 // part of "internal_patch.dart";
 
+@pragma("vm:entry-point")
 class ClassID {
+  @pragma("vm:entry-point")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int getID(Object value) native "ClassID_getID";
 

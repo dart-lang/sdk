@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -157,7 +157,7 @@ class A {
   test() {}
 }
 ''');
-    await indexUnit('/project/lib.dart', '''
+    await indexUnit('/home/test/lib/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -356,7 +356,7 @@ class A {
   newName() {} // marker
 }
 ''';
-    await indexUnit('/project/lib.dart', libCode);
+    await indexUnit('/home/test/lib/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
 class B extends A {
@@ -715,17 +715,18 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_inPubCache() async {
-    String pkgLib = '/.pub-cache/lib.dart';
-    await indexUnit(pkgLib, r'''
+    var externalPath = addPackageFile('aaa', 'lib.dart', r'''
 processObj(p) {
   p.test();
 }
-''');
+''').path;
     await indexTestUnit('''
-import '${convertPathForImport(pkgLib)}';
+import 'package:aaa/lib.dart';
+
 class A {
   test() {}
 }
+
 main(var a) {
   a.test();
 }
@@ -737,15 +738,17 @@ main(var a) {
     refactoring.newName = 'newName';
     // validate change
     await assertSuccessfulRefactoring('''
-import '${convertPathForImport('/.pub-cache/lib.dart')}';
+import 'package:aaa/lib.dart';
+
 class A {
   newName() {}
 }
+
 main(var a) {
   a.newName();
 }
 ''');
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(pkgLib);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(externalPath);
     expect(fileEdit, isNull);
   }
 
@@ -781,6 +784,94 @@ main(var a) {
 }
 ''');
     assertNoFileChange('/lib.dart');
+  }
+
+  test_createChange_outsideOfProject_declarationInPackage() async {
+    addPackageFile('aaa', 'aaa.dart', r'''
+class A {
+  void test() {}
+}
+
+void foo(A a) {
+  a.test();
+}
+''');
+    await indexTestUnit('''
+import 'package:aaa/aaa.dart';
+
+class B extends A {
+  void test() {}
+}
+
+main(A a, B b) {
+  a.test();
+  b.test();
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+import 'package:aaa/aaa.dart';
+
+class B extends A {
+  void newName() {}
+}
+
+main(A a, B b) {
+  a.newName();
+  b.newName();
+}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile);
+  }
+
+  test_createChange_outsideOfProject_referenceInPart() async {
+    newFile('/home/part.dart', content: r'''
+part of test;
+
+void foo(A a) {
+  a.test();
+}
+''');
+
+    // To use file:// URI.
+    testFile = convertPath('/home/test/bin/test.dart');
+
+    await indexTestUnit('''
+library test;
+
+part '../../part.dart';
+
+class A {
+  void test() {}
+}
+
+main(A a) {
+  a.test();
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+library test;
+
+part '../../part.dart';
+
+class A {
+  void newName() {}
+}
+
+main(A a) {
+  a.newName();
+}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile);
   }
 
   test_createChange_PropertyAccessorElement_getter() async {

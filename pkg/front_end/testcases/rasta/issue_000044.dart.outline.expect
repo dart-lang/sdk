@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000044.dart:7:8: Error: Expected a function body or '=>'.
 // Try adding {}.
@@ -22,16 +24,15 @@
 // pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Warning: Couldn't find constructor 'h'.
 //   C notEvenAConstructor(a) = h;
 //                              ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
-  const constructor constant() → void
+  const constructor constant() → self::C
     ;
-  constructor missingFactoryKeyword() → void
+  constructor missingFactoryKeyword() → self::C
     ;
   static factory good() → self::C
     let dynamic #redirecting_factory = self::C::constant in invalid-expression;

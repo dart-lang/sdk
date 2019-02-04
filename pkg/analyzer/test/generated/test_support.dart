@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -61,7 +62,8 @@ class EngineTestCase {
   }
 
   AnalysisContext createAnalysisContext() {
-    return AnalysisContextFactory.contextWithCore();
+    return AnalysisContextFactory.contextWithCore(
+        resourceProvider: new MemoryResourceProvider());
   }
 
   /**
@@ -105,23 +107,6 @@ class EngineTestCase {
   void tearDown() {}
 
   /**
-   * Assert that the given object is an instance of the expected class.
-   *
-   * @param expectedClass the class that the object is expected to be an instance of
-   * @param object the object being tested
-   * @return the object that was being tested
-   * @throws Exception if the object is not an instance of the expected class
-   */
-  static Object assertInstanceOf(
-      Predicate<Object> predicate, Type expectedClass, Object object) {
-    if (!predicate(object)) {
-      fail(
-          "Expected instance of $expectedClass, found ${object == null ? "null" : object.runtimeType}");
-    }
-    return object;
-  }
-
-  /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
   static AstNode findNode(
@@ -131,7 +116,7 @@ class EngineTestCase {
       throw new ArgumentError("Not found '$prefix'.");
     }
     AstNode node = new NodeLocator(offset).searchWithin(root);
-    return node.getAncestor(predicate);
+    return node.thisOrAncestorMatching(predicate);
   }
 
   /**

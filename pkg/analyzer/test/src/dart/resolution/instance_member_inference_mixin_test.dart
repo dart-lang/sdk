@@ -6,12 +6,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceMemberInferenceMixinDriverResolutionTest);
-    defineReflectiveTests(InstanceMemberInferenceMixinTaskResolutionTest);
   });
 }
 
@@ -19,7 +17,7 @@ main() {
 class InstanceMemberInferenceMixinDriverResolutionTest
     extends DriverResolutionTest with InstanceMemberInferenceMixinMixin {}
 
-abstract class InstanceMemberInferenceMixinMixin implements ResolutionTest {
+mixin InstanceMemberInferenceMixinMixin implements ResolutionTest {
   test_invalid_inheritanceCycle() async {
     addTestFile('''
 mixin A on C {}
@@ -290,7 +288,3 @@ mixin M<T> on A<T> {
     assertElementTypeString(foo.returnType, 'T');
   }
 }
-
-@reflectiveTest
-class InstanceMemberInferenceMixinTaskResolutionTest extends TaskResolutionTest
-    with InstanceMemberInferenceMixinMixin {}

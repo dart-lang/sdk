@@ -710,6 +710,17 @@ class OperationInfo(object):
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
+  """ Check if a parameter to a Future API is a Dictionary argument and if its optional.
+      Used for any Promised based operation to correctly convert from Map to Dictionary then
+      perform the PromiseToFuture call.
+  """
+  def dictionaryArgumentName(self, parameter_count=None):
+      parameter_count = len(self.param_infos)
+      for argument in self.param_infos[:parameter_count]:
+        if argument.type_id == 'Dictionary':
+          return [argument.name, argument.is_optional]
+      return None
+
   def isCallback(self, type_registry, type_id):
     if type_id and not type_id.endswith('[]'):
       callback_type = type_registry._database._all_interfaces[type_id]
@@ -862,6 +873,8 @@ _serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
 dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
+    # Used to convert Dart function to a JS callback typedef (old style).
+    'Callback set': Conversion('convertDartClosureToJS', 'dynamic', 'dynamic'),
     'Date get':
       Conversion('convertNativeToDart_DateTime', 'dynamic', 'DateTime'),
     'Date set':
@@ -909,6 +922,8 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set MessagePort.postMessage': _serialize_SSV,
     'any set Window.postMessage': _serialize_SSV,
     'any set _DOMWindowCrossFrame.postMessage': _serialize_SSV,
+    'any set Worker.postMessage': _serialize_SSV,
+    'any set ServiceWorker.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -1701,7 +1716,7 @@ class TypeRegistry(object):
         # It's a typedef (implied union)
         return self.TypeInfo('any')
       else:
-          print "ERROR: Unexpected interface, or type not found. %s" % type_name
+        print "ERROR: Unexpected interface, or type not found. %s" % type_name
 
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',

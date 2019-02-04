@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,19 +13,23 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show NamespaceDirectiveImpl, UriBasedDirectiveImpl, UriValidationCode;
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -1625,7 +1629,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     if (libraryElement == null) {
       libraryElement =
-          new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+          new LibraryElementImpl.forNode(owningContext, null, libraryNameNode);
       libraryElement.isSynthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
@@ -2381,6 +2385,11 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
    * constant.
    */
   AnalysisContext get context;
+
+  /**
+   * Return whether this constant is evaluated.
+   */
+  bool get isConstantEvaluated;
 }
 
 /**
@@ -2852,15 +2861,18 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.
-    InheritanceManager inheritanceManager = new InheritanceManager(
-        libraryElement,
-        includeAbstractFromSuperclasses: true);
+    var inheritanceManager2 = new InheritanceManager2(context.typeSystem);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, typeProvider, libraryElement, inheritanceManager,
-        typeSystem: typeSystem));
-    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+        errorReporter, typeProvider, libraryElement,
+        typeSystem: typeSystem, resourceProvider: resourceProvider));
+    unit.accept(new OverrideVerifier(
+      inheritanceManager2,
+      libraryElement,
+      errorReporter,
+    ));
     // Find to-do comments.
     new ToDoFinder(errorReporter).findIn(unit);
     //
@@ -3148,11 +3160,9 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     // Infer instance members.
     //
-    var inheritanceManager = new InheritanceManager(
-        resolutionMap.elementDeclaredByCompilationUnit(unit).library);
-    InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
-        typeProvider, (_) => inheritanceManager,
-        typeSystem: context.typeSystem);
+    var inheritance = new InheritanceManager2(context.typeSystem);
+    InstanceMemberInferrer inferrer =
+        new InstanceMemberInferrer(typeProvider, inheritance);
     inferrer.inferCompilationUnit(unit.declaredElement);
     //
     // Record outputs.
@@ -3228,7 +3238,7 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
           "${variable.displayName} at $offset in $variableSource");
     }
     VariableDeclaration declaration =
-        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+        node.thisOrAncestorOfType<VariableDeclaration>();
     if (declaration == null || declaration.name != node) {
       Source variableSource = variable.source;
       Source unitSource =
@@ -3399,6 +3409,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
 
     // If we're not in a dependency cycle, and we have no type annotation,
     // re-resolve the right hand side and do inference.
@@ -3414,14 +3425,13 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
       ResolutionContext resolutionContext =
           ResolutionContextBuilder.contextFor(initializer);
-      ResolverVisitor visitor = new ResolverVisitor(
+      ResolverVisitor visitor = new ResolverVisitor(inheritance,
           variable.library, variable.source, typeProvider, errorListener,
           nameScope: resolutionContext.scope);
       if (resolutionContext.enclosingClassDeclaration != null) {
         visitor.prepareToResolveMembersInClass(
             resolutionContext.enclosingClassDeclaration);
       }
-      visitor.initForIncrementalResolution();
       initializer.accept(visitor);
       DartType newType = initializer.staticType;
       if (newType == null || newType.isBottom || newType.isDartCoreNull) {
@@ -4018,11 +4028,16 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.declaredElement;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
     //
     // Resolve references and record outputs.
     //
-    PartialResolverVisitor visitor = new PartialResolverVisitor(libraryElement,
-        unitElement.source, typeProvider, AnalysisErrorListener.NULL_LISTENER);
+    PartialResolverVisitor visitor = new PartialResolverVisitor(
+        inheritance,
+        libraryElement,
+        unitElement.source,
+        typeProvider,
+        AnalysisErrorListener.NULL_LISTENER);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -4550,12 +4565,14 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
 
     CompilationUnitElement unitElement = unit.declaredElement;
     //
     // Resolve references.
     //
     InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
+        inheritance,
         libraryElement,
         unitElement.source,
         typeProvider,
@@ -4992,13 +5009,14 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
     //
     // Resolve everything.
     //
     CompilationUnitElement unitElement = unit.declaredElement;
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    ResolverVisitor visitor = new ResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener);
+    ResolverVisitor visitor = new ResolverVisitor(inheritance, libraryElement,
+        unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
     // Compute constant expressions' dependencies.
@@ -5104,7 +5122,9 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     RecordingErrorListener errorListener = new RecordingErrorListener();
     TypeResolverVisitor visitor = new TypeResolverVisitor(
-        library, unitElement.source, typeProvider, errorListener);
+        library, unitElement.source, typeProvider, errorListener,
+        shouldUseWithClauseInferredTypes: false,
+        shouldSetElementSupertypes: true);
     unit.accept(visitor);
     //
     // Re-write the AST to handle the optional new and const feature.
@@ -5433,10 +5453,8 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     if (options.strongMode) {
       CodeChecker checker = new CodeChecker(
           typeProvider,
-          new StrongTypeSystemImpl(typeProvider,
-              implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts,
-              nonnullableTypes: options.nonnullableTypes),
+          new Dart2TypeSystem(typeProvider,
+              implicitCasts: options.implicitCasts),
           errorListener,
           options);
       checker.visitCompilationUnit(unit);
@@ -5551,15 +5569,21 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, libraryElement, typeProvider, context.declaredVariables);
     unit.accept(constantVerifier);
+
+    //
+    // Compute inheritance and override errors.
+    //
+    var typeSystem = libraryElement.context.typeSystem;
+    var inheritanceManager = new InheritanceManager2(typeSystem);
+    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
+        typeSystem, inheritanceManager, errorReporter);
+    inheritanceOverrideVerifier.verifyUnit(unit);
+
     //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        libraryElement,
-        typeProvider,
-        new InheritanceManager(libraryElement),
-        context.analysisOptions.enableSuperMixins,
+        errorReporter, libraryElement, typeProvider, inheritanceManager, false,
         disableConflictingGenericsCheck: true);
     unit.accept(errorVerifier);
     //

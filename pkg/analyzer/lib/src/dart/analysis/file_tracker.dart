@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
 /**
  * Callback used by [FileTracker] to report to its client that files have been
@@ -208,6 +208,13 @@ class FileTracker {
     _fsState.removeFile(path);
     _pendingFiles.addAll(addedFiles);
     _changeHook();
+  }
+
+  /**
+   * Schedule all added files for analysis.
+   */
+  void scheduleAllAddedFiles() {
+    _pendingFiles.addAll(addedFiles);
   }
 
   /**

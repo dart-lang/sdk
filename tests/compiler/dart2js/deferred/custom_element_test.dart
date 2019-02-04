@@ -23,9 +23,9 @@ runTest() async {
       await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
   Compiler compiler = result.compiler;
   var closedWorld = compiler.backendClosedWorldForTesting;
-  var outputUnitForMember = compiler.backend.outputUnitData.outputUnitForMember;
-  var outputUnitForClass = compiler.backend.outputUnitData.outputUnitForClass;
-  var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
+  var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
+  var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
+  var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
   var elementEnvironment = closedWorld.elementEnvironment;
   dynamic lib = elementEnvironment.lookupLibrary(Uri.parse("memory:lib.dart"));
   var customType = elementEnvironment.lookupClass(lib, "CustomType");

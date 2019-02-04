@@ -1,26 +1,20 @@
-// Formatted problems:
+library test;
 //
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:16:24: Error: The return type of the method 'B::x' is dart.core::int, which does not match the return type of the overridden method (dart.core::double).
-// Change to a subtype of dart.core::double.
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:16:24: Error: The return type of the method 'B.x' is 'int', which does not match the return type of the overridden method, 'double'.
+// Change to a subtype of 'double'.
 //   var /*@topType=int*/ x;
 //                        ^
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:10:12: Error: This is the overridden method ('x').
+// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:10:12: Context: This is the overridden method ('x').
 //   void set x(double value);
 //            ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:16:24: Error: The return type of the method 'B::x' is dart.core::int, which does not match the return type of the overridden method (dart.core::double).
-// Change to a subtype of dart.core::double.
-//   var /*@topType=int*/ x;
-//                        ^
-
-library test;
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   abstract get x() → core::int;
@@ -28,7 +22,7 @@ abstract class A extends core::Object {
 }
 class B extends self::A {
   field core::int x = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }

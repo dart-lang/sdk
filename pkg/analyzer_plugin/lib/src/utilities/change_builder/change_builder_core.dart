@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -66,6 +66,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FileEditBuilderImpl builder = await createFileEditBuilder(path);
+    if (builder == null) {
+      return;
+    }
+
     buildFileEdit(builder);
     if (builder.hasEdits) {
       _change.addFileEdit(builder.fileEdit);
@@ -357,7 +361,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
     SourceEdit edit = builder.sourceEdit;
     fileEdit.add(edit);
     int delta = _editDelta(edit);
-    changeBuilder._updatePositions(edit.offset + math.max(0, delta), delta);
+    changeBuilder._updatePositions(
+        edit.offset + math.max<int>(0, delta), delta);
     changeBuilder._lockedPositions.clear();
     _captureSelection(builder, edit);
   }

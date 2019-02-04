@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+  method f<U extends core::Object = dynamic>(self::C::f::U x) → (self::C::T) → void
+    return (dynamic y) → dynamic {};
+}
+static method test(self::C<core::String> c) → void {
+  (core::int) → (core::String) → void tearoff = c.f;
+}
+static method main() → dynamic {}

@@ -201,12 +201,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    super.beginExpressionStatement(token);
-    begin('ExpressionStatement');
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     super.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -217,6 +211,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginFieldInitializer(Token token) {
     super.beginFieldInitializer(token);
     begin('FieldInitializer');
+  }
+
+  @override
+  void beginForControlFlow(Token awaitToken, Token forToken) {
+    super.beginForControlFlow(awaitToken, forToken);
+    begin('ForControlFlow');
   }
 
   @override
@@ -254,6 +254,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginFormalParameters(Token token, MemberKind kind) {
     super.beginFormalParameters(token, kind);
     begin('FormalParameters');
+  }
+
+  @override
+  void beginIfControlFlow(Token ifToken) {
+    super.beginIfControlFlow(ifToken);
+    begin('IfControlFlow');
   }
 
   @override
@@ -338,12 +344,6 @@ class ForwardingTestListener extends ForwardingListener {
   void beginLibraryName(Token token) {
     super.beginLibraryName(token);
     begin('LibraryName');
-  }
-
-  @override
-  void beginLiteralMapEntry(Token token) {
-    super.beginLiteralMapEntry(token);
-    begin('LiteralMapEntry');
   }
 
   @override
@@ -688,12 +688,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
-    end('ExpressionStatement');
-    super.endExpressionStatement(token);
-  }
-
-  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
@@ -716,10 +710,21 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParen,
-      Token inKeyword, Token endToken) {
+  void endForControlFlow(Token token) {
+    end('ForControlFlow');
+    super.endForControlFlow(token);
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    end('ForControlFlow');
+    super.endForInControlFlow(token);
+  }
+
+  @override
+  void endForIn(Token endToken) {
     end('ForStatement');
-    super.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
+    super.endForIn(endToken);
   }
 
   @override
@@ -735,11 +740,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void endForStatement(Token endToken) {
     end('ForStatement');
-    super.endForStatement(
-        forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
+    super.endForStatement(endToken);
   }
 
   @override
@@ -782,9 +785,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     end('FunctionType');
-    super.endFunctionType(functionToken);
+    super.endFunctionType(functionToken, questionMark);
   }
 
   @override
@@ -804,6 +807,18 @@ class ForwardingTestListener extends ForwardingListener {
   void endHide(Token hideKeyword) {
     end('Hide');
     super.endHide(hideKeyword);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    end('IfControlFlow');
+    super.endIfControlFlow(token);
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    end('IfControlFlow');
+    super.endIfElseControlFlow(token);
   }
 
   @override
@@ -846,12 +861,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     end('LibraryName');
     super.endLibraryName(libraryKeyword, semicolon);
-  }
-
-  @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
-    end('LiteralMapEntry');
-    super.endLiteralMapEntry(colon, endToken);
   }
 
   @override

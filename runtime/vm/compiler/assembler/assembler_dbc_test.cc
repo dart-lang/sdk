@@ -8,9 +8,11 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+namespace compiler {
 
 static RawObject* ExecuteTest(const Code& code) {
   const intptr_t kTypeArgsLen = 0;
@@ -67,14 +69,15 @@ static void GenerateDummyCode(Assembler* assembler, const Object& result) {
 
 static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   // Make a dummy function.
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler _assembler_(&object_pool_wrapper);
+  ObjectPoolBuilder object_pool_builder;
+  Assembler _assembler_(&object_pool_builder);
   GenerateDummyCode(&_assembler_, result);
   const char* dummy_function_name = "dummy_instance_function";
   const Function& dummy_instance_function =
       Function::Handle(CreateFunction(dummy_function_name));
   Code& code = Code::Handle(
-      Code::FinalizeCode(dummy_instance_function, nullptr, &_assembler_));
+      Code::FinalizeCode(dummy_instance_function, nullptr, &_assembler_,
+                         Code::PoolAttachment::kAttachPool));
   dummy_instance_function.AttachCode(code);
 
   // Make a dummy ICData.
@@ -132,7 +135,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Frame(2);
   __ Move(0, -kParamEndSlotFromFp - 1);
   __ Move(1, -kParamEndSlotFromFp - 2);
-  __ StoreField(0, GrowableObjectArray::data_offset() / kWordSize, 1);
+  __ StoreField(0, GrowableObjectArray::data_offset() / target::kWordSize, 1);
   __ Return(0);
 }
 
@@ -2511,6 +2514,7 @@ ASSEMBLER_TEST_RUN(DMax, test) {
 
 #endif  // defined(ARCH_IS_64_BIT)
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_DBC)

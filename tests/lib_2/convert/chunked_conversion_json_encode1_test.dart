@@ -75,7 +75,6 @@ class MyStringConversionSink extends StringConversionSinkBase {
 
 String encode(Object o) {
   var result;
-  var encoder = new JsonEncoder();
   ChunkedConversionSink<String> stringSink =
       new MyStringConversionSink((x) => result = x);
   var objectSink = new JsonEncoder().startChunkedConversion(stringSink);

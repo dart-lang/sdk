@@ -36,27 +36,28 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
-  "co19_2_rev": "7514e576a02ced94a360ec51e0d26b32f9ebc82f",
+  "co19_2_rev": "31f7dc1e222910ce64ab57ffee286382b03446a4",
 
-  # As Flutter does, we pull buildtools, including the clang toolchain, from
-  # Fuchsia. This revision should be kept up to date with the revision pulled
-  # by the Flutter engine. If there are problems with the toolchain, contact
-  # fuchsia-toolchain@.
-  "buildtools_revision": "446d5b1019dcbe7835236dc85261e91cf29a9239",
+  # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
+  # should be kept up to date with the revisions pulled by the Flutter engine.
+  # The list of revisions for these tools comes from Fuchsia, here:
+  # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
+  # If there are problems with the toolchain, contact fuchsia-toolchain@.
+  "clang_revision": "de39621f0f03f20633bdfa50bde97a3908bf6e98",
+  "gn_revision": "bdb0fd02324b120cacde634a9235405061c8ea06",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
 
-  "gperftools_revision": "9608fa3bcf8020d35f59fbf70cd3cbe4b015b972",
+  "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "0.1.14",
   "boolean_selector_tag" : "1.0.4",
-  "boringssl_gen_rev": "fc47eaa1a245d858bae462cd64d4155605b850ea",
-  "boringssl_rev" : "189270cd190267f5bd60cfe8f8ce7a61d07ba6f4",
+  "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
+  "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
   "charcode_tag": "v1.1.2",
   "chrome_rev" : "19997",
   "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
@@ -64,7 +65,7 @@ vars = {
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.6+4",
+  "dart2js_info_tag" : "0.5.15",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -78,30 +79,30 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.0",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.20.4",
-  "fixnum_tag": "0.10.8",
-  "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
+  "dartdoc_tag" : "v0.28.0",
+  "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.13.3+2",
-  "http_io_rev": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
+  "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
-  "http_tag" : "0.11.3+17",
+  "http_tag" : "0.12.0",
   "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
-  "intl_tag": "0.15.6",
+  "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.62",
+  "linter_tag": "0.1.79",
   "logging_tag": "0.11.3+2",
+  "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "mustache4dart_tag" : "v2.1.2",
+  "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "1.0.5",
@@ -131,44 +132,54 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "1.0.0",
-  "tuple_tag": "v1.0.1",
+  "test_tag": "1.3.4",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+5",
-  "watcher_rev": "0.9.7+10",
+  "watcher_rev": "0.9.7+12",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "2.1.15",
-  "zlib_rev": "c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
+  "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
+  "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
+  "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
+  "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 }
 
 deps = {
   # Stuff needed for GN build.
-  Var("dart_root") + "/buildtools":
-     Var("fuchsia_git") + "/buildtools" + "@" + Var("buildtools_revision"),
   Var("dart_root") + "/buildtools/clang_format/script":
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
   Var("dart_root") + "/tools/sdks": {
-      "packages": [
-          {
-              "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.1.0-dev.4.0",
-          },
-      ],
+      "packages": [{
+          "package": "dart/dart-sdk/${{platform}}",
+          "version": "version:2.1.1-dev.1.0",
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/d8": {
+      "packages": [{
+          "package": "dart/d8",
+          "version": "version:6.9.427.23+1",
+      }],
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/tests/co19/src":
-      Var("dart_git") + "co19.git" + "@" + Var("co19_rev"),
+  Var("dart_root") + "/tests/co19_2/src": {
+      "packages": [{
+          "package": "dart/third_party/co19",
+          "version": "git_revision:" + Var("co19_2_rev"),
+      }],
+      "dep_type": "cipd",
+  },
 
-  Var("dart_root") + "/tests/co19_2/src":
-      Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
-      "@" + Var("co19_2_rev"),
+  Var("dart_root") + "/third_party/markupsafe":
+      Var("chromium_git") + "/chromium/src/third_party/markupsafe.git" +
+      "@" + Var("markupsafe_rev"),
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
@@ -179,6 +190,14 @@ deps = {
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
       "@" + Var("boringssl_rev"),
+
+  Var("dart_root") + "/third_party/gsutil": {
+      "packages": [{
+          "package": "infra/gsutil",
+          "version": "version:4.34",
+      }],
+      "dep_type": "cipd",
+  },
 
   Var("dart_root") + "/third_party/root_certificates":
       Var("dart_git") + "root_certificates.git" +
@@ -232,8 +251,6 @@ deps = {
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
-  Var("dart_root") + "/third_party/pkg/func":
-      Var("dart_git") + "func.git" + "@" + Var("func_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_tag"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -269,10 +286,10 @@ deps = {
       Var("dart_git") + "mime.git" + "@" + Var("mime_tag"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_tag"),
-  Var("dart_root") + "/third_party/pkg/mustache4dart":
-      Var("chromium_git")
-      + "/external/github.com/valotas/mustache4dart.git"
-      + "@" + Var("mustache4dart_tag"),
+  Var("dart_root") + "/third_party/pkg/mustache":
+      Var("dart_git")
+      + "external/github.com/xxgreg/mustache"
+      + "@" + Var("mustache_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
@@ -338,8 +355,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_tag"),
-  Var("dart_root") + "/third_party/pkg/tuple":
-      Var("dart_git") + "tuple.git" + "@" + Var("tuple_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
   # Unittest is an early version, 0.11.x, of the package "test"
@@ -362,30 +377,49 @@ deps = {
       "@" + Var("web_socket_channel_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_tag"),
-  Var("dart_root") + "/third_party/cygwin": {
-    "url": Var("chromium_git") + "/chromium/deps/cygwin.git" + "@" +
-        "c89e446b273697fadf3a10ff1007a97c0b7de6df",
-    "condition": "checkout_win",
+
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/clang/${{platform}}",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "(host_os == 'linux' or host_os == 'mac') and (host_cpu == 'x64' or host_cpu == 'arm64')",
+      "dep_type": "cipd",
   },
+
+  Var("dart_root") + "/buildtools": {
+      "packages": [
+          {
+              "package": "gn/gn/${{platform}}",
+              "version": "git_revision:" + Var("gn_revision"),
+          },
+      ],
+      "dep_type": "cipd",
+  },
+}
+
+deps_os = {
+  "win": {
+    Var("dart_root") + "/third_party/cygwin":
+        Var("chromium_git") + "/chromium/deps/cygwin.git" + "@" +
+        "c89e446b273697fadf3a10ff1007a97c0b7de6df",
+    Var("dart_root") + "/third_party/crashpad/crashpad":
+        Var("chromium_git") + "/crashpad/crashpad.git" + "@" +
+        Var("crashpad_rev"),
+    Var("dart_root") + "/third_party/mini_chromium/mini_chromium":
+        Var("chromium_git") + "/chromium/mini_chromium" + "@" +
+        Var("minichromium_rev"),
+    Var("dart_root") + "/third_party/googletest":
+        Var("fuchsia_git") + "/third_party/googletest" + "@" +
+        Var("googletest_rev"),
+  }
 }
 
 # TODO(iposva): Move the necessary tools so that hooks can be run
 # without the runtime being available.
 hooks = [
-  {
-    'name': 'd8_testing_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/third_party/d8',
-    ],
-  },
   {
     "name": "firefox_jsshell",
     "pattern": ".",
@@ -415,20 +449,6 @@ hooks = [
       "--extract",
       "-s",
       Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-    ],
-  },
-  {
-    "name": "gsutil",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/gsutil.tar.gz.sha1",
     ],
   },
   {
@@ -474,9 +494,5 @@ hooks = [
     'name': 'win_toolchain',
     'pattern': '.',
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
-  },
-  {
-    "pattern": ".",
-    "action": ["python", Var("dart_root") + "/tools/generate_buildfiles.py"],
   },
 ]

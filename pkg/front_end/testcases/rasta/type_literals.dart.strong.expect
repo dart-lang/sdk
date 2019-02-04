@@ -1,0 +1,522 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
+//     dynamic();
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Method not found: 'dynamic'.
+//     use(dynamic());
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Method not found: 'T'.
+//     T();
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Method not found: 'T'.
+//     use(T());
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Method not found: 'Func'.
+//     Func();
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
+//     use(Func());
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Setter not found: 'C'.
+//     C = 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Setter not found: 'C'.
+//     use(C = 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Setter not found: 'dynamic'.
+//     dynamic = 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Setter not found: 'dynamic'.
+//     use(dynamic = 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Setter not found: 'T'.
+//     T = 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Setter not found: 'T'.
+//     use(T = 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Setter not found: 'Func'.
+//     Func = 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Setter not found: 'Func'.
+//     use(Func = 42);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Setter not found: 'C'.
+//     C++;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Setter not found: 'C'.
+//     use(C++);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Setter not found: 'dynamic'.
+//     dynamic++;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Setter not found: 'dynamic'.
+//     use(dynamic++);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Setter not found: 'T'.
+//     T++;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Setter not found: 'T'.
+//     use(T++);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Setter not found: 'Func'.
+//     Func++;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Setter not found: 'Func'.
+//     use(Func++);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Setter not found: 'C'.
+//     ++C;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Setter not found: 'C'.
+//     use(++C);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Setter not found: 'dynamic'.
+//     ++dynamic;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Setter not found: 'dynamic'.
+//     use(++dynamic);
+//           ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Setter not found: 'T'.
+//     ++T;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Setter not found: 'T'.
+//     use(++T);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Setter not found: 'Func'.
+//     ++Func;
+//       ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Setter not found: 'Func'.
+//     use(++Func);
+//           ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Setter not found: 'C'.
+//     C--;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Setter not found: 'C'.
+//     use(C--);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Setter not found: 'dynamic'.
+//     dynamic--;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Setter not found: 'dynamic'.
+//     use(dynamic--);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Setter not found: 'T'.
+//     T--;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Setter not found: 'T'.
+//     use(T--);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Setter not found: 'Func'.
+//     Func--;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Setter not found: 'Func'.
+//     use(Func--);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Setter not found: 'C'.
+//     --C;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Setter not found: 'C'.
+//     use(--C);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Setter not found: 'dynamic'.
+//     --dynamic;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Setter not found: 'dynamic'.
+//     use(--dynamic);
+//           ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Setter not found: 'T'.
+//     --T;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Setter not found: 'T'.
+//     use(--T);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Setter not found: 'Func'.
+//     --Func;
+//       ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Setter not found: 'Func'.
+//     use(--Func);
+//           ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Setter not found: 'C'.
+//     C ??= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Setter not found: 'C'.
+//     use(C ??= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Setter not found: 'dynamic'.
+//     dynamic ??= 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Setter not found: 'dynamic'.
+//     use(dynamic ??= 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Setter not found: 'T'.
+//     T ??= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Setter not found: 'T'.
+//     use(T ??= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Setter not found: 'Func'.
+//     Func ??= 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Setter not found: 'Func'.
+//     use(Func ??= 42);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Setter not found: 'C'.
+//     C += 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Setter not found: 'C'.
+//     use(C += 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Setter not found: 'dynamic'.
+//     dynamic += 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Setter not found: 'dynamic'.
+//     use(dynamic += 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Setter not found: 'T'.
+//     T += 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Setter not found: 'T'.
+//     use(T += 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Setter not found: 'Func'.
+//     Func += 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Setter not found: 'Func'.
+//     use(Func += 42);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Setter not found: 'C'.
+//     C -= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Setter not found: 'C'.
+//     use(C -= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Setter not found: 'dynamic'.
+//     dynamic -= 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Setter not found: 'dynamic'.
+//     use(dynamic -= 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Setter not found: 'T'.
+//     T -= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Setter not found: 'T'.
+//     use(T -= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Setter not found: 'Func'.
+//     Func -= 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Setter not found: 'Func'.
+//     use(Func -= 42);
+//         ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Func = () → void;
+class C<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+  method test() → dynamic {
+    self::C<dynamic>;
+    self::use(self::C<dynamic>);
+    dynamic;
+    self::use(dynamic);
+    self::C::T;
+    self::use(self::C::T);
+    () → void;
+    self::use(() → void);
+    new self::C::•<dynamic>();
+    self::use(new self::C::•<dynamic>());
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
+    dynamic();
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Method not found: 'dynamic'.
+    use(dynamic());
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Method not found: 'T'.
+    T();
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Method not found: 'T'.
+    use(T());
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Method not found: 'Func'.
+    Func();
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
+    use(Func());
+        ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Setter not found: 'C'.
+    C = 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Setter not found: 'C'.
+    use(C = 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Setter not found: 'dynamic'.
+    dynamic = 42;
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Setter not found: 'dynamic'.
+    use(dynamic = 42);
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Setter not found: 'T'.
+    T = 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Setter not found: 'T'.
+    use(T = 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Setter not found: 'Func'.
+    Func = 42;
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Setter not found: 'Func'.
+    use(Func = 42);
+        ^^^^");
+    let final dynamic #t1 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Setter not found: 'C'.
+    C++;
+    ^";
+    self::use(let final dynamic #t2 = self::C<dynamic> in let final dynamic #t3 = #t2 in let final dynamic #t4 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Setter not found: 'C'.
+    use(C++);
+        ^" in #t3);
+    let final dynamic #t5 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Setter not found: 'dynamic'.
+    dynamic++;
+    ^^^^^^^";
+    self::use(let final dynamic #t6 = dynamic in let final dynamic #t7 = #t6 in let final dynamic #t8 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Setter not found: 'dynamic'.
+    use(dynamic++);
+        ^^^^^^^" in #t7);
+    let final dynamic #t9 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Setter not found: 'T'.
+    T++;
+    ^";
+    self::use(let final dynamic #t10 = self::C::T in let final dynamic #t11 = #t10 in let final dynamic #t12 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Setter not found: 'T'.
+    use(T++);
+        ^" in #t11);
+    let final dynamic #t13 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Setter not found: 'Func'.
+    Func++;
+    ^^^^";
+    self::use(let final dynamic #t14 = () → void in let final dynamic #t15 = #t14 in let final dynamic #t16 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Setter not found: 'Func'.
+    use(Func++);
+        ^^^^" in #t15);
+    let final dynamic #t17 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Setter not found: 'C'.
+    ++C;
+      ^";
+    self::use(let final dynamic #t18 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Setter not found: 'C'.
+    use(++C);
+          ^");
+    let final dynamic #t19 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Setter not found: 'dynamic'.
+    ++dynamic;
+      ^^^^^^^";
+    self::use(let final dynamic #t20 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Setter not found: 'dynamic'.
+    use(++dynamic);
+          ^^^^^^^");
+    let final dynamic #t21 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Setter not found: 'T'.
+    ++T;
+      ^";
+    self::use(let final dynamic #t22 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Setter not found: 'T'.
+    use(++T);
+          ^");
+    let final dynamic #t23 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Setter not found: 'Func'.
+    ++Func;
+      ^^^^";
+    self::use(let final dynamic #t24 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Setter not found: 'Func'.
+    use(++Func);
+          ^^^^");
+    let final dynamic #t25 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Setter not found: 'C'.
+    C--;
+    ^";
+    self::use(let final dynamic #t26 = self::C<dynamic> in let final dynamic #t27 = #t26 in let final dynamic #t28 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Setter not found: 'C'.
+    use(C--);
+        ^" in #t27);
+    let final dynamic #t29 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Setter not found: 'dynamic'.
+    dynamic--;
+    ^^^^^^^";
+    self::use(let final dynamic #t30 = dynamic in let final dynamic #t31 = #t30 in let final dynamic #t32 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Setter not found: 'dynamic'.
+    use(dynamic--);
+        ^^^^^^^" in #t31);
+    let final dynamic #t33 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Setter not found: 'T'.
+    T--;
+    ^";
+    self::use(let final dynamic #t34 = self::C::T in let final dynamic #t35 = #t34 in let final dynamic #t36 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Setter not found: 'T'.
+    use(T--);
+        ^" in #t35);
+    let final dynamic #t37 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Setter not found: 'Func'.
+    Func--;
+    ^^^^";
+    self::use(let final dynamic #t38 = () → void in let final dynamic #t39 = #t38 in let final dynamic #t40 = invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Setter not found: 'Func'.
+    use(Func--);
+        ^^^^" in #t39);
+    let final dynamic #t41 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Setter not found: 'C'.
+    --C;
+      ^";
+    self::use(let final dynamic #t42 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Setter not found: 'C'.
+    use(--C);
+          ^");
+    let final dynamic #t43 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Setter not found: 'dynamic'.
+    --dynamic;
+      ^^^^^^^";
+    self::use(let final dynamic #t44 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Setter not found: 'dynamic'.
+    use(--dynamic);
+          ^^^^^^^");
+    let final dynamic #t45 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Setter not found: 'T'.
+    --T;
+      ^";
+    self::use(let final dynamic #t46 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Setter not found: 'T'.
+    use(--T);
+          ^");
+    let final dynamic #t47 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Setter not found: 'Func'.
+    --Func;
+      ^^^^";
+    self::use(let final dynamic #t48 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Setter not found: 'Func'.
+    use(--Func);
+          ^^^^");
+    let final dynamic #t49 = self::C<dynamic> in #t49.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Setter not found: 'C'.
+    C ??= 42;
+    ^" : null;
+    self::use(let final dynamic #t50 = self::C<dynamic> in let final dynamic #t51 = #t50 in #t51.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Setter not found: 'C'.
+    use(C ??= 42);
+        ^" : #t51);
+    let final dynamic #t52 = dynamic in #t52.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Setter not found: 'dynamic'.
+    dynamic ??= 42;
+    ^^^^^^^" : null;
+    self::use(let final dynamic #t53 = dynamic in let final dynamic #t54 = #t53 in #t54.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Setter not found: 'dynamic'.
+    use(dynamic ??= 42);
+        ^^^^^^^" : #t54);
+    let final dynamic #t55 = self::C::T in #t55.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Setter not found: 'T'.
+    T ??= 42;
+    ^" : null;
+    self::use(let final dynamic #t56 = self::C::T in let final dynamic #t57 = #t56 in #t57.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Setter not found: 'T'.
+    use(T ??= 42);
+        ^" : #t57);
+    let final dynamic #t58 = () → void in #t58.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Setter not found: 'Func'.
+    Func ??= 42;
+    ^^^^" : null;
+    self::use(let final dynamic #t59 = () → void in let final dynamic #t60 = #t59 in #t60.==(null) ? invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Setter not found: 'Func'.
+    use(Func ??= 42);
+        ^^^^" : #t60);
+    let final dynamic #t61 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Setter not found: 'C'.
+    C += 42;
+    ^";
+    self::use(let final dynamic #t62 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Setter not found: 'C'.
+    use(C += 42);
+        ^");
+    let final dynamic #t63 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Setter not found: 'dynamic'.
+    dynamic += 42;
+    ^^^^^^^";
+    self::use(let final dynamic #t64 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Setter not found: 'dynamic'.
+    use(dynamic += 42);
+        ^^^^^^^");
+    let final dynamic #t65 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Setter not found: 'T'.
+    T += 42;
+    ^";
+    self::use(let final dynamic #t66 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Setter not found: 'T'.
+    use(T += 42);
+        ^");
+    let final dynamic #t67 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Setter not found: 'Func'.
+    Func += 42;
+    ^^^^";
+    self::use(let final dynamic #t68 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Setter not found: 'Func'.
+    use(Func += 42);
+        ^^^^");
+    let final dynamic #t69 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Setter not found: 'C'.
+    C -= 42;
+    ^";
+    self::use(let final dynamic #t70 = self::C<dynamic> in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Setter not found: 'C'.
+    use(C -= 42);
+        ^");
+    let final dynamic #t71 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Setter not found: 'dynamic'.
+    dynamic -= 42;
+    ^^^^^^^";
+    self::use(let final dynamic #t72 = dynamic in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Setter not found: 'dynamic'.
+    use(dynamic -= 42);
+        ^^^^^^^");
+    let final dynamic #t73 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Setter not found: 'T'.
+    T -= 42;
+    ^";
+    self::use(let final dynamic #t74 = self::C::T in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Setter not found: 'T'.
+    use(T -= 42);
+        ^");
+    let final dynamic #t75 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Setter not found: 'Func'.
+    Func -= 42;
+    ^^^^";
+    self::use(let final dynamic #t76 = () → void in invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Setter not found: 'Func'.
+    use(Func -= 42);
+        ^^^^");
+  }
+}
+static method use(dynamic x) → dynamic {
+  if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
+    throw "Shouldn't happen";
+}
+static method main() → dynamic {
+  new self::C::•<dynamic>().{self::C::test}();
+}

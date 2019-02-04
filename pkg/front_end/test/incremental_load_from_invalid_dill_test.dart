@@ -14,6 +14,9 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -24,12 +27,11 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
-        Template,
-        templateInitializeFromDillNotSelfContained,
-        templateInitializeFromDillUnknownProblem,
-        FormattedMessage;
-
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
+        Code,
+        codeInitializeFromDillNotSelfContained,
+        codeInitializeFromDillNotSelfContainedNoDump,
+        codeInitializeFromDillUnknownProblem,
+        codeInitializeFromDillUnknownProblemNoDump;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -57,38 +59,40 @@ class Tester {
   Uri entryPoint;
   Uri platformUri;
   List<int> sdkSummaryData;
-  List<FormattedMessage> formattedErrors;
-  List<FormattedMessage> formattedWarnings;
+  List<DiagnosticMessage> errorMessages;
+  List<DiagnosticMessage> warningMessages;
   MemoryFileSystem fs;
   CompilerOptions options;
 
   compileExpectInitializeFailAndSpecificWarning(
-      Template expectedWarningTemplate) async {
-    formattedErrors.clear();
-    formattedWarnings.clear();
-    IncrementalCompiler compiler = new IncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
-        initializeFrom);
+      Code expectedWarningCode, bool writeFileOnCrashReport) async {
+    errorMessages.clear();
+    warningMessages.clear();
+    options.writeFileOnCrashReport = writeFileOnCrashReport;
+    DeleteTempFilesIncrementalCompiler compiler =
+        new DeleteTempFilesIncrementalCompiler(
+            new CompilerContext(
+                new ProcessedOptions(options: options, inputs: [entryPoint])),
+            initializeFrom);
     await compiler.computeDelta();
     if (compiler.initializedFromDill) {
       Expect.fail("Expected to not be able to initialized from dill, but did.");
     }
-    if (formattedErrors.isNotEmpty) {
-      Expect.fail("Got unexpected errors: $formattedErrors");
+    if (errorMessages.isNotEmpty) {
+      Expect.fail("Got unexpected errors: " + joinMessages(errorMessages));
     }
-    if (formattedWarnings.length != 1) {
-      Expect.fail(
-          "Got unexpected errors: Expected one, got this: $formattedWarnings");
+    if (warningMessages.length != 1) {
+      Expect.fail("Got unexpected errors: Expected one, got this: " +
+          joinMessages(warningMessages));
     }
-    if (formattedWarnings[0].code.template != expectedWarningTemplate) {
-      Expect.fail("Expected $expectedWarningTemplate "
-          "but got $formattedWarnings");
+    if (getMessageCodeObject(warningMessages[0]) != expectedWarningCode) {
+      Expect.fail("Expected ${expectedWarningCode.name} but got " +
+          joinMessages(warningMessages));
     }
   }
 
   initialize() async {
-    sdkRoot = computePlatformBinariesLocation();
+    sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     base = Uri.parse("org-dartlang-test:///");
     sdkSummary = base.resolve("vm_platform.dill");
     initializeFrom = base.resolve("initializeFrom.dill");
@@ -96,20 +100,19 @@ class Tester {
     entryPoint = base.resolve("small.dart");
     platformUri = sdkRoot.resolve("vm_platform_strong.dill");
     sdkSummaryData = await new File.fromUri(platformUri).readAsBytes();
-    formattedErrors = <FormattedMessage>[];
-    formattedWarnings = <FormattedMessage>[];
+    errorMessages = <DiagnosticMessage>[];
+    warningMessages = <DiagnosticMessage>[];
     fs = new MemoryFileSystem(base);
     options = getOptions(true);
 
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
-    options.onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error) {
-        formattedErrors.add(problem);
-      } else if (severity == Severity.warning) {
-        formattedWarnings.add(problem);
+    options.onDiagnostic = (DiagnosticMessage message) {
+      if (message.severity == Severity.error) {
+        errorMessages.add(message);
+      } else if (message.severity == Severity.warning) {
+        warningMessages.add(message);
       }
     };
 
@@ -148,11 +151,11 @@ main() {
       Expect.fail(
           "Expected to have sucessfully initialized from dill, but didn't.");
     }
-    if (formattedErrors.isNotEmpty) {
-      Expect.fail("Got unexpected errors: $formattedErrors");
+    if (errorMessages.isNotEmpty) {
+      Expect.fail("Got unexpected errors: " + joinMessages(errorMessages));
     }
-    if (formattedWarnings.isNotEmpty) {
-      Expect.fail("Got unexpected errors: $formattedWarnings");
+    if (warningMessages.isNotEmpty) {
+      Expect.fail("Got unexpected warnings: " + joinMessages(warningMessages));
     }
 
     // Create a partial dill file.
@@ -167,12 +170,31 @@ main() {
 
     // Initializing from partial dill should not be ok.
     await compileExpectInitializeFailAndSpecificWarning(
-        templateInitializeFromDillNotSelfContained);
+        codeInitializeFromDillNotSelfContained, true);
+    await compileExpectInitializeFailAndSpecificWarning(
+        codeInitializeFromDillNotSelfContainedNoDump, false);
 
     // Create a invalid dill file to load from: Should not be ok.
     data = new List<int>.filled(42, 42);
     fs.entityForUri(initializeFrom).writeAsBytesSync(data);
     await compileExpectInitializeFailAndSpecificWarning(
-        templateInitializeFromDillUnknownProblem);
+        codeInitializeFromDillUnknownProblem, true);
+    await compileExpectInitializeFailAndSpecificWarning(
+        codeInitializeFromDillUnknownProblemNoDump, false);
   }
+}
+
+class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
+  DeleteTempFilesIncrementalCompiler(CompilerContext context,
+      [Uri initializeFromDillUri])
+      : super(context, initializeFromDillUri);
+
+  void recordTemporaryFileForTesting(Uri uri) {
+    File f = new File.fromUri(uri);
+    if (f.existsSync()) f.deleteSync();
+  }
+}
+
+String joinMessages(List<DiagnosticMessage> messages) {
+  return messages.map((m) => m.plainTextFormatted.join("\n")).join("\n");
 }

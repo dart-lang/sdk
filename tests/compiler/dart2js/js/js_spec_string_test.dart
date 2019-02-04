@@ -5,7 +5,7 @@
 // Unit test of the [NativeBehavior.processSpecString] method.
 
 import 'package:expect/expect.dart';
-import 'package:compiler/src/native/native.dart';
+import 'package:compiler/src/native/behavior.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/universe/side_effects.dart' show SideEffects;
@@ -270,12 +270,11 @@ void main() {
   testWithSideEffects(' returns:A|B|C;   creates:A;  ',
       returns: ['A', 'B', 'C'], creates: ['A']);
 
-  test('throws:must', expectedThrows: NativeThrowBehavior.MUST);
   test('throws:may', expectedThrows: NativeThrowBehavior.MAY);
   test('throws:never', expectedThrows: NativeThrowBehavior.NEVER);
-  test('throws:null(1)',
-      expectedThrows:
-          NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS);
+  test('throws:null(1)', expectedThrows: NativeThrowBehavior.NULL_NSM);
+  test('throws:null(1)+may',
+      expectedThrows: NativeThrowBehavior.NULL_NSM_THEN_MAY);
 
   test('new:true', expectedNew: true);
   test('new:false', expectedNew: false);

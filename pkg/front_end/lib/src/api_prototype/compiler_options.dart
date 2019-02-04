@@ -6,29 +6,15 @@ library front_end.compiler_options;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../base/performance_logger.dart' show PerformanceLog;
+import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
-import '../fasta/fasta_codes.dart' show FormattedMessage;
-
-import '../fasta/severity.dart' show Severity;
-
-import 'byte_store.dart' show ByteStore, NullByteStore;
-
-import 'compilation_message.dart' show CompilationMessage;
+import 'experimental_flags.dart' show ExperimentalFlag, parseExperimentalFlag;
 
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
 
-export '../fasta/fasta_codes.dart' show FormattedMessage;
-
-export '../fasta/severity.dart' show Severity;
-
-/// Callback used to report errors encountered during compilation.
-typedef void ErrorHandler(CompilationMessage error);
-
-typedef void ProblemHandler(FormattedMessage problem, Severity severity,
-    List<FormattedMessage> context);
+export 'diagnostic_message.dart' show DiagnosticMessage;
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -52,25 +38,7 @@ class CompilerOptions {
   /// `lib/libraries.json`.
   Uri librariesSpecificationUri;
 
-  /// Callback to which compilation errors should be delivered.
-  ///
-  /// By default, when no callback is provided, the compiler will report
-  /// messages on the console and will throw when fatal errors are discovered.
-  ErrorHandler onError;
-
-  ProblemHandler onProblem;
-
-  /// Whether messages should be reported using the compiler's internal
-  /// reporting mechanism.
-  ///
-  /// If no [onError] handler is provided, the default is true. If an [onError]
-  /// handler is provided, the default is false. Setting this to true will
-  /// ensure that error messages are printed in the console and that fatal
-  /// errors cause an exception.
-  // TODO(sigmund): add also an API for formatting errors and provide a default
-  // formatter. This way user can configure error style in the console and in
-  // generated code that contains error messages.
-  bool reportMessages;
+  DiagnosticMessageHandler onDiagnostic;
 
   /// URI of the ".packages" file (typically a "file:" URI).
   ///
@@ -126,12 +94,6 @@ class CompilerOptions {
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
 
-  /// The byte storage to access serialized data.
-  ByteStore byteStore = new NullByteStore();
-
-  /// The logger to report compilation progress.
-  PerformanceLog logger = new PerformanceLog(new StringBuffer());
-
   /// Whether to generate code for the SDK.
   ///
   /// By default the front end resolves components using a prebuilt SDK summary.
@@ -141,8 +103,8 @@ class CompilerOptions {
   @deprecated
   bool chaseDependencies;
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool strongMode = true;
+  /// True if enabling legacy mode (Dart 1 compatibility).
+  bool legacyMode = false;
 
   /// Patch files to apply on the core libraries for a specific target platform.
   ///
@@ -158,7 +120,12 @@ class CompilerOptions {
   /// directly, while relative URIs are resolved from the [sdkRoot].
   // TODO(sigmund): provide also a flag to load this data from a file (like
   // libraries.json)
-  Map<String, List<Uri>> targetPatches = {};
+  Map<String, List<Uri>> targetPatches = <String, List<Uri>>{};
+
+  /// Enable or disable experimental features. Features mapping to `true` are
+  /// explicitly enabled. Features mapping to `false` are explicitly disabled.
+  /// Features not mentioned in the map will have their default value.
+  Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
   /// The target platform that will consume the compiled code.
   ///
@@ -185,8 +152,7 @@ class CompilerOptions {
   /// Whether to run extra verification steps to validate that compiled
   /// components are well formed.
   ///
-  /// Errors are reported via the [onError] callback.
-  // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)
+  /// Errors are reported via the [onDiagnostic] callback.
   bool verify = false;
 
   /// Whether to dump generated components in a text format (also mainly for
@@ -194,6 +160,10 @@ class CompilerOptions {
   ///
   /// Dumped data is printed in stdout.
   bool debugDump = false;
+
+  /// Whether to omit the platform when serializing the result from a `fasta
+  /// compile` run.
+  bool omitPlatform = false;
 
   /// Whether to set the exit code to non-zero if any problem (including
   /// warning, etc.) is encountered during compilation.
@@ -222,4 +192,35 @@ class CompilerOptions {
 
   /// Whether to generate bytecode.
   bool bytecode = false;
+
+  /// Whether to write a file (e.g. a dill file) when reporting a crash.
+  bool writeFileOnCrashReport = true;
+}
+
+/// Parse experimental flags from a list of strings, each of which is either a
+/// flag name or a flag name prefixed by 'no-'. Return a map of flags to their
+/// values that can be passed to [experimentalFlags].
+///
+/// If an unknown flag is mentioned, or a flag is mentioned more than once,
+/// the supplied error handler is called with an error message.
+Map<ExperimentalFlag, bool> parseExperimentalFlags(
+    Iterable<String> experiments, void onError(String message)) {
+  Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
+  if (experiments == null) return flags;
+  for (String experiment in experiments) {
+    bool value = true;
+    if (experiment.startsWith("no-")) {
+      value = false;
+      experiment = experiment.substring(3);
+    }
+    ExperimentalFlag flag = parseExperimentalFlag(experiment);
+    if (flag == null) {
+      onError("Unknown experiment: " + experiment);
+    } else if (flags.containsKey(flag)) {
+      onError("Experiment mentioned more than once: " + experiment);
+    } else {
+      flags[flag] = value;
+    }
+  }
+  return flags;
 }

@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31155.dart:11:18: Error: Expected ';' after this.
+//   var f = Map<A, B> {};
+//                  ^
+//
+// pkg/front_end/testcases/regress/issue_31155.dart:11:19: Error: Operator declarations must be preceeded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   var f = Map<A, B> {};
+//                   ^
+//
+// pkg/front_end/testcases/regress/issue_31155.dart:11:19: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   var f = Map<A, B> {};
+//                   ^
+//
+// pkg/front_end/testcases/regress/issue_31155.dart:11:19: Error: Operator '>' should have exactly one parameter.
+//   var f = Map<A, B> {};
+//                   ^
+//
+// pkg/front_end/testcases/regress/issue_31155.dart:11:23: Error: Expected a class member, but got ';'.
+//   var f = Map<A, B> {};
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  field dynamic f = core::Map<dynamic, dynamic>.<(self::A);
+  field dynamic B = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  operator >() → dynamic {}
+}
+static method main() → void {}

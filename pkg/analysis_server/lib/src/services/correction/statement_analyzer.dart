@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,9 +6,9 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -37,16 +37,24 @@ List<Token> _getTokens(String text) {
  * Analyzer to check if a selection covers a valid set of statements of AST.
  */
 class StatementAnalyzer extends SelectionAnalyzer {
-  final CompilationUnit unit;
+  final ResolvedUnitResult resolveResult;
 
   final RefactoringStatus _status = new RefactoringStatus();
 
-  StatementAnalyzer(this.unit, SourceRange selection) : super(selection);
+  StatementAnalyzer(this.resolveResult, SourceRange selection)
+      : super(selection);
 
   /**
    * Returns the [RefactoringStatus] result of selection checking.
    */
   RefactoringStatus get status => _status;
+
+  /**
+   * Analyze the selection, compute [status] and nodes.
+   */
+  void analyze() {
+    resolveResult.unit.accept(this);
+  }
 
   /**
    * Records fatal error with given message and [Location].
@@ -68,7 +76,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
     {
       int selectionStart = selection.offset;
       int selectionEnd = selection.end;
-      List<SourceRange> commentRanges = getCommentRanges(unit);
+      List<SourceRange> commentRanges = getCommentRanges(resolveResult.unit);
       for (SourceRange commentRange in commentRanges) {
         if (commentRange.contains(selectionStart)) {
           invalidSelection("Selection begins inside a comment.");
@@ -204,8 +212,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
    * Returns `true` if there are [Token]s in the given [SourceRange].
    */
   bool _hasTokens(SourceRange range) {
-    CompilationUnitElement unitElement = unit.declaredElement;
-    String fullText = unitElement.context.getContents(unitElement.source).data;
+    String fullText = resolveResult.content;
     String rangeText = fullText.substring(range.offset, range.end);
     return _getTokens(rangeText).isNotEmpty;
   }

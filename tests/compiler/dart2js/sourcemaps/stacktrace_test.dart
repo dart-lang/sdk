@@ -81,7 +81,7 @@ Future runTest(Test test, String config,
   return testStackTrace(test, config, (String input, String output) async {
     List<String> arguments = [
       '-o$output',
-      '--library-root=sdk',
+      '--libraries-spec=sdk/lib/libraries.json',
       '--packages=${Platform.packageConfig}',
       input,
     ]..addAll(options);

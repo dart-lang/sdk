@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analysis_server/protocol/protocol_constants.dart'
+    show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
     show UriContributor;
@@ -260,9 +266,27 @@ class Driver implements ServerStarter {
   static const String USE_FASTA_PARSER = "use-fasta-parser";
 
   /**
+   * The name of the flag to use the Language Server Protocol (LSP).
+   */
+  static const String USE_LSP = "lsp";
+
+  /**
    * A directory to analyze in order to train an analysis server snapshot.
    */
   static const String TRAIN_USING = "train-using";
+
+  /**
+   * User Experience, Experiment #1. This experiment changes the notion of
+   * what analysis roots are and priority files: the analysis root is set to be
+   * the priority files' containing directory.
+   */
+  static const String UX_EXPERIMENT_1 = "ux-experiment-1";
+
+  /**
+   * User Experience, Experiment #2. This experiment introduces the notion of an
+   * intermittent file system.
+   */
+  static const String UX_EXPERIMENT_2 = "ux-experiment-2";
 
   /**
    * The instrumentation server that is to be used by the analysis server.
@@ -281,7 +305,11 @@ class Driver implements ServerStarter {
    */
   ResolverProvider packageResolverProvider;
 
-  SocketServer socketServer;
+  /***
+   * An optional manager to handle file systems which may not always be
+   * available.
+   */
+  DetachableFileSystemManager detachableFileSystemManager;
 
   HttpAnalysisServer httpServer;
 
@@ -289,12 +317,8 @@ class Driver implements ServerStarter {
 
   /**
    * Use the given command-line [arguments] to start this server.
-   *
-   * At least temporarily returns AnalysisServer so that consumers of the
-   * starter API can then use the server, this is done as a stopgap for the
-   * angular plugin until the official plugin API is finished.
    */
-  AnalysisServer start(List<String> arguments) {
+  void start(List<String> arguments) {
     CommandLineParser parser = _createArgParser();
     ArgResults results = parser.parse(arguments, <String, String>{});
 
@@ -308,6 +332,9 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
+    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    analysisServerOptions.enableUXExperiment1 = results[UX_EXPERIMENT_1];
+    analysisServerOptions.enableUXExperiment2 = results[UX_EXPERIMENT_2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
@@ -348,47 +375,9 @@ class Driver implements ServerStarter {
       return null;
     }
 
-    String trainDirectory = results[TRAIN_USING];
-    if (trainDirectory != null) {
-      if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
-        print("Training directory '$trainDirectory' not found.\n");
-        exitCode = 1;
-        return null;
-      }
-    }
+    final defaultSdkPath = _getSdkPath(results);
+    final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
 
-    int port;
-    bool serve_http = false;
-    if (results[PORT_OPTION] != null) {
-      try {
-        port = int.parse(results[PORT_OPTION]);
-        serve_http = true;
-      } on FormatException {
-        print('Invalid port number: ${results[PORT_OPTION]}');
-        print('');
-        _printUsage(parser.parser, analytics);
-        exitCode = 1;
-        return null;
-      }
-    }
-
-    //
-    // Process all of the plugins so that extensions are registered.
-    //
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-    linter.registerLintRules();
-
-    String defaultSdkPath;
-    if (results[SDK_OPTION] != null) {
-      defaultSdkPath = results[SDK_OPTION];
-    } else {
-      // No path to the SDK was provided.
-      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      defaultSdkPath = FolderBasedDartSdk.defaultSdkDirectory(
-              PhysicalResourceProvider.INSTANCE)
-          .path;
-    }
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
@@ -409,12 +398,68 @@ class Driver implements ServerStarter {
     InstrumentationService instrumentationService =
         new InstrumentationService(instrumentationServer);
     instrumentationService.logVersion(
-        _readUuid(instrumentationService),
+        results[TRAIN_USING] != null
+            ? 'training-0'
+            : _readUuid(instrumentationService),
         analysisServerOptions.clientId,
         analysisServerOptions.clientVersion,
-        AnalysisServer.VERSION,
+        PROTOCOL_VERSION,
         defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = instrumentationService;
+
+    int diagnosticServerPort;
+    if (results[PORT_OPTION] != null) {
+      try {
+        diagnosticServerPort = int.parse(results[PORT_OPTION]);
+      } on FormatException {
+        print('Invalid port number: ${results[PORT_OPTION]}');
+        print('');
+        _printUsage(parser.parser, analytics);
+        exitCode = 1;
+        return null;
+      }
+    }
+
+    if (analysisServerOptions.useLanguageServerProtocol) {
+      startLspServer(results, analysisServerOptions, dartSdkManager,
+          instrumentationService, diagnosticServerPort);
+    } else {
+      startAnalysisServer(
+          results,
+          analysisServerOptions,
+          parser,
+          dartSdkManager,
+          instrumentationService,
+          analytics,
+          diagnosticServerPort);
+    }
+  }
+
+  void startAnalysisServer(
+    ArgResults results,
+    AnalysisServerOptions analysisServerOptions,
+    CommandLineParser parser,
+    DartSdkManager dartSdkManager,
+    InstrumentationService instrumentationService,
+    telemetry.Analytics analytics,
+    int diagnosticServerPort,
+  ) {
+    String trainDirectory = results[TRAIN_USING];
+    if (trainDirectory != null) {
+      if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
+        print("Training directory '$trainDirectory' not found.\n");
+        exitCode = 1;
+        return null;
+      }
+    }
+    final serve_http = diagnosticServerPort != null;
+
+    //
+    // Process all of the plugins so that extensions are registered.
+    //
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
+    linter.registerLintRules();
 
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
 
@@ -424,19 +469,19 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    socketServer = new SocketServer(
+    final socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkPath, true),
-        defaultSdk,
+        dartSdkManager,
         instrumentationService,
         diagnosticServer,
         fileResolverProvider,
-        packageResolverProvider);
+        packageResolverProvider,
+        detachableFileSystemManager);
     httpServer = new HttpAnalysisServer(socketServer);
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
-      diagnosticServer.startOnPort(port);
+      diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
     if (trainDirectory != null) {
@@ -465,6 +510,8 @@ class Driver implements ServerStarter {
         }
         await instrumentationService.shutdown();
 
+        socketServer.analysisServer.shutdown();
+
         try {
           tempDriverDir.deleteSync(recursive: true);
         } catch (_) {
@@ -474,15 +521,17 @@ class Driver implements ServerStarter {
         exit(exitCode);
       }();
     } else {
-      _captureExceptions(instrumentationService, () {
+      _captureExceptions(socketServer, instrumentationService, () {
         StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
         stdioServer.serveStdio().then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
           await null;
+
           if (serve_http) {
             httpServer.close();
           }
           await instrumentationService.shutdown();
+          socketServer.analysisServer.shutdown();
           exit(0);
         });
       },
@@ -490,8 +539,41 @@ class Driver implements ServerStarter {
               ? null
               : httpServer.recordPrint);
     }
+  }
 
-    return socketServer.analysisServer;
+  void startLspServer(
+    ArgResults args,
+    AnalysisServerOptions analysisServerOptions,
+    DartSdkManager dartSdkManager,
+    InstrumentationService instrumentationService,
+    int diagnosticServerPort,
+  ) {
+    final serve_http = diagnosticServerPort != null;
+
+    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+
+    final socketServer = new LspSocketServer(
+      analysisServerOptions,
+      diagnosticServer,
+      dartSdkManager,
+      instrumentationService,
+    );
+
+    httpServer = new HttpAnalysisServer(socketServer);
+
+    diagnosticServer.httpServer = httpServer;
+    if (serve_http) {
+      diagnosticServer.startOnPort(diagnosticServerPort);
+    }
+
+    _captureLspExceptions(socketServer, instrumentationService, () {
+      LspStdioAnalysisServer stdioServer =
+          new LspStdioAnalysisServer(socketServer);
+      stdioServer.serveStdio().then((_) async {
+        socketServer.analysisServer.shutdown();
+        exit(0);
+      });
+    });
   }
 
   /**
@@ -500,13 +582,13 @@ class Driver implements ServerStarter {
    * instrumentation [service]. If a [print] function is provided, then also
    * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
+  dynamic _captureExceptions(SocketServer socketServer,
+      InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
-      AnalysisServer analysisServer = socketServer.analysisServer;
-      analysisServer.sendServerErrorNotification(
+      socketServer.analysisServer.sendServerErrorNotification(
           'Captured exception', exception, stackTrace);
       throw exception;
     }
@@ -520,6 +602,33 @@ class Driver implements ServerStarter {
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
+    return runZoned(callback, zoneSpecification: zoneSpecification);
+  }
+
+  /**
+   * Execute the given [callback] within a zone that will capture any unhandled
+   * exceptions and both report them to the client and send them to the given
+   * instrumentation [service]. If a [print] function is provided, then also
+   * capture any data printed by the callback and redirect it to the function.
+   */
+  dynamic _captureLspExceptions(
+      // TODO(dantup): This is a copy/paste of the above with some minor changes.
+      // We should either factor these out, or if we end up with an LspDriver, put
+      // this there.
+      LspSocketServer socketServer,
+      InstrumentationService service,
+      dynamic callback()) {
+    void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
+        dynamic exception, StackTrace stackTrace) {
+      service.logPriorityException(exception, stackTrace);
+      LspAnalysisServer analysisServer = socketServer.analysisServer;
+      analysisServer.sendServerErrorNotification(
+          'Captured exception', exception, stackTrace);
+      throw exception;
+    }
+
+    ZoneSpecification zoneSpecification =
+        new ZoneSpecification(handleUncaughtError: errorFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
@@ -585,9 +694,21 @@ class Driver implements ServerStarter {
     parser.addFlag(USE_FASTA_PARSER,
         defaultsTo: true,
         help: "Whether to enable parsing via the Fasta parser");
+    parser.addFlag(USE_LSP,
+        defaultsTo: false, help: "Whether to use the Language Server Protocol");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
+    parser.addFlag(UX_EXPERIMENT_1,
+        help: "User Experience, Experiment #1, "
+            "this experiment changes the notion of analysis roots and priority "
+            "files.",
+        hide: true);
+    parser.addFlag(UX_EXPERIMENT_2,
+        help: "User Experience, Experiment #2, "
+            "this experiment introduces the notion of an intermittent file "
+            "system.",
+        hide: true);
 
     return parser;
   }
@@ -599,6 +720,18 @@ class Driver implements ServerStarter {
         resourceProvider, resourceProvider.getFolder(defaultSdkPath));
     sdk.useSummary = useSummaries;
     return sdk;
+  }
+
+  String _getSdkPath(ArgResults args) {
+    if (args[SDK_OPTION] != null) {
+      return args[SDK_OPTION];
+    } else {
+      // No path to the SDK was provided.
+      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
+      return FolderBasedDartSdk.defaultSdkDirectory(
+        PhysicalResourceProvider.INSTANCE,
+      ).path;
+    }
   }
 
   /**
@@ -627,10 +760,12 @@ class Driver implements ServerStarter {
    * Read the UUID from disk, generating and storing a new one if necessary.
    */
   String _readUuid(InstrumentationService service) {
-    File uuidFile = new File(PhysicalResourceProvider.INSTANCE
-        .getStateLocation('.instrumentation')
-        .getChild('uuid.txt')
-        .path);
+    final instrumentationLocation =
+        PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
+    if (instrumentationLocation == null) {
+      return _generateUuidString();
+    }
+    File uuidFile = new File(instrumentationLocation.getChild('uuid.txt').path);
     try {
       if (uuidFile.existsSync()) {
         String uuid = uuidFile.readAsStringSync();
@@ -641,9 +776,7 @@ class Driver implements ServerStarter {
     } catch (exception, stackTrace) {
       service.logPriorityException(exception, stackTrace);
     }
-    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
-    int random = new Random().nextInt(0x3fffffff);
-    String uuid = '$millisecondsSinceEpoch$random';
+    String uuid = _generateUuidString();
     try {
       uuidFile.parent.createSync(recursive: true);
       uuidFile.writeAsStringSync(uuid);
@@ -653,6 +786,15 @@ class Driver implements ServerStarter {
       uuid = 'temp-$uuid';
     }
     return uuid;
+  }
+
+  /**
+   * Constructs a uuid combining the current date and a random integer.
+   */
+  String _generateUuidString() {
+    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
+    int random = new Random().nextInt(0x3fffffff);
+    return '$millisecondsSinceEpoch$random';
   }
 
   /**

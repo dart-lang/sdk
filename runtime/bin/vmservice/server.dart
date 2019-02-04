@@ -238,6 +238,8 @@ class Server {
   Future _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.write("forbidden origin");
       request.response.close();
       return;
     }
@@ -293,6 +295,8 @@ class Server {
     }
     if (request.method != 'GET') {
       // Not a GET request. Do nothing.
+      request.response.statusCode = HttpStatus.methodNotAllowed;
+      request.response.write("method not allowed");
       request.response.close();
       return;
     }
@@ -372,6 +376,12 @@ class Server {
         return this;
       }
       await new Future<Null>.delayed(const Duration(seconds: 1));
+    }
+    if (_service.isExiting) {
+      serverPrint('Observatory HTTP server exiting before listening as '
+          'vm service has received exit request\n');
+      await shutdown(true);
+      return this;
     }
     _server.listen(_requestHandler, cancelOnError: true);
     serverPrint('Observatory listening on $serverAddress');

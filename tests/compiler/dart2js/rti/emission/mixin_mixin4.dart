@@ -10,7 +10,7 @@ class I<T> {}
 /*class: J:checkedInstance*/
 class J<T> {}
 
-/*class: S:checkedInstance,checks=[]*/
+/*class: S:checkedInstance,checks=[],indirectInstance*/
 class S<T> {}
 
 /*class: M:checkedInstance,checks=[]*/

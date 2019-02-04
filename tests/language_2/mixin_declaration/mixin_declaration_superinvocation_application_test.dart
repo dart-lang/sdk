@@ -23,9 +23,21 @@ mixin M1 on UnaryNum {
   }
 }
 
+mixin M11 on UnaryNum {
+  num bar() {
+    return 0.0;
+  }
+  num foo(num x) {
+    return super.foo(42.0);
+  }
+}
+
 // The super-invoked method must be non-abstract.
 class A1 extends UnaryNum //
     with M1 //# 04: compile-time error
+    with M11 //# 05: compile-time error
+    with M1, M11 //# 06: compile-time error
+    with M11, M1 //# 07: compile-time error
 {
   // M1.bar does super.foo and UnaryNum has no implementation.
   num foo(num x) => x;
@@ -49,7 +61,7 @@ mixin M2 on UnaryOptionalNum {
 }
 
 class A2 extends C2 //
-    with M2 //# 05: compile-time error
+    with M2 //# 08: compile-time error
 {
   // M2.bar does a super.foo, so C2.foo must satisfy the super-interface of M2.
   // It doesn't, even if the super-call would succeed against C1.foo.
@@ -58,5 +70,8 @@ class A2 extends C2 //
 
 main() {
   A1().bar(); //# 04: continued
-  A2().bar(); //# 05: continued
+  A1().bar(); //# 05: continued
+  A1().bar(); //# 06: continued
+  A1().bar(); //# 07: continued
+  A2().bar(); //# 08: continued
 }

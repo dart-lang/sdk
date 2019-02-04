@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.scanner.scanner;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -56,6 +54,11 @@ class Scanner {
   bool scanLazyAssignmentOperators = false;
 
   /**
+   * A flag indicating whether the scanner should recognize the `>>>` operator.
+   */
+  bool enableGtGtGt = false;
+
+  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
@@ -101,6 +104,7 @@ class Scanner {
 
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
+        enableGtGtGt: enableGtGtGt,
         includeComments: _preserveComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
 

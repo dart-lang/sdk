@@ -1,0 +1,296 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
+// abstract class A implements Interface1, Interface2, Interface3 {
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property1=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class MyClass extends B {
+//       ^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
+//   abstractMethod();
+//   ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
+//   void set property1(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
+//   void set property3(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: 'Interface1.interfaceMethod1' is defined here.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'Interface2.interfaceMethod1' is defined here.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:10:8: Context: 'Interface2.interfaceMethod2' is defined here.
+//   void interfaceMethod2() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
+//   void interfaceMethod3() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property1=
+//  - A.property2=
+//  - A.property3=
+//  - Interface1.interfaceMethod1
+//  - Interface2.interfaceMethod1
+//  - Interface2.interfaceMethod2
+//  - Interface3.interfaceMethod3
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class MyMock3 extends B {
+//       ^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
+//   abstractMethod();
+//   ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
+//   void set property1(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:23:12: Context: 'A.property2=' is defined here.
+//   void set property2(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
+//   void set property3(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: 'Interface1.interfaceMethod1' is defined here.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: 'Interface2.interfaceMethod1' is defined here.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:10:8: Context: 'Interface2.interfaceMethod2' is defined here.
+//   void interfaceMethod2() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
+//   void interfaceMethod3() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
+// abstract class D extends C implements Interface2 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is one inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:59:8: Context: This is the other inherited member.
+//   void interfaceMethod1(_) {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// abstract class F extends E implements Interface1 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:67:12: Context: This is the other inherited member.
+//   void set interfaceMethod1(_) {}
+//            ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// abstract class H extends G implements Foo {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:75:8: Context: This is one inherited member.
+//   void foo() {}
+//        ^^^
+// pkg/front_end/testcases/abstract_members.dart:79:14: Context: This is the other inherited member.
+//   Object get foo => null;
+//              ^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
+// abstract class J extends I implements Bar {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:87:14: Context: This is one inherited member.
+//   Object get foo => null;
+//              ^^^
+// pkg/front_end/testcases/abstract_members.dart:91:10: Context: This is the other inherited member.
+//   Object foo() {}
+//          ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  method interfaceMethod1() → void {}
+}
+class Interface2 extends core::Object {
+  field dynamic interfaceMethod1 = null;
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+  method interfaceMethod2() → void {}
+}
+class Interface3 extends core::Object {
+  synthetic constructor •() → self::Interface3
+    : super core::Object::•()
+    ;
+  method interfaceMethod3() → void {}
+}
+abstract class A extends core::Object implements self::Interface1, self::Interface2, self::Interface3 {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method aMethod() → dynamic {}
+  abstract method abstractMethod() → dynamic;
+  abstract set property1(dynamic _) → void;
+  abstract set property2(dynamic _) → void;
+  abstract set property3(dynamic _) → void;
+}
+abstract class B extends self::A {
+  final field dynamic property1 = null;
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  method aMethod() → dynamic {}
+  method bMethod() → dynamic {}
+}
+class MyClass extends self::B {
+  field dynamic property2 = null;
+  synthetic constructor •() → self::MyClass
+    : super self::B::•()
+    ;
+  method aaMethod() → dynamic {}
+  method aMethod() → dynamic {}
+  method bMethod() → dynamic {}
+  method cMethod() → dynamic {}
+  no-such-method-forwarder get interfaceMethod1() → dynamic
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
+  no-such-method-forwarder set property3(dynamic _) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set interfaceMethod1(dynamic value) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property1(dynamic _) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class MyMock1 extends self::B {
+  synthetic constructor •() → self::MyMock1
+    : super self::B::•()
+    ;
+  method noSuchMethod(core::Invocation _) → dynamic
+    return null;
+  no-such-method-forwarder method interfaceMethod2() → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod2, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder method abstractMethod() → dynamic
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#abstractMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
+  no-such-method-forwarder method interfaceMethod1() → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder method interfaceMethod3() → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod3, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property3(dynamic _) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set interfaceMethod1(dynamic value) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property1(dynamic _) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property2(dynamic _) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class MyMock2 extends self::MyMock1 {
+  synthetic constructor •() → self::MyMock2
+    : super self::MyMock1::•()
+    ;
+  abstract method noSuchMethod(core::Invocation _) → dynamic;
+}
+class MyMock3 extends self::B {
+  synthetic constructor •() → self::MyMock3
+    : super self::B::•()
+    ;
+  abstract method noSuchMethod(core::Invocation _) → dynamic;
+  no-such-method-forwarder get interfaceMethod1() → dynamic
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
+  no-such-method-forwarder set property3(dynamic _) → void
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set interfaceMethod1(dynamic value) → void
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property1(dynamic _) → void
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property2(dynamic _) → void
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method interfaceMethod1(dynamic _) → void {}
+}
+abstract class D extends self::C implements self::Interface2 {
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+}
+class E extends core::Object {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  set interfaceMethod1(dynamic _) → void {}
+}
+abstract class F extends self::E implements self::Interface1 {
+  synthetic constructor •() → self::F
+    : super self::E::•()
+    ;
+}
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  method foo() → void {}
+}
+class G extends core::Object {
+  synthetic constructor •() → self::G
+    : super core::Object::•()
+    ;
+  get foo() → core::Object
+    return null;
+}
+abstract class H extends self::G implements self::Foo {
+  synthetic constructor •() → self::H
+    : super self::G::•()
+    ;
+}
+class Bar extends core::Object {
+  synthetic constructor •() → self::Bar
+    : super core::Object::•()
+    ;
+  get foo() → core::Object
+    return null;
+}
+class I extends core::Object {
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+  method foo() → core::Object {}
+}
+abstract class J extends self::I implements self::Bar {
+  synthetic constructor •() → self::J
+    : super self::I::•()
+    ;
+}
+static method main() → dynamic {}

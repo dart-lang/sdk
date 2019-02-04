@@ -11,18 +11,22 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../ir/closure.dart';
+import '../ir/static_type_provider.dart';
+import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart';
-import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
+import '../js_model/closure.dart' show JRecordField;
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../kernel/element_map.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
+import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
+import 'closure.dart';
 
 /// Interface that translates between Kernel IR nodes and entities used for
 /// global type inference and building the SSA graph for members.
@@ -78,12 +82,7 @@ abstract class JsToElementMap {
 
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
-  ///
-  /// The IR doesn't always resolve super accesses to the corresponding
-  /// [target]. If not, the target is computed using [name] and [setter] from
-  /// the enclosing class of [context].
-  MemberEntity getSuperMember(
-      MemberEntity context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
@@ -94,16 +93,15 @@ abstract class JsToElementMap {
   Name getName(ir.Name name);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
@@ -120,10 +118,6 @@ abstract class JsToElementMap {
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
-
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
 
   /// [ElementEnvironment] for library, class and member lookup.
   JElementEnvironment get elementEnvironment;
@@ -168,6 +162,9 @@ abstract class JsToElementMap {
   /// modified in another get their values updated correctly.
   Map<Local, JRecordField> makeRecordContainer(
       KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
+
+  /// Returns a provider for static types for [member].
+  StaticTypeProvider getStaticTypeProvider(MemberEntity member);
 }
 
 /// Interface for type inference results for kernel IR nodes.
@@ -190,7 +187,7 @@ abstract class KernelToTypeInferenceMap {
       ir.PropertySet write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
-  AbstractValue typeOfListLiteral(MemberEntity owner,
+  AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of iterator in [forInStatement].
@@ -222,7 +219,7 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns the returned type annotation in the [nativeBehavior].
   AbstractValue typeFromNativeBehavior(
-      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld);
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld);
 }
 
 /// Map from kernel IR nodes to local entities.
@@ -278,6 +275,9 @@ abstract class KernelToLocalsMap {
   /// Returns the [JumpTarget] defined by the while statement [node] or `null`
   /// if [node] is not a jump target.
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
+
+  /// Serializes this [KernelToLocalsMap] to [sink].
+  void writeToDataSink(DataSink sink);
 }
 
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
@@ -312,6 +312,202 @@ ir.FunctionNode getFunctionNode(
     default:
   }
   return null;
+}
+
+// TODO(johnniwinther,efortuna): Add more when needed.
+// TODO(johnniwinther): Should we split regular into method, field, etc.?
+enum MemberKind {
+  // A regular member defined by an [ir.Node].
+  regular,
+  // A constructor whose initializer is defined by an [ir.Constructor] node.
+  constructor,
+  // A constructor whose body is defined by an [ir.Constructor] node.
+  constructorBody,
+  // A closure class `call` method whose body is defined by an
+  // [ir.FunctionExpression] or [ir.FunctionDeclaration].
+  closureCall,
+  // A field corresponding to a captured variable in the closure. It does not
+  // have a corresponding ir.Node.
+  closureField,
+  // A method that describes the type of a function (in this case the type of
+  // the closure class. It does not have a corresponding ir.Node or a method
+  // body.
+  signature,
+  // A separated body of a generator (sync*/async/async*) function.
+  generatorBody,
+}
+
+/// Definition information for a [MemberEntity].
+abstract class MemberDefinition {
+  /// The kind of the defined member. This determines the semantics of [node].
+  MemberKind get kind;
+
+  /// The defining [ir.Node] for this member, if supported by its [kind].
+  ///
+  /// For a regular class this is the [ir.Class] node. For closure classes this
+  /// might be an [ir.FunctionExpression] node if needed.
+  ir.Node get node;
+
+  /// The canonical location of [member]. This is used for sorting the members
+  /// in the emitted code.
+  SourceSpan get location;
+
+  /// Deserializes a [MemberDefinition] object from [source].
+  factory MemberDefinition.readFromDataSource(DataSource source) {
+    MemberKind kind = source.readEnum(MemberKind.values);
+    switch (kind) {
+      case MemberKind.regular:
+        return new RegularMemberDefinition.readFromDataSource(source);
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        return new SpecialMemberDefinition.readFromDataSource(source, kind);
+      case MemberKind.closureCall:
+      case MemberKind.closureField:
+        return new ClosureMemberDefinition.readFromDataSource(source, kind);
+    }
+    throw new UnsupportedError("Unexpected MemberKind $kind");
+  }
+
+  /// Serializes this [MemberDefinition] to [sink].
+  void writeToDataSink(DataSink sink);
+}
+
+enum ClassKind {
+  regular,
+  closure,
+  // TODO(efortuna, johnniwinther): Record is not a class, but is
+  // masquerading as one currently for consistency with the old element model.
+  record,
+}
+
+/// A member directly defined by its [ir.Member] node.
+class RegularMemberDefinition implements MemberDefinition {
+  /// Tag used for identifying serialized [RegularMemberDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'regular-member-definition';
+
+  final ir.Member node;
+
+  RegularMemberDefinition(this.node);
+
+  factory RegularMemberDefinition.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Member node = source.readMemberNode();
+    source.end(tag);
+    return new RegularMemberDefinition(node);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(MemberKind.regular);
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    sink.end(tag);
+  }
+
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  MemberKind get kind => MemberKind.regular;
+
+  String toString() => 'RegularMemberDefinition(kind:$kind,'
+      'node:$node,location:$location)';
+}
+
+/// The definition of a special kind of member
+class SpecialMemberDefinition implements MemberDefinition {
+  /// Tag used for identifying serialized [SpecialMemberDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'special-member-definition';
+
+  final ir.TreeNode node;
+  final MemberKind kind;
+
+  SpecialMemberDefinition(this.node, this.kind);
+
+  factory SpecialMemberDefinition.readFromDataSource(
+      DataSource source, MemberKind kind) {
+    source.begin(tag);
+    ir.TreeNode node = source.readTreeNode();
+    source.end(tag);
+    return new SpecialMemberDefinition(node, kind);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeTreeNode(node);
+    sink.end(tag);
+  }
+
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  String toString() => 'SpecialMemberDefinition(kind:$kind,'
+      'node:$node,location:$location)';
+}
+
+/// Definition information for a [ClassEntity].
+abstract class ClassDefinition {
+  /// The kind of the defined class. This determines the semantics of [node].
+  ClassKind get kind;
+
+  /// The defining [ir.Node] for this class, if supported by its [kind].
+  ir.Node get node;
+
+  /// The canonical location of [cls]. This is used for sorting the classes
+  /// in the emitted code.
+  SourceSpan get location;
+
+  /// Deserializes a [ClassDefinition] object from [source].
+  factory ClassDefinition.readFromDataSource(DataSource source) {
+    ClassKind kind = source.readEnum(ClassKind.values);
+    switch (kind) {
+      case ClassKind.regular:
+        return new RegularClassDefinition.readFromDataSource(source);
+      case ClassKind.closure:
+        return new ClosureClassDefinition.readFromDataSource(source);
+      case ClassKind.record:
+        return new RecordContainerDefinition.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unexpected ClassKind $kind");
+  }
+
+  /// Serializes this [ClassDefinition] to [sink].
+  void writeToDataSink(DataSink sink);
+}
+
+/// A class directly defined by its [ir.Class] node.
+class RegularClassDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [RegularClassDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'regular-class-definition';
+
+  final ir.Class node;
+
+  RegularClassDefinition(this.node);
+
+  factory RegularClassDefinition.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Class node = source.readClassNode();
+    source.end(tag);
+    return new RegularClassDefinition(node);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeClassNode(node);
+    sink.end(tag);
+  }
+
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  ClassKind get kind => ClassKind.regular;
+
+  String toString() => 'RegularClassDefinition(kind:$kind,'
+      'node:$node,location:$location)';
 }
 
 /// Returns the initializer for [field].

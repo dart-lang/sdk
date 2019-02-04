@@ -52,8 +52,15 @@ RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
 void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // The miss handler for a class ID not found in the table is invoked as a
   // normal Dart function.
-  const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", StubCode::GenerateMegamorphicMissStub));
+  ObjectPoolBuilder object_pool_builder;
+  const Code& code = Code::Handle(
+      StubCode::Generate("_stub_MegamorphicMiss", &object_pool_builder,
+                         StubCode::GenerateMegamorphicMissStub));
+
+  const auto& object_pool =
+      ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
+  code.set_object_pool(object_pool.raw());
+
   // When FLAG_lazy_dispatchers=false, this stub can be on the stack during
   // exceptions, but it has a corresponding function so IsStubCode is false and
   // it is considered in the search for an exception handler.
@@ -79,6 +86,21 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
          Function::null());
   isolate->object_store()->SetMegamorphicMissHandler(code, function);
 }
+
+void MegamorphicCacheTable::ReInitMissHandlerCode(Isolate* isolate,
+                                                  ObjectPoolBuilder* wrapper) {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+
+  const Code& code = Code::Handle(StubCode::Generate(
+      "_stub_MegamorphicMiss", wrapper, StubCode::GenerateMegamorphicMissStub));
+  code.set_exception_handlers(Object::empty_exception_handlers());
+
+  auto object_store = isolate->object_store();
+  auto& function = Function::Handle(object_store->megamorphic_miss_function());
+  function.AttachCode(code);
+  object_store->SetMegamorphicMissHandler(code, function);
+}
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {

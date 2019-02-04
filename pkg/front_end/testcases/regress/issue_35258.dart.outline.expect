@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35258.dart:13:3: Error: 'C' is already declared in this scope.
+//   C(this.d) {}
+//   ^
+// pkg/front_end/testcases/regress/issue_35258.dart:12:3: Context: Previous declaration of 'C'.
+//   C() {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field dynamic d;
+  constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;

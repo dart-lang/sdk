@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.simple_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -11,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,6 +23,8 @@ main() {
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
   test_argumentResolution_required_matching() async {
@@ -145,7 +144,7 @@ class A {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
+    expect(rhs.staticParameterElement, isNotNull);
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -169,7 +168,7 @@ class B {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
+    expect(rhs.staticParameterElement, isNotNull);
   }
 
   test_argumentResolution_setter_static() async {
@@ -374,42 +373,6 @@ int f(A a) {
 class A extends B implements C {}
 class B {}
 class C {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_commentReference_class() async {
-    Source source = addSource(r'''
-f() {}
-/** [A] [new A] [A.n] [new A.n] [m] [f] */
-class A {
-  A() {}
-  A.n() {}
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_commentReference_parameter() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-  A.n() {}
-  /** [e] [f] */
-  m(e, f()) {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_commentReference_singleLine() async {
-    Source source = addSource(r'''
-/// [A]
-class A {}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -1040,45 +1003,7 @@ class C = Object with A;''');
     verify([source]);
   }
 
-  test_isValidMixin_badSuperclass_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class A extends B {}
-class B {}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_isValidMixin_constructor() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isFalse);
-    await computeAnalysisResult(source);
-    assertErrors(
-      source,
-      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-    );
-    verify([source]);
-  }
-
-  test_isValidMixin_constructor_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   A() {}
@@ -1115,24 +1040,6 @@ class C = Object with A;''');
     verify([source]);
   }
 
-  test_isValidMixin_factoryConstructor_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class A {
-  factory A() => null;
-}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_isValidMixin_super() async {
     Source source = addSource(r'''
 class A {
@@ -1152,43 +1059,7 @@ class C = Object with A;''');
     verify([source]);
   }
 
-  test_isValidMixin_super_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class A {
-  toString() {
-    return super.toString();
-  }
-}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_isValidMixin_valid() async {
-    Source source = addSource('''
-class A {}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_isValidMixin_valid_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource('''
 class A {}
 class C = Object with A;''');
@@ -1260,20 +1131,19 @@ const A = null;
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
-        .variables
-        .variables[0]
-        .name
-        .staticElement;
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
-        PropertyInducingElement, expectedElement);
-    expectedElement = (expectedElement as PropertyInducingElement).getter;
-    Element actualElement =
-        (declarations[1] as ClassDeclaration).metadata[0].name.staticElement;
-    expect(actualElement, same(expectedElement));
+
+    TopLevelVariableDeclaration variableDeclaration = declarations[0];
+    ClassDeclaration classDeclaration = declarations[1];
+
+    PropertyInducingElement expectedElement =
+        variableDeclaration.variables.variables[0].name.staticElement;
+
+    Element actualElement = classDeclaration.metadata[0].name.staticElement;
+    expect(actualElement, same(expectedElement.getter));
   }
 
   test_metadata_field() async {
@@ -1466,17 +1336,15 @@ const A = null;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
-        .variables
-        .variables[0]
-        .name
-        .staticElement;
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
-        PropertyInducingElement, expectedElement);
-    expectedElement = (expectedElement as PropertyInducingElement).getter;
-    Element actualElement =
-        (declarations[1] as FunctionTypeAlias).metadata[0].name.staticElement;
-    expect(actualElement, same(expectedElement));
+
+    TopLevelVariableDeclaration variableDeclaration = declarations[0];
+    FunctionTypeAlias functionTypeAlias = declarations[1];
+
+    PropertyInducingElement expectedElement =
+        variableDeclaration.variables.variables[0].name.staticElement;
+
+    Element actualElement = functionTypeAlias.metadata[0].name.staticElement;
+    expect(actualElement, same(expectedElement.getter));
   }
 
   test_method_fromMixin() async {
@@ -1812,7 +1680,7 @@ class B {
 }
 
 class _SimpleResolverTest_localVariable_types_invoked
-    extends RecursiveAstVisitor<Object> {
+    extends RecursiveAstVisitor<void> {
   final SimpleResolverTest test;
 
   List<bool> found;
@@ -1824,25 +1692,19 @@ class _SimpleResolverTest_localVariable_types_invoked
       : super();
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "myVar" && node.parent is MethodInvocation) {
       try {
         found[0] = true;
         // check static type
         DartType staticType = node.staticType;
-        if (test.previewDart2) {
-          expect(staticType is FunctionType, isTrue);
-          FunctionType functionType = staticType;
-          expect(
-              functionType.parameters[0].type, same(test.typeProvider.intType));
-          expect(functionType.returnType, same(test.typeProvider.stringType));
-        } else {
-          expect(staticType, same(test.typeProvider.dynamicType));
-        }
+        expect(staticType is FunctionType, isTrue);
+        FunctionType functionType = staticType;
+        expect(functionType.parameters[0].type, test.typeProvider.intType);
+        expect(functionType.returnType, test.typeProvider.stringType);
       } on AnalysisException catch (e, stackTrace) {
         thrownException[0] = new CaughtException(e, stackTrace);
       }
     }
-    return null;
   }
 }

@@ -21,6 +21,8 @@ import 'dart:_internal' hide Symbol;
 
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 
+const int _mask30 = 0x3fffffff; // Low 30 bits.
+
 @patch
 class HashMap<K, V> {
   @patch
@@ -306,14 +308,14 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     // Only treat unsigned 30-bit integers as numeric keys. This way,
     // we avoid converting them to strings when we use them as keys in
     // the JavaScript hash table object.
-    return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
+    return key is num && JS('bool', '(# & #) === #', key, _mask30, key);
   }
 
   int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', key.hashCode);
+    return JS('int', '# & #', key.hashCode, _mask30);
   }
 
   static bool _hasTableEntry(var table, var key) {
@@ -382,7 +384,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var key) {
@@ -426,7 +428,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', _hashCode(key));
+    return JS('int', '# & #', _hashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var key) {
@@ -576,7 +578,7 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int internalFindBucketIndex(var bucket, var key) {
@@ -669,7 +671,7 @@ class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
     // always unboxed (Smi) values. Modification detection will be missed if you
     // make exactly some multiple of 2^30 modifications between advances of an
     // iterator.
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = _mask30 & (_modifications + 1);
   }
 }
 
@@ -779,7 +781,7 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', _hashCode(key));
+    return JS('int', '# & #', _hashCode(key), _mask30);
   }
 
   int internalFindBucketIndex(var bucket, var key) {
@@ -830,7 +832,7 @@ class HashSet<E> {
   factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
+class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -1050,7 +1052,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     // way, we avoid converting them to strings when we use them as
     // keys in the JavaScript hash table object.
     return element is num &&
-        JS('bool', '(# & 0x3ffffff) === #', element, element);
+        JS('bool', '(# & #) === #', element, _mask30, element);
   }
 
   int _computeHashCode(var element) {
@@ -1058,7 +1060,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', element.hashCode);
+    return JS('int', '# & #', element.hashCode, _mask30);
   }
 
   static bool _hasTableEntry(var table, var key) {
@@ -1114,7 +1116,7 @@ class _IdentityHashSet<E> extends _HashSet<E> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var element) {
@@ -1151,7 +1153,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', _hasher(element));
+    return JS('int', '# & #', _hasher(element), _mask30);
   }
 
   bool add(E object) => super._add(object);
@@ -1239,7 +1241,7 @@ class LinkedHashSet<E> {
   factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
 }
 
-class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
+class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -1451,7 +1453,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     // Value cycles after 2^30 modifications. If you keep hold of an
     // iterator for that long, you might miss a modification
     // detection, and iteration can go sour. Don't do that.
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = _mask30 & (_modifications + 1);
   }
 
   // Create a new cell and link it in as the last one in the list.
@@ -1498,7 +1500,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     // way, we avoid converting them to strings when we use them as
     // keys in the JavaScript hash table object.
     return element is num &&
-        JS('bool', '(# & 0x3ffffff) === #', element, element);
+        JS('bool', '(# & #) === #', element, _mask30, element);
   }
 
   int _computeHashCode(var element) {
@@ -1506,7 +1508,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', element.hashCode);
+    return JS('int', '# & #', element.hashCode, _mask30);
   }
 
   static _getTableEntry(var table, var key) {
@@ -1559,7 +1561,7 @@ class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var element) {
@@ -1600,7 +1602,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', _hasher(element));
+    return JS('int', '# & #', _hasher(element), _mask30);
   }
 
   bool add(E element) => super._add(element);
@@ -1669,5 +1671,32 @@ class _LinkedHashSetIterator<E> implements Iterator<E> {
       _cell = _cell._next;
       return true;
     }
+  }
+}
+
+@patch
+abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
+  @patch
+  Node _splayMin(Node node) {
+    Node current = node;
+    while (current.left != null) {
+      Node left = current.left;
+      current.left = left.right;
+      left.right = current;
+      current = left;
+    }
+    return current;
+  }
+
+  @patch
+  Node _splayMax(Node node) {
+    Node current = node;
+    while (current.right != null) {
+      Node right = current.right;
+      current.right = right.left;
+      right.left = current;
+      current = right;
+    }
+    return current;
   }
 }

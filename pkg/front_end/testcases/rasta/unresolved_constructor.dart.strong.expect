@@ -1,0 +1,31 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:10:10: Error: Too few positional arguments: 2 required, 0 given.
+//   new Foo();
+//          ^
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:6:3: Context: Found this candidate, but the arguments don't match.
+//   Foo(x, y);
+//   ^
+//
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Method not found: 'Foo.notHere'.
+//   new Foo.notHere();
+//           ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •(dynamic x, dynamic y) → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:10:10: Error: Too few positional arguments: 2 required, 0 given.
+  new Foo();
+         ^";
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Method not found: 'Foo.notHere'.
+  new Foo.notHere();
+          ^^^^^^^";
+}

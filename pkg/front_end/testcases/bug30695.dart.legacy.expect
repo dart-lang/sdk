@@ -1,0 +1,28 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/bug30695.dart:11:3: Error: Can't declare a member that conflicts with an inherited one.
+//   foo() => 42;
+//   ^^^
+// pkg/front_end/testcases/bug30695.dart:6:7: Context: This is the inherited member.
+//   var foo = 42;
+//       ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic foo = 42;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  method foo() → dynamic
+    return 42;
+}
+static method main() → dynamic {}

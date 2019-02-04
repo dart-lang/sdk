@@ -8,7 +8,6 @@
 #include "vm/os.h"
 
 #include <android/log.h>   // NOLINT
-#include <endian.h>        // NOLINT
 #include <errno.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
@@ -249,30 +248,6 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
 
-uint16_t HostToBigEndian16(uint16_t value) {
-  return htobe16(value);
-}
-
-uint32_t HostToBigEndian32(uint32_t value) {
-  return htobe32(value);
-}
-
-uint64_t HostToBigEndian64(uint64_t value) {
-  return htobe64(value);
-}
-
-uint16_t HostToLittleEndian16(uint16_t value) {
-  return htole16(value);
-}
-
-uint32_t HostToLittleEndian32(uint32_t value) {
-  return htole32(value);
-}
-
-uint64_t HostToLittleEndian64(uint64_t value) {
-  return htole64(value);
-}
-
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -324,6 +299,8 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
@@ -356,16 +333,9 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
-}
+void OS::Init() {}
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
 
 void OS::Abort() {
   abort();

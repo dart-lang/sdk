@@ -139,7 +139,7 @@ bool HostCPUFeatures::initialized_ = false;
 
 #if !defined(USING_SIMULATOR)
 #if HOST_OS_IOS
-void HostCPUFeatures::InitOnce() {
+void HostCPUFeatures::Init() {
   // TODO(24743): Actually check the CPU features and fail if we're missing
   // something assumed in a precompiled snapshot.
   hardware_ = "";
@@ -157,9 +157,9 @@ void HostCPUFeatures::InitOnce() {
 #endif
 }
 #else  // HOST_OS_IOS
-void HostCPUFeatures::InitOnce() {
+void HostCPUFeatures::Init() {
   bool is_arm64 = false;
-  CpuInfo::InitOnce();
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
   // Check for ARMv5TE, ARMv6, ARMv7, or aarch64.
@@ -261,8 +261,8 @@ void HostCPUFeatures::Cleanup() {
 
 #else
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
 #if defined(TARGET_ARCH_ARM_5TE)

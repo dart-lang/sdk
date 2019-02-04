@@ -46,8 +46,7 @@ class ThisAccessGenerator extends KernelGenerator {
     }
   }
 
-  SyntheticExpressionJudgment buildFieldInitializerError(
-      Map<String, int> initializedFields) {
+  Expression buildFieldInitializerError(Map<String, int> initializedFields) {
     String keyword = isSuper ? "super" : "this";
     return helper.buildProblem(
         templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
@@ -57,7 +56,8 @@ class ThisAccessGenerator extends KernelGenerator {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    Expression error = buildFieldInitializerError(initializedFields).desugared;
+    Expression error = helper.desugarSyntheticExpression(
+        buildFieldInitializerError(initializedFields));
     return helper.buildInvalidInitializer(error, error.fileOffset);
   }
 
@@ -92,10 +92,20 @@ class ThisAccessGenerator extends KernelGenerator {
           helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
       if (isSuper) {
         return new SuperPropertyAccessGenerator(
-            helper, send.token, name, getter, setter);
+            helper,
+            // TODO(ahe): This is not the 'super' token.
+            send.token,
+            name,
+            getter,
+            setter);
       } else {
         return new ThisPropertyAccessGenerator(
-            helper, send.token, name, getter, setter);
+            helper,
+            // TODO(ahe): This is not the 'this' token.
+            send.token,
+            name,
+            getter,
+            setter);
       }
     }
   }
@@ -115,20 +125,29 @@ class ThisAccessGenerator extends KernelGenerator {
   Initializer buildConstructorInitializer(
       int offset, Name name, Arguments arguments) {
     Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
-    LocatedMessage argMessage;
+    LocatedMessage message;
     if (constructor != null) {
-      argMessage = helper.checkArgumentsForFunction(
+      message = helper.checkArgumentsForFunction(
           constructor.function, arguments, offset, <TypeParameter>[]);
+    } else {
+      String fullName =
+          helper.constructorNameForDiagnostics(name.name, isSuper: isSuper);
+      message = (isSuper
+              ? templateSuperclassHasNoConstructor
+              : templateConstructorNotFound)
+          .withArguments(fullName)
+          .withLocation(uri, offsetForToken(token), lengthForToken(token));
     }
-    if (constructor == null || argMessage != null) {
-      return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
+    if (message != null) {
+      return helper.buildInvalidInitializer(helper.wrapSyntheticExpression(
           helper.throwNoSuchMethodError(
               forest.literalNull(null)..fileOffset = offset,
-              name.name,
+              helper.constructorNameForDiagnostics(name.name, isSuper: isSuper),
               arguments,
               offset,
               isSuper: isSuper,
-              argMessage: argMessage)));
+              message: message),
+          offset));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
           false, constructor, arguments, offset);
@@ -171,10 +190,10 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   Expression buildAssignmentError() {
-    return helper
-        .buildProblem(isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
-            offsetForToken(token), token.length)
-        .desugared;
+    return helper.desugarSyntheticExpression(helper.buildProblem(
+        isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
+        offsetForToken(token),
+        token.length));
   }
 
   @override
@@ -218,7 +237,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
   String get debugName => "IncompleteErrorGenerator";
 
   @override
-  SyntheticExpressionJudgment buildError(Arguments arguments,
+  Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     int length = noLength;
     if (offset == null) {
@@ -283,7 +302,7 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset,
+      {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false,
@@ -293,13 +312,17 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return unsupported(
         "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return unsupported(
         "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
   }
@@ -353,7 +376,7 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset,
+      {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false,
@@ -363,13 +386,17 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return unsupported(
         "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return unsupported(
         "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
   }
@@ -388,16 +415,17 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
-    return new IllegalAssignmentJudgment(rhs,
+    return shadow.SyntheticWrapper.wrapIllegalAssignment(rhs,
         assignmentOffset: offsetForToken(token));
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return new InvalidWriteJudgment(
-        helper
-            .buildProblem(messageCannotAssignToParenthesizedExpression,
-                offsetForToken(token), lengthForToken(token))
-            .desugared,
-        expression);
+    return helper.wrapInvalidWrite(
+        helper.desugarSyntheticExpression(helper.buildProblem(
+            messageCannotAssignToParenthesizedExpression,
+            offsetForToken(token),
+            lengthForToken(token))),
+        expression,
+        offsetForToken(token));
   }
 }

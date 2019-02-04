@@ -11,6 +11,6 @@ class EvalRepository extends M.EvalRepository {
     assert(isolate != null);
     assert(object != null);
     assert(e != null);
-    return (await isolate.eval(object, e)) as M.ObjectRef;
+    return await isolate.eval(object, e);
   }
 }

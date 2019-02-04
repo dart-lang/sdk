@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.resolver.scope;
 
 import 'dart:collection';
 
@@ -539,8 +537,11 @@ class LibraryImportScope extends Scope {
         var conflictingElements = <Element>[]
           ..addAll(sdkElements)
           ..addAll(nonSdkElements);
-        return new MultiplyDefinedElementImpl(_definingLibrary.context,
-            conflictingElements.first.name, conflictingElements);
+        return new MultiplyDefinedElementImpl(
+            _definingLibrary.context,
+            _definingLibrary.session,
+            conflictingElements.first.name,
+            conflictingElements);
       }
       if (nonSdkElements.isNotEmpty) {
         result = nonSdkElements.first;
@@ -723,7 +724,6 @@ class NamespaceBuilder {
     // true of, for instance, `Object`, because `Object` has a source definition
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
-      DynamicElementImpl.instance.library = library;
       definedNames['dynamic'] = DynamicElementImpl.instance;
     }
 
@@ -1014,8 +1014,7 @@ abstract class Scope {
    * not be determined.
    */
   Source getSource(AstNode identifier) {
-    CompilationUnit unit =
-        identifier.getAncestor((node) => node is CompilationUnit);
+    CompilationUnit unit = identifier.thisOrAncestorOfType<CompilationUnit>();
     if (unit != null) {
       CompilationUnitElement unitElement = unit.declaredElement;
       if (unitElement != null) {

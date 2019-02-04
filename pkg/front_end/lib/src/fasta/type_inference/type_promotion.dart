@@ -9,6 +9,8 @@ import '../fasta_codes.dart' show templateInternalProblemStackNotEmpty;
 
 import '../problems.dart' show internalProblem;
 
+import '../kernel/kernel_shadow_ast.dart' show ShadowTypePromoter;
+
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Keeps track of the state necessary to perform type promotion.
@@ -31,6 +33,13 @@ import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 /// generic parameters.  Derived classes should set E and V to the class they
 /// use to represent expressions and variable declarations, respectively.
 abstract class TypePromoter {
+  TypePromoter.private();
+
+  factory TypePromoter(TypeSchemaEnvironment typeSchemaEnvironment) =
+      ShadowTypePromoter.private;
+
+  factory TypePromoter.disabled() = TypePromoterDisabled.private;
+
   /// Returns the current type promotion scope.
   TypePromotionScope get currentScope;
 
@@ -90,6 +99,8 @@ abstract class TypePromoter {
 /// This is intended for profiling, to ensure that type inference and type
 /// promotion do not slow down compilation too much.
 class TypePromoterDisabled extends TypePromoter {
+  TypePromoterDisabled.private() : super.private();
+
   @override
   TypePromotionScope get currentScope => null;
 
@@ -177,12 +188,13 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// created.
   int _lastFactSequenceNumber = 0;
 
-  TypePromoterImpl(TypeSchemaEnvironment typeSchemaEnvironment)
+  TypePromoterImpl.private(TypeSchemaEnvironment typeSchemaEnvironment)
       : this._(typeSchemaEnvironment, new _NullFact());
 
   TypePromoterImpl._(this.typeSchemaEnvironment, _NullFact this._nullFacts)
       : _factCacheState = _nullFacts,
-        _currentFacts = _nullFacts {
+        _currentFacts = _nullFacts,
+        super.private() {
     _factCache[null] = _nullFacts;
   }
 

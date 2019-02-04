@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--supermixin
 
 import "package:expect/expect.dart";
 
@@ -15,25 +14,28 @@ class R {
   toString() => 'R[' + super.toString() + ']';
 }
 
-class D extends R with B { //# 01: compile-time error
-  toString() => 'D<' + super.toString() + '>'; //# 01: continued
-} //# 01: continued
+class D extends R with B {
+  toString() => 'D<' + super.toString() + '>';
+}
 
-class E extends D with B { //# 02: compile-time error
-  toString() => 'E{' + super.toString() + '}'; //# 02: continued
-} //# 02: continued
+class E extends D with B {
+  toString() => 'E{' + super.toString() + '}';
+}
 
-class F = R with B, B;  //# 03: compile-time error
+class F = R with B, B;
 
-class G extends F with B { //# 04: compile-time error
-  toString() => 'G{' + super.toString() + '}';  //# 04: continued
-}  //# 04: continued
+class G extends F with B {
+  toString() => 'G{' + super.toString() + '}';
+}
 
 main() {
   check(object, String expected) {
     Expect.equals(expected, object.toString());
   }
 
-  check(new B(), "B(Instance of 'B')");
-  check(new R(), "R[Instance of 'R']");
+  check(B(), "B(Instance of '$B')");
+  check(R(), "R[Instance of '$R']");
+  check(D(), "D<B(R[Instance of '$D'])>");
+  check(E(), "E{B(D<B(R[Instance of '$E'])>)}");
+  check(G(), "G{B(B(B(R[Instance of '$G'])))}");
 }

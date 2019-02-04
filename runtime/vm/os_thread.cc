@@ -20,7 +20,7 @@ Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
 #if defined(HAS_C11_THREAD_LOCAL)
-thread_local Thread* OSThread::current_vm_thread_ = NULL;
+thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
 #endif
 
 OSThread::OSThread()
@@ -29,7 +29,7 @@ OSThread::OSThread()
 #if defined(DEBUG)
       join_id_(kInvalidThreadJoinId),
 #endif
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
       trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
       name_(NULL),
@@ -75,11 +75,11 @@ OSThread::~OSThread() {
   RemoveThreadFromList(this);
   delete log_;
   log_ = NULL;
-  if (FLAG_support_timeline) {
-    if (Timeline::recorder() != NULL) {
-      Timeline::recorder()->FinishBlock(timeline_block_);
-    }
+#if defined(SUPPORT_TIMELINE)
+  if (Timeline::recorder() != NULL) {
+    Timeline::recorder()->FinishBlock(timeline_block_);
   }
+#endif
   timeline_block_ = NULL;
   delete timeline_block_lock_;
   free(name_);
@@ -136,15 +136,17 @@ static void DeleteThread(void* thread) {
   delete reinterpret_cast<OSThread*>(thread);
 }
 
-void OSThread::InitOnce() {
+void OSThread::Init() {
   // Allocate the global OSThread lock.
-  ASSERT(thread_list_lock_ == NULL);
-  thread_list_lock_ = new Mutex();
+  if (thread_list_lock_ == NULL) {
+    thread_list_lock_ = new Mutex();
+  }
   ASSERT(thread_list_lock_ != NULL);
 
   // Create the thread local key.
-  ASSERT(thread_key_ == kUnsetThreadLocalKey);
-  thread_key_ = CreateThreadLocal(DeleteThread);
+  if (thread_key_ == kUnsetThreadLocalKey) {
+    thread_key_ = CreateThreadLocal(DeleteThread);
+  }
   ASSERT(thread_key_ != kUnsetThreadLocalKey);
 
   // Enable creation of OSThread structures in the VM.
@@ -212,7 +214,7 @@ void OSThread::EnableOSThreadCreation() {
   creation_enabled_ = true;
 }
 
-OSThread* OSThread::GetOSThreadFromThread(Thread* thread) {
+OSThread* OSThread::GetOSThreadFromThread(ThreadState* thread) {
   ASSERT(thread->os_thread() != NULL);
   return thread->os_thread();
 }

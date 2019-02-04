@@ -25,7 +25,10 @@ namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
 static const char* kSnapshotKindNames[] = {
-    "none", "script", "app-aot", "app-jit", NULL,
+    "none",
+    "kernel",
+    "app-jit",
+    NULL,
 };
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
@@ -63,17 +66,9 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
-void Options::SetDart1Options(CommandLineOptions* vm_options) {
-  vm_options->AddArgument("--no-strong");
-  vm_options->AddArgument("--no-reify-generic-functions");
-  vm_options->AddArgument("--no-sync-async");
-}
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE* Options::dfe_ = NULL;
 
-// TODO(sivachandra): Make it an error to specify --dfe without
-// specifying --preview_dart_2.
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -155,7 +150,7 @@ void Options::PrintUsage() {
 "  These snapshot options are used to generate a snapshot of the loaded\n"
 "  Dart script:\n"
 "    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
+"                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n");
@@ -186,7 +181,7 @@ void Options::PrintUsage() {
 "  These snapshot options are used to generate a snapshot of the loaded\n"
 "  Dart script:\n"
 "    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
+"                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n"
@@ -384,13 +379,9 @@ int Options::ParseArguments(int argc,
     }
   }
 
-  if (Options::no_preview_dart_2()) {
-    Options::SetDart1Options(vm_options);
-  } else {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    Options::dfe()->set_use_dfe();
+  Options::dfe()->set_use_dfe();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  }
   if (Options::deterministic()) {
     // Both an embedder and VM flag.
     vm_options->AddArgument("--deterministic");
@@ -469,14 +460,11 @@ int Options::ParseArguments(int argc,
   }
   if (checked_set) {
     vm_options->AddArgument("--enable-asserts");
-    if (Options::no_preview_dart_2()) {
-      vm_options->AddArgument("--enable-type-checks");
-    }
   }
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.
   if ((snapshot_filename_ != NULL) && (gen_snapshot_kind_ == kNone)) {
-    gen_snapshot_kind_ = kScript;
+    gen_snapshot_kind_ = kKernel;
   }
 
   return 0;

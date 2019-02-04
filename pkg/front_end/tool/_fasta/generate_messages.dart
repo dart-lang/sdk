@@ -113,7 +113,7 @@ final RegExp placeholderPattern =
     new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
 String compileTemplate(String name, int index, String template, String tip,
-    String analyzerCode, String severity) {
+    Object analyzerCode, String severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
@@ -125,17 +125,17 @@ String compileTemplate(String name, int index, String template, String tip,
   template = template.trimRight();
   var parameters = new Set<String>();
   var conversions = new Set<String>();
+  var conversions2 = new Set<String>();
   var arguments = new Set<String>();
-  bool hasNameSystem = false;
-  void ensureNameSystem() {
-    if (hasNameSystem) return;
-    conversions.add(r"""
-NameSystem nameSystem = new NameSystem();
-StringBuffer buffer;""");
-    hasNameSystem = true;
+  bool hasLabeler = false;
+  void ensureLabeler() {
+    if (hasLabeler) return;
+    conversions.add("TypeLabeler labeler = new TypeLabeler();");
+    hasLabeler = true;
   }
 
-  for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
+  for (Match match
+      in placeholderPattern.allMatches("$template\n${tip ?? ''}")) {
     String name = match[1];
     String padding = match[2];
     String fractionDigits = match[3];
@@ -160,6 +160,8 @@ StringBuffer buffer;""");
     switch (name) {
       case "character":
         parameters.add("String character");
+        conversions.add("if (character.runes.length != 1)"
+            "throw \"Not a character '\${character}'\";");
         arguments.add("'character': character");
         break;
 
@@ -175,17 +177,37 @@ StringBuffer buffer;""");
 
       case "name":
         parameters.add("String name");
+        conversions.add("if (name.isEmpty) throw 'No name provided';");
         arguments.add("'name': name");
+        conversions.add("name = demangleMixinApplicationName(name);");
         break;
 
       case "name2":
         parameters.add("String name2");
+        conversions.add("if (name2.isEmpty) throw 'No name provided';");
         arguments.add("'name2': name2");
+        conversions.add("name2 = demangleMixinApplicationName(name2);");
         break;
 
       case "name3":
         parameters.add("String name3");
+        conversions.add("if (name3.isEmpty) throw 'No name provided';");
         arguments.add("'name3': name3");
+        conversions.add("name3 = demangleMixinApplicationName(name3);");
+        break;
+
+      case "name4":
+        parameters.add("String name4");
+        conversions.add("if (name4.isEmpty) throw 'No name provided';");
+        arguments.add("'name4': name4");
+        conversions.add("name4 = demangleMixinApplicationName(name4);");
+        break;
+
+      case "names":
+        parameters.add("List<String> _names");
+        conversions.add("if (_names.isEmpty) throw 'No names provided';");
+        arguments.add("'names': _names");
+        conversions.add("String names = itemizeNames(_names);");
         break;
 
       case "lexeme":
@@ -202,39 +224,31 @@ StringBuffer buffer;""");
 
       case "string":
         parameters.add("String string");
+        conversions.add("if (string.isEmpty) throw 'No string provided';");
         arguments.add("'string': string");
         break;
 
       case "string2":
         parameters.add("String string2");
+        conversions.add("if (string2.isEmpty) throw 'No string provided';");
         arguments.add("'string2': string2");
         break;
 
       case "string3":
         parameters.add("String string3");
+        conversions.add("if (string3.isEmpty) throw 'No string provided';");
         arguments.add("'string3': string3");
         break;
 
       case "type":
-        parameters.add("DartType _type");
-        ensureNameSystem();
-        conversions.add(r"""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-String type = '$buffer';
-""");
-        arguments.add("'type': _type");
-        break;
-
       case "type2":
-        parameters.add("DartType _type2");
-        ensureNameSystem();
-        conversions.add(r"""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-String type2 = '$buffer';
-""");
-        arguments.add("'type2': _type2");
+      case "type3":
+        parameters.add("DartType _${name}");
+        ensureLabeler();
+        conversions
+            .add("List<Object> ${name}Parts = labeler.labelType(_${name});");
+        conversions2.add("String ${name} = ${name}Parts.join();");
+        arguments.add("'${name}': _${name}");
         break;
 
       case "uri":
@@ -257,41 +271,42 @@ String type2 = '$buffer';
 
       case "count":
         parameters.add("int count");
+        conversions.add("if (count == null) throw 'No count provided';");
         arguments.add("'count': count");
         break;
 
       case "count2":
         parameters.add("int count2");
+        conversions.add("if (count2 == null) throw 'No count provided';");
         arguments.add("'count2': count2");
         break;
 
       case "constant":
         parameters.add("Constant _constant");
-        ensureNameSystem();
-        conversions.add(r"""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-String constant = '$buffer';
-""");
-
+        ensureLabeler();
+        conversions.add(
+            "List<Object> ${name}Parts = labeler.labelConstant(_${name});");
+        conversions2.add("String ${name} = ${name}Parts.join();");
         arguments.add("'constant': _constant");
-
         break;
 
       case "num1":
         parameters.add("num _num1");
+        conversions.add("if (_num1 == null) throw 'No number provided';");
         conversions.add("String num1 = ${format('_num1')};");
         arguments.add("'num1': _num1");
         break;
 
       case "num2":
         parameters.add("num _num2");
+        conversions.add("if (_num2 == null) throw 'No number provided';");
         conversions.add("String num2 = ${format('_num2')};");
         arguments.add("'num2': _num2");
         break;
 
       case "num3":
         parameters.add("num _num3");
+        conversions.add("if (_num3 == null) throw 'No number provided';");
         conversions.add("String num3 = ${format('_num3')};");
         arguments.add("'num3': _num3");
         break;
@@ -301,20 +316,26 @@ String constant = '$buffer';
     }
   }
 
-  String interpolate(String name, String text) {
+  conversions.addAll(conversions2);
+
+  String interpolate(String text) {
     text = text
         .replaceAll(r"$", r"\$")
         .replaceAllMapped(placeholderPattern, (Match m) => "\${${m[1]}}");
-    return "$name: \"\"\"$text\"\"\"";
+    return "\"\"\"$text\"\"\"";
   }
 
   List<String> codeArguments = <String>[];
   if (index != null) {
     codeArguments.add('index: $index');
   } else if (analyzerCode != null) {
+    if (analyzerCode is String) {
+      analyzerCode = <String>[analyzerCode];
+    }
+    List<Object> codes = analyzerCode;
     // If "index:" is defined, then "analyzerCode:" should not be generated
     // in the front end. See comment in messages.yaml
-    codeArguments.add('analyzerCode: "$analyzerCode"');
+    codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
   }
   if (severity != null) {
     String severityEnumName = severityEnumNames[severity];
@@ -353,9 +374,13 @@ const MessageCode message$name =
   templateArguments.add("withArguments: _withArguments$name");
 
   List<String> messageArguments = <String>[];
-  messageArguments.add(interpolate("message", template));
+  String message = interpolate(template);
+  if (hasLabeler) {
+    message += " + labeler.originMessages";
+  }
+  messageArguments.add("message: ${message}");
   if (tip != null) {
-    messageArguments.add(interpolate("tip", tip));
+    messageArguments.add("tip: ${interpolate(tip)}");
   }
   messageArguments.add("arguments: { ${arguments.join(', ')} }");
 

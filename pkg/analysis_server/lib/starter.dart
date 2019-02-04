@@ -1,8 +1,8 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
@@ -18,6 +18,12 @@ abstract class ServerStarter {
    * Initialize a newly created starter to start up an analysis server.
    */
   factory ServerStarter() = Driver;
+
+  /***
+   * An optional manager to handle file systems which may not always be
+   * available.
+   */
+  void set detachableFileSystemManager(DetachableFileSystemManager manager);
 
   /**
    * Set the file resolver provider used to override the way file URI's
@@ -40,10 +46,6 @@ abstract class ServerStarter {
 
   /**
    * Use the given command-line [arguments] to start this server.
-   *
-   * At least temporarily returns AnalysisServer so that consumers of the
-   * starter API can then use the server, this is done as a stopgap for the
-   * angular plugin until the official plugin API is finished.
    */
-  AnalysisServer start(List<String> arguments);
+  void start(List<String> arguments);
 }

@@ -9,19 +9,30 @@ import 'dart:async' show Future;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/file_system.dart';
-import '../base/processed_options.dart';
-import '../kernel_generator_impl.dart';
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
-import '../api_prototype/compiler_options.dart';
-import 'compiler_state.dart';
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
-export 'compiler_state.dart';
+import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../fasta/kernel/utils.dart' show serializeComponent;
+
+import '../kernel_generator_impl.dart' show generateKernel;
+
+import 'compiler_state.dart' show InitializedCompilerState;
+
+export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-export '../fasta/fasta_codes.dart' show FormattedMessage;
+
+export '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
 export '../fasta/severity.dart' show Severity;
-import '../fasta/kernel/utils.dart' show serializeComponent;
+
+export 'compiler_state.dart' show InitializedCompilerState;
 
 Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
@@ -50,11 +61,11 @@ Future<InitializedCompilerState> initializeCompiler(
 }
 
 Future<List<int>> compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, ProblemHandler problemHandler,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
     {bool summaryOnly}) async {
   summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
-  options..onProblem = problemHandler;
+  options..onDiagnostic = diagnosticMessageHandler;
 
   ProcessedOptions processedOpts = compilerState.processedOpts;
   processedOpts.inputs.clear();
@@ -69,7 +80,7 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
         // be computed as part of serialization, so we need to do that
-        // preemtively here to avoid errors when serializing references to
+        // preemptively here to avoid errors when serializing references to
         // elements of these libraries.
         component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
         lib.computeCanonicalNames();

@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter.class_stub_generator;
 
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Identifiers, Selectors;
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
@@ -12,9 +12,9 @@ import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../options.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart';
@@ -85,11 +85,9 @@ class ClassStubGenerator {
         'function(#, v) { return #.# = v; }', [args, receiver, fieldName]);
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [member] must be a declaration element.
-   */
+  /// Documentation wanted -- johnniwinther
+  ///
+  /// Invariant: [member] must be a declaration element.
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
@@ -125,7 +123,8 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (selectors[selector].applies(member, selector, _closedWorld)) {
+      if (selectors[selector]
+          .canHit(member, selector.memberName, _closedWorld)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = _namer.invocationName(selector);
@@ -165,6 +164,16 @@ class ClassStubGenerator {
     void addNoSuchMethodHandlers(
         String ignore, Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
+        if (selector == Selectors.runtimeType_ ||
+            selector == Selectors.equals ||
+            selector == Selectors.toString_ ||
+            selector == Selectors.hashCode_ ||
+            selector == Selectors.noSuchMethod_) {
+          // Skip Object methods since these need no noSuchMethod handling
+          // regardless of the precision of the selector constraints.
+          continue;
+        }
+
         SelectorConstraints maskSet = selectors[selector];
         if (maskSet.needsNoSuchMethodHandling(selector, _closedWorld)) {
           jsAst.Name jsName = _namer.invocationMirrorInternalName(selector);
@@ -234,12 +243,13 @@ class ClassStubGenerator {
 ///
 /// `tearOff` takes the following arguments:
 ///   * `funcs`: a list of functions. These are the functions representing the
-///    member that is torn off. There can be more than one, since a member
-///    can have several stubs.
-///    Each function must have the `$callName` property set.
-///   * `applyTrampolineIndex` is the index of the stub to be used for Function.apply
+///     member that is torn off. There can be more than one, since a member
+///     can have several stubs.
+///     Each function must have the `$callName` property set.
+///   * `applyTrampolineIndex` is the index of the stub to be used for
+///     Function.apply
 ///   * `reflectionInfo`: contains reflective information, and the function
-///    type. TODO(floitsch): point to where this is specified.
+///     type. TODO(floitsch): point to where this is specified.
 ///   * `isStatic`.
 ///   * `name`.
 ///   * `isIntercepted.
@@ -273,16 +283,16 @@ function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isInte
   return isIntercepted
       ? new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
-          "return function tearOff_" + name + (functionCounter++) + "(x) {" +
+          "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);" +
-                "return new c(this, funcs[0], x, name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);" +
+                "return new c(this, funcs[0], receiver, name);" +
            "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null)
       : new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++)+ "() {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);" +
                 "return new c(this, funcs[0], null, name);" +
              "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null);
 }''', {
@@ -292,17 +302,17 @@ function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isInte
     });
   } else {
     tearOffGetter = js.statement('''
-        function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
+      function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
         var cache = null;
         return isIntercepted
-            ? function(x) {
+            ? function(receiver) {
                 if (cache === null) cache = #(
-                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);
-                return new cache(this, funcs[0], x, name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);
+                return new cache(this, funcs[0], receiver, name);
               }
             : function() {
                 if (cache === null) cache = #(
-                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);
                 return new cache(this, funcs[0], null, name);
               };
       }''', [tearOffAccessExpression, tearOffAccessExpression]);
@@ -311,12 +321,12 @@ function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isInte
   jsAst.Statement tearOff = js.statement('''
       function tearOff(funcs, applyTrampolineIndex,
           reflectionInfo, isStatic, name, isIntercepted) {
-      var cache;
+      var cache = null;
       return isStatic
           ? function() {
-              if (cache === void 0) cache = #tearOff(
+              if (cache === null) cache = #tearOff(
                   this, funcs, applyTrampolineIndex,
-                  reflectionInfo, true, [], name).prototype;
+                  reflectionInfo, true, false, name).prototype;
               return cache;
             }
           : tearOffGetter(funcs, applyTrampolineIndex,

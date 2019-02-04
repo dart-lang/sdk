@@ -5,7 +5,7 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Supertype, TreeNode, setParents;
+    show Class, Constructor, Member, Supertype, TreeNode;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
@@ -19,17 +19,19 @@ import '../fasta_codes.dart'
         templateConflictsWithMember,
         templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning;
+        templateConflictsWithSetterWarning,
+        templateSupertypeIsIllegal;
 
 import '../kernel/kernel_builder.dart'
     show
+        ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        FieldBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
         KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -50,7 +52,11 @@ ShadowClass initializeClass(
     int startCharOffset,
     int charOffset,
     int charEndOffset) {
-  cls ??= new ShadowClass(name: name);
+  cls ??= new ShadowClass(
+      name: name,
+      typeParameters:
+          KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+              typeVariables));
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -62,23 +68,19 @@ ShadowClass initializeClass(
     cls.fileEndOffset = charEndOffset;
   }
 
-  if (typeVariables != null) {
-    for (KernelTypeVariableBuilder t in typeVariables) {
-      cls.typeParameters.add(t.parameter);
-    }
-    setParents(cls.typeParameters, cls);
-  }
-
   return cls;
 }
 
-class SourceClassBuilder extends KernelClassBuilder {
+class SourceClassBuilder extends KernelClassBuilder
+    implements Comparable<SourceClassBuilder> {
   @override
   final Class actualCls;
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
   KernelTypeBuilder mixedInType;
+
+  bool isMixinDeclaration;
 
   SourceClassBuilder(
       List<MetadataBuilder> metadata,
@@ -94,8 +96,9 @@ class SourceClassBuilder extends KernelClassBuilder {
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      [ShadowClass cls,
-      this.mixedInType])
+      {Class cls,
+      this.mixedInType,
+      this.isMixinDeclaration = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
@@ -113,18 +116,24 @@ class SourceClassBuilder extends KernelClassBuilder {
     void buildBuilders(String name, Declaration declaration) {
       do {
         if (declaration.parent != this) {
-          unexpected(
-              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
+          if (fileUri != declaration.parent.fileUri) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          } else {
+            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
+                charOffset, fileUri);
+          }
         } else if (declaration is KernelFieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
           Member field = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(field);
           }
         } else if (declaration is KernelFunctionBuilder) {
           Member function = declaration.build(library);
-          if (!declaration.isPatch) {
+          function.parent = cls;
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }
         } else {
@@ -139,8 +148,23 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructors.forEach(buildBuilders);
     actualCls.supertype =
         supertype?.buildSupertype(library, charOffset, fileUri);
+    if (!isMixinDeclaration &&
+        actualCls.supertype != null &&
+        actualCls.superclass.isMixinDeclaration) {
+      // Declared mixins have interfaces that can be implemented, but they
+      // cannot be extended.  However, a mixin declaration with a single
+      // superclass constraint is encoded with the constraint as the supertype,
+      // and that is allowed to be a mixin's interface.
+      library.addProblem(
+          templateSupertypeIsIllegal.withArguments(actualCls.superclass.name),
+          charOffset,
+          noLength,
+          fileUri);
+      actualCls.supertype = null;
+    }
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
+    actualCls.isMixinDeclaration = isMixinDeclaration;
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
@@ -220,14 +244,18 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructorScopeBuilder.addMember(name, memberBuilder);
   }
 
-  @override
   void prepareTopLevelInference() {
     scope.forEach((String name, Declaration declaration) {
-      if (declaration is FieldBuilder) {
-        declaration.prepareTopLevelInference();
-      }
+      do {
+        if (declaration is KernelFieldBuilder) {
+          declaration.prepareTopLevelInference();
+        }
+        declaration = declaration.next;
+      } while (declaration != null);
     });
-    cls.setupApiMembers(library.loader.interfaceResolver);
+    if (!isPatch) {
+      cls.setupApiMembers(library.loader.interfaceResolver);
+    }
   }
 
   @override
@@ -253,5 +281,34 @@ class SourceClassBuilder extends KernelClassBuilder {
       count += declaration.finishPatch();
     });
     return count;
+  }
+
+  List<Declaration> computeDirectSupertypes(ClassBuilder objectClass) {
+    final List<Declaration> result = <Declaration>[];
+    final KernelNamedTypeBuilder supertype = this.supertype;
+    if (supertype != null) {
+      result.add(supertype.declaration);
+    } else if (objectClass != this) {
+      result.add(objectClass);
+    }
+    final List<KernelTypeBuilder> interfaces = this.interfaces;
+    if (interfaces != null) {
+      for (int i = 0; i < interfaces.length; i++) {
+        KernelNamedTypeBuilder interface = interfaces[i];
+        result.add(interface.declaration);
+      }
+    }
+    final KernelNamedTypeBuilder mixedInType = this.mixedInType;
+    if (mixedInType != null) {
+      result.add(mixedInType.declaration);
+    }
+    return result;
+  }
+
+  @override
+  int compareTo(SourceClassBuilder other) {
+    int result = "$fileUri".compareTo("${other.fileUri}");
+    if (result != 0) return result;
+    return charOffset.compareTo(other.charOffset);
   }
 }

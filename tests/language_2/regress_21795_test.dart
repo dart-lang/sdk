@@ -4,6 +4,7 @@
 
 // Regression test for issue 21795.
 
+@pragma("vm:entry-point") // Prevent obfuscation
 foo(t) {
   try {
     if (t == 123) throw 42;

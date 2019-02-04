@@ -35,51 +35,43 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, write_protect_code);
+
 uword VirtualMemory::page_size_ = 0;
 
-void VirtualMemory::InitOnce() {
+void VirtualMemory::Init() {
   page_size_ = getpagesize();
 }
 
-VirtualMemory* VirtualMemory::Allocate(intptr_t size,
-                                       bool is_executable,
-                                       const char* name) {
-  ASSERT(Utils::IsAligned(size, page_size_));
-  zx_handle_t vmo = ZX_HANDLE_INVALID;
-  zx_status_t status = zx_vmo_create(size, 0u, &vmo);
+static void unmap(zx_handle_t vmar, uword start, uword end) {
+  ASSERT(start <= end);
+  const uword size = end - start;
+  if (size == 0) {
+    return;
+  }
+
+  zx_status_t status = zx_vmar_unmap(vmar, start, size);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmo_create(%ld) failed: %s\n", size,
-            zx_status_get_string(status));
-    return NULL;
+    FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
   }
-
-  if (name != NULL) {
-    zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
-  }
-
-  const uint32_t flags = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
-                         (is_executable ? ZX_VM_PERM_EXECUTE : 0);
-  uword address;
-  status = zx_vmar_map(zx_vmar_root_self(), flags, 0, vmo, 0, size, &address);
-  zx_handle_close(vmo);
-  if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%u, %ld) failed: %s\n", flags, size,
-            zx_status_get_string(status));
-    return NULL;
-  }
-  LOG_INFO("zx_vmar_map(%u,%ld) success\n", flags, size);
-
-  MemoryRegion region(reinterpret_cast<void*>(address), size);
-  return new VirtualMemory(region, region);
 }
 
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
                                               const char* name) {
+  // When FLAG_write_protect_code is active, the VM allocates code
+  // memory with !is_executable, and later changes to executable via
+  // VirtualMemory::Protect, which requires ZX_RIGHT_EXECUTE on the
+  // underlying VMO. Conservatively assume all memory needs to be
+  // executable in this mode.
+  // TODO(mdempsky): Make into parameter.
+  const bool can_prot_exec = FLAG_write_protect_code;
+
   ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
-  intptr_t allocated_size = size + alignment;
+  const intptr_t allocated_size = size + alignment - page_size_;
 
   zx_handle_t vmar = zx_vmar_root_self();
   zx_handle_t vmo = ZX_HANDLE_INVALID;
@@ -94,6 +86,17 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
+  if (is_executable || can_prot_exec) {
+    // Add ZX_RIGHT_EXECUTE permission to VMO, so it can be mapped
+    // into memory as executable.
+    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    if (status != ZX_OK) {
+      LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
+              zx_status_get_string(status));
+      return NULL;
+    }
+  }
+
   const zx_vm_option_t options = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
                                  (is_executable ? ZX_VM_PERM_EXECUTE : 0);
   uword base;
@@ -105,25 +108,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     return NULL;
   }
 
-  uword aligned_base = Utils::RoundUp(base, alignment);
-  ASSERT(base <= aligned_base);
+  const uword aligned_base = Utils::RoundUp(base, alignment);
 
-  if (base != aligned_base) {
-    uword extra_leading_size = aligned_base - base;
-    status = zx_vmar_unmap(vmar, base, extra_leading_size);
-    if (status != ZX_OK) {
-      FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
-    }
-    allocated_size -= extra_leading_size;
-  }
-
-  if (allocated_size != size) {
-    uword extra_trailing_size = allocated_size - size;
-    status = zx_vmar_unmap(vmar, aligned_base + size, extra_trailing_size);
-    if (status != ZX_OK) {
-      FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
-    }
-  }
+  unmap(vmar, base, aligned_base);
+  unmap(vmar, aligned_base + size, base + allocated_size);
 
   MemoryRegion region(reinterpret_cast<void*>(aligned_base), size);
   return new VirtualMemory(region, region);
@@ -132,32 +120,24 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 VirtualMemory::~VirtualMemory() {
   // Reserved region may be empty due to VirtualMemory::Truncate.
   if (vm_owns_region() && reserved_.size() != 0) {
-    zx_status_t status =
-        zx_vmar_unmap(zx_vmar_root_self(), reserved_.start(), reserved_.size());
-    if (status != ZX_OK) {
-      FATAL3("zx_vmar_unmap(%lx, %lx) failed: %s\n", reserved_.start(),
-             reserved_.size(), zx_status_get_string(status));
-    }
+    unmap(zx_vmar_root_self(), reserved_.start(), reserved_.end());
     LOG_INFO("zx_vmar_unmap(%lx, %lx) success\n", reserved_.start(),
              reserved_.size());
   }
 }
 
-bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-  zx_status_t status = zx_vmar_unmap(
-      zx_vmar_root_self(), reinterpret_cast<uintptr_t>(address), size);
-  if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_unmap(%p, %lx) failed: %s\n", address, size,
-            zx_status_get_string(status));
-    return false;
-  }
+void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+  const uword start = reinterpret_cast<uword>(address);
+  unmap(zx_vmar_root_self(), start, start + size);
   LOG_INFO("zx_vmar_unmap(%p, %lx) success\n", address, size);
-  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
-  ASSERT(Thread::Current()->IsMutatorThread() ||
-         Isolate::Current()->mutator_thread()->IsAtSafepoint());
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT((thread == nullptr) || thread->IsMutatorThread() ||
+         thread->isolate()->mutator_thread()->IsAtSafepoint());
+#endif
   const uword start_address = reinterpret_cast<uword>(address);
   const uword end_address = start_address + size;
   const uword page_address = Utils::RoundDown(start_address, PageSize());

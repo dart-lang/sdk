@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -44,7 +43,8 @@ class AnalysisContextFactory {
    * system.
    */
   static InternalAnalysisContext contextWithCore(
-      {UriResolver contributedResolver, ResourceProvider resourceProvider}) {
+      {UriResolver contributedResolver,
+      MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(context, contributedResolver, resourceProvider);
   }
@@ -56,7 +56,7 @@ class AnalysisContextFactory {
    */
   static InternalAnalysisContext contextWithCoreAndOptions(
       AnalysisOptions options,
-      {ResourceProvider resourceProvider}) {
+      {MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context, null, resourceProvider);
@@ -70,7 +70,7 @@ class AnalysisContextFactory {
    */
   static InternalAnalysisContext contextWithCoreAndPackages(
       Map<String, String> packages,
-      {ResourceProvider resourceProvider}) {
+      {MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(
         context, new TestPackageUriResolver(packages), resourceProvider);
@@ -85,10 +85,9 @@ class AnalysisContextFactory {
   static InternalAnalysisContext initContextWithCore(
       InternalAnalysisContext context,
       [UriResolver contributedResolver,
-      ResourceProvider resourceProvider]) {
-    resourceProvider ??= PhysicalResourceProvider.INSTANCE;
+      MemoryResourceProvider resourceProvider]) {
     DartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
-        resourceProvider, '/fake/sdk');
+        resourceProvider, resourceProvider.convertPath('/fake/sdk'));
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(sdk),
       new ResourceUriResolver(resourceProvider)
@@ -103,8 +102,7 @@ class AnalysisContextFactory {
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
@@ -132,6 +130,7 @@ class AnalysisContextFactory {
       objectClassElement,
       overrideClassElement,
       proxyClassElement,
+      provider.setType.element,
       provider.stackTraceType.element,
       provider.stringType.element,
       provider.symbolType.element,
@@ -175,15 +174,16 @@ class AnalysisContextFactory {
       proxyTopLevelVariableElt
     ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstTestFactory.libraryIdentifier2(["dart", "core"]));
+        coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
     //
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstTestFactory.libraryIdentifier2(["dart", "async"]));
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
+        coreContext,
+        null,
+        AstTestFactory.libraryIdentifier2(["dart", "async"]));
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     coreContext.setContents(asyncSource, "");
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
@@ -276,8 +276,7 @@ class AnalysisContextFactory {
     //
     // dart:html
     //
-    CompilationUnitElementImpl htmlUnit =
-        new CompilationUnitElementImpl("html_dartium.dart");
+    CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl();
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     coreContext.setContents(htmlSource, "");
     htmlUnit.librarySource = htmlUnit.source = htmlSource;
@@ -333,13 +332,12 @@ class AnalysisContextFactory {
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
     LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(coreContext,
-        AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]));
+        null, AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     //
     // dart:math
     //
-    CompilationUnitElementImpl mathUnit =
-        new CompilationUnitElementImpl("math.dart");
+    CompilationUnitElementImpl mathUnit = new CompilationUnitElementImpl();
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
     mathUnit.librarySource = mathUnit.source = mathSource;
@@ -395,7 +393,7 @@ class AnalysisContextFactory {
     ];
     mathUnit.types = <ClassElement>[randomElement];
     LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstTestFactory.libraryIdentifier2(["dart", "math"]));
+        coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "math"]));
     mathLibrary.definingCompilationUnit = mathUnit;
     //
     // Set empty sources for the rest of the libraries.
@@ -539,8 +537,9 @@ class TestPackageUriResolver extends UriResolver {
   Map<String, Source> sourceMap = new HashMap<String, Source>();
 
   TestPackageUriResolver(Map<String, String> map) {
-    map.forEach((String uri, String contents) {
-      sourceMap[uri] = new StringSource(contents, '/test_pkg_source.dart');
+    map.forEach((String name, String contents) {
+      sourceMap['package:$name/$name.dart'] =
+          new StringSource(contents, '/$name/lib/$name.dart');
     });
   }
 

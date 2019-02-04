@@ -1,11 +1,11 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -512,6 +512,24 @@ import 'package:product2.client/entity.dart';
 ''');
   }
 
+  test_mixinMembers_method() async {
+    await _parseTestUnit(r'''
+mixin A {
+  c() {}
+  a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin A {
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
   test_unitMembers_class() async {
     await _parseTestUnit(r'''
 class C {}
@@ -664,6 +682,20 @@ typedef FC();
 ''');
   }
 
+  test_unitMembers_genericTypeAlias() async {
+    await _parseTestUnit(r'''
+typedef FC = void Function();
+typedef FA = void Function();
+typedef FB = void Function();
+''');
+    // validate change
+    _assertSort(r'''
+typedef FA = void Function();
+typedef FB = void Function();
+typedef FC = void Function();
+''');
+  }
+
   test_unitMembers_importsAndDeclarations() async {
     await _parseTestUnit(r'''
 import 'dart:a';
@@ -711,6 +743,8 @@ class C {}
     await _parseTestUnit(r'''
 _mmm() {}
 typedef nnn();
+typedef GTAF3 = void Function();
+typedef _GTAF2 = void Function();
 _nnn() {}
 typedef mmm();
 typedef _nnn();
@@ -724,6 +758,7 @@ var mmm;
 var nnn;
 var _mmm;
 var _nnn;
+typedef GTAF1 = void Function();
 set nnn(x) {}
 get mmm => null;
 set mmm(x) {}
@@ -752,6 +787,9 @@ mmm() {}
 nnn() {}
 _mmm() {}
 _nnn() {}
+typedef GTAF1 = void Function();
+typedef GTAF3 = void Function();
+typedef _GTAF2 = void Function();
 typedef mmm();
 typedef nnn();
 typedef _mmm();
@@ -760,6 +798,19 @@ class mmm {}
 class nnn {}
 class _mmm {}
 class _nnn {}
+''');
+  }
+
+  test_unitMembers_mixin() async {
+    await _parseTestUnit(r'''
+mixin C {}
+mixin A {}
+mixin B {}
+''');
+    _assertSort(r'''
+mixin A {}
+mixin B {}
+mixin C {}
 ''');
   }
 
@@ -804,7 +855,7 @@ int c;
 
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
-    ParseResult result = await driver.parseFile(testSource.fullName);
+    ParsedUnitResult result = session.getParsedUnit(testSource.fullName);
     testUnit = result.unit;
   }
 }

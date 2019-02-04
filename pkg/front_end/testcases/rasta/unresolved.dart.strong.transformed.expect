@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/unresolved.dart:6:7: Error: Method not found: 'Missing'.
+//   new Missing();
+//       ^^^^^^^
+//
+import self as self;
+
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved.dart:6:7: Error: Method not found: 'Missing'.
+  new Missing();
+      ^^^^^^^";
+}

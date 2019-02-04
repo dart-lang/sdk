@@ -11,16 +11,16 @@ class M<T> {
   }
 }
 
-/*class: A:checks=[]*/
+/*class: A:checks=[],indirectInstance*/
 class A<U> = Object with M<U>;
 
-/*class: B:checks=[]*/
+/*class: B:checks=[],indirectInstance*/
 class B<V> = Object with A<V>;
 
-/*class: C:checks=[$asM]*/
+/*class: C:checks=[$asM],indirectInstance*/
 class C<U> = Object with M<List<U>>;
 
-/*class: D:checks=[$asM]*/
+/*class: D:checks=[$asM],indirectInstance*/
 class D<V> = Object with C<Set<V>>;
 
 /*class: E:checks=[$asM],instance*/

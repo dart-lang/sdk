@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000036.dart:5:14: Error: Expected an identifier, but got '-'.
+// main() => a. - 5;
+//              ^
+//
+// pkg/front_end/testcases/rasta/issue_000036.dart:5:14: Error: Expected an identifier, but got ''.
+// main() => a. - 5;
+//              ^
+//
+import self as self;
+
+static method main() → dynamic
+  return invalid-expression "pkg/front_end/testcases/rasta/issue_000036.dart:5:14: Error: Expected an identifier, but got ''.
+main() => a. - 5;
+             ^".-(5);

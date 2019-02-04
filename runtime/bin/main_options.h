@@ -24,9 +24,8 @@ namespace bin {
   V(depfile, depfile)                                                          \
   V(depfile_output_filename, depfile_output_filename)                          \
   V(shared_blobs, shared_blobs_filename)                                       \
-  V(save_obfuscation_map, obfuscation_map_filename)                            \
-  V(save_compilation_trace, save_compilation_trace_filename)                   \
-  V(load_compilation_trace, load_compilation_trace_filename)                   \
+  V(save_type_feedback, save_type_feedback_filename)                           \
+  V(load_type_feedback, load_type_feedback_filename)                           \
   V(root_certs_file, root_certs_file)                                          \
   V(root_certs_cache, root_certs_cache)                                        \
   V(namespace, namespc)
@@ -36,17 +35,14 @@ namespace bin {
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(version, version_option)                                                   \
   V(compile_all, compile_all)                                                  \
-  V(parse_all, parse_all)                                                      \
   V(disable_service_origin_check, vm_service_dev_mode)                         \
   V(deterministic, deterministic)                                              \
-  V(use_blobs, use_blobs)                                                      \
-  V(obfuscate, obfuscate)                                                      \
   V(trace_loading, trace_loading)                                              \
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
   V(disable_exit, exit_disabled)                                               \
-  V(no_preview_dart_2, no_preview_dart_2)                                      \
-  V(preview_dart_2, nop_option)
+  V(preview_dart_2, nop_option)                                                \
+  V(suppress_core_dump, suppress_core_dump)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -69,8 +65,7 @@ namespace bin {
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
   kNone,
-  kScript,
-  kAppAOT,
+  kKernel,
   kAppJIT,
 };
 
@@ -111,8 +106,7 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static bool preview_dart_2() { return !no_preview_dart_2(); }
-  static void SetDart1Options(CommandLineOptions* vm_options);
+  static bool preview_dart_2() { return true; }
 
   static dart::SimpleHashMap* environment() { return environment_; }
 

@@ -17,16 +17,16 @@ namespace dart {
 
 // --- Message sending/receiving from native code ---
 
-class IsolateSaver {
+class IsolateLeaveScope {
  public:
-  explicit IsolateSaver(Isolate* current_isolate)
+  explicit IsolateLeaveScope(Isolate* current_isolate)
       : saved_isolate_(current_isolate) {
     if (current_isolate != NULL) {
       ASSERT(current_isolate == Isolate::Current());
       Dart_ExitIsolate();
     }
   }
-  ~IsolateSaver() {
+  ~IsolateLeaveScope() {
     if (saved_isolate_ != NULL) {
       Dart_Isolate I = reinterpret_cast<Dart_Isolate>(saved_isolate_);
       Dart_EnterIsolate(I);
@@ -36,7 +36,7 @@ class IsolateSaver {
  private:
   Isolate* saved_isolate_;
 
-  DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
+  DISALLOW_COPY_AND_ASSIGN(IsolateLeaveScope);
 };
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
@@ -79,7 +79,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
     return ILLEGAL_PORT;
   }
   // Start the native port without a current isolate.
-  IsolateSaver saver(Isolate::Current());
+  IsolateLeaveScope saver(Isolate::Current());
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
@@ -90,7 +90,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
 
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // Close the native port without a current isolate.
-  IsolateSaver saver(Isolate::Current());
+  IsolateLeaveScope saver(Isolate::Current());
 
   // TODO(turnidge): Check that the port is native before trying to close.
   return PortMap::ClosePort(native_port_id);
@@ -105,7 +105,7 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
                                             char** error) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate == nullptr || !isolate->is_service_isolate());
-  IsolateSaver saver(isolate);
+  IsolateLeaveScope saver(isolate);
 
   // We only allow one isolate reload at a time.  If this turns out to be on the
   // critical path, we can change it to have a global datastructure which is
@@ -197,9 +197,10 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-DART_EXPORT Dart_Handle Dart_ParseAll() {
+DART_EXPORT Dart_Handle Dart_ReadAllBytecode() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+  return Api::NewError("%s: Cannot read bytecode on an AOT runtime.",
+                       CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
@@ -208,7 +209,7 @@ DART_EXPORT Dart_Handle Dart_ParseAll() {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  const Error& error = Error::Handle(T->zone(), Library::ParseAll(T));
+  const Error& error = Error::Handle(T->zone(), Library::ReadAllBytecode());
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.raw());
   }

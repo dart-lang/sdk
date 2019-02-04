@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -116,19 +117,27 @@ main() {
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
   }
 
-  test_error_file_invalid_path() async {
-    var result = await prepareRawSignatureAt(0, file: ':\\/?*');
+  test_does_not_walk_up_over_closure() async {
+    addTestFile('''
+one(String name, int length) {}
+main() {
+  one("Danny", () {
+    /*^*/
+  });
+}
+''');
+    var result = await prepareRawSignature('/*^*/');
     expect(result.error, isNotNull);
-    expect(
-        result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
+    expect(result.error.code,
+        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
   test_error_file_not_analyzed() async {
     var result = await prepareRawSignatureAt(0,
-        file: resourceProvider.convertPath('/not/in/project.dart'));
+        file: convertPath('/not/in/project.dart'));
     expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+    expect(
+        result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
   test_error_function_unknown() async {
@@ -392,6 +401,26 @@ main() {
     expect(result.parameters, hasLength(0));
   }
 
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new AnalysisGetSignatureParams('test.dart', 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        new AnalysisGetSignatureParams(convertPath('/foo/../bar/test.dart'), 0)
+            .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
   test_method_instance() async {
     addTestFile('''
 /// MyClass doc
@@ -437,20 +466,5 @@ main() {
         equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
     expect(result.parameters[1],
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
-  }
-
-  test_does_not_walk_up_over_closure() async {
-    addTestFile('''
-one(String name, int length) {}
-main() {
-  one("Danny", () {
-    /*^*/
-  });
-}
-''');
-    var result = await prepareRawSignature('/*^*/');
-    expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 }

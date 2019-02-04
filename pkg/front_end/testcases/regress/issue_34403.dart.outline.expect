@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_34403_lib.dart" as p;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  constructor bar() → self::C<self::C::T>
+    ;
+}
+class D<T extends core::Object = dynamic> extends core::Object {
+  const constructor foo() → self::D<self::D::T>
+    ;
+}
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class E<T extends core::Object = dynamic> extends core::Object {
+  constructor bar() → self2::E<self2::E::T>
+    ;
+}
+class F<T extends core::Object = dynamic> extends core::Object {
+  const constructor foo() → self2::F<self2::F::T>
+    ;
+}

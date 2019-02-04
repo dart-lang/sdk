@@ -3,23 +3,28 @@ import self as self;
 import "dart:core" as core;
 import "dart:mirrors" as mir;
 
+import "dart:mirrors";
+
 class _FailingTest extends core::Object {
-  const constructor •() → void
+  const constructor •() → self::_FailingTest
     : super core::Object::•()
     ;
 }
 class MyTest extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::MyTest
     : super core::Object::•()
     ;
   @self::failingTest
   method foo() → void {}
 }
 abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest {
+  const synthetic constructor •() → self::_MyTest2&Object&MyTest
+    : super core::Object::•()
+    ;
 }
 class MyTest2 extends self::_MyTest2&Object&MyTest {
-  synthetic constructor •() → void
-    : super core::Object::•()
+  synthetic constructor •() → self::MyTest2
+    : super self::_MyTest2&Object&MyTest::•()
     ;
 }
 static const field self::_FailingTest failingTest = const self::_FailingTest::•();

@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'unicode_tests.dart';
 
 String decode(List<int> bytes, int chunkSize) {
-  StringBuffer buffer = new StringBuffer();
   // Use a non-chunked interface.
   String result;
   var chunkedSink =

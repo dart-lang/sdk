@@ -8,9 +8,10 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common_elements.dart';
 import '../compiler.dart' show Compiler;
-import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
+import '../ir/util.dart';
 import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
@@ -22,28 +23,26 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
 
   Iterable<ImportEntity> _findImportsTo(ir.NamedNode node, String nodeName,
       ir.Library enclosingLibrary, LibraryEntity library) {
-    List<ImportEntity> imports = [];
-    ir.Library source = _elementMap.getLibraryNode(library);
-    for (ir.LibraryDependency dependency in source.dependencies) {
-      if (dependency.isExport) continue;
-      if (!_isVisible(dependency.combinators, nodeName)) continue;
-      if (enclosingLibrary == dependency.targetLibrary ||
-          additionalExports(dependency.targetLibrary).contains(node)) {
-        imports.add(_elementMap.getImport(dependency));
+    return measureSubtask('find-imports', () {
+      List<ImportEntity> imports = [];
+      ir.Library source = _elementMap.getLibraryNode(library);
+      if (!source.dependencies.any((d) => d.isDeferred)) return const [];
+      for (ir.LibraryDependency dependency in source.dependencies) {
+        if (dependency.isExport) continue;
+        if (!_isVisible(dependency.combinators, nodeName)) continue;
+        if (enclosingLibrary == dependency.targetLibrary ||
+            additionalExports(dependency.targetLibrary).contains(node)) {
+          imports.add(_elementMap.getImport(dependency));
+        }
       }
-    }
-    return imports;
+      return imports;
+    });
   }
 
   @override
   Iterable<ImportEntity> classImportsTo(
       ClassEntity element, LibraryEntity library) {
-    ClassDefinition definition = _elementMap.getClassDefinition(element);
-    if (definition.kind != ClassKind.regular) {
-      // You can't import closures.
-      return const <ImportEntity>[];
-    }
-    ir.Class node = definition.node;
+    ir.Class node = _elementMap.getClassNode(element);
     return _findImportsTo(node, node.name, node.enclosingLibrary, library);
   }
 
@@ -57,8 +56,12 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   @override
   Iterable<ImportEntity> memberImportsTo(
       Entity element, LibraryEntity library) {
-    ir.Member node = _elementMap.getMemberDefinition(element).node;
-    return _findImportsTo(node, node.name.name, node.enclosingLibrary, library);
+    ir.Member node = _elementMap.getMemberNode(element);
+    return _findImportsTo(
+        node is ir.Constructor ? node.enclosingClass : node,
+        node is ir.Constructor ? node.enclosingClass.name : node.name.name,
+        node.enclosingLibrary,
+        library);
   }
 
   @override
@@ -75,7 +78,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
 
   @override
   void collectConstantsInBody(MemberEntity element, Dependencies dependencies) {
-    ir.Member node = _elementMap.getMemberDefinition(element).node;
+    ir.Member node = _elementMap.getMemberNode(element);
 
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better
@@ -141,7 +144,8 @@ class ConstantCollector extends ir.RecursiveVisitor {
     ConstantValue constant =
         elementMap.getConstantValue(node, requireConstant: required);
     if (constant != null) {
-      dependencies.constants.add(constant);
+      dependencies.addConstant(
+          constant, elementMap.getImport(getDeferredImport(node)));
     }
   }
 
@@ -188,6 +192,20 @@ class ConstantCollector extends ir.RecursiveVisitor {
     } else {
       super.visitConstructorInvocation(node);
     }
+  }
+
+  @override
+  void visitTypeParameter(ir.TypeParameter node) {
+    // We avoid visiting metadata on the type parameter declaration. The bound
+    // cannot hold constants so we skip that as well.
+  }
+
+  @override
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
+    // We avoid visiting metadata on the parameter declaration by only visiting
+    // the initializer. The type cannot hold constants so can kan skip that
+    // as well.
+    node.initializer?.accept(this);
   }
 
   @override

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -122,6 +122,13 @@ abstract class Page {
     buf.writeln('</pre>');
   }
 
+  void prettyJson(Map<String, dynamic> data) {
+    const jsonEncoder = const JsonEncoder.withIndent('  ');
+    pre(() {
+      buf.write(jsonEncoder.convert(data));
+    });
+  }
+
   void ul<T>(Iterable<T> items, void gen(T item), {String classes}) {
     buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
     for (T item in items) {
@@ -136,7 +143,7 @@ abstract class Page {
 /// Contains a collection of Pages.
 abstract class Site {
   final String title;
-  List<Page> pages = [];
+  final List<Page> pages = [];
 
   Site(this.title);
 

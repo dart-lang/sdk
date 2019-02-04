@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./no_such_method_private_setter_lib.dart" as no_;
+
+import "org-dartlang-testcase:///no_such_method_private_setter_lib.dart";
+
+class Foo extends core::Object implements no_::Bar {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder get /* from org-dartlang-testcase:///no_such_method_private_setter_lib.dart */ _x() → core::int
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_x, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} core::int;
+  no-such-method-forwarder set /* from org-dartlang-testcase:///no_such_method_private_setter_lib.dart */ _x(core::int value) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_x=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → dynamic {
+  no_::baz(new self::Foo::•());
+}
+
+library;
+import self as no_;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  field core::int _x = null;
+  synthetic constructor •() → no_::Bar
+    : super core::Object::•()
+    ;
+}
+static method baz(no_::Bar bar) → void {
+  return;
+}

@@ -18,7 +18,6 @@ import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'allocator_analysis.dart';
-import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -216,9 +215,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (constant.isType) {
       FunctionEntity helper = _commonElements.createRuntimeType;
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          // TODO(johnniwinther): Find the right [CallStructure].
-          helper,
-          null));
+          helper, helper.parameterStructure.callStructure));
       _backendUsage.registerBackendFunctionUse(helper);
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
@@ -233,10 +230,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
+        FunctionEntity helper = _commonElements.createRuntimeType;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            _commonElements.createRuntimeType,
-            null));
+            helper, helper.parameterStructure.callStructure));
       }
     }
   }
@@ -429,7 +425,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.getRuntimeTypeArgument);
     }
 
-    if (JavaScriptBackend.TRACE_CALLS) {
+    if (_options.experimentCallInstrumentation) {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
     _registerBackendImpact(impactBuilder, _impacts.assertUnreachable);

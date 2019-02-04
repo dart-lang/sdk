@@ -175,7 +175,7 @@ class StatusFile {
       sectionHeaderComments = [];
     }
 
-    // The current section whose rules are being parsed. Initalized to an
+    // The current section whose rules are being parsed. Initialized to an
     // implicit section that matches everything.
     StatusSection section =
         new StatusSection(null, -1, implicitSectionHeaderComments);

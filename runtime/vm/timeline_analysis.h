@@ -77,7 +77,7 @@ class TimelineAnalysis : public ValueObject {
   void DiscoverThreads();
   void FinalizeThreads();
 
-  void SetError(const char* format, ...);
+  void SetError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   Zone* zone_;
   Isolate* isolate_;

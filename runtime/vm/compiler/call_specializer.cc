@@ -187,6 +187,10 @@ void CallSpecializer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (auto static_call = instr->AsStaticCall()) {
+        // If TFA devirtualized instance calls to static calls we also want to
+        // process them here.
+        VisitStaticCall(static_call);
       } else if (instr->IsPolymorphicInstanceCall()) {
         SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
       }
@@ -307,14 +311,25 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
   call->ReplaceWith(specialized, current_iterator());
 }
 
-void CallSpecializer::ReplaceCall(Definition* call, Definition* replacement) {
+void CallSpecializer::ReplaceCallWithResult(Definition* call,
+                                            Instruction* replacement,
+                                            Definition* result) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
     push->ReplaceUsesWith(push->value()->definition());
     push->RemoveFromGraph();
   }
-  call->ReplaceWith(replacement, current_iterator());
+  if (result == nullptr) {
+    ASSERT(replacement->IsDefinition());
+    call->ReplaceWith(replacement->AsDefinition(), current_iterator());
+  } else {
+    call->ReplaceWithResult(replacement, result, current_iterator());
+  }
+}
+
+void CallSpecializer::ReplaceCall(Definition* call, Definition* replacement) {
+  ReplaceCallWithResult(call, replacement, nullptr);
 }
 
 void CallSpecializer::AddCheckSmi(Definition* to_check,
@@ -894,19 +909,17 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
                                                    const Field& field) {
+  const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(call->ArgumentAt(0)), &field,
-      AbstractType::ZoneHandle(Z, field.type()), call->token_pos(),
-      isolate()->use_field_guards() ? &flow_graph()->parsed_function() : NULL);
-  load->set_is_immutable(field.is_final());
+      new (Z) Value(call->ArgumentAt(0)), slot, call->token_pos());
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
   call->RemoveEnvironment();
   ReplaceCall(call, load);
 
-  if (load->result_cid() != kDynamicCid) {
-    // Reset value types if guarded_cid was used.
+  if (load->slot().nullable_cid() != kDynamicCid) {
+    // Reset value types if we know concrete cid.
     for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
       it.Current()->SetReachingType(NULL);
     }
@@ -1003,8 +1016,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     // Compute if we need to type check the value. Always type check if
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;
-    if (FLAG_strong && !instr->interface_target().IsNull() &&
-        (field.kernel_offset() >= 0)) {
+    if (!instr->interface_target().IsNull() && (field.kernel_offset() >= 0)) {
       bool is_covariant = false;
       bool is_generic_covariant = false;
       field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);
@@ -1034,10 +1046,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       if (!dst_type.IsInstantiated()) {
         const Class& owner = Class::Handle(Z, field.Owner());
         if (owner.NumTypeArguments() > 0) {
-          instantiator_type_args = new (Z) LoadFieldInstr(
-              new (Z) Value(instr->ArgumentAt(0)),
-              NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), owner),
-              instr->token_pos());
+          instantiator_type_args = new (Z)
+              LoadFieldInstr(new (Z) Value(instr->ArgumentAt(0)),
+                             Slot::GetTypeArgumentsSlotFor(thread(), owner),
+                             instr->token_pos());
           InsertBefore(instr, instantiator_type_args, instr->env(),
                        FlowGraph::kValue);
         }
@@ -1056,20 +1068,15 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 
   // Field guard was detached.
   ASSERT(instr->FirstArgIndex() == 0);
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
-                              new (Z) Value(instr->ArgumentAt(1)),
-                              kEmitStoreBarrier, instr->token_pos());
-
-  ASSERT(I->use_field_guards() || !store->IsUnboxedStore());
-  if (I->use_field_guards() && store->IsUnboxedStore()) {
-    flow_graph()->parsed_function().AddToGuardedFields(&field);
-  }
+  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
+      field, new (Z) Value(instr->ArgumentAt(0)),
+      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier,
+      instr->token_pos(), &flow_graph()->parsed_function());
 
   // Discard the environment from the original instruction because the store
   // can't deoptimize.
   instr->RemoveEnvironment();
-  ReplaceCall(instr, store);
+  ReplaceCallWithResult(instr, store, flow_graph()->constant_null());
   return true;
 }
 
@@ -1228,7 +1235,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
   ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
   if (type.IsFunctionType() || type.IsDartFunctionType() ||
-      !type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
+      !type.IsInstantiated()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(Z, type.type_class());
@@ -1266,9 +1273,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
         cls.IsNullClass()
             ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
                type_class.IsDynamicClass())
-            : cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                              Object::null_type_arguments(), NULL, NULL,
-                              Heap::kOld);
+            : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
+                                 Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {
@@ -1284,7 +1290,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
 
 // Returns true if checking against this type is a direct class id comparison.
 bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
   // Function types have different type checking rules.
@@ -1351,7 +1357,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   const intptr_t receiver_index = call->FirstArgIndex();
   Value* left_value = call->PushArgumentAt(receiver_index)->value();
 
-  if (left_value->Type()->IsMoreSpecificThan(type)) {
+  if (left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
@@ -1456,115 +1462,6 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
-}
-
-bool CallSpecializer::TryReplaceTypeCastWithRangeCheck(
-    InstanceCallInstr* call,
-    const AbstractType& type) {
-  // TODO(dartbug.com/30632) does this optimization make sense in JIT?
-  return false;
-}
-
-void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
-  ASSERT(Token::IsTypeCastOperator(call->token_kind()));
-  ASSERT(call->type_args_len() == 0);
-  Definition* left = call->ArgumentAt(0);
-  Definition* instantiator_type_args = call->ArgumentAt(1);
-  Definition* function_type_args = call->ArgumentAt(2);
-  const AbstractType& type =
-      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
-  ASSERT(!type.IsMalformedOrMalbounded());
-
-  // TODO(dartbug.com/30632) does this optimization make sense in JIT?
-  if (FLAG_precompiled_mode && TypeCheckAsClassEquality(type)) {
-    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
-    const intptr_t type_cid = Class::ZoneHandle(Z, type.type_class()).id();
-    ConstantInstr* cid =
-        flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(type_cid)));
-    ConstantInstr* pos = flow_graph()->GetConstant(
-        Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
-
-    ZoneGrowableArray<PushArgumentInstr*>* args =
-        new (Z) ZoneGrowableArray<PushArgumentInstr*>(5);
-    PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-    arg = new (Z) PushArgumentInstr(new (Z) Value(left));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-    arg = new (Z)
-        PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-    arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-    arg = new (Z) PushArgumentInstr(new (Z) Value(cid));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-
-    const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
-    const String& target_name = Symbols::_classIdEqualsAssert();
-    const Function& target = Function::ZoneHandle(
-        Z, dart_internal.LookupFunctionAllowPrivate(target_name));
-    ASSERT(!target.IsNull());
-    ASSERT(target.IsRecognized());
-    ASSERT(target.always_inline());
-
-    const intptr_t kTypeArgsLen = 0;
-    StaticCallInstr* new_call = new (Z) StaticCallInstr(
-        call->token_pos(), target, kTypeArgsLen,
-        Object::null_array(),  // argument_names
-        args, call->deopt_id(), call->CallCount(), ICData::kStatic);
-    Environment* copy =
-        call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
-    for (intptr_t i = 0; i < args->length(); ++i) {
-      copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
-    }
-    call->RemoveEnvironment();
-    ReplaceCall(call, new_call);
-    copy->DeepCopyTo(Z, new_call);
-    return;
-  }
-
-  if (TryReplaceTypeCastWithRangeCheck(call, type)) {
-    return;
-  }
-
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (number_of_checks > 0 && number_of_checks <= FLAG_max_polymorphic_checks) {
-    ZoneGrowableArray<intptr_t>* results =
-        new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
-    const Bool& as_bool =
-        Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
-    if (as_bool.raw() == Bool::True().raw()) {
-      // Guard against repeated speculative inlining.
-      if (!speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
-        return;
-      }
-
-      AddReceiverCheck(call);
-      // Remove the original push arguments.
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->PushArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
-      // Remove call, replace it with 'left'.
-      call->ReplaceUsesWith(left);
-      ASSERT(current_iterator()->Current() == call);
-      current_iterator()->RemoveCurrentFromGraph();
-      return;
-    }
-  }
-  AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left),
-      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
-      type, Symbols::InTypeCast(), call->deopt_id());
-  ReplaceCall(call, assert_as);
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
@@ -1692,11 +1589,11 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   ASSERT(results->length() >= 2);  // At least on entry.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
-    const Class& cls = Class::Handle(class_table.At(kSmiCid));
+    const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
     const bool smi_is_subtype =
-        cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                        Object::null_type_arguments(), NULL, NULL, Heap::kOld);
+        Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
+                           Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1706,7 +1603,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     (*results)[1] = smi_is_subtype;
   }
 
-  ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsInstantiated());
   ASSERT(results->length() >= 2);
   if (type.IsSmiType()) {
     ASSERT((*results)[0] == kSmiCid);

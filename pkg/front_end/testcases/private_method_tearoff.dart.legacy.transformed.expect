@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./private_method_tearoff_lib.dart" as pri;
+
+import "org-dartlang-testcase:///private_method_tearoff_lib.dart";
+
+class Foo extends core::Object implements pri::Bar {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder method /* from org-dartlang-testcase:///private_method_tearoff_lib.dart */ _f() → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_f, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class Baz extends self::Foo {
+  synthetic constructor •() → self::Baz
+    : super self::Foo::•()
+    ;
+}
+static method main() → dynamic {
+  pri::baz(new self::Foo::•());
+}
+
+library;
+import self as pri;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pri::Bar
+    : super core::Object::•()
+    ;
+  method _f() → void {}
+}
+static method baz(pri::Bar bar) → void {
+  core::print("${bar._f.runtimeType}");
+}

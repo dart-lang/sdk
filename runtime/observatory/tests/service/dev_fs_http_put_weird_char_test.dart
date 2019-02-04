@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:convert';
@@ -41,7 +40,7 @@ var tests = <VMTest>[
         await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     request.headers.add('dev_fs_path_b64', filePathBase64);
-    request.add(GZIP.encode([9]));
+    request.add(gzip.encode([9]));
     HttpClientResponse response = await request.close();
     String responseBody = await readResponse(response);
     result = jsonDecode(responseBody);
@@ -51,7 +50,7 @@ var tests = <VMTest>[
     request = await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     // omit the 'dev_fs_path' parameter.
-    request.write(GZIP.encode(fileContents));
+    request.write(gzip.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
     result = jsonDecode(responseBody);
@@ -64,7 +63,7 @@ var tests = <VMTest>[
     request = await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     request.headers.add('dev_fs_path_b64', filePathBase64);
-    request.add(GZIP.encode(fileContents));
+    request.add(gzip.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
     result = jsonDecode(responseBody);

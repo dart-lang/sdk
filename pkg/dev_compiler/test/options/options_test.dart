@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:analyzer/analyzer.dart';
+
 import 'package:analyzer/src/command_line/arguments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../lib/src/analyzer/context.dart';
 import '../../lib/src/analyzer/command.dart';
+import '../../lib/src/analyzer/driver.dart';
 import '../../lib/src/analyzer/module_compiler.dart';
 import '../testing.dart' show repoDirectory, testDirectory;
 
@@ -24,21 +26,21 @@ final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 
 main() {
   test('basic', () {
-    var options = AnalyzerOptions.basic();
-    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
-    var processors = compiler.context.analysisOptions.errorProcessors;
+    var options = AnalyzerOptions.basic()..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
 
   test('basic sdk summary', () {
     expect(File(sdkSummaryFile).existsSync(), isTrue);
-    var options = AnalyzerOptions.basic(dartSdkSummaryPath: sdkSummaryFile);
-    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
-    var context = compiler.context;
-    var sdk = context.sourceFactory.dartSdk;
+    var options = AnalyzerOptions.basic(dartSdkSummaryPath: sdkSummaryFile)
+      ..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var sdk = driver.dartSdk;
     expect(sdk, const TypeMatcher<SummaryBasedDartSdk>());
-    var processors = context.analysisOptions.errorProcessors;
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
@@ -48,9 +50,10 @@ main() {
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
     args.addAll(sdkSummaryArgs);
     var argResults = ddcArgParser().parse(args);
-    var options = AnalyzerOptions.fromArguments(argResults);
-    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
-    var processors = compiler.context.analysisOptions.errorProcessors;
+    var options = AnalyzerOptions.fromArguments(argResults)
+      ..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
@@ -62,9 +65,10 @@ main() {
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
     args.addAll(sdkSummaryArgs);
     var argResults = ddcArgParser().parse(args);
-    var options = AnalyzerOptions.fromArguments(argResults);
-    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
-    var processors = compiler.context.analysisOptions.errorProcessors;
+    var options = AnalyzerOptions.fromArguments(argResults)
+      ..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.DUPLICATE_DEFINITION.name);
   });

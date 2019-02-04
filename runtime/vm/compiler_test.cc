@@ -110,7 +110,7 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   BackgroundCompiler::Stop(isolate);
 }
 
-TEST_CASE(RegenerateAllocStubs) {
+ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {
   const char* kScriptChars =
       "class A {\n"
       "}\n"
@@ -120,29 +120,39 @@ TEST_CASE(RegenerateAllocStubs) {
       "  return unOpt();\n"
       "}\n";
 
+  Class& cls = Class::Handle();
+  TransitionVMToNative transition(thread);
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
-  Library& lib_handle = Library::ZoneHandle(raw_library);
-  Class& cls = Class::Handle(
-      lib_handle.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-  EXPECT(!cls.IsNull());
 
-  Zone* zone = thread->zone();
-  const Code& stub =
-      Code::Handle(zone, StubCode::GetAllocationStubForClass(cls));
-  Class& owner = Class::Handle();
-  owner ^= stub.owner();
-  owner.DisableAllocationStub();
+  {
+    TransitionNativeToVM transition(thread);
+    Library& lib_handle =
+        Library::Handle(Library::RawCast(Api::UnwrapHandle(lib)));
+    cls = lib_handle.LookupClass(String::Handle(Symbols::New(thread, "A")));
+    EXPECT(!cls.IsNull());
+  }
+
+  {
+    TransitionNativeToVM transition(thread);
+    cls.DisableAllocationStub();
+  }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-  owner.DisableAllocationStub();
+  {
+    TransitionNativeToVM transition(thread);
+    cls.DisableAllocationStub();
+  }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-  owner.DisableAllocationStub();
+  {
+    TransitionNativeToVM transition(thread);
+    cls.DisableAllocationStub();
+  }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
@@ -173,20 +183,16 @@ TEST_CASE(EvalExpression) {
   const Class& receiver_cls = Class::Handle(obj.clazz());
 
   if (!KernelIsolate::IsRunning()) {
-    val = Instance::Cast(obj).Evaluate(
-        receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+    UNREACHABLE();
   } else {
     RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
     Library& lib_handle = Library::ZoneHandle(raw_library);
 
-    Dart_KernelCompilationResult compilation_result;
-    {
-      TransitionVMToNative transition(thread);
-      compilation_result = KernelIsolate::CompileExpressionToKernel(
-          expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
-          String::Handle(lib_handle.url()).ToCString(), "A",
-          /* is_static= */ false);
-    }
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::CompileExpressionToKernel(
+            expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
+            String::Handle(lib_handle.url()).ToCString(), "A",
+            /* is_static= */ false);
     EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
 
     const uint8_t* kernel_bytes = compilation_result.kernel;
@@ -195,6 +201,7 @@ TEST_CASE(EvalExpression) {
     val = Instance::Cast(obj).EvaluateCompiledExpression(
         receiver_cls, kernel_bytes, kernel_length, Array::empty_array(),
         Array::empty_array(), TypeArguments::null_type_arguments());
+    free(const_cast<uint8_t*>(kernel_bytes));
   }
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());

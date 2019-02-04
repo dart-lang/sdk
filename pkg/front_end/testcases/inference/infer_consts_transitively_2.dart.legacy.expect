@@ -1,0 +1,34 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_consts_transitively_2_a.dart" as inf;
+
+import "org-dartlang-testcase:///infer_consts_transitively_2_a.dart";
+
+static const field dynamic m1 = inf::a1;
+static const field dynamic m2 = inf::a2;
+static method foo() → dynamic {
+  core::int i;
+  i = self::m1;
+}
+static method main() → dynamic {}
+
+library;
+import self as inf;
+import "./infer_consts_transitively_2.dart" as self;
+import "./infer_consts_transitively_2_b.dart" as inf2;
+
+import "org-dartlang-testcase:///infer_consts_transitively_2.dart";
+import "org-dartlang-testcase:///infer_consts_transitively_2_b.dart";
+
+static const field dynamic a1 = self::m2;
+static const field dynamic a2 = inf2::b1;
+static method main() → dynamic {}
+
+library;
+import self as inf2;
+
+static const field dynamic b1 = 2;
+static method main() → dynamic {
+  inf2::b1;
+}

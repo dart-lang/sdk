@@ -140,10 +140,6 @@ final ListResultDescriptor<Source> UNITS =
  * change if a single part is included in more than one library.
  */
 class LibrarySpecificUnit implements AnalysisTarget {
-  @deprecated
-  static const List<LibrarySpecificUnit> EMPTY_LIST =
-      const <LibrarySpecificUnit>[];
-
   /**
    * The defining compilation unit of the library in which the [unit]
    * is analyzed.

@@ -4,6 +4,7 @@
 
 #include "vm/heap/sweeper.h"
 
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/globals.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/heap.h"
@@ -48,7 +49,13 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
       }
       obj_size = free_end - current;
       if (is_executable) {
-        memset(reinterpret_cast<void*>(current), 0xcc, obj_size);
+        uword cursor = current;
+        uword end = current + obj_size;
+        while (cursor < end) {
+          *reinterpret_cast<uword*>(cursor) =
+              Assembler::GetBreakInstructionFiller();
+          cursor += kWordSize;
+        }
       } else {
 #if defined(DEBUG)
         memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
@@ -97,13 +104,13 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   return words_to_end;
 }
 
-class SweeperTask : public ThreadPool::Task {
+class ConcurrentSweeperTask : public ThreadPool::Task {
  public:
-  SweeperTask(Isolate* isolate,
-              PageSpace* old_space,
-              HeapPage* first,
-              HeapPage* last,
-              FreeList* freelist)
+  ConcurrentSweeperTask(Isolate* isolate,
+                        PageSpace* old_space,
+                        HeapPage* first,
+                        HeapPage* last,
+                        FreeList* freelist)
       : task_isolate_(isolate),
         old_space_(old_space),
         first_(first),
@@ -116,6 +123,7 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
     old_space_->set_tasks(old_space_->tasks() + 1);
+    old_space_->set_phase(PageSpace::kSweeping);
   }
 
   virtual void Run() {
@@ -124,7 +132,7 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
-      TIMELINE_FUNCTION_GC_DURATION(thread, "SweeperTask");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ConcurrentSweep");
       GCSweeper sweeper;
 
       HeapPage* page = first_;
@@ -156,6 +164,8 @@ class SweeperTask : public ThreadPool::Task {
     {
       MonitorLocker ml(old_space_->tasks_lock());
       old_space_->set_tasks(old_space_->tasks() - 1);
+      ASSERT(old_space_->phase() == PageSpace::kSweeping);
+      old_space_->set_phase(PageSpace::kDone);
       ml.NotifyAll();
     }
   }
@@ -172,10 +182,9 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,
                                 HeapPage* last,
                                 FreeList* freelist) {
-  SweeperTask* task = new SweeperTask(isolate, isolate->heap()->old_space(),
-                                      first, last, freelist);
-  ThreadPool* pool = Dart::thread_pool();
-  pool->Run(task);
+  bool result = Dart::thread_pool()->Run(new ConcurrentSweeperTask(
+      isolate, isolate->heap()->old_space(), first, last, freelist));
+  ASSERT(result);
 }
 
 }  // namespace dart

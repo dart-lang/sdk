@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,12 +16,77 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InferredTypeTest);
     defineReflectiveTests(InferredTypeTest_Driver);
+    defineReflectiveTests(InferredTypeTest_SetLiterals);
   });
 }
 
-abstract class InferredTypeMixin {
+@reflectiveTest
+class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
+  @override
+  bool get mayCheckTypesOfLocals => true;
+
+  @override
+  Future<CompilationUnitElement> checkFileElement(String content) async {
+    CompilationUnit unit = await checkFile(content);
+    return unit.declaredElement;
+  }
+
+  @override
+  @failingTest
+  test_circularReference_viaClosures() {
+    return super.test_circularReference_viaClosures();
+  }
+
+  @override
+  @failingTest
+  test_circularReference_viaClosures_initializerTypes() {
+    return super.test_circularReference_viaClosures_initializerTypes();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error1() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error1();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error2() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error2();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error3() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error3();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() {
+    return super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
+  }
+
+  @override
+  @failingTest
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
+  }
+}
+
+mixin InferredTypeMixin {
   /// Extra top-level errors if needed due to being analyze multiple times.
   bool get hasExtraTaskModelPass => true;
 
@@ -40,11 +105,7 @@ abstract class InferredTypeMixin {
    * unit.
    */
   Future<CompilationUnit> checkFile(String content,
-      {bool declarationCasts: true,
-      bool implicitCasts: true,
-      bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
-      bool superMixins: false});
+      {bool implicitCasts: true, bool implicitDynamic: true});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved
@@ -385,7 +446,6 @@ var v = /*info:INFERRED_TYPE_CLOSURE*/() => null;
     expect(v.initializer.type.toString(), '() → () → Null');
   }
 
-  @failingTest
   test_circularReference_viaClosures() async {
     var mainUnit = await checkFileElement('''
 var x = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/y;
@@ -399,7 +459,6 @@ var y = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/x;
     expect(y.type.toString(), 'dynamic');
   }
 
-  @failingTest
   test_circularReference_viaClosures_initializerTypes() async {
     var mainUnit = await checkFileElement('''
 var x = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/y;
@@ -431,12 +490,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -468,7 +527,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -486,7 +545,8 @@ void main() {
   }
 
   test_constructors_inferenceFBounded() async {
-    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER';
+    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER,'
+        'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
 //    if (hasExtraTaskModelPass) errors = '$errors,$errors';
     var unit = await checkFile('''
 class Clonable<T> {}
@@ -550,7 +610,8 @@ class NotA {}
 NotA myF() => null;
 
 main() {
-  var x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C(myF);
+  var x = /*info:INFERRED_TYPE_ALLOCATION*/new
+      /*error:COULD_NOT_INFER,error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/C(myF);
 }
 ''');
     var x = findLocalVariable(unit, 'x');
@@ -751,7 +812,7 @@ class A {
 }
 
 class B implements A {
-  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -1908,7 +1969,7 @@ class C {
 T m<T>(T x) => x;
 }
 class D extends C {
-/*error:INVALID_METHOD_OVERRIDE*/m(x) => x;
+/*error:INVALID_OVERRIDE*/m(x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m<int>(42);
@@ -1955,8 +2016,8 @@ class C {
   dynamic g(int x) => x;
 }
 class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/T m<T>(T x) => x;
-  /*error:INVALID_METHOD_OVERRIDE*/T g<T>(T x) => x;
+  /*error:INVALID_OVERRIDE*/T m<T>(T x) => x;
+  /*error:INVALID_OVERRIDE*/T g<T>(T x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
@@ -2234,8 +2295,8 @@ var v_postfix_mm = (new A().f--);
   test_infer_assignToProperty_custom() async {
     await checkFileElement(r'''
 class A {
-  int operator +(other) => 1;
-  double operator -(other) => 2.0;
+  A operator +(other) => this;
+  A operator -(other) => this;
 }
 class B {
   A a;
@@ -3383,7 +3444,7 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -3555,9 +3616,9 @@ class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
     checkElementText(unit.library, r'''
-class A<T1 extends int, T2 extends T1> {
+notSimplyBounded class A<T1 extends int, T2 extends T1> {
 }
-class B<T extends A<int, int>> {
+notSimplyBounded class B<T extends A<int, int>> {
 }
 B<A<int, int>> v;
 ''');
@@ -3570,9 +3631,9 @@ class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
     checkElementText(unit.library, r'''
-class A<T1 extends T2, T2 extends int> {
+notSimplyBounded class A<T1 extends T2, T2 extends int> {
 }
-class B<T extends A<int, int>> {
+notSimplyBounded class B<T extends A<int, int>> {
 }
 B<A<int, int>> v;
 ''');
@@ -3585,15 +3646,14 @@ class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
     checkElementText(unit.library, r'''
-class A<T1 extends int, T2 extends List<T1>> {
+notSimplyBounded class A<T1 extends int, T2 extends List<T1>> {
 }
-class B<T extends A<int, List<int>>> {
+notSimplyBounded class B<T extends A<int, List<int>>> {
 }
 B<A<int, List<int>>> v;
 ''');
   }
 
-  @failingTest
   test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
     var unit = await checkFileElement(r'''
 class B<T extends A> {}
@@ -4138,7 +4198,6 @@ var v = f<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<dynamic>');
   }
 
-  @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
     // Note: (f<dynamic>) is not properly resulting in an instantiated
     // function type due to dartbug.com/25824.
@@ -4171,7 +4230,6 @@ var v = f<int>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<int>');
   }
 
-  @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
     // TODO(paulberry): for some reason (f<int>) is not properly resulting
     // in an instantiated function type.
@@ -4399,7 +4457,14 @@ main() {
 }
 
 @reflectiveTest
-class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
+class InferredTypeTest_Driver extends AbstractStrongTest
+    with InferredTypeMixin {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
+  bool get hasExtraTaskModelPass => false;
+
   @override
   bool get mayCheckTypesOfLocals => true;
 
@@ -4408,10 +4473,28 @@ class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
     CompilationUnit unit = await checkFile(content);
     return unit.declaredElement;
   }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
+  }
 }
 
 @reflectiveTest
-class InferredTypeTest_Driver extends InferredTypeTest {
+class InferredTypeTest_SetLiterals extends AbstractStrongTest
+    with InferredTypeMixin {
+  @override
+  List<String> get enabledExperiments => [EnableString.set_literals];
+
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -4419,49 +4502,52 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   bool get hasExtraTaskModelPass => false;
 
   @override
-  test_circularReference_viaClosures() async {
-    await super.test_circularReference_viaClosures();
+  bool get mayCheckTypesOfLocals => true;
+
+  @override
+  Future<CompilationUnitElement> checkFileElement(String content) async {
+    CompilationUnit unit = await checkFile(content);
+    return unit.declaredElement;
   }
 
   @override
-  test_circularReference_viaClosures_initializerTypes() async {
-    await super.test_circularReference_viaClosures_initializerTypes();
-  }
+  test_downwardsInferenceYieldYieldStar() async {
+    // The fifth to last case is inferred differently with set_literals enabled,
+    // and no longer an error compared to the base implementation.
+    await checkFileElement('''
+import 'dart:async';
 
-  @override
-  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
-    await super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
-  }
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
 
-  @override
-  test_listLiteralsCanInferNull_topLevel() =>
-      super.test_listLiteralsCanInferNull_topLevel();
+Stream<List<int>> foo() async* {
+  yield /*info:INFERRED_TYPE_LITERAL*/[];
+  yield /*error:YIELD_OF_INVALID_TYPE*/new MyStream();
+  yield* /*error:YIELD_OF_INVALID_TYPE*/[];
+  yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream();
+}
 
-  @override
-  test_mapLiteralsCanInferNull_topLevel() =>
-      super.test_mapLiteralsCanInferNull_topLevel();
-
-  @override
-  test_nullCoalescingOperator() async {
-    await super.test_nullCoalescingOperator();
-  }
-
-  @override
-  test_unsafeBlockClosureInference_closureCall() async {
-    await super.test_unsafeBlockClosureInference_closureCall();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
+Iterable<Map<int, int>> bar() sync* {
+  yield /*info:INFERRED_TYPE_LITERAL*/{};
+  yield /*error:YIELD_OF_INVALID_TYPE*/new List();
+  yield* {};
+  yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
+}
+''');
   }
 
   @failingTest
   @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
   }
 }

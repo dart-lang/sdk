@@ -1,3 +1,9 @@
+<!--
+Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+
 This file describes the binary format of Dart Kernel.
 
 Notation
@@ -131,7 +137,8 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 12;
+  UInt32 formatVersion = 18;
+  List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -201,6 +208,11 @@ type ProcedureReference {
   CanonicalNameReference canonicalName;
 }
 
+type TypedefReference {
+  // Must be populated by a typedef (possibly later in the file).
+  CanonicalNameReference canonicalName;
+}
+
 type Name {
   StringReference name;
   if name begins with '_' {
@@ -209,11 +221,12 @@ type Name {
 }
 
 type Library {
-  Byte flags (isExternal);
+  Byte flags (isExternal, isSynthetic);
   CanonicalNameReference canonicalName;
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
+  List<String> problemsAsJson; // Described in problems.md.
   List<Expression> annotations;
   List<LibraryDependency> libraryDependencies;
   List<CanonicalNameReference> additionalExports;
@@ -291,7 +304,7 @@ type Class extends Node {
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
-              isEliminatedMixin); // Where level is index into ClassLevel
+              isEliminatedMixin, isMixinDeclaration); // Where level is index into ClassLevel
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -368,8 +381,8 @@ type Procedure extends Member {
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
-  Option<MemberReference> forwardingStubSuperTarget;
-  Option<MemberReference> forwardingStubInterfaceTarget;
+  MemberReference forwardingStubSuperTarget; // May be NullReference.
+  MemberReference forwardingStubInterfaceTarget; // May be NullReference.
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }
@@ -779,6 +792,20 @@ type ConstListLiteral extends Expression {
   List<Expression> values;
 }
 
+type SetLiteral extends Expression {
+  Byte tag = 109; // Note: tag is out of order.
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> values;
+}
+
+type ConstSetLiteral extends Expression {
+  Byte tag = 110; // Note: tag is out of order.
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> values;
+}
+
 type MapLiteral extends Expression {
   Byte tag = 50;
   FileOffset fileOffset;
@@ -867,7 +894,7 @@ type StringConstant extends Constant {
 
 type SymbolConstant extends Constant {
   Byte tag = 5;
-  Option<LibraryReference> library;
+  LibraryReference library; // May be NullReference.
   StringReference name;
 }
 
@@ -905,6 +932,11 @@ type TearOffConstant extends Constant {
 type TypeLiteralConstant extends Constant {
   Byte tag = 11;
   DartType type;
+}
+
+type UnevaluatedConstant extends Constant {
+  Byte tag = 12;
+  Expression expression;
 }
 
 abstract type Statement extends Node {}
@@ -1141,7 +1173,7 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  CanonicalNameReference typedefReference;
+  Option<TypedefType> typedef;
   DartType returnType;
 }
 
@@ -1181,6 +1213,12 @@ type TypeParameterType extends DartType {
   // class.
   UInt index;
   Option<DartType> bound;
+}
+
+type TypedefType {
+  Byte tag = 87;
+  TypedefReference typedefReference;
+  List<DartType> typeArguments;
 }
 
 type TypeParameter {

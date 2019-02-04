@@ -51,9 +51,7 @@ class NotOperation implements UnaryOperation {
   }
 }
 
-/**
- * Operations that only work if both arguments are integers.
- */
+/// Operations that only work if both arguments are integers.
 abstract class BinaryBitOperation implements BinaryOperation {
   const BinaryBitOperation();
   ConstantValue fold(ConstantValue left, ConstantValue right) {
@@ -412,12 +410,10 @@ class UnfoldedUnaryOperation implements UnaryOperation {
   }
 }
 
-/**
- * A constant system implementing the Dart semantics. This system relies on
- * the underlying runtime-system. That is, if dart2js is run in an environment
- * that doesn't correctly implement Dart's semantics this constant system will
- * not return the correct values.
- */
+/// A constant system implementing the Dart semantics. This system relies on
+/// the underlying runtime-system. That is, if dart2js is run in an environment
+/// that doesn't correctly implement Dart's semantics this constant system will
+/// not return the correct values.
 class DartConstantSystem extends ConstantSystem {
   final add = const AddOperation();
   final bitAnd = const BitAndOperation();

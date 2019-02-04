@@ -180,12 +180,12 @@ class Dwarf : public ZoneAllocated {
     kInlinedFunction,
   };
 
-  void Print(const char* format, ...);
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void sleb128(intptr_t value) { Print(".sleb128 %" Pd "\n", value); }
   void uleb128(uintptr_t value) { Print(".uleb128 %" Pd "\n", value); }
-  void u1(uint8_t value) { Print(".byte %" Pd "\n", value); }
-  void u2(uint16_t value) { Print(".2byte %" Pd "\n", value); }
-  void u4(uint32_t value) { Print(".4byte %" Pd "\n", value); }
+  void u1(uint8_t value) { Print(".byte %d\n", value); }
+  void u2(uint16_t value) { Print(".2byte %d\n", value); }
+  void u4(uint32_t value) { Print(".4byte %d\n", value); }
 
   void WriteAbbreviations();
   void WriteCompilationUnit();

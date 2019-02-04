@@ -8,6 +8,7 @@ fail() => throw "Fail";
 
 // == Rethrow, skipping through typed handlers. ==
 
+@pragma("vm:entry-point") // Prevent obfuscation
 aa1() {
   try {
     bb1();
@@ -21,8 +22,10 @@ aa1() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 bb1() => cc1();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 cc1() {
   try {
     dd1();
@@ -33,8 +36,10 @@ cc1() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 dd1() => ee1();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 ee1() {
   try {
     ff1();
@@ -43,12 +48,15 @@ ee1() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 ff1() => gg1();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 gg1() => throw new SubclassOfError();
 
 // == Rethrow, rethrow again in typed handler. ==
 
+@pragma("vm:entry-point") // Prevent obfuscation
 aa2() {
   try {
     bb2();
@@ -62,8 +70,10 @@ aa2() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 bb2() => cc2();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 cc2() {
   try {
     dd2();
@@ -74,8 +84,10 @@ cc2() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 dd2() => ee2();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 ee2() {
   try {
     ff2();
@@ -84,12 +96,15 @@ ee2() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 ff2() => gg2();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 gg2() => throw new SubclassOfError();
 
 // == Rethrow, with intervening catch without a trace parameter.
 
+@pragma("vm:entry-point") // Prevent obfuscation
 aa3() {
   try {
     bb3();
@@ -103,8 +118,10 @@ aa3() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 bb3() => cc3();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 cc3() {
   try {
     dd3();
@@ -113,8 +130,10 @@ cc3() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 dd3() => ee3();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 ee3() {
   try {
     ff3();
@@ -123,8 +142,10 @@ ee3() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 ff3() => gg3();
 
+@pragma("vm:entry-point") // Prevent obfuscation
 gg3() => throw new SubclassOfError();
 
 expectTrace(functionNames, stacktrace) {

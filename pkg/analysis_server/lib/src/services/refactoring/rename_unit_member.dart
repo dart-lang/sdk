@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -42,6 +43,13 @@ Future<RefactoringStatus> validateRenameTopLevel(
  * A [Refactoring] for renaming compilation unit member [Element]s.
  */
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
+  /// If the [element] is a Flutter `StatefulWidget` declaration, this is the
+  /// corresponding `State` declaration.
+  ClassElement _flutterWidgetState;
+
+  /// If [_flutterWidgetState] is set, this is the new name of it.
+  String _flutterWidgetStateNewName;
+
   RenameUnitMemberRefactoringImpl(
       RefactoringWorkspace workspace, Element element)
       : super(workspace, element);
@@ -61,8 +69,25 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
-    return validateRenameTopLevel(searchEngine, element, newName);
+  Future<RefactoringStatus> checkFinalConditions() async {
+    var status = await validateRenameTopLevel(searchEngine, element, newName);
+    if (_flutterWidgetState != null) {
+      _updateFlutterWidgetStateName();
+      status.addStatus(
+        await validateRenameTopLevel(
+          searchEngine,
+          _flutterWidgetState,
+          _flutterWidgetStateNewName,
+        ),
+      );
+    }
+    return status;
+  }
+
+  @override
+  Future<RefactoringStatus> checkInitialConditions() {
+    _findFlutterStateClass();
+    return super.checkInitialConditions();
   }
 
   @override
@@ -84,7 +109,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
+  Future<void> fillChange() async {
     // prepare elements
     List<Element> elements = [];
     if (element is PropertyInducingElement && element.isSynthetic) {
@@ -100,11 +125,41 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     } else {
       elements.add(element);
     }
-    // update each element
-    return Future.forEach(elements, (Element element) {
-      addDeclarationEdit(element);
-      return searchEngine.searchReferences(element).then(addReferenceEdits);
-    });
+
+    // Rename each element and references to it.
+    var processor = new RenameProcessor(workspace, change, newName);
+    for (var element in elements) {
+      await processor.renameElement(element);
+    }
+
+    // If a StatefulWidget is being renamed, rename also its State.
+    if (_flutterWidgetState != null) {
+      _updateFlutterWidgetStateName();
+      await new RenameProcessor(
+        workspace,
+        change,
+        _flutterWidgetStateNewName,
+      ).renameElement(_flutterWidgetState);
+    }
+  }
+
+  void _findFlutterStateClass() {
+    if (flutter.isStatefulWidgetDeclaration(element)) {
+      var oldStateName = oldName + 'State';
+      _flutterWidgetState = element.library.getType(oldStateName) ??
+          element.library.getType('_' + oldStateName);
+    }
+  }
+
+  void _updateFlutterWidgetStateName() {
+    if (_flutterWidgetState != null) {
+      _flutterWidgetStateNewName = newName + 'State';
+      // If the State was private, ensure that it stays private.
+      if (_flutterWidgetState.name.startsWith('_') &&
+          !_flutterWidgetStateNewName.startsWith('_')) {
+        _flutterWidgetStateNewName = '_' + _flutterWidgetStateNewName;
+      }
+    }
   }
 }
 

@@ -6,6 +6,8 @@ library fasta.dill_target;
 
 import 'dart:async' show Future;
 
+import 'package:kernel/ast.dart' show Library;
+
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../kernel/kernel_builder.dart' show ClassBuilder;
@@ -23,7 +25,11 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_loader.dart' show DillLoader;
 
 class DillTarget extends TargetImplementation {
+  final Map<Uri, DillLibraryBuilder> libraryBuilders =
+      <Uri, DillLibraryBuilder>{};
+
   bool isLoaded = false;
+
   DillLoader loader;
 
   DillTarget(Ticker ticker, UriTranslator uriTranslator, Target backendTarget)
@@ -35,11 +41,6 @@ class DillTarget extends TargetImplementation {
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
     unsupported("addSourceInformation", -1, null);
-  }
-
-  @override
-  void read(Uri uri) {
-    unsupported("read", -1, null);
   }
 
   @override
@@ -59,12 +60,14 @@ class DillTarget extends TargetImplementation {
   @override
   DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, origin) {
     assert(origin == null);
-    return new DillLibraryBuilder(uri, loader);
+    return libraryBuilders.remove(uri);
   }
 
   @override
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {}
-
-  @override
   void breakCycle(ClassBuilder cls) {}
+
+  void addLibrary(Library library) {
+    libraryBuilders[library.importUri] =
+        new DillLibraryBuilder(library, loader);
+  }
 }

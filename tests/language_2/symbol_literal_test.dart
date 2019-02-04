@@ -24,15 +24,19 @@ testSwitch(Symbol s) {
 }
 
 main() {
-  check(const Symbol("a"), #a);
-  check(const Symbol("a"), #a);
-  check(const Symbol("ab"), #ab);
-  check(const Symbol("ab"), #ab);
-  check(const Symbol("a.b"), #a.b);
-  check(const Symbol("a.b"), #a.b);
-  check(const Symbol("=="), #==);
-  check(const Symbol("=="), #==);
-  check(const Symbol("a.toString"), #a.toString);
+  bool doChecks = false;
+  doChecks = true; //# 02: ok
+  if (doChecks) {
+    check(const Symbol("a"), #a);
+    check(const Symbol("a"), #a);
+    check(const Symbol("ab"), #ab);
+    check(const Symbol("ab"), #ab);
+    check(const Symbol("a.b"), #a.b);
+    check(const Symbol("a.b"), #a.b);
+    check(const Symbol("=="), #==);
+    check(const Symbol("=="), #==);
+    check(const Symbol("a.toString"), #a.toString);
+  }
 
   Expect.equals(1, testSwitch(#abc));
 

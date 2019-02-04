@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,9 +10,10 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:path/path.dart' as pathos;
@@ -31,6 +32,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   String oldFile;
   String newFile;
 
+  final packagePrefixedStringPattern = new RegExp(r'''^r?['"]+package:''');
+
   MoveFileRefactoringImpl(ResourceProvider resourceProvider, this.workspace,
       this.source, this.oldFile)
       : resourceProvider = resourceProvider,
@@ -45,12 +48,21 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    final drivers = workspace.driversContaining(newFile);
+    final drivers = workspace.driversContaining(oldFile);
     if (drivers.length != 1) {
-      return new RefactoringStatus.fatal(
-          'Unable to find a single driver for $newFile.');
+      if (workspace.drivers
+          .any((d) => pathContext.equals(d.contextRoot.root, oldFile))) {
+        return new RefactoringStatus.fatal(
+            'Renaming an analysis root is not supported ($oldFile)');
+      } else {
+        return new RefactoringStatus.fatal(
+            '$oldFile does not belong to an analysis root.');
+      }
     }
     driver = drivers.first;
+    if (!driver.resourceProvider.getFile(oldFile).exists) {
+      return new RefactoringStatus.fatal('$oldFile does not exist.');
+    }
     return new RefactoringStatus();
   }
 
@@ -78,6 +90,25 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         _updateUriReferences(builder, library.exports, oldDir, newDir);
         _updateUriReferences(builder, library.parts, oldDir, newDir);
       });
+    } else {
+      // Otherwise, we need to update any relative part-of references.
+      final result = await driver.currentSession.getResolvedUnit(oldFile);
+      Iterable<PartOfDirective> partOfs = result.unit.directives
+          .whereType<PartOfDirective>()
+          .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
+
+      if (partOfs.isNotEmpty) {
+        await changeBuilder.addFileEdit(element.source.fullName, (builder) {
+          partOfs.forEach((po) {
+            final oldDir = pathContext.dirname(oldFile);
+            final newDir = pathContext.dirname(newFile);
+            String oldLocation = pathContext.join(oldDir, po.uri.stringValue);
+            String newUri = _getRelativeUri(oldLocation, newDir);
+            builder.addSimpleReplacement(
+                new SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+          });
+        });
+      }
     }
 
     // Update incoming references to this file
@@ -94,13 +125,35 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return changeBuilder.sourceChange;
   }
 
-  @override
-  bool requiresPreview() => false;
+  /**
+   * Computes the URI to use to reference [newFile] from [reference].
+   */
+  String _computeNewUri(SourceReference reference) {
+    String refDir = pathContext.dirname(reference.file);
+    // Try to keep package: URI
+    if (_isPackageReference(reference)) {
+      Source newSource = new NonExistingSource(
+          newFile, pathos.toUri(newFile), UriKind.FILE_URI);
+      Uri restoredUri = driver.sourceFactory.restoreUri(newSource);
+      if (restoredUri != null) {
+        return restoredUri.toString();
+      }
+    }
+    return _getRelativeUri(newFile, refDir);
+  }
 
   String _getRelativeUri(String path, String from) {
     String uri = pathContext.relative(path, from: from);
     List<String> parts = pathContext.split(uri);
     return pathos.posix.joinAll(parts);
+  }
+
+  bool _isPackageReference(SourceReference reference) {
+    final Source source = reference.element.source;
+    final String quotedImportUri = source.contents.data.substring(
+        reference.range.offset,
+        reference.range.offset + reference.range.length);
+    return packagePrefixedStringPattern.hasMatch(quotedImportUri);
   }
 
   /**
@@ -143,23 +196,5 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     for (UriReferencedElement element in elements) {
       _updateUriReference(builder, element, oldDir, newDir);
     }
-  }
-
-  /**
-   * Computes the URI to use to reference [newFile] from [reference].
-   */
-  String _computeNewUri(SourceReference reference) {
-    String refDir = pathContext.dirname(reference.file);
-    // try to keep package: URI
-    // if (_isPackageReference(reference)) {
-    //   Source newSource = new NonExistingSource(
-    //       newFile, pathos.toUri(newFile), UriKind.FILE_URI);
-    //   Uri restoredUri = context.sourceFactory.restoreUri(newSource);
-    //   if (restoredUri != null) {
-    //     return restoredUri.toString();
-    //   }
-    // }
-    // if no package: URI, prepare relative
-    return _getRelativeUri(newFile, refDir);
   }
 }

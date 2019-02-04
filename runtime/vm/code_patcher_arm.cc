@@ -43,12 +43,6 @@ RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
   return call.TargetCode();
 }
 
-intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  // The instance call instruction sequence has a variable size on ARM.
-  UNREACHABLE();
-  return 0;
-}
-
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
                                                      ICData* ic_data_result) {
@@ -67,23 +61,39 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Object& data,
                                         const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  call.SetData(data);
-  call.SetTarget(target);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  }
 }
 
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  return call.target();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  }
 }
 
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  return call.data();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    return call.data();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.data();
+  }
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,

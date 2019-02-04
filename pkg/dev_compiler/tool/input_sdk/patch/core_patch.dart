@@ -10,7 +10,6 @@ import 'dart:_js_helper'
         patch,
         checkInt,
         getRuntimeType,
-        getTraceFromException,
         LinkedMap,
         JSSyntaxRegExp,
         NoInline,
@@ -54,7 +53,7 @@ class Object {
 
   @patch
   String toString() =>
-      "Instance of '${dart.wrapType(dart.getReifiedType(this))}'";
+      "Instance of '${dart.typeName(dart.getReifiedType(this))}'";
 
   @patch
   noSuchMethod(Invocation invocation) {
@@ -198,7 +197,7 @@ class BigInt implements Comparable<BigInt> {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return "Instance of '${dart.wrapType(dart.getReifiedType(object))}'";
+    return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
   }
 
   @patch
@@ -207,7 +206,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => getTraceFromException(this);
+  StackTrace get stackTrace => dart.stackTraceForError(this);
 }
 
 @patch
@@ -342,6 +341,26 @@ class DateTime {
 
   @patch
   int get weekday => Primitives.getWeekday(this);
+
+  @patch
+  bool operator ==(dynamic other) =>
+      other is DateTime &&
+      _value == other.millisecondsSinceEpoch &&
+      isUtc == other.isUtc;
+
+  @patch
+  bool isBefore(DateTime other) => _value < other.millisecondsSinceEpoch;
+
+  @patch
+  bool isAfter(DateTime other) => _value > other.millisecondsSinceEpoch;
+
+  @patch
+  bool isAtSameMomentAs(DateTime other) =>
+      _value == other.millisecondsSinceEpoch;
+
+  @patch
+  int compareTo(DateTime other) =>
+      _value.compareTo(other.millisecondsSinceEpoch);
 }
 
 // Patch for Stopwatch implementation.
@@ -725,14 +744,8 @@ class StackTrace {
   @patch
   @NoInline()
   static StackTrace get current {
-    return getTraceFromException(JS('', 'new Error()'));
+    return dart.stackTrace(JS('', 'Error()'));
   }
-}
-
-@patch
-class _ConstantExpressionError {
-  @patch
-  _throw(error) => throw error;
 }
 
 // TODO(jmesserly): this class is supposed to be obsolete in Strong Mode, but

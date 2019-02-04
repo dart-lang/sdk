@@ -4,14 +4,17 @@
 
 import "package:expect/expect.dart";
 
+@pragma("vm:entry-point") // Prevent obfuscation
 void func1() {
   throw new Exception("Test full stacktrace");
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 void func2() {
   func1();
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 void func3() {
   try {
     func2();
@@ -29,11 +32,13 @@ void func3() {
   }
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 int func4() {
   func3();
   return 1;
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 int func5() {
   try {
     func4();
@@ -51,11 +56,13 @@ int func5() {
   return 1;
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 int func6() {
   func5();
   return 1;
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 int func7() {
   func6();
   return 1;

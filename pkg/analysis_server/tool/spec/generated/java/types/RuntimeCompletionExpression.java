@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+ * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package org.dartlang.analysis.server.protocol;
@@ -24,9 +24,9 @@ import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * An expression for which we want to know its runtime type. In expressions like `a.b.c.where((e)
- * =&gt; e.^)` we want to know the runtime type of `a.b.c` to enforce it statically at the time
- * when we compute completion suggestions, and get better type for `e`.
+ * An expression for which we want to know its runtime type. In expressions like 'a.b.c.where((e)
+ * =&gt; e.^)' we want to know the runtime type of 'a.b.c' to enforce it statically at the time
+ * when we compute completion suggestions, and get better type for 'e'.
  *
  * @coverage dart.server.generated.types
  */

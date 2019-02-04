@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -34,8 +34,6 @@
  * the elements that they refer to and every expression in the AST will have a
  * type associated with it.
  */
-library analyzer.dart.ast.ast;
-
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -446,12 +444,6 @@ abstract class AssignmentExpression extends Expression
  */
 abstract class AstNode implements SyntacticEntity {
   /**
-   * An empty list of AST nodes.
-   */
-  @deprecated
-  static const List<AstNode> EMPTY_LIST = const <AstNode>[];
-
-  /**
    * A comparator that can be used to sort AST nodes in lexical order. In other
    * words, `compare` will return a negative value if the offset of the first
    * node is less than the offset of the second node, zero (0) if the nodes have
@@ -534,6 +526,7 @@ abstract class AstNode implements SyntacticEntity {
    * returns `true`, or `null` if there is no such ancestor. Note that this node
    * will never be returned.
    */
+  @deprecated
   E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
 
   /**
@@ -547,6 +540,18 @@ abstract class AstNode implements SyntacticEntity {
    * If the value is `null`, the property will effectively be removed.
    */
   void setProperty(String name, Object value);
+
+  /**
+   * Return either this node or the most immediate ancestor of this node for
+   * which the [predicate] returns `true`, or `null` if there is no such node.
+   */
+  E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate);
+
+  /**
+   * Return either this node or the most immediate ancestor of this node that
+   * has the given type, or `null` if there is no such node.
+   */
+  T thisOrAncestorOfType<T extends AstNode>();
 
   /**
    * Return a textual description of this node in a form approximating valid
@@ -609,6 +614,10 @@ abstract class AstVisitor<R> {
 
   R visitClassTypeAlias(ClassTypeAlias node);
 
+  R visitCollectionForElement(CollectionForElement node);
+
+  R visitCollectionIfElement(CollectionIfElement node);
+
   R visitComment(Comment node);
 
   R visitCommentReference(CommentReference node);
@@ -657,11 +666,21 @@ abstract class AstVisitor<R> {
 
   R visitFieldFormalParameter(FieldFormalParameter node);
 
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
+
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node);
+
   R visitForEachStatement(ForEachStatement node);
 
   R visitFormalParameterList(FormalParameterList node);
 
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node);
+
+  R visitForPartsWithExpression(ForPartsWithExpression node);
+
   R visitForStatement(ForStatement node);
+
+  R visitForStatement2(ForStatement2 node);
 
   R visitFunctionDeclaration(FunctionDeclaration node);
 
@@ -709,7 +728,15 @@ abstract class AstVisitor<R> {
 
   R visitListLiteral(ListLiteral node);
 
+  R visitListLiteral2(ListLiteral2 node);
+
+  R visitMapForElement(MapForElement node);
+
+  R visitMapIfElement(MapIfElement node);
+
   R visitMapLiteral(MapLiteral node);
+
+  R visitMapLiteral2(MapLiteral2 node);
 
   R visitMapLiteralEntry(MapLiteralEntry node);
 
@@ -752,6 +779,10 @@ abstract class AstVisitor<R> {
 
   R visitScriptTag(ScriptTag node);
 
+  R visitSetLiteral(SetLiteral node);
+
+  R visitSetLiteral2(SetLiteral2 node);
+
   R visitShowCombinator(ShowCombinator node);
 
   R visitSimpleFormalParameter(SimpleFormalParameter node);
@@ -759,6 +790,8 @@ abstract class AstVisitor<R> {
   R visitSimpleIdentifier(SimpleIdentifier node);
 
   R visitSimpleStringLiteral(SimpleStringLiteral node);
+
+  R visitSpreadElement(SpreadElement node);
 
   R visitStringInterpolation(StringInterpolation node);
 
@@ -874,6 +907,17 @@ abstract class BinaryExpression extends Expression
    * [expression].
    */
   void set rightOperand(Expression expression);
+
+  /**
+   * The function type of the invocation, or `null` if the AST structure has
+   * not been resolved, or if the invocation could not be resolved.
+   */
+  FunctionType get staticInvokeType;
+
+  /**
+   * Sets the function type of the invocation.
+   */
+  void set staticInvokeType(FunctionType value);
 }
 
 /**
@@ -1284,6 +1328,8 @@ abstract class ClassMember extends Declaration {}
 
 /**
  * The declaration of a class or mixin.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ClassOrMixinDeclaration extends NamedCompilationUnitMember {
   @override
@@ -1411,6 +1457,42 @@ abstract class ClassTypeAlias extends TypeAlias {
    */
   void set withClause(WithClause withClause);
 }
+
+/**
+ * An element in a literal list or literal set.
+ *
+ *    collectionElement ::=
+ *        [Expression]
+ *      | [IfElement<CollectionElement>]
+ *      | [ForElement<CollectionElement>]
+ *      | [SpreadElement]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class CollectionElement implements AstNode {}
+
+/**
+ * A for element in a literal list or literal set.
+ *
+ *    forElement ::=
+ *        'await'? 'for' '(' [ForLoopParts] ')' [CollectionElement | MapElement]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class CollectionForElement
+    implements CollectionElement, ForElement<CollectionElement> {}
+
+/**
+ * An if element in a literal list or literal set.
+ *
+ *    ifElement ::=
+ *        'if' '(' [Expression] ')' [CollectionElement]
+ *        ( 'else' [CollectionElement] )?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class CollectionIfElement
+    implements CollectionElement, IfElement<CollectionElement> {}
 
 /**
  * A combinator associated with an import or export directive.
@@ -2094,7 +2176,7 @@ abstract class ConstructorName extends AstNode
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConstructorReferenceNode {
+abstract class ConstructorReferenceNode implements AstNode {
   /**
    * Return the element associated with the referenced constructor based on
    * static type information, or `null` if the AST structure has not been
@@ -2599,13 +2681,7 @@ abstract class ExportDirective extends NamespaceDirective {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Expression extends AstNode {
-  /**
-   * An empty list of expressions.
-   */
-  @deprecated
-  static const List<Expression> EMPTY_LIST = const <Expression>[];
-
+abstract class Expression implements CollectionElement {
   /**
    * Return the best parameter element information available for this
    * expression. If type propagation was able to find a better parameter element
@@ -2957,11 +3033,65 @@ abstract class FieldFormalParameter extends NormalFormalParameter {
 }
 
 /**
+ * The parts of a for-each loop that control the iteration.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForEachParts implements ForLoopParts {
+  /**
+   * Return the token representing the 'in' keyword.
+   */
+  Token get inKeyword;
+
+  /**
+   * Return the expression evaluated to produce the iterator.
+   */
+  Expression get iterable;
+}
+
+/**
+ * The parts of a for-each loop that control the iteration when the loop
+ * variable is declared as part of the for loop.
+ *
+ *   forLoopParts ::=
+ *       [DeclaredIdentifier] 'in' [Expression]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForEachPartsWithDeclaration implements ForEachParts {
+  /**
+   * Return the declaration of the loop variable.
+   */
+  DeclaredIdentifier get loopVariable;
+}
+
+/**
+ * The parts of a for-each loop that control the iteration when the loop
+ * variable is declared outside of the for loop.
+ *
+ *   forLoopParts ::=
+ *       [SimpleIdentifier] 'in' [Expression]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForEachPartsWithIdentifier implements ForEachParts {
+  /**
+   * Return the loop variable.
+   */
+  SimpleIdentifier get identifier;
+}
+
+/**
  * A for-each statement.
  *
  *    forEachStatement ::=
  *        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
  *      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
+ *
+ * This is the class that is used to represent a for-each loop when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [ForStatement2] will be
+ * used.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3060,6 +3190,60 @@ abstract class ForEachStatement extends Statement {
    */
   void set rightParenthesis(Token token);
 }
+
+/**
+ * The basic structure of a for element.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForElement<E> implements AstNode {
+  /**
+   * Return the token representing the 'await' keyword, or `null` if there was
+   * no 'await' keyword.
+   */
+  Token get awaitKeyword;
+
+  /**
+   * Return the body of the loop.
+   */
+  E get body;
+
+  /**
+   * Return the token representing the 'for' keyword.
+   */
+  Token get forKeyword;
+
+  /**
+   * Return the parts of the for element that control the iteration.
+   */
+  ForLoopParts get forLoopParts;
+
+  /**
+   * Return the left parenthesis.
+   */
+  Token get leftParenthesis;
+
+  /**
+   * Return the right parenthesis.
+   */
+  Token get rightParenthesis;
+}
+
+/**
+ * The parts of a for or for-each loop that control the iteration.
+ *
+ *   forLoopParts ::=
+ *       [VariableDeclaration] ';' [Expression]? ';' expressionList?
+ *     | [Expression]? ';' [Expression]? ';' expressionList?
+ *     | [DeclaredIdentifier] 'in' [Expression]
+ *     | [SimpleIdentifier] 'in' [Expression]
+ *
+ *   expressionList ::=
+ *       [Expression] (',' [Expression])*
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForLoopParts implements AstNode {}
 
 /**
  * A node representing a parameter to a function.
@@ -3241,6 +3425,71 @@ abstract class FormalParameterList extends AstNode {
 }
 
 /**
+ * The parts of a for loop that control the iteration.
+ *
+ *   forLoopParts ::=
+ *       [VariableDeclaration] ';' [Expression]? ';' expressionList?
+ *     | [Expression]? ';' [Expression]? ';' expressionList?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForParts implements ForLoopParts {
+  /**
+   * Return the condition used to determine when to terminate the loop, or
+   * `null` if there is no condition.
+   */
+  Expression get condition;
+
+  /**
+   * Return the semicolon separating the initializer and the condition.
+   */
+  Token get leftSeparator;
+
+  /**
+   * Return the semicolon separating the condition and the updater.
+   */
+  Token get rightSeparator;
+
+  /**
+   * Return the list of expressions run after each execution of the loop body.
+   */
+  NodeList<Expression> get updaters;
+}
+
+/**
+ * The parts of a for loop that control the iteration when there are one or more
+ * variable declarations as part of the for loop.
+ *
+ *   forLoopParts ::=
+ *       [VariableDeclarationList] ';' [Expression]? ';' expressionList?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForPartsWithDeclarations implements ForParts {
+  /**
+   * Return the declaration of the loop variables.
+   */
+  VariableDeclarationList get variables;
+}
+
+/**
+ * The parts of a for loop that control the iteration when there are no variable
+ * declarations as part of the for loop.
+ *
+ *   forLoopParts ::=
+ *       [Expression]? ';' [Expression]? ';' expressionList?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForPartsWithExpression implements ForParts {
+  /**
+   * Return the initialization expression, or `null` if there is no
+   * initialization expression.
+   */
+  Expression get initialization;
+}
+
+/**
  * A for statement.
  *
  *    forStatement ::=
@@ -3252,6 +3501,11 @@ abstract class FormalParameterList extends AstNode {
  *    forInitializerStatement ::=
  *        [DefaultFormalParameter]
  *      | [Expression]?
+ *
+ * This is the class that is used to represent a for loop when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [ForStatement2] will be
+ * used.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3356,6 +3610,58 @@ abstract class ForStatement extends Statement {
    * Set the declaration of the loop variables to the given [variableList].
    */
   void set variables(VariableDeclarationList variableList);
+}
+
+/**
+ * A for or for-each statement.
+ *
+ *    forStatement ::=
+ *        'for' '(' forLoopParts ')' [Statement]
+ *
+ *    forLoopParts ::=
+ *       [VariableDeclaration] ';' [Expression]? ';' expressionList?
+ *     | [Expression]? ';' [Expression]? ';' expressionList?
+ *     | [DeclaredIdentifier] 'in' [Expression]
+ *     | [SimpleIdentifier] 'in' [Expression]
+ *
+ * This is the class that is used to represent a for loop when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then either [ForStatement] or
+ * [ForEachStatement] will be used.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ForStatement2 extends Statement {
+  /**
+   * Return the token representing the 'await' keyword, or `null` if there is no
+   * 'await' keyword.
+   */
+  Token get awaitKeyword;
+
+  /**
+   * Return the body of the loop.
+   */
+  Statement get body;
+
+  /**
+   * Return the token representing the 'for' keyword.
+   */
+  Token get forKeyword;
+
+  /**
+   * Return the parts of the for element that control the iteration.
+   */
+  ForLoopParts get forLoopParts;
+
+  /**
+   * Return the left parenthesis.
+   */
+  Token get leftParenthesis;
+
+  /**
+   * Return the right parenthesis.
+   */
+  Token get rightParenthesis;
 }
 
 /**
@@ -3728,18 +4034,6 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
   void set parameters(FormalParameterList parameters);
 
   /**
-   * Return the question mark marking this as a nullable type, or `null` if
-   * the type is non-nullable.
-   */
-  Token get question;
-
-  /**
-   * Return the question mark marking this as a nullable type to the given
-   * [question].
-   */
-  void set question(Token question);
-
-  /**
    * Return the return type of the function, or `null` if the function does not
    * have a return type.
    */
@@ -3767,7 +4061,8 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
  * An anonymous function type.
  *
  *    functionType ::=
- *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
+ *        [TypeAnnotation]? 'Function' [TypeParameterList]?
+ *        [FormalParameterList] '?'?
  *
  * where the FormalParameterList is being used to represent the following
  * grammar, despite the fact that FormalParameterList can represent a much
@@ -3815,6 +4110,12 @@ abstract class GenericFunctionType extends TypeAnnotation {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters);
+
+  /**
+   * Set the question mark indicating that the type is nullable to the given
+   * [token].
+   */
+  void set question(Token token);
 
   /**
    * Return the return type of the function type being defined, or `null` if
@@ -3956,6 +4257,51 @@ abstract class Identifier extends Expression {
    */
   static bool isPrivateName(String name) =>
       StringUtilities.startsWithChar(name, 0x5F); // '_'
+}
+
+/**
+ * The basic structure of an if element.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class IfElement<E> implements AstNode {
+  /**
+   * Return the condition used to determine which of the statements is executed
+   * next.
+   */
+  Expression get condition;
+
+  /**
+   * Return the statement that is executed if the condition evaluates to
+   * `false`, or `null` if there is no else statement.
+   */
+  E get elseElement;
+
+  /**
+   * Return the token representing the 'else' keyword, or `null` if there is no
+   * else statement.
+   */
+  Token get elseKeyword;
+
+  /**
+   * Return the token representing the 'if' keyword.
+   */
+  Token get ifKeyword;
+
+  /**
+   * Return the left parenthesis.
+   */
+  Token get leftParenthesis;
+
+  /**
+   * Return the right parenthesis.
+   */
+  Token get rightParenthesis;
+
+  /**
+   * Return the statement that is executed if the condition evaluates to `true`.
+   */
+  E get thenElement;
 }
 
 /**
@@ -4343,8 +4689,6 @@ abstract class IndexExpression extends Expression
  *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
- *
- * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 abstract class InstanceCreationExpression extends Expression
     implements ConstructorReferenceNode {
@@ -4768,6 +5112,10 @@ abstract class LibraryIdentifier extends Identifier {
  *    listLiteral ::=
  *        'const'? ('<' [TypeAnnotation] '>')? '[' ([Expression] ','?)? ']'
  *
+ * This is the class that is used to represent a list literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [ListLiteral2] will be used.
+ *
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class ListLiteral extends TypedLiteral {
@@ -4775,6 +5123,46 @@ abstract class ListLiteral extends TypedLiteral {
    * Return the expressions used to compute the elements of the list.
    */
   NodeList<Expression> get elements;
+
+  /**
+   * Return the left square bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Set the left square bracket to the given [token].
+   */
+  void set leftBracket(Token token);
+
+  /**
+   * Return the right square bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Set the right square bracket to the given [token].
+   */
+  void set rightBracket(Token token);
+}
+
+/**
+ * A list literal.
+ *
+ *    listLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '[' ([CollectionElement] ','?)? ']'
+ *
+ * This is the class that is used to represent a list literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [ListLiteral] will be used.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ListLiteral2 extends TypedLiteral {
+  /**
+   * Return the expressions used to compute the elements of the list.
+   */
+  NodeList<CollectionElement> get elements;
 
   /**
    * Return the left square bracket.
@@ -4814,11 +5202,48 @@ abstract class ListLiteral extends TypedLiteral {
 abstract class Literal extends Expression {}
 
 /**
+ * An element in a literal map.
+ *
+ *    mapElement ::=
+ *        [Expression]
+ *      | [IfElement<MapElement>]
+ *      | [ForElement<MapElement>]
+ *      | [SpreadElement]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class MapElement implements AstNode {}
+
+/**
+ * A for element in a literal map.
+ *
+ *    forElement ::=
+ *        'await'? 'for' '(' [ForLoopParts] ')' [CollectionElement | MapElement]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class MapForElement implements ForElement<MapElement>, MapElement {}
+
+/**
+ * An if element in a map in a literal map.
+ *
+ *    ifElement ::=
+ *        'if' '(' [Expression] ')' [MapElement] ( 'else' [MapElement] )?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class MapIfElement implements IfElement<MapElement>, MapElement {}
+
+/**
  * A literal map.
  *
  *    mapLiteral ::=
  *        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
  *        '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
+ *
+ * This is the class that is used to represent a map literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [MapLiteral2] will be used.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4850,6 +5275,46 @@ abstract class MapLiteral extends TypedLiteral {
 }
 
 /**
+ * A literal map.
+ *
+ *    mapLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
+ *        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
+ *
+ * This is the class that is used to represent a map literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [MapLiteral] will be used.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class MapLiteral2 extends TypedLiteral {
+  /**
+   * Return the entries in the map.
+   */
+  NodeList<MapElement> get entries;
+
+  /**
+   * Return the left curly bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Set the left curly bracket to the given [token].
+   */
+  void set leftBracket(Token token);
+
+  /**
+   * Return the right curly bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Set the right curly bracket to the given [token].
+   */
+  void set rightBracket(Token token);
+}
+
+/**
  * A single key/value pair in a map literal.
  *
  *    mapLiteralEntry ::=
@@ -4857,7 +5322,7 @@ abstract class MapLiteral extends TypedLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MapLiteralEntry extends AstNode {
+abstract class MapLiteralEntry implements MapElement {
   /**
    * Return the expression computing the key with which the value will be
    * associated.
@@ -5127,7 +5592,7 @@ abstract class MethodInvocation extends InvocationExpression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MethodReferenceExpression {
+abstract class MethodReferenceExpression implements AstNode {
   /**
    * Return the best element available for this expression. If resolution was
    * able to find a better element based on type propagation, that element will
@@ -5286,16 +5751,10 @@ abstract class NamedType extends TypeAnnotation {
   void set name(Identifier identifier);
 
   /**
-   * Return the question mark marking this as a nullable type, or `null` if
-   * the type is non-nullable.
+   * Set the question mark indicating that the type is nullable to the given
+   * [token].
    */
-  Token get question;
-
-  /**
-   * Return the question mark marking this as a nullable type to the given
-   * [question].
-   */
-  void set question(Token question);
+  void set question(Token token);
 
   /**
    * Set the type being named to the given [type].
@@ -6037,6 +6496,88 @@ abstract class ScriptTag extends AstNode {
 }
 
 /**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * This is the class that is used to represent a set literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [SetLiteral2] will be used.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class SetLiteral extends TypedLiteral {
+  /**
+   * Return the expressions used to compute the elements of the set.
+   */
+  NodeList<Expression> get elements;
+
+  /**
+   * Return the left curly bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Set the left curly bracket to the given [token].
+   */
+  void set leftBracket(Token token);
+
+  /**
+   * Return the right curly bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Set the right curly bracket to the given [token].
+   */
+  void set rightBracket(Token token);
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [CollectionElement] (',' [CollectionElement])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * This is the class that is used to represent a set literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [SetLiteral] will be used.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class SetLiteral2 extends TypedLiteral {
+  /**
+   * Return the expressions used to compute the elements of the set.
+   */
+  NodeList<CollectionElement> get elements;
+
+  /**
+   * Return the left curly bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Set the left curly bracket to the given [token].
+   */
+  void set leftBracket(Token token);
+
+  /**
+   * Return the right curly bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Set the right curly bracket to the given [token].
+   */
+  void set rightBracket(Token token);
+}
+
+/**
  * A combinator that restricts the names being imported to those in a given list.
  *
  *    showCombinator ::=
@@ -6256,6 +6797,26 @@ abstract class SingleStringLiteral extends StringLiteral {
    * Return `false` if this string literal uses double quotes (" or """).
    */
   bool get isSingleQuoted;
+}
+
+/**
+ * A spread element.
+ *
+ *    spreadElement:
+ *        ( '...' | '...?' ) [Expression]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class SpreadElement implements CollectionElement, MapElement {
+  /**
+   * The expression used to compute the collection being spread.
+   */
+  Expression get expression;
+
+  /**
+   * The spread operator, either '...' or '...?'.
+   */
+  Token get spreadOperator;
 }
 
 /**
@@ -6762,6 +7323,12 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class TypeAnnotation extends AstNode {
+  /**
+   * The question mark indicating that the type is nullable, or `null` if there
+   * is no question mark.
+   */
+  Token get question;
+
   /**
    * Return the type being named, or `null` if the AST structure has not been
    * resolved.

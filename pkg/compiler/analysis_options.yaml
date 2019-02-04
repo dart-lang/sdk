@@ -3,8 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
-  language:
-    enableSuperMixins: false
   errors:
     todo: ignore
+    # Allow cross-package deprecated calls
+    # TODO(srawlins): clean these up and remove this "ignore."
     deprecated_member_use: ignore
+    # Allow deprecated calls from within the same package
+    deprecated_member_use_from_same_package: ignore

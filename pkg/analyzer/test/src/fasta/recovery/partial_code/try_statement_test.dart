@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -93,7 +93,9 @@ class TryStatementTest extends PartialCodeTest {
               'catch_identifierCommaIdentifier',
               'try {} catch (e, s',
               [
-                ParserErrorCode.CATCH_SYNTAX,
+                // TODO(danrubel): Update parser to generate CATCH_SYNTAX
+                // because in this situation there are not any extra parameters.
+                ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
@@ -145,8 +147,10 @@ class TryStatementTest extends PartialCodeTest {
               'on_catch_identifierCommaIdentifier',
               'try {} on A catch (e, s',
               [
+                // TODO(danrubel): Update parser to generate CATCH_SYNTAX
+                // because in this situation there are not any extra parameters.
+                ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.CATCH_SYNTAX,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
               "try {} on A catch (e, s) {}",

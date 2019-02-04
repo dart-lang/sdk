@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,11 +12,12 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -25,7 +26,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  */
 SourceRange _getLocalsConflictingRange(AstNode node) {
   // maybe Block
-  Block block = node.getAncestor((node) => node is Block);
+  Block block = node.thisOrAncestorOfType<Block>();
   if (block != null) {
     return range.startEnd(node, block);
   }
@@ -187,10 +188,9 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
-  final CompilationUnit unit;
+  final ResolvedUnitResult resolveResult;
   final int offset;
-  ResolvedUnitCache _unitCache;
+  final AnalysisSessionHelper sessionHelper;
   CorrectionUtils utils;
   SourceChange change;
 
@@ -199,7 +199,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   bool inlineAll = true;
 
   ExecutableElement _methodElement;
-  bool _isAccessor;
   CompilationUnit _methodUnit;
   CorrectionUtils _methodUtils;
   AstNode _methodNode;
@@ -208,13 +207,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Expression _methodExpression;
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
-  List<_ReferenceProcessor> _referenceProcessors = [];
-  Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
+  final List<_ReferenceProcessor> _referenceProcessors = [];
+  final Set<Element> _alreadyMadeAsync = new Set<Element>();
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.astProvider, this.unit, this.offset) {
-    _unitCache = new ResolvedUnitCache(astProvider, unit);
-    utils = new CorrectionUtils(unit);
+      this.searchEngine, this.resolveResult, this.offset)
+      : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override
@@ -309,27 +308,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return new Future.value(change);
   }
 
-  @override
-  bool requiresPreview() => false;
-
-  Future<FunctionDeclaration> _computeFunctionDeclaration() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    CompilationUnit unit = await _unitCache.getUnit(_methodElement);
-    return new NodeLocator(_methodElement.nameOffset)
-        .searchWithin(unit)
-        .getAncestor((n) => n is FunctionDeclaration) as FunctionDeclaration;
-  }
-
-  Future<MethodDeclaration> _computeMethodDeclaration() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    CompilationUnit unit = await _unitCache.getUnit(_methodElement);
-    return new NodeLocator(_methodElement.nameOffset)
-        .searchWithin(unit)
-        .getAncestor((n) => n is MethodDeclaration) as MethodDeclaration;
-  }
-
   _SourcePart _createSourcePart(SourceRange range) {
     String source = _methodUtils.getRangeText(range);
     String prefix = getLinePrefix(source);
@@ -355,7 +333,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     RefactoringStatus fatalStatus = new RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(resolveResult.unit);
     if (node is! SimpleIdentifier) {
       return fatalStatus;
     }
@@ -369,38 +347,30 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       return fatalStatus;
     }
     _methodElement = element as ExecutableElement;
-    _isAccessor = element is PropertyAccessorElement;
-    _methodUnit = await _unitCache.getUnit(element);
-    _methodUtils = new CorrectionUtils(_methodUnit);
-    // class member
-    bool isClassMember = element.enclosingElement is ClassElement;
-    if (element is MethodElement || _isAccessor && isClassMember) {
-      MethodDeclaration methodDeclaration = await _computeMethodDeclaration();
-      _methodNode = methodDeclaration;
-      _methodParameters = methodDeclaration.parameters;
-      _methodBody = methodDeclaration.body;
-      // prepare mode
-      isDeclaration = node == methodDeclaration.name;
-      deleteSource = isDeclaration;
-      inlineAll = deleteSource;
-      return new RefactoringStatus();
+
+    var declaration = await sessionHelper.getElementDeclaration(_methodElement);
+    var methodNode = declaration.node;
+    _methodNode = methodNode;
+
+    var resolvedUnit = declaration.resolvedUnit;
+    _methodUnit = resolvedUnit.unit;
+    _methodUtils = new CorrectionUtils(resolvedUnit);
+
+    if (methodNode is MethodDeclaration) {
+      _methodParameters = methodNode.parameters;
+      _methodBody = methodNode.body;
+    } else if (methodNode is FunctionDeclaration) {
+      _methodParameters = methodNode.functionExpression.parameters;
+      _methodBody = methodNode.functionExpression.body;
+    } else {
+      return fatalStatus;
     }
-    // unit member
-    bool isUnitMember = element.enclosingElement is CompilationUnitElement;
-    if (element is FunctionElement || _isAccessor && isUnitMember) {
-      FunctionDeclaration functionDeclaration =
-          await _computeFunctionDeclaration();
-      _methodNode = functionDeclaration;
-      _methodParameters = functionDeclaration.functionExpression.parameters;
-      _methodBody = functionDeclaration.functionExpression.body;
-      // prepare mode
-      isDeclaration = node == functionDeclaration.name;
-      deleteSource = isDeclaration;
-      inlineAll = deleteSource;
-      return new RefactoringStatus();
-    }
-    // OK
-    return fatalStatus;
+
+    isDeclaration = resolveResult.uri == element.source.uri &&
+        node.offset == element.nameOffset;
+    deleteSource = isDeclaration;
+    inlineAll = deleteSource;
+    return new RefactoringStatus();
   }
 
   /**
@@ -468,12 +438,14 @@ class _ReferenceProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     refElement = reference.element;
+
     // prepare CorrectionUtils
-    CompilationUnit refUnit = await ref._unitCache.getUnit(refElement);
-    _refUtils = new CorrectionUtils(refUnit);
+    var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
+    _refUtils = new CorrectionUtils(result);
+
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);
-    Statement refStatement = _node.getAncestor((node) => node is Statement);
+    Statement refStatement = _node.thisOrAncestorOfType<Statement>();
     if (refStatement != null) {
       _refLineRange = _refUtils.getLinesRangeStatements([refStatement]);
       _refPrefix = _refUtils.getNodePrefix(refStatement);
@@ -592,7 +564,7 @@ class _ReferenceProcessor {
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
     if (ref._methodElement.isAsynchronous) {
-      FunctionBody body = _node.getAncestor((n) => n is FunctionBody);
+      FunctionBody body = _node.thisOrAncestorOfType<FunctionBody>();
       if (body != null) {
         if (body.isSynchronous) {
           if (body.isGenerator) {
@@ -609,7 +581,7 @@ class _ReferenceProcessor {
               return;
             }
           }
-          if (ref._alreadyMadeAsync.add(body)) {
+          if (ref._alreadyMadeAsync.add(refElement)) {
             SourceRange bodyStart = range.startLength(body, 0);
             _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
           }
@@ -651,7 +623,7 @@ class _ReferenceProcessor {
         List<Expression> arguments = [];
         if (_node.inSetterContext()) {
           AssignmentExpression assignment =
-              _node.getAncestor((node) => node is AssignmentExpression);
+              _node.thisOrAncestorOfType<AssignmentExpression>();
           arguments.add(assignment.rightHandSide);
         }
         // inline body
@@ -799,12 +771,12 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   /**
    * The [SourceRange] of the element body.
    */
-  SourceRange bodyRange;
+  final SourceRange bodyRange;
 
   /**
    * The [_SourcePart] to record reference into.
    */
-  _SourcePart result;
+  final _SourcePart result;
 
   int offset;
 

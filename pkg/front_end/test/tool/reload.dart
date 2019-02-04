@@ -75,7 +75,7 @@ class RemoteVm {
     var id = await mainId;
     var result = await rpc.sendRequest('reloadSources', {
       'isolateId': id,
-      'rootLibUri': entryUri.path,
+      'rootLibUri': entryUri.toFilePath(),
     });
     return result;
   }

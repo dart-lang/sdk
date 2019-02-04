@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,7 +24,7 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
 
   setUp() {
     super.setUp();
-    sourcePath = resourceProvider.convertPath('/p/lib/source.dart');
+    sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
   test_adjacentLinesExcluded() async {
@@ -400,7 +400,7 @@ void myMethod() {
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolveResult result = await driver.getResult(sourcePath);
+    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
     DartUnitClosingLabelsComputer computer =
         new DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();

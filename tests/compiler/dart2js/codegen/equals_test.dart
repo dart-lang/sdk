@@ -43,7 +43,7 @@ foo(String a, String b) {
 """;
 
 // Comparable includes String and int, so can't be compared with `a == b` since
-// that will convert an operand to make `2 =="2"` true.
+// that will convert an operand to make `2 == "2"` true.
 const String TEST5 = r"""
 foo(Comparable a, Comparable b) {
   return a == b;
@@ -63,6 +63,17 @@ foo(dynamic a, dynamic b) {
 }
 """;
 
+// StringBuffer uses `Object.==`, i.e. `identical`.  This can be lowered to `==`
+// because no operand will cause JavaScript conversions.
+const String TEST7 = r"""
+foo(StringBuffer a, StringBuffer b) {
+  return a == b;
+  // present: ' == '
+  // absent: '==='
+  // absent: 'eq'
+}
+""";
+
 main() {
   runTests() async {
     Future check(String test) {
@@ -75,6 +86,7 @@ main() {
     await check(TEST4);
     await check(TEST5);
     await check(TEST6);
+    await check(TEST7);
   }
 
   asyncTest(() async {

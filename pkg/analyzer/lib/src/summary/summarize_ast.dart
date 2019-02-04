@@ -1,18 +1,16 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library serialization.summarize_ast;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
-import 'package:front_end/src/base/api_signature.dart';
 
 /// Serialize all the declarations in [compilationUnit] to an unlinked summary.
 ///
@@ -213,6 +211,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   final List<UnlinkedExportNonPublicBuilder> exports =
       <UnlinkedExportNonPublicBuilder>[];
 
+  /// Whether the current class declaration has a `const` constructor.
+  bool enclosingClassHasConstConstructor = false;
+
   /// List of objects which should be written to [UnlinkedUnit.mixins].
   final List<UnlinkedClassBuilder> mixins = <UnlinkedClassBuilder>[];
 
@@ -354,7 +355,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       } on StateError {
         return new UnlinkedExprBuilder()..isValidConst = false;
       }
-      return serializer.toBuilder();
+      return serializer.toBuilder(a.atSign.next, a.endToken);
     }).toList();
   }
 
@@ -374,6 +375,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Comment documentationComment,
       NodeList<Annotation> annotations) {
     int oldScopesLength = scopes.length;
+    enclosingClassHasConstConstructor = node is ClassDeclaration &&
+        node.members
+            .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
     executables = <UnlinkedExecutableBuilder>[];
     List<UnlinkedVariableBuilder> oldVariables = variables;
@@ -386,6 +390,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.isMixinApplication = isMixinApplication;
     b.typeParameters =
         serializeTypeParameters(typeParameters, typeParameterScope);
+    if (_shouldAssignNotSimplyBoundedSlot(typeParameters)) {
+      b.notSimplyBoundedSlot = assignSlot();
+    }
     if (superclass != null) {
       b.supertype = serializeType(superclass);
     } else {
@@ -479,7 +486,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     _ConstExprSerializer serializer = new _ConstExprSerializer(
         forConst, this, localClosureIndexMap, parameterNames);
     serializer.serialize(expression);
-    return serializer.toBuilder();
+    return serializer.toBuilder(expression.beginToken, expression.endToken);
   }
 
   /// Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.
@@ -810,7 +817,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     } else if (node.isNamed) {
       b.kind = UnlinkedParamKind.named;
     } else {
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       throw new StateError('Unexpected parameter kind: ${node.kind}');
     }
     return b;
@@ -971,8 +978,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
 
       bool serializeBodyExpr = variable.isConst ||
-          variable.isFinal && isField && !isDeclaredStatic ||
-          _serializeInferrableFields && variables.type == null;
+          _serializeInferrableFields && variables.type == null ||
+          isField &&
+              !isDeclaredStatic &&
+              variables.isFinal &&
+              enclosingClassHasConstConstructor;
       b.initializer = serializeInitializerFunction(
           variable.initializer, serializeBodyExpr, b.isConst);
       if (isField && !isDeclaredStatic && !variables.isFinal) {
@@ -1208,6 +1218,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.notSimplyBoundedSlot = assignSlot();
     EntityRefBuilder serializedReturnType = serializeType(node.returnType);
     if (serializedReturnType != null) {
       b.returnType = serializedReturnType;
@@ -1244,6 +1255,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.notSimplyBoundedSlot = assignSlot();
     GenericFunctionType functionType = node.functionType;
     EntityRefBuilder serializedType = functionType == null
         ? null
@@ -1371,6 +1383,16 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     // TODO(scheglov) Remove when we stop serializing local functions.
+  }
+
+  /// Determines whether a class declaration with the given [typeParameters]
+  /// needs to be assigned a slot to indicate whether it is simply bounded.
+  bool _shouldAssignNotSimplyBoundedSlot(TypeParameterList typeParameters) {
+    if (typeParameters == null) return false;
+    for (var typeParameter in typeParameters.typeParameters) {
+      if (typeParameter.bound != null) return true;
+    }
+    return false;
   }
 
   /// Compute the API signature of the unit and record it.

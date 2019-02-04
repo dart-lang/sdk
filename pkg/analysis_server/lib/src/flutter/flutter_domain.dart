@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -33,15 +33,13 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     String file = params.file;
     int offset = params.offset;
 
-    ResolveResult result = await server.getAnalysisResult(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
       var corrections = new FlutterCorrections(
-          file: file,
-          fileContent: result.content,
-          selectionOffset: offset,
-          selectionLength: 0,
-          session: result.session,
-          unit: result.unit);
+        resolveResult: result,
+        selectionOffset: offset,
+        selectionLength: 0,
+      );
       SourceChange change = await corrections.addForDesignTimeConstructor();
       if (change != null) {
         server.sendResponse(

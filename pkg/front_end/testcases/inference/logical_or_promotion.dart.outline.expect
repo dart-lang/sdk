@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
 }
 class C extends core::Object {
   field self::A a;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   method f(core::Object o) → void
     ;

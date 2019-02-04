@@ -121,9 +121,8 @@ void ConstantPropagator::Join(Object* left, const Object& right) {
 // Analysis of blocks.  Called at most once per block.  The block is already
 // marked as reachable.  All instructions in the block are analyzed.
 void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
-  const GrowableArray<Definition*>& defs = *block->initial_definitions();
-  for (intptr_t i = 0; i < defs.length(); ++i) {
-    defs[i]->Accept(this);
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
   }
   ASSERT(ForwardInstructionIterator(block).Done());
 
@@ -131,6 +130,33 @@ void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
   // reachable if a call in the try-block is reachable.
   for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
     SetReachable(block->SuccessorAt(i));
+  }
+}
+
+void ConstantPropagator::VisitFunctionEntry(FunctionEntryInstr* block) {
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
+  }
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+void ConstantPropagator::VisitOsrEntry(OsrEntryInstr* block) {
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
+  }
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
+  }
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
   }
 }
 
@@ -148,16 +174,6 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 }
 
 void ConstantPropagator::VisitIndirectEntry(IndirectEntryInstr* block) {
-  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    it.Current()->Accept(this);
-  }
-}
-
-void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
-  const GrowableArray<Definition*>& defs = *block->initial_definitions();
-  for (intptr_t i = 0; i < defs.length(); ++i) {
-    defs[i]->Accept(this);
-  }
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
   }
@@ -253,13 +269,16 @@ void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
 
 void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {}
 
-void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
-}
-
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
-void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {}
+void ConstantPropagator::VisitStoreIndexedUnsafe(
+    StoreIndexedUnsafeInstr* instr) {}
+
+void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
+
+void ConstantPropagator::VisitStoreInstanceField(
+    StoreInstanceFieldInstr* instr) {}
 
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
@@ -319,6 +338,20 @@ void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
   } else {
     SetValue(instr, non_constant_);
   }
+}
+
+void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
+  // Don't propagate constants through check, since it would eliminate
+  // the data dependence between the bound check and the load/store.
+  // Graph finalization will expose the constant eventually.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
+  // Don't propagate constants through check, since it would eliminate
+  // the data dependence between the bound check and the load/store.
+  // Graph finalization will expose the constant eventually.
+  SetValue(instr, non_constant_);
 }
 
 void ConstantPropagator::VisitParameter(ParameterInstr* instr) {
@@ -659,20 +692,6 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitStoreIndexedUnsafe(
-    StoreIndexedUnsafeInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
-}
-
-void ConstantPropagator::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
-}
-
 void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
   // Nothing to do.
 }
@@ -736,12 +755,9 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
-        Error& bound_error = Error::Handle();
         bool is_instance =
             instance.IsInstanceOf(checked_type, Object::null_type_arguments(),
-                                  Object::null_type_arguments(), &bound_error);
-        // Can only have bound error with generics.
-        ASSERT(bound_error.IsNull());
+                                  Object::null_type_arguments());
         SetValue(instr, Bool::Get(is_instance));
         return;
       }
@@ -780,8 +796,7 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
 
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   Value* instance = instr->instance();
-  if ((instr->native_field() != nullptr) &&
-      (instr->native_field()->kind() == NativeFieldDesc::kArray_length) &&
+  if ((instr->slot().kind() == Slot::Kind::kArray_length) &&
       instance->definition()->OriginalDefinition()->IsCreateArray()) {
     Value* num_elements = instance->definition()
                               ->OriginalDefinition()
@@ -869,10 +884,14 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
         return;
       }
     }
-    if (instr->type_arguments().IsUninstantiatedIdentity() ||
-        instr->type_arguments().CanShareInstantiatorTypeArguments(
+    if (instr->type_arguments().CanShareInstantiatorTypeArguments(
             instr->instantiator_class())) {
       SetValue(instr, instantiator_type_args);
+      return;
+    }
+    if (instr->type_arguments().CanShareFunctionTypeArguments(
+            instr->function())) {
+      SetValue(instr, function_type_args);
       return;
     }
     SetValue(instr, non_constant_);
@@ -1132,6 +1151,9 @@ void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
     }
     const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
     SetValue(instr, result);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // Both values known, but no rule to evaluate this further.
+    SetValue(instr, non_constant_);
   }
 }
 
@@ -1443,7 +1465,6 @@ void ConstantPropagator::Transform() {
       if (!reachable_->Contains(if_true->preorder_number())) {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
-        ASSERT(if_false->loop_info() == NULL);
         join = new (Z) JoinEntryInstr(if_false->block_id(),
                                       if_false->try_index(), DeoptId::kNone);
         join->InheritDeoptTarget(Z, if_false);
@@ -1451,7 +1472,6 @@ void ConstantPropagator::Transform() {
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
-        ASSERT(if_true->loop_info() == NULL);
         join = new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index(),
                                       DeoptId::kNone);
         join->InheritDeoptTarget(Z, if_true);

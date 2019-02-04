@@ -22,6 +22,8 @@ class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
 
+  TranslationHelper(Thread* thread, Heap::Space space);
+
   virtual ~TranslationHelper() {}
 
   void Reset();
@@ -56,6 +58,8 @@ class TranslationHelper {
 
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
+
+  void SetKernelProgramInfo(const KernelProgramInfo& info);
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
@@ -150,19 +154,25 @@ class TranslationHelper {
                                     const String& method_name);
   RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
 
-  Type& GetCanonicalType(const Class& klass);
+  Type& GetDeclarationType(const Class& klass);
 
-  void ReportError(const char* format, ...);
+  void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
-  void ReportError(const Error& prev_error, const char* format, ...);
+                   ...) PRINTF_ATTRIBUTE(4, 5);
+  void ReportError(const Error& prev_error, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
   void ReportError(const Error& prev_error,
                    const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
+                   ...) PRINTF_ATTRIBUTE(5, 6);
+
+  RawArray* GetBytecodeComponent() const { return info_.bytecode_component(); }
+  void SetBytecodeComponent(const Array& bytecode_component) {
+    info_.set_bytecode_component(bytecode_component);
+  }
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -189,6 +199,8 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+  KernelProgramInfo& info_;
+  Smi& name_index_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
@@ -507,13 +519,16 @@ class ProcedureHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsStatic() { return (flags_ & kStatic) != 0; }
-  bool IsAbstract() { return (flags_ & kAbstract) != 0; }
-  bool IsExternal() { return (flags_ & kExternal) != 0; }
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
-  bool IsRedirectingFactoryConstructor() {
+  bool IsStatic() const { return (flags_ & kStatic) != 0; }
+  bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
+  bool IsExternal() const { return (flags_ & kExternal) != 0; }
+  bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
+  }
+  bool IsNoSuchMethodForwarder() const {
+    return (flags_ & kNoSuchMethodForwarder) != 0;
   }
 
   NameIndex canonical_name_;
@@ -684,6 +699,7 @@ class LibraryHelper {
     kCanonicalName,
     kName,
     kSourceUriIndex,
+    kProblemsAsJson,
     kAnnotations,
     kDependencies,
     kAdditionalExports,
@@ -697,7 +713,8 @@ class LibraryHelper {
   };
 
   enum Flag {
-    kExternal = 1,
+    kExternal = 1 << 0,
+    kSynthetic = 1 << 1,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper)
@@ -713,6 +730,7 @@ class LibraryHelper {
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
+  bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
 
   uint8_t flags_;
   NameIndex canonical_name_;
@@ -787,6 +805,9 @@ class MetadataHelper {
   // Assumes metadata is accesses for nodes in linear order most of the time.
   intptr_t GetNextMetadataPayloadOffset(intptr_t node_offset);
 
+  // Returns metadata associated with component.
+  intptr_t GetComponentMetadataPayloadOffset();
+
   KernelReaderHelper* helper_;
   TranslationHelper& translation_helper_;
 
@@ -836,6 +857,7 @@ struct InferredTypeMetadata {
   enum Flag {
     kFlagNullable = 1 << 0,
     kFlagInt = 1 << 1,
+    kFlagSkipCheck = 1 << 2,
   };
 
   InferredTypeMetadata(intptr_t cid_, uint8_t flags_)
@@ -849,6 +871,7 @@ struct InferredTypeMetadata {
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
   bool IsInt() const { return (flags & kFlagInt) != 0; }
+  bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
 
   CompileType ToCompileType(Zone* zone) const {
     if (IsInt()) {
@@ -874,15 +897,10 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
-                              bool has_non_this_uses = true,
-                              bool has_tearoff_uses = true)
-      : has_dynamic_invocations(has_dynamic_invocations),
-        has_non_this_uses(has_non_this_uses),
-        has_tearoff_uses(has_tearoff_uses) {}
-  bool has_dynamic_invocations;
-  bool has_non_this_uses;
-  bool has_tearoff_uses;
+  bool has_dynamic_invocations = true;
+  bool has_this_uses = true;
+  bool has_non_this_uses = true;
+  bool has_tearoff_uses = true;
 };
 
 // Helper class which provides access to direct call metadata.
@@ -899,6 +917,20 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
                     ProcedureAttributesMetadata* metadata);
 
   DISALLOW_COPY_AND_ASSIGN(ProcedureAttributesMetadataHelper);
+};
+
+class ObfuscationProhibitionsMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.obfuscation-prohibitions.metadata"; }
+
+  explicit ObfuscationProhibitionsMetadataHelper(KernelReaderHelper* helper);
+
+  void ReadProhibitions() { ReadMetadata(0); }
+
+ private:
+  void ReadMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(ObfuscationProhibitionsMetadataHelper);
 };
 
 struct CallSiteAttributesMetadata {
@@ -1027,7 +1059,7 @@ class KernelReaderHelper {
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
-  String& GetSourceFor(intptr_t index);
+  const String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
 
   Zone* zone_;
@@ -1063,6 +1095,7 @@ class KernelReaderHelper {
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
+  friend class ObfuscationProhibitionsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
@@ -1185,19 +1218,11 @@ class TypeTranslator {
                  ActiveClass* active_class,
                  bool finalize = false);
 
-  // Can return a malformed type.
   AbstractType& BuildType();
-  // Can return a malformed type.
   AbstractType& BuildTypeWithoutFinalization();
-  // Is guaranteed to be not malformed.
-  AbstractType& BuildVariableType();
 
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
   const TypeArguments& BuildTypeArguments(intptr_t length);
 
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
   const TypeArguments& BuildInstantiatedTypeArguments(
       const Class& receiver_class,
       intptr_t length);
@@ -1216,8 +1241,7 @@ class TypeTranslator {
                                FunctionNodeHelper* function_node_helper);
 
  private:
-  // Can build a malformed type.
-  void BuildTypeInternal(bool invalid_as_dynamic = false);
+  void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();

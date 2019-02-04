@@ -86,19 +86,7 @@ class _TypeError extends _AssertionError implements TypeError {
       : super._create("is assignable", url, line, column, errorMsg);
 
   static _throwNew(int location, Object src_value, _Type dst_type,
-      String dst_name, String bound_error_msg) native "TypeError_throwNew";
-
-  static _throwNewIfNotLoaded(
-      _LibraryPrefix prefix,
-      int location,
-      Object src_value,
-      _Type dst_type,
-      String dst_name,
-      String bound_error_msg) {
-    if (!prefix.isLoaded()) {
-      _throwNew(location, src_value, dst_type, dst_name, bound_error_msg);
-    }
-  }
+      String dst_name) native "TypeError_throwNew";
 
   String toString() => super.message;
 }
@@ -148,6 +136,7 @@ class _InternalError {
 }
 
 @patch
+@pragma("vm:entry-point")
 class UnsupportedError {
   static _throwNew(String msg) {
     throw new UnsupportedError(msg);
@@ -205,6 +194,7 @@ class NoSuchMethodError {
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
+  @pragma("vm:entry-point")
   static void _throwNew(Object receiver, String memberName, int invocation_type,
       Object typeArguments, List arguments, List argumentNames) {
     throw new NoSuchMethodError._withType(receiver, memberName, invocation_type,
@@ -586,26 +576,6 @@ class _CompileTimeError extends Error {
   String toString() => _errorMsg;
 }
 
-@pragma("vm:entry-point")
-dynamic _classRangeAssert(int position, dynamic instance, _Type type, int cid,
-    int lowerLimit, int upperLimit) {
-  if ((cid < lowerLimit || cid > upperLimit) && instance != null) {
-    _TypeError._throwNew(position, instance, type, " in type cast", null);
-  }
-
-  return instance;
-}
-
-@pragma("vm:entry-point")
-dynamic _classIdEqualsAssert(
-    int position, dynamic instance, _Type type, int cid, int otherCid) {
-  if (cid != otherCid && instance != null) {
-    _TypeError._throwNew(position, instance, type, " in type cast", null);
-  }
-
-  return instance;
-}
-
 /// Used by Fasta to report a runtime error when a final field with an
 /// initializer is also initialized in a generative constructor.
 ///
@@ -617,10 +587,4 @@ class _DuplicatedFieldInitializerError extends Error {
   _DuplicatedFieldInitializerError(this._name);
 
   toString() => "Error: field '$_name' is already initialized.";
-}
-
-@patch
-class _ConstantExpressionError {
-  @patch
-  _throw(error) => throw error;
 }

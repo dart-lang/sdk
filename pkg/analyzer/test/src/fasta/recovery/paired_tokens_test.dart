@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,54 +22,6 @@ main() {
  */
 @reflectiveTest
 class AngleBracketsTest extends AbstractRecoveryTest {
-  void test_typeParameters_extraGt() {
-    testRecovery('''
-f<T>>() => null;
-''', [
-      ParserErrorCode.TOP_LEVEL_OPERATOR,
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.MISSING_FUNCTION_BODY
-    ], '''
-f<T> > () => null;
-''', expectedErrorsInValidCode: [
-      ParserErrorCode.TOP_LEVEL_OPERATOR,
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.MISSING_FUNCTION_BODY
-    ]);
-  }
-
-  void test_typeParameters_funct() {
-    testRecovery('''
-f<T extends Function()() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-f<T extends Function()>() => null;
-''');
-  }
-
-  void test_typeParameters_funct2() {
-    testRecovery('''
-f<T extends Function<X>()() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-f<T extends Function<X>()>() => null;
-''');
-  }
-
-  void test_typeParameters_gtEq() {
-    testRecovery('''
-f<T>=() => null;
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
-f<T>() => null;
-''');
-  }
-
-  void test_typeParameters_gtGtEq() {
-    testRecovery('''
-f<T extends List<int>>=() => null;
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
-f<T extends List<int>>() => null;
-''');
-  }
-
   @failingTest
   void test_typeArguments_inner_last() {
     testRecovery('''
@@ -105,6 +57,14 @@ Map<List<int, List<String>>> f;
 ''');
   }
 
+  void test_typeArguments_missing_comma() {
+    testRecovery('''
+List<int double> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<int, double> f;
+''');
+  }
+
   @failingTest
   void test_typeArguments_outer_last() {
     testRecovery('''
@@ -122,18 +82,67 @@ List<int> f;
 ''');
   }
 
-  void test_typeArguments_missing_comma() {
+  void test_typeParameters_extraGt() {
     testRecovery('''
-List<int double> f;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-List<int, double> f;
+f<T>>() => null;
+''', [
+      ParserErrorCode.TOP_LEVEL_OPERATOR,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ], '''
+f<T> > () => null;
+''', expectedErrorsInValidCode: [
+      ParserErrorCode.TOP_LEVEL_OPERATOR,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ]);
+  }
+
+  void test_typeParameters_funct() {
+    testRecovery('''
+f<T extends Function()() => null;
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
+f<T extends Function()>() => null;
+''');
+  }
+
+  void test_typeParameters_funct2() {
+    testRecovery('''
+f<T extends Function<X>()() => null;
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
+f<T extends Function<X>()>() => null;
+''');
+  }
+
+  void test_typeParameters_gtEq() {
+    testRecovery('''
+f<T>=() => null;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+f<T>() => null;
+''');
+  }
+
+  void test_typeParameters_gtGtEq() {
+    testRecovery('''
+f<T extends List<int>>=() => null;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+f<T extends List<int>>() => null;
 ''');
   }
 
   void test_typeParameters_last() {
     testRecovery('''
 f<T() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
 f<T>() => null;
 ''');
   }
@@ -141,7 +150,10 @@ f<T>() => null;
   void test_typeParameters_outer_last() {
     testRecovery('''
 f<T extends List<int>() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
 f<T extends List<int>>() => null;
 ''');
   }

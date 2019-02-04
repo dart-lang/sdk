@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.sdk;
 
 import 'dart:collection';
 
@@ -267,7 +265,7 @@ class SdkDescription {
   }
 }
 
-class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
+class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /**
    * The prefix added to the name of a library to form the URI used in code to
    * reference the library.
@@ -353,7 +351,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitMapLiteralEntry(MapLiteralEntry node) {
+  void visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
@@ -394,7 +392,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
       }
       _librariesMap.setLibrary(libraryName, library);
     }
-    return null;
   }
 }
 

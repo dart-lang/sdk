@@ -299,6 +299,7 @@ void SimulatorDebugger::PrintBacktrace() {
   Code& unoptimized_code = Code::Handle();
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
+      ASSERT(!frame->is_interpreted());  // Not yet supported.
       code = frame->LookupDartCode();
       function = code.function();
       if (code.is_optimized()) {
@@ -709,8 +710,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   return result;
 }
 
-void Simulator::InitOnce() {
-}
+void Simulator::Init() {}
 
 Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   // Setup simulator support first. Some of this information is needed to
@@ -723,9 +723,11 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
       new char[(OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer +
                 kSimulatorStackUnderflowSize)];
   // Low address.
-  stack_limit_ = reinterpret_cast<uword>(stack_) + OSThread::kStackSizeBuffer;
+  stack_limit_ = reinterpret_cast<uword>(stack_);
+  // Limit for StackOverflowError.
+  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBuffer;
   // High address.
-  stack_base_ = stack_limit_ + OSThread::GetSpecifiedStackSize();
+  stack_base_ = overflow_stack_limit_ + OSThread::GetSpecifiedStackSize();
 
   pc_modified_ = false;
   icount_ = 0;
@@ -1645,20 +1647,10 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
     // Format(instr, "brk 'imm16");
     SimulatorDebugger dbg(this);
     int32_t imm = instr->Imm16Field();
-    if (imm == Instr::kStopMessageCode) {
-      const char* message = "Stop messages not enabled";
-      if (FLAG_print_stop_message) {
-        message = *reinterpret_cast<const char**>(
-            reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
-      }
-      set_pc(get_pc() + Instr::kInstrSize);
-      dbg.Stop(instr, message);
-    } else {
-      char buffer[32];
-      snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
-      set_pc(get_pc() + Instr::kInstrSize);
-      dbg.Stop(instr, buffer);
-    }
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
+    set_pc(get_pc() + Instr::kInstrSize);
+    dbg.Stop(instr, buffer);
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 2)) {
     // Format(instr, "hlt 'imm16");
@@ -3557,14 +3549,16 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(NULL, FP, static_cast<int64_t>(fp));
   set_register(NULL, THR, reinterpret_cast<int64_t>(thread));
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
   // Restore pool pointer.
   int64_t code =
       *reinterpret_cast<int64_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
-  int64_t pp = *reinterpret_cast<int64_t*>(code + Code::object_pool_offset() -
-                                           kHeapObjectTag);
+  int64_t pp = (FLAG_precompiled_mode && FLAG_use_bare_instructions)
+                   ? reinterpret_cast<int64_t>(thread->global_object_pool())
+                   : *reinterpret_cast<int64_t*>(
+                         code + Code::object_pool_offset() - kHeapObjectTag);
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
   set_register(NULL, CODE_REG, code);
   set_register(NULL, PP, pp);

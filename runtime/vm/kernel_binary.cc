@@ -38,10 +38,11 @@ const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
 
 Program* Program::ReadFrom(Reader* reader, const char** error) {
-  if (reader->size() < 59) {
+  if (reader->size() < 60) {
     // A kernel file currently contains at least the following:
     //   * Magic number (32)
     //   * Kernel version (32)
+    //   * List of problems (8)
     //   * Length of source map (32)
     //   * Length of canonical name table (8)
     //   * Metadata length (32)
@@ -49,7 +50,7 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
     //   * Length of constant table (8)
     //   * Component index (10 * 32)
     //
-    // so is at least 59 bytes.
+    // so is at least 60 bytes.
     // (Technically it will also contain an empty entry in both source map and
     // string table, taking up another 8 bytes.)
     if (error != nullptr) {
@@ -117,18 +118,21 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   return program;
 }
 
-Program* Program::ReadFromFile(const char* script_uri) {
+Program* Program::ReadFromFile(const char* script_uri,
+                               const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
   if (script_uri == NULL) {
     return NULL;
   }
   kernel::Program* kernel_program = NULL;
+
+  const String& uri = String::Handle(String::New(script_uri));
+  const Object& ret = Object::Handle(thread->isolate()->CallTagHandler(
+      Dart_kKernelTag, Object::null_object(), uri));
+  Api::Scope api_scope(thread);
+  Dart_Handle retval = Api::NewHandle(thread, ret.raw());
   {
-    const String& uri = String::Handle(String::New(script_uri));
     TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-    Dart_Handle retval = (thread->isolate()->library_tag_handler())(
-        Dart_kKernelTag, Api::Null(), Api::NewHandle(thread, uri.raw()));
     if (!Dart_IsError(retval)) {
       Dart_TypedData_Type data_type;
       uint8_t* data;
@@ -145,10 +149,10 @@ Program* Program::ReadFromFile(const char* script_uri) {
       memmove(kernel_buffer, data, kernel_buffer_size);
       Dart_TypedDataReleaseData(retval);
 
-      kernel_program =
-          kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size);
-    } else {
-      THR_Print("tag handler failed: %s\n", Dart_GetError(retval));
+      kernel_program = kernel::Program::ReadFromBuffer(
+          kernel_buffer, kernel_buffer_size, error);
+    } else if (error != nullptr) {
+      *error = Dart_GetError(retval);
     }
   }
   return kernel_program;

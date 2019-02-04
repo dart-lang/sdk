@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_HEAP_HEAP_H_
 #define RUNTIME_VM_HEAP_HEAP_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/flags.h"
@@ -13,6 +17,7 @@
 #include "vm/heap/scavenger.h"
 #include "vm/heap/spaces.h"
 #include "vm/heap/weak_table.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -51,6 +56,7 @@ class Heap {
     kNewSpace,   // New space is full.
     kPromotion,  // Old space limit crossed after a scavenge.
     kOldSpace,   // Old space limit crossed.
+    kFinalize,   // Concurrent marking finished.
     kFull,       // Heap::CollectAllGarbage
     kExternal,   // Dart_NewWeakPersistentHandle
     kIdle,       // Dart_NotifyIdle
@@ -132,6 +138,10 @@ class Heap {
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
   }
+
+  void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void CheckFinishConcurrentMarking(Thread* thread);
+  void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be
@@ -275,6 +285,15 @@ class Heap {
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
+  intptr_t GetTLABSize() {
+    // Inspired by V8 tlab size. More than threshold for old space allocation,
+    // less then minimal(initial) new semi-space.
+    const intptr_t size = 512 * KB;
+    return Utils::RoundDown(size, kObjectAlignment);
+  }
+  void MakeTLABIterable(Thread* thread);
+  void AbandonRemainingTLAB(Thread* thread);
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -374,6 +393,7 @@ class Heap {
   friend class Precompiler;  // VisitObjects
   friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
+  friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
@@ -384,7 +404,7 @@ class Heap {
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
-class HeapIterationScope : public StackResource {
+class HeapIterationScope : public ThreadStackResource {
  public:
   explicit HeapIterationScope(Thread* thread, bool writable = false);
   ~HeapIterationScope();
@@ -409,7 +429,7 @@ class HeapIterationScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-class NoHeapGrowthControlScope : public StackResource {
+class NoHeapGrowthControlScope : public ThreadStackResource {
  public:
   NoHeapGrowthControlScope();
   ~NoHeapGrowthControlScope();
@@ -419,11 +439,41 @@ class NoHeapGrowthControlScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
 };
 
-// Note: During this scope, the code pages are non-executable.
-class WritableVMIsolateScope : StackResource {
+// Note: During this scope all pages are writable and the code pages are
+// non-executable.
+class WritableVMIsolateScope : ThreadStackResource {
  public:
   explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
+};
+
+class WritableCodePages : StackResource {
+ public:
+  explicit WritableCodePages(Thread* thread, Isolate* isolate);
+  ~WritableCodePages();
+
+ private:
+  Isolate* isolate_;
+};
+
+// This scope forces heap growth, forces use of the bump allocator, and
+// takes the page lock. It is useful e.g. at program startup when allocating
+// many objects into old gen (like libraries, classes, and functions).
+class BumpAllocateScope : ThreadStackResource {
+ public:
+  explicit BumpAllocateScope(Thread* thread);
+  ~BumpAllocateScope();
+
+ private:
+  // This is needed to avoid a GC while we hold the page lock, which would
+  // trigger a deadlock.
+  NoHeapGrowthControlScope no_growth_control_;
+
+  // A reload will try to allocate into new gen, which could trigger a
+  // scavenge and deadlock.
+  NoReloadScope no_reload_scope_;
+
+  DISALLOW_COPY_AND_ASSIGN(BumpAllocateScope);
 };
 
 }  // namespace dart

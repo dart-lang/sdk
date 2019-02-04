@@ -35,11 +35,11 @@ main(List<String> args) async {
     print(argParser.usage);
     exit(1);
   }
-  bool strongMode = !options['legacy'];
+  bool legacyMode = options['legacy'];
   var bench = options.rest[0];
   var entryUri = Uri.base.resolve(options.rest[1]);
 
-  await setup(entryUri, strongMode: strongMode);
+  await setup(entryUri, legacyMode: legacyMode);
 
   Map<Uri, List<int>> files = await scanReachableFiles(entryUri);
   var handlers = {
@@ -47,10 +47,10 @@ main(List<String> args) async {
     // TODO(sigmund): enable when we can run the ast-builder standalone.
     // 'parse': () async => parseFiles(files),
     'kernel_gen_e2e': () async {
-      await generateKernel(entryUri, strongMode: strongMode);
+      await generateKernel(entryUri, legacyMode: legacyMode);
     },
     'kernel_gen_e2e_sum': () async {
-      await generateKernel(entryUri, compileSdk: false, strongMode: strongMode);
+      await generateKernel(entryUri, compileSdk: false, legacyMode: legacyMode);
     },
   };
 
@@ -89,15 +89,15 @@ UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
-Future setup(Uri entryUri, {bool strongMode: false}) async {
+Future setup(Uri entryUri, {bool legacyMode: false}) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
-    ..onError = onErrorHandler(false)
+    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: true)
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages')
-    ..target = createTarget(isFlutter: false, strongMode: strongMode);
+    ..target = createTarget(isFlutter: false, legacyMode: legacyMode);
   uriResolver = await new ProcessedOptions(options: options).getUriTranslator();
 }
 
@@ -222,7 +222,7 @@ class _PartialAstBuilder extends AstBuilder {
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
 generateKernel(Uri entryUri,
-    {bool compileSdk: true, bool strongMode: false}) async {
+    {bool compileSdk: true, bool legacyMode: false}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   scanReachableFiles(entryUri);
@@ -230,10 +230,9 @@ generateKernel(Uri entryUri,
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..reportMessages = true
-    ..onError = onErrorHandler(strongMode)
-    ..strongMode = strongMode
-    ..target = createTarget(isFlutter: false, strongMode: strongMode)
+    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: legacyMode)
+    ..legacyMode = legacyMode
+    ..target = createTarget(isFlutter: false, legacyMode: legacyMode)
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
   if (!compileSdk) {

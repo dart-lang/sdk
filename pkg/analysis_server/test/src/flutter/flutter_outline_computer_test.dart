@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,13 +22,13 @@ main() {
 class FlutterOutlineComputerTest extends AbstractContextTest {
   String testPath;
   String testCode;
-  AnalysisResult analysisResult;
+  ResolvedUnitResult resolveResult;
   FlutterOutlineComputer computer;
 
   @override
   void setUp() {
     super.setUp();
-    testPath = resourceProvider.convertPath('/test.dart');
+    testPath = convertPath('/home/test/lib/test.dart');
     addFlutterPackage();
   }
 
@@ -288,7 +288,7 @@ class WidgetFactory {
   }
 
   test_parentAssociationLabel() async {
-    newFile('/a.dart', content: r'''
+    newFile('/home/test/lib/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -359,7 +359,7 @@ class C {}
   test_render_BAD_part() async {
     // Use test.dart as a part of a library.
     // Add the library to the driver so that it is analyzed before the part.
-    var libPath = newFile('/test_lib.dart', content: r'''
+    var libPath = newFile('/home/test/lib/test_lib.dart', content: r'''
 part 'test.dart';
 import 'package:flutter/widgets.dart';
 ''').path;
@@ -379,7 +379,7 @@ class MyWidget extends StatelessWidget {
 ''');
 
     // Analysis is successful, no errors.
-    expect(analysisResult.errors, isEmpty);
+    expect(resolveResult.errors, isEmpty);
 
     // No instrumentation, because not a library.
     expect(computer.instrumentedCode, isNull);
@@ -431,8 +431,7 @@ class MyWidget extends StatelessWidget {
   }
 
   test_render_instrumentedCode_rewriteUri_file() async {
-    testPath = resourceProvider.convertPath('/home/user/test/test.dart');
-    var libFile = newFile('/home/user/test/my_lib.dart', content: '');
+    newFile('/home/test/lib/my_lib.dart');
 
     await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -451,7 +450,7 @@ class MyWidget extends StatelessWidget {
         computer.instrumentedCode,
         '''
 import 'package:flutter/widgets.dart';
-import '${libFile.toUri()}';
+import 'package:test/my_lib.dart';
 
 class MyWidget extends StatelessWidget {
   MyWidget.forDesignTime();
@@ -466,11 +465,7 @@ class MyWidget extends StatelessWidget {
   }
 
   test_render_instrumentedCode_rewriteUri_package() async {
-    packageMap['test'] = [newFolder('/home/user/test/lib')];
-
-    testPath = resourceProvider.convertPath('/home/user/test/lib/test.dart');
-    newFile('/home/user/test/lib/my_lib.dart', content: '');
-    configureDriver();
+    newFile('/home/test/lib/my_lib.dart');
 
     await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -630,9 +625,9 @@ class MyWidget extends StatelessWidget {
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    analysisResult = await driver.getResult(testPath);
-    computer = new FlutterOutlineComputer(
-        testPath, testCode, analysisResult.lineInfo, analysisResult.unit);
+    resolveResult = await session.getResolvedUnit(testPath);
+    computer = new FlutterOutlineComputer(testPath, testCode,
+        resolveResult.lineInfo, resolveResult.unit, resolveResult.typeProvider);
     return computer.compute();
   }
 

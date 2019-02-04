@@ -10,7 +10,7 @@ class A<T> {}
 /*class: B:checkedInstance*/
 class B<T> {}
 
-/*class: C:checks=[]*/
+/*class: C:checks=[],indirectInstance*/
 class C<T> {}
 
 /*class: D:checks=[$asB,$isB],instance*/

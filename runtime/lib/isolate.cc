@@ -25,19 +25,20 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 0, 1) {
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
   return Capability::New(id);
 }
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 2) {
+DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, recv, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, other, arguments->NativeArgAt(1));
   return (recv.Id() == other.Id()) ? Bool::True().raw() : Bool::False().raw();
 }
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
+DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, cap, arguments->NativeArgAt(0));
   int64_t id = cap.Id();
   int32_t hi = static_cast<int32_t>(id >> 32);
@@ -46,35 +47,36 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 1) {
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
   return ReceivePort::New(port_id, false /* not control port */);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return port.send_port();
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
   PortMap::ClosePort(id);
   return Integer::New(id);
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 1) {
+DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 1) {
+DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   int64_t id = port.Id();
   int32_t hi = static_cast<int32_t>(id >> 32);
@@ -83,7 +85,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
+DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
@@ -180,7 +182,7 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
@@ -228,6 +230,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
           isolate->spawn_count_monitor(), isolate->spawn_count(),
           utf8_package_root, utf8_package_config, paused.value(), fatal_errors,
           on_exit_port, on_error_port);
+
+      // Since this is a call to Isolate.spawn, copy the parent isolate's code.
+      state->isolate_flags()->copy_parent_code = true;
+
       ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
 
       isolate->IncrementSpawnCount();
@@ -255,14 +261,9 @@ static const char* CanonicalizeUri(Thread* thread,
   const char* result = NULL;
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler != NULL) {
-    TransitionVMToNative transition(thread);
-    Dart_EnterScope();
-    Dart_Handle handle =
-        handler(Dart_kCanonicalizeUrl, Api::NewHandle(thread, library.raw()),
-                Api::NewHandle(thread, uri.raw()));
-    const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  if (isolate->HasTagHandler()) {
+    const Object& obj = Object::Handle(
+        isolate->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
     if (obj.IsString()) {
       result = String2UTF8(String::Cast(obj));
     } else if (obj.IsError()) {
@@ -276,7 +277,6 @@ static const char* CanonicalizeUri(Thread* thread,
           "library tag handler returned wrong type",
           uri.ToCString());
     }
-    Dart_ExitScope();
   } else {
     *error = zone->PrintToString(
         "Unable to canonicalize uri '%s': no library tag handler found.",
@@ -285,7 +285,7 @@ static const char* CanonicalizeUri(Thread* thread,
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
 
@@ -357,12 +357,12 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    bool is_checked = checked.value();
     Dart_IsolateFlags* flags = state->isolate_flags();
-    flags->enable_asserts = is_checked;
-    // Do not enable type checks in strong mode.
-    flags->enable_type_checks = is_checked && !FLAG_strong;
+    flags->enable_asserts = checked.value();
   }
+
+  // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
+  state->isolate_flags()->copy_parent_code = false;
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
 
@@ -378,7 +378,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
+DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {
   const Array& result = Array::Handle(Array::New(3));
   result.SetAt(0, SendPort::Handle(SendPort::New(isolate->main_port())));
   result.SetAt(
@@ -388,13 +388,13 @@ DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0) {
+DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0, 0) {
   const Library& root_lib =
       Library::Handle(zone, isolate->object_store()->root_library());
   return root_lib.url();
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
+DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));
 

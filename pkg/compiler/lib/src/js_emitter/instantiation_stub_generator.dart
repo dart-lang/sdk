@@ -12,9 +12,9 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
@@ -176,20 +176,22 @@ class InstantiationStubGenerator {
     // For every call-selector generate a stub to the corresponding selector
     // with filled-in type arguments.
 
-    Set<ParameterStructure> parameterStructures;
-    for (Selector selector in callSelectors.keys) {
-      CallStructure callStructure = selector.callStructure;
-      if (callStructure.typeArgumentCount != 0) continue;
-      CallStructure genericCallStructure =
-          callStructure.withTypeArgumentCount(typeArgumentCount);
-      parameterStructures ??= computeLiveParameterStructures();
-      for (ParameterStructure parameterStructure in parameterStructures) {
-        if (genericCallStructure.signatureApplies(parameterStructure)) {
-          Selector genericSelector =
-              new Selector.call(selector.memberName, genericCallStructure);
-          stubs.add(_generateStub(
-              instantiationClass, functionField, selector, genericSelector));
-          break;
+    if (callSelectors != null) {
+      Set<ParameterStructure> parameterStructures;
+      for (Selector selector in callSelectors.keys) {
+        CallStructure callStructure = selector.callStructure;
+        if (callStructure.typeArgumentCount != 0) continue;
+        CallStructure genericCallStructure =
+            callStructure.withTypeArgumentCount(typeArgumentCount);
+        parameterStructures ??= computeLiveParameterStructures();
+        for (ParameterStructure parameterStructure in parameterStructures) {
+          if (genericCallStructure.signatureApplies(parameterStructure)) {
+            Selector genericSelector =
+                new Selector.call(selector.memberName, genericCallStructure);
+            stubs.add(_generateStub(
+                instantiationClass, functionField, selector, genericSelector));
+            break;
+          }
         }
       }
     }

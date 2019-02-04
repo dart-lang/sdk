@@ -10,11 +10,19 @@
 #error Do not include instructions_arm64.h directly; use instructions.h instead.
 #endif
 
+#include "vm/allocation.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_arm64.h"
-#include "vm/native_entry.h"
-#include "vm/object.h"
+#include "vm/native_function.h"
 
 namespace dart {
+
+class Code;
+class ICData;
+class ObjectPool;
+class RawCode;
+class RawICData;
+class RawObject;
 
 class InstructionPattern : public AllStatic {
  public:
@@ -116,21 +124,50 @@ class NativeCallPattern : public ValueObject {
 //   load guarded cid            load ICData             load MegamorphicCache
 //   load monomorphic target <-> load ICLookup stub  ->  load MMLookup stub
 //   call target.entry           call stub.entry         call stub.entry
-class SwitchableCallPattern : public ValueObject {
+class SwitchableCallPatternBase : public ValueObject {
  public:
-  SwitchableCallPattern(uword pc, const Code& code);
+  explicit SwitchableCallPatternBase(const Code& code);
 
   RawObject* data() const;
-  RawCode* target() const;
   void SetData(const Object& data) const;
-  void SetTarget(const Code& target) const;
 
- private:
+ protected:
   const ObjectPool& object_pool_;
   intptr_t data_pool_index_;
   intptr_t target_pool_index_;
 
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SwitchableCallPatternBase);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a [Code] object: Either the code of the
+// monomorphic function or a stub code.
+class SwitchableCallPattern : public SwitchableCallPatternBase {
+ public:
+  SwitchableCallPattern(uword pc, const Code& code);
+
+  RawCode* target() const;
+  void SetTarget(const Code& target) const;
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a direct entrypoint address: Either the entry point
+// of the monomorphic function or a stub entry point.
+class BareSwitchableCallPattern : public SwitchableCallPatternBase {
+ public:
+  BareSwitchableCallPattern(uword pc, const Code& code);
+
+  RawCode* target() const;
+  void SetTarget(const Code& target) const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BareSwitchableCallPattern);
 };
 
 class ReturnPattern : public ValueObject {
@@ -146,6 +183,91 @@ class ReturnPattern : public ValueObject {
 
  private:
   const uword pc_;
+};
+
+class PcRelativeCallPattern : public ValueObject {
+ public:
+  // 26 bit signed integer which will get multiplied by 4.
+  static const intptr_t kLowerCallingRange = -(1 << 27);
+  static const intptr_t kUpperCallingRange = (1 << 27) - 1;
+
+  explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeImm26BranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeImm26BranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
+};
+
+// Instruction pattern for a tail call to a signed 32-bit PC-relative offset
+//
+// The AOT compiler can emit PC-relative calls. If the destination of such a
+// call is not in range for the "bl <offset>" instruction, the AOT compiler will
+// emit a trampoline which is in range. That trampoline will then tail-call to
+// the final destination (also via PC-relative offset, but it supports a full
+// signed 32-bit offset).
+//
+// The pattern of the trampoline looks like:
+//
+//     adr TMP, #lower16  (same as TMP = PC + #lower16)
+//     movz TMP2, #higher16 lsl 16
+//     add TMP, TMP, TMP2, SXTW
+//     br TMP
+//
+class PcRelativeTrampolineJumpPattern : public ValueObject {
+ public:
+  explicit PcRelativeTrampolineJumpPattern(uword pattern_start)
+      : pattern_start_(pattern_start) {
+    USE(pattern_start_);
+  }
+
+  static const int kLengthInBytes = 4 * Instr::kInstrSize;
+
+  void Initialize();
+
+  int32_t distance();
+  void set_distance(int32_t distance);
+  bool IsValid() const;
+
+ private:
+  // This offset must be applied to account for the fact that
+  //   a) the actual "branch" is only in the 3rd instruction
+  //   b) when reading the PC it reports current instruction + 8
+  static const intptr_t kDistanceOffset = -5 * Instr::kInstrSize;
+
+  // adr TMP, #lower16  (same as TMP = PC + #lower16)
+  static const uint32_t kAdrEncoding = (1 << 28) | (TMP << kRdShift);
+
+  // movz TMP2, #higher16 lsl 16
+  static const uint32_t kMovzEncoding = MOVZ | (1 << kHWShift) | TMP2;
+
+  // add TMP, TMP, TMP2, SXTW
+  static const uint32_t kAddTmpTmp2 = 0x8b31c210;
+
+  // br TMP
+  static const uint32_t kJumpEncoding = BR | (TMP << kRnShift);
+
+  uword pattern_start_;
 };
 
 }  // namespace dart

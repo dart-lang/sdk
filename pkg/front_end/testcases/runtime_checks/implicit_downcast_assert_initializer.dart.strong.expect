@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •(core::Object o) → void
+  constructor •(core::Object o) → self::C
     : assert(o as{TypeError} core::bool), super core::Object::•()
     ;
 }

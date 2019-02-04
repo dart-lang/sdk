@@ -1,54 +1,37 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_32972.dart:22:3: Error: Expected 1 type arguments.
 //   foo<String, String>("hello world");
 //   ^
-// pkg/front_end/testcases/regress/issue_32972.dart:5:6: Error: Found this candidate, but the arguments don't match.
+// pkg/front_end/testcases/regress/issue_32972.dart:5:6: Context: Found this candidate, but the arguments don't match.
 // void foo<X>(X i) {
 //      ^^^
 //
 // pkg/front_end/testcases/regress/issue_32972.dart:24:7: Error: Expected 1 type arguments.
 //   Foo.foo<int, int>(42);
 //       ^
-// pkg/front_end/testcases/regress/issue_32972.dart:10:10: Error: Found this candidate, but the arguments don't match.
+// pkg/front_end/testcases/regress/issue_32972.dart:10:10: Context: Found this candidate, but the arguments don't match.
 //   static foo<X>(X i) {
 //          ^^^
 //
 // pkg/front_end/testcases/regress/issue_32972.dart:29:7: Error: Expected 2 type arguments.
 //   new Bar<String>();
 //       ^
-// pkg/front_end/testcases/regress/issue_32972.dart:19:7: Error: The class 'Bar' has a constructor that takes no arguments.
+// pkg/front_end/testcases/regress/issue_32972.dart:19:7: Context: The class 'Bar' has a constructor that takes no arguments.
 // class Bar<X, Y> {}
 //       ^
 //
 // pkg/front_end/testcases/regress/issue_32972.dart:27:5: Error: Expected 1 type arguments.
 //   f.bar<double, double>(42.42);
 //     ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_32972.dart:22:3: Error: Expected 1 type arguments.
-//   foo<String, String>("hello world");
-//   ^
-//
-// pkg/front_end/testcases/regress/issue_32972.dart:24:7: Error: Expected 1 type arguments.
-//   Foo.foo<int, int>(42);
-//       ^
-//
-// pkg/front_end/testcases/regress/issue_32972.dart:29:7: Error: Expected 2 type arguments.
-//   new Bar<String>();
-//       ^
-//
-// pkg/front_end/testcases/regress/issue_32972.dart:27:5: Error: Expected 1 type arguments.
-//   f.bar<double, double>(42.42);
-//     ^
-
-library;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
   static method foo<X extends core::Object = dynamic>(self::Foo::foo::X i) → dynamic {
@@ -59,7 +42,7 @@ class Foo extends core::Object {
   }
 }
 class Bar<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Bar<self::Bar::X, self::Bar::Y>
     : super core::Object::•()
     ;
 }
@@ -67,13 +50,19 @@ static method foo<X extends core::Object = dynamic>(self::foo::X i) → void {
   core::print(i);
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), core::List::unmodifiable<dynamic>(<dynamic>["hello world"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  invalid-expression "pkg/front_end/testcases/regress/issue_32972.dart:22:3: Error: Expected 1 type arguments.
+  foo<String, String>(\"hello world\");
+  ^";
   self::foo<core::String>("hello world");
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::int, core::int]), core::List::unmodifiable<dynamic>(<dynamic>[42]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  invalid-expression "pkg/front_end/testcases/regress/issue_32972.dart:24:7: Error: Expected 1 type arguments.
+  Foo.foo<int, int>(42);
+      ^";
   self::Foo::foo<core::int>(42);
   self::Foo f = new self::Foo::•();
   f.{self::Foo::bar}<core::double, core::double>(42.42);
   f.{self::Foo::bar}<core::double>(42.42);
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  invalid-expression "pkg/front_end/testcases/regress/issue_32972.dart:29:7: Error: Expected 2 type arguments.
+  new Bar<String>();
+      ^";
   new self::Bar::•<core::String, core::String>();
 }

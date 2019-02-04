@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor _() → self::Super
+    ;
+}
+class Sub extends self::Super {
+  constructor •() → self::Sub
+    ;
+  constructor foo() → self::Sub
+    ;
+}
+class Bad extends core::Object {
+  constructor foo() → self::Bad
+    ;
+  constructor bar() → self::Bad
+    ;
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M
+    ;
+}
+abstract class _MixinApplication&Super&M = self::Super with self::M {
+  synthetic constructor _() → self::_MixinApplication&Super&M
+    : super self::Super::_()
+    ;
+}
+class MixinApplication extends self::_MixinApplication&Super&M {
+  constructor •() → self::MixinApplication
+    ;
+  constructor foo() → self::MixinApplication
+    ;
+}
+static method main() → dynamic
+  ;

@@ -9,7 +9,7 @@ var x = 42;
 var y = 42;
 var z = 42;
 
-// Trailing comma in parameter litss.
+// Trailing comma in parameter lists.
 
 // Typedefs.
 typedef fx(x, ); //                                     //# none: ok

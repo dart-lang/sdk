@@ -5,19 +5,50 @@
 import 'dart:async' show Future;
 
 import 'package:kernel/kernel.dart' show Component;
+
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/file_system.dart';
-import '../api_prototype/standard_file_system.dart';
-import '../base/processed_options.dart';
-import '../kernel_generator_impl.dart';
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
-import '../api_prototype/compiler_options.dart';
-import 'compiler_state.dart';
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
-export 'compiler_state.dart';
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
-export '../api_prototype/compilation_message.dart';
+import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../kernel_generator_impl.dart' show generateKernel;
+
+import 'compiler_state.dart' show InitializedCompilerState;
+
+export '../api_prototype/compiler_options.dart' show CompilerOptions;
+
+export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, parseExperimentalFlag;
+
+export '../api_prototype/kernel_generator.dart' show kernelForComponent;
+
+export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
+export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
+
+export '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
+export '../fasta/kernel/redirecting_factory_body.dart'
+    show RedirectingFactoryBody;
+
+export '../fasta/severity.dart' show Severity;
+
+export '../fasta/type_inference/type_schema_environment.dart'
+    show TypeSchemaEnvironment;
+
+export 'compiler_state.dart' show InitializedCompilerState;
 
 class DdcResult {
   final Component component;
@@ -30,9 +61,11 @@ Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
     Uri sdkSummary,
     Uri packagesFile,
+    Uri librariesSpecificationUri,
     List<Uri> inputSummaries,
     Target target,
-    {FileSystem fileSystem}) async {
+    {FileSystem fileSystem,
+    Map<ExperimentalFlag, bool> experiments}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
   bool listEqual(List<Uri> a, List<Uri> b) {
     if (a.length != b.length) return false;
@@ -42,10 +75,21 @@ Future<InitializedCompilerState> initializeCompiler(
     return true;
   }
 
+  bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
+    if (a == null || b == null) return a == b;
+    if (a.length != b.length) return false;
+    for (var flag in a.keys) {
+      if (!b.containsKey(flag) || a[flag] != b[flag]) return false;
+    }
+    return true;
+  }
+
   if (oldState != null &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
-      listEqual(oldState.options.inputSummaries, inputSummaries)) {
+      oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
+      listEqual(oldState.options.inputSummaries, inputSummaries) &&
+      mapEqual(oldState.options.experimentalFlags, experiments)) {
     // Reuse old state.
 
     // These libraries are marked external when compiling. If not un-marking
@@ -65,9 +109,10 @@ Future<InitializedCompilerState> initializeCompiler(
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
+    ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
-    ..fileSystem = fileSystem ?? StandardFileSystem.instance
-    ..reportMessages = true;
+    ..fileSystem = fileSystem ?? StandardFileSystem.instance;
+  if (experiments != null) options.experimentalFlags = experiments;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
@@ -75,9 +120,9 @@ Future<InitializedCompilerState> initializeCompiler(
 }
 
 Future<DdcResult> compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, ErrorHandler errorHandler) async {
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
   CompilerOptions options = compilerState.options;
-  options..onError = errorHandler;
+  options..onDiagnostic = diagnosticMessageHandler;
 
   ProcessedOptions processedOpts = compilerState.processedOpts;
   processedOpts.inputs.clear();

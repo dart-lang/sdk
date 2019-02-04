@@ -34,7 +34,7 @@ void CpuId::GetCpuId(int32_t level, uint32_t info[4]) {
 #endif
 }
 
-void CpuId::InitOnce() {
+void CpuId::Init() {
   uint32_t info[4] = {static_cast<uint32_t>(-1)};
 
   GetCpuId(0, info);

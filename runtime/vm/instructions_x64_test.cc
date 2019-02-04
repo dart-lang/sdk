@@ -15,7 +15,7 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ Call(*StubCode::InvokeDartCode_entry());
+  __ Call(StubCode::InvokeDartCode());
   __ ret();
 }
 
@@ -26,8 +26,8 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   __ pushq(PP);
   __ LoadPoolPointer();
   prologue_code_size = assembler->CodeSize();
-  __ JmpPatchable(*StubCode::InvokeDartCode_entry(), PP);
-  __ JmpPatchable(*StubCode::AllocateArray_entry(), PP);
+  __ JmpPatchable(StubCode::InvokeDartCode(), PP);
+  __ JmpPatchable(StubCode::AllocateArray(), PP);
   __ popq(PP);
   __ ret();
 }

@@ -21,8 +21,7 @@ IsolateData::IsolateData(const char* url,
       dependencies_(NULL),
       resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
-      kernel_buffer_size_(0),
-      owns_kernel_buffer_(false) {
+      kernel_buffer_size_(0) {
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
     this->package_root = strdup(package_root);
@@ -43,10 +42,6 @@ IsolateData::~IsolateData() {
   packages_file = NULL;
   free(resolved_packages_config_);
   resolved_packages_config_ = NULL;
-  if (owns_kernel_buffer_) {
-    ASSERT(kernel_buffer_ != NULL);
-    free(kernel_buffer_);
-  }
   kernel_buffer_ = NULL;
   kernel_buffer_size_ = 0;
   delete app_snapshot_;

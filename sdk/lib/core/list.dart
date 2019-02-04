@@ -77,30 +77,31 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   external factory List([int length]);
 
   /**
-   * Creates a fixed-length list of the given length, and initializes the
-   * value at each position with [fill]:
-   *
-   *     new List<int>.filled(3, 0); // [0, 0, 0]
+   * Creates a list of the given length with [fill] at each position.
    *
    * The [length] must be a non-negative integer.
    *
+   * Example:
+   * ```dart
+   * new List<int>.filled(3, 0, growable: true); // [0, 0, 0]
+   * ```
+   *
+   * The created list is fixed-length if [growable] is false (the default)
+   * and growable if [growable] is true.
    * If the list is growable, changing its length will not initialize new
-   * entries with [fill]. After being created and filled, the list is
-   * no different from any other growable or fixed-length list
-   * created using [List].
+   * entries with [fill].
+   * After being created and filled, the list is no different from any other
+   * growable or fixed-length list created using [List].
    *
-   * All entries in the returned list point to the same provided [fill] value.
-   * That all items in the list are the same object is
-   * observable when the given value is a mutable object.
-   *
+   * All elements of the returned list share the same [fill] value.
    * ```
    * var shared = new List.filled(3, []);
    * shared[0].add(499);
    * print(shared);  // => [[499], [499], [499]]
    * ```
    *
-   * You may use [List.generate] to create a new object for each position in
-   * in the list.
+   * You can use [List.generate] to create a list with a new object at
+   * each position.
    * ```
    * var unique = new List.generate(3, (_) => []);
    * unique[0].add(499);
@@ -606,7 +607,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Returns an [Iterable] that iterates over the objects in the range
    * [start] inclusive to [end] exclusive.
    *
-   * The provide range, given by [start] and [end], must be valid at the time
+   * The provided range, given by [start] and [end], must be valid at the time
    * of the call.
    *
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
@@ -635,7 +636,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     list1.setRange(1, 3, list2, 3);
    *     list1.join(', '); // '1, 8, 9, 4'
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
@@ -655,7 +656,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive.
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
@@ -669,7 +670,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Sets the objects in the range [start] inclusive to [end] exclusive
    * to the given [fillValue].
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
@@ -684,7 +685,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     list.replaceRange(1, 4, [6, 7]);
    *     list.join(', '); // '1, 6, 7, 5'
    *
-   * The provide range, given by [start] and [end], must be valid.
+   * The provided range, given by [start] and [end], must be valid.
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.

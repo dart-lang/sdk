@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -49,20 +49,6 @@ class ErrorMap {
 
   void operator []=(String filePath, List<AnalysisError> errors) {
     pathMap[filePath] = errors;
-  }
-
-  /**
-   * Compare the this error map with the state captured in the given [errorMap].
-   * Throw an exception if the two maps do not agree.
-   */
-  String expectErrorMap(ErrorMap errorMap) {
-    StringBuffer buffer = new StringBuffer();
-    _ErrorComparator comparator = new _ErrorComparator(buffer);
-    comparator.compare(pathMap, errorMap.pathMap);
-    if (buffer.length > 0) {
-      return buffer.toString();
-    }
-    return null;
   }
 }
 
@@ -436,8 +422,8 @@ class Server {
     return _send("analysis.getReachableSources", params);
   }
 
-  void sendAnalysisReanalyze({List<String> roots}) {
-    var params = new AnalysisReanalyzeParams(roots: roots).toJson();
+  void sendAnalysisReanalyze() {
+    var params = new AnalysisReanalyzeParams().toJson();
     _send("analysis.reanalyze", params);
   }
 
@@ -936,143 +922,5 @@ class Server {
     _process.stdin.add(utf8.encoder.convert('$line\n'));
     logger?.log(fromClient, '$line');
     return requestData;
-  }
-}
-
-/**
- * A utility class used to compare two sets of errors.
- */
-class _ErrorComparator {
-  /**
-   * An empty list of analysis errors.
-   */
-  static final List<AnalysisError> NO_ERRORS = <AnalysisError>[];
-
-  /**
-   * The buffer to which an error description will be written if any of the
-   * files have different errors than are expected.
-   */
-  final StringBuffer buffer;
-
-  /**
-   * Initialize a newly created comparator to write to the given [buffer].
-   */
-  _ErrorComparator(this.buffer);
-
-  /**
-   * Compare the [actualErrorMap] and the [expectedErrorMap], writing a
-   * description to the [buffer] if they are not the same. The error maps are
-   * expected to be maps from absolute file paths to the list of actual or
-   * expected errors.
-   */
-  void compare(Map<String, List<AnalysisError>> actualErrorMap,
-      Map<String, List<AnalysisError>> expectedErrorMap) {
-    Set<String> allFiles = new HashSet();
-    allFiles.addAll(actualErrorMap.keys);
-    allFiles.addAll(expectedErrorMap.keys);
-    List<String> sortedFiles = allFiles.toList()..sort();
-    for (String filePath in sortedFiles) {
-      List<AnalysisError> actualErrors = actualErrorMap[filePath];
-      List<AnalysisError> expectedErrors = expectedErrorMap[filePath];
-      _compareLists(
-          filePath, actualErrors ?? NO_ERRORS, expectedErrors ?? NO_ERRORS);
-    }
-  }
-
-  /**
-   * Compare the [actualErrors] and [expectedErrors], writing a description to
-   * the [buffer] if they are not the same.
-   */
-  void _compareLists(String filePath, List<AnalysisError> actualErrors,
-      List<AnalysisError> expectedErrors) {
-    List<AnalysisError> remainingExpected =
-        new List<AnalysisError>.from(expectedErrors);
-    for (AnalysisError actualError in actualErrors) {
-      AnalysisError expectedError = _findError(remainingExpected, actualError);
-      if (expectedError == null) {
-        _writeReport(filePath, actualErrors, expectedErrors);
-        return;
-      }
-      remainingExpected.remove(expectedError);
-    }
-    if (remainingExpected.isNotEmpty) {
-      _writeReport(filePath, actualErrors, expectedErrors);
-    }
-  }
-
-  /**
-   * Return `true` if the [firstError] and the [secondError] are equivalent.
-   */
-  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
-      firstError.severity == secondError.severity &&
-      firstError.type == secondError.type &&
-      _equalLocations(firstError.location, secondError.location) &&
-      firstError.message == secondError.message;
-
-  /**
-   * Return `true` if the [firstLocation] and the [secondLocation] are
-   * equivalent.
-   */
-  bool _equalLocations(Location firstLocation, Location secondLocation) =>
-      firstLocation.file == secondLocation.file &&
-      firstLocation.offset == secondLocation.offset &&
-      firstLocation.length == secondLocation.length;
-
-  /**
-   * Search through the given list of [errors] for an error that is equal to the
-   * [targetError]. If one is found, return it, otherwise return `null`.
-   */
-  AnalysisError _findError(
-      List<AnalysisError> errors, AnalysisError targetError) {
-    for (AnalysisError error in errors) {
-      if (_equalErrors(error, targetError)) {
-        return error;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Write the given list of [errors], preceded by a header beginning with the
-   * given [prefix].
-   */
-  void _writeErrors(String prefix, List<AnalysisError> errors) {
-    buffer.write(prefix);
-    buffer.write(errors.length);
-    buffer.write(' errors:');
-    for (AnalysisError error in errors) {
-      buffer.writeln();
-      Location location = error.location;
-      int offset = location.offset;
-      buffer.write('    ');
-      buffer.write(location.file);
-      buffer.write(' (');
-      buffer.write(offset);
-      buffer.write('..');
-      buffer.write(offset + location.length);
-      buffer.write(') ');
-      buffer.write(error.severity);
-      buffer.write(', ');
-      buffer.write(error.type);
-      buffer.write(' : ');
-      buffer.write(error.message);
-    }
-  }
-
-  /**
-   * Write a report of the differences between the [actualErrors] and the
-   * [expectedErrors]. The errors are reported as being from the file at the
-   * given [filePath].
-   */
-  void _writeReport(String filePath, List<AnalysisError> actualErrors,
-      List<AnalysisError> expectedErrors) {
-    if (buffer.length > 0) {
-      buffer.writeln();
-      buffer.writeln();
-    }
-    buffer.writeln(filePath);
-    _writeErrors('  Expected ', expectedErrors);
-    buffer.writeln();
-    _writeErrors('  Found ', actualErrors);
   }
 }

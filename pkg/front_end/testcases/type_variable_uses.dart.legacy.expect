@@ -1,0 +1,95 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/type_variable_uses.dart:7:15: Warning: Can only use type variables in instance methods.
+//   static C<T> staticMethod() {
+//               ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:8:11: Warning: Type variables can't be used in static members.
+//     print(T);
+//           ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:9:5: Warning: Type variables can't be used in static members.
+//     T t;
+//     ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:10:7: Warning: Type variables can't be used in static members.
+//     C<T> l;
+//       ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:11:9: Warning: Type variables can't be used in static members.
+//     C<C<T>> ll;
+//         ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:12:13: Warning: Type variables can't be used in static members.
+//     const C<T>();
+//             ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:13:12: Warning: Type variables can't be used in static members.
+//     const <T>[];
+//            ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:14:14: Warning: Type variables can't be used in static members.
+//     const <C<T>>[];
+//              ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:15:20: Warning: Type variables can't be used in static members.
+//     const <Object>[T];
+//                    ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:16:28: Warning: Type variables can't be used in static members.
+//     const <Object>[const C<T>()];
+//                            ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:24:13: Error: Type variables can't be used as constants.
+//     const C<T>();
+//             ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:25:12: Error: Type variables can't be used as constants.
+//     const <T>[];
+//            ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:26:14: Error: Type variables can't be used as constants.
+//     const <C<T>>[];
+//              ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:27:20: Error: Type variables can't be used as constants.
+//     const <Object>[T];
+//                    ^
+//
+// pkg/front_end/testcases/type_variable_uses.dart:28:28: Error: Type variables can't be used as constants.
+//     const <Object>[const C<T>()];
+//                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  const constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+  static method staticMethod() → self::C<dynamic> {
+    core::print(invalid-type);
+    invalid-type t;
+    self::C<invalid-type> l;
+    self::C<self::C<invalid-type>> ll;
+    const self::C::•<invalid-type>();
+    const <invalid-type>[];
+    const <self::C<invalid-type>>[];
+    const <core::Object>[invalid-type];
+    const <core::Object>[const self::C::•<invalid-type>()];
+  }
+  method instanceMethod() → self::C<self::C::T> {
+    core::print(self::C::T);
+    self::C::T t;
+    self::C<self::C::T> l;
+    self::C<self::C<self::C::T>> ll;
+    const self::C::•<invalid-type>();
+    const <invalid-type>[];
+    const <self::C<invalid-type>>[];
+    const <core::Object>[invalid-type];
+    const <core::Object>[const self::C::•<invalid-type>()];
+  }
+}
+static method main() → dynamic {}

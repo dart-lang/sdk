@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,6 +19,8 @@ const _PADDING_NAME = "Padding";
 const _STATE_NAME = "State";
 const _STATEFUL_WIDGET_NAME = "StatefulWidget";
 const _STATELESS_WIDGET_NAME = "StatelessWidget";
+const _STREAM_BUILDER_NAME = "StreamBuilder";
+const _STREAM_BUILDER_URI = "package:flutter/src/widgets/async.dart";
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 final _frameworkUri = Uri.parse('package:flutter/src/widgets/framework.dart');
@@ -229,12 +231,18 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
 
 /**
  * Attempt to find and return the closest expression that encloses the [node]
- * and is a Flutter `Widget`.  Return `null` if nothing found.
+ * and is an independent Flutter `Widget`.  Return `null` if nothing found.
  */
 Expression identifyWidgetExpression(AstNode node) {
   for (; node != null; node = node.parent) {
     if (isWidgetExpression(node)) {
-      return node;
+      var parent = node.parent;
+      if (parent is ArgumentList ||
+          parent is ListLiteral ||
+          parent is NamedExpression && parent.expression == node ||
+          parent is Statement) {
+        return node;
+      }
     }
     if (node is ArgumentList || node is Statement || node is FunctionBody) {
       return null;
@@ -301,6 +309,14 @@ bool isExactWidgetTypePadding(DartType type) {
 }
 
 /**
+ * Return `true` if the given [type] is the Flutter class `StreamBuilder`.
+ */
+bool isExactWidgetTypeStreamBuilder(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _STREAM_BUILDER_NAME, _STREAM_BUILDER_URI);
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `Widget`, or its
  * subtype.
  */
@@ -316,6 +332,17 @@ bool isListOfWidgetsType(DartType type) {
 /// a superclass.
 bool isState(ClassElement element) {
   return _hasSupertype(element, _frameworkUri, _STATE_NAME);
+}
+
+/**
+ * Return `true` if the given [element] is a [ClassElement] that extends
+ * the Flutter class `StatefulWidget`.
+ */
+bool isStatefulWidgetDeclaration(Element element) {
+  if (element is ClassElement) {
+    return isExactlyStatefulWidgetType(element.supertype);
+  }
+  return false;
 }
 
 /**

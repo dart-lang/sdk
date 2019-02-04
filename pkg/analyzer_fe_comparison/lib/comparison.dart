@@ -20,7 +20,7 @@ void comparePackages(
   var platformUri = Uri.file(platformPath);
   ComparisonNode kernelNode =
       await kernel.analyzePackage(inputs, packagesFileUri, platformUri);
-  print(ComparisonNode.diff(kernelNode, analyzerNode));
+  print(ComparisonNode.diff(kernelNode, analyzerNode, 'CFE', 'analyzer'));
 }
 
 /// Compares the analyzer and kernel representations of a test file, and prints
@@ -60,11 +60,10 @@ void compareTestPrograms(
   }
   ComparisonNode analyzerNode =
       await analyzer.analyzeFiles(startingPath, inputs);
-  var diff = ComparisonNode.diff(kernelNode, analyzerNode);
-  if (diff.children.isEmpty && diff.text.startsWith('=')) {
+  if (kernelNode == analyzerNode) {
     print('No differences found!');
   } else {
     print('Differences found:');
-    print(diff);
+    print(ComparisonNode.diff(kernelNode, analyzerNode, 'CFE', 'analyzer'));
   }
 }

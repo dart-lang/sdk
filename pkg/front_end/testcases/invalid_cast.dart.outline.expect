@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::fact2];
-  constructor •() → void
+  constructor •() → self::C
     ;
-  constructor nonFact() → void
+  constructor nonFact() → self::C
     ;
-  constructor nonFact2() → void
+  constructor nonFact2() → self::C
     ;
   static factory fact() → self::C
     ;
@@ -18,7 +18,7 @@ class C extends core::Object {
     ;
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     ;
 }
 static method topLevelFunction(core::int i) → void

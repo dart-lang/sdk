@@ -11,11 +11,13 @@ class Tag {
 
   static const int FunctionNode = 3;
 
+  // Members
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;
   static const int RedirectingFactoryConstructor = 108;
 
+  // Initializers
   static const int InvalidInitializer = 7;
   static const int FieldInitializer = 8;
   static const int SuperInitializer = 9;
@@ -23,6 +25,7 @@ class Tag {
   static const int LocalInitializer = 11;
   static const int AssertInitializer = 12;
 
+  // Expressions
   static const int CheckLibraryIsLoaded = 13;
   static const int LoadLibrary = 14;
   static const int DirectPropertyGet = 15;
@@ -70,7 +73,10 @@ class Tag {
   static const int BigIntLiteral = 57;
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
+  static const int SetLiteral = 109;
+  static const int ConstSetLiteral = 110;
 
+  // Statements
   static const int ExpressionStatement = 61;
   static const int Block = 62;
   static const int EmptyStatement = 63;
@@ -93,6 +99,7 @@ class Tag {
   static const int AsyncForInStatement = 80;
   static const int AssertBlock = 81;
 
+  // Types
   static const int TypedefType = 87;
   static const int BottomType = 89;
   static const int InvalidType = 90;
@@ -104,13 +111,16 @@ class Tag {
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
 
+  // References
   static const int NullReference = 99;
   static const int ClassReference = 100;
   static const int MemberReference = 101;
 
   static const int ConstantExpression = 107;
 
-  // Note that 108 is occupied by [RedirectingFactoryConstructor] above.
+  /// 108 is occupied by [RedirectingFactoryConstructor] (member).
+  /// 109 is occupied by [SetLiteral] (expression).
+  /// 110 is occupied by [ConstSetLiteral] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -127,7 +137,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 12;
+  static const int BinaryFormatVersion = 18;
 }
 
 abstract class ConstantTag {
@@ -143,4 +153,5 @@ abstract class ConstantTag {
   static const int PartialInstantiationConstant = 9;
   static const int TearOffConstant = 10;
   static const int TypeLiteralConstant = 11;
+  static const int UnevaluatedConstant = 12;
 }

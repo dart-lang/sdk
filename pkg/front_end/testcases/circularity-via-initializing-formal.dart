@@ -7,7 +7,7 @@
 // when inferring the type of the constructor.
 //
 // The compiler should generate an error message and it should be properly
-// formatted including offset and lenght of the constructor.
+// formatted including offset and length of the constructor.
 var x = new C._circular(null);
 
 class C {

@@ -15,7 +15,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -23,6 +22,8 @@ main() {
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ConstantEvaluatorTest extends ResolverTestCase {
   void fail_identifier_class() {
@@ -478,11 +479,8 @@ class C {
         analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    CompilationUnitMember declaration = declarations[0];
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration,
-        TopLevelVariableDeclaration, declaration);
-    NodeList<VariableDeclaration> variables =
-        (declaration as TopLevelVariableDeclaration).variables.variables;
+    TopLevelVariableDeclaration declaration = declarations[0];
+    NodeList<VariableDeclaration> variables = declaration.variables.variables;
     expect(variables, hasLength(1));
     ConstantEvaluator evaluator = new ConstantEvaluator(
         source, analysisContext.typeProvider,

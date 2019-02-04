@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 abstract class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   abstract method foo() → void;
 }
 abstract class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   abstract method bar() → void;
 }

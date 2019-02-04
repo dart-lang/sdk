@@ -70,7 +70,10 @@ class Socket : public ReferenceCounted<Socket> {
                                     const RawAddr& source_addr);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
-  static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
+  static intptr_t CreateBindDatagram(const RawAddr& addr,
+                                     bool reuseAddress,
+                                     bool reusePort,
+                                     int ttl = 1);
 
   static CObject* LookupRequest(const CObjectArray& request);
   static CObject* ListInterfacesRequest(const CObjectArray& request);

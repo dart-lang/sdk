@@ -11,9 +11,9 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(GrowableList_allocate, 2) {
+DEFINE_NATIVE_ENTRY(GrowableList_allocate, 0, 2) {
   const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(0));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   if (data.Length() < 0) {
     Exceptions::ThrowRangeError("length",
@@ -27,20 +27,20 @@ DEFINE_NATIVE_ENTRY(GrowableList_allocate, 2) {
   return new_array.raw();
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 2) {
+DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 0, 2) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
   }
-  const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
+  const Instance& obj = Instance::CheckedHandle(zone, array.At(index.Value()));
   return obj.raw();
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 3) {
+DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 0, 3) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
@@ -50,43 +50,43 @@ DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_getLength, 1) {
+DEFINE_NATIVE_ENTRY(GrowableList_getLength, 0, 1) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_getCapacity, 1) {
+DEFINE_NATIVE_ENTRY(GrowableList_getCapacity, 0, 1) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(array.Capacity());
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_setLength, 2) {
+DEFINE_NATIVE_ENTRY(GrowableList_setLength, 0, 2) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   ASSERT((length.Value() >= 0) && (length.Value() <= array.Capacity()));
   array.SetLength(length.Value());
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_setData, 2) {
+DEFINE_NATIVE_ENTRY(GrowableList_setData, 0, 2) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   ASSERT(data.Length() >= 0);
   array.SetData(data);
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 1) {
+DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, array,
                                arguments->NativeArgAt(0));
   return Array::MakeFixedLength(array, /* unique = */ true);
 }
 
-DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 1) {
+DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, array, arguments->NativeArgAt(0));
   array.MakeImmutable();
   return array.raw();

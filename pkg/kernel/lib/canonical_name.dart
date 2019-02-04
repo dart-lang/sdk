@@ -94,6 +94,8 @@ class CanonicalName {
   Iterable<CanonicalName> get children =>
       _children?.values ?? const <CanonicalName>[];
 
+  Iterable<CanonicalName> get childrenOrNull => _children?.values;
+
   bool hasChild(String name) {
     return _children != null && _children.containsKey(name);
   }
@@ -175,8 +177,11 @@ class CanonicalName {
 
   void unbindAll() {
     unbind();
-    for (var child in children) {
-      child.unbindAll();
+    Iterable<CanonicalName> children_ = childrenOrNull;
+    if (children_ != null) {
+      for (CanonicalName child in children_) {
+        child.unbindAll();
+      }
     }
   }
 

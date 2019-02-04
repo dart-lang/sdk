@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:dart2js_tools/src/dart2js_mapping.dart';
 
 import '../helpers/d8_helper.dart';
 import 'package:expect/expect.dart';
@@ -115,25 +116,23 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   var sourceMap = '${result.outputPath}.map';
   var json = jsonDecode(await new File(sourceMap).readAsString());
 
-  var extensions = json['x_org_dartlang_dart2js'];
-  Expect.isNotNull(extensions, "Source-map doesn't contain dart2js extensions");
-  var minifiedNames = extensions['minified_names'];
-  Expect.isNotNull(minifiedNames, "Source-map doesn't contain minified-names");
+  var mapping = Dart2jsMapping.json(json);
+  Expect.isTrue(mapping.globalNames.isNotEmpty,
+      "Source-map doesn't contain minified-names");
 
   var actualName;
   if (test.isGlobal) {
-    var index = minifiedNames['global'][name];
-    Expect.isNotNull(index, "'$name' not in global name map");
-    actualName = json['names'][index];
+    actualName = mapping.globalNames[name];
+    Expect.isNotNull(actualName, "'$name' not in global name map");
   } else if (test.isInstance) {
-    var index = minifiedNames['instance'][name];
     // In non-minified mode some errors show the original name
     // rather than the selector name (e.g. m1 instead of m1$0 in a
-    // NoSuchMethodError), and because of that `index` may be null.
+    // NoSuchMethodError), and because of that the name might not be on the
+    // table.
     //
     // TODO(sigmund): consider making all errors show the internal name, or
     // include a marker to make it easier to distinguish.
-    actualName = index == null ? name : json['names'][index];
+    actualName = mapping.instanceNames[name] ?? name;
   } else {
     Expect.fail('unexpected');
   }

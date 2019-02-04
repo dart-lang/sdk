@@ -501,6 +501,14 @@ class RawSynchronousSocket {
 }
 
 @patch
+class RawSocketOption {
+  @patch
+  static int _getOptionValue(int key) {
+    throw UnsupportedError("RawSocketOption._getOptionValue");
+  }
+}
+
+@patch
 class SecurityContext {
   @patch
   factory SecurityContext({bool withTrustedRoots: false}) {
@@ -530,7 +538,7 @@ class X509Certificate {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true}) {
+      {bool reuseAddress: true, bool reusePort: false, int ttl: 1}) {
     throw new UnsupportedError("RawDatagramSocket.bind");
   }
 }

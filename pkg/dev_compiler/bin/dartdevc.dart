@@ -9,65 +9,83 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/command_line/arguments.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
-import 'package:dev_compiler/src/analyzer/command.dart';
+import 'package:dev_compiler/src/compiler/shared_command.dart';
 
-Future main(List<String> args) async {
+/// The entry point for the Dart Dev Compiler.
+///
+/// [sendPort] may be passed in when started in an isolate. If provided, it is
+/// used for bazel worker communication instead of stdin/stdout.
+Future main(List<String> args, [SendPort sendPort]) async {
   // Always returns a new modifiable list.
-  args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
+  var parsedArgs = ParsedArguments.from(args);
 
-  if (args.contains('--persistent_worker')) {
-    await _CompilerWorker(args..remove('--persistent_worker')).run();
-  } else if (args.isNotEmpty && args.last == "--batch") {
-    await runBatch(args.sublist(0, args.length - 1));
+  if (parsedArgs.isWorker) {
+    var workerConnection = sendPort == null
+        ? new StdAsyncWorkerConnection()
+        : new SendPortAsyncWorkerConnection(sendPort);
+    await _CompilerWorker(parsedArgs, workerConnection).run();
+  } else if (parsedArgs.isBatch) {
+    await runBatch(parsedArgs);
   } else {
-    exitCode = compile(args);
+    var result = await compile(parsedArgs);
+    exitCode = result.exitCode;
   }
 }
 
 /// Runs the compiler worker loop.
 class _CompilerWorker extends AsyncWorkerLoop {
   /// The original args supplied to the executable.
-  final List<String> _startupArgs;
+  final ParsedArguments _startupArgs;
 
-  _CompilerWorker(this._startupArgs) : super();
+  _CompilerWorker(this._startupArgs, AsyncWorkerConnection workerConnection)
+      : super(connection: workerConnection);
 
   /// Performs each individual work request.
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    var args = _startupArgs.toList()..addAll(request.arguments);
-
+    var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();
-    var exitCode = compile(args, printFn: output.writeln);
-    AnalysisEngine.instance.clearCaches();
+    var result = await runZoned(() => compile(args), zoneSpecification:
+        ZoneSpecification(print: (self, parent, zone, message) {
+      output.writeln(message.toString());
+    }));
     return WorkResponse()
-      ..exitCode = exitCode
+      ..exitCode = result.success ? 0 : 1
       ..output = output.toString();
   }
 }
 
-runBatch(List<String> batchArgs) async {
-  int totalTests = 0;
-  int testsFailed = 0;
+/// Runs DDC in Kernel batch mode for test.dart.
+Future runBatch(ParsedArguments batchArgs) async {
+  var totalTests = 0;
+  var failedTests = 0;
   var watch = Stopwatch()..start();
-  print('>>> BATCH START');
-  String line;
-  while ((line = stdin.readLineSync(encoding: utf8)).isNotEmpty) {
-    totalTests++;
-    var args = batchArgs.toList()..addAll(line.split(RegExp(r'\s+')));
 
-    // We don't try/catch here, since `compile` should handle that.
-    var compileExitCode = compile(args);
-    AnalysisEngine.instance.clearCaches();
+  print('>>> BATCH START');
+
+  String line;
+  CompilerResult result;
+
+  while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
+    totalTests++;
+    var args = batchArgs.merge(line.split(RegExp(r'\s+')));
+
+    String outcome;
+    try {
+      result = await compile(args, previousResult: result);
+      outcome = result.success ? 'PASS' : (result.crashed ? 'CRASH' : 'FAIL');
+    } catch (e, s) {
+      outcome = 'CRASH';
+      print('Unhandled exception:');
+      print(e);
+      print(s);
+    }
+
     stderr.writeln('>>> EOF STDERR');
-    var outcome = compileExitCode == 0
-        ? 'PASS'
-        : compileExitCode == 70 ? 'CRASH' : 'FAIL';
     print('>>> TEST $outcome ${watch.elapsedMilliseconds}ms');
   }
-  int time = watch.elapsedMilliseconds;
-  print('>>> BATCH END '
-      '(${totalTests - testsFailed})/$totalTests ${time}ms');
+
+  var time = watch.elapsedMilliseconds;
+  print('>>> BATCH END (${totalTests - failedTests})/$totalTests ${time}ms');
 }

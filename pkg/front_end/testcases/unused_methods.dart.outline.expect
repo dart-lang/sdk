@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class UnusedClass extends core::Object {
-  constructor •() → void
+  constructor •() → self::UnusedClass
     ;
 }
 abstract class UsedAsBaseClass extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::UsedAsBaseClass
     ;
   method usedInSubclass() → void
     ;
@@ -17,25 +17,25 @@ abstract class UsedAsBaseClass extends core::Object {
     ;
 }
 class UsedAsInterface extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::UsedAsInterface
     ;
   method usedInSubclass() → void
     ;
 }
 class InstantiatedButMethodsUnused extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::InstantiatedButMethodsUnused
     ;
   method usedInSubclass() → void
     ;
 }
 class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::ClassA
     ;
   method usedInSubclass() → void
     ;
 }
 class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::ClassB
     ;
   method usedInSubclass() → void
     ;

@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.analysis_options.error.option_codes;
 
 import 'package:analyzer/error/error.dart';
 
@@ -50,6 +48,60 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
+class AnalysisOptionsHintCode extends ErrorCode {
+  /**
+   * An error code indicating the analysis options file name is deprecated and
+   * the file should be renamed.
+   *
+   * Parameters:
+   * 0: the uri of the file which should be renamed
+   */
+  static const AnalysisOptionsHintCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
+      const AnalysisOptionsHintCode(
+          'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
+          "The name of the analysis options file {0} is deprecated;"
+          " consider renaming it to analysis_options.yaml.");
+
+  /**
+   * An error code indicating that the enablePreviewDart2 setting is deprecated.
+   */
+  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
+      const AnalysisOptionsHintCode('PREVIEW_DART_2_SETTING_DEPRECATED',
+          "The 'enablePreviewDart2' setting is deprecated.",
+          correction: "It is no longer necessary to explicitly enable Dart 2.");
+
+  /**
+   * An error code indicating that strong-mode: true is deprecated.
+   */
+  static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
+      const AnalysisOptionsHintCode('STRONG_MODE_SETTING_DEPRECATED',
+          "The 'strong-mode: true' setting is deprecated.",
+          correction:
+              "It is no longer necessary to explicitly enable strong mode.");
+
+  /**
+   * An error code indicating that the enablePreviewDart2 setting is deprecated.
+   */
+  static const AnalysisOptionsHintCode SUPER_MIXINS_SETTING_DEPRECATED =
+      const AnalysisOptionsHintCode('SUPER_MIXINS_SETTING_DEPRECATED',
+          "The 'enableSuperMixins' setting is deprecated.",
+          correction:
+              "Support has been added to the language for 'mixin' based mixins.");
+
+  /**
+   * Initialize a newly created hint code to have the given [name].
+   */
+  const AnalysisOptionsHintCode(String name, String message,
+      {String correction})
+      : super.temporary(name, message, correction: correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  ErrorType get type => ErrorType.HINT;
+}
+
 /**
  * The error codes used for warnings in analysis options files. The convention
  * for this class is for the name of the error code to indicate the problem that
@@ -87,6 +139,34 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
       const AnalysisOptionsWarningCode('INCLUDED_FILE_WARNING',
           "Warning in the included options file {0}({1}..{2}): {3}");
+
+  /**
+   * An error code indicating that a plugin is being configured with an invalid
+   * value for an option and a detail message is provided.
+   */
+  static const AnalysisOptionsWarningCode INVALID_OPTION =
+      const AnalysisOptionsWarningCode(
+          'INVALID_OPTION', "Invalid option specified for '{0}': {1}");
+
+  /**
+   * An error code indicating an invalid format for an options file section.
+   *
+   * Parameters:
+   * 0: the section name
+   */
+  static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
+      const AnalysisOptionsWarningCode(
+          'INVALID_SECTION_FORMAT', "Invalid format for the '{0}' section.");
+
+  /**
+   * An error code indicating that strong-mode: false is has been removed.
+   */
+  static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
+      const AnalysisOptionsWarningCode('SPEC_MODE_REMOVED',
+          "The option 'strong-mode: false' is no longer supported.",
+          correction:
+              "It's recommended to remove the 'strong-mode:' setting (and make "
+              "your code Dart 2 compliant).");
 
   /**
    * An error code indicating that an unrecognized error code is being used to
@@ -129,6 +209,20 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           correction: "Try using one of the supported options: {2}.");
 
   /**
+   * An error code indicating that a plugin is being configured with an
+   * unsupported option and legal options are provided.
+   *
+   * Parameters:
+   * 0: the plugin name
+   * 1: the unsupported option key
+   */
+  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITHOUT_VALUES =
+      const AnalysisOptionsWarningCode(
+    'UNSUPPORTED_OPTION_WITHOUT_VALUES',
+    "The option '{1}' isn't supported by '{0}'.",
+  );
+
+  /**
    * An error code indicating that an option entry is being configured with an
    * unsupported value.
    *
@@ -143,26 +237,6 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           correction: "Try using one of the supported options: {2}.");
 
   /**
-   * An error code indicating an invalid format for an options file section.
-   *
-   * Parameters:
-   * 0: the section name
-   */
-  static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
-      const AnalysisOptionsWarningCode(
-          'INVALID_SECTION_FORMAT', "Invalid format for the '{0}' section.");
-
-  /**
-   * An error code indicating that strong-mode: false is has been removed.
-   */
-  static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
-      const AnalysisOptionsWarningCode('SPEC_MODE_REMOVED',
-          "The option 'strong-mode: false' is no longer supported.",
-          correction:
-              "It's recommended to remove the 'strong-mode:' setting (and make "
-              "your code Dart 2 compliant).");
-
-  /**
    * Initialize a newly created warning code to have the given [name].
    */
   const AnalysisOptionsWarningCode(String name, String message,
@@ -174,49 +248,4 @@ class AnalysisOptionsWarningCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
-}
-
-class AnalysisOptionsHintCode extends ErrorCode {
-  /**
-   * An error code indicating the analysis options file name is deprecated and
-   * the file should be renamed.
-   *
-   * Parameters:
-   * 0: the uri of the file which should be renamed
-   */
-  static const AnalysisOptionsHintCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
-      const AnalysisOptionsHintCode(
-          'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
-          "The name of the analysis options file {0} is deprecated;"
-          " consider renaming it to analysis_options.yaml.");
-
-  /**
-   * An error code indicating that the enablePreviewDart2 setting is deprecated.
-   */
-  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
-      const AnalysisOptionsHintCode('PREVIEW_DART_2_SETTING_DEPRECATED',
-          "The 'enablePreviewDart2' setting is deprecated.",
-          correction: "It is no longer necessary to explicitly enable Dart 2.");
-
-  /**
-   * An error code indicating that strong-mode: true is deprecated.
-   */
-  static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
-      const AnalysisOptionsHintCode('STRONG_MODE_SETTING_DEPRECATED',
-          "The 'strong-mode: true' setting is deprecated.",
-          correction:
-              "It is no longer necessary to explicitly enable strong mode.");
-
-  /**
-   * Initialize a newly created hint code to have the given [name].
-   */
-  const AnalysisOptionsHintCode(String name, String message,
-      {String correction})
-      : super.temporary(name, message, correction: correction);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
-
-  @override
-  ErrorType get type => ErrorType.HINT;
 }

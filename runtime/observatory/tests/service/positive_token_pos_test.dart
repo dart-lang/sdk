@@ -1,7 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --no-sync-async
+// VMOptions=--verbose_debug
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
@@ -28,7 +28,7 @@ var tests = <IsolateTest>[
     expect(stack['frames'].length, greaterThan(3));
 
     var frame = stack['frames'][0];
-    expect(frame.function.name, equals('Completer.sync'));
+    expect(frame.function.name, equals('_AsyncAwaitCompleter'));
     expect(await frame.location.getLine(), greaterThan(0));
     expect(await frame.location.getColumn(), greaterThan(0));
 

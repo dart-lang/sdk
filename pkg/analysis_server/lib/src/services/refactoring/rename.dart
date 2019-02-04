@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,6 +13,51 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+
+/**
+ * Helper for renaming one or more [Element]s.
+ */
+class RenameProcessor {
+  final RefactoringWorkspace workspace;
+  final SourceChange change;
+  final String newName;
+
+  RenameProcessor(this.workspace, this.change, this.newName);
+
+  /**
+   * Add the edit that updates the [element] declaration.
+   */
+  void addDeclarationEdit(Element element) {
+    if (element != null && workspace.containsElement(element)) {
+      SourceEdit edit =
+          newSourceEdit_range(range.elementName(element), newName);
+      doSourceChange_addElementEdit(change, element, edit);
+    }
+  }
+
+  /**
+   * Add edits that update [matches].
+   */
+  void addReferenceEdits(List<SearchMatch> matches) {
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference in references) {
+      if (!workspace.containsElement(reference.element)) {
+        continue;
+      }
+      reference.addEdit(change, newName);
+    }
+  }
+
+  /**
+   * Update the [element] declaration and reference to it.
+   */
+  Future<void> renameElement(Element element) {
+    addDeclarationEdit(element);
+    return workspace.searchEngine
+        .searchReferences(element)
+        .then(addReferenceEdits);
+  }
+}
 
 /**
  * An abstract implementation of [RenameRefactoring].
@@ -36,27 +81,6 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   Element get element => _element;
 
-  /**
-   * Adds a [SourceEdit] to update [element] name to [change].
-   */
-  void addDeclarationEdit(Element element) {
-    if (element != null) {
-      SourceEdit edit =
-          newSourceEdit_range(range.elementName(element), newName);
-      doSourceChange_addElementEdit(change, element, edit);
-    }
-  }
-
-  /**
-   * Adds [SourceEdit]s to update [matches] to [change].
-   */
-  void addReferenceEdits(List<SearchMatch> matches) {
-    List<SourceReference> references = getSourceReferences(matches);
-    for (SourceReference reference in references) {
-      reference.addEdit(change, newName);
-    }
-  }
-
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     RefactoringStatus result = new RefactoringStatus();
@@ -67,7 +91,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
           getElementQualifiedName(element));
       result.addFatalError(message);
     }
-    if (!workspace.containsFile(element.source.fullName)) {
+    if (!workspace.containsElement(element)) {
       String message = format(
           "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
           getElementKindName(element),
@@ -100,12 +124,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /**
    * Adds individual edits to [change].
    */
-  Future fillChange();
-
-  @override
-  bool requiresPreview() {
-    return false;
-  }
+  Future<void> fillChange();
 
   static String _getDisplayName(Element element) {
     if (element is ImportElement) {

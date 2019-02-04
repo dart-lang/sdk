@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -188,7 +187,7 @@ var tests = <IsolateTest>[
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.name, equals('debugging_test.dart'));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(13));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(12));
     expect(isolate.breakpoints.length, equals(1));
 
     await completer.future; // Wait for breakpoint events.
@@ -203,7 +202,7 @@ var tests = <IsolateTest>[
     Script script = stack['frames'][0].location.script;
     expect(script.name, endsWith('debugging_test.dart'));
     expect(
-        script.tokenToLine(stack['frames'][0].location.tokenPos), equals(13));
+        script.tokenToLine(stack['frames'][0].location.tokenPos), equals(12));
   },
 ];
 

@@ -17,6 +17,7 @@
 //       func2 is not inlined as func1 has not been optimized.
 
 class Test {
+  @pragma("vm:entry-point")
   String func1(var k) {
     try {
       for (var i = 0; i <= 50; i++) {
@@ -29,6 +30,7 @@ class Test {
     }
   }
 
+  @pragma("vm:entry-point")
   int func2(var i) {
     var result = 0;
     for (var k = 0; k <= 10; k++) {
@@ -37,6 +39,7 @@ class Test {
     return result;
   }
 
+  @pragma("vm:entry-point")
   int func3(var i) {
     var result = 0;
     for (var l = 0; l <= 1; l++) {
@@ -45,6 +48,7 @@ class Test {
     return result;
   }
 
+  @pragma("vm:entry-point")
   int func4(var i) {
     var result = 0;
     for (var j = 0; j <= 10; j++) {
@@ -53,6 +57,7 @@ class Test {
     return result;
   }
 
+  @pragma("vm:entry-point")
   int func5(var i) {
     if (i >= 520) throw "show me inlined functions";
     return i;

@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/type_variable_prefix.dart:8:3: Warning: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
+//   T.String method() => "Hello, World!";
+//   ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:core" as T;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+  method method() → invalid-type
+    return "Hello, World!";
+}
+static method main() → dynamic {
+  core::String s = new self::C::•<dynamic>().method();
+  core::print(s);
+}

@@ -9,6 +9,7 @@
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
+#include "vm/compiler/backend/flow_graph_checker.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -173,11 +174,12 @@ void CompilerPass::Run(CompilerPassState* state) const {
 
     PrintGraph(state, kTraceBefore, round);
     {
-      NOT_IN_PRODUCT(
-          TimelineDurationScope tds2(thread, state->compiler_timeline, name()));
+      TIMELINE_DURATION(thread, CompilerVerbose, name());
       repeat = DoBody(state);
-      DEBUG_ASSERT(state->flow_graph->VerifyUseLists());
       thread->CheckForSafepoint();
+#if defined(DEBUG)
+      FlowGraphChecker(state->flow_graph).Check();
+#endif
     }
     PrintGraph(state, kTraceAfter, round);
   }
@@ -262,21 +264,13 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
-#if defined(DART_PRECOMPILER)
-  if (mode == kAOT) {
-    INVOKE_PASS(ReplaceArrayBoundChecksForAOT);
-  }
-#endif
   INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(AllocateRegisters);
-  if (mode == kJIT) {
-    INVOKE_PASS(ReorderBlocks);
-  }
+  INVOKE_PASS(ReorderBlocks);
 }
 
 COMPILER_PASS(ComputeSSA, {
-  CSTAT_TIMER_SCOPE(state->thread, ssa_timer);
   // Transform to SSA (virtual register 0 and no inlining arguments).
   flow_graph->ComputeSSA(0, NULL);
 });
@@ -289,7 +283,6 @@ COMPILER_PASS(SetOuterInliningId,
               { FlowGraphInliner::SetInliningId(flow_graph, 0); });
 
 COMPILER_PASS(Inlining, {
-  CSTAT_TIMER_SCOPE(state->thread, graphinliner_timer);
   FlowGraphInliner inliner(
       flow_graph, &state->inline_id_to_function, &state->inline_id_to_token_pos,
       &state->caller_inline_id, state->speculative_policy, state->precompiler);
@@ -350,7 +343,7 @@ COMPILER_PASS(LICM, {
   DEBUG_ASSERT(flow_graph->VerifyRedefinitions());
   LICM licm(flow_graph);
   licm.Optimize();
-  flow_graph->RemoveRedefinitions();
+  flow_graph->RemoveRedefinitions(/*keep_checks*/ true);
 });
 
 COMPILER_PASS(DSE, { DeadStoreElimination::Optimize(flow_graph); });
@@ -397,6 +390,8 @@ COMPILER_PASS(AllocationSinking_DetachMaterializations, {
 });
 
 COMPILER_PASS(AllocateRegisters, {
+  // Ensure loop hierarchy has been computed.
+  flow_graph->GetLoopHierarchy();
   // Perform register allocation on the SSA graph.
   FlowGraphAllocator allocator(*flow_graph);
   allocator.AllocateRegisters();
@@ -447,11 +442,6 @@ COMPILER_PASS(FinalizeGraph, {
   flow_graph->function().set_inlining_depth(state->inlining_depth);
   flow_graph->RemoveRedefinitions();
 });
-
-#if defined(DART_PRECOMPILER)
-COMPILER_PASS(ReplaceArrayBoundChecksForAOT,
-              { AotCallSpecializer::ReplaceArrayBoundChecks(flow_graph); })
-#endif
 
 }  // namespace dart
 

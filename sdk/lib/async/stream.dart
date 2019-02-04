@@ -147,7 +147,7 @@ abstract class Stream<T> {
         if (--count == 0) controller._closeUnchecked();
       }
     };
-    var onError = (error, stack) {
+    var onError = (error, StackTrace stack) {
       if (!controller.isClosed) {
         controller._addError(error, stack);
         if (--count == 0) controller._closeUnchecked();
@@ -171,7 +171,7 @@ abstract class Stream<T> {
    * The iterable is iterated when the stream receives a listener, and stops
    * iterating if the listener cancels the subscription, or if the
    * [Iterator.moveNext] method returns `false` or throws.
-   * Iteration is suspended whild the stream subscription is paused.
+   * Iteration is suspended while the stream subscription is paused.
    *
    * If calling [Iterator.moveNext] on `elements.iterator` throws,
    * the stream emits that error and then it closes.
@@ -426,15 +426,14 @@ abstract class Stream<T> {
    * The returned stream is a broadcast stream if this stream is.
    */
   Stream<E> asyncMap<E>(FutureOr<E> convert(T event)) {
-    StreamController<E> controller;
+    _StreamControllerBase<E> controller;
     StreamSubscription<T> subscription;
 
     void onListen() {
       final add = controller.add;
-      assert(controller is _StreamController ||
+      assert(controller is _StreamController<E> ||
           controller is _BroadcastStreamController);
-      final _EventSink<E> eventSink = controller as Object;
-      final addError = eventSink._addError;
+      final addError = controller._addError;
       subscription = this.listen((T event) {
         FutureOr<E> newValue;
         try {
@@ -495,12 +494,11 @@ abstract class Stream<T> {
    * The returned stream is a broadcast stream if this stream is.
    */
   Stream<E> asyncExpand<E>(Stream<E> convert(T event)) {
-    StreamController<E> controller;
+    _StreamControllerBase<E> controller;
     StreamSubscription<T> subscription;
     void onListen() {
       assert(controller is _StreamController ||
           controller is _BroadcastStreamController);
-      final _EventSink<E> eventSink = controller as Object;
       subscription = this.listen((T event) {
         Stream<E> newStream;
         try {
@@ -514,7 +512,7 @@ abstract class Stream<T> {
           controller.addStream(newStream).whenComplete(subscription.resume);
         }
       },
-          onError: eventSink._addError, // Avoid Zone error replacement.
+          onError: controller._addError, // Avoid Zone error replacement.
           onDone: controller.close);
     }
 
@@ -1195,7 +1193,7 @@ abstract class Stream<T> {
    */
   Future<T> get last {
     _Future<T> future = new _Future<T>();
-    T result = null;
+    T result;
     bool foundResult = false;
     listen(
         (T value) {
@@ -1230,7 +1228,7 @@ abstract class Stream<T> {
    */
   Future<T> get single {
     _Future<T> future = new _Future<T>();
-    T result = null;
+    T result;
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1328,7 +1326,7 @@ abstract class Stream<T> {
    */
   Future<T> lastWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
-    T result = null;
+    T result;
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1368,7 +1366,7 @@ abstract class Stream<T> {
    */
   Future<T> singleWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future<T>();
-    T result = null;
+    T result;
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1425,7 +1423,8 @@ abstract class Stream<T> {
    * with a [RangeError].
    */
   Future<T> elementAt(int index) {
-    if (index is! int || index < 0) throw new ArgumentError(index);
+    ArgumentError.checkNotNull(index, "index");
+    RangeError.checkNotNegative(index, "index");
     _Future<T> future = new _Future<T>();
     StreamSubscription subscription;
     int elementIndex = 0;
@@ -1461,7 +1460,7 @@ abstract class Stream<T> {
    * [EventSink] that allows putting events into the returned stream.
    * This `EventSink` is only valid during the call to [onTimeout].
    * Calling [EventSink.close] on the sink passed to [onTimeout] closes the
-   * returned stream, and no futher events are processed.
+   * returned stream, and no further events are processed.
    *
    * If [onTimeout] is omitted, a timeout will just put a [TimeoutException]
    * into the error channel of the returned stream.
@@ -1474,7 +1473,7 @@ abstract class Stream<T> {
    * and the subscriptions' timers can be paused individually.
    */
   Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)}) {
-    StreamController<T> controller;
+    _StreamControllerBase<T> controller;
     // The following variables are set on listen.
     StreamSubscription<T> subscription;
     Timer timer;
@@ -1491,8 +1490,7 @@ abstract class Stream<T> {
       timer.cancel();
       assert(controller is _StreamController ||
           controller is _BroadcastStreamController);
-      dynamic eventSink = controller;
-      eventSink._addError(error, stackTrace); // Avoid Zone error replacement.
+      controller._addError(error, stackTrace); // Avoid Zone error replacement.
       timer = zone.createTimer(timeLimit, timeout);
     }
 
@@ -2018,11 +2016,12 @@ abstract class StreamTransformer<S, T> {
    *     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
    * ```
    */
+  @Since("2.1")
   factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
       _StreamBindTransformer<S, T>;
 
   /**
-   * Adapts [source] to be a `StreamTransfomer<TS, TT>`.
+   * Adapts [source] to be a `StreamTransformer<TS, TT>`.
    *
    * This allows [source] to be used at the new type, but at run-time it
    * must satisfy the requirements of both the new type and its original type.
@@ -2073,7 +2072,7 @@ abstract class StreamTransformer<S, T> {
    * The resulting transformer will check at run-time that all data events
    * of the stream it transforms are actually instances of [S],
    * and it will check that all data events produced by this transformer
-   * are acually instances of [RT].
+   * are actually instances of [RT].
    */
   StreamTransformer<RS, RT> cast<RS, RT>();
 }

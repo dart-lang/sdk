@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,12 +13,13 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -28,18 +29,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ExtractWidgetRefactoringImpl extends RefactoringImpl
     implements ExtractWidgetRefactoring {
   final SearchEngine searchEngine;
+  final ResolvedUnitResult resolveResult;
   final AnalysisSessionHelper sessionHelper;
-  final CompilationUnit unit;
   final int offset;
   final int length;
 
-  CompilationUnitElement unitElement;
-  LibraryElement libraryElement;
   CorrectionUtils utils;
 
   ClassElement classBuildContext;
   ClassElement classKey;
-  ClassElement classStatefulWidget;
   ClassElement classStatelessWidget;
   ClassElement classWidget;
   PropertyAccessorElement accessorRequired;
@@ -73,12 +71,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// and [_method] parameters.
   List<_Parameter> _parameters = [];
 
-  ExtractWidgetRefactoringImpl(this.searchEngine, AnalysisSession session,
-      this.unit, this.offset, this.length)
-      : sessionHelper = new AnalysisSessionHelper(session) {
-    unitElement = unit.declaredElement;
-    libraryElement = unitElement.library;
-    utils = new CorrectionUtils(unit);
+  ExtractWidgetRefactoringImpl(
+      this.searchEngine, this.resolveResult, this.offset, this.length)
+      : sessionHelper = new AnalysisSessionHelper(resolveResult.session) {
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override
@@ -107,7 +103,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     AstNode astNode = _expression ?? _method ?? _statements.first;
-    _enclosingUnitMember = astNode.getAncestor((n) {
+    _enclosingUnitMember = astNode.thisOrAncestorMatching((n) {
       return n is CompilationUnitMember && n.parent is CompilationUnit;
     });
 
@@ -126,7 +122,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Check for duplicate declarations.
     if (!result.hasFatalError) {
-      visitLibraryTopLevelElements(libraryElement, (element) {
+      visitLibraryTopLevelElements(resolveResult.libraryElement, (element) {
         if (hasDisplayName(element, name)) {
           String message = format(
               "Library already declares {0} with name '{1}'.",
@@ -144,9 +140,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String file = unitElement.source.fullName;
     var changeBuilder = new DartChangeBuilder(sessionHelper.session);
-    await changeBuilder.addFileEdit(file, (builder) {
+    await changeBuilder.addFileEdit(resolveResult.path, (builder) {
       if (_expression != null) {
         builder.addReplacement(range.node(_expression), (builder) {
           _writeWidgetInstantiation(builder);
@@ -172,12 +167,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     return !_checkSelection().hasFatalError;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+    AstNode node = new NodeLocator(offset, offset + length)
+        .searchWithin(resolveResult.unit);
 
     // Treat single ReturnStatement as its expression.
     if (node is ReturnStatement) {
@@ -185,7 +178,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     // Find the enclosing class.
-    _enclosingClassNode = node?.getAncestor((n) => n is ClassDeclaration);
+    _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)
@@ -268,7 +261,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     classBuildContext = await getClass('BuildContext');
     classKey = await getClass('Key');
     classStatelessWidget = await getClass('StatelessWidget');
-    classStatefulWidget = await getClass('StatefulWidget');
     classWidget = await getClass('Widget');
 
     accessorRequired = await getAccessor('package:meta/meta.dart', 'required');

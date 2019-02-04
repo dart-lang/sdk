@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31155.dart:11:18: Error: Expected ';' after this.
 //   var f = Map<A, B> {};
@@ -21,28 +23,34 @@
 // pkg/front_end/testcases/regress/issue_31155.dart:11:23: Error: Expected a class member, but got ';'.
 //   var f = Map<A, B> {};
 //                       ^
-
-library;
+//
+// pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named '<'.
+//   var f = Map<A, B> {};
+//              ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  field dynamic f = let final core::Type #t1 = core::Map<dynamic, dynamic> in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'dart.core::Type'.
+  field dynamic f = invalid-expression "pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
   var f = Map<A, B> {};
              ^";
   field dynamic B = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   operator >() → dynamic {}

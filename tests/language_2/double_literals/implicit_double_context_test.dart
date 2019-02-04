@@ -156,8 +156,8 @@ main() {
   Expect.identical(18446744073709551616.0, fun6());
   double fun7() => 0x02;
   Expect.identical(2.0, fun7());
-  double fun4() => -0x02;
-  Expect.identical(-120, fun4());
+  double fun8() => -0x02;
+  Expect.identical(-2.0, fun8());
 
   // Inferred return context.
   testFun(0.0, () => 0);
@@ -325,7 +325,7 @@ main() {
   Expect.identical(-2.0, tg8);
 
   // Class contexts
-  var c = new C();
+  var c = new C.ci1();
   Expect.identical(0.0, c.v1);
   Expect.identical(1.0, c.v2);
   Expect.identical(-0.0, c.v3);
@@ -476,15 +476,20 @@ main() {
   Expect.identical(2.0, value = 0x02);
   Expect.identical(-2.0, value = -0x02);
 
+  // JavaScript platforms represent integers as doubles, so negating them will
+  // result in negative zero, unfortunately.
+  int zero = 0;
+  bool platformHasNegativeZeroInts = (-zero).isNegative;
+
   // Not promoted without a double context.
   num x = -0;
   Expect.identical(0, x);
-  Expect.isFalse(x.isNegative);
+  Expect.equals(x.isNegative, platformHasNegativeZeroInts);
 
   var list = [3.14, 2.17, -0];
   Expect.notType<List<double>>(list);
   Expect.identical(0, list[2]);
-  Expect.isFalse(list[2].isNegative);
+  Expect.equals(list[2].isNegative, platformHasNegativeZeroInts);
 
   // FutureOr<double> also forces double.
   // "Type that int is not assignable to, but double is."
@@ -547,7 +552,7 @@ main() {
     // Check that the correct value is used as receiver for the cascade.
     var collector = StringBuffer();
     double tricky = -42
-      ..toString().codeUnits.forEach(collector.addCharCode);
+      ..toString().codeUnits.forEach(collector.writeCharCode);
     Expect.equals("${-42.0}", collector.toString());
   }
 

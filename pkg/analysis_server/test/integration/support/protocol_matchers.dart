@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -164,6 +164,47 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
     optionalFields: {"analysisTarget": isString}));
 
 /**
+ * AvailableSuggestion
+ *
+ * {
+ *   "label": String
+ *   "element": Element
+ *   "docComplete": optional String
+ *   "docSummary": optional String
+ *   "parameterNames": optional List<String>
+ *   "parameterTypes": optional List<String>
+ *   "requiredParameterCount": optional int
+ * }
+ */
+final Matcher isAvailableSuggestion =
+    new LazyMatcher(() => new MatchesJsonObject("AvailableSuggestion", {
+          "label": isString,
+          "element": isElement
+        }, optionalFields: {
+          "docComplete": isString,
+          "docSummary": isString,
+          "parameterNames": isListOf(isString),
+          "parameterTypes": isListOf(isString),
+          "requiredParameterCount": isInt
+        }));
+
+/**
+ * AvailableSuggestionSet
+ *
+ * {
+ *   "id": int
+ *   "uri": String
+ *   "items": List<AvailableSuggestion>
+ * }
+ */
+final Matcher isAvailableSuggestionSet = new LazyMatcher(() =>
+    new MatchesJsonObject("AvailableSuggestionSet", {
+      "id": isInt,
+      "uri": isString,
+      "items": isListOf(isAvailableSuggestion)
+    }));
+
+/**
  * ChangeContentOverlay
  *
  * {
@@ -195,6 +236,16 @@ final Matcher isClosingLabel = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isCompletionId = isString;
 
 /**
+ * CompletionService
+ *
+ * enum {
+ *   AVAILABLE_SUGGESTION_SETS
+ * }
+ */
+final Matcher isCompletionService =
+    new MatchesEnum("CompletionService", ["AVAILABLE_SUGGESTION_SETS"]);
+
+/**
  * CompletionSuggestion
  *
  * {
@@ -202,6 +253,7 @@ final Matcher isCompletionId = isString;
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
+ *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -233,6 +285,7 @@ final Matcher isCompletionSuggestion =
           "isPotential": isBool
         }, optionalFields: {
           "displayText": isString,
+          "elementUri": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -296,6 +349,31 @@ final Matcher isContextData =
           "workItemQueueLength": isInt,
           "cacheEntryExceptions": isListOf(isString)
         }));
+
+/**
+ * DartFix
+ *
+ * {
+ *   "name": String
+ *   "description": optional String
+ *   "isRequired": optional bool
+ * }
+ */
+final Matcher isDartFix = new LazyMatcher(() => new MatchesJsonObject(
+    "DartFix", {"name": isString},
+    optionalFields: {"description": isString, "isRequired": isBool}));
+
+/**
+ * DartFixSuggestion
+ *
+ * {
+ *   "description": String
+ *   "location": optional Location
+ * }
+ */
+final Matcher isDartFixSuggestion = new LazyMatcher(() => new MatchesJsonObject(
+    "DartFixSuggestion", {"description": isString},
+    optionalFields: {"location": isLocation}));
 
 /**
  * Element
@@ -859,6 +937,18 @@ final Matcher isImportedElements = new LazyMatcher(() => new MatchesJsonObject(
     {"path": isFilePath, "prefix": isString, "elements": isListOf(isString)}));
 
 /**
+ * IncludedSuggestionSet
+ *
+ * {
+ *   "id": int
+ *   "relevance": int
+ * }
+ */
+final Matcher isIncludedSuggestionSet = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "IncludedSuggestionSet", {"id": isInt, "relevance": isInt}));
+
+/**
  * KytheEntry
  *
  * {
@@ -898,6 +988,18 @@ final Matcher isKytheVName =
           "path": isString,
           "language": isString
         }));
+
+/**
+ * LibraryPathSet
+ *
+ * {
+ *   "scope": FilePath
+ *   "libraryPaths": List<FilePath>
+ * }
+ */
+final Matcher isLibraryPathSet = new LazyMatcher(() => new MatchesJsonObject(
+    "LibraryPathSet",
+    {"scope": isFilePath, "libraryPaths": isListOf(isFilePath)}));
 
 /**
  * LinkedEditGroup
@@ -1280,9 +1382,8 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
- *   UNANALYZED_PRIORITY_FILES
+ *   UNKNOWN_FIX
  *   UNKNOWN_REQUEST
- *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -1313,9 +1414,8 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "SERVER_ERROR",
   "SORT_MEMBERS_INVALID_FILE",
   "SORT_MEMBERS_PARSE_ERRORS",
-  "UNANALYZED_PRIORITY_FILES",
+  "UNKNOWN_FIX",
   "UNKNOWN_REQUEST",
-  "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
 
@@ -1727,8 +1827,8 @@ final Matcher isAnalysisGetSignatureParams = new LazyMatcher(() =>
  *
  * {
  *   "name": String
- *   "dartdoc": optional String
  *   "parameters": List<ParameterInfo>
+ *   "dartdoc": optional String
  * }
  */
 final Matcher isAnalysisGetSignatureResult = new LazyMatcher(() =>
@@ -1841,14 +1941,8 @@ final Matcher isAnalysisOverridesParams = new LazyMatcher(() =>
 
 /**
  * analysis.reanalyze params
- *
- * {
- *   "roots": optional List<FilePath>
- * }
  */
-final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.reanalyze params", null,
-        optionalFields: {"roots": isListOf(isFilePath)}));
+final Matcher isAnalysisReanalyzeParams = isNull;
 
 /**
  * analysis.reanalyze result
@@ -2028,6 +2122,47 @@ final Matcher isAnalyticsSendTimingParams = new LazyMatcher(() =>
 final Matcher isAnalyticsSendTimingResult = isNull;
 
 /**
+ * completion.availableSuggestions params
+ *
+ * {
+ *   "changedLibraries": optional List<AvailableSuggestionSet>
+ *   "removedLibraries": optional List<int>
+ * }
+ */
+final Matcher isCompletionAvailableSuggestionsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("completion.availableSuggestions params", null,
+        optionalFields: {
+          "changedLibraries": isListOf(isAvailableSuggestionSet),
+          "removedLibraries": isListOf(isInt)
+        }));
+
+/**
+ * completion.getSuggestionDetails params
+ *
+ * {
+ *   "label": String
+ *   "file": FilePath
+ *   "id": int
+ * }
+ */
+final Matcher isCompletionGetSuggestionDetailsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("completion.getSuggestionDetails params",
+        {"label": isString, "file": isFilePath, "id": isInt}));
+
+/**
+ * completion.getSuggestionDetails result
+ *
+ * {
+ *   "completion": String
+ *   "change": optional SourceChange
+ * }
+ */
+final Matcher isCompletionGetSuggestionDetailsResult = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "completion.getSuggestionDetails result", {"completion": isString},
+        optionalFields: {"change": isSourceChange}));
+
+/**
  * completion.getSuggestions params
  *
  * {
@@ -2051,6 +2186,22 @@ final Matcher isCompletionGetSuggestionsResult = new LazyMatcher(() =>
         "completion.getSuggestions result", {"id": isCompletionId}));
 
 /**
+ * completion.registerLibraryPaths params
+ *
+ * {
+ *   "paths": List<LibraryPathSet>
+ * }
+ */
+final Matcher isCompletionRegisterLibraryPathsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("completion.registerLibraryPaths params",
+        {"paths": isListOf(isLibraryPathSet)}));
+
+/**
+ * completion.registerLibraryPaths result
+ */
+final Matcher isCompletionRegisterLibraryPathsResult = isNull;
+
+/**
  * completion.results params
  *
  * {
@@ -2059,6 +2210,8 @@ final Matcher isCompletionGetSuggestionsResult = new LazyMatcher(() =>
  *   "replacementLength": int
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
+ *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
+ *   "includedSuggestionKinds": optional List<ElementKind>
  * }
  */
 final Matcher isCompletionResultsParams =
@@ -2068,7 +2221,26 @@ final Matcher isCompletionResultsParams =
           "replacementLength": isInt,
           "results": isListOf(isCompletionSuggestion),
           "isLast": isBool
+        }, optionalFields: {
+          "includedSuggestionSets": isListOf(isIncludedSuggestionSet),
+          "includedSuggestionKinds": isListOf(isElementKind)
         }));
+
+/**
+ * completion.setSubscriptions params
+ *
+ * {
+ *   "subscriptions": List<CompletionService>
+ * }
+ */
+final Matcher isCompletionSetSubscriptionsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("completion.setSubscriptions params",
+        {"subscriptions": isListOf(isCompletionService)}));
+
+/**
+ * completion.setSubscriptions result
+ */
+final Matcher isCompletionSetSubscriptionsResult = isNull;
 
 /**
  * convertGetterToMethod feedback
@@ -2120,6 +2292,43 @@ final Matcher isDiagnosticGetServerPortParams = isNull;
  */
 final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
     new MatchesJsonObject("diagnostic.getServerPort result", {"port": isInt}));
+
+/**
+ * edit.dartfix params
+ *
+ * {
+ *   "included": List<FilePath>
+ *   "includedFixes": optional List<String>
+ *   "includeRequiredFixes": optional bool
+ *   "excludedFixes": optional List<String>
+ * }
+ */
+final Matcher isEditDartfixParams =
+    new LazyMatcher(() => new MatchesJsonObject("edit.dartfix params", {
+          "included": isListOf(isFilePath)
+        }, optionalFields: {
+          "includedFixes": isListOf(isString),
+          "includeRequiredFixes": isBool,
+          "excludedFixes": isListOf(isString)
+        }));
+
+/**
+ * edit.dartfix result
+ *
+ * {
+ *   "suggestions": List<DartFixSuggestion>
+ *   "otherSuggestions": List<DartFixSuggestion>
+ *   "hasErrors": bool
+ *   "edits": List<SourceFileEdit>
+ * }
+ */
+final Matcher isEditDartfixResult =
+    new LazyMatcher(() => new MatchesJsonObject("edit.dartfix result", {
+          "suggestions": isListOf(isDartFixSuggestion),
+          "otherSuggestions": isListOf(isDartFixSuggestion),
+          "hasErrors": isBool,
+          "edits": isListOf(isSourceFileEdit)
+        }));
 
 /**
  * edit.format params
@@ -2199,6 +2408,26 @@ final Matcher isEditGetAvailableRefactoringsParams = new LazyMatcher(() =>
 final Matcher isEditGetAvailableRefactoringsResult = new LazyMatcher(() =>
     new MatchesJsonObject("edit.getAvailableRefactorings result",
         {"kinds": isListOf(isRefactoringKind)}));
+
+/**
+ * edit.getDartfixInfo params
+ *
+ * {
+ * }
+ */
+final Matcher isEditGetDartfixInfoParams = new LazyMatcher(
+    () => new MatchesJsonObject("edit.getDartfixInfo params", null));
+
+/**
+ * edit.getDartfixInfo result
+ *
+ * {
+ *   "fixes": List<DartFix>
+ * }
+ */
+final Matcher isEditGetDartfixInfoResult = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "edit.getDartfixInfo result", {"fixes": isListOf(isDartFix)}));
 
 /**
  * edit.getFixes params

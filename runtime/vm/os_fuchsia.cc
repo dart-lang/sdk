@@ -65,9 +65,15 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
+#ifdef USE_STD_FOR_NON_NULLABLE_FIDL_FIELDS
+    std::string result;
+    tz->GetTimezoneId(&result);
+    return result;
+#else
     fidl::StringPtr result;
     tz->GetTimezoneId(&result);
     return *result;
+#endif
   }());
   return tz_name->c_str();
 }
@@ -222,6 +228,8 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
@@ -253,27 +261,21 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
+void OS::Init() {
   auto environment_services = std::make_shared<component::Services>();
   auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
   environment_services->Bind(std::move(env_service_root));
   environment_services->ConnectToService(tz.NewRequest());
 }
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
 
 void OS::Abort() {
   abort();
 }
 
 void OS::Exit(int code) {
-  UNIMPLEMENTED();
+  exit(code);
 }
 
 }  // namespace dart

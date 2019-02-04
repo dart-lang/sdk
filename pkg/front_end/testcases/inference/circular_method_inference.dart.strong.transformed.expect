@@ -1,25 +1,26 @@
-// Unhandled errors:
+library test;
 //
-// pkg/front_end/testcases/inference/circular_method_inference.dart:12:16: Error: 'A' is a supertype of itself via 'B'.
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/circular_method_inference.dart:12:16: Error: 'A' is a supertype of itself.
 // abstract class A extends B {
 //                ^
 //
-// pkg/front_end/testcases/inference/circular_method_inference.dart:16:16: Error: 'B' is a supertype of itself via 'A'.
+// pkg/front_end/testcases/inference/circular_method_inference.dart:16:16: Error: 'B' is a supertype of itself.
 // abstract class B extends A {
 //                ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   abstract method f(dynamic x) → dynamic;
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   abstract method f(dynamic x) → dynamic;

@@ -39,6 +39,7 @@ class Zone;
 namespace kernel {
 
 class Reader;
+struct ProcedureAttributesMetadata;
 
 class StringIndex {
  public:
@@ -62,7 +63,8 @@ class Program {
   // etc will reference the last "sub program" only.
   static Program* ReadFrom(Reader* reader, const char** error = nullptr);
 
-  static Program* ReadFromFile(const char* script_uri);
+  static Program* ReadFromFile(const char* script_uri,
+                               const char** error = nullptr);
   static Program* ReadFromBuffer(const uint8_t* buffer,
                                  intptr_t buffer_length,
                                  const char** error = nullptr);
@@ -197,6 +199,14 @@ RawObject* BuildParameterDescriptor(const Function& function);
 // call-site: if function has no parameters or has only covariant parameters
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
+
+bool IsFieldInitializer(const Function& function, Zone* zone);
+
+ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
+                                                  Zone* zone);
+
+ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
+                                                  Zone* zone);
 
 }  // namespace kernel
 }  // namespace dart

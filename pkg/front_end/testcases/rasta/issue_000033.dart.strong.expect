@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Error: Method not found: 'JS'.
+// @JS()
+//  ^^
+//
+import self as self;
+
+@invalid-expression "pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Error: Method not found: 'JS'.
+@JS()
+ ^^"
+static method main() → dynamic {}

@@ -139,7 +139,10 @@ String getWrapperContent(
     try {
       dartMainRunner(main, []);
     } catch(e) {
-      console.error(e.toString(), dart.stackTrace(e).toString());
+      console.error(e);
+      // d8 does not seem to print the `.stack` property like
+      // node.js and browsers do.
+      console.error(e.stack);
     }
     """;
 }
@@ -147,10 +150,8 @@ String getWrapperContent(
 void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
   // For debugging via HTML, Chrome and ./tools/testing/dart/http_server.dart.
-  Directory sdkPath = sdkRoot;
-  String jsRootDart =
-      "/root_dart/${new File(path.relative(sdkJsFile.path, from: sdkPath.path))
-      .uri}";
+  var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
+  String jsRootDart = "/root_dart/${sdkFile.uri}";
   File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
       jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
   File.fromUri(outputFile.resolve("$outputFilename.html.html"))
@@ -177,7 +178,6 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
     import { test } from '$outFileRootBuild';
     let main = test.main;
     dart.ignoreWhitelistedErrors(false);
-    _isolate_helper.startRootIsolate(() => {}, []);
     main();
     </script>
   </head>

@@ -11,7 +11,7 @@ declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
   # override this to script snapshots to cut down on build time.
   if (target_cpu != host_cpu) {
-    dart_snapshot_kind = "script"
+    dart_snapshot_kind = "kernel"
   } else {
     dart_snapshot_kind = "app-jit"
   }
@@ -96,9 +96,9 @@ template("_application_snapshot") {
       "--snapshot-depfile=$abs_depfile",
     ] + snapshot_vm_args
 
-    if (dart_snapshot_kind == "script") {
+    if (dart_snapshot_kind == "kernel") {
       vm_args += [
-        "--snapshot-kind=script",
+        "--snapshot-kind=kernel",
       ]
       assert(training_args != "", "Ignoring unused argument")
       args = []
@@ -184,6 +184,7 @@ template("aot_assembly") {
     aot_vm_args = invoker.vm_args
   }
   main_dart = invoker.main_dart
+  aot_vm_args = aot_vm_args + [ rebase_path("$main_dart") ]
   name = target_name
   if (defined(invoker.name)) {
     name = invoker.name
@@ -205,29 +206,23 @@ template("aot_assembly") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
-  dart_bootstrap_action(target_name) {
+  gen_snapshot_action(target_name) {
     deps = extra_deps
     depfile = "$output.d"
 
-    script = main_dart
     inputs = extra_inputs
 
     outputs = [
       output,
     ]
 
-    abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output, root_build_dir)
 
     vm_args = [
-      # TODO(asiva): For not use --no-preview-dart-2, need to flip this to use
-      # gen_kernel to generate a kernel file before creating an app snapshot.
-      "--no-preview-dart-2",
       "--deterministic",
       "--packages=$dot_packages",
-      "--snapshot-kind=app-aot",
-      "--snapshot=$abs_output",
-      "--snapshot-depfile=$abs_depfile",
+      "--snapshot-kind=app-aot-assembly",
+      "--assembly=$abs_output",
     ] + aot_vm_args
 
     args = []

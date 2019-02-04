@@ -14,6 +14,7 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         templateInternalProblemConstructorNotFound,
@@ -27,6 +28,7 @@ import 'builder.dart'
         ClassBuilder,
         Declaration,
         ModifierBuilder,
+        NameIterator,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
@@ -53,6 +55,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  bool get legacyMode => false;
+
   bool get isSynthetic => false;
 
   @override
@@ -71,9 +75,15 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   @override
   R get target;
 
-  bool get disableTypeInference => true;
-
   Uri get uri;
+
+  Iterator<Declaration> get iterator {
+    return LibraryLocalDeclarationIterator(this);
+  }
+
+  NameIterator get nameIterator {
+    return new LibraryLocalDeclarationNameIterator(this);
+  }
 
   Declaration addBuilder(String name, Declaration declaration, int charOffset);
 
@@ -88,17 +98,24 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  void addProblem(Message message, int charOffset, int length, Uri fileUri,
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
       {bool wasHandled: false,
       List<LocatedMessage> context,
-      Severity severity}) {
+      Severity severity,
+      bool problemOnLibrary: false}) {
     fileUri ??= this.fileUri;
-    loader.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled, context: context, severity: severity);
+
+    return loader.addProblem(message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: true);
   }
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Declaration member) {
+  bool addToExportScope(String name, Declaration member,
+      [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Map<String, Declaration> map =
@@ -107,7 +124,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     if (existing == member) return false;
     if (existing != null) {
       Declaration result = computeAmbiguousDeclaration(
-          name, existing, member, -1,
+          name, existing, member, charOffset,
           isExport: true);
       map[name] = result;
       return result != existing;
@@ -173,7 +190,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     }
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
-            "$className::$constructorName", uri),
+            "$className.$constructorName", uri),
         -1,
         null);
   }
@@ -197,14 +214,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   void addSyntheticDeclarationOfDynamic();
 
-  void forEach(void f(String name, Declaration declaration)) {
-    scope.forEach((String name, Declaration declaration) {
-      if (declaration.parent == this) {
-        f(name, declaration);
-      }
-    });
-  }
-
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
   Declaration operator [](String name) {
@@ -226,4 +235,40 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   void recordAccess(int charOffset, int length, Uri fileUri) {}
+}
+
+class LibraryLocalDeclarationIterator implements Iterator<Declaration> {
+  final LibraryBuilder library;
+  final Iterator<Declaration> iterator;
+
+  LibraryLocalDeclarationIterator(this.library)
+      : iterator = library.scope.iterator;
+
+  Declaration get current => iterator.current;
+
+  bool moveNext() {
+    while (iterator.moveNext()) {
+      if (current.parent == library) return true;
+    }
+    return false;
+  }
+}
+
+class LibraryLocalDeclarationNameIterator implements NameIterator {
+  final LibraryBuilder library;
+  final NameIterator iterator;
+
+  LibraryLocalDeclarationNameIterator(this.library)
+      : iterator = library.scope.nameIterator;
+
+  Declaration get current => iterator.current;
+
+  String get name => iterator.name;
+
+  bool moveNext() {
+    while (iterator.moveNext()) {
+      if (current.parent == library) return true;
+    }
+    return false;
+  }
 }

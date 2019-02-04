@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class B<T extends core::Object = dynamic> extends core::Object {
-  constructor •(self::B::T t) → void
+  constructor •(self::B::T t) → self::B<self::B::T>
     : super core::Object::•()
     ;
 }
 class C<U extends core::Object = dynamic> extends self::B<core::List<self::C::U>> {
-  constructor •() → void
+  constructor •() → self::C<self::C::U>
     : super self::B::•(self::f<core::List<self::C::U>>())
     ;
 }

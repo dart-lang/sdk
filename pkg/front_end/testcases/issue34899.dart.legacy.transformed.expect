@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Foo<T extends core::Object = dynamic> extends core::Object {
+  final field () → asy::Future<dynamic> quux;
+  field self::Foo::T t;
+  constructor •(() → asy::Future<dynamic> quux, self::Foo::T t) → self::Foo<self::Foo::T>
+    : self::Foo::quux = quux, self::Foo::t = t, super core::Object::•()
+    ;
+  method call() → asy::Future<self::Foo::T>
+    return this.quux().then<self::Foo::T>((dynamic _) → dynamic => this.{self::Foo::t});
+}
+class Bar extends core::Object {
+  field self::Foo<self::Baz> qux = null;
+  synthetic constructor •() → self::Bar
+    : super core::Object::•()
+    ;
+  method quuz() → asy::Future<void>
+    return this.qux().then((dynamic baz) → dynamic => this.{self::Bar::corge}(baz)).then((dynamic grault) → dynamic => this.{self::Bar::garply}(grault));
+  method corge(self::Baz baz) → self::Grault
+    return null;
+  method garply(self::Grault grault) → void {}
+}
+class Baz extends core::Object {
+  synthetic constructor •() → self::Baz
+    : super core::Object::•()
+    ;
+}
+class Grault extends core::Object {
+  synthetic constructor •() → self::Grault
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

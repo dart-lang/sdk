@@ -164,6 +164,8 @@ class UnterminatedString extends ErrorToken {
 
   int get charCount => endOffset - charOffset;
 
+  int get length => charCount;
+
   Message get assertionMessage =>
       templateUnterminatedString.withArguments(start, closeQuoteFor(start));
 }

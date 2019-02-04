@@ -7,21 +7,20 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
+import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
 
-/**
- * [InvokeDynamicSpecializer] and its subclasses are helpers to
- * optimize intercepted dynamic calls. It knows what input types
- * would be beneficial for performance, and how to change a invoke
- * dynamic to a builtin instruction (e.g. HIndex, HBitNot).
- */
+/// [InvokeDynamicSpecializer] and its subclasses are helpers to
+/// optimize intercepted dynamic calls. It knows what input types
+/// would be beneficial for performance, and how to change a invoke
+/// dynamic to a builtin instruction (e.g. HIndex, HBitNot).
 class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 
@@ -40,7 +39,8 @@ class InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     return null;
   }
 
@@ -122,14 +122,17 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction receiver = instruction.inputs[1];
     HInstruction index = instruction.inputs[2];
-    if (!receiver.isMutableIndexable(closedWorld.abstractValueDomain)) {
+    if (receiver
+        .isMutableIndexable(closedWorld.abstractValueDomain)
+        .isPotentiallyFalse) {
       return null;
     }
     // TODO(johnniwinther): Merge this and the following if statement.
-    if (!index.isInteger(closedWorld.abstractValueDomain) &&
+    if (index.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse &&
         options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
       return null;
@@ -142,8 +145,10 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
         return null;
       }
     }
-    return new HIndexAssign(closedWorld.abstractValueDomain, receiver, index,
-        value, instruction.selector);
+    HIndexAssign converted = new HIndexAssign(closedWorld.abstractValueDomain,
+        receiver, index, value, instruction.selector);
+    log?.registerIndexAssign(instruction, converted);
+    return converted;
   }
 
   /// Returns [true] if [value] meets the requirements for being stored into
@@ -159,9 +164,11 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     if (instruction.element != null) {
       ClassEntity cls = instruction.element.enclosingClass;
       if (cls == commonElements.typedArrayOfIntClass) {
-        return value.isInteger(closedWorld.abstractValueDomain);
+        return value
+            .isInteger(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue;
       } else if (cls == commonElements.typedArrayOfDoubleClass) {
-        return value.isNumber(closedWorld.abstractValueDomain);
+        return value.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue;
       }
     }
 
@@ -186,13 +193,16 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
-    if (!instruction.inputs[1]
-        .isIndexablePrimitive(closedWorld.abstractValueDomain)) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
+    if (instruction.inputs[1]
+        .isIndexablePrimitive(closedWorld.abstractValueDomain)
+        .isPotentiallyFalse) {
       return null;
     }
-    // TODO(johnniwinther): Merge this and the following if statement.
-    if (!instruction.inputs[2].isInteger(closedWorld.abstractValueDomain) &&
+    if (instruction.inputs[2]
+            .isInteger(closedWorld.abstractValueDomain)
+            .isPotentiallyFalse &&
         options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
       return null;
@@ -201,8 +211,10 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
         instruction.getDartReceiver(closedWorld).instructionType;
     AbstractValue type = AbstractValueFactory.inferredTypeForSelector(
         instruction.selector, receiverType, results);
-    return new HIndex(instruction.inputs[1], instruction.inputs[2],
+    HIndex converted = new HIndex(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, type);
+    log?.registerIndex(instruction, converted);
+    return converted;
   }
 }
 
@@ -221,7 +233,8 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     if (instruction.inputs[1]
-        .isPrimitiveOrNull(closedWorld.abstractValueDomain)) {
+        .isPrimitiveOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.uint32Type;
     }
     return super
@@ -234,14 +247,17 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber(closedWorld.abstractValueDomain)) {
-      return new HBitNot(
+    if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      HBitNot converted = new HBitNot(
           input,
           instruction.selector,
           computeTypeFromInputTypes(
               instruction, results, options, closedWorld));
+      log?.registerBitNot(instruction, converted);
+      return converted;
     }
     return null;
   }
@@ -260,13 +276,19 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       CompilerOptions options,
       JClosedWorld closedWorld) {
     HInstruction operand = instruction.inputs[1];
-    if (operand.isNumberOrNull(closedWorld.abstractValueDomain)) {
+    if (operand
+        .isNumberOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       // We have integer subclasses that represent ranges, so widen any int
       // subclass to full integer.
-      if (operand.isIntegerOrNull(closedWorld.abstractValueDomain)) {
+      if (operand
+          .isIntegerOrNull(closedWorld.abstractValueDomain)
+          .isDefinitelyTrue) {
         return closedWorld.abstractValueDomain.intType;
       }
-      if (operand.isDoubleOrNull(closedWorld.abstractValueDomain)) {
+      if (operand
+          .isDoubleOrNull(closedWorld.abstractValueDomain)
+          .isDefinitelyTrue) {
         return closedWorld.abstractValueDomain.doubleType;
       }
       return closedWorld.abstractValueDomain.numType;
@@ -281,14 +303,17 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber(closedWorld.abstractValueDomain)) {
-      return new HNegate(
+    if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      HNegate converted = new HNegate(
           input,
           instruction.selector,
           computeTypeFromInputTypes(
               instruction, results, options, closedWorld));
+      log?.registerUnaryNegate(instruction, converted);
+      return converted;
     }
     return null;
   }
@@ -307,7 +332,9 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
       CompilerOptions options,
       JClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumberOrNull(closedWorld.abstractValueDomain)) {
+    if (input
+        .isNumberOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.excludeNull(input.instructionType);
     }
     return super
@@ -320,17 +347,23 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber(closedWorld.abstractValueDomain)) {
-      return new HAbs(
+    if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      HAbs converted = new HAbs(
           input,
           instruction.selector,
           computeTypeFromInputTypes(
               instruction, results, options, closedWorld));
+      log?.registerAbs(instruction, converted);
+      return converted;
     }
     return null;
   }
+
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {}
 }
 
 abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
@@ -343,13 +376,21 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isIntegerOrNull(closedWorld.abstractValueDomain) &&
-        right.isIntegerOrNull(closedWorld.abstractValueDomain)) {
+    if (left
+            .isIntegerOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue &&
+        right
+            .isIntegerOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.intType;
     }
-    if (left.isNumberOrNull(closedWorld.abstractValueDomain)) {
-      if (left.isDoubleOrNull(closedWorld.abstractValueDomain) ||
-          right.isDoubleOrNull(closedWorld.abstractValueDomain)) {
+    if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      if (left
+              .isDoubleOrNull(closedWorld.abstractValueDomain)
+              .isDefinitelyTrue ||
+          right
+              .isDoubleOrNull(closedWorld.abstractValueDomain)
+              .isDefinitelyTrue) {
         return closedWorld.abstractValueDomain.doubleType;
       }
       return closedWorld.abstractValueDomain.numType;
@@ -359,8 +400,12 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   }
 
   bool isBuiltin(HInvokeDynamic instruction, JClosedWorld closedWorld) {
-    return instruction.inputs[1].isNumber(closedWorld.abstractValueDomain) &&
-        instruction.inputs[2].isNumber(closedWorld.abstractValueDomain);
+    return instruction.inputs[1]
+            .isNumber(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue &&
+        instruction.inputs[2]
+            .isNumber(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue;
   }
 
   HInstruction tryConvertToBuiltin(
@@ -369,11 +414,17 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     if (isBuiltin(instruction, closedWorld)) {
       HInstruction builtin =
           newBuiltinVariant(instruction, results, options, closedWorld);
-      if (builtin != null) return builtin;
+      if (log != null) {
+        registerOptimization(log, instruction, builtin);
+      }
+      if (builtin != null) {
+        return builtin;
+      }
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
       // can be GVN'ed.
@@ -386,15 +437,19 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       HInstruction instruction, JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    return left.isPositiveIntegerOrNull(closedWorld.abstractValueDomain) &&
-        right.isPositiveIntegerOrNull(closedWorld.abstractValueDomain);
+    return left
+            .isPositiveIntegerOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue &&
+        right
+            .isPositiveIntegerOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue;
   }
 
   bool inputsAreUInt31(HInstruction instruction, JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    return left.isUInt31(closedWorld.abstractValueDomain) &&
-        right.isUInt31(closedWorld.abstractValueDomain);
+    return left.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue &&
+        right.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue;
   }
 
   HInstruction newBuiltinVariant(
@@ -402,6 +457,9 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JClosedWorld closedWorld);
+
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted);
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
@@ -437,6 +495,12 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerAdd(original, converted);
+  }
 }
 
 class DivideSpecializer extends BinaryArithmeticSpecializer {
@@ -452,7 +516,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
       CompilerOptions options,
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
-    if (left.isNumberOrNull(closedWorld.abstractValueDomain)) {
+    if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.doubleType;
     }
     return super
@@ -466,6 +530,12 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
       JClosedWorld closedWorld) {
     return new HDivide(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.abstractValueDomain.doubleType);
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerDivide(original, converted);
   }
 }
 
@@ -553,6 +623,12 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     // don't want to ruin GVN opportunities.
     return null;
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerModulo(original, converted);
+  }
 }
 
 class RemainderSpecializer extends BinaryArithmeticSpecializer {
@@ -584,6 +660,12 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
         instruction.inputs[2],
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerRemainder(original, converted);
   }
 }
 
@@ -617,6 +699,12 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerMultiply(original, converted);
+  }
 }
 
 class SubtractSpecializer extends BinaryArithmeticSpecializer {
@@ -636,6 +724,12 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
         instruction.inputs[2],
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerSubtract(original, converted);
   }
 }
 
@@ -680,11 +774,14 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   bool hasUint31Result(HInstruction instruction, JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (right.isPositiveInteger(closedWorld.abstractValueDomain)) {
-      if (left.isUInt31(closedWorld.abstractValueDomain) && isNotZero(right)) {
+    if (right
+        .isPositiveInteger(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
+      if (left.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue &&
+          isNotZero(right)) {
         return true;
       }
-      if (left.isUInt32(closedWorld.abstractValueDomain) &&
+      if (left.isUInt32(closedWorld.abstractValueDomain).isDefinitelyTrue &&
           isTwoOrGreater(right)) {
         return true;
       }
@@ -698,18 +795,29 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction right = instruction.inputs[2];
     if (isBuiltin(instruction, closedWorld)) {
-      if (right.isPositiveInteger(closedWorld.abstractValueDomain) &&
+      if (right
+              .isPositiveInteger(closedWorld.abstractValueDomain)
+              .isDefinitelyTrue &&
           isNotZero(right)) {
         if (hasUint31Result(instruction, closedWorld)) {
-          return newBuiltinVariant(instruction, results, options, closedWorld);
+          HInstruction converted =
+              newBuiltinVariant(instruction, results, options, closedWorld);
+          if (log != null) {
+            registerOptimization(log, instruction, converted);
+          }
+          return converted;
         }
         // We can call _tdivFast because the rhs is a 32bit integer
         // and not 0, nor -1.
         instruction.selector = renameToOptimizedSelector(
             '_tdivFast', instruction.selector, commonElements);
+        if (log != null) {
+          registerOptimization(log, instruction, null);
+        }
       }
       clearAllSideEffects(instruction);
     }
@@ -727,6 +835,12 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerTruncatingDivide(original, converted);
+  }
 }
 
 abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
@@ -737,10 +851,10 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JClosedWorld closedWorld) {
-    // All bitwise operations on primitive types either produce an
+    // All bitwise operations on number types either produce an unsigned 32-bit
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
-    if (left.isPrimitiveOrNull(closedWorld.abstractValueDomain)) {
+    if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.uint32Type;
     }
     return super
@@ -772,7 +886,9 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   bool isPositive(HInstruction instruction, JClosedWorld closedWorld) {
     // TODO: We should use the value range analysis. Currently, ranges
     // are discarded just after the analysis.
-    return instruction.isPositiveInteger(closedWorld.abstractValueDomain);
+    return instruction
+        .isPositiveInteger(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue;
   }
 }
 
@@ -789,12 +905,18 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isNumber(closedWorld.abstractValueDomain)) {
+    if (left.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       if (argumentLessThan32(right)) {
-        return newBuiltinVariant(instruction, results, options, closedWorld);
+        HInstruction converted =
+            newBuiltinVariant(instruction, results, options, closedWorld);
+        if (log != null) {
+          registerOptimization(log, instruction, converted);
+        }
+        return converted;
       }
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
@@ -803,6 +925,9 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
       if (isPositive(right, closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
             '_shlPositive', instruction.selector, commonElements);
+      }
+      if (log != null) {
+        registerOptimization(log, instruction, null);
       }
     }
     return null;
@@ -819,6 +944,12 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerShiftLeft(original, converted);
+  }
 }
 
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
@@ -830,8 +961,9 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       CompilerOptions options,
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
-    if (left.isUInt32(closedWorld.abstractValueDomain))
+    if (left.isUInt32(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return left.instructionType;
+    }
     return super
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
@@ -842,12 +974,18 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isNumber(closedWorld.abstractValueDomain)) {
+    if (left.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       if (argumentLessThan32(right) && isPositive(left, closedWorld)) {
-        return newBuiltinVariant(instruction, results, options, closedWorld);
+        HInstruction converted =
+            newBuiltinVariant(instruction, results, options, closedWorld);
+        if (log != null) {
+          registerOptimization(log, instruction, converted);
+        }
+        return converted;
       }
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
@@ -856,13 +994,22 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       if (isPositive(right, closedWorld) && isPositive(left, closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
             '_shrBothPositive', instruction.selector, commonElements);
+        if (log != null) {
+          registerOptimization(log, instruction, null);
+        }
       } else if (isPositive(left, closedWorld) &&
-          right.isNumber(closedWorld.abstractValueDomain)) {
+          right.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
         instruction.selector = renameToOptimizedSelector(
             '_shrReceiverPositive', instruction.selector, commonElements);
+        if (log != null) {
+          registerOptimization(log, instruction, null);
+        }
       } else if (isPositive(right, closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
             '_shrOtherPositive', instruction.selector, commonElements);
+        if (log != null) {
+          registerOptimization(log, instruction, null);
+        }
       }
     }
     return null;
@@ -883,6 +1030,12 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   BinaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.shiftRight;
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerShiftRight(original, converted);
+  }
 }
 
 class BitOrSpecializer extends BinaryBitOpSpecializer {
@@ -899,8 +1052,8 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isUInt31(closedWorld.abstractValueDomain) &&
-        right.isUInt31(closedWorld.abstractValueDomain)) {
+    if (left.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue &&
+        right.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.uint31Type;
     }
     return super
@@ -918,6 +1071,11 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerBitOr(original, converted);
+  }
 }
 
 class BitAndSpecializer extends BinaryBitOpSpecializer {
@@ -934,9 +1092,11 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isPrimitiveOrNull(closedWorld.abstractValueDomain) &&
-        (left.isUInt31(closedWorld.abstractValueDomain) ||
-            right.isUInt31(closedWorld.abstractValueDomain))) {
+    if (left
+            .isPrimitiveOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue &&
+        (left.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue ||
+            right.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue)) {
       return closedWorld.abstractValueDomain.uint31Type;
     }
     return super
@@ -954,6 +1114,11 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerBitAnd(original, converted);
+  }
 }
 
 class BitXorSpecializer extends BinaryBitOpSpecializer {
@@ -970,8 +1135,8 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isUInt31(closedWorld.abstractValueDomain) &&
-        right.isUInt31(closedWorld.abstractValueDomain)) {
+    if (left.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue &&
+        right.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.uint31Type;
     }
     return super
@@ -989,6 +1154,11 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
         instruction.selector,
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
+
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerBitXor(original, converted);
+  }
 }
 
 abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
@@ -1000,7 +1170,8 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
       CompilerOptions options,
       JClosedWorld closedWorld) {
     if (instruction.inputs[1]
-        .isPrimitiveOrNull(closedWorld.abstractValueDomain)) {
+        .isPrimitiveOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.boolType;
     }
     return super
@@ -1013,18 +1184,26 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isNumber(closedWorld.abstractValueDomain) &&
-        right.isNumber(closedWorld.abstractValueDomain)) {
-      return newBuiltinVariant(instruction, closedWorld);
+    if (left.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue &&
+        right.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      HInstruction converted = newBuiltinVariant(instruction, closedWorld);
+      if (log != null) {
+        registerOptimization(log, instruction, converted);
+      }
+      return converted;
     }
     return null;
   }
 
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld);
+
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted);
 }
 
 class EqualsSpecializer extends RelationalSpecializer {
@@ -1036,13 +1215,20 @@ class EqualsSpecializer extends RelationalSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     AbstractValue instructionType = left.instructionType;
     if (right.isConstantNull() ||
-        left.isPrimitiveOrNull(closedWorld.abstractValueDomain)) {
-      return newBuiltinVariant(instruction, closedWorld);
+        left
+            .isPrimitiveOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue) {
+      HInstruction converted = newBuiltinVariant(instruction, closedWorld);
+      if (log != null) {
+        registerOptimization(log, instruction, converted);
+      }
+      return converted;
     }
     if (closedWorld.includesClosureCall(
         instruction.selector, instructionType)) {
@@ -1055,7 +1241,11 @@ class EqualsSpecializer extends RelationalSpecializer {
     // a regular object or an interceptor.
     if (matches
         .every(closedWorld.commonElements.isDefaultEqualityImplementation)) {
-      return newBuiltinVariant(instruction, closedWorld);
+      HInstruction converted = newBuiltinVariant(instruction, closedWorld);
+      if (log != null) {
+        registerOptimization(log, instruction, converted);
+      }
+      return converted;
     }
     return null;
   }
@@ -1068,6 +1258,12 @@ class EqualsSpecializer extends RelationalSpecializer {
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HIdentity(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.abstractValueDomain.boolType);
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerEquals(original, converted);
   }
 }
 
@@ -1083,6 +1279,12 @@ class LessSpecializer extends RelationalSpecializer {
     return new HLess(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.abstractValueDomain.boolType);
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerLess(original, converted);
+  }
 }
 
 class GreaterSpecializer extends RelationalSpecializer {
@@ -1096,6 +1298,12 @@ class GreaterSpecializer extends RelationalSpecializer {
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HGreater(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.abstractValueDomain.boolType);
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerGreater(original, converted);
   }
 }
 
@@ -1111,6 +1319,12 @@ class GreaterEqualSpecializer extends RelationalSpecializer {
     return new HGreaterEqual(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.abstractValueDomain.boolType);
   }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerGreaterEqual(original, converted);
+  }
 }
 
 class LessEqualSpecializer extends RelationalSpecializer {
@@ -1124,6 +1338,12 @@ class LessEqualSpecializer extends RelationalSpecializer {
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HLessEqual(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.abstractValueDomain.boolType);
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerLessEqual(original, converted);
   }
 }
 
@@ -1140,20 +1360,25 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
-    if (receiver.isStringOrNull(closedWorld.abstractValueDomain)) {
+    if (receiver
+        .isStringOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       // Even if there is no builtin equivalent instruction, we know
       // String.codeUnitAt does not have any side effect (other than throwing),
       // and that it can be GVN'ed.
       clearAllSideEffects(instruction);
       if (instruction.inputs.last
-          .isPositiveInteger(closedWorld.abstractValueDomain)) {
+          .isPositiveInteger(closedWorld.abstractValueDomain)
+          .isDefinitelyTrue) {
         instruction.selector = renameToOptimizedSelector(
             '_codeUnitAt', instruction.selector, commonElements);
       }
+      log?.registerCodeUnitAt(instruction);
     }
     return null;
   }
@@ -1168,30 +1393,47 @@ class CompareToSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     // `compareTo` has no side-effect (other than throwing) and can be GVN'ed
     // for some known types.
-    if (receiver.isStringOrNull(closedWorld.abstractValueDomain) ||
-        receiver.isNumberOrNull(closedWorld.abstractValueDomain)) {
+    if (receiver
+            .isStringOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue ||
+        receiver
+            .isNumberOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue) {
       // Replace `a.compareTo(a)` with `0`, but only if receiver and argument
       // are such that no exceptions can be thrown.
       HInstruction argument = instruction.inputs.last;
-      if ((receiver.isNumber(closedWorld.abstractValueDomain) &&
-              argument.isNumber(closedWorld.abstractValueDomain)) ||
-          (receiver.isString(closedWorld.abstractValueDomain) &&
-              argument.isString(closedWorld.abstractValueDomain))) {
+      if ((receiver
+                  .isNumber(closedWorld.abstractValueDomain)
+                  .isDefinitelyTrue &&
+              argument
+                  .isNumber(closedWorld.abstractValueDomain)
+                  .isDefinitelyTrue) ||
+          (receiver
+                  .isString(closedWorld.abstractValueDomain)
+                  .isDefinitelyTrue &&
+              argument
+                  .isString(closedWorld.abstractValueDomain)
+                  .isDefinitelyTrue)) {
         if (identical(receiver.nonCheck(), argument.nonCheck())) {
-          return graph.addConstantInt(0, closedWorld);
+          HInstruction converted = graph.addConstantInt(0, closedWorld);
+          log?.registerCompareTo(instruction, converted);
+          return converted;
         }
       }
       clearAllSideEffects(instruction);
+      log?.registerCompareTo(instruction);
     }
     return null;
   }
 }
 
-class IdempotentStringOperationSpecializer extends InvokeDynamicSpecializer {
+abstract class IdempotentStringOperationSpecializer
+    extends InvokeDynamicSpecializer {
   const IdempotentStringOperationSpecializer();
 
   HInstruction tryConvertToBuiltin(
@@ -1200,23 +1442,41 @@ class IdempotentStringOperationSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
-    if (receiver.isStringOrNull(closedWorld.abstractValueDomain)) {
+    if (receiver
+        .isStringOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       // String.xxx does not have any side effect (other than throwing), and it
       // can be GVN'ed.
       clearAllSideEffects(instruction);
+      if (log != null) {
+        registerOptimization(log, instruction);
+      }
     }
     return null;
   }
+
+  void registerOptimization(OptimizationTestLog log, HInstruction original);
 }
 
 class SubstringSpecializer extends IdempotentStringOperationSpecializer {
   const SubstringSpecializer();
+
+  @override
+  void registerOptimization(OptimizationTestLog log, HInstruction original) {
+    log.registerSubstring(original);
+  }
 }
 
 class TrimSpecializer extends IdempotentStringOperationSpecializer {
   const TrimSpecializer();
+
+  @override
+  void registerOptimization(OptimizationTestLog log, HInstruction original) {
+    log.registerTrim(original);
+  }
 }
 
 class PatternMatchSpecializer extends InvokeDynamicSpecializer {
@@ -1228,14 +1488,20 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     HInstruction pattern = instruction.inputs[2];
-    if (receiver.isStringOrNull(closedWorld.abstractValueDomain) &&
-        pattern.isStringOrNull(closedWorld.abstractValueDomain)) {
+    if (receiver
+            .isStringOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue &&
+        pattern
+            .isStringOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue) {
       // String.contains(String s) does not have any side effect (other than
       // throwing), and it can be GVN'ed.
       clearAllSideEffects(instruction);
+      log?.registerPatternMatch(instruction);
     }
     return null;
   }
@@ -1254,12 +1520,16 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JCommonElements commonElements,
-      JClosedWorld closedWorld) {
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
-    if (receiver.isNumberOrNull(closedWorld.abstractValueDomain)) {
+    if (receiver
+        .isNumberOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
       // Even if there is no builtin equivalent instruction, we know the
       // instruction does not have any side effect, and that it can be GVN'ed.
       clearAllSideEffects(instruction);
+      log?.registerRound(instruction);
     }
     return null;
   }

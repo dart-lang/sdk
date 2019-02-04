@@ -130,6 +130,7 @@ Future testIPv4toIPv6_IPV6Only() {
 }
 
 main() async {
+  asyncStart();
   await testIPv6toIPv6(); //               //# 01: ok
   await testIPv4toIPv6(); //               //# 02: ok
   await testIPv4toIPv4(); //               //# 03: ok
@@ -138,4 +139,5 @@ main() async {
 
   await retry(testIPv6toIPv4); //          //# 06: ok
   await retry(testIPv4toIPv6_IPV6Only); // //# 07: ok
+  asyncEnd();
 }

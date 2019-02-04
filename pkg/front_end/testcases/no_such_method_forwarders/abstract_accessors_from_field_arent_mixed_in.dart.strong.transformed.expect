@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 abstract class A extends core::Object {
   field core::int foo = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends core::Object implements self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation i) → dynamic {
@@ -17,12 +17,12 @@ class B extends core::Object implements self::A {
     return null;
   }
   no-such-method-forwarder get foo() → core::int
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("get:foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} core::int;
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} core::int;
   no-such-method-forwarder set foo(core::int value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 abstract class _C&Object&B extends core::Object implements self::B {
-  synthetic constructor •() → void
+  const synthetic constructor •() → self::_C&Object&B
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation i) → dynamic {
@@ -31,8 +31,8 @@ abstract class _C&Object&B extends core::Object implements self::B {
   }
 }
 class C extends self::_C&Object&B {
-  synthetic constructor •() → void
-    : super core::Object::•()
+  synthetic constructor •() → self::C
+    : super self::_C&Object&B::•()
     ;
   get foo() → core::int
     return 42;

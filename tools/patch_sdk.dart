@@ -12,7 +12,11 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:convert' show jsonEncode;
 
-import 'package:analyzer/analyzer.dart';
+// ignore: deprecated_member_use
+import 'package:analyzer/analyzer.dart'
+    show parseCompilationUnit, parseDirectives;
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:path/path.dart' as path;
@@ -121,7 +125,7 @@ Future _main(List<String> argv) async {
   final Uri platform = outDirUri.resolve('platform.dill.tmp');
   final Uri librariesJson = outDirUri.resolve("lib/libraries.json");
   final Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
-  TargetFlags flags = new TargetFlags();
+  TargetFlags flags = new TargetFlags(legacyMode: true);
   Target target;
 
   switch (mode) {
@@ -192,7 +196,7 @@ Future<List<Uri>> compilePlatform(
     Uri patchedSdk, Target target, Uri packages, Uri output) async {
   var options = new CompilerOptions()
     ..setExitCodeOnProblem = true
-    ..strongMode = false
+    ..legacyMode = true
     ..compileSdk = true
     ..sdkRoot = patchedSdk
     ..packagesFileUri = packages

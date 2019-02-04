@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,6 +27,17 @@ class ClassDeclarationTest extends PartialCodeTest {
           new TestDescriptor('named', 'class A',
               [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}'),
           new TestDescriptor(
+              'extend',
+              'class A extend',
+              [
+                ParserErrorCode.EXPECTED_INSTEAD,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_CLASS_BODY
+              ],
+              'class A extend _s_ {}',
+              expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
+          new TestDescriptor(
               'extends',
               'class A extends',
               [
@@ -34,7 +45,18 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends _s_ {}',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
+          new TestDescriptor(
+              'on',
+              'class A on',
+              [
+                ParserErrorCode.EXPECTED_INSTEAD,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_CLASS_BODY
+              ],
+              'class A on _s_ {}',
+              expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor('extendsBody', 'class A extends {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME], 'class A extends _s_ {}'),
           new TestDescriptor(
@@ -56,7 +78,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B with _s_ {}',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'extendsNameWithBody',
               'class A extends B with {}',
@@ -70,7 +92,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B implements _s_ {}',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'extendsNameImplementsBody',
               'class A extends B implements {}',
@@ -84,7 +106,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B with C implements _s_ {}',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'extendsNameWithNameImplementsBody',
               'class A extends B with C implements {}',
@@ -98,7 +120,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A implements _s_ {}',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'implementsBody',
               'class A implements {}',
@@ -112,7 +134,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A implements B, _s_ {}',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'implementsNameCommaBody',
               'class A implements B, {}',
@@ -127,7 +149,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'class A = _s_ with _s_;',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'equalsName',
               'class A = B',
@@ -142,7 +164,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'class A = B with _s_;',
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           new TestDescriptor(
               'equalsNameName',
               'class A = B C',

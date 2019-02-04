@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -102,10 +102,17 @@ class AssistKind {
   final String message;
 
   /**
-   * Initialize a newly created kind of assist to have the given [id],
-   * [priority] and [message].
+   * A list of any associated error codes. Assists with associated error codes
+   * can be presented as "fixes" for the associated errors by clients.
    */
-  const AssistKind(this.id, this.priority, this.message);
+  final List<String> associatedErrorCodes;
+
+  /**
+   * Initialize a newly created kind of assist to have the given [id],
+   * [priority], [message] and optionally any [associatedErrorCodes].
+   */
+  const AssistKind(this.id, this.priority, this.message,
+      {this.associatedErrorCodes});
 
   @override
   String toString() => id;
@@ -145,5 +152,5 @@ abstract class DartAssistRequest implements AssistRequest {
   /**
    * The analysis result for the file in which the assists are being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }

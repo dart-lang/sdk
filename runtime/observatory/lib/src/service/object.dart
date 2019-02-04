@@ -272,9 +272,6 @@ abstract class ServiceObject implements M.ObjectRef {
           case 'SubtypeTestCache':
             obj = new SubtypeTestCache._empty(owner);
             break;
-          case 'TokenStream':
-            obj = new TokenStream._empty(owner);
-            break;
           case 'UnlinkedCall':
             obj = new UnlinkedCall._empty(owner);
             break;
@@ -1993,8 +1990,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'address': address,
       'ref': ref,
     };
-    return invokeRpc('_getObjectByAddress', params)
-        .then((result) => result as ServiceObject);
+    return invokeRpc('_getObjectByAddress', params);
   }
 
   final Map<String, ServiceMetric> dartMetrics = <String, ServiceMetric>{};
@@ -2752,8 +2748,6 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeParameter;
     case 'TypeRef':
       return M.InstanceKind.typeRef;
-    case 'BoundedType':
-      return M.InstanceKind.boundedType;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);
@@ -3139,6 +3133,7 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
   SourceLocation location;
   Code code;
   Code unoptimizedCode;
+  Code bytecode;
   bool isOptimizable;
   bool isInlinable;
   bool hasIntrinsic;
@@ -3197,6 +3192,7 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
     isInlinable = map['_inlinable'];
     isRecognized = map['_recognized'];
     unoptimizedCode = map['_unoptimizedCode'];
+    bytecode = map['_bytecode'];
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
     icDataArray = map['_icDataArray'];
@@ -3534,6 +3530,10 @@ class Script extends HeapObject implements M.Script {
   ScriptLine getLine(int line) {
     assert(_loaded);
     assert(line >= 1);
+    var index = (line - lineOffset - 1);
+    if (lines.length < index) {
+      return null;
+    }
     return lines[line - lineOffset - 1];
   }
 
@@ -3697,7 +3697,7 @@ class Script extends HeapObject implements M.Script {
     }
     // Line and column numbers start at 1 in the VM.
     column -= 1;
-    String sourceLine = getLine(line).text;
+    String sourceLine = getLine(line)?.text;
     if (sourceLine == null) {
       return null;
     }
@@ -3717,7 +3717,7 @@ class Script extends HeapObject implements M.Script {
       UnresolvedSourceLocation loc = bpt.location;
       line = loc.line;
     }
-    getLine(line).addBreakpoint(bpt);
+    getLine(line)?.addBreakpoint(bpt);
   }
 
   void _removeBreakpoint(Breakpoint bpt) {
@@ -3729,7 +3729,7 @@ class Script extends HeapObject implements M.Script {
       line = loc.line;
     }
     if (line != null) {
-      getLine(line).removeBreakpoint(bpt);
+      getLine(line)?.removeBreakpoint(bpt);
     }
   }
 
@@ -3983,6 +3983,7 @@ class ObjectPoolEntry implements M.ObjectPoolEntry {
     M.ObjectPoolEntryKind kind = stringToObjectPoolEntryKind(map['kind']);
     int offset = map['offset'];
     switch (kind) {
+      case M.ObjectPoolEntryKind.nativeEntryData:
       case M.ObjectPoolEntryKind.object:
         return new ObjectPoolEntry._fromObject(map['value'], offset);
       default:
@@ -4004,6 +4005,8 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
       return M.ObjectPoolEntryKind.object;
     case 'Immediate':
       return M.ObjectPoolEntryKind.immediate;
+    case 'NativeEntryData':
+      return M.ObjectPoolEntryKind.nativeEntryData;
     case 'NativeFunction':
     case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
@@ -4156,24 +4159,6 @@ class MegamorphicCache extends HeapObject implements M.MegamorphicCache {
     mask = map['_mask'];
     buckets = map['_buckets'];
     argumentsDescriptor = map['_argumentsDescriptor'];
-  }
-}
-
-class TokenStream extends HeapObject implements M.TokenStreamRef {
-  bool get immutable => true;
-
-  String privateKey;
-
-  TokenStream._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(Map map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
-    super._update(map, mapIsRef);
-
-    if (mapIsRef) {
-      return;
-    }
-    privateKey = map['privateKey'];
   }
 }
 
@@ -4718,6 +4703,9 @@ Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
     }
   }
   if (scriptIndex == numScripts) {
+    return result;
+  }
+  if (script.source == null) {
     return result;
   }
   var ranges = report['ranges'];

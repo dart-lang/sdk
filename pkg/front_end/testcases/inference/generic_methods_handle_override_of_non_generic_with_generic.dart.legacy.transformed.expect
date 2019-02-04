@@ -1,0 +1,43 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:46: Warning: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+//   T /*@error=OverrideTypeVariablesMismatch*/ m<T>(
+//                                              ^
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:24: Context: This is the overridden method ('m').
+//   /*@topType=dynamic*/ m(/*@topType=dynamic*/ x) => x;
+//                        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:17:46: Warning: Declared type variables of 'D.g' doesn't match those on overridden method 'C.g'.
+//   T /*@error=OverrideTypeVariablesMismatch*/ g<T>(
+//                                              ^
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
+//   dynamic g(int x) => x;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method m(dynamic x) → dynamic
+    return x;
+  method g(core::int x) → dynamic
+    return x;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+  method m<T extends core::Object = dynamic>(self::D::m::T x) → self::D::m::T
+    return x;
+  method g<T extends core::Object = dynamic>(self::D::g::T x) → self::D::g::T
+    return x;
+}
+static method main() → dynamic {
+  core::int y = (new self::D::•() as self::C).m(42);
+  core::print(y);
+}

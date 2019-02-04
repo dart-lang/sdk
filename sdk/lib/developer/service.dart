@@ -58,9 +58,7 @@ class Service {
   /// enable (true) or disable (false) the web server servicing requests.
   static Future<ServiceProtocolInfo> controlWebServer(
       {bool enable: false}) async {
-    if (enable is! bool) {
-      throw new ArgumentError.value(enable, 'enable', 'Must be a bool');
-    }
+    ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
     final Completer<Uri> uriCompleter = new Completer<Uri>();
@@ -79,9 +77,7 @@ class Service {
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
   static String getIsolateID(Isolate isolate) {
-    if (isolate is! Isolate) {
-      throw new ArgumentError.value(isolate, 'isolate', 'Must be an Isolate');
-    }
+    ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIDFromSendPort(isolate.controlPort);
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
@@ -35,7 +35,8 @@ main() {
 ''');
     IfStatement ifStatement = findNodeAtString('if (');
     Expression condition = ifStatement.condition;
-    String result = new CorrectionUtils(testUnit).invertCondition(condition);
+    String result =
+        new CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
   }
 
@@ -45,7 +46,7 @@ import 'dart:async';
 import 'dart:math';
 ''');
     Source newLibrary = _getDartSource('dart:collection');
-    _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -58,7 +59,7 @@ import 'dart:collection';
 import 'dart:math';
 ''');
     Source newLibrary = _getDartSource('dart:async');
-    _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -71,7 +72,7 @@ import 'dart:async';
 import 'dart:collection';
 ''');
     Source newLibrary = _getDartSource('dart:math');
-    _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -85,7 +86,7 @@ import 'dart:math';
 ''');
     Source newLibrary1 = _getDartSource('dart:async');
     Source newLibrary2 = _getDartSource('dart:html');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -100,7 +101,7 @@ import 'dart:math';
 ''');
     Source newLibrary1 = _getDartSource('dart:async');
     Source newLibrary2 = _getDartSource('dart:collection');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -115,7 +116,7 @@ import 'dart:collection';
 ''');
     Source newLibrary1 = _getDartSource('dart:html');
     Source newLibrary2 = _getDartSource('dart:math');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -131,7 +132,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 library test;
 
 import 'dart:async';
@@ -149,7 +150,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 /// Comment.
 
 import 'dart:async';
@@ -167,7 +168,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 #!/bin/dart
 
 import 'dart:async';
@@ -183,7 +184,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:math';
 
@@ -192,14 +193,14 @@ class A {}
   }
 
   test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
-    addPackageSource('aaa', 'aaa.dart', '');
+    addPackageFile('aaa', 'aaa.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
 ''');
     Source newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
-    _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -208,14 +209,14 @@ import 'package:bbb/bbb.dart';
   }
 
   test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
-    addPackageSource('bbb', 'bbb.dart', '');
+    addPackageFile('bbb', 'bbb.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:bbb/bbb.dart';
 ''');
     Source newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
-    _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -224,15 +225,15 @@ import 'package:bbb/bbb.dart';
   }
 
   test_addLibraryImports_package_hasImports_between() async {
-    addPackageSource('aaa', 'aaa.dart', '');
-    addPackageSource('ddd', 'ddd.dart', '');
+    addPackageFile('aaa', 'aaa.dart', '');
+    addPackageFile('ddd', 'ddd.dart', '');
     await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';
 ''');
     Source newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
     Source newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
-    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'package:aaa/aaa.dart';
 import 'package:bbb/bbb.dart';
 import 'package:ccc/ccc.dart';
@@ -285,10 +286,11 @@ import 'package:ddd/ddd.dart';
     await assert_invertCondition('(((b1)))', '!b1');
   }
 
-  void _assertAddLibraryImport(List<Source> newLibraries, String expectedCode) {
+  Future<void> _assertAddLibraryImport(
+      List<Source> newLibraries, String expectedCode) async {
     SourceChange change = new SourceChange('');
-    addLibraryImports(resourceProvider.pathContext, change, testLibraryElement,
-        newLibraries.toSet());
+    await addLibraryImports(testAnalysisResult.session, change,
+        testLibraryElement, newLibraries.toSet());
     SourceFileEdit testEdit = change.getFileEdit(testFile);
     expect(testEdit, isNotNull);
     String resultCode = SourceEdit.applySequence(testCode, testEdit.edits);

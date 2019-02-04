@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/type_variable_uses.dart:7:15: Error: Can only use type variables in instance methods.
 //   static C<T> staticMethod() {
@@ -59,13 +61,12 @@
 // pkg/front_end/testcases/type_variable_uses.dart:28:28: Error: Type variables can't be used as constants.
 //     const <Object>[const C<T>()];
 //                            ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object = dynamic> extends core::Object {
-  const constructor •() → void
+  const constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
   static method staticMethod() → self::C<dynamic> {

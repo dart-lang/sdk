@@ -18,6 +18,7 @@ class _SecureFilter {
 }
 
 @patch
+@pragma("vm:entry-point")
 class X509Certificate {
   @patch
   @pragma("vm:entry-point")
@@ -63,6 +64,7 @@ class _SecureSocket extends _Socket implements SecureSocket {
  * are backed by an external C array of bytes, so that both Dart code and
  * native code can access the same data.
  */
+@pragma("vm:entry-point")
 class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
   // Performance is improved if a full buffer of plaintext fits

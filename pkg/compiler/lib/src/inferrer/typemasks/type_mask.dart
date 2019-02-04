@@ -12,11 +12,11 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   Set<TypeMask> _masks;
 
   @override
-  bool applies(MemberEntity element, Selector selector, JClosedWorld world) {
+  bool canHit(MemberEntity element, Name name, JClosedWorld world) {
     if (isAll) return true;
     if (_masks == null) return false;
     for (TypeMask mask in _masks) {
-      if (mask.canHit(element, selector, world)) return true;
+      if (mask.canHit(element, name, world)) return true;
     }
     return false;
   }
@@ -77,8 +77,10 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
   const TypeMaskSelectorStrategy();
 
   @override
-  UniverseSelectorConstraints createSelectorConstraints(Selector selector) {
-    return new IncreasingTypeMaskSet();
+  UniverseSelectorConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint) {
+    return new IncreasingTypeMaskSet()
+      ..addReceiverConstraint(initialConstraint);
   }
 
   @override
@@ -87,15 +89,23 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
     Selector selector = dynamicUse.selector;
     TypeMask mask = dynamicUse.receiverConstraint;
     return selector.appliesUnnamed(member) &&
-        (mask == null || mask.canHit(member, selector, world));
+        (mask == null || mask.canHit(member, selector.memberName, world));
   }
 }
 
-/**
- * A type mask represents a set of contained classes, but the
- * operations on it are not guaranteed to be precise and they may
- * yield conservative answers that contain too many classes.
- */
+/// Enum used for identifying [TypeMask] subclasses in serialization.
+enum TypeMaskKind {
+  flat,
+  union,
+  container,
+  map,
+  dictionary,
+  value,
+}
+
+/// A type mask represents a set of contained classes, but the
+/// operations on it are not guaranteed to be precise and they may
+/// yield conservative answers that contain too many classes.
 abstract class TypeMask implements AbstractValue {
   factory TypeMask(
       ClassEntity base, int kind, bool isNullable, JClosedWorld closedWorld) {
@@ -209,10 +219,32 @@ abstract class TypeMask implements AbstractValue {
     return UnionTypeMask.unionOf(masks, closedWorld);
   }
 
-  /**
-   * If [mask] is forwarding, returns the first non-forwarding [TypeMask] in
-   * [mask]'s forwarding chain.
-   */
+  /// Deserializes a [TypeMask] object from [source].
+  factory TypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    TypeMaskKind kind = source.readEnum(TypeMaskKind.values);
+    switch (kind) {
+      case TypeMaskKind.flat:
+        return new FlatTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.union:
+        return new UnionTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.container:
+        return new ContainerTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.map:
+        return new MapTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.dictionary:
+        return new DictionaryTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.value:
+        return new ValueTypeMask.readFromDataSource(source, closedWorld);
+    }
+    throw new UnsupportedError("Unexpected TypeMaskKind $kind.");
+  }
+
+  /// Serializes this [TypeMask] to [sink].
+  void writeToDataSink(DataSink sink);
+
+  /// If [mask] is forwarding, returns the first non-forwarding [TypeMask] in
+  /// [mask]'s forwarding chain.
   static TypeMask nonForwardingMask(mask) {
     while (mask.isForwarding) {
       mask = mask.forwardTo;
@@ -220,13 +252,11 @@ abstract class TypeMask implements AbstractValue {
     return mask;
   }
 
-  /**
-   * Asserts that this mask uses the smallest possible representation for
-   * its types. Currently, we normalize subtype and subclass to exact if no
-   * subtypes or subclasses are present and subtype to subclass if only
-   * subclasses exist. We also normalize exact to empty if the corresponding
-   * baseclass was never instantiated.
-   */
+  /// Asserts that this mask uses the smallest possible representation for
+  /// its types. Currently, we normalize subtype and subclass to exact if no
+  /// subtypes or subclasses are present and subtype to subclass if only
+  /// subclasses exist. We also normalize exact to empty if the corresponding
+  /// baseclass was never instantiated.
   static bool assertIsNormalized(TypeMask mask, JClosedWorld closedWorld) {
     String reason = getNotNormalizedReason(mask, closedWorld);
     assert(reason == null,
@@ -271,14 +301,10 @@ abstract class TypeMask implements AbstractValue {
     return 'Unknown type mask $mask.';
   }
 
-  /**
-   * Returns a nullable variant of [this] type mask.
-   */
+  /// Returns a nullable variant of [this] type mask.
   TypeMask nullable();
 
-  /**
-   * Returns a non-nullable variant of [this] type mask.
-   */
+  /// Returns a non-nullable variant of [this] type mask.
   TypeMask nonNullable();
 
   /// Whether nothing matches this mask, not even null.
@@ -325,38 +351,28 @@ abstract class TypeMask implements AbstractValue {
   bool containsOnlyString(JClosedWorld closedWorld);
   bool containsOnly(ClassEntity cls);
 
-  /**
-   * Compares two [TypeMask] objects for structural equality.
-   *
-   * Note: This may differ from semantic equality in the set containment sense.
-   *   Use [containsMask] and [isInMask] for that, instead.
-   */
+  /// Compares two [TypeMask] objects for structural equality.
+  ///
+  /// Note: This may differ from semantic equality in the set containment sense.
+  ///   Use [containsMask] and [isInMask] for that, instead.
   bool operator ==(other);
 
-  /**
-   * If this returns `true`, [other] is guaranteed to be a supertype of this
-   * mask, i.e., this mask is in [other]. However, the inverse does not hold.
-   * Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
-   * false negatives.
-   */
+  /// If this returns `true`, [other] is guaranteed to be a supertype of this
+  /// mask, i.e., this mask is in [other]. However, the inverse does not hold.
+  /// Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
+  /// false negatives.
   bool isInMask(TypeMask other, JClosedWorld closedWorld);
 
-  /**
-   * If this returns `true`, [other] is guaranteed to be a subtype of this mask,
-   * i.e., this mask contains [other]. However, the inverse does not hold.
-   * Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
-   * false negatives.
-   */
+  /// If this returns `true`, [other] is guaranteed to be a subtype of this
+  /// mask, i.e. this mask contains [other]. However, the inverse does not hold.
+  /// Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
+  /// false negatives.
   bool containsMask(TypeMask other, JClosedWorld closedWorld);
 
-  /**
-   * Returns whether this type mask is an instance of [cls].
-   */
+  /// Returns whether this type mask is an instance of [cls].
   bool satisfies(ClassEntity cls, JClosedWorld closedWorld);
 
-  /**
-   * Returns whether or not this type mask contains the given class [cls].
-   */
+  /// Returns whether or not this type mask contains the given class [cls].
   bool contains(ClassEntity cls, JClosedWorld closedWorld);
 
   /// Returns whether or not this type mask contains all types.
@@ -366,34 +382,24 @@ abstract class TypeMask implements AbstractValue {
   /// otherwise returns `null`.  This method is conservative.
   ClassEntity singleClass(JClosedWorld closedWorld);
 
-  /**
-   * Returns a type mask representing the union of [this] and [other].
-   */
+  /// Returns a type mask representing the union of [this] and [other].
   TypeMask union(TypeMask other, JClosedWorld closedWorld);
 
   /// Returns whether the intersection of this and [other] is empty.
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld);
 
-  /**
-   * Returns a type mask representing the intersection of [this] and [other].
-   */
+  /// Returns a type mask representing the intersection of [this] and [other].
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld);
 
-  /**
-   * Returns whether [element] is a potential target when being
-   * invoked on this type mask. [selector] is used to ensure library
-   * privacy is taken into account.
-   */
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld);
+  /// Returns whether [element] is a potential target when being invoked on this
+  /// type mask. [name] is used to ensure library privacy is taken into account.
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].
   bool needsNoSuchMethodHandling(Selector selector, JClosedWorld world);
 
-  /**
-   * Returns the [element] that is known to always be hit at runtime
-   * on this mask. Returns null if there is none.
-   */
+  /// Returns the [element] that is known to always be hit at runtime
+  /// on this mask. Returns null if there is none.
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld);
 }

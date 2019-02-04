@@ -26,7 +26,7 @@ worlds:
             print("Foo!");
           }
         }
-      .packages: mypackage:${outDirUri}mypackage
+      .packages: mypackage:mypackage
     expectedLibraryCount: 2
   - entry: main.dart
     invalidate:
@@ -42,7 +42,7 @@ worlds:
             print("Foo!");
           }
         }
-      .packages: mypackage:${outDirUri}mypackage
+      .packages: mypackage:mypackage
     expectedLibraryCount: 1
     expectInitializeFromDill: true
   - entry: main.dart

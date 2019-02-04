@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object = dynamic> = (T) → dynamic;
 class C<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C<self::C::T>
     ;
   method f(self::C::T x) → void
     ;
@@ -18,11 +18,11 @@ class C<T extends core::Object = dynamic> extends core::Object {
     ;
 }
 class D extends self::C<core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     ;
 }
 class E extends self::C<core::num> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E
     ;
   method f(covariant core::int x) → void
     ;

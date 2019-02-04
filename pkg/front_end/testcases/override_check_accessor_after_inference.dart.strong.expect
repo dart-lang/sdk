@@ -1,49 +1,42 @@
-// Formatted problems:
+library;
 //
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F::y' is #lib1::A, which does not match the return type of the overridden method (#lib1::B).
-// Change to a subtype of #lib1::B.
+// Problems in library:
+//
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F.y' is 'A', which does not match the return type of the overridden method, 'B'.
+//  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
+// Change to a subtype of 'B'.
 //   A get /*@error=OverrideTypeMismatchReturnType*/ y => null;
 //                                                   ^
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:18:7: Error: This is the overridden method ('y').
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:18:7: Context: This is the overridden method ('y').
 //   get y => null; // Inferred type: B
 //       ^
 //
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
-// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F.x' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+//  - 'B' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
 //   void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}
 //                                                         ^
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:17:12: Error: This is the overridden method ('x').
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:17:12: Context: This is the overridden method ('x').
 //   void set x(value) {} // Inferred type: A
 //            ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F::y' is #lib1::A, which does not match the return type of the overridden method (#lib1::B).
-// Change to a subtype of #lib1::B.
-//   A get /*@error=OverrideTypeMismatchReturnType*/ y => null;
-//                                                   ^
-//
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
-// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
-//   void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}
-//                                                         ^
-
-library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   set x(self::A value) → void {}
@@ -51,7 +44,7 @@ class C extends core::Object {
     return null;
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   set x(self::A value) → void {}
@@ -59,7 +52,7 @@ class D extends self::C {
     return null;
 }
 class E extends self::D {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E
     : super self::D::•()
     ;
   set x(self::A value) → void {}
@@ -67,7 +60,7 @@ class E extends self::D {
     return null;
 }
 class F extends self::D {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::F
     : super self::D::•()
     ;
   set x(self::B value) → void {}

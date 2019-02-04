@@ -218,7 +218,40 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  int get hashCode => JS('int', '# & 0x1FFFFFFF', this);
+  int get hashCode {
+    int intValue = JS('int', '# | 0', this);
+    // Fast exit for integers in signed 32-bit range. Masking converts -0.0 to 0
+    // and ensures that result fits in JavaScript engine's Smi range.
+    if (this == intValue) return 0x1FFFFFFF & intValue;
+
+    // We would like to access the exponent and mantissa as integers but there
+    // are no JavaScript operations that do this, so use log2-floor-pow-divide
+    // to extract the values.
+    num absolute = JS('num', 'Math.abs(#)', this);
+    num lnAbsolute = JS('num', 'Math.log(#)', absolute);
+    num log2 = lnAbsolute / ln2;
+    // Floor via '# | 0' converts NaN to zero so the final result is not NaN.
+    int floorLog2 = JS('int', '# | 0', log2);
+    num factor = JS('num', 'Math.pow(2, #)', floorLog2);
+    num scaled = absolute < 1 ? absolute / factor : factor / absolute;
+    // [scaled] is in the range [0.5, 1].
+
+    // Multiply and truncate to pick up all the mantissa bits. Multiplying by
+    // 0x20000000000000 (which has 53 zero bits) converts the mantissa into an
+    // integer. There are interesting subsets where all the bit variance is in
+    // the most significant bits of the mantissa (e.g. 0.5, 0.625, 0.75), so we
+    // need to mix in the most significant bits. We do this by scaling with a
+    // constant that has many bits set to use the multiplier to mix in bits from
+    // all over the mantissa into low positions.
+    num rescaled1 = scaled * 0x20000000000000;
+    num rescaled2 = scaled * 0x0C95A6C285A6C9;
+    int d1 = JS('int', '# | 0', rescaled1);
+    int d2 = JS('int', '# | 0', rescaled2);
+    // Mix in exponent to distinguish e.g. 1.25 from 2.5.
+    int d3 = floorLog2;
+    int h = 0x1FFFFFFF & ((d1 + d2) * (601 * 997) + d3 * (1259));
+    return h;
+  }
 
   @notNull
   JSNumber operator -() => JS('num', r'-#', this);

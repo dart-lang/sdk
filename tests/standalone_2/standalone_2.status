@@ -94,11 +94,9 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 [ $runtime == none && !$strong ]
 io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
 
-[ $system == linux && ($runtime == flutter || $runtime == vm) ]
+[ $runtime == vm && $system == linux ]
 io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 io/http_launch_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
-io/http_proxy_test: Skip # These tests have started timing out and issue 25649 has been filed to investigate, skipping these tests temporarily to get the bots to be green again.
-io/secure_builtin_roots_test: Skip # These tests have started timing out and issue 25649 has been filed to investigate, skipping these tests temporarily to get the bots to be green again.
 
 [ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
 io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
@@ -106,6 +104,9 @@ io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs
 io/secure_server_client_certificate_test: Skip # Re-enable once the bots have been updated. Issue #26057
 io/socket_connect_stream_data_close_cancel_test: Pass, Timeout # Issue 27453
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
+
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
 
 [ $strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
 io/file_error_test: RuntimeError
@@ -120,7 +121,6 @@ io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
-io/socket_upgrade_to_secure_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
@@ -159,7 +159,7 @@ fragmentation_test: Skip
 [ $mode == product || $runtime == dart_precompiled ]
 no_assert_test: SkipByDesign
 
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+[ $runtime == dart_precompiled || $runtime == vm ]
 deferred_transitive_import_error_test: Skip
 io/https_client_certificate_test: RuntimeError # Issue 24070 Failures in secure networking while NSS is replaced with BoringSSL
 io/non_utf8_output_test: NonUtf8Output, OK # This test checks that the test runner correctly detects and reports non-utf8 output from a test.

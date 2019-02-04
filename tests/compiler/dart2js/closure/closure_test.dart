@@ -10,10 +10,10 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/universe/codegen_world_builder.dart';
+import 'package:compiler/src/util/features.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -23,22 +23,21 @@ import 'package:kernel/ast.dart' as ir;
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const ClosureDataComputer(),
-        args: args, testOmit: true);
+    await checkTests(dataDir, const ClosureDataComputer(), args: args);
   });
 }
 
-class ClosureDataComputer extends DataComputer {
+class ClosureDataComputer extends DataComputer<String> {
   const ClosureDataComputer();
 
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
-    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
-    ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    ClosureData closureDataLookup = closedWorld.closureDataLookup;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     assert(
         definition.kind == MemberKind.regular ||
@@ -55,12 +54,15 @@ class ClosureDataComputer extends DataComputer {
             verbose: verbose)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// Kernel IR visitor for computing closure data.
-class ClosureIrChecker extends IrDataExtractor {
+class ClosureIrChecker extends IrDataExtractor<String> {
   final MemberEntity member;
-  final ClosureDataLookup closureDataLookup;
+  final ClosureData closureDataLookup;
   final CodegenWorldBuilder codegenWorldBuilder;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
@@ -74,7 +76,7 @@ class ClosureIrChecker extends IrDataExtractor {
 
   ClosureIrChecker(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       JsToElementMap elementMap,
       this.member,
       this._localsMap,
@@ -216,7 +218,7 @@ class ClosureIrChecker extends IrDataExtractor {
     } else {
       //Expect.isFalse(capturedScope.localIsUsedInTryOrSync(local));
     }
-    if (capturedScope.isBoxed(local)) {
+    if (capturedScope.isBoxedVariable(local)) {
       features.add('boxed');
     }
     if (capturedScope.context == local) {

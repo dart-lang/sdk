@@ -1,7 +1,6 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--supermixin
 
 import "package:expect/expect.dart";
 
@@ -23,8 +22,8 @@ abstract class FileSystemEntity implements io_FileSystemEntity {}
 abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
     D extends io_FileSystemEntity> implements FileSystemEntity {}
 
-abstract class ForwardingDirectory<T extends Directory>
-    extends ForwardingFileSystemEntity<T, io_Directory> implements Directory {
+mixin ForwardingDirectory<T extends Directory>
+    on ForwardingFileSystemEntity<T, io_Directory> implements Directory {
   get t => T;
 }
 

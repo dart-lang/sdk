@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::bool b;
+  constructor •(core::Object o) → self::C
+    : self::C::b = o, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  core::Object o = 1;
+  try {
+    new self::C::•(o);
+    throw "no exception";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}

@@ -1,11 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionContributor, CompletionRequest;
+    show AbortCompletion, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -29,14 +29,15 @@ import 'package:analysis_server/src/services/completion/dart/static_member_contr
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -53,6 +54,14 @@ class DartCompletionManager implements CompletionContributor {
    */
   static DartContributionSorter contributionSorter = new CommonUsageSorter();
 
+  /// If not `null`, then instead of using [ImportedReferenceContributor],
+  /// fill this set with kinds of elements that are applicable at the
+  /// completion location, so should be suggested from available suggestion
+  /// sets.
+  final Set<protocol.ElementKind> includedSuggestionKinds;
+
+  DartCompletionManager({this.includedSuggestionKinds});
+
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
@@ -60,7 +69,7 @@ class DartCompletionManager implements CompletionContributor {
     await null;
     request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.result.path)) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     CompletionPerformance performance =
@@ -70,7 +79,7 @@ class DartCompletionManager implements CompletionContributor {
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     SourceRange range =
@@ -86,7 +95,6 @@ class DartCompletionManager implements CompletionContributor {
       new ArgListContributor(),
       new CombinatorContributor(),
       new FieldFormalContributor(),
-      new ImportedReferenceContributor(),
       new InheritedReferenceContributor(),
       new KeywordContributor(),
       new LabelContributor(),
@@ -102,37 +110,50 @@ class DartCompletionManager implements CompletionContributor {
       new UriContributor(),
       new VariableNameContributor()
     ];
-    for (DartCompletionContributor contributor in contributors) {
-      String contributorTag =
-          'DartCompletionManager - ${contributor.runtimeType}';
-      performance.logStartTime(contributorTag);
-      List<CompletionSuggestion> contributorSuggestions =
-          await contributor.computeSuggestions(dartRequest);
-      performance.logElapseTime(contributorTag);
-      request.checkAborted();
 
-      for (CompletionSuggestion newSuggestion in contributorSuggestions) {
-        String key = newSuggestion.completion;
+    if (includedSuggestionKinds != null) {
+      _addIncludedSuggestionKinds(dartRequest);
+    } else {
+      contributors.add(new ImportedReferenceContributor());
+    }
 
-        // Append parenthesis for constructors to disambiguate from classes.
-        if (_isConstructor(newSuggestion)) {
-          key += '()';
-          String className = _getConstructorClassName(newSuggestion);
-          _ensureList(constructorMap, className).add(key);
-        }
+    try {
+      for (DartCompletionContributor contributor in contributors) {
+        String contributorTag =
+            'DartCompletionManager - ${contributor.runtimeType}';
+        performance.logStartTime(contributorTag);
+        List<CompletionSuggestion> contributorSuggestions =
+            await contributor.computeSuggestions(dartRequest);
+        performance.logElapseTime(contributorTag);
+        request.checkAborted();
 
-        // Local declarations hide both the class and its constructors.
-        if (!_isClass(newSuggestion)) {
-          List<String> constructorKeys = constructorMap[key];
-          constructorKeys?.forEach(suggestionMap.remove);
-        }
+        for (CompletionSuggestion newSuggestion in contributorSuggestions) {
+          String key = newSuggestion.completion;
 
-        CompletionSuggestion oldSuggestion = suggestionMap[key];
-        if (oldSuggestion == null ||
-            oldSuggestion.relevance < newSuggestion.relevance) {
-          suggestionMap[key] = newSuggestion;
+          // Append parenthesis for constructors to disambiguate from classes.
+          if (_isConstructor(newSuggestion)) {
+            key += '()';
+            String className = _getConstructorClassName(newSuggestion);
+            _ensureList(constructorMap, className).add(key);
+          }
+
+          // Local declarations hide both the class and its constructors.
+          if (!_isClass(newSuggestion)) {
+            List<String> constructorKeys = constructorMap[key];
+            constructorKeys?.forEach(suggestionMap.remove);
+          }
+
+          CompletionSuggestion oldSuggestion = suggestionMap[key];
+          if (oldSuggestion == null ||
+              oldSuggestion.relevance < newSuggestion.relevance) {
+            suggestionMap[key] = newSuggestion;
+          }
         }
       }
+    } on InconsistentAnalysisException {
+      // The state of the code being analyzed has changed, so results are likely
+      // to be inconsistent. Just abort the operation.
+      throw new AbortCompletion();
     }
 
     // Adjust suggestion relevance before returning
@@ -143,6 +164,27 @@ class DartCompletionManager implements CompletionContributor {
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;
+  }
+
+  void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
+    var opType = request.opType;
+
+    if (!opType.includeIdentifiers) return;
+
+    var kinds = includedSuggestionKinds;
+    if (kinds != null) {
+      if (opType.includeTypeNameSuggestions) {
+        kinds.add(protocol.ElementKind.CLASS);
+        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.ENUM);
+        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.MIXIN);
+      }
+      if (opType.includeReturnValueSuggestions) {
+        kinds.add(protocol.ElementKind.FUNCTION);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
+    }
   }
 
   static List<String> _ensureList(Map<String, List<String>> map, String key) {
@@ -178,7 +220,7 @@ class DartCompletionManager implements CompletionContributor {
  */
 class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
-  final AnalysisResult result;
+  final ResolvedUnitResult result;
 
   @override
   final ResourceProvider resourceProvider;
@@ -196,7 +238,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   Expression dotTarget;
 
   @override
-  Source librarySource;
+  final Source librarySource;
 
   @override
   CompletionTarget target;
@@ -249,7 +291,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   String get sourceContents => result.content;
 
   @override
-  SourceFactory get sourceFactory => result.sourceFactory;
+  SourceFactory get sourceFactory {
+    DriverBasedAnalysisContext context = result.session.analysisContext;
+    return context.driver.sourceFactory;
+  }
 
   /**
    * Throw [AbortCompletion] if the completion request has been aborted.
@@ -292,8 +337,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    * based on the given [request]. This method will throw [AbortCompletion]
    * if the completion request has been aborted.
    */
-  static Future<DartCompletionRequest> from(CompletionRequest request,
-      {ResultDescriptor resultDescriptor}) async {
+  static Future<DartCompletionRequest> from(CompletionRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     request.checkAborted();

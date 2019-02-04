@@ -1,16 +1,11 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/expressions.dart:74:16: Error: Method not found: 'int.toString'.
-//     print(int?.toString());
-//                ^^^^^^^^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/expressions.dart:74:16: Error: Method not found: 'int.toString'.
-//     print(int?.toString());
-//                ^^^^^^^^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/expressions.dart:74:16: Error: Method not found: 'int.toString'.
+//     print(int?.toString());
+//                ^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -81,7 +76,9 @@ static method main() → dynamic {
   core::print(core::int);
   core::print(let final core::Type #t5 = core::int in let final dynamic #t6 = #t5.{core::Object::toString}() in #t5);
   try {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#int.toString, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    core::print(invalid-expression "pkg/front_end/testcases/expressions.dart:74:16: Error: Method not found: 'int.toString'.
+    print(int?.toString());
+               ^^^^^^^^");
     throw "Shouldn't work";
   }
   on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {

@@ -992,26 +992,6 @@ _processLoadRequest(request) {
 
   // Handle the request specified in the tag.
   switch (tag) {
-    case _Dart_kScriptTag:
-      {
-        Uri uri = Uri.parse(request[4]);
-        // Remember the root script.
-        loaderState._rootScript = uri;
-        _handleResourceRequest(
-            loaderState, sp, traceLoading, tag, uri, uri, null);
-      }
-      break;
-    case _Dart_kSourceTag:
-    case _Dart_kImportTag:
-      {
-        // The url of the file being loaded.
-        var uri = Uri.parse(request[4]);
-        // The library that is importing/parting the file.
-        String libraryUrl = request[5];
-        _handleResourceRequest(
-            loaderState, sp, traceLoading, tag, uri, uri, libraryUrl);
-      }
-      break;
     case _Dart_kInitLoader:
       {
         String packageRoot = request[4];

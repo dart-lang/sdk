@@ -1,0 +1,224 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/static.dart:28:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:29:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:31:9: Warning: Setter not found: 'staticConstant'.
+//     Foo.staticConstant++;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:32:13: Warning: Setter not found: 'staticConstant'.
+//     use(Foo.staticConstant++);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:35:9: Warning: Setter not found: 'staticFunction'.
+//     Foo.staticFunction++;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:36:13: Warning: Setter not found: 'staticFunction'.
+//     use(Foo.staticFunction++);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:37:9: Warning: Setter not found: 'staticGetter'.
+//     Foo.staticGetter++;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:38:13: Warning: Setter not found: 'staticGetter'.
+//     use(Foo.staticGetter++);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:39:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter++;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:40:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter++);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:42:11: Warning: Setter not found: 'staticConstant'.
+//     ++Foo.staticConstant;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:43:15: Warning: Setter not found: 'staticConstant'.
+//     use(++Foo.staticConstant);
+//               ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:46:11: Warning: Setter not found: 'staticFunction'.
+//     ++Foo.staticFunction;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:47:15: Warning: Setter not found: 'staticFunction'.
+//     use(++Foo.staticFunction);
+//               ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:48:11: Warning: Setter not found: 'staticGetter'.
+//     ++Foo.staticGetter;
+//           ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:49:15: Warning: Setter not found: 'staticGetter'.
+//     use(++Foo.staticGetter);
+//               ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:50:11: Warning: Getter not found: 'staticSetter'.
+//     ++Foo.staticSetter;
+//           ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:51:15: Warning: Getter not found: 'staticSetter'.
+//     use(++Foo.staticSetter);
+//               ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:61:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter();
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:62:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter());
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:64:9: Warning: Setter not found: 'staticConstant'.
+//     Foo.staticConstant = 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:65:13: Warning: Setter not found: 'staticConstant'.
+//     use(Foo.staticConstant = 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:68:9: Warning: Setter not found: 'staticFunction'.
+//     Foo.staticFunction = 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:69:13: Warning: Setter not found: 'staticFunction'.
+//     use(Foo.staticFunction = 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:70:9: Warning: Setter not found: 'staticGetter'.
+//     Foo.staticGetter = 87;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:71:13: Warning: Setter not found: 'staticGetter'.
+//     use(Foo.staticGetter = 87);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:75:9: Warning: Setter not found: 'staticConstant'.
+//     Foo.staticConstant ??= 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:76:13: Warning: Setter not found: 'staticConstant'.
+//     use(Foo.staticConstant ??= 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:79:9: Warning: Setter not found: 'staticFunction'.
+//     Foo.staticFunction ??= 87;
+//         ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:80:13: Warning: Setter not found: 'staticFunction'.
+//     use(Foo.staticFunction ??= 87);
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:81:9: Warning: Setter not found: 'staticGetter'.
+//     Foo.staticGetter ??= 87;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:82:13: Warning: Setter not found: 'staticGetter'.
+//     use(Foo.staticGetter ??= 87);
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:83:9: Warning: Getter not found: 'staticSetter'.
+//     Foo.staticSetter ??= 87;
+//         ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/static.dart:84:13: Warning: Getter not found: 'staticSetter'.
+//     use(Foo.staticSetter ??= 87);
+//             ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  static const field dynamic staticConstant = 42;
+  static field dynamic staticField = 42;
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  static method staticFunction() → dynamic {}
+  static get staticGetter() → dynamic
+    return null;
+  static set staticSetter(dynamic _) → dynamic {}
+}
+static method use(dynamic x) → dynamic {
+  if(x.==(new core::DateTime::now().millisecondsSinceEpoch))
+    throw "Shouldn't happen";
+}
+static method main() → dynamic {
+  try {
+    self::Foo::staticConstant;
+    self::use(self::Foo::staticConstant);
+    self::Foo::staticField;
+    self::use(self::Foo::staticField);
+    self::Foo::staticFunction;
+    self::use(self::Foo::staticFunction);
+    self::Foo::staticGetter;
+    self::use(self::Foo::staticGetter);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticConstant.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(let final dynamic #t1 = self::Foo::staticConstant in let final dynamic #t2 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t1.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t1);
+    self::Foo::staticField = self::Foo::staticField.+(1);
+    self::use(let final dynamic #t3 = self::Foo::staticField in let final dynamic #t4 = self::Foo::staticField = #t3.+(1) in #t3);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticFunction.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(let final dynamic #t5 = self::Foo::staticFunction in let final dynamic #t6 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t5.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t5);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(let final dynamic #t7 = self::Foo::staticGetter in let final dynamic #t8 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t7.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t7);
+    self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).+(1);
+    self::use(let final dynamic #t9 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in let final dynamic #t10 = self::Foo::staticSetter = #t9.+(1) in #t9);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticConstant.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticConstant.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    self::Foo::staticField = self::Foo::staticField.+(1);
+    self::use(self::Foo::staticField = self::Foo::staticField.+(1));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticFunction.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticFunction.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).+(1);
+    self::use(self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).+(1));
+    self::Foo::staticConstant.call();
+    self::use(self::Foo::staticConstant.call());
+    self::Foo::staticField.call();
+    self::use(self::Foo::staticField.call());
+    self::Foo::staticFunction();
+    self::use(self::Foo::staticFunction());
+    self::Foo::staticGetter.call();
+    self::use(self::Foo::staticGetter.call());
+    (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).call();
+    self::use((throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).call());
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    self::Foo::staticField = 87;
+    self::use(self::Foo::staticField = 87);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    self::Foo::staticSetter = 87;
+    self::use(self::Foo::staticSetter = 87);
+    self::Foo::staticConstant.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : null;
+    self::use(let final dynamic #t11 = self::Foo::staticConstant in #t11.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : #t11);
+    self::Foo::staticField.==(null) ? self::Foo::staticField = 87 : null;
+    self::use(let final dynamic #t12 = self::Foo::staticField in #t12.==(null) ? self::Foo::staticField = 87 : #t12);
+    self::Foo::staticFunction.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : null;
+    self::use(let final dynamic #t13 = self::Foo::staticFunction in #t13.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : #t13);
+    self::Foo::staticGetter.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : null;
+    self::use(let final dynamic #t14 = self::Foo::staticGetter in #t14.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : #t14);
+    (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).==(null) ? self::Foo::staticSetter = 87 : null;
+    self::use(let final dynamic #t15 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t15.==(null) ? self::Foo::staticSetter = 87 : #t15);
+  }
+  on core::NoSuchMethodError catch(no-exception-var) {
+  }
+}

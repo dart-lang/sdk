@@ -4,29 +4,29 @@ import "dart:core" as core;
 
 class W extends core::Object {
   field core::String native;
-  constructor •() → void
+  constructor •() → self::W
     ;
 }
 class X extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::X
     ;
   method native() → core::String
     ;
 }
 abstract class Y1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Y1
     ;
   abstract get native() → core::String;
 }
 class Y2 extends self::Y1 {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Y2
     ;
   get native() → core::String
     ;
 }
 class Z extends core::Object {
   field core::String f;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Z
     ;
   set native(core::String s) → dynamic
     ;

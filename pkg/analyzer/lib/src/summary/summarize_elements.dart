@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library serialization.elements;
 
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -28,7 +26,7 @@ class PackageBundleAssembler {
    * data that was previously not summarized), this value should be incremented
    * by 1.
    */
-  static const int currentMinorVersion = 0;
+  static const int currentMinorVersion = 1;
 
   final List<String> _linkedLibraryUris = <String>[];
   final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];

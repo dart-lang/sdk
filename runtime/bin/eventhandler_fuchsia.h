@@ -10,7 +10,7 @@
 #endif
 
 #include <errno.h>
-#include <lib/fdio/private.h>
+#include <lib/fdio/unsafe.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <zircon/status.h>
@@ -37,7 +37,7 @@ class IOHandle : public ReferenceCounted<IOHandle> {
         fd_(fd),
         handle_(ZX_HANDLE_INVALID),
         wait_key_(0),
-        fdio_(__fdio_fd_to_io(fd)) {}
+        fdio_(fdio_unsafe_fd_to_io(fd)) {}
 
   intptr_t fd() const { return fd_; }
 
@@ -63,7 +63,7 @@ class IOHandle : public ReferenceCounted<IOHandle> {
  private:
   ~IOHandle() {
     if (fdio_ != NULL) {
-      __fdio_release(fdio_);
+      fdio_unsafe_release(fdio_);
     }
     delete mutex_;
   }

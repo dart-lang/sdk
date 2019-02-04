@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/parser.dart'
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show BeginToken, SyntheticBeginToken, SyntheticStringToken, SyntheticToken;
+    show SyntheticStringToken, SyntheticToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -46,7 +46,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier;
+        templateExpectedIdentifier,
+        templateUnexpectedToken;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
@@ -95,6 +96,19 @@ class AstBuilder extends StackListener {
   StringLiteral nativeName;
 
   bool parseFunctionBodies = true;
+
+  /// `true` if non-nullable behavior is enabled
+  bool enableNonNullable = false;
+
+  /// `true` if spread-collections behavior is enabled
+  bool enableSpreadCollections = false;
+
+  /// `true` if control-flow-collections behavior is enabled
+  bool enableControlFlowCollections = false;
+
+  /// Is `true` if [enableNonNullable] is enabled, and the library directive
+  /// is annotated with `@pragma('analyzer:non-nullable')`.
+  bool hasPragmaAnalyzerNonNullable = false;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
@@ -152,9 +166,18 @@ class AstBuilder extends StackListener {
 
   void _handleInstanceCreation(Token token) {
     MethodInvocation arguments = pop();
-    ConstructorName constructorName = pop();
+    ConstructorName constructorName;
+    TypeArgumentList typeArguments;
+    var object = pop();
+    if (object is _ConstructorNameWithInvalidTypeArgs) {
+      constructorName = object.name;
+      typeArguments = object.invalidTypeArgs;
+    } else {
+      constructorName = object;
+    }
     push(ast.instanceCreationExpression(
-        token, constructorName, arguments.argumentList));
+        token, constructorName, arguments.argumentList,
+        typeArguments: typeArguments));
   }
 
   @override
@@ -254,6 +277,62 @@ class AstBuilder extends StackListener {
     scriptTag = ast.scriptTag(token);
   }
 
+  void beginIfControlFlow(Token ifToken) {
+    push(ifToken);
+  }
+
+  @override
+  void handleElseControlFlow(Token elseToken) {
+    push(elseToken);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    var thenElement = pop();
+    ParenthesizedExpression condition = pop();
+    Token ifToken = pop();
+    pushIfControlFlowInfo(ifToken, condition, thenElement, null, null);
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    var elseElement = pop();
+    Token elseToken = pop();
+    var thenElement = pop();
+    ParenthesizedExpression condition = pop();
+    Token ifToken = pop();
+    pushIfControlFlowInfo(
+        ifToken, condition, thenElement, elseToken, elseElement);
+  }
+
+  void pushIfControlFlowInfo(Token ifToken, ParenthesizedExpression condition,
+      var thenElement, Token elseToken, var elseElement) {
+    if (enableControlFlowCollections) {
+      push(new _IfControlFlowInfo(
+          ifToken,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          thenElement,
+          elseToken,
+          elseElement));
+    } else {
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+      push(thenElement);
+    }
+  }
+
+  @override
+  void handleSpreadExpression(Token spreadToken) {
+    if (enableSpreadCollections) {
+      push(ast.spreadElement(spreadOperator: spreadToken, expression: pop()));
+    } else {
+      handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
+          spreadToken, spreadToken);
+    }
+  }
+
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
 
@@ -326,7 +405,7 @@ class AstBuilder extends StackListener {
 
   void doPropertyGet() {}
 
-  void endExpressionStatement(Token semicolon) {
+  void handleExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
     Expression expression = pop();
@@ -616,12 +695,23 @@ class AstBuilder extends StackListener {
         SimpleIdentifier fieldName;
         Expression left = initializerObject.leftHandSide;
         if (left is PropertyAccess) {
-          var thisExpression = left.target as ThisExpression;
-          thisKeyword = thisExpression.thisKeyword;
-          period = left.operator;
+          Expression target = left.target;
+          if (target is ThisExpression) {
+            thisKeyword = target.thisKeyword;
+            period = left.operator;
+          } else {
+            assert(target is SuperExpression);
+            // Recovery:
+            // Parser has reported FieldInitializedOutsideDeclaringClass.
+          }
           fieldName = left.propertyName;
+        } else if (left is SimpleIdentifier) {
+          fieldName = left;
         } else {
-          fieldName = left as SimpleIdentifier;
+          // Recovery:
+          // Parser has reported invalid assignment.
+          SuperExpression superExpression = left;
+          fieldName = ast.simpleIdentifier(superExpression.superKeyword);
         }
         initializers.add(ast.constructorFieldInitializer(
             thisKeyword,
@@ -758,25 +848,33 @@ class AstBuilder extends StackListener {
     pop(); // block
   }
 
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  @override
+  void handleForInitializerEmptyStatement(Token token) {
+    debugEvent("ForInitializerEmptyStatement");
+    push(NullValue.Expression);
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    debugEvent("ForInitializerExpressionStatement");
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    debugEvent("ForInitializerLocalVariableDeclaration");
+  }
+
+  @override
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
     assert(optional('for', forKeyword));
     assert(optional('(', leftParen));
     assert(optional(';', leftSeparator));
-    debugEvent("ForStatement");
+    assert(updateExpressionCount >= 0);
 
-    Statement body = pop();
     List<Expression> updates = popTypedList(updateExpressionCount);
     Statement conditionStatement = pop();
     Object initializerPart = pop();
-
-    VariableDeclarationList variableList;
-    Expression initializer;
-    if (initializerPart is VariableDeclarationStatement) {
-      variableList = initializerPart.variables;
-    } else {
-      initializer = initializerPart as Expression;
-    }
 
     Expression condition;
     Token rightSeparator;
@@ -787,17 +885,89 @@ class AstBuilder extends StackListener {
       rightSeparator = (conditionStatement as EmptyStatement).semicolon;
     }
 
-    push(ast.forStatement(
-        forKeyword,
-        leftParen,
-        variableList,
-        initializer,
-        leftSeparator,
-        condition,
-        rightSeparator,
-        updates,
-        leftParen?.endGroup,
-        body));
+    ForParts forLoopParts;
+    if (initializerPart is VariableDeclarationStatement) {
+      forLoopParts = ast.forPartsWithDeclarations(
+        variables: initializerPart.variables,
+        leftSeparator: leftSeparator,
+        condition: condition,
+        rightSeparator: rightSeparator,
+        updaters: updates,
+      );
+    } else {
+      forLoopParts = ast.forPartsWithExpression(
+        initialization: initializerPart as Expression,
+        leftSeparator: leftSeparator,
+        condition: condition,
+        rightSeparator: rightSeparator,
+        updaters: updates,
+      );
+    }
+
+    push(forKeyword);
+    push(leftParen);
+    push(forLoopParts);
+  }
+
+  @override
+  void endForControlFlow(Token token) {
+    debugEvent("endForControlFlow");
+    var entry = pop();
+    ForParts forLoopParts = pop();
+    Token leftParen = pop();
+    Token forToken = pop();
+
+    pushForControlFlowInfo(null, forToken, leftParen, forLoopParts, entry);
+  }
+
+  void pushForControlFlowInfo(Token awaitToken, Token forToken,
+      Token leftParenthesis, ForLoopParts forLoopParts, Object entry) {
+    if (enableControlFlowCollections) {
+      push(new _ForControlFlowInfo(awaitToken, forToken, leftParenthesis,
+          forLoopParts, leftParenthesis.endGroup, entry));
+    } else {
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(forToken), forToken, forToken);
+      push(entry);
+    }
+  }
+
+  @override
+  void endForStatement(Token endToken) {
+    debugEvent("ForStatement");
+    Statement body = pop();
+    ForParts forLoopParts = pop();
+    Token leftParen = pop();
+    Token forToken = pop();
+
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      push(ast.forStatement2(
+        forKeyword: forToken,
+        leftParenthesis: leftParen,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParen.endGroup,
+        body: body,
+      ));
+    } else {
+      VariableDeclarationList variableList;
+      Expression initializer;
+      if (forLoopParts is ForPartsWithDeclarations) {
+        variableList = forLoopParts.variables;
+      } else {
+        initializer = (forLoopParts as ForPartsWithExpression).initialization;
+      }
+      push(ast.forStatement(
+          forToken,
+          leftParen,
+          variableList,
+          initializer,
+          forLoopParts.leftSeparator,
+          forLoopParts.condition,
+          forLoopParts.rightSeparator,
+          forLoopParts.updaters,
+          leftParen?.endGroup,
+          body));
+    }
   }
 
   void handleLiteralList(
@@ -807,10 +977,23 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    List<Expression> expressions = popTypedList(count);
-    TypeArgumentList typeArguments = pop();
-    push(ast.listLiteral(
-        constKeyword, typeArguments, leftBracket, expressions, rightBracket));
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<CollectionElement> elements = popCollectionElements(count);
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.listLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<Expression> expressions = popTypedList(count);
+      TypeArgumentList typeArguments = pop();
+      push(ast.listLiteral(
+          constKeyword, typeArguments, leftBracket, expressions, rightBracket));
+    }
   }
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
@@ -853,6 +1036,41 @@ class AstBuilder extends StackListener {
     push(ast.nullLiteral(token));
   }
 
+  @override
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    // TODO(danrubel): From a type resolution standpoint, this could be either
+    // a set literal or a map literal depending upon the context
+    // in which this expression occurs.
+    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
+  }
+
+  void handleLiteralSet(
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+    assert(optional('{', leftBracket));
+    assert(optionalOrNull('const', constKeyword));
+    assert(optional('}', rightBracket));
+    debugEvent("LiteralSet");
+
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<CollectionElement> elements = popCollectionElements(count);
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.setLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<Expression> entries = popTypedList(count) ?? <Expression>[];
+      TypeArgumentList typeArguments = pop();
+      push(ast.setLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    }
+  }
+
   void handleLiteralMap(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     assert(optional('{', leftBracket));
@@ -860,13 +1078,31 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralMap");
 
-    List<MapLiteralEntry> entries = popTypedList(count) ?? <MapLiteralEntry>[];
-    TypeArgumentList typeArguments = pop();
-    push(ast.mapLiteral(
-        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<MapElement> entries = popMapElements(count);
+      TypeArgumentList typeArguments = pop();
+      push(ast.mapLiteral2(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        entries: entries,
+        rightBracket: rightBracket,
+      ));
+    } else {
+      List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+      popTypedList(count)?.forEach((entry) {
+        if (entry is MapLiteralEntry) {
+          entries.add(entry);
+        }
+      });
+
+      TypeArgumentList typeArguments = pop();
+      push(ast.mapLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket));
+    }
   }
 
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     assert(optional(':', colon));
     debugEvent("LiteralMapEntry");
 
@@ -900,12 +1136,15 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
 
     TypeArgumentList arguments = pop();
     Identifier name = pop();
-    push(ast.typeName(name, arguments));
+    push(ast.typeName(name, arguments, question: questionMark));
   }
 
   @override
@@ -1057,15 +1296,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
 
     FormalParameterList parameters = pop();
     TypeAnnotation returnType = pop();
     TypeParameterList typeParameters = pop();
     push(ast.genericFunctionType(
-        returnType, functionToken, typeParameters, parameters));
+        returnType, functionToken, typeParameters, parameters,
+        question: questionMark));
   }
 
   void handleFormalParameterWithoutValue(Token token) {
@@ -1080,51 +1323,104 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
     assert(optionalOrNull('await', awaitToken));
     assert(optional('for', forToken));
     assert(optional('(', leftParenthesis));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
-    debugEvent("ForInExpression");
 
-    Statement body = pop();
     Expression iterator = pop();
     Object variableOrDeclaration = pop();
+
+    ForEachParts forLoopParts;
     if (variableOrDeclaration is VariableDeclarationStatement) {
       VariableDeclarationList variableList = variableOrDeclaration.variables;
-      push(ast.forEachStatementWithDeclaration(
-          awaitToken,
-          forToken,
-          leftParenthesis,
-          ast.declaredIdentifier(
-              variableList.documentationComment,
-              variableList.metadata,
-              variableList.keyword,
-              variableList.type,
-              variableList.variables.first.name),
-          inKeyword,
-          iterator,
-          leftParenthesis?.endGroup,
-          body));
+      forLoopParts = ast.forEachPartsWithDeclaration(
+        loopVariable: ast.declaredIdentifier(
+            variableList.documentationComment,
+            variableList.metadata,
+            variableList.keyword,
+            variableList.type,
+            variableList.variables.first.name),
+        inKeyword: inKeyword,
+        iterable: iterator,
+      );
     } else {
       if (variableOrDeclaration is! SimpleIdentifier) {
         // Parser has already reported the error.
         if (!leftParenthesis.next.isIdentifier) {
-          parser.rewriter.insertTokenAfter(
+          parser.rewriter.insertToken(
               leftParenthesis,
               new SyntheticStringToken(
                   TokenType.IDENTIFIER, '', leftParenthesis.next.charOffset));
         }
         variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next);
       }
+      forLoopParts = ast.forEachPartsWithIdentifier(
+        identifier: variableOrDeclaration,
+        inKeyword: inKeyword,
+        iterable: iterator,
+      );
+    }
+
+    push(awaitToken ?? NullValue.AwaitToken);
+    push(forToken);
+    push(leftParenthesis);
+    push(forLoopParts);
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    debugEvent("endForInControlFlow");
+
+    var entry = pop();
+    ForEachParts forLoopParts = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
+    pushForControlFlowInfo(
+        awaitToken, forToken, leftParenthesis, forLoopParts, entry);
+  }
+
+  @override
+  void endForIn(Token endToken) {
+    debugEvent("ForInExpression");
+
+    Statement body = pop();
+    ForEachParts forLoopParts = pop();
+    Token leftParenthesis = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      push(ast.forStatement2(
+        awaitKeyword: awaitToken,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup,
+        body: body,
+      ));
+    } else if (forLoopParts is ForEachPartsWithDeclaration) {
+      push(ast.forEachStatementWithDeclaration(
+          awaitToken,
+          forToken,
+          leftParenthesis,
+          forLoopParts.loopVariable,
+          forLoopParts.inKeyword,
+          forLoopParts.iterable,
+          leftParenthesis?.endGroup,
+          body));
+    } else {
       push(ast.forEachStatementWithReference(
           awaitToken,
           forToken,
           leftParenthesis,
-          variableOrDeclaration,
-          inKeyword,
-          iterator,
+          (forLoopParts as ForEachPartsWithIdentifier).identifier,
+          forLoopParts.inKeyword,
+          forLoopParts.iterable,
           leftParenthesis?.endGroup,
           body));
     }
@@ -1305,15 +1601,37 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchCase");
 
     List<Statement> statements = popTypedList(statementCount);
-    List<SwitchMember> members = popTypedList(expressionCount) ?? [];
-    List<Label> labels = popTypedList(labelCount);
-    if (defaultKeyword != null) {
-      members.add(ast.switchDefault(
-          <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]));
+    List<SwitchMember> members;
+
+    if (labelCount == 0 && defaultKeyword == null) {
+      // Common situation: case with no default and no labels.
+      members = popTypedList<SwitchMember>(expressionCount) ?? [];
+    } else {
+      // Labels and case statements may be intertwined
+      if (defaultKeyword != null) {
+        SwitchDefault member = ast.switchDefault(
+            <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]);
+        while (peek() is Label) {
+          member.labels.insert(0, pop());
+          --labelCount;
+        }
+        members = new List<SwitchMember>(expressionCount + 1);
+        members[expressionCount] = member;
+      } else {
+        members = new List<SwitchMember>(expressionCount);
+      }
+      for (int index = expressionCount - 1; index >= 0; --index) {
+        SwitchMember member = pop();
+        while (peek() is Label) {
+          member.labels.insert(0, pop());
+          --labelCount;
+        }
+        members[index] = member;
+      }
+      assert(labelCount == 0);
     }
     if (members.isNotEmpty) {
       members.last.statements.addAll(statements);
-      members.first.labels.addAll(labels);
     }
     push(members);
   }
@@ -1407,12 +1725,6 @@ class AstBuilder extends StackListener {
 
     SimpleIdentifier name = pop();
     push(ast.label(name, colon));
-  }
-
-  void handleNoExpression(Token token) {
-    debugEvent("NoExpression");
-
-    push(NullValue.Expression);
   }
 
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {
@@ -1749,7 +2061,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleClassExtends(Token extendsKeyword) {
-    assert(optionalOrNull('extends', extendsKeyword));
+    assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
     TypeName supertype = pop();
@@ -1835,7 +2147,7 @@ class AstBuilder extends StackListener {
     WithClause withClause = pop(NullValue.WithClause);
     ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
     ClassDeclaration declaration = declarations.last;
-    if (extendsClause != null && !extendsClause.extendsKeyword.isSynthetic) {
+    if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
       }
@@ -1870,7 +2182,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
-    assert(optionalOrNull('on', onKeyword));
+    assert(onKeyword == null || onKeyword.isKeywordOrIdentifier);
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
@@ -2005,6 +2317,23 @@ class AstBuilder extends StackListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
+    if (enableNonNullable && metadata != null) {
+      for (Annotation annotation in metadata) {
+        Identifier pragma = annotation.name;
+        if (pragma is SimpleIdentifier && pragma.name == 'pragma') {
+          NodeList<Expression> arguments = annotation.arguments.arguments;
+          if (arguments.length == 1) {
+            Expression tag = arguments[0];
+            if (tag is StringLiteral) {
+              if (tag.stringValue == 'analyzer:non-nullable') {
+                hasPragmaAnalyzerNonNullable = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
     Comment comment = _findComment(metadata, libraryKeyword);
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));
@@ -2018,7 +2347,7 @@ class AstBuilder extends StackListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    if (message.code.analyzerCode == null && startToken is ErrorToken) {
+    if (message.code.analyzerCodes == null && startToken is ErrorToken) {
       translateErrorToken(startToken, errorReporter.reportScannerError);
     } else {
       int offset = startToken.offset;
@@ -2139,6 +2468,8 @@ class AstBuilder extends StackListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null);
 
     if (typeParameters != null) {
       // TODO(danrubel): Update OutlineBuilder to report this error message.
@@ -2344,6 +2675,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
 
+    assert(parameters != null || optional('get', getOrSet));
+
     ConstructorName redirectedConstructor;
     FunctionBody body;
     if (bodyObject is FunctionBody) {
@@ -2355,30 +2688,6 @@ class AstBuilder extends StackListener {
     } else {
       unhandled("${bodyObject.runtimeType}", "bodyObject",
           beginToken.charOffset, uri);
-    }
-
-    if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
-      Token token = typeParameters?.endToken;
-      if (token == null) {
-        if (name is AstNode) {
-          token = name.endToken;
-        } else if (name is _OperatorName) {
-          token = name.name.endToken;
-        } else {
-          throw new UnimplementedError();
-        }
-      }
-      Token next = token.next;
-      int offset = next.charOffset;
-      BeginToken leftParen =
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
-      token.setNext(leftParen);
-      Token rightParen =
-          leftParen.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
-      leftParen.endGroup = rightParen;
-      rightParen.setNext(next);
-      parameters = ast.formalParameterList(
-          leftParen, <FormalParameter>[], null, null, rightParen);
     }
 
     ClassOrMixinDeclarationImpl declaration =
@@ -2496,7 +2805,7 @@ class AstBuilder extends StackListener {
     // keyword up to an element?
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     handleNoTypeArguments(voidKeyword);
-    handleType(voidKeyword);
+    handleType(voidKeyword, null);
   }
 
   @override
@@ -2561,6 +2870,17 @@ class AstBuilder extends StackListener {
 
     List<TypeAnnotation> arguments = popTypedList(count);
     push(ast.typeArgumentList(leftBracket, arguments, rightBracket));
+  }
+
+  @override
+  void handleInvalidTypeArguments(Token token) {
+    TypeArgumentList invalidTypeArgs = pop();
+    var node = pop();
+    if (node is ConstructorName) {
+      push(new _ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
+    } else {
+      throw new UnimplementedError();
+    }
   }
 
   @override
@@ -2751,7 +3071,9 @@ class AstBuilder extends StackListener {
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage> context}) {
     if (directives.isEmpty &&
-        message.code.analyzerCode == 'NON_PART_OF_DIRECTIVE_IN_PART') {
+        (message.code.analyzerCodes
+                ?.contains('NON_PART_OF_DIRECTIVE_IN_PART') ??
+            false)) {
       message = messageDirectiveAfterDeclaration;
     }
     errorReporter.reportMessage(message, charOffset, length);
@@ -2813,6 +3135,32 @@ class AstBuilder extends StackListener {
   @override
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
+  }
+
+  List<CollectionElement> popCollectionElements(int count) {
+    final elements = new List<CollectionElement>()..length = count;
+    for (int index = count - 1; index >= 0; --index) {
+      var element = pop();
+      elements[index] = element is _EntryInfo
+          ? element.asCollectionElement(ast)
+          : element as CollectionElement;
+    }
+    return elements;
+  }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
+  }
+
+  List<MapElement> popMapElements(int count) {
+    final entries = new List<MapElement>()..length = count;
+    for (int index = count - 1; index >= 0; --index) {
+      var entry = pop();
+      entries[index] =
+          entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement;
+    }
+    return entries;
   }
 }
 
@@ -2919,4 +3267,102 @@ class _Modifiers {
         ? finalConstOrVarKeyword
         : null;
   }
+}
+
+class _ConstructorNameWithInvalidTypeArgs {
+  final ConstructorName name;
+  final TypeArgumentList invalidTypeArgs;
+
+  _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
+}
+
+abstract class _EntryInfo {
+  CollectionElement asCollectionElement(AstFactory ast);
+  MapElement asMapElement(AstFactory ast);
+}
+
+class _ForControlFlowInfo implements _EntryInfo {
+  final Token awaitToken;
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final ForLoopParts forLoopParts;
+  final Token rightParenthesis;
+  final entry;
+
+  _ForControlFlowInfo(this.awaitToken, this.forKeyword, this.leftParenthesis,
+      this.forLoopParts, this.rightParenthesis, this.entry);
+
+  @override
+  CollectionElement asCollectionElement(AstFactory ast) =>
+      ast.collectionForElement(
+        awaitKeyword: awaitToken,
+        forKeyword: forKeyword,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: rightParenthesis,
+        body: entry is _EntryInfo
+            ? entry.asCollectionElement(ast)
+            : entry as CollectionElement,
+      );
+
+  @override
+  MapElement asMapElement(AstFactory ast) => ast.mapForElement(
+        awaitKeyword: awaitToken,
+        forKeyword: forKeyword,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: rightParenthesis,
+        body:
+            entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement,
+      );
+}
+
+class _IfControlFlowInfo implements _EntryInfo {
+  final Token ifToken;
+  final Token leftParenthesis;
+  final Expression conditionExpression;
+  final Token rightParenthesis;
+  final thenElement;
+  final Token elseToken;
+  final elseElement;
+
+  _IfControlFlowInfo(
+      this.ifToken,
+      this.leftParenthesis,
+      this.conditionExpression,
+      this.rightParenthesis,
+      this.thenElement,
+      this.elseToken,
+      this.elseElement);
+
+  @override
+  CollectionElement asCollectionElement(AstFactory ast) =>
+      ast.collectionIfElement(
+        ifKeyword: ifToken,
+        leftParenthesis: leftParenthesis,
+        condition: conditionExpression,
+        rightParenthesis: rightParenthesis,
+        thenElement: thenElement is _EntryInfo
+            ? thenElement.asCollectionElement(ast)
+            : thenElement as CollectionElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement is _EntryInfo
+            ? elseElement.asCollectionElement(ast)
+            : elseElement as CollectionElement,
+      );
+
+  @override
+  MapElement asMapElement(AstFactory ast) => ast.mapIfElement(
+        ifKeyword: ifToken,
+        leftParenthesis: leftParenthesis,
+        condition: conditionExpression,
+        rightParenthesis: rightParenthesis,
+        thenElement: thenElement is _EntryInfo
+            ? thenElement.asMapElement(ast)
+            : thenElement as MapElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement is _EntryInfo
+            ? elseElement.asMapElement(ast)
+            : elseElement as MapElement,
+      );
 }

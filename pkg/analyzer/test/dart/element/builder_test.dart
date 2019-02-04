@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.dart.element.builder_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -216,7 +214,7 @@ class C {
   @override
   void setUp() {
     super.setUp();
-    compilationUnitElement = new CompilationUnitElementImpl('test.dart');
+    compilationUnitElement = new CompilationUnitElementImpl();
   }
 
   void test_metadata_localVariableDeclaration() {
@@ -1209,7 +1207,7 @@ main() {
  * It is used to test the [ApiElementBuilder] itself, and its usage by
  * [ElementBuilder].
  */
-abstract class _ApiElementBuilderTestMixin {
+mixin _ApiElementBuilderTestMixin {
   CompilationUnit get compilationUnit;
 
   void set isMixinSupportEnabled(bool value);
@@ -1950,9 +1948,7 @@ class C {
     expect(accessor.isSetter, isFalse);
     expect(accessor.isSynthetic, isFalse);
     expect(accessor.typeParameters, hasLength(0));
-    PropertyInducingElement variable = accessor.variable;
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, variable);
+    TopLevelVariableElement variable = accessor.variable;
     expect(variable.isSynthetic, isTrue);
   }
 
@@ -2014,9 +2010,7 @@ class C {
     expect(accessor.isSetter, isTrue);
     expect(accessor.isSynthetic, isFalse);
     expect(accessor.typeParameters, hasLength(0));
-    PropertyInducingElement variable = accessor.variable;
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, variable);
+    TopLevelVariableElement variable = accessor.variable;
     expect(variable.isSynthetic, isTrue);
   }
 
@@ -2681,7 +2675,7 @@ abstract class _BaseTest extends ParserTestCase {
   }
 
   void setUp() {
-    compilationUnitElement = new CompilationUnitElementImpl('test.dart');
+    compilationUnitElement = new CompilationUnitElementImpl();
   }
 
   void _assertVisibleRange(LocalElement element, int offset, int end) {

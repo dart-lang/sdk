@@ -33,7 +33,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
 
 import '../../base/instrumentation.dart'
     show
@@ -55,11 +56,6 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../messages.dart'
     show
-        messageDeclaredMemberConflictsWithInheritedMember,
-        messageDeclaredMemberConflictsWithInheritedMemberCause,
-        messageInheritedMembersConflict,
-        messageInheritedMembersConflictCause1,
-        messageInheritedMembersConflictCause2,
         noLength,
         templateCantInferTypeDueToCircularity,
         templateCantInferTypeDueToInconsistentOverrides;
@@ -257,7 +253,6 @@ class ForwardingNode extends Procedure {
   /// they would not be checked in an inherited implementation, a forwarding
   /// stub is introduced as a place to put the checks.
   Procedure _computeCovarianceFixes(Procedure interfaceMember) {
-    assert(_interfaceResolver.strongMode);
     var substitution =
         _interfaceResolver._substitutionFor(interfaceMember, enclosingClass);
     // We always create a forwarding stub when we've inherited a member from an
@@ -546,9 +541,7 @@ class ForwardingNode extends Procedure {
   /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    return _interfaceResolver.strongMode
-        ? _computeCovarianceFixes(resolve())
-        : resolve();
+    return _computeCovarianceFixes(resolve());
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -678,14 +671,12 @@ class ForwardingNode extends Procedure {
 class InterfaceResolver {
   final TypeInferenceEngine _typeInferenceEngine;
 
-  final TypeEnvironment _typeEnvironment;
+  final HierarchyBasedTypeEnvironment _typeEnvironment;
 
   final Instrumentation _instrumentation;
 
-  final bool strongMode;
-
-  InterfaceResolver(this._typeInferenceEngine, this._typeEnvironment,
-      this._instrumentation, this.strongMode);
+  InterfaceResolver(
+      this._typeInferenceEngine, this._typeEnvironment, this._instrumentation);
 
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool get isTypeInferencePrepared =>
@@ -837,96 +828,14 @@ class InterfaceResolver {
     // and static members, use a map from names to lists of members.  There can
     // be more than one static member with a given name, e.g., if there is a
     // getter and a setter.  We will report both conflicts.
-    Map<Name, List<Member>> staticMembers = {};
-    for (var procedure in class_.procedures) {
-      if (procedure.isStatic) {
-        staticMembers.putIfAbsent(procedure.name, () => []).add(procedure);
-      }
-    }
-    for (var field in class_.fields) {
-      if (field.isStatic) {
-        staticMembers.putIfAbsent(field.name, () => []).add(field);
-      }
-    }
     forEachApiMember(candidates, (int start, int end, Name name) {
       Procedure member = candidates[start];
-      // We should not have a method, getter, or setter in our interface that
-      // conflicts with a static method, getter, or setter declared in the
-      // class.
-      List<Member> conflicts = staticMembers[name];
-      if (conflicts != null) {
-        for (var conflict in conflicts) {
-          library.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
-              conflict.fileOffset, noLength, conflict.fileUri,
-              context: [
-                messageDeclaredMemberConflictsWithInheritedMemberCause
-                    .withLocation(member.fileUri, member.fileOffset, noLength)
-              ]);
-        }
-        return;
-      }
       ProcedureKind kind = _kindOf(member);
       if (kind != ProcedureKind.Getter && kind != ProcedureKind.Setter) {
         for (int i = start + 1; i < end; ++i) {
-          if (_kindOf(candidates[i]) != kind) {
-            // We've seen a getter or setter.  If it's a getter conflicting
-            // with a method and both are declared in the same class, then that
-            // has already been signaled as a duplicated definition.
-            Procedure conflict = candidates[i];
-            if (conflict.enclosingClass != member.enclosingClass) {
-              if (member.enclosingClass == class_) {
-                library.addProblem(
-                    messageDeclaredMemberConflictsWithInheritedMember,
-                    member.fileOffset,
-                    noLength,
-                    member.fileUri,
-                    context: [
-                      messageDeclaredMemberConflictsWithInheritedMemberCause
-                          .withLocation(
-                              conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
-              } else if (conflict.enclosingClass == class_) {
-                library.addProblem(
-                    messageDeclaredMemberConflictsWithInheritedMember,
-                    conflict.fileOffset,
-                    noLength,
-                    conflict.fileUri,
-                    context: [
-                      messageDeclaredMemberConflictsWithInheritedMemberCause
-                          .withLocation(
-                              member.fileUri, member.fileOffset, noLength)
-                    ]);
-              } else {
-                library.addProblem(messageInheritedMembersConflict,
-                    class_.fileOffset, noLength, class_.fileUri,
-                    context: [
-                      messageInheritedMembersConflictCause1.withLocation(
-                          member.fileUri, member.fileOffset, noLength),
-                      messageInheritedMembersConflictCause2.withLocation(
-                          conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
-              }
-            } else {
-              // If it's a setter conflicting with a method and both are
-              // declared in the same class, it hasn't been signaled as a
-              // duplicated definition so it's reported here.
-              library.addProblem(
-                  messageDeclaredMemberConflictsWithInheritedMember,
-                  member.fileOffset,
-                  noLength,
-                  member.fileUri,
-                  context: [
-                    messageDeclaredMemberConflictsWithInheritedMemberCause
-                        .withLocation(
-                            conflict.fileUri, conflict.fileOffset, noLength)
-                  ]);
-            }
-            return;
-          }
+          if (_kindOf(candidates[i]) != kind) return;
         }
-        if (strongMode &&
-            member.enclosingClass == class_ &&
-            _requiresTypeInference(member)) {
+        if (member.enclosingClass == class_ && _requiresTypeInference(member)) {
           inferMethodType(library, class_, member, candidates, start + 1, end);
         }
         var forwardingNode = new ForwardingNode(
@@ -951,33 +860,7 @@ class InterfaceResolver {
         while (++getterEnd < end) {
           ProcedureKind currentKind = _kindOf(candidates[getterEnd]);
           if (currentKind == ProcedureKind.Setter) break;
-          if (currentKind != ProcedureKind.Getter) {
-            Procedure conflict = candidates[getterEnd];
-            if (conflict.enclosingClass != member.enclosingClass) {
-              if (member.enclosingClass == class_) {
-                library.addProblem(
-                    messageDeclaredMemberConflictsWithInheritedMember,
-                    member.fileOffset,
-                    noLength,
-                    member.fileUri,
-                    context: [
-                      messageDeclaredMemberConflictsWithInheritedMemberCause
-                          .withLocation(
-                              conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
-              } else {
-                library.addProblem(messageInheritedMembersConflict,
-                    class_.fileOffset, noLength, class_.fileUri,
-                    context: [
-                      messageInheritedMembersConflictCause1.withLocation(
-                          member.fileUri, member.fileOffset, noLength),
-                      messageInheritedMembersConflictCause2.withLocation(
-                          conflict.fileUri, conflict.fileOffset, noLength)
-                    ]);
-              }
-            }
-            return;
-          }
+          if (currentKind != ProcedureKind.Getter) return;
         }
       }
 
@@ -1067,7 +950,7 @@ class InterfaceResolver {
       if (resolution is Procedure &&
           resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
-        if (strongMode) class_.addMember(resolution);
+        class_.addMember(resolution);
         _instrumentation?.record(
             class_.location.file,
             class_.fileOffset,
@@ -1128,10 +1011,10 @@ class InterfaceResolver {
       Uri fileUri) {
     InferenceNode node;
     if (procedure.isAccessor && _requiresTypeInference(procedure)) {
-      if (strongMode && start < end) {
+      if (start < end) {
         node = new AccessorInferenceNode(
             this, procedure, candidates, start, end, library, fileUri);
-      } else if (strongMode && crossStart < crossEnd) {
+      } else if (crossStart < crossEnd) {
         node = new AccessorInferenceNode(this, procedure, candidates,
             crossStart, crossEnd, library, fileUri);
       } else if (procedure is SyntheticAccessor &&
@@ -1251,8 +1134,8 @@ class InterfaceResolver {
   /// Determines the appropriate substitution to translate type parameters
   /// mentioned in the given [candidate] to type parameters on [class_].
   Substitution _substitutionFor(Procedure candidate, Class class_) {
-    return Substitution.fromInterfaceType(_typeEnvironment.hierarchy
-        .getTypeAsInstanceOf(class_.thisType, candidate.enclosingClass));
+    return Substitution.fromInterfaceType(_typeEnvironment.getTypeAsInstanceOf(
+        class_.thisType, candidate.enclosingClass));
   }
 
   /// Executes [callback] once for each uniquely named member of [candidates].

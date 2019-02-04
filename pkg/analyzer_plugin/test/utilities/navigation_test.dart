@@ -1,9 +1,9 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
@@ -17,15 +17,13 @@ void main() {
 }
 
 @reflectiveTest
-class NavigationGeneratorTest {
-  MemoryResourceProvider provider = new MemoryResourceProvider();
-
-  ResolveResult resolveResult = new MockAnalysisResult(path: 'a.dart');
+class NavigationGeneratorTest with ResourceProviderMixin {
+  ResolvedUnitResult resolvedUnit = new MockResolvedUnitResult(path: 'a.dart');
 
   test_none() {
     NavigationGenerator generator = new NavigationGenerator([]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(provider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
   }
@@ -34,7 +32,7 @@ class NavigationGeneratorTest {
     TestContributor contributor = new TestContributor();
     NavigationGenerator generator = new NavigationGenerator([contributor]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(provider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
@@ -53,7 +51,7 @@ class NavigationGeneratorTest {
     NavigationGenerator generator = new NavigationGenerator(
         [contributor1, contributor2, contributor3, contributor4]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(provider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(3));
     expect(

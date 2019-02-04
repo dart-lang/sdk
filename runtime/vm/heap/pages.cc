@@ -6,7 +6,6 @@
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
-#include "vm/compiler_stats.h"
 #include "vm/heap/become.h"
 #include "vm/heap/compactor.h"
 #include "vm/heap/marker.h"
@@ -73,6 +72,7 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
   result->next_ = NULL;
   result->used_in_bytes_ = 0;
   result->forwarding_page_ = NULL;
+  result->card_table_ = NULL;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
@@ -82,6 +82,11 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
 
 void HeapPage::Deallocate() {
   ASSERT(forwarding_page_ == NULL);
+
+  if (card_table_ != NULL) {
+    free(card_table_);
+    card_table_ = NULL;
+  }
 
   bool image_page = is_image_page();
 
@@ -124,6 +129,66 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     obj_addr += raw_obj->VisitPointers(visitor);
   }
   ASSERT(obj_addr == end_addr);
+}
+
+void HeapPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
+  ASSERT(Thread::Current()->IsAtSafepoint());
+  NoSafepointScope no_safepoint;
+
+  if (card_table_ == NULL) {
+    return;
+  }
+
+  bool table_is_empty = false;
+
+  RawArray* obj = static_cast<RawArray*>(RawObject::FromAddr(object_start()));
+  ASSERT(obj->IsArray());
+  ASSERT(obj->IsCardRemembered());
+  RawObject** obj_from = obj->from();
+  RawObject** obj_to = obj->to(Smi::Value(obj->ptr()->length_));
+
+  const intptr_t size = card_table_size();
+  for (intptr_t i = 0; i < size; i++) {
+    if (card_table_[i] != 0) {
+      RawObject** card_from =
+          reinterpret_cast<RawObject**>(this) + (i << kSlotsPerCardLog2);
+      RawObject** card_to = reinterpret_cast<RawObject**>(card_from) +
+                            (1 << kSlotsPerCardLog2) - 1;
+      // Minus 1 because to is inclusive.
+
+      if (card_from < obj_from) {
+        // First card overlaps with header.
+        card_from = obj_from;
+      }
+      if (card_to > obj_to) {
+        // Last card(s) may extend past the object. Array truncation can make
+        // this happen for more than one card.
+        card_to = obj_to;
+      }
+
+      visitor->VisitPointers(card_from, card_to);
+
+      bool has_new_target = false;
+      for (RawObject** slot = card_from; slot <= card_to; slot++) {
+        if ((*slot)->IsNewObjectMayBeSmi()) {
+          has_new_target = true;
+          break;
+        }
+      }
+
+      if (has_new_target) {
+        // Card remains remembered.
+        table_is_empty = false;
+      } else {
+        card_table_[i] = 0;
+      }
+    }
+  }
+
+  if (table_is_empty) {
+    free(card_table_);
+    card_table_ = NULL;
+  }
 }
 
 RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
@@ -179,8 +244,12 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       bump_top_(0),
       bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
+      usage_(),
+      allocated_black_in_words_(0),
       tasks_lock_(new Monitor()),
       tasks_(0),
+      concurrent_marker_tasks_(0),
+      phase_(kDone),
 #if defined(DEBUG)
       iterating_thread_(NULL),
 #endif
@@ -188,9 +257,11 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
                              FLAG_old_gen_growth_space_ratio,
                              FLAG_old_gen_growth_rate,
                              FLAG_old_gen_growth_time_ratio),
+      marker_(NULL),
       gc_time_micros_(0),
       collections_(0),
-      mark_words_per_micro_(kConservativeInitialMarkSpeed) {
+      mark_words_per_micro_(kConservativeInitialMarkSpeed),
+      enable_concurrent_mark_(FLAG_concurrent_mark) {
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
@@ -209,6 +280,7 @@ PageSpace::~PageSpace() {
   FreePages(image_pages_);
   delete pages_lock_;
   delete tasks_lock_;
+  ASSERT(marker_ == NULL);
 }
 
 intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
@@ -217,7 +289,14 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
   return page_size >> kWordSizeLog2;
 }
 
-HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
+HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
+  {
+    MutexLocker ml(pages_lock_);
+    if (!CanIncreaseCapacityInWordsLocked(kPageSizeInWords)) {
+      return NULL;
+    }
+    IncreaseCapacityInWordsLocked(kPageSizeInWords);
+  }
   const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
@@ -226,54 +305,64 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
   if (page == NULL) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
+    IncreaseCapacityInWords(-kPageSizeInWords);
     return NULL;
   }
 
   MutexLocker ml(pages_lock_);
-  if (!is_exec) {
-    if (pages_ == NULL) {
-      pages_ = page;
+  if (link) {
+    if (!is_exec) {
+      if (pages_ == NULL) {
+        pages_ = page;
+      } else {
+        pages_tail_->set_next(page);
+      }
+      pages_tail_ = page;
     } else {
-      pages_tail_->set_next(page);
-    }
-    pages_tail_ = page;
-  } else {
-    // Should not allocate executable pages when running from a precompiled
-    // snapshot.
-    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
+      // Should not allocate executable pages when running from a precompiled
+      // snapshot.
+      ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
 
-    if (exec_pages_ == NULL) {
-      exec_pages_ = page;
-    } else {
-      if (FLAG_write_protect_code) {
-        exec_pages_tail_->WriteProtect(false);
+      if (exec_pages_ == NULL) {
+        exec_pages_ = page;
+      } else {
+        if (FLAG_write_protect_code) {
+          exec_pages_tail_->WriteProtect(false);
+        }
+        exec_pages_tail_->set_next(page);
+        if (FLAG_write_protect_code) {
+          exec_pages_tail_->WriteProtect(true);
+        }
       }
-      exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code) {
-        exec_pages_tail_->WriteProtect(true);
-      }
+      exec_pages_tail_ = page;
     }
-    exec_pages_tail_ = page;
   }
-  IncreaseCapacityInWordsLocked(kPageSizeInWords);
+
   page->set_object_end(page->memory_->end());
   return page;
 }
 
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
-  const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  {
+    MutexLocker ml(pages_lock_);
+    if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {
+      return NULL;
+    }
+    IncreaseCapacityInWordsLocked(page_size_in_words);
+  }
+  const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
   Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
                    kVmNameSize);
   HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
   if (page == NULL) {
+    IncreaseCapacityInWords(-page_size_in_words);
     return NULL;
   }
   page->set_next(large_pages_);
   large_pages_ = page;
-  IncreaseCapacityInWords(page_size_in_words);
   // Only one object in this page (at least until String::MakeExternal or
   // Array::MakeFixedLength is called).
   page->set_object_end(page->object_start() + size);
@@ -351,15 +440,24 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         HeapPage::PageType type,
                                         GrowthPolicy growth_policy,
                                         bool is_locked) {
+  if (growth_policy != kForceGrowth) {
+    if (heap_ != NULL) {  // Some unit tests.
+      Thread* thread = Thread::Current();
+      if (thread->CanCollectGarbage()) {
+        heap_->CheckFinishConcurrentMarking(thread);
+        heap_->CheckStartConcurrentMarking(thread, Heap::kOldSpace);
+      }
+    }
+  }
+
   ASSERT(size < kAllocatablePageSize);
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
   after_allocation.used_in_words += size >> kWordSizeLog2;
   // Can we grow by one page?
   after_allocation.capacity_in_words += kPageSizeInWords;
-  if ((growth_policy == kForceGrowth ||
-       !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
-      CanIncreaseCapacityInWords(kPageSizeInWords)) {
+  if (growth_policy == kForceGrowth ||
+      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
     HeapPage* page = AllocatePage(type);
     if (page == NULL) {
       return 0;
@@ -414,9 +512,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     SpaceUsage after_allocation = GetCurrentUsage();
     after_allocation.used_in_words += size >> kWordSizeLog2;
     after_allocation.capacity_in_words += page_size_in_words;
-    if ((growth_policy == kForceGrowth ||
-         !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
-        CanIncreaseCapacityInWords(page_size_in_words)) {
+    if (growth_policy == kForceGrowth ||
+        !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
@@ -437,6 +534,12 @@ void PageSpace::AcquireDataLock() {
 void PageSpace::ReleaseDataLock() {
   freelist_[HeapPage::kData].mutex()->Unlock();
 }
+
+#if defined(DEBUG)
+bool PageSpace::CurrentThreadOwnsDataLock() {
+  return freelist_[HeapPage::kData].mutex()->IsOwnedByCurrentThread();
+}
+#endif
 
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
@@ -563,6 +666,11 @@ void PageSpace::AbandonBumpAllocation() {
   }
 }
 
+void PageSpace::AbandonMarkingForShutdown() {
+  delete marker_;
+  marker_ = NULL;
+}
+
 void PageSpace::UpdateMaxCapacityLocked() {
 #if !defined(PRODUCT)
   if (heap_ == NULL) {
@@ -665,6 +773,12 @@ void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->VisitObjectPointers(visitor);
+  }
+}
+
+void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
+  for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
+    page->VisitRememberedCards(visitor);
   }
 }
 
@@ -899,7 +1013,16 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
-void PageSpace::CollectGarbage(bool compact) {
+void PageSpace::CollectGarbage(bool compact, bool finalize) {
+  if (!finalize) {
+#if defined(TARGET_ARCH_IA32)
+    return;  // Barrier not implemented.
+#else
+    if (!enable_concurrent_mark()) return;  // Disabled.
+    if (FLAG_marker_tasks == 0) return;   // Disabled.
+#endif
+  }
+
   Thread* thread = Thread::Current();
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
@@ -907,9 +1030,16 @@ void PageSpace::CollectGarbage(bool compact) {
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
+    if (!finalize &&
+        (phase() == kMarking || phase() == kAwaitingFinalization)) {
+      // Concurrent mark is already running.
+      return;
+    }
+
     while (tasks() > 0) {
       locker.WaitWithSafepointCheck(thread);
     }
+    ASSERT(phase() == kAwaitingFinalization || phase() == kDone);
     set_tasks(1);
   }
 
@@ -921,7 +1051,8 @@ void PageSpace::CollectGarbage(bool compact) {
   // loser skips collection and goes straight to allocation.
   {
     SafepointOperationScope safepoint_scope(thread);
-    CollectGarbageAtSafepoint(compact, pre_wait_for_sweepers, pre_safe_point);
+    CollectGarbageAtSafepoint(compact, finalize, pre_wait_for_sweepers,
+                              pre_safe_point);
   }
 
   // Done, reset the task count.
@@ -933,6 +1064,7 @@ void PageSpace::CollectGarbage(bool compact) {
 }
 
 void PageSpace::CollectGarbageAtSafepoint(bool compact,
+                                          bool finalize,
                                           int64_t pre_wait_for_sweepers,
                                           int64_t pre_safe_point) {
   Thread* thread = Thread::Current();
@@ -942,7 +1074,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   const int64_t start = OS::GetCurrentMonotonicMicros();
 
-  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
 
@@ -957,12 +1088,12 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before marking...");
-    heap_->VerifyGC();
+    heap_->VerifyGC(phase() == kDone ? kForbidMarked : kAllowMarked);
     OS::PrintErr(" done.\n");
   }
 
   // Make code pages writable.
-  WriteProtectCode(false);
+  if (finalize) WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = GetCurrentUsage();
@@ -974,9 +1105,27 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
                       !isolate->HasAttemptedReload();
 #endif  // !defined(PRODUCT)
-  GCMarker marker(heap_);
-  marker.MarkObjects(isolate, this, collect_code);
-  usage_.used_in_words = marker.marked_words();
+
+  if (marker_ == NULL) {
+    ASSERT(phase() == kDone);
+    marker_ = new GCMarker(isolate, heap_);
+  } else {
+    ASSERT(phase() == kAwaitingFinalization);
+  }
+
+  if (!finalize) {
+    ASSERT(phase() == kDone);
+    marker_->StartConcurrentMark(this, collect_code);
+    return;
+  }
+
+  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
+  marker_->MarkObjects(this, collect_code);
+  usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
+  allocated_black_in_words_ = 0;
+  mark_words_per_micro_ = marker_->MarkedWordsPerMicro();
+  delete marker_;
+  marker_ = NULL;
 
   int64_t mid1 = OS::GetCurrentMonotonicMicros();
 
@@ -1040,29 +1189,22 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   if (compact) {
     Compact(thread);
+    set_phase(kDone);
   } else if (FLAG_concurrent_sweep) {
     ConcurrentSweep(isolate);
   } else {
     BlockingSweep();
+    set_phase(kDone);
   }
 
   // Make code pages read-only.
-  WriteProtectCode(true);
+  if (finalize) WriteProtectCode(true);
 
   int64_t end = OS::GetCurrentMonotonicMicros();
 
   // Record signals for growth control. Include size of external allocations.
   page_space_controller_.EvaluateGarbageCollection(
       usage_before, GetCurrentUsage(), start, end);
-
-  int64_t mark_micros = mid3 - start;
-  if (mark_micros == 0) {
-    mark_micros = 1;  // Prevent division by zero.
-  }
-  mark_words_per_micro_ = usage_before.used_in_words / mark_micros;
-  if (mark_words_per_micro_ == 0) {
-    mark_words_per_micro_ = 1;  // Prevent division by zero.
-  }
 
   heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
   heap_->RecordTime(kSafePoint, start - pre_safe_point);
@@ -1224,6 +1366,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->object_end_ = memory->end();
   page->used_in_bytes_ = page->object_end_ - page->object_start();
   page->forwarding_page_ = NULL;
+  page->card_table_ = NULL;
   if (is_executable) {
     ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;
@@ -1256,6 +1399,21 @@ PageSpaceController::PageSpaceController(Heap* heap,
 PageSpaceController::~PageSpaceController() {}
 
 bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
+  if (!is_enabled_) {
+    return false;
+  }
+  if (heap_growth_ratio_ == 100) {
+    return false;
+  }
+#if defined(TARGET_ARCH_IA32)
+  intptr_t headroom = 0;
+#else
+  intptr_t headroom = heap_->new_space()->CapacityInWords();
+#endif
+  return after.CombinedCapacityInWords() > (gc_threshold_in_words_ + headroom);
+}
+
+bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
   if (!is_enabled_) {
     return false;
   }
@@ -1378,7 +1536,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   }
 }
 
-void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
+void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   // Number of pages we can allocate and still be within the desired growth
   // ratio.
   intptr_t growth_in_pages =
@@ -1401,7 +1559,7 @@ void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
 
   if (FLAG_log_growth) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
-              "kB, reason=snapshot\n",
+              "kB, reason=loaded\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords);
   }

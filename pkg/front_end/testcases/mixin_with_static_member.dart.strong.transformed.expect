@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class _A&B&M extends self::B implements self::M {
+  synthetic constructor •() → self::_A&B&M
+    : super self::B::•()
+    ;
+  static method m() → core::Object
+    return null;
+}
+class A extends self::_A&B&M {
+  synthetic constructor •() → self::A
+    : super self::_A&B&M::•()
+    ;
+}
+class B extends core::Object {
+  final field core::Object m = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M
+    : super core::Object::•()
+    ;
+  static method m() → core::Object
+    return null;
+}
+static method main() → dynamic {
+  new self::A::•();
+}

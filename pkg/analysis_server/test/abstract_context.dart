@@ -1,29 +1,25 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
-import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 
-import 'mock_sdk.dart';
 import 'src/utilities/flutter_util.dart';
 
 /**
@@ -48,36 +44,92 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
  */
 typedef void _ElementVisitorFunction(Element element);
 
-class AbstractContextTest extends Object with ResourceProviderMixin {
-  DartSdk sdk;
-  Map<String, List<Folder>> packageMap;
-  UriResolver resourceResolver;
-
-  StringBuffer _logBuffer = new StringBuffer();
+class AbstractContextTest with ResourceProviderMixin {
   FileContentOverlay fileContentOverlay = new FileContentOverlay();
+
+  AnalysisContextCollection _analysisContextCollection;
   AnalysisDriver _driver;
+
+  /// The file system specific `/home/test/analysis_options.yaml` path.
+  String get analysisOptionsPath =>
+      convertPath('/home/test/analysis_options.yaml');
 
   AnalysisDriver get driver => _driver;
 
+  AnalysisSession get session => driver.currentSession;
+
+  /// The file system specific `/home/test/pubspec.yaml` path.
+  String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
+
   void addFlutterPackage() {
-    addMetaPackageSource();
+    addMetaPackage();
     Folder libFolder = configureFlutterPackage(resourceProvider);
-    packageMap['flutter'] = [libFolder];
-    configureDriver();
+    addTestPackageDependency('flutter', libFolder.parent.path);
   }
 
-  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
+  void addMetaPackage() {
+    addPackageFile('meta', 'meta.dart', r'''
 library meta;
+
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+
+@deprecated
+const _Checked checked = const _Checked();
+
+const _Experimental experimental = const _Experimental();
+
+const _Factory factory = const _Factory();
+
+const Immutable immutable = const Immutable();
 
 const _IsTest isTest = const _IsTest();
 
 const _IsTestGroup isTestGroup = const _IsTestGroup();
 
+const _Literal literal = const _Literal();
+
+const _MustCallSuper mustCallSuper = const _MustCallSuper();
+
+const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
+
+const _Protected protected = const _Protected();
+
 const Required required = const Required();
+
+const _Sealed sealed = const _Sealed();
+
+@deprecated
+const _Virtual virtual = const _Virtual();
+
+const _VisibleForOverriding visibleForOverriding =
+    const _VisibleForOverriding();
+
+const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
+
+class Immutable {
+  final String reason;
+  const Immutable([this.reason]);
+}
 
 class Required {
   final String reason;
   const Required([this.reason]);
+}
+
+class _AlwaysThrows {
+  const _AlwaysThrows();
+}
+
+class _Checked {
+  const _Checked();
+}
+
+class _Experimental {
+  const _Experimental();
+}
+
+class _Factory {
+  const _Factory();
 }
 
 class _IsTest {
@@ -87,14 +139,49 @@ class _IsTest {
 class _IsTestGroup {
   const _IsTestGroup();
 }
-''');
 
-  Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [newFolder('/pubcache/$packageName/lib')];
-    File file =
-        newFile('/pubcache/$packageName/lib/$filePath', content: content);
-    configureDriver();
-    return file.createSource();
+class _Literal {
+  const _Literal();
+}
+
+class _MustCallSuper {
+  const _MustCallSuper();
+}
+
+class _OptionalTypeArgs {
+  const _OptionalTypeArgs();
+}
+
+class _Protected {
+  const _Protected();
+}
+
+class _Sealed {
+  const _Sealed();
+}
+
+@deprecated
+class _Virtual {
+  const _Virtual();
+}
+
+class _VisibleForOverriding {
+  const _VisibleForOverriding();
+}
+
+class _VisibleForTesting {
+  const _VisibleForTesting();
+}
+''');
+  }
+
+  /// Add a new file with the given [pathInLib] to the package with the
+  /// given [packageName].  Then ensure that the test package depends on the
+  /// [packageName].
+  File addPackageFile(String packageName, String pathInLib, String content) {
+    var packagePath = '/.pub-cache/$packageName';
+    addTestPackageDependency(packageName, packagePath);
+    return newFile('$packagePath/lib/$pathInLib', content: content);
   }
 
   Source addSource(String path, String content, [Uri uri]) {
@@ -102,56 +189,88 @@ class _IsTestGroup {
     Source source = file.createSource(uri);
     driver.addFile(file.path);
     driver.changeFile(file.path);
-    fileContentOverlay[file.path] = content;
     return source;
   }
 
-  /**
-   * Re-configure the driver. This is necessary, for example, after defining a
-   * new package that test code will reference.
-   */
-  void configureDriver() {
-    driver.configure();
+  void addTestPackageDependency(String name, String rootPath) {
+    var packagesFile = getFile('/home/test/.packages');
+    var packagesContent = packagesFile.readAsStringSync();
+
+    // Ignore if there is already the same package dependency.
+    if (packagesContent.contains('$name:file://')) {
+      return;
+    }
+
+    rootPath = convertPath(rootPath);
+    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
+
+    packagesFile.writeAsStringSync(packagesContent);
+
+    createAnalysisContexts();
   }
 
-  void configurePreviewDart2() {
-    driver.configure(
-        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
-          ..previewDart2 = true);
+  /// Create all analysis contexts in `/home`.
+  void createAnalysisContexts() {
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      includedPaths: [convertPath('/home')],
+      enableIndex: true,
+      fileContentOverlay: fileContentOverlay,
+      resourceProvider: resourceProvider,
+      sdkPath: convertPath('/sdk'),
+    );
+
+    var testPath = convertPath('/home/test');
+    _driver = getDriver(testPath);
   }
 
-  void processRequiredPlugins() {
-    AnalysisEngine.instance.processRequiredPlugins();
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({List<String> experiments}) {
+    StringBuffer buffer = new StringBuffer();
+    if (experiments != null) {
+      buffer.writeln('analyzer:');
+      buffer.writeln('  enable-experiment:');
+      for (String experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+    newFile(analysisOptionsPath, content: buffer.toString());
+    if (_driver != null) {
+      createAnalysisContexts();
+    }
+  }
+
+  /// Return the existing analysis context that should be used to analyze the
+  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisContext getContext(String path) {
+    path = convertPath(path);
+    return _analysisContextCollection.contextFor(path);
+  }
+
+  /// Return the existing analysis driver that should be used to analyze the
+  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisDriver getDriver(String path) {
+    DriverBasedAnalysisContext context = getContext(path);
+    return context.driver;
   }
 
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
-    return (await driver.getResult(source.fullName))?.unit;
+    var resolveResult = await session.getResolvedUnit(source.fullName);
+    return resolveResult.unit;
   }
 
   void setUp() {
-    processRequiredPlugins();
     setupResourceProvider();
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    resourceResolver = new ResourceUriResolver(resourceProvider);
-    packageMap = new Map<String, List<Folder>>();
-    PackageMapUriResolver packageResolver =
-        new PackageMapUriResolver(resourceProvider, packageMap);
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), packageResolver, resourceResolver]);
-    PerformanceLog log = new PerformanceLog(_logBuffer);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    _driver = new AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        new MemoryByteStore(),
-        fileContentOverlay,
-        new ContextRoot(resourceProvider.convertPath('/project'), [],
-            pathContext: resourceProvider.pathContext),
-        sourceFactory,
-        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta);
-    scheduler.start();
-    AnalysisEngine.instance.logger = PrintLogger.instance;
+
+    new MockSdk(resourceProvider: resourceProvider);
+
+    newFolder('/home/test');
+    newFile('/home/test/.packages', content: r'''
+test:file:///home/test/lib
+''');
+
+    createAnalysisContexts();
   }
 
   void setupResourceProvider() {}
@@ -160,28 +279,11 @@ class _IsTestGroup {
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
   }
-}
 
-/**
- * Instances of the class [PrintLogger] print all of the errors.
- */
-class PrintLogger implements Logger {
-  static final Logger instance = new PrintLogger();
-
-  @override
-  void logError(String message, [CaughtException exception]) {
-    print(message);
-    if (exception != null) {
-      print(exception);
-    }
-  }
-
-  @override
-  void logInformation(String message, [CaughtException exception]) {
-    print(message);
-    if (exception != null) {
-      print(exception);
-    }
+  /// Update `/home/test/pubspec.yaml` and create the driver.
+  void updateTestPubspecFile(String content) {
+    newFile(testPubspecPath, content: content);
+    createAnalysisContexts();
   }
 }
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override --complete_timeline
+// VMOptions=--complete_timeline
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
@@ -71,7 +71,6 @@ int timeDuration(List events, int timeOrigin) {
 
 void allEventsHaveIsolateNumber(List events) {
   for (Map event in events) {
-    print(event);
     if (event['ph'] == 'M') {
       // Skip meta-data events.
       continue;

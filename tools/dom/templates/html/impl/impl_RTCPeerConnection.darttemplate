@@ -34,21 +34,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     } catch (_) { return false;}
     return false;
   }
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); }, mediaConstraints);
-    return completer.future;
-  }
-
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); }, mediaConstraints);
-    return completer.future;
-  }
 
   /**
   * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports

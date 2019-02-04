@@ -563,6 +563,66 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     }
   }
 
+  @pragma('dart2js:tryInline')
+  String getAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  String getAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttribute(String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttribute(name, value);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttributeNS(String namespaceURI, String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttributeNS(namespaceURI, name, value);
+  }
+
   /**
    * List of the direct children of this element.
    *
@@ -598,6 +658,28 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+  @JSName('setApplyScroll')
+  void _setApplyScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
+  Future<ScrollState> setApplyScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+      _setApplyScroll((value) {
+        completer.complete(value);
+      }, nativeScrollBehavior);
+    return completer.future;
+  }
+
+  @JSName('setDistributeScroll')
+  void _setDistributeScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
+  Future<ScrollState> setDistributeScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+      _setDistributeScroll((value) {
+        completer.complete(value);
+      }, nativeScrollBehavior);
+    return completer.future;
+  }
 
   /**
    * The set of CSS classes applied to this element.
@@ -677,8 +759,10 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * See also:
    *
-   * * [CSS Inheritance and Cascade](http://docs.webplatform.org/wiki/tutorials/inheritance_and_cascade)
-   * * [Pseudo-elements](http://docs.webplatform.org/wiki/css/selectors/pseudo-elements)
+   * * [Cascade and Inheritance](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Cascade_and_inheritance)
+   *   from MDN.
+   * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
+   *   from MDN.
    */
   CssStyleDeclaration getComputedStyle([String pseudoElement]) {
     if (pseudoElement == null) {
@@ -859,8 +943,10 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * See also:
    *
-   * * [scrollIntoView](http://docs.webplatform.org/wiki/dom/methods/scrollIntoView)
-   * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
+   * * [scrollIntoView](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)
+   *   from MDN.
+   * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
    */
   void scrollIntoView([ScrollAlignment alignment]) {
     var hasScrollIntoViewIfNeeded = true;

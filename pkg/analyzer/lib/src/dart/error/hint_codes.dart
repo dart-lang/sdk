@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.error.hint_codes;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -12,19 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
  * mentioned in the Dart Language Specification.
  */
 class HintCode extends ErrorCode {
-  /**
-   * This hint is generated anywhere where the
-   * [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated,
-   * if we used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the actual argument type
-   * 1: the name of the expected type
-   */
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = const HintCode(
-      'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-      "The argument type '{0}' can't be assigned to the parameter type '{1}'.");
-
   /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
@@ -79,6 +64,23 @@ class HintCode extends ErrorCode {
    */
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
       'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
+      correction:
+          "Try replacing the use of the deprecated member with the replacement.");
+
+  /**
+   * Deprecated members should not be invoked or used from within the package
+   * where they are declared.
+   *
+   * Intentionally separate from DEPRECATED_MEMBER_USE, so that package owners
+   * can ignore same-package deprecate member use Hints if they like, and
+   * continue to see cross-package deprecated member use Hints.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = const HintCode(
+      'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
+      "'{0}' is deprecated and shouldn't be used.",
       correction:
           "Try replacing the use of the deprecated member with the replacement.");
 
@@ -165,15 +167,6 @@ class HintCode extends ErrorCode {
           correction: "Try using a package: URI instead.");
 
   /**
-   * Generic type comments (`/*<T>*/` and `/*=T*/`) are no longer necessary and
-   * will soon be ignored.
-   */
-  static const HintCode GENERIC_METHOD_COMMENT = const HintCode(
-      'GENERIC_METHOD_COMMENT',
-      "The generic type comment is being deprecated in favor of the real syntax.",
-      correction: "Try replacing the comment with the actual type annotation.");
-
-  /**
    * Deferred libraries shouldn't define a top level function 'loadLibrary'.
    */
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION =
@@ -183,21 +176,6 @@ class HintCode extends ErrorCode {
           "which is hidden by deferring this library.",
           correction: "Try changing the import to not be deferred, or "
               "rename the function in the imported library.");
-
-  /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.INVALID_ASSIGNMENT] would have been generated, if we
-   * used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the right hand side type
-   * 1: the name of the left hand side type
-   */
-  static const HintCode INVALID_ASSIGNMENT = const HintCode(
-      'INVALID_ASSIGNMENT',
-      "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
-      correction: "Try changing the type of the variable, or "
-          "casting the right-hand type to '{1}'.");
 
   /**
    * This hint is generated anywhere a @factory annotation is associated with
@@ -236,40 +214,12 @@ class HintCode extends ErrorCode {
       "Only classes can be annotated as being immutable.");
 
   /**
-   * Generic Method DEP: number of type parameters must match.
-   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
-   *
-   * Parameters:
-   * 0: the number of type parameters in the method
-   * 1: the number of type parameters in the overridden method
-   * 2: the name of the class where the overridden method is declared
+   * This hint is generated anywhere a @literal annotation is associated with
+   * anything other than a const constructor.
    */
-  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
-      const HintCode(
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
-          "The method has {0} type parameters, but it is overriding a method "
-          "with {1} type parameters from '{2}'.",
-          correction:
-              "Try changing the number of type parameters so that they are the same.");
-
-  /**
-   * Generic Method DEP: bounds of type parameters must be compatible.
-   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
-   *
-   * Parameters:
-   * 0: the type parameter name
-   * 1: the type parameter bound
-   * 2: the overridden type parameter name
-   * 3: the overridden type parameter bound
-   * 4: the name of the class where the overridden method is declared
-   */
-  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
-      const HintCode(
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
-          "The type parameter '{0}' extends '{1}', but that is stricter than "
-          "'{2}' extends '{3}' in the overridden method from '{4}'.",
-          correction:
-              "Try changing the bounds on the type parameters so that they are compatible.");
+  static const HintCode INVALID_LITERAL_ANNOTATION = const HintCode(
+      'INVALID_LITERAL_ANNOTATION',
+      "Only const constructors can be annotated as being literal.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a non named
@@ -286,15 +236,15 @@ class HintCode extends ErrorCode {
 
   /**
    * This hint is generated anywhere where `@sealed` annotates something other
-   * than a class or mixin.
+   * than a class.
    *
    * Parameters:
    * 0: the name of the member
    */
   static const HintCode INVALID_SEALED_ANNOTATION = const HintCode(
       'INVALID_SEALED_ANNOTATION',
-      "The member '{0}' is annotated with @sealed but only classes and mixins "
-      "can be annotated with it.",
+      "The member '{0}' is annotated with '@sealed' but only classes can be "
+      "annotated with it.",
       correction: "Remove @sealed.");
 
   /**
@@ -415,13 +365,26 @@ class HintCode extends ErrorCode {
           "or changing the return type to 'void'.");
 
   /**
+   * This hint is generated anywhere where a `@sealed` class is used as a
+   * a superclass constraint of a mixin.
+   */
+  static const HintCode MIXIN_ON_SEALED_CLASS = const HintCode(
+      'MIXIN_ON_SEALED_CLASS',
+      "The class '{0}' should not be used as a mixin constraint because it is "
+      "sealed, and any class mixing in this mixin has '{0}' as a superclass.",
+      correction:
+          "Try composing with this class, or refer to its documentation for "
+          "more information.");
+
+  /**
    * Generate a hint for classes that inherit from classes annotated with
    * `@immutable` but that are not immutable.
    */
   static const HintCode MUST_BE_IMMUTABLE = const HintCode(
       'MUST_BE_IMMUTABLE',
-      "This class inherits from a class marked as @immutable, "
-      "and therefore should be immutable (all instance fields must be final).");
+      "This class (or a class which this class inherits from) is marked as "
+      "'@immutable', but one or more of its instance fields are not final: "
+      "{0}");
 
   /**
    * Generate a hint for methods that override methods annotated `@mustCallSuper`
@@ -434,6 +397,27 @@ class HintCode extends ErrorCode {
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as @mustCallSuper in '{0}', "
       "but does not invoke the overridden method.");
+
+  /**
+   * Generate a hint for non-const instance creation using a constructor
+   * annotated with `@literal`.
+   */
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = const HintCode(
+      'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+      "This instance creation must be 'const', because the {0} constructor is "
+      "marked as '@literal'.",
+      correction: "Try adding a 'const' keyword.");
+
+  /**
+   * Generate a hint for non-const instance creation (with the `new` keyword)
+   * using a constructor annotated with `@literal`.
+   */
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
+      const HintCode(
+          'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+          "This instance creation must be 'const', because the {0} constructor is "
+          "marked as '@literal'.",
+          correction: "Try replacing the 'new' keyword with 'const'.");
 
   /**
    * When the left operand of a binary expression uses '?.' operator, it can be
@@ -470,6 +454,8 @@ class HintCode extends ErrorCode {
    * Parameters:
    * 0: the name of the current class
    */
+  // TODO(brianwilkerson) Decide whether we want to implement this check
+  //  (possibly as a lint) or remove the hint code.
   static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode(
       'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
       "The class '{0}' overrides 'operator==', but not 'get hashCode'.",
@@ -522,6 +508,30 @@ class HintCode extends ErrorCode {
       "A package import shouldn't contain '..'.");
 
   /**
+   * A class defined in `dart:async` that was not exported from `dart:core`
+   * before version 2.1 is being referenced via `dart:core` in code that is
+   * expected to run on earlier versions.
+   */
+  static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = const HintCode(
+      'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
+      "The class '{0}' was not exported from 'dart:core' until version 2.1, "
+      "but this code is required to be able to run on earlier versions.",
+      correction:
+          "Try either importing 'dart:async' or updating the SDK constraints.");
+
+  /**
+   * This hint is generated anywhere where a `@sealed` class or mixin is used as
+   * a super-type of a class.
+   */
+  static const HintCode SUBTYPE_OF_SEALED_CLASS = const HintCode(
+      'SUBTYPE_OF_SEALED_CLASS',
+      "The class '{0}' should not be extended, mixed in, or implemented "
+      "because it is sealed.",
+      correction:
+          "Try composing instead of inheriting, or refer to its documentation "
+          "for more information.");
+
+  /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
   static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode(
@@ -537,71 +547,12 @@ class HintCode extends ErrorCode {
       correction: "Try replacing the 'is Null' check with '== null'.");
 
   /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.UNDEFINED_GETTER] or
-   * [StaticWarningCode.UNDEFINED_GETTER] would have been generated, if we used
-   * propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the getter is being looked for
-   */
-  static const HintCode UNDEFINED_GETTER = const HintCode(
-      'UNDEFINED_GETTER', "The getter '{0}' isn't defined for the class '{1}'.",
-      correction:
-          "Try defining a getter or field named '{0}', or invoke a different getter.");
-
-  /**
    * An undefined name hidden in an import or export directive.
    */
   static const HintCode UNDEFINED_HIDDEN_NAME = const HintCode(
       'UNDEFINED_HIDDEN_NAME',
       "The library '{0}' doesn't export a member with the hidden name '{1}'.",
       correction: "Try removing the name from the list of hidden members.");
-
-  /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.UNDEFINED_METHOD] would have been generated, if we
-   * used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the method that is undefined
-   * 1: the resolved type name that the method lookup is happening on
-   */
-  static const HintCode UNDEFINED_METHOD = const HintCode(
-      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the class '{1}'.",
-      correction:
-          "Try correcting the name to the name of an existing method, or "
-          "defining a method named '{0}'.");
-
-  /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.UNDEFINED_OPERATOR] would have been generated, if we
-   * used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the operator
-   * 1: the name of the enclosing type where the operator is being looked for
-   */
-  static const HintCode UNDEFINED_OPERATOR = const HintCode(
-      'UNDEFINED_OPERATOR',
-      "The operator '{0}' isn't defined for the class '{1}'.",
-      correction: "Try defining the operator '{0}'.");
-
-  /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.UNDEFINED_SETTER] or
-   * [StaticWarningCode.UNDEFINED_SETTER] would have been generated, if we used
-   * propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the setter
-   * 1: the name of the enclosing type where the setter is being looked for
-   */
-  static const HintCode UNDEFINED_SETTER = const HintCode(
-      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the class '{1}'.",
-      correction:
-          "Try defining a setter or field named '{0}', or invoke a different setter.");
 
   /**
    * An undefined name shown in an import or export directive.
@@ -707,21 +658,6 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_SHOWN_NAME = const HintCode(
       'UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.",
       correction: "Try removing the name from the list of shown members.");
-
-  /**
-   * It will be a static type warning if <i>m</i> is not a generic method with
-   * exactly <i>n</i> type parameters.
-   *
-   * Parameters:
-   * 0: the name of the method being referenced (<i>G</i>)
-   * 1: the number of type parameters that were declared
-   * 2: the number of type arguments provided
-   */
-  static const HintCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD = const HintCode(
-      'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
-      "The method '{0}' is declared with {1} type parameters, "
-      "but {2} type arguments were given.",
-      correction: "Try adjusting the number of type arguments.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

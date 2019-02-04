@@ -214,15 +214,10 @@ class DartUtils {
   }
 
   static bool SetOriginalWorkingDirectory();
-  static Dart_Handle GetCanonicalizableWorkingDirectory();
 
-  static const char* MapLibraryUrl(const char* url_string);
-
-  static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
   static Dart_Handle ResolveScript(Dart_Handle url);
 
   enum MagicNumber {
-    kSnapshotMagicNumber,
     kAppJITMagicNumber,
     kKernelMagicNumber,
     kKernelListMagicNumber,
@@ -240,9 +235,6 @@ class DartUtils {
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 
-  // Global state that captures the URL mappings specified on the command line.
-  static CommandLineOptions* url_mapping;
-
   static const char* const kDartScheme;
   static const char* const kDartExtensionScheme;
   static const char* const kAsyncLibURL;
@@ -258,8 +250,6 @@ class DartUtils {
   static const char* const kUriLibURL;
   static const char* const kHttpScheme;
   static const char* const kVMServiceLibURL;
-
-  static Dart_Handle LibraryFilePath(Dart_Handle library_uri);
 
   static void SetEnvironment(dart::SimpleHashMap* environment);
   static Dart_Handle EnvironmentCallback(Dart_Handle name);
@@ -586,61 +576,6 @@ class ScopedBlockingCall {
   DISALLOW_COPY_AND_ASSIGN(ScopedBlockingCall);
 };
 
-// Where the argument to the constructor is the handle for an object
-// implementing List<int>, this class creates a scope in which the memory
-// backing the list can be accessed.
-//
-// Do not make Dart_ API calls while in a ScopedMemBuffer.
-// Do not call Dart_PropagateError while in a ScopedMemBuffer.
-class ScopedMemBuffer {
- public:
-  explicit ScopedMemBuffer(Dart_Handle object) {
-    if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
-      Dart_ThrowException(
-          DartUtils::NewDartArgumentError("Argument is not a List<int>"));
-    }
-
-    uint8_t* bytes = NULL;
-    intptr_t bytes_len = 0;
-    bool is_typed_data = false;
-    if (Dart_IsTypedData(object)) {
-      is_typed_data = true;
-      Dart_TypedData_Type typ;
-      ThrowIfError(Dart_TypedDataAcquireData(
-          object, &typ, reinterpret_cast<void**>(&bytes), &bytes_len));
-    } else {
-      ASSERT(Dart_IsList(object));
-      ThrowIfError(Dart_ListLength(object, &bytes_len));
-      bytes = Dart_ScopeAllocate(bytes_len);
-      ASSERT(bytes != NULL);
-      ThrowIfError(Dart_ListGetAsBytes(object, 0, bytes, bytes_len));
-    }
-
-    object_ = object;
-    bytes_ = bytes;
-    bytes_len_ = bytes_len;
-    is_typed_data_ = is_typed_data;
-  }
-
-  ~ScopedMemBuffer() {
-    if (is_typed_data_) {
-      ThrowIfError(Dart_TypedDataReleaseData(object_));
-    }
-  }
-
-  uint8_t* get() const { return bytes_; }
-  intptr_t length() const { return bytes_len_; }
-
- private:
-  Dart_Handle object_;
-  uint8_t* bytes_;
-  intptr_t bytes_len_;
-  bool is_typed_data_;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ScopedMemBuffer);
-};
-
 struct MagicNumberData {
   static const intptr_t kMaxLength = 8;
 
@@ -649,7 +584,6 @@ struct MagicNumberData {
 };
 
 extern MagicNumberData appjit_magic_number;
-extern MagicNumberData snapshot_magic_number;
 extern MagicNumberData kernel_magic_number;
 extern MagicNumberData kernel_list_magic_number;
 extern MagicNumberData gzip_magic_number;

@@ -13,16 +13,19 @@ abstract class _Indexed {
 abstract class IndexedLibrary extends _Indexed implements LibraryEntity {
   /// Library index used for fast lookup in [KernelToElementMapBase].
   int get libraryIndex => _index;
+  int get hashCode => 7 * _index + 2;
 }
 
 abstract class IndexedClass extends _Indexed implements ClassEntity {
   /// Class index used for fast lookup in [KernelToElementMapBase].
   int get classIndex => _index;
+  int get hashCode => 7 * _index + 1;
 }
 
 abstract class IndexedMember extends _Indexed implements MemberEntity {
   /// Member index used for fast lookup in [KernelToElementMapBase].
   int get memberIndex => _index;
+  int get hashCode => 7 * _index;
 }
 
 abstract class IndexedFunction extends _Indexed
@@ -50,12 +53,16 @@ abstract class IndexedLocal extends _Indexed implements Local {
 
 /// Base implementation for an index based map of entities of type [E].
 abstract class EntityMapBase<E extends _Indexed> {
+  int _size = 0;
   List<E> _list = <E>[];
 
   /// Returns the [index]th entity in the map.
   E getEntity(int index) => _list[index];
 
-  /// Returns the number entities in the map.
+  /// Returns the number of non-null entities in the map.
+  int get size => _size;
+
+  /// Returns the number (null and non-null) entities in the map.
   int get length => _list.length;
 }
 
@@ -70,7 +77,25 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
     assert(entity._index == null);
     entity._index = _list.length;
     _list.add(entity);
+    _size++;
     return entity;
+  }
+
+  /// Registers a new [entity] by the given [index].
+  E0 registerByIndex<E0 extends E>(int index, E0 entity) {
+    assert(index >= _list.length);
+    _list.length = index;
+    return register(entity);
+  }
+
+  /// Calls [f] for each non-null entity.
+  void forEach<E0 extends E>(void f(E0 entity)) {
+    for (int index = 0; index < _list.length; index++) {
+      E entity = _list[index];
+      if (entity != null) {
+        f(entity);
+      }
+    }
   }
 }
 
@@ -83,7 +108,7 @@ abstract class EntityDataMapBase<E extends _Indexed, D>
   /// Returns the data object stored for the [index]th entity.
   D getData(E entity) {
     int index = entity._index;
-    if (index < length && index >= _data.length) {
+    if (index < _list.length && index >= _data.length) {
       throw new StateError(
           'Data is in the process of being created for ${_list[index]}.');
     }
@@ -108,11 +133,38 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
   E0 register<E0 extends E, D0 extends D>(E0 entity, D0 data) {
     assert(entity != null);
     assert(entity._index == null);
+    assert(
+        _list.length == _data.length,
+        'Data list length ${_data.length} inconsistent '
+        'with entity list length ${_list.length}.');
     entity._index = _list.length;
     _list.add(entity);
+    _size++;
     assert(data != null);
     _data.add(data);
     return entity;
+  }
+
+  /// Registers a new [entity] with an associated [data] object by the given
+  /// [index].
+  E0 registerByIndex<E0 extends E, D0 extends D>(
+      int index, E0 entity, D0 data) {
+    assert(index >= _list.length);
+    _list.length = _data.length = index;
+    return register(entity, data);
+  }
+
+  /// Calls [f] for each non-null entity with its corresponding data object.
+  void forEach<E0 extends E, D0 extends D>(void f(E0 entity, D0 data)) {
+    if (_list.length != _data.length) {
+      throw new StateError('Data is in the process of being created.');
+    }
+    for (int index = 0; index < _list.length; index++) {
+      E entity = _list[index];
+      if (entity != null) {
+        f(entity, _data[index]);
+      }
+    }
   }
 }
 
@@ -125,7 +177,7 @@ abstract class EntityDataEnvMapBase<E extends _Indexed, D, V>
   /// Returns the environment object stored for the [index]th entity.
   V getEnv(E entity) {
     int index = entity._index;
-    if (index < length && index >= _env.length) {
+    if (index < _list.length && index >= _env.length) {
       throw new StateError(
           'Env is in the process of being created for ${_list[index]}.');
     }
@@ -146,12 +198,48 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
       E0 entity, D0 data, V0 env) {
     assert(entity != null);
     assert(entity._index == null);
+    assert(
+        _list.length == _data.length,
+        'Data list length ${_data.length} inconsistent '
+        'with entity list length ${_list.length}.');
+    assert(
+        _list.length == _env.length,
+        'Env list length ${_env.length} inconsistent '
+        'with entity list length ${_list.length}.');
     entity._index = _list.length;
     _list.add(entity);
+    _size++;
     assert(data != null);
     _data.add(data);
     assert(env != null);
     _env.add(env);
     return entity;
+  }
+
+  /// Registers a new [entity] with an associated [data] object and environment
+  /// [env] by the given [index].
+  E0 registerByIndex<E0 extends E, D0 extends D, V0 extends V>(
+      int index, E0 entity, D0 data, V0 env) {
+    assert(index >= _list.length);
+    _list.length = _data.length = _env.length = index;
+    return register(entity, data, env);
+  }
+
+  /// Calls [f] for each non-null entity with its corresponding data object and
+  /// environment.
+  void forEach<E0 extends E, D0 extends D, V0 extends V>(
+      void f(E0 entity, D0 data, V0 env)) {
+    if (_list.length != _data.length) {
+      throw new StateError('Data is in the process of being created.');
+    }
+    if (_list.length != _env.length) {
+      throw new StateError('Env is in the process of being created.');
+    }
+    for (int index = 0; index < _list.length; index++) {
+      E entity = _list[index];
+      if (entity != null) {
+        f(entity, _data[index], _env[index]);
+      }
+    }
   }
 }

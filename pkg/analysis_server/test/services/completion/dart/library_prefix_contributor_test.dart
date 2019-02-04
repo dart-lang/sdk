@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,29 +42,29 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
 
   test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
 export "dart:math" hide max;
 class A {int x;}
 @deprecated D1() {int x;}
 class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
 String T1;
 var _T2;
 class C { }
 class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
 class EE { }
 class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
 class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "testAB.dart";
-import "testCD.dart" hide D;
-import "testEEF.dart" show EE;
-import "testG.dart" as g;
+import "ab.dart";
+import "cd.dart" hide D;
+import "eef.dart" show EE;
+import "g.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -183,10 +183,10 @@ class Z { }''');
 
   test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 @deprecated class A {^}
 class _B {}
 A T;''');
@@ -198,10 +198,10 @@ A T;''');
 
   test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^}
 class _B {}
 A T;''');
@@ -213,10 +213,10 @@ A T;''');
 
   test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^ A(){}}
 class _B {}
 A T;''');
@@ -228,10 +228,10 @@ A T;''');
 
   test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as Soo;
+import "b.dart" as Soo;
 class A {final S^ A();}
 class _B {}
 A Sew;''');
@@ -243,10 +243,10 @@ A Sew;''');
 
   test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^ final foo;}
 class _B {}
 A T;''');
@@ -258,10 +258,10 @@ A T;''');
 
   test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^ var foo;}
 class _B {}
 A T;''');
@@ -272,12 +272,12 @@ A T;''');
   }
 
   test_InstanceCreationExpression() async {
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
-import "testA.dart" as t;
+import "a.dart" as t;
 import "dart:math" as math;
 main() {new ^ String x = "hello";}''');
     await computeSuggestions();
@@ -291,32 +291,31 @@ main() {new ^ String x = "hello";}''');
   }
 
   test_InstanceCreationExpression_inPart() async {
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library testB;
-import "${convertPathForImport("/testA.dart")}" as t;
+import "a.dart" as t;
 import "dart:math" as math;
-part "${convertPathForImport(testFile)}"
+part "test.dart";
 main() {new ^ String x = "hello";}''');
     addTestSource('''
 part of testB;
 main() {new ^ String x = "hello";}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
   }
 
   test_InstanceCreationExpression_inPart_detached() async {
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library testB;
-import "testA.dart" as t;
+import "a.dart" as t;
 import "dart:math" as math;
 //part "$testFile"
 main() {new ^ String x = "hello";}''');

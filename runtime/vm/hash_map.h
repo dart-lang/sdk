@@ -27,6 +27,8 @@ class BaseDirectChainedHashMap : public B {
 
   BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
 
+  intptr_t Length() const { return count_; }
+
   virtual ~BaseDirectChainedHashMap() {
     allocator_->template Free<HashMapListElement>(array_, array_size_);
     allocator_->template Free<HashMapListElement>(lists_, lists_size_);
@@ -43,6 +45,7 @@ class BaseDirectChainedHashMap : public B {
     return Lookup(key) != NULL;
   }
 
+  intptr_t Size() const { return count_; }
   bool IsEmpty() const { return count_ == 0; }
 
   virtual void Clear() {
@@ -371,7 +374,7 @@ class DirectChainedHashMap
  public:
   DirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
-            ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 
   explicit DirectChainedHashMap(Zone* zone)
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(

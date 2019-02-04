@@ -5,8 +5,23 @@
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
+[ $compiler == compare_analyzer_cfe ]
+const_native_factory_test: Fail # Issue 29763
+deferred_global_test: Fail # Issue 34503
+generic_field_mixin2_test: Fail # Issue 34489
+generic_local_functions_test: Fail # Issue 28515
+generic_methods_generic_function_parameter_test: Fail # Issue 28515
+issue34488_test/01: Fail # Issue 34488
+issue34488_test/02: Fail # Issue 34488
+issue34488_test/03: Fail # Issue 34488
+issue34488_test/04: Fail # Issue 34488
+issue34488_test/05: Fail # Issue 34488
+issue34488_test/06: Fail # Issue 34488
+issue34488_test/none: Fail # Issue 34488
+mixin_class_from_core_library_test: Fail # Issue 34488
+nested_generic_closure_test: Fail # Issue 28515
+
 [ $compiler != compare_analyzer_cfe ]
-bug34235_test/01: MissingCompileTimeError # Issue 34235
 mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
@@ -14,15 +29,6 @@ mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTi
 
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
-
-[ $compiler == dart2js ]
-double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34356
-invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34011
-mixin_declaration/*: Skip # See https://github.com/dart-lang/language/issues/7
-void/*: Skip # https://github.com/dart-lang/sdk/issues/34011
-
-[ $compiler == fasta ]
-double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34357
 
 [ $compiler == spec_parser ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34355
@@ -48,9 +54,6 @@ stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $fasta ]
-mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError, DartkCrash # https://github.com/dart-lang/sdk/issues/34165
-mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
-mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError, DartkCrash # https://github.com/dart-lang/sdk/issues/34165
 partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
@@ -223,16 +226,13 @@ map_literal7_test: RuntimeError # Requires strong mode
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
 
-[ $compiler == app_jit || $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp || $compiler == none || $compiler == precompiler ]
-double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34358
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
 
 [ $compiler == app_jit || $compiler == none ]
 invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 library_env_test/has_no_mirror_support: RuntimeError, OK
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
-
-[ $compiler == dartdevc || $compiler == dartdevk ]
-double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34359
 
 [ $hot_reload || $hot_reload_rollback ]
 cha_deopt1_test: Crash # Requires deferred libraries

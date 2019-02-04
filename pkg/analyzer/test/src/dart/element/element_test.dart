@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.src.dart.element.element_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -47,8 +45,11 @@ main() {
   });
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ClassElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode_ClassDeclaration() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -102,6 +103,7 @@ enum C {C1, C2, C3}
     }
   }
 
+  @deprecated
   void test_computeNode_ClassTypeAlias() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -132,8 +134,8 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
         new TestElementResynthesizer(context, {location: classA});
     ClassElementHandle classAHandle =
         new ClassElementHandle(resynthesizer, location);
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", new InterfaceTypeImpl(classAHandle));
+    ClassElementImpl classB = new ClassElementImpl('B', 0)
+      ..supertype = new InterfaceTypeImpl(classAHandle);
     classB.mixinApplication = true;
 
     expect(classB.constructors, hasLength(1));
@@ -1000,6 +1002,8 @@ class CompilationUnitElementImplTest extends EngineTestCase {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ElementAnnotationImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
@@ -1194,8 +1198,11 @@ class ElementLocationImplTest extends EngineTestCase {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class FieldElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3694,8 +3701,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
 class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
     expect(
-        new LibraryElementImpl.forNode(
-            createAnalysisContext(), AstTestFactory.libraryIdentifier2(["l"])),
+        new LibraryElementImpl.forNode(createAnalysisContext(), null,
+            AstTestFactory.libraryIdentifier2(["l"])),
         isNotNull);
   }
 
@@ -3782,7 +3789,7 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["l1"]));
+        context, null, AstTestFactory.libraryIdentifier2(["l1"]));
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)
@@ -3799,8 +3806,11 @@ class LibraryElementImplTest extends EngineTestCase {
 @reflectiveTest
 class LocalVariableElementImplTest extends EngineTestCase {}
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3831,6 +3841,7 @@ abstract class A {
     }
   }
 
+  @deprecated
   void test_computeNode_withoutFunctionBody() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.analyzeFunctionBodies = false;
@@ -3864,6 +3875,8 @@ abstract class A {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class MethodMemberTest extends EngineTestCase {
   /**
@@ -3901,15 +3914,18 @@ class B<S> extends A<S> {
     MethodElement AfElement = elementB.type
         .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
     expect(
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         BfElement.getReifiedType(objectType),
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         equals(AfElement.getReifiedType(objectType)));
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ParameterElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode_DefaultFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3929,6 +3945,7 @@ main([int p = 42]) {
     }
   }
 
+  @deprecated
   void test_computeNode_FieldFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3953,6 +3970,7 @@ class A {
     }
   }
 
+  @deprecated
   void test_computeNode_FunctionTypedFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3972,6 +3990,7 @@ main(p(int a, int b)) {
     }
   }
 
+  @deprecated
   void test_computeNode_SimpleFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -4029,7 +4048,7 @@ class TestElementResynthesizer extends ElementResynthesizer {
   Map<ElementLocation, Element> locationMap;
 
   TestElementResynthesizer(AnalysisContext context, this.locationMap)
-      : super(context);
+      : super(context, null);
 
   @override
   Element getElement(ElementLocation location) {
@@ -4037,6 +4056,8 @@ class TestElementResynthesizer extends ElementResynthesizer {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class TopLevelVariableElementImplTest extends ResolverTestCase {
   void test_computeConstantValue() {

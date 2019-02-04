@@ -538,8 +538,8 @@ class RangeAnalysis : public ValueObject {
   enum JoinOperator { NONE, WIDEN, NARROW };
   static char OpPrefix(JoinOperator op);
 
-  // Collect all values that were proven to be smi in smi_values_ array and all
-  // CheckSmi instructions in smi_check_ array.
+  // Collect all integer values (smi or int), all 64-bit binary
+  // and shift operations, and all check bounds.
   void CollectValues();
 
   // Iterate over smi values and constrain them at branch successors.
@@ -583,8 +583,6 @@ class RangeAnalysis : public ValueObject {
   // Convert mint operations that stay within int32 range into Int32 operations.
   void NarrowMintToInt32();
 
-  void DiscoverSimpleInductionVariables();
-
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
   void RemoveConstraints();
@@ -600,15 +598,15 @@ class RangeAnalysis : public ValueObject {
 
   Range int64_range_;
 
-  // Value that are known to be smi or mint.
+  // All values that are known to be smi or mint.
   GrowableArray<Definition*> values_;
 
+  // All 64-bit binary and shift operations.
   GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
-
   GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
-  // All CheckArrayBound instructions.
-  GrowableArray<CheckArrayBoundInstr*> bounds_checks_;
+  // All CheckArrayBound/GenericCheckBound instructions.
+  GrowableArray<Instruction*> bounds_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.

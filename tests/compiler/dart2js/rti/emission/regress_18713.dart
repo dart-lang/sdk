@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-/*class: T:checks=[]*/
+/*class: T:checks=[],indirectInstance*/
 class T<X> {
   final Type tType = X;
   Type get getTType => X;

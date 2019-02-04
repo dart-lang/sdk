@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 
@@ -13,7 +14,6 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/embedded_dart_io.h"
 #include "bin/file.h"
 #include "bin/io_natives.h"
 #include "bin/platform.h"

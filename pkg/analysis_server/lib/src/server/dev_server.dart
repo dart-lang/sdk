@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -161,12 +161,15 @@ class DevAnalysisServer {
 }
 
 class DevChannel implements ServerCommunicationChannel {
-  StreamController<Request> _requestController =
-      new StreamController.broadcast();
-  StreamController<Notification> _notificationController =
+  final StreamController<Request> _requestController =
       new StreamController.broadcast();
 
-  Map<String, Completer<Response>> _responseCompleters = {};
+  final StreamController<Notification> _notificationController =
+      new StreamController.broadcast();
+
+  final Map<String, Completer<Response>> _responseCompleters = {};
+
+  Stream<Notification> get onNotification => _notificationController.stream;
 
   @override
   void close() {
@@ -191,12 +194,6 @@ class DevChannel implements ServerCommunicationChannel {
     _notificationController.add(notification);
   }
 
-  @override
-  void sendResponse(Response response) {
-    Completer<Response> completer = _responseCompleters.remove(response.id);
-    completer?.complete(response);
-  }
-
   Future<Response> sendRequest(Request request) {
     Completer<Response> completer = new Completer();
     _responseCompleters[request.id] = completer;
@@ -204,5 +201,9 @@ class DevChannel implements ServerCommunicationChannel {
     return completer.future;
   }
 
-  Stream<Notification> get onNotification => _notificationController.stream;
+  @override
+  void sendResponse(Response response) {
+    Completer<Response> completer = _responseCompleters.remove(response.id);
+    completer?.complete(response);
+  }
 }

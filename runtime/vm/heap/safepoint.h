@@ -8,13 +8,14 @@
 #include "vm/globals.h"
 #include "vm/lockers.h"
 #include "vm/thread.h"
+#include "vm/thread_stack_resource.h"
 
 namespace dart {
 
 // A stack based scope that can be used to perform an operation after getting
 // all threads to a safepoint. At the end of the operation all the threads are
 // resumed.
-class SafepointOperationScope : public StackResource {
+class SafepointOperationScope : public ThreadStackResource {
  public:
   explicit SafepointOperationScope(Thread* T);
   ~SafepointOperationScope();
@@ -136,9 +137,9 @@ class SafepointHandler {
  *   ==> kThreadInGenerated
  *       - Invalid transition.
  */
-class TransitionSafepointState : public StackResource {
+class TransitionSafepointState : public ThreadStackResource {
  public:
-  explicit TransitionSafepointState(Thread* T) : StackResource(T) {}
+  explicit TransitionSafepointState(Thread* T) : ThreadStackResource(T) {}
   ~TransitionSafepointState() {}
 
   SafepointHandler* handler() const {

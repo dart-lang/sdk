@@ -613,7 +613,7 @@ Future testTypeVariableSubtype() async {
         new B();
         new C();
         new D();
-        new E<num, int>();
+        new E<int, num>();
         new F();
       }
       """, expectNoErrors: true).then((env) {

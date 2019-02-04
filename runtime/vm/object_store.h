@@ -59,6 +59,8 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_string_string)                               \
   RW(Class, compiletime_error_class)                                           \
   RW(Class, pragma_class)                                                      \
+  RW(Field, pragma_name)                                                       \
+  RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \
@@ -120,15 +122,21 @@ class ObjectPointerVisitor;
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
+  RW(ObjectPool, global_object_pool)                                           \
   RW(Array, library_load_error_table)                                          \
   RW(Array, unique_dynamic_targets)                                            \
-  RW(GrowableObjectArray, token_objects)                                       \
-  RW(Array, token_objects_map)                                                 \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
+  RW(Code, build_method_extractor_code)                                        \
+  RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
+  RW(Code, null_error_stub_without_fpu_regs_stub)                              \
+  RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
+  RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
+  RW(Code, write_barrier_wrappers_stub)                                        \
+  RW(Code, array_write_barrier_stub)                                           \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
+  RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
-  RW(GrowableObjectArray, type_testing_stubs)                                  \
   RW(GrowableObjectArray, changed_in_last_reload)                              \
 // Please remember the last entry must be referred in the 'to' function below.
 
@@ -231,7 +239,6 @@ class ObjectStore {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
-      case Snapshot::kScript:
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

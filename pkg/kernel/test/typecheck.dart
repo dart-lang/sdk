@@ -11,7 +11,7 @@ import 'dart:io';
 final String usage = '''
 Usage: typecheck FILE.dill
 
-Runs the strong mode type checker on the given component.
+Runs the type checker on the given component.
 ''';
 
 main(List<String> args) {
@@ -27,7 +27,7 @@ main(List<String> args) {
 
 class TestTypeChecker extends TypeChecker {
   TestTypeChecker(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : super(coreTypes, hierarchy);
+      : super(coreTypes, hierarchy, legacyMode: true);
 
   @override
   void checkAssignable(TreeNode where, DartType from, DartType to) {

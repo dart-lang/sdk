@@ -237,6 +237,7 @@ class FileLock {
  *   a tutorial about writing command-line apps, includes information about
  *   files and directories.
  */
+@pragma("vm:entry-point")
 abstract class File implements FileSystemEntity {
   /**
    * Creates a [File] object.
@@ -956,6 +957,7 @@ abstract class RandomAccessFile {
 /**
  * Exception thrown when a file operation fails.
  */
+@pragma("vm:entry-point")
 class FileSystemException implements IOException {
   /**
    * Message describing the error. This does not include any detailed
@@ -987,7 +989,7 @@ class FileSystemException implements IOException {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("FileSystemException");
-    if (!message.isEmpty) {
+    if (message.isNotEmpty) {
       sb.write(": $message");
       if (path != null) {
         sb.write(", path = '$path'");

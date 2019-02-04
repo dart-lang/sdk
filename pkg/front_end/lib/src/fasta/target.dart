@@ -20,9 +20,6 @@ abstract class Target {
 
   Target(this.ticker);
 
-  /// Instructs this target to include [uri] in its result.
-  void read(Uri uri);
-
   /// Build and return outlines for all libraries.
   Future<Component> buildOutlines();
 

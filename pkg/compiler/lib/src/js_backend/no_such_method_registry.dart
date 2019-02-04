@@ -6,7 +6,8 @@ import '../common.dart';
 import '../common_elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../types/types.dart';
+import '../inferrer/types.dart';
+import '../serialization/serialization.dart';
 
 /// [NoSuchMethodRegistry] and [NoSuchMethodData] categorizes `noSuchMethod`
 /// implementations.
@@ -171,6 +172,13 @@ class NoSuchMethodRegistryImpl implements NoSuchMethodRegistry {
 /// Post inference collected category `D` methods are into subcategories `D1`
 /// and `D2`.
 abstract class NoSuchMethodData {
+  /// Deserializes a [NoSuchMethodData] object from [source].
+  factory NoSuchMethodData.readFromDataSource(DataSource source) =
+      NoSuchMethodDataImpl.readFromDataSource;
+
+  /// Serializes this [NoSuchMethodData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
@@ -186,6 +194,10 @@ abstract class NoSuchMethodData {
 }
 
 class NoSuchMethodDataImpl implements NoSuchMethodData {
+  /// Tag used for identifying serialized [NoSuchMethodData] objects in a
+  /// debugging data stream.
+  static const String tag = 'no-such-method-data';
+
   /// The implementations that fall into category B, described above.
   final Set<FunctionEntity> throwingImpls;
 
@@ -202,6 +214,35 @@ class NoSuchMethodDataImpl implements NoSuchMethodData {
 
   NoSuchMethodDataImpl(
       this.throwingImpls, this.otherImpls, this.forwardingSyntaxImpls);
+
+  factory NoSuchMethodDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Set<FunctionEntity> throwingImpls =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> otherImpls =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> forwardingSyntaxImpls =
+        source.readMembers<FunctionEntity>().toSet();
+    List<FunctionEntity> complexNoReturnImpls =
+        source.readMembers<FunctionEntity>();
+    List<FunctionEntity> complexReturningImpls =
+        source.readMembers<FunctionEntity>();
+    source.end(tag);
+    return new NoSuchMethodDataImpl(
+        throwingImpls, otherImpls, forwardingSyntaxImpls)
+      ..complexNoReturnImpls.addAll(complexNoReturnImpls)
+      ..complexReturningImpls.addAll(complexReturningImpls);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMembers(throwingImpls);
+    sink.writeMembers(otherImpls);
+    sink.writeMembers(forwardingSyntaxImpls);
+    sink.writeMembers(complexNoReturnImpls);
+    sink.writeMembers(complexReturningImpls);
+    sink.end(tag);
+  }
 
   /// Now that type inference is complete, split category D into two
   /// subcategories: D1, those that have no return type, and D2, those

@@ -276,13 +276,14 @@ const Register CALLEE_SAVED_TEMP = R8;
 // R15 encodes APSR in the vmrs instruction.
 const Register APSR = R15;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = R1;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = R1;
+const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R9;
 
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
@@ -308,10 +309,12 @@ const int kAbiPreservedFpuRegCount = 4;
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
                                       (1 << PP) | (1 << THR) | (1 << LR) |
                                       (1 << PC);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 7;
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 7;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
@@ -493,7 +496,6 @@ class Instr {
       ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
 
   static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
-  static const int32_t kStopMessageCode = 0xdeb1;     // For Stop(message).
   static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 

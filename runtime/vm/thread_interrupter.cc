@@ -36,16 +36,6 @@ namespace dart {
 // The ThreadInterrupter has a single monitor (monitor_). This monitor is used
 // to synchronize startup, shutdown, and waking up from a deep sleep.
 //
-// A thread can only register and unregister itself. Each thread has a heap
-// allocated ThreadState. A thread's ThreadState is lazily allocated the first
-// time the thread is registered. A pointer to a thread's ThreadState is stored
-// in the list of threads registered to receive interrupts (threads_) and in
-// thread local storage. When a thread's ThreadState is being modified, the
-// thread local storage pointer is temporarily set to NULL while the
-// modification is occurring. After the ThreadState has been updated, the
-// thread local storage pointer is set again. This has an important side
-// effect: if the thread is interrupted by a signal handler during a ThreadState
-// update the signal handler will immediately return.
 
 DEFINE_FLAG(bool, trace_thread_interrupter, false, "Trace thread interrupter");
 
@@ -59,11 +49,14 @@ Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
-void ThreadInterrupter::InitOnce() {
+void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
-  monitor_ = new Monitor();
+  if (monitor_ == NULL) {
+    monitor_ = new Monitor();
+  }
   ASSERT(monitor_ != NULL);
   initialized_ = true;
+  shutdown_ = false;
 }
 
 void ThreadInterrupter::Startup() {
@@ -94,7 +87,7 @@ void ThreadInterrupter::Startup() {
   }
 }
 
-void ThreadInterrupter::Shutdown() {
+void ThreadInterrupter::Cleanup() {
   {
     MonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
@@ -114,6 +107,7 @@ void ThreadInterrupter::Shutdown() {
   ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(interrupter_thread_id_);
   interrupter_thread_id_ = OSThread::kInvalidThreadJoinId;
+  initialized_ = false;
 
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter shut down.\n");
@@ -122,6 +116,7 @@ void ThreadInterrupter::Shutdown() {
 
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
+  MonitorLocker ml(monitor_);
   if (shutdown_) {
     return;
   }
@@ -178,6 +173,9 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
         // Woken up from deep sleep.
         ASSERT(interrupted_thread_count == 0);
         // Return to regular interrupts.
+        current_wait_time_ = interrupt_period_;
+      } else if (current_wait_time_ != interrupt_period_) {
+        // The interrupt period may have been updated via the service protocol.
         current_wait_time_ = interrupt_period_;
       }
 

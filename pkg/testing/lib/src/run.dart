@@ -23,7 +23,13 @@ import '../testing.dart'
 
 import 'analyze.dart' show Analyze;
 
-import 'log.dart' show isVerbose, logMessage, logNumberedLines, splitLines;
+import 'log.dart'
+    show
+        enableVerboseOutput,
+        isVerbose,
+        logMessage,
+        logNumberedLines,
+        splitLines;
 
 import 'suite.dart' show Dart, Suite;
 
@@ -47,15 +53,16 @@ Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
 ///
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
-/// relative to `Platform.script`.
+/// relative to [me] which defaults to `Platform.script`.
 Future<Null> runMe(List<String> arguments, CreateContext f,
-    [String configurationPath]) {
+    [String configurationPath, Uri me]) {
+  me ??= Platform.script;
   return withErrorHandling(() async {
-    TestRoot testRoot =
-        await computeTestRoot(configurationPath, Platform.script);
+    TestRoot testRoot = await computeTestRoot(configurationPath, me);
     CommandLine cl = CommandLine.parse(arguments);
+    if (cl.verbose) enableVerboseOutput();
     for (Chain suite in testRoot.toolChains) {
-      if (Platform.script == suite.source) {
+      if (me == suite.source) {
         print("Running suite ${suite.name}...");
         ChainContext context = await f(suite, cl.environment);
         await context.run(suite, new Set<String>.from(cl.selectors));

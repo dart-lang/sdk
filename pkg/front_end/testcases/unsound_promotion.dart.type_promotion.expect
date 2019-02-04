@@ -1,0 +1,9 @@
+pkg/front_end/testcases/unsound_promotion.dart:20:9: Context: Possible promotion of s@397
+  if (s is A) {
+        ^^
+pkg/front_end/testcases/unsound_promotion.dart:31:9: Context: Write to aList@541
+  aList = list;
+        ^
+pkg/front_end/testcases/unsound_promotion.dart:33:9: Context: Write to aList@541
+  aList = o;
+        ^

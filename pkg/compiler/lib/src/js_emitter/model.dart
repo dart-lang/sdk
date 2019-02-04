@@ -72,10 +72,8 @@ class Program {
   Fragment get mainFragment => fragments.first;
 }
 
-/**
- * This class represents a JavaScript object that contains static state, like
- * classes or functions.
- */
+/// This class represents a JavaScript object that contains static state, like
+/// classes or functions.
 class Holder {
   final String name;
   final int index;
@@ -90,12 +88,10 @@ class Holder {
   }
 }
 
-/**
- * This class represents one output file.
- *
- * If no library is deferred, there is only one [Fragment] of type
- * [MainFragment].
- */
+/// This class represents one output file.
+///
+/// If no library is deferred, there is only one [Fragment] of type
+/// [MainFragment].
 abstract class Fragment {
   /// The outputUnit should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
@@ -122,12 +118,10 @@ abstract class Fragment {
   bool get isMainFragment;
 }
 
-/**
- * The main output file.
- *
- * This code emitted from this [Fragment] must be loaded first. It can then load
- * other [DeferredFragment]s.
- */
+/// The main output file.
+///
+/// This code emitted from this [Fragment] must be loaded first. It can then load
+/// other [DeferredFragment]s.
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
 
@@ -149,9 +143,7 @@ class MainFragment extends Fragment {
   }
 }
 
-/**
- * An output (file) for deferred code.
- */
+/// An output (file) for deferred code.
 class DeferredFragment extends Fragment {
   final String name;
 
@@ -213,7 +205,8 @@ class StaticField {
   /// Uses indicate missing information in the model.
   final FieldEntity element;
 
-  js.Name name;
+  final js.Name name;
+  final js.Name getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
   final Holder holder;
@@ -221,8 +214,8 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
 
-  StaticField(this.element, this.name, this.holder, this.code, this.isFinal,
-      this.isLazy);
+  StaticField(this.element, this.name, this.getterName, this.holder, this.code,
+      this.isFinal, this.isLazy);
 
   String toString() {
     return 'StaticField(name=${name.key},element=${element})';
@@ -389,17 +382,11 @@ class Field {
 
   final bool needsCheckedSetter;
 
-  final bool nullInitializerInAllocator; // TODO(sra): Generalize.
+  final ConstantValue initializerInAllocator;
 
   // TODO(floitsch): support renamed fields.
-  Field(
-      this.element,
-      this.name,
-      this.accessorName,
-      this.getterFlags,
-      this.setterFlags,
-      this.needsCheckedSetter,
-      this.nullInitializerInAllocator);
+  Field(this.element, this.name, this.accessorName, this.getterFlags,
+      this.setterFlags, this.needsCheckedSetter, this.initializerInAllocator);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
@@ -447,8 +434,9 @@ abstract class DartMethod extends Method {
   // this field holds a function computing the function signature.
   final js.Expression functionType;
 
-  // Signature information for this method. This is only required and stored
-  // here if the method [canBeApplied].
+  // Signature information for this method. [optionalParameterDefaultValues] is
+  // only required and stored here if the method [canBeApplied]. The count is
+  // always stored to help select specialized tear-off paths.
   final int requiredParameterCount;
   final /* Map | List */ optionalParameterDefaultValues;
 

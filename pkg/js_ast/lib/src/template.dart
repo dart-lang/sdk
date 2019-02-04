@@ -686,6 +686,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitName(Name node) => same(node);
 
+  Instantiator visitParentheses(Parentheses node) {
+    Instantiator makeEnclosed = visit(node.enclosed);
+    return (arguments) {
+      Expression enclosed = makeEnclosed(arguments);
+      return Parentheses(enclosed);
+    };
+  }
+
   Instantiator visitArrayInitializer(ArrayInitializer node) {
     // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers =

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,7 +20,7 @@ abstract class DartFixesRequest implements FixesRequest {
   /**
    * The analysis result for the file in which the fixes are being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**
@@ -127,7 +127,8 @@ class FixKind {
   final String name;
 
   /**
-   * The priority of this kind of fix for the kind of error being addressed.
+   * The priority of this kind of fix for the kind of error being addressed
+   * where a higher integer value indicates a higher priority and relevance.
    */
   final int priority;
 
@@ -146,11 +147,6 @@ class FixKind {
   final String appliedTogetherMessage;
 
   /**
-   * The change can be made with other fixes of this [FixKind].
-   */
-  bool canBeAppliedTogether() => appliedTogetherMessage != null;
-
-  /**
    * Initialize a newly created kind of fix to have the given [name],
    * [priority], [message], and optionally [canBeAppliedTogether] and
    * [appliedTogetherMessage].
@@ -159,11 +155,16 @@ class FixKind {
       {this.appliedTogetherMessage: null});
 
   @override
-  String toString() => name;
+  int get hashCode => name.hashCode;
 
   @override
   bool operator ==(o) => o is FixKind && o.name == name;
 
+  /**
+   * The change can be made with other fixes of this [FixKind].
+   */
+  bool canBeAppliedTogether() => appliedTogetherMessage != null;
+
   @override
-  int get hashCode => name.hashCode;
+  String toString() => name;
 }

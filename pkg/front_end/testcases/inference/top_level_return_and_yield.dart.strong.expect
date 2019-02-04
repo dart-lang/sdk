@@ -1,24 +1,29 @@
-// Formatted problems:
+library test;
 //
-// pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:34: Error: A value of type '(dynamic) → dynamic' can't be assigned to a variable of type 'dart.async::FutureOr<(dart.core::int) → dart.core::int>'.
-// Try changing the type of the left hand side, or casting the right hand side to 'dart.async::FutureOr<(dart.core::int) → dart.core::int>'.
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:34: Error: A value of type 'dynamic Function(dynamic)' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+//  - 'FutureOr' is from 'dart:async'.
+// Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<int Function(int)>'.
 //   return /*@returnType=dynamic*/ (/*@type=dynamic*/ x) => x;
 //                                  ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
+
+import "dart:async";
 
 typedef IntToInt = (core::int) → core::int;
 static method a() → (core::int) → core::int {
   return (core::int x) → core::int => x;
 }
 static method b() → asy::Future<(core::int) → core::int> async {
-  return let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:34: Error: A value of type '(dynamic) \u8594 dynamic' can't be assigned to a variable of type 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
+  return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:34: Error: A value of type 'dynamic Function(dynamic)' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+ - 'FutureOr' is from 'dart:async'.
+Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<int Function(int)>'.
   return /*@returnType=dynamic*/ (/*@type=dynamic*/ x) => x;
-                                 ^" in let final dynamic #t2 = (dynamic x) → dynamic => x in null;
+                                 ^" in ((dynamic x) → dynamic => x) as{TypeError} asy::FutureOr<(core::int) → core::int>;
 }
 static method c() → core::Iterable<(core::int) → core::int> sync* {
   yield(core::int x) → core::int => x;

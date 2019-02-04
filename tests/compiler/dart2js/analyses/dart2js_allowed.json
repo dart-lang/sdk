@@ -1,32 +1,18 @@
 {
   "pkg/compiler/lib/src/dart2js.dart": {
     "Dynamic invocation of 'call'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'pause'.": 8,
-    "Dynamic invocation of 'resume'.": 1
+    "Dynamic invocation of 'resume'.": 1,
+    "Dynamic invocation of 'pause'.": 1
   },
   "pkg/compiler/lib/src/source_file_provider.dart": {
     "Dynamic invocation of 'call'.": 3
   },
   "pkg/compiler/lib/src/util/util.dart": {
-    "Dynamic access of 'hashCode'.": 65,
-    "Dynamic access of 'a'.": 1,
-    "Dynamic access of 'b'.": 1,
     "Dynamic invocation of 'write'.": 11,
-    "Dynamic invocation of 'writeCharCode'.": 1,
-    "Dynamic invocation of '=='.": 1
-  },
-  "pkg/kernel/lib/kernel.dart": {
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'flush'.": 1,
-    "Dynamic invocation of 'close'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/util/link.dart": {
-    "Dynamic access of 'isEmpty'.": 1
+    "Dynamic invocation of 'writeCharCode'.": 1
   },
   "pkg/compiler/lib/src/util/maplet.dart": {
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of '=='.": 9,
     "Dynamic access of 'length'.": 1,
     "Dynamic invocation of 'containsKey'.": 1,
     "Dynamic invocation of '[]'.": 11,
@@ -36,14 +22,13 @@
     "Dynamic invocation of 'remove'.": 1,
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of 'forEach'.": 1,
-    "Dynamic access of 'keys'.": 2,
+    "Dynamic access of 'keys'.": 1,
     "Dynamic access of 'iterator'.": 1
   },
   "pkg/compiler/lib/src/util/setlet.dart": {
     "Dynamic access of 'iterator'.": 1,
     "Dynamic access of 'length'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of '=='.": 10,
     "Dynamic invocation of 'contains'.": 1,
     "Dynamic invocation of '[]'.": 7,
     "Dynamic invocation of 'add'.": 1,
@@ -58,144 +43,51 @@
     "Dynamic invocation of 'toSet'.": 1,
     "Dynamic invocation of 'toList'.": 1
   },
-  "pkg/kernel/lib/ast.dart": {
-    "Dynamic update to 'parent'.": 1,
-    "Dynamic invocation of '=='.": 2
-  },
-  "pkg/kernel/lib/text/ast_to_text.dart": {
-    "Dynamic invocation of '+'.": 3
-  },
-  "pkg/front_end/lib/src/base/libraries_specification.dart": {
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic invocation of '[]'.": 11,
-    "Dynamic invocation of 'map'.": 2,
-    "Dynamic invocation of 'toList'.": 1,
-    "Dynamic access of 'runtimeType'.": 1,
-    "Dynamic invocation of 'forEach'.": 2,
+  "pkg/compiler/lib/src/deferred_load.dart": {
+    "Dynamic access of 'memberContext'.": 1,
+    "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '[]='.": 1
   },
-  "pkg/front_end/lib/src/fasta/scanner/token.dart": {
-    "Dynamic access of 'data'.": 1,
-    "Dynamic access of 'start'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'boolValue'.": 2
-  },
-  "pkg/front_end/lib/src/fasta/colors.dart": {
-    "Dynamic access of 'supportsAnsiEscapes'.": 1,
-    "Dynamic invocation of 'split'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/crash.dart": {
-    "Dynamic access of 'trace'.": 1,
-    "Dynamic access of 'uri'.": 1,
-    "Dynamic access of 'charOffset'.": 1,
-    "Dynamic access of 'error'.": 1
-  },
-  "pkg/compiler/lib/src/common/tasks.dart": {
-    "Dynamic invocation of '=='.": 4
-  },
-  "pkg/compiler/lib/src/compiler.dart": {
-    "Dynamic invocation of 'toString'.": 1
-  },
-  "pkg/compiler/lib/src/diagnostics/messages.dart": {
-    "Dynamic access of 'template'.": 1,
-    "Dynamic invocation of 'toString'.": 1,
-    "Dynamic access of 'lexeme'.": 1,
-    "Dynamic invocation of 'toDartText'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/util/link_implementation.dart": {
-    "Dynamic access of 'isNotEmpty'.": 1,
-    "Dynamic access of 'head'.": 1,
-    "Dynamic access of 'tail'.": 1,
-    "Dynamic access of 'isEmpty'.": 1
-  },
-  "pkg/kernel/lib/import_table.dart": {
-    "Dynamic access of 'scheme'.": 6,
-    "Dynamic invocation of '=='.": 3
-  },
-  "third_party/pkg/source_span/lib/src/file.dart": {
-    "Dynamic access of 'sourceUrl'.": 2,
-    "Dynamic access of '#lib1::_start'.": 1,
-    "Dynamic access of '#lib1::_end'.": 1
-  },
-  "third_party/pkg/source_span/lib/src/span_mixin.dart": {
-    "Dynamic invocation of '=='.": 2
-  },
-  "pkg/front_end/lib/src/fasta/scanner/string_canonicalizer.dart": {
-    "Dynamic invocation of '[]'.": 3,
-    "Dynamic invocation of '=='.": 1
-  },
-  "pkg/front_end/lib/src/fasta/dill/dill_member_builder.dart": {
-    "Dynamic access of 'fileUri'.": 1
-  },
-  "pkg/kernel/lib/clone.dart": {
-    "Dynamic update to 'fileOffset'.": 1
-  },
-  "pkg/compiler/lib/src/diagnostics/source_span.dart": {
-    "Dynamic access of 'uri'.": 1,
-    "Dynamic access of 'begin'.": 1,
-    "Dynamic access of 'end'.": 1
-  },
-  "pkg/compiler/lib/src/deferred_load.dart": {
-    "Dynamic invocation of '[]='.": 1,
-    "Dynamic access of 'memberContext'.": 2,
-    "Dynamic access of 'name'.": 1
-  },
-  "pkg/compiler/lib/src/elements/entities.dart": {
-    "Dynamic access of 'requiredParameters'.": 1,
-    "Dynamic access of 'positionalParameters'.": 1,
-    "Dynamic access of 'typeParameters'.": 1,
-    "Dynamic access of 'namedParameters'.": 4,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of '[]'.": 1
-  },
   "pkg/compiler/lib/src/inferrer/typemasks/container_type_mask.dart": {
-    "Dynamic access of 'allocationNode'.": 2,
-    "Dynamic access of 'elementType'.": 3,
-    "Dynamic access of 'length'.": 2,
     "Dynamic access of 'isNullable'.": 2,
     "Dynamic access of 'isEmptyOrNull'.": 1,
     "Dynamic access of 'isContainer'.": 1,
+    "Dynamic access of 'elementType'.": 2,
+    "Dynamic access of 'length'.": 1,
     "Dynamic access of 'forwardTo'.": 1,
+    "Dynamic access of 'allocationNode'.": 1,
     "Dynamic access of 'allocationElement'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/dictionary_type_mask.dart": {
-    "Dynamic access of 'allocationNode'.": 1,
-    "Dynamic access of 'keyType'.": 4,
-    "Dynamic access of 'valueType'.": 4,
-    "Dynamic access of 'masks::_typeMap'.": 12,
-    "Dynamic invocation of 'containsKey'.": 2,
-    "Dynamic access of 'keys'.": 2,
-    "Dynamic invocation of '[]'.": 1,
-    "Dynamic invocation of 'every'.": 1,
     "Dynamic access of 'isNullable'.": 2,
     "Dynamic access of 'isEmptyOrNull'.": 1,
     "Dynamic access of 'isDictionary'.": 1,
     "Dynamic access of 'forwardTo'.": 2,
+    "Dynamic access of 'keyType'.": 3,
+    "Dynamic access of 'valueType'.": 3,
+    "Dynamic access of 'masks::_typeMap'.": 2,
+    "Dynamic invocation of 'containsKey'.": 1,
     "Dynamic invocation of 'nullable'.": 2,
     "Dynamic invocation of 'union'.": 1,
     "Dynamic invocation of 'forEach'.": 1,
     "Dynamic access of 'isMap'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/forwarding_type_mask.dart": {
-    "Dynamic access of 'forwardTo'.": 4,
-    "Dynamic invocation of 'nullable'.": 1,
-    "Dynamic invocation of 'nonNullable'.": 1,
     "Dynamic access of 'isNullable'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/map_type_mask.dart": {
-    "Dynamic access of 'allocationNode'.": 2,
-    "Dynamic access of 'keyType'.": 6,
-    "Dynamic access of 'valueType'.": 3,
     "Dynamic access of 'isNullable'.": 2,
     "Dynamic access of 'isEmptyOrNull'.": 1,
     "Dynamic access of 'isMap'.": 1,
+    "Dynamic access of 'keyType'.": 4,
+    "Dynamic access of 'valueType'.": 2,
     "Dynamic access of 'forwardTo'.": 2,
     "Dynamic access of 'isDictionary'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'typeMap'.": 4,
-    "Dynamic access of 'values'.": 2,
     "Dynamic invocation of 'union'.": 1,
+    "Dynamic access of 'typeMap'.": 1,
+    "Dynamic access of 'values'.": 1,
     "Dynamic invocation of 'fold'.": 1,
+    "Dynamic access of 'allocationNode'.": 1,
     "Dynamic access of 'allocationElement'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
@@ -203,85 +95,11 @@
     "Dynamic access of 'forwardTo'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
-    "Dynamic invocation of '=='.": 1,
     "Dynamic access of 'isUnion'.": 5,
-    "Dynamic access of 'disjointMasks'.": 6,
+    "Dynamic access of 'disjointMasks'.": 4,
     "Dynamic invocation of 'contains'.": 1,
     "Dynamic invocation of 'nonNullable'.": 1,
     "Dynamic invocation of 'every'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/value_type_mask.dart": {
-    "Dynamic access of 'value'.": 1
-  },
-  "pkg/compiler/lib/src/io/source_information.dart": {
-    "Dynamic access of 'sourceUri'.": 1,
-    "Dynamic access of 'offset'.": 1,
-    "Dynamic access of 'sourceName'.": 1
-  },
-  "pkg/compiler/lib/src/js_model/js_strategy.dart": {
-    "Dynamic invocation of '=='.": 2
-  },
-  "pkg/compiler/lib/src/ssa/nodes.dart": {
-    "Dynamic invocation of 'replaceWith'.": 1
-  },
-  "pkg/compiler/lib/src/universe/world_builder.dart": {
-    "Dynamic access of 'cls'.": 1
-  },
-  "pkg/compiler/lib/src/universe/member_usage.dart": {
-    "Dynamic access of 'entity'.": 1
-  },
-  "pkg/compiler/lib/src/universe/resolution_world_builder.dart": {
-    "Dynamic access of 'type'.": 1,
-    "Dynamic access of 'kind'.": 1,
-    "Dynamic access of 'isRedirection'.": 1
-  },
-  "pkg/compiler/lib/src/constants/expressions.dart": {
-    "Dynamic access of 'kind'.": 1,
-    "Dynamic access of 'hashCode'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/kernel/kernel_class_builder.dart": {
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'name'.": 2,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic access of 'enclosingClass'.": 4,
-    "Dynamic access of 'typeParameters'.": 2
-  },
-  "pkg/front_end/lib/src/fasta/kernel/kernel_function_type_alias_builder.dart": {
-    "Dynamic access of 'fileUri'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/kernel/kernel_function_type_builder.dart": {
-    "Dynamic invocation of 'clone'.": 2
-  },
-  "pkg/front_end/lib/src/fasta/kernel/kernel_library_builder.dart": {
-    "Dynamic access of 'reference'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/kernel/kernel_procedure_builder.dart": {
-    "Dynamic access of 'typeParameters'.": 1,
-    "Dynamic invocation of 'addAnnotation'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": {
-    "Dynamic access of 'fileOffset'.": 1,
-    "Dynamic access of 'runtimeType'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/source/diet_listener.dart": {
-    "Dynamic access of 'thisType'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/source/outline_builder.dart": {
-    "Dynamic invocation of 'withArguments'.": 1,
-    "Dynamic update to 'bound'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/builder/function_type_builder.dart": {
-    "Dynamic access of 'fullNameForErrors'.": 1
-  },
-  "pkg/compiler/lib/src/helpers/trace.dart": {
-    "Dynamic access of 'index'.": 1,
-    "Dynamic access of 'file'.": 1,
-    "Dynamic access of 'lineNo'.": 1,
-    "Dynamic access of 'columnNo'.": 1,
-    "Dynamic access of 'method'.": 1
-  },
-  "pkg/compiler/lib/src/helpers/debug_collection.dart": {
-    "Dynamic access of 'runtimeType'.": 4
   },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,
@@ -321,74 +139,32 @@
     "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of '-'.": 1
   },
-  "pkg/compiler/lib/src/closure.dart": {
-    "Dynamic access of 'typeVariable'.": 1
-  },
-  "pkg/compiler/lib/src/js_backend/native_data.dart": {
-    "Dynamic access of 'names'.": 1,
-    "Dynamic access of 'isNonLeaf'.": 1
-  },
-  "pkg/compiler/lib/src/elements/names.dart": {
-    "Dynamic access of 'library'.": 1
-  },
-  "pkg/compiler/lib/src/constants/values.dart": {
-    "Dynamic access of 'element'.": 1,
-    "Dynamic access of 'type'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'hashCode'.": 5
-  },
-  "pkg/compiler/lib/src/elements/types.dart": {
-    "Dynamic access of 'element'.": 1
-  },
   "pkg/compiler/lib/src/js_backend/constant_system_javascript.dart": {
-    "Dynamic invocation of 'remainder'.": 1,
-    "Dynamic access of 'isString'.": 1,
-    "Dynamic access of 'stringValue'.": 2,
-    "Dynamic invocation of '=='.": 1
+    "Dynamic invocation of 'remainder'.": 1
   },
-  "pkg/compiler/lib/src/universe/use.dart": {
-    "Dynamic access of 'selector'.": 1,
-    "Dynamic access of 'receiverConstraint'.": 1,
-    "Dynamic access of 'typeArguments'.": 2,
-    "Dynamic access of 'element'.": 1,
-    "Dynamic access of 'kind'.": 2,
-    "Dynamic access of 'type'.": 2,
-    "Dynamic access of 'callStructure'.": 1,
-    "Dynamic access of 'value'.": 1
+  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
+    "Dynamic access of 'index'.": 1
   },
   "third_party/pkg/dart2js_info/lib/json_info_codec.dart": {
-    "Dynamic invocation of '[]'.": 35,
+    "Dynamic invocation of '[]'.": 13,
     "Dynamic invocation of 'forEach'.": 3,
     "Dynamic invocation of 'map'.": 2,
-    "Dynamic invocation of '=='.": 2,
     "Dynamic access of 'length'.": 1
   },
-  "pkg/compiler/lib/src/js/js.dart": {
-    "Dynamic invocation of '=='.": 1
-  },
   "pkg/compiler/lib/src/util/enumset.dart": {
-    "Dynamic access of 'index'.": 6,
-    "Dynamic access of 'value'.": 1
+    "Dynamic access of 'index'.": 4
   },
   "pkg/compiler/lib/src/native/enqueue.dart": {
-    "Dynamic access of 'isDynamic'.": 1,
-    "Dynamic access of 'runtimeType'.": 1
+    "Dynamic access of 'isDynamic'.": 1
   },
-  "pkg/compiler/lib/src/js/rewrite_async.dart": {
-    "Dynamic invocation of '=='.": 1
+  "pkg/compiler/lib/src/inferrer/inferrer_engine.dart": {
+    "Dynamic access of 'isVoid'.": 1,
+    "Dynamic access of 'isDynamic'.": 1,
+    "Dynamic access of 'isInterfaceType'.": 1,
+    "Dynamic access of 'element'.": 1
   },
   "pkg/compiler/lib/src/js_backend/checked_mode_helpers.dart": {
     "Dynamic access of 'name'.": 1
-  },
-  "pkg/compiler/lib/src/js_backend/namer_names.dart": {
-    "Dynamic access of 'js_backend.namer::_target'.": 4,
-    "Dynamic access of 'base'.": 2,
-    "Dynamic invocation of '=='.": 4,
-    "Dynamic access of 'prefix'.": 2,
-    "Dynamic access of 'js_backend.namer::_parts'.": 8,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '[]'.": 2
   },
   "pkg/compiler/lib/src/universe/side_effects.dart": {
     "Dynamic access of 'universe.side_effects::_flags'.": 1
@@ -404,69 +180,15 @@
     "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic invocation of '=='.": 2,
     "Dynamic access of 'isVoid'.": 1,
     "Dynamic access of 'isDynamic'.": 1,
     "Dynamic access of 'treatAsDynamic'.": 1,
     "Dynamic access of 'element'.": 1
   },
-  "pkg/compiler/lib/src/universe/feature.dart": {
-    "Dynamic access of 'type'.": 2,
-    "Dynamic access of 'isConstant'.": 2,
-    "Dynamic access of 'isEmpty'.": 2,
-    "Dynamic access of 'kind'.": 1,
-    "Dynamic access of 'receiverType'.": 1,
-    "Dynamic access of 'argumentType'.": 1,
-    "Dynamic access of 'functionType'.": 1,
-    "Dynamic access of 'typeArguments'.": 1
-  },
-  "pkg/compiler/lib/src/js_model/closure.dart": {
-    "Dynamic access of 'kind'.": 1,
-    "Dynamic access of 'member'.": 1,
-    "Dynamic access of 'localFunction'.": 1,
-    "Dynamic access of 'invocation'.": 1,
-    "Dynamic access of 'instantiation'.": 1,
-    "Dynamic access of 'type'.": 1,
-    "Dynamic access of 'context'.": 1
-  },
   "pkg/compiler/lib/src/ssa/validate.dart": {
     "Dynamic invocation of 'isInBasicBlock'.": 2,
-    "Dynamic access of 'usedBy'.": 4,
-    "Dynamic access of 'inputs'.": 2
-  },
-  "pkg/compiler/lib/src/universe/function_set.dart": {
-    "Dynamic access of 'selector'.": 1,
-    "Dynamic access of 'receiver'.": 1
-  },
-  "pkg/compiler/lib/src/constants/constructors.dart": {
-    "Dynamic access of 'type'.": 1,
-    "Dynamic access of 'superConstructorInvocation'.": 1,
-    "Dynamic access of 'defaultValues'.": 2,
-    "Dynamic access of 'fieldMap'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'thisConstructorInvocation'.": 1,
-    "Dynamic access of 'targetConstructorInvocation'.": 1
-  },
-  "pkg/front_end/lib/src/fasta/kernel/expression_generator.dart": {
-    "Dynamic access of 'hasGetter'.": 1,
-    "Dynamic access of 'hasSetter'.": 2
-  },
-  "pkg/compiler/lib/src/ssa/optimize.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'replaceWith'.": 1,
-    "Dynamic access of 'inputs'.": 6,
-    "Dynamic invocation of '[]'.": 3,
-    "Dynamic invocation of 'isInteger'.": 1,
-    "Dynamic invocation of 'isConstantList'.": 1,
-    "Dynamic invocation of 'isConstantString'.": 1,
-    "Dynamic access of 'constant'.": 2,
-    "Dynamic access of 'length'.": 4,
-    "Dynamic access of 'instructionType'.": 2,
-    "Dynamic access of 'isContainer'.": 2,
-    "Dynamic access of 'isNullable'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'containsOnly'.": 2,
-    "Dynamic invocation of 'containsOnlyString'.": 1
+    "Dynamic access of 'usedBy'.": 2,
+    "Dynamic access of 'inputs'.": 1
   },
   "pkg/compiler/lib/src/constant_system_dart.dart": {
     "Dynamic invocation of '|'.": 1,
@@ -485,14 +207,10 @@
     "Dynamic invocation of '<='.": 1,
     "Dynamic invocation of '>'.": 1,
     "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of 'codeUnitAt'.": 1
   },
-  "pkg/compiler/lib/src/native/js.dart": {
-    "Dynamic invocation of '=='.": 1
-  },
   "third_party/pkg/dart2js_info/lib/src/measurements.dart": {
-    "Dynamic access of 'name'.": 2,
+    "Dynamic access of 'name'.": 1,
     "Dynamic invocation of 'call'.": 1
   },
   "third_party/pkg/dart2js_info/lib/src/util.dart": {
@@ -504,471 +222,60 @@
   },
   "pkg/js_ast/lib/src/template.dart": {
     "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'keys'.": 4,
-    "Dynamic invocation of 'where'.": 2,
+    "Dynamic access of 'keys'.": 1,
+    "Dynamic invocation of 'where'.": 1,
     "Dynamic invocation of 'join'.": 1,
-    "Dynamic invocation of 'containsKey'.": 3,
+    "Dynamic invocation of 'containsKey'.": 2,
     "Dynamic invocation of '[]'.": 9,
     "Dynamic invocation of 'toStatement'.": 3
-  },
-  "pkg/compiler/lib/src/inferrer/inferrer_engine.dart": {
-    "Dynamic invocation of '=='.": 7,
-    "Dynamic access of 'isVoid'.": 1,
-    "Dynamic access of 'isDynamic'.": 1,
-    "Dynamic access of 'isInterfaceType'.": 1,
-    "Dynamic access of 'element'.": 1
   },
   "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {
     "Dynamic invocation of 'add'.": 1,
     "Dynamic invocation of 'remove'.": 1,
-    "Dynamic access of 'type'.": 8,
+    "Dynamic access of 'type'.": 4,
     "Dynamic invocation of 'containsOnlyInt'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
     "Dynamic invocation of 'satisfies'.": 2
   },
-  "pkg/compiler/lib/src/io/position_information.dart": {
-    "Dynamic access of 'startPosition'.": 1,
-    "Dynamic access of 'innerPosition'.": 1
+  "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
+    "Dynamic access of 'isEmpty'.": 1,
+    "Dynamic access of 'positional'.": 2,
+    "Dynamic access of 'length'.": 2,
+    "Dynamic access of 'named'.": 2,
+    "Dynamic invocation of '[]'.": 2
+  },
+  "pkg/compiler/lib/src/universe/function_set.dart": {
+    "Dynamic access of 'selector'.": 1,
+    "Dynamic access of 'receiver'.": 1
   },
   "pkg/compiler/lib/src/ssa/variable_allocator.dart": {
-    "Dynamic access of 'checkedInput'.": 1,
-    "Dynamic access of 'usedBy'.": 2,
+    "Dynamic access of 'usedBy'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'nonCheck'.": 2,
+    "Dynamic invocation of 'nonCheck'.": 1,
     "Dynamic invocation of 'isCodeMotionInvariant'.": 1
-  },
-  "pkg/compiler/lib/src/ssa/interceptor_simplifier.dart": {
-    "Dynamic access of 'interceptedClasses'.": 1
   },
   "pkg/compiler/lib/src/ssa/value_range_analyzer.dart": {
     "Dynamic access of 'isZero'.": 2,
     "Dynamic invocation of '+'.": 2,
-    "Dynamic access of 'value'.": 7,
-    "Dynamic access of 'isInt'.": 3,
-    "Dynamic access of 'intValue'.": 4,
-    "Dynamic invocation of 'unary-'.": 2,
+    "Dynamic invocation of 'unary-'.": 1,
     "Dynamic invocation of 'min'.": 1,
-    "Dynamic invocation of 'max'.": 1,
-    "Dynamic access of 'instruction'.": 1,
-    "Dynamic access of 'left'.": 4,
-    "Dynamic access of 'right'.": 4,
-    "Dynamic access of 'lower'.": 2,
-    "Dynamic invocation of '=='.": 2,
-    "Dynamic access of 'upper'.": 2,
-    "Dynamic invocation of 'operation'.": 1
+    "Dynamic invocation of 'max'.": 1
   },
   "pkg/compiler/lib/src/ssa/value_set.dart": {
     "Dynamic invocation of 'add'.": 2
   },
-  "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic access of 'positional'.": 4,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic access of 'named'.": 6,
-    "Dynamic invocation of '[]'.": 3,
-    "Dynamic invocation of '=='.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/type_graph_dump.dart": {
-    "Dynamic invocation of 'contains'.": 2
-  },
-  "pkg/compiler/lib/src/js_emitter/full_emitter/emitter.dart": {
-    "Dynamic access of 'scheme'.": 2,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'toString'.": 1,
-    "Dynamic invocation of 'finalizeTokens'.": 1
-  },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
-    "Dynamic access of 'keys'.": 2,
+    "Dynamic access of 'keys'.": 1,
     "Dynamic invocation of 'toSet'.": 1,
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/node_tracer.dart": {
-    "Dynamic access of 'receiver'.": 4,
-    "Dynamic invocation of '=='.": 2,
-    "Dynamic access of 'selector'.": 11,
-    "Dynamic access of 'name'.": 4,
-    "Dynamic access of 'isIndex'.": 1
-  },
-  "pkg/compiler/lib/src/hash/sha1.dart": {
-    "Dynamic invocation of '+'.": 6,
-    "Dynamic invocation of '&'.": 2,
-    "Dynamic invocation of '-'.": 2,
-    "Dynamic invocation of 'unary-'.": 1
+  "pkg/compiler/lib/src/util/features.dart": {
+    "Dynamic invocation of 'sort'.": 1,
+    "Dynamic invocation of 'join'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
     "Dynamic access of 'superclass'.": 1,
-    "Dynamic access of 'needsTearOff'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/interceptors.dart": {
-    "Dynamic invocation of 'toString'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_number.dart": {
-    "Dynamic invocation of '[]'.": 5,
-    "Dynamic invocation of '<'.": 4,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '>'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_helper.dart": {
-    "Dynamic invocation of '[]'.": 3,
-    "Dynamic access of 'isNaN'.": 3,
-    "Dynamic invocation of '<='.": 4,
-    "Dynamic invocation of '-'.": 7,
-    "Dynamic invocation of '>>'.": 3,
-    "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '<'.": 6,
-    "Dynamic invocation of '>'.": 4,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of 'noSuchMethod'.": 1,
-    "Dynamic access of '_js_helper::_self'.": 1,
-    "Dynamic access of '_js_helper::_target'.": 1,
-    "Dynamic access of '_js_helper::_receiver'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'hashCode'.": 2,
-    "Dynamic invocation of 'toString'.": 2,
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of 'substring'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/constant_map.dart": {
-    "Dynamic invocation of '=='.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/string_helper.dart": {
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of 'substring'.": 7,
-    "Dynamic invocation of 'allMatches'.": 7,
-    "Dynamic access of 'isNotEmpty'.": 1,
-    "Dynamic invocation of '_js_helper::_execGlobal'.": 1,
-    "Dynamic access of 'start'.": 1,
-    "Dynamic access of 'end'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'length'.": 4,
-    "Dynamic invocation of '[]'.": 2,
-    "Dynamic invocation of 'call'.": 13,
-    "Dynamic invocation of 'codeUnitAt'.": 2,
-    "Dynamic access of 'iterator'.": 2,
-    "Dynamic invocation of 'replaceRange'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/linked_hash_map.dart": {
-    "Dynamic access of 'hashCode'.": 1,
-    "Dynamic invocation of '=='.": 2,
-    "Dynamic access of '_js_helper::_length'.": 3,
-    "Dynamic access of '_js_helper::_modifications'.": 4,
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic access of '_js_helper::_first'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_rti.dart": {
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '-'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/native_helper.dart": {
-    "Dynamic invocation of '=='.": 6,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '[]'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/regexp_helper.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '-'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/native_typed_data.dart": {
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '|'.": 7,
-    "Dynamic invocation of '>='.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/async_patch.dart": {
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic access of 'iterator'.": 1,
-    "Dynamic invocation of 'call'.": 4,
-    "Dynamic invocation of 'then'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/async/future.dart": {
-    "Dynamic invocation of 'call'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/async/stream.dart": {
-    "Dynamic invocation of 'dart.async::_addError'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/async/async_error.dart": {
-    "Dynamic invocation of 'call'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/collection_patch.dart": {
-    "Dynamic access of 'hashCode'.": 3,
-    "Dynamic invocation of '=='.": 4,
-    "Dynamic access of 'dart.collection::_length'.": 3,
-    "Dynamic invocation of 'dart.collection::_computeKeys'.": 2,
-    "Dynamic invocation of 'containsKey'.": 2,
-    "Dynamic access of 'dart.collection::_keys'.": 2,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic access of 'dart.collection::_modifications'.": 5,
-    "Dynamic access of 'dart.collection::_map'.": 4,
-    "Dynamic access of 'dart.collection::_elements'.": 1,
-    "Dynamic access of 'dart.collection::_element'.": 1,
-    "Dynamic access of 'dart.collection::_first'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/collection/splay_tree.dart": {
-    "Dynamic invocation of '=='.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/collection/hash_map.dart": {
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'hashCode'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/collection/iterable.dart": {
-    "Dynamic access of 'length'.": 4,
-    "Dynamic invocation of '+'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart": {
-    "Dynamic access of 'style'.": 1,
-    "Dynamic invocation of '=='.": 4,
-    "Dynamic access of 'left'.": 3,
-    "Dynamic access of 'top'.": 3,
-    "Dynamic access of 'width'.": 2,
-    "Dynamic access of 'height'.": 2,
-    "Dynamic invocation of 'remove'.": 2,
-    "Dynamic update to 'dart.dom.html::_innerHtml'.": 1,
-    "Dynamic access of 'firstChild'.": 2,
-    "Dynamic invocation of 'append'.": 1,
-    "Dynamic access of 'tagName'.": 2,
-    "Dynamic invocation of 'round'.": 20,
-    "Dynamic invocation of 'toList'.": 1,
-    "Dynamic access of 'right'.": 1,
-    "Dynamic access of 'bottom'.": 1,
-    "Dynamic invocation of 'call'.": 1,
-    "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
-    "Dynamic access of 'attributes'.": 1,
-    "Dynamic invocation of '[]'.": 1,
-    "Dynamic invocation of 'toString'.": 1,
-    "Dynamic invocation of 'toLowerCase'.": 1,
-    "Dynamic invocation of 'attached'.": 1,
-    "Dynamic invocation of 'detached'.": 1,
-    "Dynamic invocation of 'attributeChanged'.": 1,
-    "Dynamic invocation of 'createElement'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/html/html_common/conversions.dart": {
-    "Dynamic invocation of '[]='.": 2,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of '[]'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/html/html_common/filtered_element_list.dart": {
-    "Dynamic invocation of 'remove'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/html/html_common/lists.dart": {
-    "Dynamic invocation of '=='.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/indexed_db/dart2js/indexed_db_dart2js.dart": {
-    "Dynamic access of 'onUpgradeNeeded'.": 2,
-    "Dynamic invocation of 'listen'.": 2,
-    "Dynamic access of 'onBlocked'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/io/directory_impl.dart": {
-    "Dynamic invocation of '=='.": 5,
-    "Dynamic invocation of '[]'.": 11
-  },
-  "org-dartlang-sdk:///sdk/lib/io/file_impl.dart": {
-    "Dynamic invocation of 'cancel'.": 2,
-    "Dynamic invocation of 'pause'.": 2,
-    "Dynamic invocation of 'resume'.": 2,
-    "Dynamic invocation of '=='.": 2,
-    "Dynamic invocation of '[]'.": 5,
-    "Dynamic access of 'length'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/io/file_system_entity.dart": {
-    "Dynamic invocation of '[]'.": 7
-  },
-  "org-dartlang-sdk:///sdk/lib/io/io_resource_info.dart": {
-    "Dynamic invocation of '=='.": 2,
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic invocation of '[]'.": 1,
-    "Dynamic access of 'path'.": 1,
-    "Dynamic access of 'dart.io::_path'.": 1,
-    "Dynamic access of 'pid'.": 1,
-    "Dynamic access of 'dart.io::_arguments'.": 1,
-    "Dynamic access of 'dart.io::_workingDirectory'.": 2,
-    "Dynamic access of 'isListening'.": 3,
-    "Dynamic access of 'address'.": 10,
-    "Dynamic access of 'host'.": 5,
-    "Dynamic access of 'port'.": 3,
-    "Dynamic access of 'remoteAddress'.": 4,
-    "Dynamic access of 'remotePort'.": 2,
-    "Dynamic access of 'isTcp'.": 1,
-    "Dynamic access of 'type'.": 2,
-    "Dynamic access of 'name'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/io/link.dart": {
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of '[]'.": 3
-  },
-  "org-dartlang-sdk:///sdk/lib/io/platform_impl.dart": {
-    "Dynamic invocation of 'indexOf'.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of 'substring'.": 2,
-    "Dynamic invocation of '+'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/io/secure_server_socket.dart": {
-    "Dynamic update to 'dart.io::_owner'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/io/secure_socket.dart": {
-    "Dynamic invocation of 'dart.io::_detachRaw'.": 8,
-    "Dynamic invocation of '[]'.": 14,
-    "Dynamic access of 'dart.io::_socket'.": 2,
-    "Dynamic access of 'closedReadEventSent'.": 1,
-    "Dynamic access of 'host'.": 1,
-    "Dynamic update to 'dart.io::_owner'.": 1,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of '+'.": 6,
-    "Dynamic invocation of '-'.": 9
-  },
-  "org-dartlang-sdk:///sdk/lib/io/stdio.dart": {
-    "Dynamic invocation of 'writeFromSync'.": 1,
-    "Dynamic invocation of 'cancel'.": 1,
-    "Dynamic invocation of 'closeSync'.": 1,
-    "Dynamic access of 'dart.io::_stream'.": 1,
-    "Dynamic invocation of '=='.": 3
-  },
-  "org-dartlang-sdk:///sdk/lib/io/common.dart": {
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of '[]'.": 3
-  },
-  "org-dartlang-sdk:///sdk/lib/js/dart2js/js_dart2js.dart": {
-    "Dynamic invocation of '[]'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/svg/dart2js/svg_dart2js.dart": {
-    "Dynamic invocation of 'createFragment'.": 1,
-    "Dynamic access of 'nodes'.": 4,
-    "Dynamic invocation of 'where'.": 2,
-    "Dynamic access of 'single'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/core_patch.dart": {
-    "Dynamic access of 'dart.core::_digits'.": 2,
-    "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of '[]'.": 47,
-    "Dynamic invocation of 'dart.core::_absSubSetSign'.": 3,
-    "Dynamic invocation of 'dart.core::_absAndNotSetSign'.": 3,
-    "Dynamic invocation of 'dart.core::_absAddSetSign'.": 2,
-    "Dynamic invocation of 'dart.core::_absXorSetSign'.": 2,
-    "Dynamic invocation of '[]='.": 2,
-    "Dynamic invocation of '&'.": 12,
-    "Dynamic invocation of '=='.": 16,
-    "Dynamic invocation of '-'.": 2,
-    "Dynamic invocation of '>='.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/date_time.dart": {
-    "Dynamic access of 'dart.core::_value'.": 1,
-    "Dynamic access of 'isUtc'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/duration.dart": {
-    "Dynamic access of 'dart.core::_duration'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/errors.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '~'.": 1,
-    "Dynamic invocation of '^'.": 1,
-    "Dynamic invocation of '&'.": 1,
-    "Dynamic invocation of '|'.": 1,
-    "Dynamic invocation of '>>'.": 1,
-    "Dynamic invocation of '<<'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of 'unary-'.": 1,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of '*'.": 1,
-    "Dynamic invocation of '/'.": 1,
-    "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '%'.": 1,
-    "Dynamic invocation of 'length'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/exceptions.dart": {
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of 'codeUnitAt'.": 2,
-    "Dynamic invocation of 'substring'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/uri.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'startsWith'.": 1,
-    "Dynamic invocation of 'add'.": 1,
-    "Dynamic invocation of '=='.": 8
-  },
-  "org-dartlang-sdk:///sdk/lib/math/point.dart": {
-    "Dynamic access of 'x'.": 1,
-    "Dynamic access of 'y'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/math/rectangle.dart": {
-    "Dynamic access of 'left'.": 1,
-    "Dynamic access of 'top'.": 1,
-    "Dynamic access of 'right'.": 1,
-    "Dynamic access of 'bottom'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/convert_patch.dart": {
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'clear'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/convert/encoding.dart": {
-    "Dynamic invocation of 'write'.": 2,
-    "Dynamic invocation of 'toString'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/convert/string_conversion.dart": {
-    "Dynamic invocation of 'toString'.": 3
-  },
-  "org-dartlang-sdk:///sdk/lib/convert/json.dart": {
-    "Dynamic invocation of 'toJson'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/isolate/isolate.dart": {
-    "Dynamic invocation of '[]'.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/_http/crypto.dart": {
-    "Dynamic invocation of '+'.": 6,
-    "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '-'.": 3,
-    "Dynamic invocation of 'unary-'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_http/http_date.dart": {
-    "Dynamic access of 'length'.": 6,
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '>='.": 2,
-    "Dynamic invocation of '[]'.": 9,
-    "Dynamic invocation of '=='.": 2
-  },
-  "org-dartlang-sdk:///sdk/lib/_http/http_headers.dart": {
-    "Dynamic invocation of '=='.": 3,
-    "Dynamic invocation of 'toLowerCase'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of 'codeUnitAt'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_http/http_impl.dart": {
-    "Dynamic access of 'message'.": 4,
-    "Dynamic invocation of 'split'.": 2,
-    "Dynamic invocation of 'trim'.": 4,
-    "Dynamic invocation of 'toLowerCase'.": 2,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'call'.": 1,
-    "Dynamic invocation of 'destroy'.": 2,
-    "Dynamic invocation of 'setOption'.": 1,
-    "Dynamic access of 'address'.": 3,
-    "Dynamic access of 'host'.": 2,
-    "Dynamic access of 'port'.": 2,
-    "Dynamic access of 'remoteAddress'.": 2,
-    "Dynamic access of 'remotePort'.": 1,
-    "Dynamic invocation of 'dart._http::_toJSON'.": 3,
-    "Dynamic invocation of 'listen'.": 1,
-    "Dynamic invocation of 'close'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/_http/http_parser.dart": {
-    "Dynamic invocation of '=='.": 4
-  },
-  "org-dartlang-sdk:///sdk/lib/_http/websocket_impl.dart": {
-    "Dynamic invocation of 'transform'.": 2,
-    "Dynamic invocation of 'listen'.": 1,
-    "Dynamic access of 'address'.": 2,
-    "Dynamic access of 'host'.": 1,
-    "Dynamic access of 'port'.": 1,
-    "Dynamic invocation of 'dart._http::_toJSON'.": 1
+    "Dynamic access of 'needsTearOff'.": 1
   }
 }

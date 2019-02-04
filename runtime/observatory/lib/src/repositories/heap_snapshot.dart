@@ -90,12 +90,13 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   }
 
   void reuse() {
-    _onProgress =
+    final onProgress =
         new StreamController<HeapSnapshotLoadingProgressEvent>.broadcast();
-    (() async {
-      _triggerOnProgress();
-      _onProgress.close();
-    }());
+    Timer.run(() {
+      onProgress.add(new HeapSnapshotLoadingProgressEvent(this));
+      onProgress.close();
+    });
+    _onProgress = onProgress;
   }
 }
 

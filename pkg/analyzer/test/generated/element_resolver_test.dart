@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,16 +10,16 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -49,6 +49,8 @@ void _fail(String message) {
   fail(message);
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ElementResolverCodeTest extends ResolverTestCase {
   test_annotation_class_namedConstructor() async {
@@ -277,7 +279,7 @@ const V = 0;
     });
   }
 
-  Future<Null> _validateAnnotation(
+  Future<void> _validateAnnotation(
       String annotationPrefix,
       String annotationText,
       validator(SimpleIdentifier name1, SimpleIdentifier name2,
@@ -303,7 +305,7 @@ class C {}
 }
 
 @reflectiveTest
-class ElementResolverTest extends EngineTestCase {
+class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -312,7 +314,7 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * The type provider used to access the types.
    */
-  TestTypeProvider _typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * The library containing the code being resolved.
@@ -382,8 +384,7 @@ class ElementResolverTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     _listener = new GatheringErrorListener();
-    _typeProvider = new TestTypeProvider();
-    _resolver = _createResolver();
+    _createResolver();
   }
 
   test_lookUpMethodInInterfaces() async {
@@ -830,31 +831,6 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  test_visitMethodInvocation_namedParameter() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    String methodName = "m";
-    String parameterName = "p";
-    MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    ParameterElement parameter = ElementFactory.namedParameter(parameterName);
-    method.parameters = <ParameterElement>[parameter];
-    classA.methods = <MethodElement>[method];
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = classA.type;
-    MethodInvocation invocation = AstTestFactory.methodInvocation(
-        left, methodName, [
-      AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
-    ]);
-    _resolveNode(invocation);
-    expect(invocation.methodName.staticElement, same(method));
-    expect(
-        (invocation.argumentList.arguments[0] as NamedExpression)
-            .name
-            .label
-            .staticElement,
-        same(parameter));
-    _listener.assertNoErrors();
-  }
-
   test_visitPostfixExpression() async {
     InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier operand = AstTestFactory.identifier3("i");
@@ -1075,10 +1051,8 @@ class ElementResolverTest extends EngineTestCase {
     AstTestFactory.assignmentExpression(
         node, TokenType.EQ, AstTestFactory.integer(0));
     _resolveInClass(node, classA);
-    Element element = node.staticElement;
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-        PropertyAccessorElement, element);
-    expect((element as PropertyAccessorElement).isSetter, isTrue);
+    PropertyAccessorElement element = node.staticElement;
+    expect(element.isSetter, isTrue);
     _listener.assertNoErrors();
   }
 
@@ -1136,20 +1110,21 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Create and return the resolver used by the tests.
    */
-  ElementResolver _createResolver() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  void _createResolver() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
-    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
-    CompilationUnitElementImpl unit =
-        new CompilationUnitElementImpl("test.dart");
+    _typeProvider = context.typeProvider;
+
+    var inheritance = new InheritanceManager2(context.typeSystem);
+    Source source = new FileSource(getFile("/test.dart"));
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
-        _definingLibrary, source, _typeProvider, _listener,
+        inheritance, _definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(_definingLibrary));
-    return _visitor.elementResolver;
+    _resolver = _visitor.elementResolver;
   }
 
   /**
@@ -1290,8 +1265,7 @@ class PreviewDart2Test extends ResolverTestCase {
 
   @override
   void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
-      ..previewDart2 = true;
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
   }
 

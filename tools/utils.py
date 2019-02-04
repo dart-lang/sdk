@@ -36,6 +36,11 @@ def GetBotUtils():
   return imp.load_source('bot_utils', os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
 
 
+def GetMinidumpUtils():
+  '''Dynamically load the tools/minidump.py python module.'''
+  return imp.load_source('minidump', os.path.join(DART_DIR, 'tools', 'minidump.py'))
+
+
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
                prerelease_patch):
@@ -561,22 +566,6 @@ def ParseTestOptionsMultiple(pattern, source, workspace):
     return None
 
 
-def ConfigureJava():
-  java_home = '/usr/libexec/java_home'
-  if os.path.exists(java_home):
-    proc = subprocess.Popen([java_home, '-v', '1.6+'],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    (stdout, stderr) = proc.communicate()
-    if proc.wait() != 0:
-      return None
-    new = stdout.strip()
-    current = os.getenv('JAVA_HOME', new)
-    if current != new:
-      sys.stderr.write('Please set JAVA_HOME to %s\n' % new)
-      os.putenv('JAVA_HOME', new)
-
-
 def Daemonize():
   """
   Create a detached background process (daemon). Returns True for
@@ -705,13 +694,14 @@ def CheckLinuxCoreDumpPattern(fatal=False):
 
   expected_core_pattern = 'core.%p'
   if core_pattern.strip() != expected_core_pattern:
+    message = ('Invalid core_pattern configuration. '
+        'The configuration of core dump handling is *not* correct for '
+        'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
+        .format(core_pattern_file, expected_core_pattern, core_pattern))
     if fatal:
-      message = ('Invalid core_pattern configuration. '
-          'The configuration of core dump handling is *not* correct for '
-          'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
-          .format(core_pattern_file, expected_core_pattern, core_pattern))
       raise Exception(message)
     else:
+      print message
       return False
   return True
 
@@ -753,27 +743,6 @@ class UnexpectedCrash(object):
     return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
 
 
-class SiteConfigBotoFileDisabler(object):
-  def __init__(self):
-    self._old_aws = None
-    self._old_boto = None
-
-  def __enter__(self):
-    self._old_aws = os.environ.get('AWS_CREDENTIAL_FILE', None)
-    self._old_boto = os.environ.get('BOTO_CONFIG', None)
-
-    if self._old_aws:
-      del os.environ['AWS_CREDENTIAL_FILE']
-    if self._old_boto:
-      del os.environ['BOTO_CONFIG']
-
-  def __exit__(self, *_):
-    if self._old_aws:
-      os.environ['AWS_CREDENTIAL_FILE'] = self._old_aws
-    if self._old_boto:
-      os.environ['BOTO_CONFIG'] = self._old_boto
-
-
 class PosixCoreDumpEnabler(object):
   def __init__(self):
     self._old_limits = None
@@ -786,104 +755,42 @@ class PosixCoreDumpEnabler(object):
     resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 
-# TODO(whesse): Re-enable after issue #30205 is addressed
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
   def __enter__(self):
-    pass
     # Bump core limits to unlimited if core_pattern is correctly configured.
-    # if CheckLinuxCoreDumpPattern(fatal=False):
-    #   super(LinuxCoreDumpEnabler, self).__enter__()
+    if CheckLinuxCoreDumpPattern(fatal=False):
+      super(LinuxCoreDumpEnabler, self).__enter__()
 
   def __exit__(self, *args):
-    pass
-    # CheckLinuxCoreDumpPattern(fatal=True)
-    # super(LinuxCoreDumpEnabler, self).__exit__(*args)
+    CheckLinuxCoreDumpPattern(fatal=False)
+    super(LinuxCoreDumpEnabler, self).__exit__(*args)
 
 
 class WindowsCoreDumpEnabler(object):
-  """Configure Windows Error Reporting to store crash dumps.
-
-  The documentation can be found here:
-  https://msdn.microsoft.com/en-us/library/windows/desktop/bb787181.aspx
+  """This enabler assumes that Dart binary was built with Crashpad support.
+  In this case DART_CRASHPAD_CRASHES_DIR environment variable allows to
+  specify the location of Crashpad crashes database. Actual minidumps will
+  be written into reports subfolder of the database.
   """
-
-  WINDOWS_COREDUMP_FOLDER = r'crashes'
-
-  WER_NAME = r'SOFTWARE\Microsoft\Windows\Windows Error Reporting'
-  WER_LOCALDUMPS_NAME = r'%s\LocalDumps' % WER_NAME
-  IMGEXEC_NAME = (r'SOFTWARE\Microsoft\Windows NT\CurrentVersion'
-                  r'\Image File Execution Options\WerFault.exe')
+  CRASHPAD_DB_FOLDER = os.path.join(DART_DIR, r'crashes')
+  DUMPS_FOLDER = os.path.join(CRASHPAD_DB_FOLDER, r'reports')
 
   def __init__(self):
-    # Depending on whether we're in cygwin or not we use a different import.
-    try:
-      import winreg
-    except ImportError:
-      import _winreg as winreg
-    self.winreg = winreg
+    pass
 
   def __enter__(self):
-    # We want 32 and 64 bit coredumps to land in the same coredump directory.
-    for sam in [self.winreg.KEY_WOW64_64KEY, self.winreg.KEY_WOW64_32KEY]:
-      # In case WerFault.exe was prevented from executing, we fix it here.
-      # TODO(kustermann): Remove this once https://crbug.com/691971 is fixed.
-      self._prune_existing_key(
-          self.winreg.HKEY_LOCAL_MACHINE, self.IMGEXEC_NAME, sam)
-
-      # Create (or open) the WER keys.
-      with self.winreg.CreateKeyEx(
-            self.winreg.HKEY_LOCAL_MACHINE, self.WER_NAME, 0,
-            self.winreg.KEY_ALL_ACCESS | sam) as wer:
-        with self.winreg.CreateKeyEx(
-            self.winreg.HKEY_LOCAL_MACHINE, self.WER_LOCALDUMPS_NAME, 0,
-            self.winreg.KEY_ALL_ACCESS | sam) as wer_localdumps:
-          # Prevent any modal UI dialog & disable normal windows error reporting
-          # TODO(kustermann): Remove this once https://crbug.com/691971 is fixed
-          self.winreg.SetValueEx(wer, "DontShowUI", 0, self.winreg.REG_DWORD, 1)
-          self.winreg.SetValueEx(wer, "Disabled", 0, self.winreg.REG_DWORD, 1)
-
-          coredump_folder = os.path.join(
-              os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER)
-
-          # Create the directory which will contain the dumps
-          if not os.path.exists(coredump_folder):
-            os.mkdir(coredump_folder)
-
-          # Do full dumps (not just mini dumps), keep max 100 dumps and specify
-          # folder.
-          self.winreg.SetValueEx(
-              wer_localdumps, "DumpType", 0, self.winreg.REG_DWORD, 2)
-          self.winreg.SetValueEx(
-              wer_localdumps, "DumpCount", 0, self.winreg.REG_DWORD, 200)
-          self.winreg.SetValueEx(
-              wer_localdumps, "DumpFolder", 0, self.winreg.REG_EXPAND_SZ,
-              coredump_folder)
+    print "INFO: Enabling coredump archiving into %s" % (WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER)
+    os.environ['DART_CRASHPAD_CRASHES_DIR'] = WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER
 
   def __exit__(self, *_):
-    # We remove the local dumps settings after running the tests.
-    for sam in [self.winreg.KEY_WOW64_64KEY, self.winreg.KEY_WOW64_32KEY]:
-      with self.winreg.CreateKeyEx(
-          self.winreg.HKEY_LOCAL_MACHINE, self.WER_LOCALDUMPS_NAME, 0,
-          self.winreg.KEY_ALL_ACCESS | sam) as wer_localdumps:
-        self.winreg.DeleteValue(wer_localdumps, 'DumpType')
-        self.winreg.DeleteValue(wer_localdumps, 'DumpCount')
-        self.winreg.DeleteValue(wer_localdumps, 'DumpFolder')
+    del os.environ['DART_CRASHPAD_CRASHES_DIR']
 
-  def _prune_existing_key(self, key, subkey, wowbit):
-    handle = None
 
-    # If the open fails, the key doesn't exist and it's fine.
-    try:
-      handle = self.winreg.OpenKey(
-          key, subkey, 0, self.winreg.KEY_READ | wowbit)
-    except OSError:
-      pass
-
-    # If the key exists then we delete it. If the deletion does not work, we
-    # let the exception through.
-    if handle:
-      handle.Close()
-      self.winreg.DeleteKeyEx(key, subkey, wowbit, 0)
+def TryUnlink(file):
+  try:
+    os.unlink(file)
+  except Exception as error:
+    print "ERROR: Failed to remove %s: %s" % (file, error)
 
 
 class BaseCoreDumpArchiver(object):
@@ -895,14 +802,24 @@ class BaseCoreDumpArchiver(object):
   # test.dart will write a line for each unexpected crash into this file.
   _UNEXPECTED_CRASHES_FILE = "unexpected-crashes"
 
-  def __init__(self, search_dir):
+  def __init__(self, search_dir, output_directory):
     self._bucket = 'dart-temp-crash-archive'
     self._binaries_dir = os.getcwd()
     self._search_dir = search_dir
+    self._output_directory = output_directory
+
+  def _safe_cleanup(self):
+    try:
+      return self._cleanup();
+    except Exception as error:
+      print "ERROR: Failure during cleanup: %s" % error
+      return False
 
   def __enter__(self):
+    print "INFO: Core dump archiving is activated"
+
     # Cleanup any stale files
-    if self._cleanup():
+    if self._safe_cleanup():
       print "WARNING: Found and removed stale coredumps"
 
   def __exit__(self, *_):
@@ -917,13 +834,21 @@ class BaseCoreDumpArchiver(object):
 
         sys.stdout.flush()
 
-        # We disable usage of the boto file installed on the bots due to an
-        # issue introduced by
-        # https://chrome-internal-review.googlesource.com/c/331136
-        with SiteConfigBotoFileDisabler():
-          self._archive(archive_crashes)
+        self._archive(archive_crashes)
+      else:
+        print "INFO: No unexpected crashes recorded"
+        dumps = self._find_all_coredumps()
+        if dumps:
+          print "INFO: However there are %d core dumps found" % len(dumps)
+          for dump in dumps:
+            print "INFO:        -> %s" % dump
+          print
+    except Exception as error:
+      print "ERROR: Failed to archive crashes: %s" % error
+      raise
+
     finally:
-      self._cleanup()
+      self._safe_cleanup()
 
   def _archive(self, crashes):
     files = set()
@@ -935,10 +860,26 @@ class BaseCoreDumpArchiver(object):
         files.add(core)
       else:
         missing.append(crash)
-    self._upload(files)
+    if self._output_directory is not None and self._is_shard():
+      print (
+          "INFO: Copying collected dumps and binaries into output directory\n"
+          "INFO: They will be uploaded to isolate server. Look for \"isolated"
+          " out\" under the failed step on the build page.\n"
+          "INFO: For more information see runtime/docs/infra/coredumps.md")
+      self._copy(files)
+    else:
+      print (
+          "INFO: Uploading collected dumps and binaries into Cloud Storage\n"
+          "INFO: Use `gsutil.py cp from-url to-path` to download them.\n"
+          "INFO: For more information see runtime/docs/infra/coredumps.md")
+      self._upload(files)
 
     if missing:
       self._report_missing_crashes(missing, throw=True)
+
+  # todo(athom): move the logic to decide where to copy core dumps into the recipes.
+  def _is_shard(self):
+    return 'BUILDBOT_BUILDERNAME' not in os.environ
 
   def _report_missing_crashes(self, missing, throw=True):
     missing_as_string = ', '.join([str(c) for c in missing])
@@ -951,6 +892,35 @@ class BaseCoreDumpArchiver(object):
     if throw:
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
+  def _copy(self, files):
+    for file in files:
+      tarname = self._tar(file)
+      print '+++ Copying %s to output_directory (%s)' % (tarname, self._output_directory)
+      shutil.copy(tarname, self._output_directory)
+
+  def _tar(self, file):
+    # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
+    # binaries are copied next to cores and named
+    # 'binary.<mode>_<arch>_<binary_name>'.
+    # This should match the code in testing/dart/test_progress.dart
+    name = os.path.basename(file)
+    (prefix, suffix) = name.split('.', 1)
+    is_binary = prefix == 'binary'
+    if is_binary:
+      (mode, arch, binary_name) = suffix.split('_', 2)
+      name = binary_name
+
+    tarname = '%s.tar.gz' % name
+
+    # Compress the file.
+    tar = tarfile.open(tarname, mode='w:gz')
+    tar.add(file, arcname=name)
+    if is_binary and os.path.exists(file + '.pdb'):
+      # Also add a PDB file if there is one.
+      tar.add(file + '.pdb', arcname=name + '.pdb')
+    tar.close()
+    return tarname
+
   def _upload(self, files):
     bot_utils = GetBotUtils()
     gsutil = bot_utils.GSUtil()
@@ -960,19 +930,7 @@ class BaseCoreDumpArchiver(object):
 
     print '\n--- Uploading into %s (%s) ---' % (gs_prefix, http_prefix)
     for file in files:
-      # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
-      # binaries are copied next to cores and named 'binary.<binary_name>'.
-      name = os.path.basename(file)
-      (prefix, suffix) = name.split('.', 1)
-      if prefix == 'binary':
-        name = suffix
-
-      tarname = '%s.tar.gz' % name
-
-      # Compress the file.
-      tar = tarfile.open(tarname, mode='w:gz')
-      tar.add(file, arcname=name)
-      tar.close()
+      tarname = self._tar(file)
 
       # Remove / from absolute path to not have // in gs path.
       gs_url = '%s%s' % (gs_prefix, tarname)
@@ -984,8 +942,15 @@ class BaseCoreDumpArchiver(object):
       except Exception as error:
         print '!!! Failed to upload %s, error: %s' % (tarname, error)
 
-      os.unlink(tarname)
+      TryUnlink(tarname)
+
     print '--- Done ---\n'
+
+  def _find_all_coredumps(self):
+    """Return coredumps that were recorded (if supported by the platform).
+    This method will be overriden by concrete platform specific implementations.
+    """
+    return []
 
   def _find_unexpected_crashes(self):
     """Load coredumps file. Each line has the following format:
@@ -1005,21 +970,19 @@ class BaseCoreDumpArchiver(object):
       found = True
     for binary in glob.glob(os.path.join(self._binaries_dir, 'binary.*')):
       found = True
-      os.unlink(binary)
+      TryUnlink(binary)
+
     return found
 
 class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
-  def __init__(self, search_dir):
-    super(PosixCoreDumpArchiver, self).__init__(search_dir)
+  def __init__(self, search_dir, output_directory):
+    super(PosixCoreDumpArchiver, self).__init__(search_dir, output_directory)
 
   def _cleanup(self):
     found = super(PosixCoreDumpArchiver, self)._cleanup()
     for core in glob.glob(os.path.join(self._search_dir, 'core.*')):
       found = True
-      try:
-        os.unlink(core)
-      except:
-        pass
+      TryUnlink(core)
     return found
 
   def _find_coredump_file(self, crash):
@@ -1029,87 +992,167 @@ class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
 
 
 class LinuxCoreDumpArchiver(PosixCoreDumpArchiver):
-  def __init__(self):
-    super(LinuxCoreDumpArchiver, self).__init__(os.getcwd())
+  def __init__(self, output_directory):
+    super(LinuxCoreDumpArchiver, self).__init__(os.getcwd(), output_directory)
 
 
 class MacOSCoreDumpArchiver(PosixCoreDumpArchiver):
-  def __init__(self):
-    super(MacOSCoreDumpArchiver, self).__init__('/cores')
+  def __init__(self, output_directory):
+    super(MacOSCoreDumpArchiver, self).__init__('/cores', output_directory)
 
 
 class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
-  def __init__(self):
-    super(WindowsCoreDumpArchiver, self).__init__(os.path.join(
-        os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER))
+  def __init__(self, output_directory):
+    super(WindowsCoreDumpArchiver, self).__init__(
+        WindowsCoreDumpEnabler.DUMPS_FOLDER, output_directory)
+    self._dumps_by_pid = None
+
+  # Find CDB.exe in the win_toolchain that we are using.
+  def _find_cdb(self):
+    win_toolchain_json_path = os.path.join(
+        DART_DIR, 'build', 'win_toolchain.json')
+    if not os.path.exists(win_toolchain_json_path):
+      return None
+
+    with open(win_toolchain_json_path, "r") as f:
+      win_toolchain_info = json.loads(f.read())
+
+    win_sdk_path = win_toolchain_info['win_sdk']
+
+    # We assume that we are running on 64-bit Windows.
+    # Note: x64 CDB can work with both X64 and IA32 dumps.
+    cdb_path = os.path.join(win_sdk_path, 'Debuggers', 'x64', 'cdb.exe')
+    if not os.path.exists(cdb_path):
+      return None
+
+    return cdb_path
+
+  CDBG_PROMPT_RE = re.compile(r'^\d+:\d+>')
+
+  def _dump_all_stacks(self):
+    # On Windows due to crashpad integration crashes do not produce any
+    # stacktraces. Dump stack traces from dumps Crashpad collected using
+    # CDB (if available).
+    cdb_path = self._find_cdb()
+    if cdb_path is None:
+      return
+
+    dumps = self._find_all_coredumps()
+    if not dumps:
+      return
+
+    print "### Collected %d crash dumps" % len(dumps)
+    for dump in dumps:
+      print
+      print "### Dumping stacks from %s using CDB" % dump
+      cdb_output = subprocess.check_output(
+          '"%s" -z "%s" -kqm -c "!uniqstack -b -v -p;qd"' % (cdb_path, dump),
+          stderr=subprocess.STDOUT)
+      # Extract output of uniqstack from the whole output of CDB.
+      output = False
+      for line in cdb_output.split('\n'):
+        if re.match(WindowsCoreDumpArchiver.CDBG_PROMPT_RE, line):
+          output = True
+        elif line.startswith("quit:"):
+          break
+        elif output:
+          print line
+    print
+    print "#############################################"
+    print
+
+
+  def __exit__(self, *args):
+    try:
+      self._dump_all_stacks()
+    except Exception as error:
+      print "ERROR: Unable to dump stacks from dumps: %s" % error
+
+    super(WindowsCoreDumpArchiver, self).__exit__(*args)
+
 
   def _cleanup(self):
     found = super(WindowsCoreDumpArchiver, self)._cleanup()
     for core in glob.glob(os.path.join(self._search_dir, '*')):
       found = True
-      os.unlink(core)
+      TryUnlink(core)
     return found
 
+  def _find_all_coredumps(self):
+    pattern = os.path.join(self._search_dir, '*.dmp')
+    return [core_filename for core_filename in glob.glob(pattern)]
+
   def _find_coredump_file(self, crash):
-    pattern = os.path.join(self._search_dir, '*.%s.*' % crash.pid)
-    for core_filename in glob.glob(pattern):
-      return core_filename
+    if self._dumps_by_pid is None:
+      # If this function is invoked the first time then look through the directory
+      # that contains crashes for all dump files and collect pid -> filename
+      # mapping.
+      self._dumps_by_pid = {}
+      minidump = GetMinidumpUtils()
+      pattern = os.path.join(self._search_dir, '*.dmp')
+      for core_filename in glob.glob(pattern):
+        pid = minidump.GetProcessIdFromDump(core_filename)
+        if pid != -1:
+          self._dumps_by_pid[str(pid)] = core_filename
+    if crash.pid in self._dumps_by_pid:
+      return self._dumps_by_pid[crash.pid]
 
   def _report_missing_crashes(self, missing, throw=True):
     # Let's only print the debugging information and not throw. We'll do more
     # validation for werfault.exe and throw afterwards.
     super(WindowsCoreDumpArchiver, self)._report_missing_crashes(missing, throw=False)
 
-    # Let's check again for the image execution options for werfault. Maybe
-    # puppet came a long during testing and reverted our change.
-    try:
-      import winreg
-    except ImportError:
-      import _winreg as winreg
-    for wowbit in [winreg.KEY_WOW64_64KEY, winreg.KEY_WOW64_32KEY]:
-      try:
-         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                             WindowsCoreDumpEnabler.IMGEXEC_NAME,
-                             0,
-                             winreg.KEY_READ | wowbit) as handle:
-          raise Exception(
-              "Found werfault.exe was disabled. Probably by puppet. Too bad! "
-              "(For more information see https://crbug.com/691971)")
-      except OSError:
-        # If the open did not work the werfault.exe execution setting is as it
-        # should be.
-        pass
-
     if throw:
       missing_as_string = ', '.join([str(c) for c in missing])
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
+class IncreasedNumberOfFileDescriptors(object):
+  def __init__(self, nofiles):
+    self._old_limits = None
+    self._limits = (nofiles, nofiles)
+
+  def __enter__(self):
+    self._old_limits = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, self._limits)
+
+  def __exit__(self, *_):
+    resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 @contextlib.contextmanager
-def NooptCoreDumpArchiver():
+def NooptContextManager():
   yield
 
 
 def CoreDumpArchiver(args):
   enabled = '--copy-coredumps' in args
+  prefix = '--output_directory='
+  output_directory = next((arg[len(prefix):] for arg in args if arg.startswith(prefix)), None)
 
   if not enabled:
-    return NooptCoreDumpArchiver()
+    return NooptContextManager()
 
   osname = GuessOS()
   if osname == 'linux':
     return contextlib.nested(LinuxCoreDumpEnabler(),
-                             LinuxCoreDumpArchiver())
+                             LinuxCoreDumpArchiver(output_directory))
   elif osname == 'macos':
     return contextlib.nested(PosixCoreDumpEnabler(),
-                             MacOSCoreDumpArchiver())
+                             MacOSCoreDumpArchiver(output_directory))
   elif osname == 'win32':
     return contextlib.nested(WindowsCoreDumpEnabler(),
-                             WindowsCoreDumpArchiver())
+                             WindowsCoreDumpArchiver(output_directory))
   else:
     # We don't have support for MacOS yet.
-    assert osname == 'macos'
-    return NooptCoreDumpArchiver()
+    return NooptContextManager()
+
+def FileDescriptorLimitIncreaser():
+  osname = GuessOS()
+  if osname == 'macos':
+    return IncreasedNumberOfFileDescriptors(nofiles=10000)
+  else:
+    assert osname in ('linux', 'win32')
+    # We don't have support for MacOS yet.
+    return NooptContextManager()
 
 if __name__ == "__main__":
   import sys

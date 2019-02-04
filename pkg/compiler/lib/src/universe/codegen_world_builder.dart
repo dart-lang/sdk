@@ -2,12 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of world_builder;
+import 'dart:collection';
+
+import '../common/names.dart' show Identifiers;
+import '../common_elements.dart';
+import '../constants/values.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
+import '../js_backend/native_data.dart' show NativeBasicData;
+import '../js_model/locals.dart';
+import '../js_model/element_map_impl.dart';
+import '../util/enumset.dart';
+import '../util/util.dart';
+import '../world.dart' show JClosedWorld;
+import 'member_usage.dart';
+import 'selector.dart' show Selector;
+import 'use.dart'
+    show
+        ConstantUse,
+        ConstantUseKind,
+        DynamicUse,
+        DynamicUseKind,
+        StaticUse,
+        StaticUseKind;
+import 'world_builder.dart';
 
 /// World builder specific to codegen.
 ///
 /// This adds additional access to liveness of selectors and elements.
 abstract class CodegenWorldBuilder implements WorldBuilder {
+  /// All directly or indirectly instantiated classes.
+  Iterable<ClassEntity> get instantiatedClasses;
+
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are
   /// included.
@@ -45,9 +71,9 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   ConstantValue getConstantFieldInitializer(covariant FieldEntity field);
 
   /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(MemberEntity member, JClosedWorld world);
+  bool hasInvokedSetter(MemberEntity member);
 
-  bool hasInvokedGetter(MemberEntity member, JClosedWorld world);
+  bool hasInvokedGetter(MemberEntity member);
 
   Map<Selector, SelectorConstraints> invocationsByName(String name);
 
@@ -87,8 +113,6 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
     implements CodegenWorldBuilder {
-  final ElementEnvironment _elementEnvironment;
-  final NativeBasicData _nativeBasicData;
   final JClosedWorld _world;
 
   /// The set of all directly instantiated classes, that is, classes with a
@@ -114,11 +138,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// Invariant: Elements are declaration elements.
   final Set<FieldEntity> allReferencedStaticFields = new Set<FieldEntity>();
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Elements are declaration elements.
-   */
+  /// Documentation wanted -- johnniwinther
+  ///
+  /// Invariant: Elements are declaration elements.
   final Set<FunctionEntity> staticFunctionsNeedingGetter =
       new Set<FunctionEntity>();
   final Set<FunctionEntity> methodsNeedingSuperGetter =
@@ -130,34 +152,34 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
       <String, Map<Selector, SelectorConstraints>>{};
 
-  final Map<ClassEntity, _ClassUsage> _processedClasses =
-      <ClassEntity, _ClassUsage>{};
+  final Map<ClassEntity, ClassUsage> _processedClasses =
+      <ClassEntity, ClassUsage>{};
 
-  Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
+  Map<ClassEntity, ClassUsage> get classUsageForTesting => _processedClasses;
 
   /// Map of registered usage of static members of live classes.
-  final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
-      <Entity, _StaticMemberUsage>{};
+  final Map<Entity, StaticMemberUsage> _staticMemberUsage =
+      <Entity, StaticMemberUsage>{};
 
-  Map<Entity, _StaticMemberUsage> get staticMemberUsageForTesting =>
+  Map<Entity, StaticMemberUsage> get staticMemberUsageForTesting =>
       _staticMemberUsage;
 
   /// Map of registered usage of instance members of live classes.
-  final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
-      <MemberEntity, _MemberUsage>{};
+  final Map<MemberEntity, MemberUsage> _instanceMemberUsage =
+      <MemberEntity, MemberUsage>{};
 
-  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting =>
+  Map<MemberEntity, MemberUsage> get instanceMemberUsageForTesting =>
       _instanceMemberUsage;
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.
-  final Map<String, Set<_MemberUsage>> _instanceMembersByName =
-      <String, Set<_MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _instanceMembersByName =
+      <String, Set<MemberUsage>>{};
 
   /// Map containing instance methods of live classes that are not yet
   /// closurized.
-  final Map<String, Set<_MemberUsage>> _instanceFunctionsByName =
-      <String, Set<_MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
+      <String, Set<MemberUsage>>{};
 
   final Set<DartType> isChecks = new Set<DartType>();
 
@@ -165,21 +187,21 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
-  final KernelToWorldBuilder _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
+  final JsToWorldBuilder _elementMap;
 
   final Set<DartType> _constTypeLiterals = new Set<DartType>();
   final Set<DartType> _liveTypeArguments = new Set<DartType>();
 
   CodegenWorldBuilderImpl(
-      this._elementMap,
-      this._globalLocalsMap,
-      this._elementEnvironment,
-      this._nativeBasicData,
-      this._world,
-      this.selectorConstraintsStrategy);
+      this._elementMap, this._world, this.selectorConstraintsStrategy);
 
-  Iterable<ClassEntity> get processedClasses => _processedClasses.keys
+  ElementEnvironment get _elementEnvironment => _world.elementEnvironment;
+
+  NativeBasicData get _nativeBasicData => _world.nativeData;
+
+  GlobalLocalsMap get _globalLocalsMap => _world.globalLocalsMap;
+
+  Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
   /// All directly instantiated classes, that is, classes with a generative
@@ -236,7 +258,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
-        if (masks.applies(member, selector, world)) {
+        if (masks.canHit(member, selector.memberName, world)) {
           return true;
         }
       }
@@ -244,17 +266,17 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     return false;
   }
 
-  bool hasInvocation(MemberEntity member, JClosedWorld world) {
-    return _hasMatchingSelector(_invokedNames[member.name], member, world);
+  bool hasInvocation(MemberEntity member) {
+    return _hasMatchingSelector(_invokedNames[member.name], member, _world);
   }
 
-  bool hasInvokedGetter(MemberEntity member, JClosedWorld world) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
+  bool hasInvokedGetter(MemberEntity member) {
+    return _hasMatchingSelector(_invokedGetters[member.name], member, _world) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(MemberEntity member, JClosedWorld world) {
-    return _hasMatchingSelector(_invokedSetters[member.name], member, world);
+  bool hasInvokedSetter(MemberEntity member) {
+    return _hasMatchingSelector(_invokedSetters[member.name], member, _world);
   }
 
   bool registerDynamicUse(
@@ -262,11 +284,12 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
-    void _process(Map<String, Set<_MemberUsage>> memberMap,
-        EnumSet<MemberUse> action(_MemberUsage usage)) {
-      _processSet(memberMap, methodName, (_MemberUsage usage) {
-        if (selectorConstraintsStrategy.appliedUnnamed(
-            dynamicUse, usage.entity, _world)) {
+    void _process(Map<String, Set<MemberUsage>> memberMap,
+        EnumSet<MemberUse> action(MemberUsage usage)) {
+      _processSet(memberMap, methodName, (MemberUsage usage) {
+        if (selector.appliesUnnamed(usage.entity) &&
+            selectorConstraintsStrategy.appliedUnnamed(
+                dynamicUse, usage.entity, _world)) {
           memberUsed(usage.entity, action(usage));
           return true;
         }
@@ -279,7 +302,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _process(_instanceMembersByName, (m) => m.invoke());
+          // We don't track parameters in the codegen world builder, so we
+          // pass `null` instead of the concrete call structure.
+          _process(_instanceMembersByName, (m) => m.invoke(null));
           return true;
         }
         break;
@@ -307,8 +332,12 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     Object constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors =
         selectorMap[name] ??= new Maplet<Selector, SelectorConstraints>();
-    UniverseSelectorConstraints constraints = selectors[selector] ??=
-        selectorConstraintsStrategy.createSelectorConstraints(selector);
+    UniverseSelectorConstraints constraints = selectors[selector];
+    if (constraints == null) {
+      selectors[selector] = selectorConstraintsStrategy
+          .createSelectorConstraints(selector, constraint);
+      return true;
+    }
     return constraints.addReceiverConstraint(constraint);
   }
 
@@ -378,7 +407,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
-      case StaticUseKind.REFLECT:
         break;
     }
   }
@@ -386,13 +414,13 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     Entity element = staticUse.element;
     _registerStaticUse(staticUse);
-    _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
+    StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
       if (element is MemberEntity &&
           (element.isStatic || element.isTopLevel) &&
           element.isFunction) {
-        return new _StaticFunctionUsage(element);
+        return new StaticFunctionUsage(element);
       } else {
-        return new _GeneralStaticMemberUsage(element);
+        return new GeneralStaticMemberUsage(element);
       }
     });
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
@@ -420,7 +448,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
-      case StaticUseKind.REFLECT:
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -430,8 +457,10 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         break;
       case StaticUseKind.DIRECT_INVOKE:
         MemberEntity member = staticUse.element;
-        _MemberUsage instanceUsage = _getMemberUsage(member, memberUsed);
-        memberUsed(instanceUsage.entity, instanceUsage.invoke());
+        MemberUsage instanceUsage = _getMemberUsage(member, memberUsed);
+        // We don't track parameters in the codegen world builder, so we
+        // pass `null` instead of the concrete call structure.
+        memberUsed(instanceUsage.entity, instanceUsage.invoke(null));
         _instanceMembersByName[instanceUsage.entity.name]
             ?.remove(instanceUsage);
         useSet.addAll(usage.normalUse());
@@ -468,7 +497,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     _getMemberUsage(member, memberUsed);
   }
 
-  _MemberUsage _getMemberUsage(
+  MemberUsage _getMemberUsage(
       covariant MemberEntity member, MemberUsedCallback memberUsed) {
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
@@ -477,31 +506,33 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       String memberName = member.name;
       ClassEntity cls = member.enclosingClass;
       bool isNative = _nativeBasicData.isNativeClass(cls);
-      _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
+      MemberUsage usage = new MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
-      if (!usage.hasRead && hasInvokedGetter(member, _world)) {
+      if (!usage.hasRead && hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
       }
-      if (!usage.hasWrite && hasInvokedSetter(member, _world)) {
+      if (!usage.hasWrite && hasInvokedSetter(member)) {
         useSet.addAll(usage.write());
       }
-      if (!usage.hasInvoke && hasInvocation(member, _world)) {
-        useSet.addAll(usage.invoke());
+      if (!usage.hasInvoke && hasInvocation(member)) {
+        // We don't track parameters in the codegen world builder, so we
+        // pass `null` instead of the concrete call structures.
+        useSet.addAll(usage.invoke(null));
       }
 
-      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+      if (usage.hasPendingClosurizationUse) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
-            .putIfAbsent(usage.entity.name, () => new Set<_MemberUsage>())
+            .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
             .add(usage);
       }
-      if (usage.pendingUse.contains(MemberUse.NORMAL)) {
+      if (usage.hasPendingNormalUse) {
         // The element is not yet used. Add it to the list of instance
         // members to still be processed.
         _instanceMembersByName
-            .putIfAbsent(memberName, () => new Set<_MemberUsage>())
+            .putIfAbsent(memberName, () => new Set<MemberUsage>())
             .add(usage);
       }
       memberUsed(member, useSet);
@@ -509,24 +540,24 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     });
   }
 
-  void _processSet(Map<String, Set<_MemberUsage>> map, String memberName,
-      bool f(_MemberUsage e)) {
-    Set<_MemberUsage> members = map[memberName];
+  void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
+      bool f(MemberUsage e)) {
+    Set<MemberUsage> members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
     // so we create a new list for [: map[memberName] :] and prepend the
     // [remaining] members after the loop.
-    map[memberName] = new Set<_MemberUsage>();
-    Set<_MemberUsage> remaining = new Set<_MemberUsage>();
-    for (_MemberUsage member in members) {
+    map[memberName] = new Set<MemberUsage>();
+    Set<MemberUsage> remaining = new Set<MemberUsage>();
+    for (MemberUsage member in members) {
       if (!f(member)) remaining.add(member);
     }
     map[memberName].addAll(remaining);
   }
 
-  /// Return the canonical [_ClassUsage] for [cls].
-  _ClassUsage _getClassUsage(ClassEntity cls) {
-    return _processedClasses.putIfAbsent(cls, () => new _ClassUsage(cls));
+  /// Return the canonical [ClassUsage] for [cls].
+  ClassUsage _getClassUsage(ClassEntity cls) {
+    return _processedClasses.putIfAbsent(cls, () => new ClassUsage(cls));
   }
 
   void _processInstantiatedClass(ClassEntity cls, ClassUsedCallback classUsed) {
@@ -534,7 +565,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     // already instantiated and we therefore have to process its superclass as
     // well.
     bool processClass(ClassEntity superclass) {
-      _ClassUsage usage = _getClassUsage(superclass);
+      ClassUsage usage = _getClassUsage(superclass);
       if (!usage.isInstantiated) {
         classUsed(usage.cls, usage.instantiate());
         return true;
@@ -595,7 +626,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   Iterable<FunctionEntity> get genericInstanceMethods {
     List<FunctionEntity> functions = <FunctionEntity>[];
 
-    void processMemberUse(MemberEntity member, _MemberUsage memberUsage) {
+    void processMemberUse(MemberEntity member, MemberUsage memberUsage) {
       if (member.isInstanceMember &&
           member is FunctionEntity &&
           memberUsage.hasUse &&
@@ -612,7 +643,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   Iterable<FunctionEntity> get userNoSuchMethods {
     List<FunctionEntity> functions = <FunctionEntity>[];
 
-    void processMemberUse(MemberEntity member, _MemberUsage memberUsage) {
+    void processMemberUse(MemberEntity member, MemberUsage memberUsage) {
       if (member.isInstanceMember &&
           member is FunctionEntity &&
           memberUsage.hasUse &&
@@ -656,7 +687,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   @override
   void forEachParameter(FunctionEntity function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    _elementMap.forEachParameter(function, f);
+    _elementMap.forEachParameter(function, f,
+        isNative: _world.nativeData.isNativeMember(function));
   }
 
   @override

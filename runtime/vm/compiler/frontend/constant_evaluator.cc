@@ -43,6 +43,8 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                    bool reset_position) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -104,6 +106,11 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kConstListLiteral:
         EvaluateListLiteralInternal();
         break;
+      case kConstSetLiteral:
+        // Set literals are currently desugared in the frontend and will not
+        // reach the VM. See http://dartbug.com/35124 for discussion.
+        UNREACHABLE();
+        break;
       case kConstMapLiteral:
         EvaluateMapLiteralInternal();
         break;
@@ -146,7 +153,7 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       default:
         H.ReportError(
             script_, TokenPosition::kNoSource,
-            "Not a constant expression: unexpected kernel tag %s (%" Pd ")",
+            "Not a constant expression: unexpected kernel tag %s (%d)",
             Reader::TagName(tag), tag);
     }
 
@@ -164,6 +171,8 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
 Instance& ConstantEvaluator::EvaluateListLiteral(intptr_t offset,
                                                  bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -181,6 +190,8 @@ Instance& ConstantEvaluator::EvaluateListLiteral(intptr_t offset,
 Instance& ConstantEvaluator::EvaluateMapLiteral(intptr_t offset,
                                                 bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -199,6 +210,8 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
     intptr_t offset,
     bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -213,16 +226,31 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
   return Instance::ZoneHandle(Z, result_.raw());
 }
 
+Instance& ConstantEvaluator::EvaluateStaticInvocation(intptr_t offset,
+                                                      bool reset_position) {
+  if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
+    ASSERT(IsAllowedToEvaluate());
+    intptr_t original_offset = helper_->ReaderOffset();
+    helper_->SetOffset(offset);
+    helper_->ReadTag();  // skip tag.
+    EvaluateStaticInvocation();
+
+    CacheConstantValue(offset, result_);
+    if (reset_position) helper_->SetOffset(original_offset);
+  }
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  return Instance::ZoneHandle(Z, result_.raw());
+}
+
 RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     return EvaluateExpression(offset);
   } else {
-    Thread* thread = H.thread();
-    Error& error = Error::Handle(Z);
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return H.thread()->StealStickyError();
   }
 }
 
@@ -238,6 +266,13 @@ RawObject* ConstantEvaluator::EvaluateAnnotations() {
     metadata_values.SetAt(i, value);
   }
   return metadata_values.raw();
+}
+
+void ConstantEvaluator::BailoutIfBackgroundCompilation() {
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(
+        DeoptId::kNone, "Cannot evaluate annotations in background compiler.");
+  }
 }
 
 bool ConstantEvaluator::IsBuildingFlowGraph() const {
@@ -346,10 +381,9 @@ void ConstantEvaluator::EvaluateStaticGet() {
       }
       Thread* thread = H.thread();
       const Error& error =
-          Error::Handle(thread->zone(), thread->sticky_error());
+          Error::Handle(thread->zone(), thread->StealStickyError());
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
-        thread->clear_sticky_error();
         H.ReportError(error, script_, position, "Not a constant expression.");
         UNREACHABLE();
       }
@@ -497,8 +531,6 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
     // TODO(27590): Can we move this code into [ReceiverType]?
     type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type,
                                          ClassFinalizer::kFinalize);
-    ASSERT(!type.IsMalformedOrMalbounded());
-
     TypeArguments& canonicalized_type_arguments =
         TypeArguments::ZoneHandle(Z, type.arguments());
     canonicalized_type_arguments = canonicalized_type_arguments.Canonicalize();
@@ -574,7 +606,7 @@ void ConstantEvaluator::EvaluateAsExpression() {
   EvaluateExpression(helper_->ReaderOffset(), false);
 
   const AbstractType& type = T.BuildType();
-  if (!type.IsInstantiated() || type.IsMalformed()) {
+  if (!type.IsInstantiated()) {
     const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, position,
@@ -585,9 +617,8 @@ void ConstantEvaluator::EvaluateAsExpression() {
 
   const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
   const TypeArguments& function_type_arguments = TypeArguments::Handle();
-  Error& error = Error::Handle();
   if (!result_.IsInstanceOf(type, instantiator_type_arguments,
-                            function_type_arguments, &error)) {
+                            function_type_arguments)) {
     const AbstractType& rtype =
         AbstractType::Handle(result_.GetType(Heap::kNew));
     const String& result_str = String::Handle(rtype.UserVisibleName());
@@ -664,10 +695,6 @@ void ConstantEvaluator::EvaluateSymbolLiteral() {
 
 void ConstantEvaluator::EvaluateTypeLiteral() {
   const AbstractType& type = T.BuildType();
-  if (type.IsMalformed()) {
-    H.ReportError(script_, TokenPosition::kNoSource,
-                  "Malformed type literal in constant expression.");
-  }
   result_ = type.raw();
 }
 
@@ -760,6 +787,12 @@ void ConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // read type arguments.
   intptr_t num_type_args = helper_->ReadListLength();
   const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
+  if (!type_args->IsNull() && !type_args->IsInstantiated()) {
+    H.ReportError(
+        script_, TokenPosition::kNoSource,
+        "Type arguments in partial instantiations must be instantiated and are "
+        "therefore not allowed to depend on type parameters.");
+  }
 
   // Create new closure with the type arguments inserted, and other things
   // copied over.
@@ -816,6 +849,10 @@ void ConstantEvaluator::EvaluateNullLiteral() {
 }
 
 void ConstantEvaluator::EvaluateConstantExpression() {
+  // Please note that this constants array is constructed exactly once, see
+  // ReadConstantTable() and is immutable from that point on, so there is no
+  // need to guard against concurrent access between mutator and background
+  // compiler.
   KernelConstantsMap constant_map(H.constants().raw());
   result_ ^= constant_map.GetOrDie(helper_->ReadUInt());
   ASSERT(constant_map.Release().raw() == H.constants().raw());
@@ -830,7 +867,7 @@ const Object& ConstantEvaluator::RunFunction(TokenPosition position,
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (FLAG_strong && FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -912,7 +949,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (FLAG_strong && FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -1000,15 +1037,15 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
-  KernelConstantsMap constants(script_.compile_time_constants());
-  *value ^= constants.GetOrNull(kernel_offset + helper_->data_program_offset_,
-                                &is_present);
-  // Mutator compiler thread may add constants while background compiler
-  // is running, and thus change the value of 'compile_time_constants';
-  // do not assert that 'compile_time_constants' has not changed.
-  constants.Release();
-  if (FLAG_compiler_stats && is_present) {
-    ++H.thread()->compiler_stats()->num_const_cache_hits;
+  {
+    // Any access to constants arrays must be locked since mutator and
+    // background compiler can access the array at the same time.
+    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+
+    KernelConstantsMap constants(script_.compile_time_constants());
+    *value ^= constants.GetOrNull(kernel_offset + helper_->data_program_offset_,
+                                  &is_present);
+    constants.Release();
   }
   return is_present;
 }
@@ -1032,10 +1069,16 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
     script_.set_compile_time_constants(array);
   }
-  KernelConstantsMap constants(script_.compile_time_constants());
-  constants.InsertNewOrGetValue(kernel_offset + helper_->data_program_offset_,
-                                value);
-  script_.set_compile_time_constants(constants.Release());
+  {
+    // Any access to constants arrays must be locked since mutator and
+    // background compiler can access the array at the same time.
+    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+
+    KernelConstantsMap constants(script_.compile_time_constants());
+    constants.InsertNewOrGetValue(kernel_offset + helper_->data_program_offset_,
+                                  value);
+    script_.set_compile_time_constants(constants.Release());
+  }
 }
 
 ConstantHelper::ConstantHelper(Zone* zone,
@@ -1126,12 +1169,11 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kSymbolConstant: {
-        Tag initializer_tag = helper_.ReadTag();
-        if (initializer_tag == kSomething) {
-          const NameIndex index = helper_.ReadCanonicalNameReference();
-          temp_library_ = H.LookupLibraryByKernelLibrary(index);
-        } else {
+        const NameIndex index = helper_.ReadCanonicalNameReference();
+        if (index == -1) {
           temp_library_ = Library::null();
+        } else {
+          temp_library_ = H.LookupLibraryByKernelLibrary(index);
         }
         const String& symbol =
             H.DartIdentifier(temp_library_, helper_.ReadStringReference());
@@ -1249,6 +1291,11 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kMapConstant:
         // Note: This is already lowered to InstanceConstant/ListConstant.
+        UNREACHABLE();
+        break;
+      case kUnevaluatedConstant:
+        // We should not see unevaluated constants in the constant table, they
+        // should have been fully evaluated before we get them.
         UNREACHABLE();
         break;
       default:

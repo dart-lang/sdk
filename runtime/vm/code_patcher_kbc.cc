@@ -13,7 +13,7 @@
 namespace dart {
 
 void KBCPatcher::PatchNativeCallAt(uword return_address,
-                                   const Code& bytecode,
+                                   const Bytecode& bytecode,
                                    NativeFunction function,
                                    NativeFunctionWrapper trampoline) {
   ASSERT(bytecode.ContainsInstructionAt(return_address));
@@ -24,7 +24,7 @@ void KBCPatcher::PatchNativeCallAt(uword return_address,
 }
 
 NativeFunctionWrapper KBCPatcher::GetNativeCallAt(uword return_address,
-                                                  const Code& bytecode,
+                                                  const Bytecode& bytecode,
                                                   NativeFunction* function) {
   ASSERT(bytecode.ContainsInstructionAt(return_address));
   NativeEntryData native_entry_data(TypedData::Handle(

@@ -21,6 +21,11 @@ DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 
 # Used in parsing the DEPS file.
 class VarImpl(object):
+  _env_vars = {
+    "host_cpu": "x64",
+    "host_os": "linux",
+  }
+
   def __init__(self, local_scope):
     self._local_scope = local_scope
 
@@ -28,6 +33,9 @@ class VarImpl(object):
     """Implements the Var syntax."""
     if var_name in self._local_scope.get("vars", {}):
       return self._local_scope["vars"][var_name]
+    # Inject default values for env variables
+    if var_name in self._env_vars:
+      return self._env_vars[var_name]
     raise Exception("Var is not defined: %s" % var_name)
 
 

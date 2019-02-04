@@ -15,12 +15,16 @@ import '../common_elements.dart'
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../ir/runtime_type_analysis.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
+import '../universe/resolution_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show JClosedWorld, KClosedWorld;
@@ -42,6 +46,20 @@ typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
 /// Interface for the classes and methods that need runtime types.
 abstract class RuntimeTypesNeed {
+  /// Deserializes a [RuntimeTypesNeed] object from [source].
+  factory RuntimeTypesNeed.readFromDataSource(
+      DataSource source, ElementEnvironment elementEnvironment) {
+    bool isTrivial = source.readBool();
+    if (isTrivial) {
+      return const TrivialRuntimeTypesNeed();
+    }
+    return new RuntimeTypesNeedImpl.readFromDataSource(
+        source, elementEnvironment);
+  }
+
+  /// Serializes this [RuntimeTypesNeed] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] needs type arguments at runtime type.
   ///
   /// This is for instance the case for generic classes used in a type test:
@@ -105,6 +123,10 @@ abstract class RuntimeTypesNeed {
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   const TrivialRuntimeTypesNeed();
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(true); // Is trivial.
+  }
 
   @override
   bool classNeedsTypeArguments(ClassEntity cls) => true;
@@ -245,7 +267,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()) {
       ClassUse classUse = new ClassUse()
-        ..instance = true
+        ..directInstance = true
         ..checkedInstance = true
         ..typeArgument = true
         ..checkedTypeArgument = true
@@ -357,7 +379,10 @@ abstract class RuntimeTypesSubstitutionsMixin
       ClassEntity other = cls;
       while (other != null) {
         inheritedClasses.add(other);
-        if (_elementEnvironment.isMixinApplication(other)) {
+        if (classUse.instance &&
+            _elementEnvironment.isMixinApplication(other)) {
+          // We don't mixin [other] if [cls] isn't instantiated, directly or
+          // indirectly.
           inheritedClasses
               .add(_elementEnvironment.getEffectiveMixinClass(other));
         }
@@ -494,7 +519,9 @@ abstract class RuntimeTypesSubstitutionsMixin
 
     for (ClassEntity cls in classUseMap.keys) {
       ClassUse classUse = classUseMap[cls] ?? emptyUse;
-      if (classUse.instance || classUse.typeArgument || classUse.typeLiteral) {
+      if (classUse.directInstance ||
+          classUse.typeArgument ||
+          classUse.typeLiteral) {
         // Add checks only for classes that are live either as instantiated
         // classes or type arguments passed at runtime.
         computeChecks(cls);
@@ -677,15 +704,13 @@ abstract class _RuntimeTypesBase {
 
   _RuntimeTypesBase(this._types);
 
-  /**
-   * Compute type arguments of classes that use one of their type variables in
-   * is-checks and add the is-checks that they imply.
-   *
-   * This function must be called after all is-checks have been registered.
-   *
-   * TODO(karlklose): move these computations into a function producing an
-   * immutable datastructure.
-   */
+  /// Compute type arguments of classes that use one of their type variables in
+  /// is-checks and add the is-checks that they imply.
+  ///
+  /// This function must be called after all is-checks have been registered.
+  ///
+  /// TODO(karlklose): move these computations into a function producing an
+  /// immutable datastructure.
   void registerImplicitChecks(
       Set<InterfaceType> instantiatedTypes,
       Iterable<ClassEntity> classesUsingChecks,
@@ -713,6 +738,10 @@ abstract class _RuntimeTypesBase {
 }
 
 class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
+  /// Tag used for identifying serialized [RuntimeTypesNeed] objects in a
+  /// debugging data stream.
+  static const String tag = 'runtime-types-need';
+
   final ElementEnvironment _elementEnvironment;
   final Set<ClassEntity> classesNeedingTypeArguments;
   final Set<FunctionEntity> methodsNeedingSignature;
@@ -731,6 +760,45 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.localFunctionsNeedingTypeArguments,
       this.selectorsNeedingTypeArguments,
       this.instantiationsNeedingTypeArguments);
+
+  factory RuntimeTypesNeedImpl.readFromDataSource(
+      DataSource source, ElementEnvironment elementEnvironment) {
+    source.begin(tag);
+    Set<ClassEntity> classesNeedingTypeArguments =
+        source.readClasses<ClassEntity>().toSet();
+    Set<FunctionEntity> methodsNeedingSignature =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> methodsNeedingTypeArguments =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<Selector> selectorsNeedingTypeArguments =
+        source.readList(() => new Selector.readFromDataSource(source)).toSet();
+    Set<int> instantiationsNeedingTypeArguments =
+        source.readList(source.readInt).toSet();
+    source.end(tag);
+    return new RuntimeTypesNeedImpl(
+        elementEnvironment,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
+        null,
+        null,
+        selectorsNeedingTypeArguments,
+        instantiationsNeedingTypeArguments);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(false); // Is _not_ trivial.
+    sink.begin(tag);
+    sink.writeClasses(classesNeedingTypeArguments);
+    sink.writeMembers(methodsNeedingSignature);
+    sink.writeMembers(methodsNeedingTypeArguments);
+    assert(localFunctionsNeedingSignature == null);
+    assert(localFunctionsNeedingTypeArguments == null);
+    sink.writeList(selectorsNeedingTypeArguments,
+        (Selector selector) => selector.writeToDataSink(sink));
+    sink.writeList(instantiationsNeedingTypeArguments, sink.writeInt);
+    sink.end(tag);
+  }
 
   bool checkClass(covariant ClassEntity cls) => true;
 
@@ -1615,21 +1683,24 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
     Set<ClassEntity> classesDirectlyNeedingRuntimeType = new Set<ClassEntity>();
 
-    ClassEntity impliedClass(DartType type) {
+    Iterable<ClassEntity> impliedClasses(DartType type) {
       if (type is InterfaceType) {
-        return type.element;
+        return [type.element];
       } else if (type is DynamicType) {
-        return commonElements.objectClass;
+        return [commonElements.objectClass];
       } else if (type is FunctionType) {
         // TODO(johnniwinther): Include only potential function type subtypes.
-        return commonElements.functionClass;
+        return [commonElements.functionClass];
       } else if (type is VoidType) {
         // No classes implied.
       } else if (type is FunctionTypeVariable) {
-        return impliedClass(type.bound);
+        return impliedClasses(type.bound);
+      } else if (type is FutureOrType) {
+        return [commonElements.futureClass]
+          ..addAll(impliedClasses(type.typeArgument));
       } else if (type is TypeVariableType) {
         // TODO(johnniwinther): Can we do better?
-        return impliedClass(
+        return impliedClasses(
             _elementEnvironment.getTypeVariableBound(type.element));
       }
       throw new UnsupportedError('Unexpected type $type');
@@ -1651,43 +1722,47 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       switch (runtimeTypeUse.kind) {
         case RuntimeTypeUseKind.string:
           if (!options.laxRuntimeTypeToString) {
-            addClass(impliedClass(runtimeTypeUse.receiverType));
+            impliedClasses(runtimeTypeUse.receiverType).forEach(addClass);
           }
 
           break;
         case RuntimeTypeUseKind.equals:
-          ClassEntity receiverClass = impliedClass(runtimeTypeUse.receiverType);
-          ClassEntity argumentClass = impliedClass(runtimeTypeUse.argumentType);
+          Iterable<ClassEntity> receiverClasses =
+              impliedClasses(runtimeTypeUse.receiverType);
+          Iterable<ClassEntity> argumentClasses =
+              impliedClasses(runtimeTypeUse.argumentType);
 
-          // TODO(johnniwinther): Special case use of `this.runtimeType`.
-          SubclassResult result = closedWorld.classHierarchy.commonSubclasses(
-              receiverClass,
-              ClassQuery.SUBTYPE,
-              argumentClass,
-              ClassQuery.SUBTYPE);
-          switch (result.kind) {
-            case SubclassResultKind.EMPTY:
-              break;
-            case SubclassResultKind.EXACT1:
-            case SubclassResultKind.SUBCLASS1:
-            case SubclassResultKind.SUBTYPE1:
-              addClass(receiverClass);
-              break;
-            case SubclassResultKind.EXACT2:
-            case SubclassResultKind.SUBCLASS2:
-            case SubclassResultKind.SUBTYPE2:
-              addClass(argumentClass);
-              break;
-            case SubclassResultKind.SET:
-              for (ClassEntity cls in result.classes) {
-                addClass(cls);
-                if (neededOnAll) break;
+          for (ClassEntity receiverClass in receiverClasses) {
+            for (ClassEntity argumentClass in argumentClasses) {
+              // TODO(johnniwinther): Special case use of `this.runtimeType`.
+              SubclassResult result = closedWorld.classHierarchy
+                  .commonSubclasses(receiverClass, ClassQuery.SUBTYPE,
+                      argumentClass, ClassQuery.SUBTYPE);
+              switch (result.kind) {
+                case SubclassResultKind.EMPTY:
+                  break;
+                case SubclassResultKind.EXACT1:
+                case SubclassResultKind.SUBCLASS1:
+                case SubclassResultKind.SUBTYPE1:
+                  addClass(receiverClass);
+                  break;
+                case SubclassResultKind.EXACT2:
+                case SubclassResultKind.SUBCLASS2:
+                case SubclassResultKind.SUBTYPE2:
+                  addClass(argumentClass);
+                  break;
+                case SubclassResultKind.SET:
+                  for (ClassEntity cls in result.classes) {
+                    addClass(cls);
+                    if (neededOnAll) break;
+                  }
+                  break;
               }
-              break;
+            }
           }
           break;
         case RuntimeTypeUseKind.unknown:
-          addClass(impliedClass(runtimeTypeUse.receiverType));
+          impliedClasses(runtimeTypeUse.receiverType).forEach(addClass);
           break;
       }
       if (neededOnAll) break;
@@ -1724,9 +1799,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           }
         });
         localFunctionsNeedingSignature.addAll(localFunctions);
-      }
-      for (FunctionEntity function in resolutionWorldBuilder.genericMethods) {
-        potentiallyNeedTypeArguments(function);
       }
       for (FunctionEntity function
           in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
@@ -1938,11 +2010,16 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
+    codegenWorldBuilder.instantiatedClasses.forEach((ClassEntity cls) {
+      ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
+      classUse.instance = true;
+    });
+
     codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
           classUseMap.putIfAbsent(type.element, () => new ClassUse());
-      classUse.instance = true;
+      classUse.directInstance = true;
       FunctionType callType = _types.getCallType(type);
       if (callType != null) {
         testedTypeVisitor.visitType(callType, TypeVisitorState.direct);
@@ -2198,20 +2275,18 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     }
   }
 
-  /**
-   * Compute a JavaScript expression that describes the necessary substitution
-   * for type arguments in a subtype test.
-   *
-   * The result can be:
-   *  1) `null`, if no substituted check is necessary, because the
-   *     type variables are the same or there are no type variables in the class
-   *     that is checked for.
-   *  2) A list expression describing the type arguments to be used in the
-   *     subtype check, if the type arguments to be used in the check do not
-   *     depend on the type arguments of the object.
-   *  3) A function mapping the type variables of the object to be checked to
-   *     a list expression.
-   */
+  /// Compute a JavaScript expression that describes the necessary substitution
+  /// for type arguments in a subtype test.
+  ///
+  /// The result can be:
+  ///  1) `null`, if no substituted check is necessary, because the type
+  ///     variables are the same or there are no type variables in the class
+  ///     that is checked for.
+  ///  2) A list expression describing the type arguments to be used in the
+  ///     subtype check, if the type arguments to be used in the check do not
+  ///     depend on the type arguments of the object.
+  ///  3) A function mapping the type variables of the object to be checked to
+  ///     a list expression.
   @override
   jsAst.Expression getSubstitutionCode(
       Emitter emitter, Substitution substitution) {
@@ -2303,10 +2378,8 @@ class TypeRepresentationGenerator
 
   TypeRepresentationGenerator(this.namer, this._nativeData);
 
-  /**
-   * Creates a type representation for [type]. [onVariable] is called to provide
-   * the type representation for type variables.
-   */
+  /// Creates a type representation for [type]. [onVariable] is called to
+  /// provide the type representation for type variables.
   jsAst.Expression getTypeRepresentation(
       Emitter emitter,
       DartType type,
@@ -2709,10 +2782,8 @@ class Substitution {
       'parameters=$parameters,length=$length)';
 }
 
-/**
- * A pair of a class that we need a check against and the type argument
- * substitution for this check.
- */
+/// A pair of a class that we need a check against and the type argument
+/// substitution for this check.
 class TypeCheck {
   final ClassEntity cls;
   final bool needsIs;
@@ -2841,14 +2912,25 @@ class ClassFunctionType {
 
 /// Runtime type usage for a class.
 class ClassUse {
-  /// Whether the class is instantiated.
+  /// Whether the class is directly or indirectly instantiated.
   ///
-  /// For instance `A` in:
+  /// For instance `A` and `B` in:
   ///
   ///     class A {}
-  ///     main() => new A();
+  ///     class B extends A {}
+  ///     main() => new B();
   ///
   bool instance = false;
+
+  /// Whether the class is directly instantiated.
+  ///
+  /// For instance `B` in:
+  ///
+  ///     class A {}
+  ///     class B extends A {}
+  ///     main() => new B();
+  ///
+  bool directInstance = false;
 
   /// Whether objects are checked to be instances of the class.
   ///
@@ -2898,12 +2980,15 @@ class ClassUse {
 
   /// `true` if the class is 'live' either through instantiation or use in
   /// type arguments.
-  bool get isLive => instance || typeArgument;
+  bool get isLive => directInstance || typeArgument;
 
   String toString() {
     List<String> properties = <String>[];
     if (instance) {
       properties.add('instance');
+    }
+    if (directInstance) {
+      properties.add('directInstance');
     }
     if (checkedInstance) {
       properties.add('checkedInstance');

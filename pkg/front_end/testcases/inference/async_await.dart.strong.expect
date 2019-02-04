@@ -3,8 +3,10 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+import "dart:async";
+
 abstract class MyFuture extends core::Object implements asy::Future<core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::MyFuture
     : super core::Object::•()
     ;
 }

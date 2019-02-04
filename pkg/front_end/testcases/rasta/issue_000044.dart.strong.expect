@@ -1,0 +1,102 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:8: Error: Expected a function body or '=>'.
+// Try adding {}.
+// a b(c) = d;
+//        ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:29: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   C.missingFactoryKeyword() = C.constant;
+//                             ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:28: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   C notEvenAConstructor(a) = h;
+//                            ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:1: Error: Type 'a' not found.
+// a b(c) = d;
+// ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: Couldn't find constructor 'h'.
+//   C notEvenAConstructor(a) = h;
+//                              ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
+// a b(c) = d;
+//          ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:29: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   C.missingFactoryKeyword() = C.constant;
+//                             ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:33: Error: Getter not found: 'constant'.
+//   C.missingFactoryKeyword() = C.constant;
+//                                 ^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:31: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   C.missingFactoryKeyword() = C.constant;
+//                               ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:28: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   C notEvenAConstructor(a) = h;
+//                            ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: Getter not found: 'h'.
+//   C notEvenAConstructor(a) = h;
+//                              ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: The getter 'h' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
+//   C notEvenAConstructor(a) = h;
+//                              ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   print(const C.missingFactoryKeyword());
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::C::good];
+  const constructor constant() → self::C
+    : super core::Object::•()
+    ;
+  constructor missingFactoryKeyword() → self::C
+    : super core::Object::•()
+    invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:14:31: Error: Constructors can't have a return type.
+Try removing the return type.
+  C.missingFactoryKeyword() = C.constant;
+                              ^";
+  static factory good() → self::C
+    let dynamic #redirecting_factory = self::C::constant in invalid-expression;
+  method notEvenAConstructor(dynamic a) → self::C
+    return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: The getter 'h' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
+  C notEvenAConstructor(a) = h;
+                             ^" as{TypeError} self::C;
+}
+static method b(dynamic c) → invalid-type
+  return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
+a b(c) = d;
+         ^" as{TypeError} invalid-type;
+static method main() → dynamic {
+  self::C c = null;
+  core::print(const self::C::constant());
+  core::print(invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  print(const C.missingFactoryKeyword());
+              ^");
+  core::print(const self::C::constant());
+  core::print(new self::C::constant().{self::C::notEvenAConstructor}(null));
+}

@@ -1,15 +1,16 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
@@ -149,15 +150,15 @@ class C {
   }
 
   test_declarations_discover() async {
-    var t = _p('/test/lib/t.dart');
-    var a = _p('/aaa/lib/a.dart');
-    var b = _p('/bbb/lib/b.dart');
-    var c = _p('/ccc/lib/c.dart');
+    var t = convertPath('/test/lib/t.dart');
+    var a = convertPath('/aaa/lib/a.dart');
+    var b = convertPath('/bbb/lib/b.dart');
+    var c = convertPath('/ccc/lib/c.dart');
 
-    provider.newFile(t, 'class T {}');
-    provider.newFile(a, 'class A {}');
-    provider.newFile(b, 'class B {}');
-    provider.newFile(c, 'class C {}');
+    newFile(t, content: 'class T {}');
+    newFile(a, content: 'class A {}');
+    newFile(b, content: 'class B {}');
+    newFile(c, content: 'class C {}');
 
     driver.addFile(t);
 
@@ -170,11 +171,11 @@ class C {
   }
 
   test_declarations_duplicateFile() async {
-    var a = _p('/test/lib/a.dart');
-    var b = _p('/test/lib/b.dart');
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
 
-    provider.newFile(a, 'class A {}');
-    provider.newFile(b, 'class B {}');
+    newFile(a, content: 'class A {}');
+    newFile(b, content: 'class B {}');
 
     driver.addFile(a);
     driver.addFile(b);
@@ -243,10 +244,10 @@ mixin M {
   }
 
   test_declarations_onlyForFile() async {
-    var a = _p('/test/lib/a.dart');
-    var b = _p('/test/lib/b.dart');
-    provider.newFile(a, 'class A {}');
-    provider.newFile(b, 'class B {}');
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+    newFile(a, content: 'class A {}');
+    newFile(b, content: 'class B {}');
 
     driver.addFile(a);
     driver.addFile(b);
@@ -423,15 +424,15 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
   }
 
   test_references_discover() async {
-    var t = _p('/test/lib/t.dart');
-    var a = _p('/aaa/lib/a.dart');
-    var b = _p('/bbb/lib/b.dart');
-    var c = _p('/ccc/lib/c.dart');
+    var t = convertPath('/test/lib/t.dart');
+    var a = convertPath('/aaa/lib/a.dart');
+    var b = convertPath('/bbb/lib/b.dart');
+    var c = convertPath('/ccc/lib/c.dart');
 
-    provider.newFile(t, 'List t;');
-    provider.newFile(a, 'List a;');
-    provider.newFile(b, 'List b;');
-    provider.newFile(c, 'List c;');
+    newFile(t, content: 'List t;');
+    newFile(a, content: 'List a;');
+    newFile(b, content: 'List b;');
+    newFile(c, content: 'List c;');
 
     driver.addFile(t);
 
@@ -456,13 +457,13 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
   }
 
   test_references_discover_onlyOwned() async {
-    var t = _p('/test/lib/t.dart');
-    var a = _p('/aaa/lib/a.dart');
-    var b = _p('/bbb/lib/b.dart');
+    var t = convertPath('/test/lib/t.dart');
+    var a = convertPath('/aaa/lib/a.dart');
+    var b = convertPath('/bbb/lib/b.dart');
 
-    provider.newFile(t, 'List t;');
-    provider.newFile(a, 'List a;');
-    provider.newFile(b, 'List b;');
+    newFile(t, content: 'List t;');
+    newFile(a, content: 'List a;');
+    newFile(b, content: 'List b;');
 
     driver.addFile(t);
     driver.addFile(a);
@@ -492,11 +493,11 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
   }
 
   test_references_discover_onlyOwned_samePath() async {
-    var p = _p('/test/lib/t.dart');
-    provider.newFile(p, 'int t;');
+    var p = convertPath('/test/lib/t.dart');
+    newFile(p, content: 'int t;');
 
     var driver1 = createAnalysisDriver(packageMap: {
-      'test': [provider.newFolder(_p('/test/lib'))]
+      'test': [newFolder('/test/lib')]
     });
     var driver2 = createAnalysisDriver(packageMap: {});
 
@@ -512,17 +513,17 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
   }
 
   test_references_discover_onlyOwned_sameUri() async {
-    var a = _p('/aaa/lib/t.dart');
-    var b = _p('/bbb/lib/t.dart');
+    var a = convertPath('/aaa/lib/t.dart');
+    var b = convertPath('/bbb/lib/t.dart');
 
-    provider.newFile(a, 'int t;');
-    provider.newFile(b, 'double t;');
+    newFile(a, content: 'int t;');
+    newFile(b, content: 'double t;');
 
     var driver1 = createAnalysisDriver(packageMap: {
-      'ttt': [provider.newFolder(_p('/aaa/lib'))]
+      'ttt': [newFolder('/aaa/lib')]
     });
     var driver2 = createAnalysisDriver(packageMap: {
-      'ttt': [provider.newFolder(_p('/bbb/lib'))]
+      'ttt': [newFolder('/bbb/lib')]
     });
 
     // driver1 owns `/aaa/lib/t.dart` with `package:ttt/t.dart`.
@@ -620,7 +621,7 @@ Random v2;
     ClassElement randomElement;
     {
       String randomPath = sdk.mapDartUri('dart:math').fullName;
-      AnalysisResult result = await driver.getResult(randomPath);
+      ResolvedUnitResult result = await driver.getResult(randomPath);
       randomElement = result.unit.declaredElement.getType('Random');
     }
 
@@ -680,7 +681,7 @@ List<A> v2 = null;
   }
 
   test_searchReferences_ClassElement_definedOutside() async {
-    provider.newFile(_p('$testProject/lib.dart'), r'''
+    newFile('$testProject/lib.dart', content: r'''
 class A {};
 ''');
     await _resolveTestUnit('''
@@ -713,7 +714,7 @@ class B extends Object with A {} // with
   }
 
   test_searchReferences_CompilationUnitElement() async {
-    provider.newFile(_p('$testProject/foo.dart'), '');
+    newFile('$testProject/foo.dart');
     await _resolveTestUnit('''
 import 'foo.dart'; // import
 export 'foo.dart'; // export
@@ -750,14 +751,14 @@ main() {
   }
 
   test_searchReferences_ConstructorElement_default_otherFile() async {
-    String other = _p('$testProject/other.dart');
+    String other = convertPath('$testProject/other.dart');
     String otherCode = '''
 import 'test.dart';
 main() {
   new A(); // in other
 }
 ''';
-    provider.newFile(other, otherCode);
+    newFile(other, content: otherCode);
     driver.addFile(other);
 
     await _resolveTestUnit('''
@@ -949,8 +950,8 @@ main() {
 Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
       _expectId(mainElement, kind, 'PI);', length: 0),
@@ -962,7 +963,7 @@ Random bar() => null;
   }
 
   test_searchReferences_ImportElement_noPrefix_inPackage() async {
-    testFile = _p('/aaa/lib/a.dart');
+    testFile = convertPath('/aaa/lib/a.dart');
     await _resolveTestUnit('''
 import 'dart:math' show max, PI, Random hide min;
 export 'dart:math' show max, PI, Random hide min;
@@ -974,8 +975,8 @@ main() {
 Random bar() => null;
 ''', addToDriver: false);
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
       _expectId(mainElement, kind, 'PI;', length: 0),
@@ -998,8 +999,8 @@ main() {
 math.Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var length = 'math.'.length;
     var expected = [
@@ -1020,7 +1021,7 @@ main() {
   p.Future;
 }
 ''');
-    Element mainElement = await _findElement('main');
+    Element mainElement = _findElement('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {
@@ -1063,8 +1064,8 @@ label:
   test_searchReferences_LibraryElement() async {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    provider.newFile(_p('$testProject/unitA.dart'), codeA);
-    provider.newFile(_p('$testProject/unitB.dart'), codeB);
+    newFile('$testProject/unitA.dart', content: codeA);
+    newFile('$testProject/unitB.dart', content: codeB);
     await _resolveTestUnit('''
 library lib;
 part 'unitA.dart';
@@ -1083,14 +1084,14 @@ part 'unitB.dart';
   }
 
   test_searchReferences_LibraryElement_inPackage() async {
-    testFile = _p('/aaa/lib/a.dart');
-    var partPathA = _p('/aaa/lib/unitA.dart');
-    var partPathB = _p('/aaa/lib/unitB.dart');
+    testFile = convertPath('/aaa/lib/a.dart');
+    var partPathA = convertPath('/aaa/lib/unitA.dart');
+    var partPathB = convertPath('/aaa/lib/unitB.dart');
 
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    provider.newFile(partPathA, codeA);
-    provider.newFile(partPathB, codeB);
+    newFile(partPathA, content: codeA);
+    newFile(partPathB, content: codeB);
     await _resolveTestUnit('''
 library lib;
 part 'unitA.dart';
@@ -1152,7 +1153,7 @@ main() {
   }
 
   test_searchReferences_LocalVariableElement_inPackage() async {
-    testFile = _p('/aaa/lib/a.dart');
+    testFile = convertPath('/aaa/lib/a.dart');
 
     await _resolveTestUnit('''
 main() {
@@ -1370,7 +1371,7 @@ main() {
 part of my_lib;
 ppp.Future c;
 ''';
-    provider.newFile(_p('$testProject/my_part.dart'), partCode);
+    newFile('$testProject/my_part.dart', content: partCode);
     await _resolveTestUnit('''
 library my_lib;
 import 'dart:async' as ppp;
@@ -1393,14 +1394,14 @@ main() {
   }
 
   test_searchReferences_PrefixElement_inPackage() async {
-    testFile = _p('/aaa/lib/a.dart');
-    var partPath = _p('/aaa/lib/my_part.dart');
+    testFile = convertPath('/aaa/lib/a.dart');
+    var partPath = convertPath('/aaa/lib/my_part.dart');
 
     String partCode = r'''
 part of my_lib;
 ppp.Future c;
 ''';
-    provider.newFile(partPath, partCode);
+    newFile(partPath, content: partCode);
     await _resolveTestUnit('''
 library my_lib;
 import 'dart:async' as ppp;
@@ -1423,14 +1424,14 @@ main() {
   }
 
   test_searchReferences_private_declaredInDefiningUnit() async {
-    String p1 = _p('$testProject/part1.dart');
-    String p2 = _p('$testProject/part2.dart');
-    String p3 = _p('$testProject/part3.dart');
+    String p1 = convertPath('$testProject/part1.dart');
+    String p2 = convertPath('$testProject/part2.dart');
+    String p3 = convertPath('$testProject/part3.dart');
     String code1 = 'part of lib; _C v1;';
     String code2 = 'part of lib; _C v2;';
-    provider.newFile(p1, code1);
-    provider.newFile(p2, code2);
-    provider.newFile(p3, 'part of lib; int v3;');
+    newFile(p1, content: code1);
+    newFile(p2, content: code2);
+    newFile(p3, content: 'part of lib; int v3;');
 
     driver.addFile(p1);
     driver.addFile(p2);
@@ -1459,9 +1460,9 @@ _C v;
   }
 
   test_searchReferences_private_declaredInPart() async {
-    String p = _p('$testProject/lib.dart');
-    String p1 = _p('$testProject/part1.dart');
-    String p2 = _p('$testProject/part2.dart');
+    String p = convertPath('$testProject/lib.dart');
+    String p1 = convertPath('$testProject/part1.dart');
+    String p2 = convertPath('$testProject/part2.dart');
 
     var code = '''
 library lib;
@@ -1476,15 +1477,15 @@ _C v1;
 ''';
     String code2 = 'part of lib; _C v2;';
 
-    provider.newFile(p, code);
-    provider.newFile(p1, code1);
-    provider.newFile(p2, code2);
+    newFile(p, content: code);
+    newFile(p1, content: code1);
+    newFile(p2, content: code2);
 
     driver.addFile(p);
     driver.addFile(p1);
     driver.addFile(p2);
 
-    AnalysisResult result = await driver.getResult(p);
+    ResolvedUnitResult result = await driver.getResult(p);
     testUnit = result.unit;
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
@@ -1505,15 +1506,15 @@ _C v1;
   }
 
   test_searchReferences_private_inPackage() async {
-    testFile = _p('/aaa/lib/a.dart');
-    var p1 = _p('/aaa/lib/part1.dart');
-    var p2 = _p('/aaa/lib/part2.dart');
+    testFile = convertPath('/aaa/lib/a.dart');
+    var p1 = convertPath('/aaa/lib/part1.dart');
+    var p2 = convertPath('/aaa/lib/part2.dart');
 
     String code1 = 'part of lib; _C v1;';
     String code2 = 'part of lib; _C v2;';
 
-    provider.newFile(p1, code1);
-    provider.newFile(p2, code2);
+    newFile(p1, content: code1);
+    newFile(p2, content: code2);
 
     await _resolveTestUnit('''
 library lib;
@@ -1581,7 +1582,7 @@ class A {
   }
 
   test_searchReferences_TopLevelVariableElement() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -1768,15 +1769,15 @@ class F {}
   }
 
   test_subtypes_discover() async {
-    var pathT = _p('/test/lib/t.dart');
-    var pathA = _p('/aaa/lib/a.dart');
-    var pathB = _p('/bbb/lib/b.dart');
+    var pathT = convertPath('/test/lib/t.dart');
+    var pathA = convertPath('/aaa/lib/a.dart');
+    var pathB = convertPath('/bbb/lib/b.dart');
 
     var tUri = 'package:test/t.dart';
     var aUri = 'package:aaa/a.dart';
     var bUri = 'package:bbb/b.dart';
 
-    provider.newFile(pathT, r'''
+    newFile(pathT, content: r'''
 import 'package:aaa/a.dart';
 
 class T1 extends A {
@@ -1788,7 +1789,7 @@ class T2 extends A {
 }
 ''');
 
-    provider.newFile(pathB, r'''
+    newFile(pathB, content: r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
@@ -1796,7 +1797,7 @@ class B extends A {
 }
 ''');
 
-    provider.newFile(pathA, r'''
+    newFile(pathA, content: r'''
 class A {
   void method1() {}
   void method2() {}
@@ -1830,15 +1831,15 @@ class A {
   }
 
   test_subTypes_discover() async {
-    var t = _p('/test/lib/t.dart');
-    var a = _p('/aaa/lib/a.dart');
-    var b = _p('/bbb/lib/b.dart');
-    var c = _p('/ccc/lib/c.dart');
+    var t = convertPath('/test/lib/t.dart');
+    var a = convertPath('/aaa/lib/a.dart');
+    var b = convertPath('/bbb/lib/b.dart');
+    var c = convertPath('/ccc/lib/c.dart');
 
-    provider.newFile(t, 'class T implements List {}');
-    provider.newFile(a, 'class A implements List {}');
-    provider.newFile(b, 'class B implements List {}');
-    provider.newFile(c, 'class C implements List {}');
+    newFile(t, content: 'class T implements List {}');
+    newFile(a, content: 'class A implements List {}');
+    newFile(b, content: 'class B implements List {}');
+    newFile(c, content: 'class C implements List {}');
 
     driver.addFile(t);
 
@@ -1863,13 +1864,13 @@ class A {
   }
 
   test_subtypes_files() async {
-    String pathB = _p('$testProject/b.dart');
-    String pathC = _p('$testProject/c.dart');
-    provider.newFile(pathB, r'''
+    String pathB = convertPath('$testProject/b.dart');
+    String pathC = convertPath('$testProject/c.dart');
+    newFile(pathB, content: r'''
 import 'test.dart';
 class B extends A {}
 ''');
-    provider.newFile(pathC, r'''
+    newFile(pathC, content: r'''
 import 'test.dart';
 class C extends A {}
 class D {}
@@ -1892,6 +1893,45 @@ class A {}
 
     expect(b.id, endsWith('b.dart;B'));
     expect(c.id, endsWith('c.dart;C'));
+  }
+
+  test_subtypes_mixin_superclassConstraints() async {
+    await _resolveTestUnit('''
+class A {
+  void methodA() {}
+}
+
+class B {
+  void methodB() {}
+}
+
+mixin M on A, B {
+  void methodA() {}
+  void methodM() {}
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+
+    {
+      var subtypes = await driver.search.subtypes(type: a);
+      expect(subtypes, hasLength(1));
+
+      var m = subtypes.singleWhere((r) => r.name == 'M');
+      expect(m.libraryUri, testUri);
+      expect(m.id, '$testUri;$testUri;M');
+      expect(m.members, ['methodA', 'methodM']);
+    }
+
+    {
+      var subtypes = await driver.search.subtypes(type: b);
+      expect(subtypes, hasLength(1));
+
+      var m = subtypes.singleWhere((r) => r.name == 'M');
+      expect(m.libraryUri, testUri);
+      expect(m.id, '$testUri;$testUri;M');
+      expect(m.members, ['methodA', 'methodM']);
+    }
   }
 
   test_subtypes_partWithoutLibrary() async {
@@ -2016,24 +2056,22 @@ class NoMatchABCDEF {}
     return ElementLocator.locate(node);
   }
 
-  String _p(String path) => provider.convertPath(path);
-
-  Future<Null> _resolveTestUnit(String code, {bool addToDriver: true}) async {
+  Future<void> _resolveTestUnit(String code, {bool addToDriver: true}) async {
     if (addToDriver) {
       addTestFile(code);
     } else {
       testCode = code;
-      provider.newFile(testFile, testCode);
+      newFile(testFile, content: testCode);
     }
     if (testUnit == null) {
-      AnalysisResult result = await driver.getResult(testFile);
+      ResolvedUnitResult result = await driver.getResult(testFile);
       testUnit = result.unit;
       testUnitElement = testUnit.declaredElement;
       testLibraryElement = testUnitElement.library;
     }
   }
 
-  Future<Null> _verifyNameReferences(
+  Future<void> _verifyNameReferences(
       String name, List<ExpectedResult> expectedMatches) async {
     var searchedFiles = new SearchedFiles();
     List<SearchResult> results =

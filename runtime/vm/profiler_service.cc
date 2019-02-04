@@ -272,7 +272,7 @@ ProfileCode::ProfileCode(Kind kind,
                          uword start,
                          uword end,
                          int64_t timestamp,
-                         const Code& code)
+                         const AbstractCode code)
     : kind_(kind),
       start_(start),
       end_(end),
@@ -482,7 +482,7 @@ void ProfileCode::PrintToJSONArray(JSONArray* codes) {
   obj.AddProperty("exclusiveTicks", exclusive_ticks());
   if (kind() == kDartCode) {
     ASSERT(!code_.IsNull());
-    obj.AddProperty("code", code_);
+    obj.AddProperty("code", *code_.handle());
   } else if (kind() == kCollectedCode) {
     PrintCollectedCode(&obj);
   } else if (kind() == kReusedCode) {
@@ -626,7 +626,19 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   } else if (kind() == kNativeCode) {
     if (name() == NULL) {
       // Lazily set generated name.
-      GenerateAndSetSymbolName("[Native]");
+      const intptr_t kBuffSize = 512;
+      char buff[kBuffSize];
+      uword dso_base;
+      char* dso_name;
+      if (NativeSymbolResolver::LookupSharedObject(start(), &dso_base,
+                                                   &dso_name)) {
+        uword dso_offset = start() - dso_base;
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
+                       dso_offset);
+      } else {
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
+      }
+      SetName(buff);
     }
     function = table->AddNative(start(), name());
   } else if (kind() == kTagCode) {
@@ -1184,7 +1196,7 @@ class ProfileBuilder : public ValueObject {
         extra_tags_(extra_tags),
         profile_(profile),
         deoptimized_code_(new DeoptimizedCodeSet(thread->isolate())),
-        null_code_(Code::ZoneHandle()),
+        null_code_(Code::null()),
         null_function_(Function::ZoneHandle()),
         tick_functions_(false),
         inclusive_tree_(false),
@@ -1276,8 +1288,7 @@ class ProfileBuilder : public ValueObject {
     for (intptr_t i = 0; i < code_lookup_table.length(); i++) {
       const CodeDescriptor* descriptor = code_lookup_table.At(i);
       ASSERT(descriptor != NULL);
-      const Code& code = Code::Handle(descriptor->code());
-      ASSERT(!code.IsNull());
+      const AbstractCode code = descriptor->code();
       RegisterLiveProfileCode(new ProfileCode(
           ProfileCode::kDartCode, code.PayloadStart(),
           code.PayloadStart() + code.Size(), code.compile_timestamp(), code));
@@ -1414,7 +1425,6 @@ class ProfileBuilder : public ValueObject {
       }
 
       // Walk the sampled PCs.
-      Code& code = Code::Handle();
       for (intptr_t frame_index = sample->length() - 1; frame_index >= 0;
            frame_index--) {
         ASSERT(sample->At(frame_index) != 0);
@@ -1424,7 +1434,7 @@ class ProfileBuilder : public ValueObject {
         ProfileCode* profile_code =
             GetProfileCode(sample->At(frame_index), sample->timestamp());
         ASSERT(profile_code->code_table_index() == index);
-        code ^= profile_code->code();
+        const AbstractCode code = profile_code->code();
         current = AppendKind(code, current, sample);
         current = current->GetChild(index);
         current->Tick(sample, (frame_index == 0));
@@ -1457,7 +1467,6 @@ class ProfileBuilder : public ValueObject {
       }
 
       // Walk the sampled PCs.
-      Code& code = Code::Handle();
       for (intptr_t frame_index = 0; frame_index < sample->length();
            frame_index++) {
         ASSERT(sample->At(frame_index) != 0);
@@ -1467,7 +1476,7 @@ class ProfileBuilder : public ValueObject {
         ProfileCode* profile_code =
             GetProfileCode(sample->At(frame_index), sample->timestamp());
         ASSERT(profile_code->code_table_index() == index);
-        code ^= profile_code->code();
+        const AbstractCode code = profile_code->code();
         current = current->GetChild(index);
         if (ShouldTickNode(sample, frame_index)) {
           current->Tick(sample, (frame_index == 0));
@@ -1580,7 +1589,12 @@ class ProfileBuilder : public ValueObject {
     ASSERT(function != NULL);
     const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != NULL);
-    const Code& code = Code::ZoneHandle(profile_code->code());
+    Code& code = Code::ZoneHandle();
+    if (profile_code->code().IsCode()) {
+      code ^= profile_code->code().raw();
+    } else {
+      // No inlining in bytecode.
+    }
     GrowableArray<const Function*>* inlined_functions = NULL;
     GrowableArray<TokenPosition>* inlined_token_positions = NULL;
     TokenPosition token_position = TokenPosition::kNoSource;
@@ -1834,7 +1848,7 @@ class ProfileBuilder : public ValueObject {
     return current;
   }
 
-  ProfileCodeTrieNode* AppendKind(const Code& code,
+  ProfileCodeTrieNode* AppendKind(const AbstractCode code,
                                   ProfileCodeTrieNode* current,
                                   ProcessedSample* sample) {
     if (code.IsNull()) {
@@ -1908,36 +1922,26 @@ class ProfileBuilder : public ValueObject {
                                   uword user_tag,
                                   ProfileCodeTrieNode* current,
                                   ProcessedSample* sample) {
-    if (FLAG_profile_vm) {
-      // None.
-      if (tag_order() == Profile::kNoTags) {
-        return current;
-      }
-      // User first.
-      if ((tag_order() == Profile::kUserVM) ||
-          (tag_order() == Profile::kUser)) {
-        current = AppendUserTag(user_tag, current, sample);
-        // Only user.
-        if (tag_order() == Profile::kUser) {
-          return current;
-        }
-        return AppendVMTags(vm_tag, current, sample);
-      }
-      // VM first.
-      ASSERT((tag_order() == Profile::kVMUser) ||
-             (tag_order() == Profile::kVM));
-      current = AppendVMTags(vm_tag, current, sample);
-      // Only VM.
-      if (tag_order() == Profile::kVM) {
-        return current;
-      }
-      return AppendUserTag(user_tag, current, sample);
-    }
-
+    // None.
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
-
+    // User first.
+    if ((tag_order() == Profile::kUserVM) || (tag_order() == Profile::kUser)) {
+      current = AppendUserTag(user_tag, current, sample);
+      // Only user.
+      if (tag_order() == Profile::kUser) {
+        return current;
+      }
+      return AppendVMTags(vm_tag, current, sample);
+    }
+    // VM first.
+    ASSERT((tag_order() == Profile::kVMUser) || (tag_order() == Profile::kVM));
+    current = AppendVMTags(vm_tag, current, sample);
+    // Only VM.
+    if (tag_order() == Profile::kVM) {
+      return current;
+    }
     return AppendUserTag(user_tag, current, sample);
   }
 
@@ -2067,36 +2071,26 @@ class ProfileBuilder : public ValueObject {
                                       uword user_tag,
                                       ProfileFunctionTrieNode* current,
                                       ProcessedSample* sample) {
-    if (FLAG_profile_vm) {
-      // None.
-      if (tag_order() == Profile::kNoTags) {
-        return current;
-      }
-      // User first.
-      if ((tag_order() == Profile::kUserVM) ||
-          (tag_order() == Profile::kUser)) {
-        current = AppendUserTag(user_tag, current, sample);
-        // Only user.
-        if (tag_order() == Profile::kUser) {
-          return current;
-        }
-        return AppendVMTags(vm_tag, current, sample);
-      }
-      // VM first.
-      ASSERT((tag_order() == Profile::kVMUser) ||
-             (tag_order() == Profile::kVM));
-      current = AppendVMTags(vm_tag, current, sample);
-      // Only VM.
-      if (tag_order() == Profile::kVM) {
-        return current;
-      }
-      return AppendUserTag(user_tag, current, sample);
-    }
-
+    // None.
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
-
+    // User first.
+    if ((tag_order() == Profile::kUserVM) || (tag_order() == Profile::kUser)) {
+      current = AppendUserTag(user_tag, current, sample);
+      // Only user.
+      if (tag_order() == Profile::kUser) {
+        return current;
+      }
+      return AppendVMTags(vm_tag, current, sample);
+    }
+    // VM first.
+    ASSERT((tag_order() == Profile::kVMUser) || (tag_order() == Profile::kVM));
+    current = AppendVMTags(vm_tag, current, sample);
+    // Only VM.
+    if (tag_order() == Profile::kVM) {
+      return current;
+    }
     return AppendUserTag(user_tag, current, sample);
   }
 
@@ -2188,7 +2182,6 @@ class ProfileBuilder : public ValueObject {
     }
 
     // We haven't seen this pc yet.
-    Code& code = Code::Handle(thread_->zone());
 
     // Check NativeSymbolResolver for pc.
     uintptr_t native_start = 0;
@@ -2225,7 +2218,7 @@ class ProfileBuilder : public ValueObject {
 
     ASSERT(pc >= native_start);
     profile_code = new ProfileCode(ProfileCode::kNativeCode, native_start,
-                                   pc + 1, 0, code);
+                                   pc + 1, 0, null_code_);
     if (native_name != NULL) {
       profile_code->SetName(native_name);
       NativeSymbolResolver::FreeSymbolName(native_name);
@@ -2289,7 +2282,7 @@ class ProfileBuilder : public ValueObject {
   intptr_t extra_tags_;
   Profile* profile_;
   DeoptimizedCodeSet* deoptimized_code_;
-  const Code& null_code_;
+  const AbstractCode null_code_;
   const Function& null_function_;
   bool tick_functions_;
   bool inclusive_tree_;
@@ -2529,6 +2522,14 @@ void Profile::PrintProfileJSON(JSONStream* stream) {
     ASSERT(root != NULL);
     root->PrintToJSONArray(&function_trie);
   }
+  {
+    ProfilerCounters counters = Profiler::counters();
+    JSONObject js_counters(&obj, "counters");
+#define ADD_PROFILER_COUNTER(name)                                             \
+    js_counters.AddProperty64("" #name, counters.name);
+PROFILER_COUNTERS(ADD_PROFILER_COUNTER)
+#undef ADD_PROFILER_COUNTER
+  }
 }
 
 void ProfileTrieWalker::Reset(Profile::TrieKind trie_kind) {
@@ -2643,14 +2644,7 @@ const char* ProfileTrieWalker::CurrentToken() {
     script.GetTokenLocation(token_pos, &line, &column, &token_len);
     str = script.GetSnippet(line, column, line, column + token_len);
   } else {
-    const TokenStream& token_stream =
-        TokenStream::Handle(zone, script.tokens());
-    if (token_stream.IsNull()) {
-      // No token position.
-      return NULL;
-    }
-    TokenStream::Iterator iterator(zone, token_stream, token_pos);
-    str = iterator.CurrentLiteral();
+    UNREACHABLE();
   }
   return str.IsNull() ? NULL : str.ToCString();
 }

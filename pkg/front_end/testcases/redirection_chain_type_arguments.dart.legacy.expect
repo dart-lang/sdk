@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class A<T extends core::Object = dynamic> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::•];
+  constructor empty() → self::A<self::A::T>
+    : super core::Object::•()
+    ;
+  static factory •<T extends core::Object = dynamic>() → self::A<self::A::•::T>
+    let dynamic #redirecting_factory = self::B::• in let self::A::•::T #typeArg0 = null in let core::num #typeArg1 = null in invalid-expression;
+}
+class B<U extends core::Object = dynamic, W extends core::Object = dynamic> extends self::A<self::B::U> {
+  static field dynamic _redirecting# = <dynamic>[self::B::•];
+  constructor empty() → self::B<self::B::U, self::B::W>
+    : super self::A::empty()
+    ;
+  static factory •<U extends core::Object = dynamic, W extends core::Object = dynamic>() → self::B<self::B::•::U, self::B::•::W>
+    let dynamic #redirecting_factory = self::C::• in let self::B::•::U #typeArg0 = null in let self::B::•::W #typeArg1 = null in let core::String #typeArg2 = null in invalid-expression;
+}
+class C<V extends core::Object = dynamic, S extends core::Object = dynamic, R extends core::Object = dynamic> extends self::B<self::C::V, self::C::S> {
+  constructor •() → self::C<self::C::V, self::C::S, self::C::R>
+    : super self::B::empty()
+    ;
+  method toString() → dynamic
+    return "${self::C::V},${self::C::S},${self::C::R}";
+}
+static method main() → dynamic {
+  exp::Expect::equals("${new self::C::•<core::int, core::num, core::String>()}", "int,num,String");
+}

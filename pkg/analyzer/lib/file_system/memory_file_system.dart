@@ -1,13 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.file_system.memory_file_system;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -92,14 +89,14 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   @override
-  File getFile(String path) => new _MemoryFile(this, path);
+  File getFile(String path) {
+    _ensureAbsoluteAndNormalized(path);
+    return new _MemoryFile(this, path);
+  }
 
   @override
   Folder getFolder(String path) {
-    path = pathContext.normalize(path);
-    if (!pathContext.isAbsolute(path)) {
-      throw new ArgumentError("Path must be absolute : $path");
-    }
+    _ensureAbsoluteAndNormalized(path);
     return new _MemoryFolder(this, path);
   }
 
@@ -115,7 +112,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Resource getResource(String path) {
-    path = pathContext.normalize(path);
+    _ensureAbsoluteAndNormalized(path);
     Resource resource = _pathToResource[path];
     if (resource == null) {
       resource = new _MemoryFile(this, path);
@@ -125,7 +122,8 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Folder getStateLocation(String pluginId) {
-    return newFolder('/user/home/$pluginId');
+    var path = convertPath('/user/home/$pluginId');
+    return newFolder(path);
   }
 
   void modifyFile(String path, String content) {
@@ -140,7 +138,7 @@ class MemoryResourceProvider implements ResourceProvider {
    * appears in its parent directory, but whose `exists` property is false)
    */
   File newDummyLink(String path) {
-    path = pathContext.normalize(path);
+    _ensureAbsoluteAndNormalized(path);
     newFolder(pathContext.dirname(path));
     _MemoryDummyLink link = new _MemoryDummyLink(this, path);
     _pathToResource[path] = link;
@@ -150,7 +148,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   File newFile(String path, String content, [int stamp]) {
-    path = pathContext.normalize(path);
+    _ensureAbsoluteAndNormalized(path);
     _MemoryFile file = _newFile(path);
     _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
@@ -159,7 +157,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   File newFileWithBytes(String path, List<int> bytes, [int stamp]) {
-    path = pathContext.normalize(path);
+    _ensureAbsoluteAndNormalized(path);
     _MemoryFile file = _newFile(path);
     _pathToBytes[path] = bytes;
     _pathToTimestamp[path] = stamp ?? nextStamp++;
@@ -168,7 +166,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   Folder newFolder(String path) {
-    path = pathContext.normalize(path);
+    _ensureAbsoluteAndNormalized(path);
     if (!pathContext.isAbsolute(path)) {
       throw new ArgumentError("Path must be absolute : $path");
     }
@@ -194,7 +192,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   File updateFile(String path, String content, [int stamp]) {
-    path = pathContext.normalize(path);
+    _ensureAbsoluteAndNormalized(path);
     newFolder(pathContext.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
@@ -214,6 +212,8 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _checkFileAtPath(String path) {
+    // TODO(brianwilkerson) Consider throwing a FileSystemException rather than
+    // an ArgumentError.
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFile) {
       if (resource == null) {
@@ -225,10 +225,25 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _checkFolderAtPath(String path) {
+    // TODO(brianwilkerson) Consider throwing a FileSystemException rather than
+    // an ArgumentError.
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFolder) {
       throw new ArgumentError(
           'Folder expected at "$path" but ${resource.runtimeType} found');
+    }
+  }
+
+  /**
+   * The file system abstraction supports only absolute and normalized paths.
+   * This method is used to validate any input paths to prevent errors later.
+   */
+  void _ensureAbsoluteAndNormalized(String path) {
+    if (!pathContext.isAbsolute(path)) {
+      throw new ArgumentError("Path must be absolute : $path");
+    }
+    if (pathContext.normalize(path) != path) {
+      throw new ArgumentError("Path must be normalized : $path");
     }
   }
 

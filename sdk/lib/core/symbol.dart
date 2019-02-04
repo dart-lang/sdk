@@ -70,6 +70,8 @@ abstract class Symbol {
    * const Symbol("_foo") // Invalid
    * ``
    *
+   * The created instance overrides [Object.==].
+   *
    * The following text is non-normative:
    *
    * Creating non-const Symbol instances may result in larger output.  If

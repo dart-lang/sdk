@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 abstract class A extends core::Object {
   field core::int foo;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
 }
 abstract class B extends core::Object implements self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   get foo() → core::int
     ;
@@ -16,13 +16,13 @@ abstract class B extends core::Object implements self::A {
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   no-such-method-forwarder set foo(core::int value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 abstract class D extends core::Object implements self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     ;
   set foo(core::int value) → void
     ;
@@ -30,10 +30,10 @@ abstract class D extends core::Object implements self::A {
     ;
 }
 class E extends self::D {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E
     ;
   no-such-method-forwarder get foo() → core::int
-    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withoutType("get:foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} core::int;
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} core::int;
 }
 static method expectTypeError(() → dynamic callback) → void
   ;

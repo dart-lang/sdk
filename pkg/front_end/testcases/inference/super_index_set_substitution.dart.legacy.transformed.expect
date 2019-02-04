@@ -1,0 +1,25 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class B<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T>
+    : super core::Object::•()
+    ;
+  operator []=(core::Map<core::int, self::B::T> x, core::List<self::B::T> y) → void {}
+}
+class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U>> {
+  synthetic constructor •() → self::C<self::C::U>
+    : super self::B::•()
+    ;
+  operator []=(core::Object x, core::Object y) → void {}
+  method h() → void {
+    super.{self::B::[]=}(self::f<dynamic>(), self::f<dynamic>());
+  }
+}
+static method f<T extends core::Object = dynamic>() → self::f::T
+  return null;
+static method main() → dynamic {}

@@ -170,10 +170,17 @@ bool isInlineJS(Member e) =>
     e.name.name == 'JS' &&
     e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
 
-// Check whether we have any covariant parameters.
-// Usually we don't, so we can use the same type.
-bool isCovariant(VariableDeclaration p) =>
-    p.isCovariant || p.isGenericCovariantImpl;
+/// Whether the parameter [p] is covariant (either explicitly `covariant` or
+/// implicitly due to generics) and needs a check for soundness.
+bool isCovariantParameter(VariableDeclaration p) {
+  return p.isCovariant || p.isGenericCovariantImpl;
+}
+
+/// Whether the field [p] is covariant (either explicitly `covariant` or
+/// implicitly due to generics) and needs a check for soundness.
+bool isCovariantField(Field f) {
+  return f.isCovariant || f.isGenericCovariantImpl;
+}
 
 /// Returns true iff this factory constructor just throws [UnsupportedError]/
 ///
@@ -230,10 +237,8 @@ Class getSuperclassAndMixins(Class c, List<Class> mixins) {
 
   var sc = c.superclass;
   for (; sc.isAnonymousMixin; sc = sc.superclass) {
-    mixins.add(sc.mixedInClass);
+    mixedInClass = sc.mixedInClass;
+    if (mixedInClass != null) mixins.add(sc.mixedInClass);
   }
   return sc;
 }
-
-// TODO(jmesserly): replace with a flag on Class once Kernel supports it.
-bool isMixinDeclaration(Class c) => false;

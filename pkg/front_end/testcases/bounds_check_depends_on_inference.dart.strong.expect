@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+  method bar<generic-covariant-impl Y extends self::A::X = self::A::X>() → dynamic
+    return null;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  static method foo<Y extends core::Object = core::Object>() → self::A<self::B::foo::Y>
+    return null;
+}
+static method baz() → dynamic {
+  self::B::foo<core::Object>().{self::A::bar}<core::String>();
+}
+static method main() → dynamic {}

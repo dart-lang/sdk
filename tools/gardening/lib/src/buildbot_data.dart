@@ -746,19 +746,19 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'pkg-mac10.11-release-be',
       ], testSteps: const <String>[
         'package unit tests',
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-linux-release-be',
       ], testSteps: const <String>[
         'package unit tests',
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-win7-release-be',
       ], testSteps: const <String>[
         'package unit tests',
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
       ]),
     ],
   ),

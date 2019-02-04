@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Warning: Can't use type arguments with type variable 'T'.
+// Try removing the type arguments.
+//   T<U> v;
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:5: Warning: 'U' isn't a type.
+//   T<U> v;
+//     ^
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Warning: Expected 0 type arguments.
+//   T<U> v;
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Typed<T extends core::Object = dynamic> extends core::Object {
+  field invalid-type v = null;
+  synthetic constructor •() → self::Typed<self::Typed::T>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

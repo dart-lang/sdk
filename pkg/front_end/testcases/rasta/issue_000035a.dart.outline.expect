@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000035a.dart:5:9: Error: The non-ASCII space character U+2028 can only be used in strings and comments.
 // class C{  C();}
@@ -7,12 +9,13 @@
 // pkg/front_end/testcases/rasta/issue_000035a.dart:5:10: Error: The non-ASCII space character U+2028 can only be used in strings and comments.
 // class C{  C();}
 //          ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → void
+  constructor •() → self::C
     ;
 }
+static method main() → dynamic
+  ;

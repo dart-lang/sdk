@@ -6,14 +6,14 @@ class C extends core::Object {
   field dynamic a;
   field dynamic b;
   field dynamic c;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
 }
 class D extends core::Object {
   field dynamic a;
   field dynamic b;
   field dynamic c;
-  constructor •() → void
+  constructor •() → self::D
     ;
 }
 static method main() → dynamic

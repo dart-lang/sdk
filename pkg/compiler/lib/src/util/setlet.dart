@@ -239,7 +239,6 @@ class Setlet<E> extends SetBase<E> {
     for (E e in other) {
       if (!this.contains(e)) return false;
     }
-    ;
     return true;
   }
 

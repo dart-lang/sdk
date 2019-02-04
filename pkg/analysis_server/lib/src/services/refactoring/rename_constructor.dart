@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,9 +14,10 @@ import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -25,10 +26,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * A [Refactoring] for renaming [ConstructorElement]s.
  */
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
+  final AnalysisSession session;
 
-  RenameConstructorRefactoringImpl(RefactoringWorkspace workspace,
-      this.astProvider, ConstructorElement element)
+  RenameConstructorRefactoringImpl(
+      RefactoringWorkspace workspace, this.session, ConstructorElement element)
       : super(workspace, element);
 
   @override
@@ -56,7 +57,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare references
@@ -117,11 +118,12 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassElement classElement = element.enclosingElement;
-    AstNode name = await astProvider.getResolvedNameForElement(classElement);
-    ClassDeclaration classNode = name.parent as ClassDeclaration;
-    CorrectionUtils utils = new CorrectionUtils(classNode.parent);
-    ClassMemberLocation location =
-        utils.prepareNewConstructorLocation(classNode);
+
+    var result = await AnalysisSessionHelper(session)
+        .getElementDeclaration(classElement);
+    ClassDeclaration classNode = result.node;
+    var utils = new CorrectionUtils(result.resolvedUnit);
+    var location = utils.prepareNewConstructorLocation(classNode);
     doSourceChange_addElementEdit(
         change,
         classElement,

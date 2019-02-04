@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/base/libraries_specification.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class UriTranslatorImplTest {
-  UriTranslatorImpl translator = new UriTranslatorImpl(
+  UriTranslator translator = new UriTranslator(
       new TargetLibrariesSpecification('vm', {
         'core': new LibraryInfo('core',
             Uri.parse('org-dartlang-test:///sdk/core/core.dart'), const []),

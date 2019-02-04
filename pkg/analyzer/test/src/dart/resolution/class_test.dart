@@ -8,12 +8,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassDriverResolutionTest);
-    defineReflectiveTests(ClassTaskResolutionTest);
   });
 }
 
@@ -21,7 +19,7 @@ main() {
 class ClassDriverResolutionTest extends DriverResolutionTest
     with ClassResolutionMixin {}
 
-abstract class ClassResolutionMixin implements ResolutionTest {
+mixin ClassResolutionMixin implements ResolutionTest {
   test_abstractSuperMemberReference_getter() async {
     addTestFile(r'''
 abstract class A {
@@ -55,28 +53,7 @@ class Baz extends Bar {
     assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(
       findNode.simple('foo; // ref'),
-      findElement.getter('foo', className: 'Foo'),
-    );
-  }
-
-  test_abstractSuperMemberReference_method_invocation() async {
-    addTestFile(r'''
-abstract class A {
-  foo();
-}
-abstract class B extends A {
-  bar() {
-    super.foo(); // ref
-  }
-
-  foo() {} // does not matter
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'A'),
+      findElement.getter('foo', of: 'Foo'),
     );
   }
 
@@ -94,58 +71,6 @@ abstract class B extends A {
     await resolveTestFile();
     assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
-  }
-
-  test_abstractSuperMemberReference_OK_mixinHasConcrete2_method() async {
-    addTestFile('''
-class A {
-}
-
-class M {
-  void foo() {}
-}
-
-class B = A with M;
-
-class C extends B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'M'),
-    );
-  }
-
-  test_abstractSuperMemberReference_OK_noSuchMethod() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-class A {
-  void foo();
-  noSuchMethod(im) {}
-}
-
-abstract class B {
-  void foo();
-  noSuchMethod(im) {}
-}
-
-class C extends A with B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'B'),
-    );
   }
 
   test_abstractSuperMemberReference_OK_superHasConcrete_mixinHasAbstract_method() async {
@@ -190,31 +115,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo; // ref'),
-      findElement.getter('foo', className: 'A'),
-    );
-  }
-
-  test_abstractSuperMemberReference_OK_superSuperHasConcrete_method() async {
-    addTestFile('''
-abstract class A {
-  void foo() {}
-}
-
-abstract class B extends A {
-  void foo();
-}
-
-class C extends B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'A'),
+      findElement.getter('foo', of: 'A'),
     );
   }
 
@@ -238,7 +139,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo = 0;'),
-      findElement.setter('foo', className: 'A'),
+      findElement.setter('foo', of: 'A'),
     );
   }
 
@@ -1291,7 +1192,172 @@ class C {
     expect(method.isStatic, isTrue);
   }
 
-  test_inconsistentMethodInheritance_parameterType() async {
+  test_error_mismatchedGetterAndSetterTypes_class() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo(String _) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_interfaces() async {
+    addTestFile(r'''
+class A {
+  int get foo {
+    return 0;
+  }
+}
+
+class B {
+  set foo(String _) {}
+}
+
+abstract class X implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_getter() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int get _foo => 0;
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+class B extends A {
+  set _foo(String _) {}
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_interfaces() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int get _foo => 0;
+}
+''');
+    newFile('/test/lib/b.dart', content: r'''
+class B {
+  set _foo(String _) {}
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+import 'b.dart';
+
+class X implements A, B {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_interfaces2() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int get _foo => 0;
+}
+
+class B {
+  set _foo(String _) {}
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+class X implements A, B {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_setter() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  set _foo(String _) {}
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+class B extends A {
+  int get _foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_0() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_2() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo(String p1, String p2) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_superGetter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  set foo(String _) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_superSetter() async {
+    addTestFile(r'''
+class A {
+  set foo(String _) {}
+}
+
+class B extends A {
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_inconsistentInheritance_parameterType() async {
     addTestFile(r'''
 abstract class A {
   x(int i);
@@ -1303,11 +1369,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_requiredParameters() async {
+  test_inconsistentInheritance_requiredParameters() async {
     addTestFile(r'''
 abstract class A {
   x();
@@ -1319,11 +1385,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_returnType() async {
+  test_inconsistentInheritance_returnType() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1335,11 +1401,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_getter_method() async {
+  test_inconsistentInheritanceGetterAndMethod_getter_method() async {
     addTestFile(r'''
 abstract class A {
   int get x;
@@ -1351,11 +1417,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_method_getter() async {
+  test_inconsistentInheritanceGetterAndMethod_method_getter() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1367,64 +1433,24 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
-  test_mixinInference_conflictingSubstitution() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<Map<int, String>> with M {}
-''');
-    await resolveTestFile();
-    assertTestErrors([
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
+  test_issue32815() async {
+    addTestFile(r'''
+class A<T> extends B<T> {}
+class B<T> extends A<T> {}
+class C<T> extends B<T> implements I<T> {}
 
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-class A extends Object with B<String>, C {}
-class B<T> {}
-class C<T> extends B<T> {}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    var mixins = result.unit.declaredElement.getType('A').mixins;
-    expect(mixins[1].toString(), 'C<String>');
-  }
+abstract class I<T> {}
 
-  test_mixinInference_impossibleSubstitution() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<List<int>> with M {}
+main() {
+  Iterable<I<int>> x = [new C()];
+}
 ''');
     await resolveTestFile();
-    assertTestErrors([
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-abstract class A<T> {}
-class B {}
-class M<T> extends A<T> {}
-class C extends Object with M implements A<B> {}
-''');
-    await resolveTestFile();
-    assertTestErrors([
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-    ]);
+    assertHasTestErrors();
   }
 
   test_recursiveInterfaceInheritance_extends() async {
@@ -1482,7 +1508,7 @@ class M {}
     await resolveTestFile();
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
     ]);
   }
 
@@ -1538,8 +1564,6 @@ class C extends C {
     await resolveTestFile();
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
-      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
     ]);
   }
 
@@ -1613,7 +1637,10 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+    assertTestErrors([
+      StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+    ]);
   }
 
   test_undefinedSuperOperator_indexGetter() async {
@@ -1650,40 +1677,5 @@ class B extends A {
 }''');
     await resolveTestFile();
     assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
-  }
-}
-
-@reflectiveTest
-class ClassTaskResolutionTest extends TaskResolutionTest
-    with ClassResolutionMixin {
-  @failingTest
-  test_conflictingGenericInterfaces_simple() {
-    return super.test_conflictingGenericInterfaces_simple();
-  }
-
-  @failingTest
-  test_conflictingGenericInterfaces_viaMixin() {
-    return super.test_conflictingGenericInterfaces_viaMixin();
-  }
-
-  @failingTest
-  test_mixinInference_conflictingSubstitution() {
-    return super.test_mixinInference_conflictingSubstitution();
-  }
-
-  @failingTest
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() {
-    return super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
-  }
-
-  @failingTest
-  test_mixinInference_impossibleSubstitution() {
-    return super.test_mixinInference_impossibleSubstitution();
-  }
-
-  @failingTest
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() {
-    return super
-        .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
   }
 }

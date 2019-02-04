@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -49,7 +50,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
     AstNode result = new NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
-      result = result.getAncestor(predicate);
+      result = result.thisOrAncestorMatching(predicate);
     }
     return result;
   }
@@ -117,6 +118,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/test.dart');
+    testFile = convertPath('/test.dart');
   }
 }

@@ -78,6 +78,12 @@ class OverlayResourceProvider implements ResourceProvider {
       new _OverlayFolder(this, baseProvider.getStateLocation(pluginId));
 
   /**
+   * Return `true` if there is an overlay associated with the file at the given
+   * [path].
+   */
+  bool hasOverlay(String path) => _overlayContent.containsKey(path);
+
+  /**
    * Remove any overlay of the file at the given [path]. The state of the file
    * in the base resource provider will not be affected.
    */
@@ -111,7 +117,7 @@ class OverlayResourceProvider implements ResourceProvider {
    * file with the [newPath].
    */
   void _copyOverlay(String oldPath, String newPath) {
-    if (_hasOverlay(oldPath)) {
+    if (hasOverlay(oldPath)) {
       _overlayContent[newPath] = _overlayContent[oldPath];
       _overlayModificationStamps[newPath] = _overlayModificationStamps[oldPath];
     }
@@ -132,12 +138,6 @@ class OverlayResourceProvider implements ResourceProvider {
   int _getOverlayModificationStamp(String path) {
     return _overlayModificationStamps[path];
   }
-
-  /**
-   * Return `true` if there is an overlay associated with the file at the given
-   * [path].
-   */
-  bool _hasOverlay(String path) => _overlayContent.containsKey(path);
 
   /**
    * Return the paths of all of the overlaid files that are immediate children
@@ -165,7 +165,7 @@ class _OverlayFile extends _OverlayResource implements File {
   Stream<WatchEvent> get changes => _file.changes;
 
   @override
-  bool get exists => _provider._hasOverlay(path) || _resource.exists;
+  bool get exists => _provider.hasOverlay(path) || _resource.exists;
 
   @override
   int get lengthSync {
@@ -241,7 +241,7 @@ class _OverlayFile extends _OverlayResource implements File {
   @override
   File renameSync(String newPath) {
     File newFile = _file.renameSync(newPath);
-    if (_provider._hasOverlay(path)) {
+    if (_provider.hasOverlay(path)) {
       _provider.setOverlay(newPath,
           content: _provider._getOverlayContent(path),
           modificationStamp: _provider._getOverlayModificationStamp(path));
@@ -257,7 +257,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   void writeAsStringSync(String content) {
-    if (_provider._hasOverlay(path)) {
+    if (_provider.hasOverlay(path)) {
       throw new FileSystemException(
           path, 'Cannot write a file with an overlay');
     }

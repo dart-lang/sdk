@@ -27,6 +27,9 @@ abstract class SourceFileProvider implements CompilerInput {
 
   Future<api.Input<List<int>>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
+    if (!resourceUri.isAbsolute) {
+      resourceUri = cwd.resolveUri(resourceUri);
+    }
     api.Input<List<int>> input;
     switch (inputKind) {
       case api.InputKind.UTF8:
@@ -320,6 +323,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   int totalCharactersWritten = 0;
   int totalCharactersWrittenPrimary = 0;
   int totalCharactersWrittenJavaScript = 0;
+  int totalDataWritten = 0;
 
   List<String> allOutputFiles = <String>[];
 
@@ -348,7 +352,8 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       case OutputType.jsPart:
         uri = out.resolve('$name.$extension');
         break;
-      case OutputType.info:
+      case OutputType.dumpInfo:
+      case OutputType.deferredMap:
         if (name == '') {
           name = out.pathSegments.last;
         }
@@ -386,7 +391,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     int charactersWritten = 0;
 
-    writeStringSync(String data) {
+    void writeStringSync(String data) {
       // Write the data in chunks of 8kb, otherwise we risk running OOM.
       int chunkSize = 8 * 1024;
 
@@ -399,7 +404,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       charactersWritten += data.length;
     }
 
-    onDone() {
+    void onDone() {
       output.closeSync();
       totalCharactersWritten += charactersWritten;
       if (isPrimaryOutput) {
@@ -412,14 +417,76 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     return new _OutputSinkWrapper(writeStringSync, onDone);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) {
+    uri = currentDirectory.resolveUri(uri);
+
+    allOutputFiles.add(relativize(currentDirectory, uri, Platform.isWindows));
+
+    if (uri.scheme != 'file') {
+      onFailure('Unhandled scheme ${uri.scheme} in $uri.');
+    }
+
+    RandomAccessFile output;
+    try {
+      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+    } on FileSystemException catch (e) {
+      onFailure('$e');
+    }
+
+    int bytesWritten = 0;
+
+    void writeBytesSync(List<int> data, [int start = 0, int end]) {
+      output.writeFromSync(data, start, end);
+      bytesWritten += (end ?? data.length) - start;
+    }
+
+    void onDone() {
+      output.closeSync();
+      totalDataWritten += bytesWritten;
+    }
+
+    return new _BinaryOutputSinkWrapper(writeBytesSync, onDone);
+  }
+}
+
+class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
+  final RandomAccessFile output;
+
+  RandomAccessBinaryOutputSink(Uri uri)
+      : output = new File.fromUri(uri).openSync(mode: FileMode.write);
+
+  @override
+  void write(List<int> buffer, [int start = 0, int end]) {
+    output.writeFromSync(buffer, start, end);
+  }
+
+  @override
+  void close() {
+    output.closeSync();
+  }
 }
 
 class _OutputSinkWrapper extends OutputSink {
-  var onAdd, onClose;
+  void Function(String) onAdd;
+  void Function() onClose;
 
   _OutputSinkWrapper(this.onAdd, this.onClose);
 
   void add(String data) => onAdd(data);
+
+  void close() => onClose();
+}
+
+class _BinaryOutputSinkWrapper extends BinaryOutputSink {
+  void Function(List<int>, [int, int]) onWrite;
+  void Function() onClose;
+
+  _BinaryOutputSinkWrapper(this.onWrite, this.onClose);
+
+  void write(List<int> data, [int start = 0, int end]) =>
+      onWrite(data, start, end);
 
   void close() => onClose();
 }

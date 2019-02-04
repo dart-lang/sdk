@@ -155,8 +155,9 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
-#ifndef PRODUCT
-  if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
+
+#if defined(SUPPORT_TIMELINE)
+  if (deopt_start_micros_ != 0) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
     if (compiler_stream->enabled()) {
@@ -184,6 +185,7 @@ DeoptContext::~DeoptContext() {
 }
 
 void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&deopt_info_));
 
@@ -406,6 +408,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);
+    ASSERT(!top_frame->is_interpreted());
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
@@ -741,8 +744,8 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     if (function.IsNull()) {
       *reinterpret_cast<RawObject**>(dest_addr) =
           deopt_context->is_lazy_deopt()
-              ? StubCode::DeoptimizeLazyFromReturn_entry()->code()
-              : StubCode::Deoptimize_entry()->code();
+              ? StubCode::DeoptimizeLazyFromReturn().raw()
+              : StubCode::Deoptimize().raw();
       return;
     }
 
@@ -752,7 +755,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // materialization to maintain the invariant that Dart frames always have
     // a pc marker.
     *reinterpret_cast<RawObject**>(dest_addr) =
-        StubCode::FrameAwaitingMaterialization_entry()->code();
+        StubCode::FrameAwaitingMaterialization().raw();
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
@@ -1054,12 +1057,12 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
       materializations_() {}
 
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
-  return assembler_->object_pool_wrapper().FindObject(obj);
+  return assembler_->object_pool_builder().FindObject(obj);
 }
 
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  intptr_t index = -compiler_frame_layout.VariableIndexForFrameSlot(
+  intptr_t index = -compiler::target::frame_layout.VariableIndexForFrameSlot(
       source_loc.stack_index());
   return index < 0 ? index + num_args_
                    : index + num_args_ + kDartFrameFixedSize;

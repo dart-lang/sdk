@@ -4,10 +4,11 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/context_builder.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:meta/meta.dart';
 
 /// An implementation of [AnalysisContextCollection].
@@ -20,7 +21,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
 
   /// Initialize a newly created analysis context manager.
   AnalysisContextCollectionImpl(
-      {@required List<String> includedPaths,
+      {bool enableIndex: false,
+      @deprecated FileContentOverlay fileContentOverlay,
+      @required List<String> includedPaths,
       ResourceProvider resourceProvider,
       String sdkPath})
       : resourceProvider =
@@ -35,11 +38,15 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     );
     var roots = contextLocator.locateRoots(includedPaths: includedPaths);
     for (var root in roots) {
-      var contextBuilder = new ContextBuilder(
+      var contextBuilder = new ContextBuilderImpl(
         resourceProvider: this.resourceProvider,
       );
-      var context =
-          contextBuilder.createContext(contextRoot: root, sdkPath: sdkPath);
+      var context = contextBuilder.createContext(
+        contextRoot: root,
+        enableIndex: enableIndex,
+        fileContentOverlay: fileContentOverlay,
+        sdkPath: sdkPath,
+      );
       contexts.add(context);
     }
   }

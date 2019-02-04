@@ -13,15 +13,24 @@ import 'util.dart' show FileProvider;
 TargetEntry findEnclosingFunction(FileProvider provider, Uri uri, int start) {
   String sources = provider.sourcesFor(uri);
   if (sources == null) return null;
-  int index = sources.lastIndexOf(': function(', start);
-  if (index < 0) index = sources.lastIndexOf(':function(', start);
-  if (index < 0) return null;
-  index += 2;
   SourceFile file = provider.fileFor(uri);
   SingleMapping mapping = provider.mappingFor(uri).sourceMap;
-  var line = file.getLine(index);
-  var lineEntry = findLine(mapping, line);
-  return findColumn(line, file.getColumn(index), lineEntry);
+  int index = start;
+  while (true) {
+    index = sources.lastIndexOf('function', index);
+    if (index < 0) return null;
+    var line = file.getLine(index);
+    var lineEntry = findLine(mapping, line);
+    var column = file.getColumn(index);
+    TargetEntry result = findColumn(line, column, lineEntry);
+    // If the name entry doesn't start exactly at the column corresponding to
+    // `index`, we must be in the middle of a string or code that uses the word
+    // "function", but that doesn't have a corresponding mapping. In those
+    // cases, we keep searching backwards until we find the actual definition of
+    // a function.
+    if (result?.column == column) return result;
+    index--;
+  }
 }
 
 /// Returns [TargetLineEntry] which includes the location in the target [line]

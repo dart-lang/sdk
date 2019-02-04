@@ -13,7 +13,7 @@ abstract class I {
   void f(covariant int /*@covariance=explicit*/ x, Object y);
 }
 
-class
+abstract class
 /*@forwardingStub=void f(covariance=(explicit) int x, covariance=() Object y)*/
     C extends B implements I {}
 

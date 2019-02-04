@@ -8,6 +8,7 @@ fail() => throw "Fail";
 
 // == Rethrow, skipping through typed handlers. ==
 
+@pragma("vm:entry-point")
 aa1() {
   try {
     bb1();
@@ -17,8 +18,10 @@ aa1() {
   }
 }
 
+@pragma("vm:entry-point")
 bb1() => cc1();
 
+@pragma("vm:entry-point")
 cc1() {
   try {
     dd1();
@@ -29,8 +32,10 @@ cc1() {
   }
 }
 
+@pragma("vm:entry-point")
 dd1() => ee1();
 
+@pragma("vm:entry-point")
 ee1() {
   try {
     ff1();
@@ -39,12 +44,15 @@ ee1() {
   }
 }
 
+@pragma("vm:entry-point")
 ff1() => gg1();
 
+@pragma("vm:entry-point")
 gg1() => throw new NotASubclassOfError();
 
 // == Rethrow, rethrow again in typed handler. ==
 
+@pragma("vm:entry-point")
 aa2() {
   try {
     bb2();
@@ -54,8 +62,10 @@ aa2() {
   }
 }
 
+@pragma("vm:entry-point")
 bb2() => cc2();
 
+@pragma("vm:entry-point")
 cc2() {
   try {
     dd2();
@@ -66,8 +76,10 @@ cc2() {
   }
 }
 
+@pragma("vm:entry-point")
 dd2() => ee2();
 
+@pragma("vm:entry-point")
 ee2() {
   try {
     ff2();
@@ -76,12 +88,15 @@ ee2() {
   }
 }
 
+@pragma("vm:entry-point")
 ff2() => gg2();
 
+@pragma("vm:entry-point")
 gg2() => throw new NotASubclassOfError();
 
 // == Rethrow, with intervening catch without a trace parameter.
 
+@pragma("vm:entry-point")
 aa3() {
   try {
     bb3();
@@ -91,8 +106,10 @@ aa3() {
   }
 }
 
+@pragma("vm:entry-point")
 bb3() => cc3();
 
+@pragma("vm:entry-point")
 cc3() {
   try {
     dd3();
@@ -101,8 +118,10 @@ cc3() {
   }
 }
 
+@pragma("vm:entry-point")
 dd3() => ee3();
 
+@pragma("vm:entry-point")
 ee3() {
   try {
     ff3();
@@ -111,8 +130,10 @@ ee3() {
   }
 }
 
+@pragma("vm:entry-point")
 ff3() => gg3();
 
+@pragma("vm:entry-point")
 gg3() => throw new NotASubclassOfError();
 
 expectTrace(functionNames, stacktrace) {

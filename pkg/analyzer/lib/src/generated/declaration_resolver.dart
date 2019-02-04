@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.declaration_resolver;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -17,39 +15,31 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/**
- * A visitor that resolves declarations in an AST structure to already built
- * elements.
- *
- * The resulting AST must have everything resolved that would have been resolved
- * by a [CompilationUnitBuilder] (that is, must be a valid [RESOLVED_UNIT1]).
- * This class must not assume that the [CompilationUnitElement] passed to it is
- * any more complete than a [COMPILATION_UNIT_ELEMENT].
- */
-class DeclarationResolver extends RecursiveAstVisitor<Object> {
-  /**
-   * The compilation unit containing the AST nodes being visited.
-   */
+/// A visitor that resolves declarations in an AST structure to already built
+/// elements.
+///
+/// The resulting AST must have everything resolved that would have been
+/// resolved by a [CompilationUnitBuilder] (that is, must be a valid
+/// [RESOLVED_UNIT1]). This class must not assume that the
+/// [CompilationUnitElement] passed to it is any more complete than a
+/// [COMPILATION_UNIT_ELEMENT].
+class DeclarationResolver extends RecursiveAstVisitor<void> {
+  /// The compilation unit containing the AST nodes being visited.
   CompilationUnitElementImpl _enclosingUnit;
 
-  /**
-   * The type provider used to access the known types.
-   */
+  /// The type provider used to access the known types.
   TypeProvider _typeProvider;
 
-  /**
-   * The [ElementWalker] we are using to keep track of progress through the
-   * element model.
-   */
+  /// The [ElementWalker] we are using to keep track of progress through the
+  /// element model.
   ElementWalker _walker;
 
   DeclarationResolver();
 
-  /**
-   * Resolve the declarations within the given compilation [unit] to the
-   * elements rooted at the given [element]. Throw an [ElementMismatchException]
-   * if the element model and compilation unit do not match each other.
-   */
+  /// Resolve the declarations within the given compilation [unit] to the
+  /// elements rooted at the given [element]. Throw an
+  /// [ElementMismatchException] if the element model and compilation unit do
+  /// not match each other.
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
     _typeProvider = _enclosingUnit.context?.typeProvider;
@@ -65,74 +55,68 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     // Annotations can only contain elements in certain erroneous situations,
     // in which case the elements are disconnected from the rest of the element
     // model, thus we can't reconnect to them.  To avoid crashes, just create
     // fresh elements.
     ElementHolder elementHolder = new ElementHolder();
     new ElementBuilder(elementHolder, _enclosingUnit).visitAnnotation(node);
-    return null;
   }
 
   @override
-  Object visitBlockFunctionBody(BlockFunctionBody node) {
+  void visitBlockFunctionBody(BlockFunctionBody node) {
     if (_isBodyToCreateElementsFor(node)) {
       _walker.consumeLocalElements();
       node.accept(_walker.elementBuilder);
-      return null;
     } else {
-      return super.visitBlockFunctionBody(node);
+      super.visitBlockFunctionBody(node);
     }
   }
 
   @override
-  Object visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     _walker.elementBuilder.buildCatchVariableElements(node);
-    return super.visitCatchClause(node);
+    super.visitCatchClause(node);
   }
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = _match(node.name, _walker.getClass());
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = _match(node.name, _walker.getClass());
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassTypeAlias(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = _match(node.name, _walker.getConstructor(),
         offset: node.name?.offset ?? node.returnType.offset);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
-      node.element = element;
+      (node as ConstructorDeclarationImpl).declaredElement = element;
       super.visitConstructorDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     // Declared identifiers can only occur inside executable elements.
     _walker.elementBuilder.visitDeclaredIdentifier(node);
-    return null;
   }
 
   @override
-  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     NormalFormalParameter normalParameter = node.parameter;
     ParameterElement element =
         _match(normalParameter.identifier, _walker.getParameter());
@@ -161,11 +145,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     });
 
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(EnumDeclaration node) {
     ClassElement element = _match(node.name, _walker.getEnum());
     node.name.staticType = _typeProvider.typeType;
     resolveMetadata(node, node.metadata, element);
@@ -179,11 +162,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       _walker.getFunction(); // toString()
       super.visitEnumDeclaration(node);
     });
-    return null;
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     super.visitExportDirective(node);
     List<ElementAnnotation> annotations =
         _enclosingUnit.getAnnotations(node.offset);
@@ -196,30 +178,27 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       annotations = _walker.element.library.exports[index].metadata;
     }
     resolveAnnotations(node, node.metadata, annotations);
-    return null;
   }
 
   @override
-  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (_isBodyToCreateElementsFor(node)) {
       _walker.consumeLocalElements();
       node.accept(_walker.elementBuilder);
-      return null;
     } else {
-      return super.visitExpressionFunctionBody(node);
+      super.visitExpressionFunctionBody(node);
     }
   }
 
   @override
-  Object visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     super.visitFieldDeclaration(node);
     FieldElement firstFieldElement = node.fields.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstFieldElement);
-    return null;
   }
 
   @override
-  Object visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
@@ -229,14 +208,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       });
       resolveMetadata(node, node.metadata, element);
       _setGenericFunctionType(node.type, element.type);
-      return null;
     } else {
-      return super.visitFieldFormalParameter(node);
+      super.visitFieldFormalParameter(node);
     }
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     SimpleIdentifier functionName = node.name;
     Token property = node.propertyKeyword;
     ExecutableElement element;
@@ -254,37 +232,35 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
-    node.functionExpression.element = element;
+    (node.functionExpression as FunctionExpressionImpl).declaredElement =
+        element;
     _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       node.accept(_walker.elementBuilder);
-      return null;
     } else {
-      return super.visitFunctionExpression(node);
+      super.visitFunctionExpression(node);
     }
   }
 
   @override
-  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElement element = _match(node.name, _walker.getTypedef());
     _walk(new ElementWalker.forTypedef(element), () {
       super.visitFunctionTypeAlias(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
@@ -292,14 +268,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         super.visitFunctionTypedFormalParameter(node);
       });
       resolveMetadata(node, node.metadata, element);
-      return null;
     } else {
-      return super.visitFunctionTypedFormalParameter(node);
+      super.visitFunctionTypedFormalParameter(node);
     }
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(GenericFunctionType node) {
     if (_walker.elementBuilder != null) {
       _walker.elementBuilder.visitGenericFunctionType(node);
     } else {
@@ -314,11 +289,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     GenericTypeAliasElementImpl element =
         _match(node.name, _walker.getTypedef());
     _setGenericFunctionType(node.functionType, element.function?.type);
@@ -326,11 +300,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       super.visitGenericTypeAlias(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     super.visitImportDirective(node);
     List<ElementAnnotation> annotations =
         _enclosingUnit.getAnnotations(node.offset);
@@ -343,19 +316,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       annotations = _walker.element.library.imports[index].metadata;
     }
     resolveAnnotations(node, node.metadata, annotations);
-    return null;
   }
 
   @override
-  Object visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(LabeledStatement node) {
     bool onSwitchStatement = node.statement is SwitchStatement;
     _walker.elementBuilder
         .buildLabelElements(node.labels, onSwitchStatement, false);
-    return super.visitLabeledStatement(node);
+    super.visitLabeledStatement(node);
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     super.visitLibraryDirective(node);
     List<ElementAnnotation> annotations =
         _enclosingUnit.getAnnotations(node.offset);
@@ -363,11 +335,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       annotations = _walker.element.library.metadata;
     }
     resolveAnnotations(node, node.metadata, annotations);
-    return null;
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     Token property = node.propertyKeyword;
     SimpleIdentifier methodName = node.name;
     String nameOfMethod = methodName.name;
@@ -394,21 +365,19 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       super.visitMethodDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     ClassElement element = _match(node.name, _walker.getMixin());
     _walk(new ElementWalker.forClass(element), () {
       super.visitMixinDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     super.visitPartDirective(node);
     List<ElementAnnotation> annotations =
         _enclosingUnit.getAnnotations(node.offset);
@@ -421,17 +390,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       annotations = _walker.element.library.parts[index].metadata;
     }
     resolveAnnotations(node, node.metadata, annotations);
-    return null;
   }
 
   @override
-  Object visitPartOfDirective(PartOfDirective node) {
+  void visitPartOfDirective(PartOfDirective node) {
     node.element = _enclosingUnit.library;
-    return super.visitPartOfDirective(node);
+    super.visitPartOfDirective(node);
   }
 
   @override
-  Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
@@ -441,52 +409,49 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         super.visitSimpleFormalParameter(node);
       });
       resolveMetadata(node, node.metadata, element);
-      return null;
     } else {
-      return super.visitSimpleFormalParameter(node);
+      super.visitSimpleFormalParameter(node);
     }
   }
 
   @override
-  Object visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(SwitchCase node) {
     _walker.elementBuilder.buildLabelElements(node.labels, false, true);
-    return super.visitSwitchCase(node);
+    super.visitSwitchCase(node);
   }
 
   @override
-  Object visitSwitchDefault(SwitchDefault node) {
+  void visitSwitchDefault(SwitchDefault node) {
     _walker.elementBuilder.buildLabelElements(node.labels, false, true);
-    return super.visitSwitchDefault(node);
+    super.visitSwitchDefault(node);
   }
 
   @override
-  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
     VariableElement firstElement = node.variables.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstElement);
-    return null;
   }
 
   @override
-  Object visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(TypeParameter node) {
     if (node.parent.parent is FunctionTypedFormalParameter) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
       element.type = new TypeParameterTypeImpl(element);
       node.name?.staticElement = element;
-      return null;
+    } else {
+      TypeParameterElement element =
+          _match(node.name, _walker.getTypeParameter());
+      _setGenericFunctionType(node.bound, element.bound);
+      super.visitTypeParameter(node);
+      resolveMetadata(node, node.metadata, element);
     }
-    TypeParameterElement element =
-        _match(node.name, _walker.getTypeParameter());
-    _setGenericFunctionType(node.bound, element.bound);
-    super.visitTypeParameter(node);
-    resolveMetadata(node, node.metadata, element);
-    return null;
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = _match(node.name, _walker.getVariable());
     Expression initializer = node.initializer;
     if (initializer != null) {
@@ -498,13 +463,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     } else {
       super.visitVariableDeclaration(node);
     }
-    return null;
   }
 
   @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     if (_walker.elementBuilder != null) {
-      return _walker.elementBuilder.visitVariableDeclarationList(node);
+      _walker.elementBuilder.visitVariableDeclarationList(node);
     } else {
       node.variables.accept(this);
       VariableElement firstVariable = node.variables[0].declaredElement;
@@ -514,20 +478,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           node.parent is! TopLevelVariableDeclaration) {
         resolveMetadata(node, node.metadata, firstVariable);
       }
-      return null;
     }
   }
 
-  /**
-   * Updates [identifier] to point to [element], after ensuring that the
-   * element has the expected name.
-   *
-   * If no [elementName] is given, it defaults to the name of the [identifier]
-   * (or the empty string if [identifier] is `null`).
-   *
-   * If [identifier] is `null`, nothing is updated, but the element name is
-   * still checked.
-   */
+  /// Updates [identifier] to point to [element], after ensuring that the
+  /// element has the expected name.
+  ///
+  /// If no [elementName] is given, it defaults to the name of the [identifier]
+  /// (or the empty string if [identifier] is `null`).
+  ///
+  /// If [identifier] is `null`, nothing is updated, but the element name is
+  /// still checked.
   E _match<E extends Element>(SimpleIdentifier identifier, E element,
       {String elementName, int offset}) {
     elementName ??= identifier?.name ?? '';
@@ -549,9 +510,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * If the given [typeNode] is a [GenericFunctionType], set its [type].
-   */
+  /// If the given [typeNode] is a [GenericFunctionType], set its [type].
   void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
     if (typeNode is GenericFunctionTypeImpl) {
       typeNode.type = type;
@@ -570,15 +529,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * Recurses through the element model and AST, verifying that all elements are
-   * matched.
-   *
-   * Executes [callback] with [_walker] pointing to the given [walker] (which
-   * should be a new instance of [ElementWalker]).  Once [callback] returns,
-   * uses [ElementWalker.validate] to verify that all expected elements have
-   * been matched.
-   */
+  /// Recurses through the element model and AST, verifying that all elements
+  /// are matched.
+  ///
+  /// Executes [callback] with [_walker] pointing to the given [walker] (which
+  /// should be a new instance of [ElementWalker]).  Once [callback] returns,
+  /// uses [ElementWalker.validate] to verify that all expected elements have
+  /// been matched.
   void _walk(ElementWalker walker, void callback()) {
     ElementWalker outerWalker = _walker;
     _walker = walker;
@@ -749,11 +706,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * Associate each of the annotation [nodes] with the corresponding
-   * [ElementAnnotation] in [annotations]. If there is a problem, report it
-   * against the given [parent] node.
-   */
+  /// Associate each of the annotation [nodes] with the corresponding
+  /// [ElementAnnotation] in [annotations]. If there is a problem, report it
+  /// against the given [parent] node.
   static void resolveAnnotations(AstNode parent, NodeList<Annotation> nodes,
       List<ElementAnnotation> annotations) {
     int nodeCount = nodes.length;
@@ -766,15 +721,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * If [element] is not `null`, associate each of the annotation [nodes] with
-   * the corresponding [ElementAnnotation] in [element.metadata]. If there is a
-   * problem, report it against the given [parent] node.
-   *
-   * If [element] is `null`, do nothing--this allows us to be robust in the
-   * case where we are operating on an element model that hasn't been fully
-   * built.
-   */
+  /// If [element] is not `null`, associate each of the annotation [nodes] with
+  /// the corresponding [ElementAnnotation] in [element.metadata]. If there is a
+  /// problem, report it against the given [parent] node.
+  ///
+  /// If [element] is `null`, do nothing--this allows us to be robust in the
+  /// case where we are operating on an element model that hasn't been fully
+  /// built.
   static void resolveMetadata(
       AstNode parent, NodeList<Annotation> nodes, Element element) {
     if (element != null) {
@@ -816,27 +769,19 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 }
 
-/**
- * Keeps track of the set of non-synthetic child elements of an element,
- * yielding them one at a time in response to "get" method calls.
- */
+/// Keeps track of the set of non-synthetic child elements of an element,
+/// yielding them one at a time in response to "get" method calls.
 class ElementWalker {
-  /**
-   * The element whose child elements are being walked.
-   */
+  /// The element whose child elements are being walked.
   final Element element;
 
-  /**
-   * If [element] is an executable element, an element builder which is
-   * accumulating the executable element's local variables and labels.
-   * Otherwise `null`.
-   */
+  /// If [element] is an executable element, an element builder which is
+  /// accumulating the executable element's local variables and labels.
+  /// Otherwise `null`.
   LocalElementBuilder elementBuilder;
 
-  /**
-   * If [element] is an executable element, the element holder associated with
-   * [elementBuilder].  Otherwise `null`.
-   */
+  /// If [element] is an executable element, the element holder associated with
+  /// [elementBuilder].  Otherwise `null`.
   ElementHolder _elementHolder;
 
   List<PropertyAccessorElement> _accessors;
@@ -860,10 +805,8 @@ class ElementWalker {
   List<VariableElement> _variables;
   int _variableIndex = 0;
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a class
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a class
+  /// element.
   ElementWalker.forClass(ClassElement element)
       : element = element,
         _accessors = element.accessors.where(_isNotSynthetic).toList(),
@@ -874,10 +817,8 @@ class ElementWalker {
         _typeParameters = element.typeParameters,
         _variables = element.fields.where(_isNotSynthetic).toList();
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a compilation
-   * unit element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a compilation
+  /// unit element.
   ElementWalker.forCompilationUnit(CompilationUnitElement compilationUnit)
       : element = compilationUnit,
         _accessors = compilationUnit.accessors.where(_isNotSynthetic).toList(),
@@ -889,35 +830,27 @@ class ElementWalker {
         _variables =
             compilationUnit.topLevelVariables.where(_isNotSynthetic).toList();
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a compilation
-   * unit element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a compilation
+  /// unit element.
   ElementWalker.forExecutable(
       ExecutableElement element, CompilationUnitElement compilationUnit)
       : this._forExecutable(element, compilationUnit, new ElementHolder());
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a typedef
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a typedef
+  /// element.
   ElementWalker.forGenericFunctionType(GenericFunctionTypeElement element)
       : element = element,
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a typedef
-   * element defined using a generic function type.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a typedef
+  /// element defined using a generic function type.
   ElementWalker.forGenericTypeAlias(FunctionTypeAliasElement element)
       : element = element,
         _typeParameters = element.typeParameters;
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a parameter
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a parameter
+  /// element.
   ElementWalker.forParameter(ParameterElement element, bool functionTyped)
       : element = element,
         _parameters = element.parameters,
@@ -931,10 +864,8 @@ class ElementWalker {
     }
   }
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a typedef
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a typedef
+  /// element.
   ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
       : element = element,
         _parameters = element.parameters,
@@ -958,73 +889,52 @@ class ElementWalker {
     _parameterIndex = _parameters.length;
   }
 
-  /**
-   * Returns the next non-synthetic child of [element] which is an accessor;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is an accessor;
+  /// throws an [IndexError] if there are no more.
   PropertyAccessorElement getAccessor() => _accessors[_accessorIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a class; throws
-   * an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a class; throws
+  /// an [IndexError] if there are no more.
   ClassElement getClass() => _classes[_classIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a constructor;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a constructor;
+  /// throws an [IndexError] if there are no more.
   ConstructorElement getConstructor() => _constructors[_constructorIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is an enum; throws
-   * an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is an enum; throws
+  /// an [IndexError] if there are no more.
   ClassElement getEnum() => _enums[_enumIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a top level
-   * function, method, or local function; throws an [IndexError] if there are no
-   * more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a top level
+  /// function, method, or local function; throws an [IndexError] if there are
+  /// no more.
   ExecutableElement getFunction() => _functions[_functionIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a mixin; throws
-   * an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a mixin; throws
+  /// an [IndexError] if there are no more.
   ClassElement getMixin() => _mixins[_mixinIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a parameter;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a parameter;
+  /// throws an [IndexError] if there are no more.
   ParameterElement getParameter() => _parameters[_parameterIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a typedef;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a typedef;
+  /// throws an [IndexError] if there are no more.
   FunctionTypeAliasElement getTypedef() => _typedefs[_typedefIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a type
-   * parameter; throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a type
+  /// parameter; throws an [IndexError] if there are no more.
   TypeParameterElement getTypeParameter() =>
       _typeParameters[_typeParameterIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a top level
-   * variable, field, or local variable; throws an [IndexError] if there are no
-   * more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a top level
+  /// variable, field, or local variable; throws an [IndexError] if there are no
+  /// more.
   VariableElement getVariable() => _variables[_variableIndex++];
 
-  /**
-   * Verifies that all non-synthetic children of [element] have been obtained
-   * from their corresponding "get" method calls; if not, throws a [StateError].
-   */
+  /// Verifies that all non-synthetic children of [element] have been obtained
+  /// from their corresponding "get" method calls; if not, throws a
+  /// [StateError].
   void validate() {
     void check(List<Element> elements, int index) {
       if (elements != null && elements.length != index) {
@@ -1054,10 +964,8 @@ class ElementWalker {
 }
 
 class _ElementMismatchException extends AnalysisException {
-  /**
-   * Creates an exception to refer to the given [compilationUnit], [element],
-   * and [cause].
-   */
+  /// Creates an exception to refer to the given [compilationUnit], [element],
+  /// and [cause].
   _ElementMismatchException(
       CompilationUnitElement compilationUnit, Element element,
       [CaughtException cause = null])

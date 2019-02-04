@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
@@ -9,13 +10,14 @@ import '../compiler/js_typerep.dart';
 
 class JSTypeRep extends SharedJSTypeRep<DartType> {
   final TypeEnvironment types;
+  final ClassHierarchy hierarchy;
   final CoreTypes coreTypes;
 
   final Class _jsBool;
   final Class _jsNumber;
   final Class _jsString;
 
-  JSTypeRep(this.types)
+  JSTypeRep(this.types, this.hierarchy)
       : coreTypes = types.coreTypes,
         _jsBool =
             types.coreTypes.index.getClass('dart:_interceptors', 'JSBool'),

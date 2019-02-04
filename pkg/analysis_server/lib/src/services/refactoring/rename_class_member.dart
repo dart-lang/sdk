@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,10 +14,11 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -25,10 +26,13 @@ import 'package:analyzer/src/generated/source.dart';
  * Checks if creating a method with the given [name] in [classElement] will
  * cause any conflicts.
  */
-Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
-    AstProvider astProvider, ClassElement classElement, String name) {
+Future<RefactoringStatus> validateCreateMethod(
+    SearchEngine searchEngine,
+    AnalysisSessionHelper sessionHelper,
+    ClassElement classElement,
+    String name) {
   return new _ClassMemberValidator.forCreate(
-          searchEngine, astProvider, classElement, name)
+          searchEngine, sessionHelper, classElement, name)
       .validate();
 }
 
@@ -36,13 +40,14 @@ Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
  * A [Refactoring] for renaming class member [Element]s.
  */
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
+  final AnalysisSessionHelper sessionHelper;
 
   _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      RefactoringWorkspace workspace, this.astProvider, Element element)
-      : super(workspace, element);
+      RefactoringWorkspace workspace, AnalysisSession session, Element element)
+      : sessionHelper = AnalysisSessionHelper(session),
+        super(workspace, element);
 
   @override
   String get refactoringName {
@@ -58,7 +63,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = new _ClassMemberValidator.forRename(
-        searchEngine, astProvider, element, newName);
+        searchEngine, sessionHelper, element, newName);
     return _validator.validate();
   }
 
@@ -86,27 +91,26 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<void> fillChange() async {
+    var processor = new RenameProcessor(workspace, change, newName);
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        addDeclarationEdit(renameElement.getter);
-        addDeclarationEdit(renameElement.setter);
+        processor.addDeclarationEdit(renameElement.getter);
+        processor.addDeclarationEdit(renameElement.setter);
       } else {
-        addDeclarationEdit(renameElement);
+        processor.addDeclarationEdit(renameElement);
       }
     }
     // update references
-    addReferenceEdits(_validator.references);
+    processor.addReferenceEdits(_validator.references);
     // potential matches
     List<SearchMatch> nameMatches =
         await searchEngine.searchMemberReferences(oldName);
     List<SourceReference> nameRefs = getSourceReferences(nameMatches);
     for (SourceReference reference in nameRefs) {
       // ignore references from SDK and pub cache
-      if (!workspace.containsFile(reference.element.source.fullName)) {
+      if (!workspace.containsElement(reference.element)) {
         continue;
       }
       // check the element being renamed is accessible
@@ -133,7 +137,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
  */
 class _ClassMemberValidator {
   final SearchEngine searchEngine;
-  final ResolvedUnitCache unitCache;
+  final AnalysisSessionHelper sessionHelper;
   final LibraryElement library;
   final Element element;
   final ClassElement elementClass;
@@ -146,17 +150,15 @@ class _ClassMemberValidator {
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
-      this.searchEngine, AstProvider astProvider, this.elementClass, this.name)
-      : unitCache = new ResolvedUnitCache(astProvider),
-        isRename = false,
+      this.searchEngine, this.sessionHelper, this.elementClass, this.name)
+      : isRename = false,
         library = null,
         element = null,
         elementKind = ElementKind.METHOD;
 
   _ClassMemberValidator.forRename(
-      this.searchEngine, AstProvider astProvider, Element element, this.name)
-      : unitCache = new ResolvedUnitCache(astProvider),
-        isRename = true,
+      this.searchEngine, this.sessionHelper, Element element, this.name)
+      : isRename = true,
         library = element.library,
         element = element,
         elementClass = element.enclosingElement,
@@ -261,12 +263,13 @@ class _ClassMemberValidator {
     Future<List<LocalElement>> getLocalElements(Element element) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
-      var unitElement = unitCache.getUnitElement(element);
+
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
+      var unitElement = resolvedUnit.unit.declaredElement;
       var localElements = localElementMap[unitElement];
       if (localElements == null) {
-        var unit = await unitCache.getUnit(unitElement);
         var collector = new _LocalElementsCollector(name);
-        unit.accept(collector);
+        resolvedUnit.unit.accept(collector);
         localElements = collector.elements;
         localElementMap[unitElement] = localElements;
       }

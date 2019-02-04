@@ -1,0 +1,76 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:7:9: Error: Duplicated definition of 'Typedef'.
+// typedef Typedef = Object Function();
+//         ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:11:16: Error: Duplicated definition of 'OldTypedef'.
+// typedef Object OldTypedef();
+//                ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:15:5: Error: Duplicated definition of 'field'.
+// var field = "2nd";
+//     ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:21:1: Error: Duplicated definition of 'main'.
+// main() {
+// ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: Duplicated definition of ''.
+//   C(a, b);
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:36:7: Error: Duplicated definition of 'field'.
+//   var field = "2nd";
+//       ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:42:3: Error: Duplicated definition of 'm'.
+//   m() {
+//   ^
+//
+// pkg/front_end/testcases/duplicated_declarations.dart:50:10: Error: Duplicated definition of 's'.
+//   static s() {
+//          ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Typedef = () → void;
+typedef OldTypedef = () → void;
+class C extends core::Object {
+  field dynamic field = null;
+  constructor •(dynamic a) → void
+    : super core::Object::•()
+    ;
+  method m() → dynamic {
+    "1st";
+  }
+  static method s() → dynamic {
+    "1st";
+  }
+  static method f() → dynamic
+    return invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:54:17: Error: 's' is already declared in this scope.
+  static f() => s;
+                ^";
+}
+class Sub extends self::C {
+  constructor •() → void
+    : super self::C::•(null)
+    ;
+  method m() → dynamic
+    return super.{self::C::m}();
+}
+static field dynamic field;
+static method main() → dynamic {
+  "1st";
+}
+static method foo() → dynamic {
+  invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:26:3: Error: 'main' is already declared in this scope.
+  main();
+  ^".call();
+  core::print(invalid-expression "pkg/front_end/testcases/duplicated_declarations.dart:27:9: Error: 'field' is already declared in this scope.
+  print(field);
+        ^");
+  self::C::s();
+}

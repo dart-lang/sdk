@@ -51,7 +51,6 @@ part 'src/models/objects/target.dart';
 part 'src/models/objects/thread.dart';
 part 'src/models/objects/timeline.dart';
 part 'src/models/objects/timeline_event.dart';
-part 'src/models/objects/token_stream.dart';
 part 'src/models/objects/type_arguments.dart';
 part 'src/models/objects/unknown.dart';
 part 'src/models/objects/unlinked_call.dart';

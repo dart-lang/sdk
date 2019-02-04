@@ -35,14 +35,9 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/compiler/dart2js'),
   new Path('tests/compiler/dart2js_extra'),
   new Path('tests/compiler/dart2js_native'),
-  new Path('tests/corelib'),
   new Path('tests/corelib_2'),
-  new Path('tests/html'),
-  new Path('tests/isolate'),
   new Path('tests/kernel'),
-  new Path('tests/language'),
   new Path('tests/language_2'),
-  new Path('tests/lib'),
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
   new Path('tests/standalone_2'),
@@ -65,25 +60,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var printTiming = firstConf.printTiming;
   var listTests = firstConf.listTests;
   var listStatusFiles = firstConf.listStatusFiles;
-
   var reportInJson = firstConf.reportInJson;
 
   Browser.resetBrowserConfiguration = firstConf.resetBrowser;
-
-  if (!firstConf.appendLogs) {
-    var files = [
-      new File(TestUtils.flakyFileName),
-      new File(TestUtils.testOutcomeFileName)
-    ];
-    for (var file in files) {
-      if (file.existsSync()) {
-        file.deleteSync();
-      }
-    }
-  }
-
-  DebugLogger.init(firstConf.writeDebugLog ? TestUtils.debugLogFilePath : null,
-      append: firstConf.appendLogs);
+  DebugLogger.init(firstConf.writeDebugLog ? TestUtils.debugLogFilePath : null);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -150,7 +130,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       }
 
       for (var key in configuration.selectors.keys) {
-        if (['co19', 'co19_2'].contains(key)) {
+        if (key == 'co19_2') {
           testSuites.add(new Co19TestSuite(configuration, key));
         } else if ((configuration.compiler == Compiler.none ||
                 configuration.compiler == Compiler.dartk ||
@@ -187,7 +167,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     DebugLogger.close();
-    TestUtils.deleteTempSnapshotDirectory(configurations[0]);
+    if (!firstConf.keepGeneratedFiles) {
+      TestUtils.deleteTempSnapshotDirectory(configurations[0]);
+    }
   }
 
   var eventListener = <EventListener>[];
@@ -206,8 +188,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       printFailures = false;
       eventListener.add(new StatusFileUpdatePrinter());
     }
+    if (firstConf.silentFailures) {
+      printFailures = false;
+    }
     eventListener.add(new SummaryPrinter());
-    eventListener.add(new FlakyLogWriter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
       // into '@@@'-annotated sections.
@@ -228,14 +212,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
-  if (firstConf.writeTestOutcomeLog) {
-    eventListener.add(new TestOutcomeLogWriter());
-  }
-
-  if (firstConf.writeResultLog) {
-    eventListener.add(new ResultLogWriter(firstConf.outputDirectory));
-  }
-
   if (firstConf.writeResults) {
     eventListener.add(new ResultWriter(firstConf, startTime, startStopwatch));
   }
@@ -249,7 +225,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   if (listTests) {
     eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
-    eventListener.add(new ExitCodeSetter());
+    if (!firstConf.cleanExit) {
+      eventListener.add(new ExitCodeSetter());
+    }
     eventListener.add(new IgnoredTestMonitor());
   }
 

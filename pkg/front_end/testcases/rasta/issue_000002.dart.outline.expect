@@ -2,9 +2,12 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "dart:typed_data";
+import "package:expect/expect.dart";
+
 class Foo extends core::Object {
   final field dynamic value;
-  constructor •(dynamic value) → void
+  constructor •(dynamic value) → self::Foo
     ;
   static factory fac(dynamic value) → self::Foo
     ;

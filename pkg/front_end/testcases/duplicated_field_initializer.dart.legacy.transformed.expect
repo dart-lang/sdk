@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/duplicated_field_initializer.dart:7:7: Error: 'a' is already declared in this scope.
+//   int a;
+//       ^
+// pkg/front_end/testcases/duplicated_field_initializer.dart:6:7: Context: Previous declaration of 'a'.
+//   int a;
+//       ^
+//
+// pkg/front_end/testcases/duplicated_field_initializer.dart:8:10: Error: Can't use 'a' because it is declared more than once.
+//   A(this.a);
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int a = null;
+  constructor •(dynamic a) → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/duplicated_field_initializer.dart:8:10: Error: Can't use 'a' because it is declared more than once.
+  A(this.a);
+         ^", super core::Object::•()
+    ;
+}
+static method main() → void {
+  new self::A::•(1);
+}

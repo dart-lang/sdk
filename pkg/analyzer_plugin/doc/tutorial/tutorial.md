@@ -43,9 +43,13 @@ How to provide the information to build outline structures.
 [Providing Folding Information][folding] -
 How to provide support for code folding.
 
+[Debugging Plugins][debugging] -
+How to debug a plugin.
+
 [assists]: assists.md
 [completion]: completion.md
 [creatingEdits]: creating_edits.md
+[debugging]: debugging.md
 [fixes]: fixes.md
 [folding]: folding.md
 [gettingStarted]: getting_started.md

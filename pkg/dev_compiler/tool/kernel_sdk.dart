@@ -13,38 +13,37 @@ import 'package:dev_compiler/src/compiler/shared_command.dart'
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show CompilerOptions, kernelForComponent;
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 
 Future main(List<String> args) async {
-  // Parse flags.
-  var parser = ArgParser();
-  var parserOptions = parser.parse(args);
-  var rest = parserOptions.rest;
-
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
-  Directory.current = ddcPath;
 
-  String outputPath;
-  if (rest.isNotEmpty) {
-    outputPath = path.absolute(rest[0]);
-  } else {
+  // Parse flags.
+  var parser = ArgParser()
+    ..addOption('output')
+    ..addOption('libraries',
+        defaultsTo: path.join(ddcPath, '../../sdk/lib/libraries.json'));
+  var parserOptions = parser.parse(args);
+
+  var outputPath = parserOptions['output'] as String;
+  if (outputPath == null) {
     var sdkRoot = path.absolute(path.dirname(path.dirname(ddcPath)));
     var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
     var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
     outputPath = path.join(genDir, 'kernel', 'ddc_sdk.dill');
   }
 
-  var inputPath = path.absolute('tool/input_sdk');
+  var librarySpecPath = parserOptions['libraries'] as String;
+
   var target = DevCompilerTarget();
   var options = CompilerOptions()
     ..compileSdk = true
-    ..packagesFileUri = path.toUri(path.absolute('../../.packages'))
-    ..sdkRoot = path.toUri(inputPath)
-    ..librariesSpecificationUri =
-        Uri.base.resolve('../../sdk/lib/libraries.json')
+    // TODO(sigmund): remove this unnecessary option when possible.
+    ..sdkRoot = Uri.base
+    ..librariesSpecificationUri = Uri.base.resolveUri(Uri.file(librarySpecPath))
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
@@ -53,9 +52,14 @@ Future main(List<String> args) async {
   var outputDir = path.dirname(outputPath);
   await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
+  File(librarySpecPath).copySync(
+      path.join(path.dirname(outputDir), path.basename(librarySpecPath)));
 
-  var jsModule = ProgramCompiler(component, SharedCompilerOptions(), {})
-      .emitModule(component, [], {});
+  var jsModule = ProgramCompiler(
+      component,
+      target.hierarchy,
+      SharedCompilerOptions(moduleName: 'dart_sdk'),
+      {}).emitModule(component, [], [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

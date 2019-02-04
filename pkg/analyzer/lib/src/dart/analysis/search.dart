@@ -1,10 +1,11 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -378,8 +379,6 @@ class Search {
    */
   Future<List<SubtypeResult>> subtypes(
       {ClassElement type, SubtypeResult subtype}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String name;
     String id;
     if (type != null) {
@@ -401,17 +400,8 @@ class Search {
       for (FileState file in files) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
         if (index != null) {
-          for (AnalysisDriverSubtype subtype in index.subtypes) {
-            if (subtype.supertypes.contains(id)) {
-              FileState library = file.library ?? file;
-              results.add(new SubtypeResult(
-                library.uriStr,
-                '${library.uriStr};${file.uriStr};${subtype.name}',
-                subtype.name,
-                subtype.members,
-              ));
-            }
-          }
+          var request = new _IndexRequest(index);
+          request.addSubtypes(id, results, file);
         }
       }
     }
@@ -489,7 +479,7 @@ class Search {
     return results;
   }
 
-  Future<Null> _addResults(
+  Future<void> _addResults(
       List<SearchResult> results,
       Element element,
       SearchedFiles searchedFiles,
@@ -533,7 +523,7 @@ class Search {
   /**
    * Add results for [element] usage in the given [file].
    */
-  Future<Null> _addResultsInFile(
+  Future<void> _addResultsInFile(
       List<SearchResult> results,
       Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
@@ -665,10 +655,10 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _ImportElementReferencesVisitor visitor =
           new _ImportElementReferencesVisitor(element, unitElement);
-      unitAnalysisResult.unit.accept(visitor);
+      unitResult.unit.accept(visitor);
       results.addAll(visitor.results);
     }
     return results;
@@ -686,8 +676,8 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
-      CompilationUnit unit = unitAnalysisResult.unit;
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
+      CompilationUnit unit = unitResult.unit;
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
           results.add(new SearchResult._(
@@ -713,8 +703,8 @@ class Search {
     }
 
     // Prepare the unit.
-    AnalysisResult analysisResult = await _driver.getResult(path);
-    CompilationUnit unit = analysisResult.unit;
+    ResolvedUnitResult unitResult = await _driver.getResult(path);
+    CompilationUnit unit = unitResult.unit;
     if (unit == null) {
       return const <SearchResult>[];
     }
@@ -726,7 +716,7 @@ class Search {
     }
 
     // Prepare the enclosing node.
-    AstNode enclosingNode = node.getAncestor(isRootNode);
+    AstNode enclosingNode = node.thisOrAncestorMatching(isRootNode);
     if (enclosingNode == null) {
       return const <SearchResult>[];
     }
@@ -770,10 +760,10 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _LocalReferencesVisitor visitor =
           new _LocalReferencesVisitor(element, unitElement);
-      unitAnalysisResult.unit.accept(visitor);
+      unitResult.unit.accept(visitor);
       results.addAll(visitor.results);
     }
     return results;
@@ -986,6 +976,32 @@ class _IndexRequest {
   final AnalysisDriverUnitIndex index;
 
   _IndexRequest(this.index);
+
+  void addSubtypes(
+      String superIdString, List<SubtypeResult> results, FileState file) {
+    var superId = getStringId(superIdString);
+    if (superId == -1) {
+      return;
+    }
+
+    var superIndex = _findFirstOccurrence(index.supertypes, superId);
+    if (superIndex == -1) {
+      return;
+    }
+
+    var library = file.library ?? file;
+    for (; index.supertypes[superIndex] == superId; superIndex++) {
+      var subtype = index.subtypes[superIndex];
+      var name = index.strings[subtype.name];
+      var subId = '${library.uriStr};${file.uriStr};$name';
+      results.add(new SubtypeResult(
+        library.uriStr,
+        subId,
+        name,
+        subtype.members.map((m) => index.strings[m]).toList(),
+      ));
+    }
+  }
 
   /**
    * Return the [element]'s identifier in the [index] or `-1` if the

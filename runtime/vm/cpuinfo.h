@@ -36,7 +36,7 @@ enum CpuInfoMethod {
 
 class CpuInfo : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void Cleanup();
 
   static const char* FieldName(CpuInfoIndices idx) {

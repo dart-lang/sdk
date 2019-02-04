@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,16 +18,16 @@ import 'package:analyzer_plugin/utilities/occurrences/occurrences.dart';
  * request based on the assumption that the driver being created is an
  * [AnalysisDriver].
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [OccurrencesMixin] as a mix-in.
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin] that also uses [OccurrencesMixin]
+ * as a mix-in.
  */
-abstract class DartOccurrencesMixin implements OccurrencesMixin {
+mixin DartOccurrencesMixin implements OccurrencesMixin {
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }
@@ -36,10 +36,10 @@ abstract class DartOccurrencesMixin implements OccurrencesMixin {
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for producing occurrences notifications.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class OccurrencesMixin implements ServerPlugin {
+mixin OccurrencesMixin implements ServerPlugin {
   /**
    * Return a list containing the occurrences contributors that should be used
    * to create occurrences information for the file with the given [path].
@@ -63,7 +63,7 @@ abstract class OccurrencesMixin implements ServerPlugin {
       OccurrencesGenerator generator =
           new OccurrencesGenerator(getOccurrencesContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateOccurrencesNotification(request);
+          generator.generateOccurrencesNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

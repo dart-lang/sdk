@@ -13,6 +13,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            force_evacuation,
+            false,
+            "Force compaction to move every movable object");
+
 static const intptr_t kBitVectorWordsPerBlock = 1;
 static const intptr_t kBlockSize =
     kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
@@ -203,6 +208,26 @@ void GCCompactor::Compact(HeapPage* pages,
     ASSERT(task_index == num_tasks);
   }
 
+  if (FLAG_force_evacuation) {
+    // Inject empty pages at the beginning of each worker's list to ensure all
+    // objects move and all pages that used to have an object are released.
+    // This can be helpful for finding untracked pointers because it prevents
+    // an untracked pointer from getting lucky with its target not moving.
+    for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
+      const intptr_t pages_per_task = num_pages / num_tasks;
+      for (intptr_t j = 0; j < pages_per_task; j++) {
+        HeapPage* page = heap_->old_space()->AllocatePage(HeapPage::kData,
+                                                          /* link */ false);
+        FreeListElement::AsElement(page->object_start(),
+                                   page->object_end() - page->object_start());
+
+        // The compactor slides down: add the empty pages to the beginning.
+        page->set_next(heads[task_index]);
+        heads[task_index] = page;
+      }
+    }
+  }
+
   {
     ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
                           heap_->barrier_done());
@@ -251,6 +276,7 @@ void GCCompactor::Compact(HeapPage* pages,
       tails[task_index]->set_next(heads[task_index + 1]);
     }
     tails[num_tasks - 1]->set_next(NULL);
+    heap_->old_space()->pages_ = pages = heads[0];
     heap_->old_space()->pages_tail_ = tails[num_tasks - 1];
 
     delete[] heads;
@@ -267,7 +293,9 @@ void CompactorTask::Run() {
   bool result =
       Thread::EnterIsolateAsHelper(isolate_, Thread::kCompactorTask, true);
   ASSERT(result);
-  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
+#ifdef SUPPORT_TIMELINE
+  Thread* thread = Thread::Current();
+#endif
   {
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "Plan");

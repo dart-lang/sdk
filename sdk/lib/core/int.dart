@@ -10,7 +10,7 @@ part of dart.core;
  * The default implementation of `int` is 64-bit two's complement integers
  * with operations that wrap to that range on overflow.
  *
- * **Note:** When compiling to JavaScript, integers are restricted to valus
+ * **Note:** When compiling to JavaScript, integers are restricted to values
  * that can be represented exactly by double-precision floating point values.
  * The available integer values include all integers between -2^53 and 2^53,
  * and some integers with larger magnitude. That includes some integers larger
@@ -346,8 +346,8 @@ abstract class int extends num {
   /**
    * Parse [source] as a, possibly signed, integer literal and return its value.
    *
-   * Like [parse] except that this function returns `null` for invalid inputs
-   * instead of throwing.
+   * Like [parse] except that this function returns `null` where a
+   * similar call to [parse] would throw a [FormatException].
    */
   external static int tryParse(String source, {int radix});
 }

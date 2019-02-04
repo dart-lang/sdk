@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--supermixin
 
 import "package:expect/expect.dart";
 
@@ -11,7 +10,7 @@ class MS<T> {
   }
 }
 
-class M<T> extends MS<List<T>> {
+mixin M<T> on MS<List<T>> {
   foo() {
     return super.foo() + "M<$T>.foo\n";
   }
@@ -23,63 +22,83 @@ class NS<T> {
   }
 }
 
-class N<T> extends NS<List<T>> {
+mixin N<T> on NS<List<T>> {
   foo() {
     return super.foo() + "N<$T>.foo\n";
   }
 }
 
-class S<T> {
+class S<T, V, W> implements MS<List<V>>, NS<List<W>> {
   foo() {
-    return "S<$T>.foo\n";
+    return "S<$T,$V,$W>.foo\n";
   }
 }
 
-class SM<U, V> = S<List<U>> with M<Map<U, V>>;
+class SM<U, V, W> = S<U, V, W> with M<V>;
 
-class MNA1<U, V, W> extends S<List<U>> with M<Map<U, V>>, N<W> {
+class MNA1<U, V, W> extends S<U, V, W> with M<V>, N<W> {
   foo() {
     return super.foo() + "MNA1<$U, $V, $W>.foo\n";
   }
 }
 
-class MNA2<U, V, W> extends SM<U, V> with N<W> {
+class MNA2<U, V, W> extends SM<U, V, W> with N<W> {
   foo() {
     return super.foo() + "MNA2<$U, $V, $W>.foo\n";
   }
 }
 
-class MNA3<U, V, W> extends S<List<U>> with SM<U, V>, N<W> {
+class MNA3<U, V, W> extends S<U, V, W> with M<V>, N<W> {
   foo() {
     return super.foo() + "MNA3<$U, $V, $W>.foo\n";
   }
 }
 
+abstract class Base {
+  static String log = '';
+  Base() {
+    log += 'Base()\n';
+  }
+}
+
+mixin Foo on Base {
+  var x = Base.log += 'Foo.x\n';
+}
+
+mixin Bar on Base {
+  var y = Base.log += 'Bar.y\n';
+}
+
+class Derived extends Base with Foo, Bar {
+  String get log => Base.log;
+}
+
 main() {
   Expect.equals(
-      "MS<List<double>>.foo\n"
-      "M<double>.foo\n",
-      new M<double>().foo());
+      "S<int,String,bool>.foo\n"
+      "M<String>.foo\n",
+      SM<int, String, bool>().foo());
   Expect.equals(
-      "S<List<int>>.foo\n"
-      "M<Map<int, String>>.foo\n",
-      new SM<int, String>().foo());
-  Expect.equals(
-      "S<List<int>>.foo\n"
-      "M<Map<int, String>>.foo\n"
+      "S<int,String,bool>.foo\n"
+      "M<String>.foo\n"
       "N<bool>.foo\n"
       "MNA1<int, String, bool>.foo\n",
-      new MNA1<int, String, bool>().foo());
+      MNA1<int, String, bool>().foo());
   Expect.equals(
-      "S<List<int>>.foo\n"
-      "M<Map<int, String>>.foo\n"
+      "S<int,String,bool>.foo\n"
+      "M<String>.foo\n"
       "N<bool>.foo\n"
       "MNA2<int, String, bool>.foo\n",
-      new MNA2<int, String, bool>().foo());
+      MNA2<int, String, bool>().foo());
   Expect.equals(
-      "S<List<int>>.foo\n"
-      "M<Map<int, String>>.foo\n"
+      "S<int,String,bool>.foo\n"
+      "M<String>.foo\n"
       "N<bool>.foo\n"
       "MNA3<int, String, bool>.foo\n",
-      new MNA3<int, String, bool>().foo());
+      MNA3<int, String, bool>().foo());
+  Expect.equals(
+      "Bar.y\n"
+      "Foo.x\n"
+      "Base()\n",
+      Derived().log);
 }

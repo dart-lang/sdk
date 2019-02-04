@@ -30,6 +30,6 @@ const int quot=3;
     };
     await compileUnit(sources.keys.toList(), sources,
         options: new CompilerOptions()
-          ..onError = (e) => throw "${e.severity}: ${e.message}");
+          ..onDiagnostic = (m) => throw m.plainTextFormatted.join("\n"));
   });
 }

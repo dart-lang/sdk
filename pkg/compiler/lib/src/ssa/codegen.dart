@@ -5,7 +5,7 @@
 import 'dart:math' as math;
 import 'dart:collection' show Queue;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/names.dart';
@@ -17,6 +17,7 @@ import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
@@ -27,9 +28,9 @@ import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
+import '../native/enqueue.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
@@ -133,31 +134,27 @@ class SsaCodeGeneratorTask extends CompilerTask {
 }
 
 class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
-  /**
-   * Returned by [expressionType] to tell how code can be generated for
-   * a subgraph.
-   * - [TYPE_STATEMENT] means that the graph must be generated as a statement,
-   * which is always possible.
-   * - [TYPE_EXPRESSION] means that the graph can be generated as an expression,
-   * or possibly several comma-separated expressions.
-   * - [TYPE_DECLARATION] means that the graph can be generated as an
-   * expression, and that it only generates expressions of the form
-   *   variable = expression
-   * which are also valid as parts of a "var" declaration.
-   */
+  /// Returned by [expressionType] to tell how code can be generated for
+  /// a subgraph.
+  /// - [TYPE_STATEMENT] means that the graph must be generated as a statement,
+  /// which is always possible.
+  /// - [TYPE_EXPRESSION] means that the graph can be generated as an expression,
+  /// or possibly several comma-separated expressions.
+  /// - [TYPE_DECLARATION] means that the graph can be generated as an
+  /// expression, and that it only generates expressions of the form
+  ///   variable = expression
+  /// which are also valid as parts of a "var" declaration.
   static const int TYPE_STATEMENT = 0;
   static const int TYPE_EXPRESSION = 1;
   static const int TYPE_DECLARATION = 2;
 
-  /**
-   * Whether we are currently generating expressions instead of statements.
-   * This includes declarations, which are generated as expressions.
-   */
+  /// Whether we are currently generating expressions instead of statements.
+  /// This includes declarations, which are generated as expressions.
   bool isGeneratingExpression = false;
 
   final CompilerOptions _options;
   final CodeEmitterTask _emitter;
-  final native.NativeCodegenEnqueuer _nativeEnqueuer;
+  final NativeCodegenEnqueuer _nativeEnqueuer;
   final CheckedModeHelpers _checkedModeHelpers;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
@@ -179,24 +176,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   List<js.Expression> expressionStack;
   List<js.Block> oldContainerStack;
 
-  /**
-   * Contains the names of the instructions, as well as the parallel
-   * copies to perform on block transitioning.
-   */
+  /// Contains the names of the instructions, as well as the parallel
+  /// copies to perform on block transitioning.
   VariableNames variableNames;
+
+  /// `true` when we need to generate a `var` declaration at function entry,
+  /// `false` if we can generate a `var` declaration at first assignment in the
+  /// middle of the function.
   bool shouldGroupVarDeclarations = false;
 
-  /**
-   * While generating expressions, we can't insert variable declarations.
-   * Instead we declare them at the start of the function.  When minifying
-   * we do this most of the time, because it reduces the size unless there
-   * is only one variable.
-   */
+  /// While generating expressions, we can't insert variable declarations.
+  /// Instead we declare them at the start of the function.  When minifying
+  /// we do this most of the time, because it reduces the size unless there
+  /// is only one variable.
   final Set<String> collectedVariableDeclarations;
 
-  /**
-   * Set of variables and parameters that have already been declared.
-   */
+  /// Set of variables and parameters that have already been declared.
   final Set<String> declaredLocals;
 
   HGraph currentGraph;
@@ -318,17 +313,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool requiresUintConversion(HInstruction instruction) {
-    if (instruction.isUInt31(_abstractValueDomain)) return false;
+    if (instruction.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+      return false;
+    }
     if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
 
-  /**
-   * If the [instruction] is not `null` it will be used to attach the position
-   * to the [statement].
-   */
+  /// If the [instruction] is not `null` it will be used to attach the position
+  /// to the [statement].
   void pushStatement(js.Statement statement) {
     assert(expressionStack.isEmpty);
     currentContainer.statements.add(statement);
@@ -338,20 +333,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentContainer.statements.insert(0, statement);
   }
 
-  /**
-   * If the [instruction] is not `null` it will be used to attach the position
-   * to the [expression].
-   */
+  /// If the [instruction] is not `null` it will be used to attach the position
+  /// to the [expression].
   pushExpressionAsStatement(
       js.Expression expression, SourceInformation sourceInformation) {
     pushStatement(new js.ExpressionStatement(expression)
         .withSourceInformation(sourceInformation));
   }
 
-  /**
-   * If the [instruction] is not `null` it will be used to attach the position
-   * to the [expression].
-   */
+  /// If the [instruction] is not `null` it will be used to attach the position
+  /// to the [expression].
   push(js.Expression expression) {
     expressionStack.add(expression);
   }
@@ -361,7 +352,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(_closedWorld, _interceptorData)
+    new SsaInstructionSelection(_options, _closedWorld, _interceptorData)
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(_options).visitGraph(graph);
@@ -370,6 +361,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
         .visitGraph(graph);
+    new SsaShareRegionConstants(_options).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);
     intervalBuilder.visitGraph(graph);
@@ -384,6 +376,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleDelayedVariableDeclarations(SourceInformation sourceInformation) {
+    if (_options.experimentLocalNames) {
+      handleDelayedVariableDeclarations2(sourceInformation);
+      return;
+    }
+
     // If we have only one variable declaration and the first statement is an
     // assignment to that variable then we can merge the two.  We count the
     // number of variables in the variable allocator to try to avoid this issue,
@@ -422,10 +419,60 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
       var declarationList = new js.VariableDeclarationList(declarations)
           .withSourceInformation(sourceInformation);
-      ;
       insertStatementAtStart(new js.ExpressionStatement(declarationList));
     }
   }
+
+  void handleDelayedVariableDeclarations2(SourceInformation sourceInformation) {
+    // Create 'var' list at the start of function.  Move assignment statements
+    // from the top of the body into the variable initializers.
+    if (collectedVariableDeclarations.isEmpty) return;
+
+    List<js.VariableInitialization> declarations = [];
+    List<js.Statement> statements = currentContainer.statements;
+    int nextStatement = 0;
+
+    while (nextStatement < statements.length) {
+      if (collectedVariableDeclarations.isEmpty) break;
+      js.Statement statement = statements[nextStatement];
+      if (statement is js.ExpressionStatement) {
+        js.Expression expression = statement.expression;
+        if (expression is js.Assignment && !expression.isCompound) {
+          js.Expression left = expression.leftHandSide;
+          if (left is js.VariableReference) {
+            String name = left.name;
+            js.Expression value = expression.value;
+            if (_safeInInitializer(value) &&
+                collectedVariableDeclarations.remove(name)) {
+              var initialization = new js.VariableInitialization(
+                      new js.VariableDeclaration(name), value)
+                  .withSourceInformation(expression.sourceInformation);
+              declarations.add(initialization);
+              ++nextStatement;
+              continue;
+            }
+          }
+        }
+      }
+      break;
+    }
+
+    List<js.VariableInitialization> uninitialized = [];
+    for (String name in collectedVariableDeclarations) {
+      uninitialized.add(new js.VariableInitialization(
+          new js.VariableDeclaration(name), null));
+    }
+    var declarationList =
+        new js.VariableDeclarationList(uninitialized + declarations)
+            .withSourceInformation(sourceInformation);
+    statements.replaceRange(
+        0, nextStatement, [new js.ExpressionStatement(declarationList)]);
+  }
+
+  // An expression is safe to be pulled into a 'var' initializer if it does not
+  // contain assignments to locals. We don't generate assignments to locals
+  // inside expressions.
+  bool _safeInInitializer(js.Expression node) => true;
 
   visitGraph(HGraph graph) {
     preGenerateMethod(graph);
@@ -444,15 +491,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = oldSubGraph;
   }
 
-  /**
-   * Check whether a sub-graph can be generated as an expression, or even
-   * as a declaration, or if it has to fall back to being generated as
-   * a statement.
-   * Expressions are anything that doesn't generate control flow constructs.
-   * Declarations must only generate assignments on the form "id = expression",
-   * and not, e.g., expressions where the value isn't assigned, or where it's
-   * assigned to something that's not a simple variable.
-   */
+  /// Check whether a sub-graph can be generated as an expression, or even
+  /// as a declaration, or if it has to fall back to being generated as
+  /// a statement.
+  /// Expressions are anything that doesn't generate control flow constructs.
+  /// Declarations must only generate assignments on the form "id = expression",
+  /// and not, e.g., expressions where the value isn't assigned, or where it's
+  /// assigned to something that's not a simple variable.
   int expressionType(HExpressionInformation info) {
     // The only HExpressionInformation used as part of a HBlockInformation is
     // current HSubExpressionBlockInformation, so it's the only one reaching
@@ -517,12 +562,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         (limits.end.last is HConditionalBranch);
   }
 
-  /**
-   * Generate statements from block information.
-   * If the block information contains expressions, generate only
-   * assignments, and if it ends in a conditional branch, don't generate
-   * the condition.
-   */
+  /// Generate statements from block information.
+  /// If the block information contains expressions, generate only
+  /// assignments, and if it ends in a conditional branch, don't generate
+  /// the condition.
   void generateStatements(HBlockInformation block) {
     if (block is HStatementInformation) {
       block.accept(this);
@@ -541,12 +584,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return result;
   }
 
-  /**
-   * If the [block] only contains one statement returns that statement. If the
-   * that statement itself is a block, recursively calls this method.
-   *
-   * If the block is empty, returns a new instance of [js.NOP].
-   */
+  /// If the [block] only contains one statement returns that statement. If the
+  /// that statement itself is a block, recursively calls this method.
+  ///
+  /// If the block is empty, returns a new instance of [js.NOP].
   js.Statement unwrapStatement(js.Block block) {
     int len = block.statements.length;
     if (len == 0) return new js.EmptyStatement();
@@ -558,9 +599,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return block;
   }
 
-  /**
-   * Generate expressions from block information.
-   */
+  /// Generate expressions from block information.
   js.Expression generateExpression(HExpressionInformation expression) {
     // Currently we only handle sub-expression graphs.
     assert(expression is HSubExpressionBlockInformation);
@@ -588,9 +627,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  /**
-    * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
-    */
+  /// Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
   List<js.Expression> visitArguments(List<HInstruction> inputs,
       {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
@@ -1268,10 +1305,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(destination, new js.VariableUse(source), sourceInformation);
   }
 
-  /**
-   * Sequentialize a list of conceptually parallel copies. Parallel
-   * copies may contain cycles, that this method breaks.
-   */
+  /// Sequentialize a list of conceptually parallel copies. Parallel
+  /// copies may contain cycles, that this method breaks.
   void sequentializeCopies(
       Iterable<Copy<HInstruction>> instructionCopies,
       String tempName,
@@ -1401,6 +1436,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(sourceInformation));
   }
 
+  visitLateValue(HLateValue node) {
+    use(node.target);
+  }
+
   visitInvokeBinary(HInvokeBinary node, String op) {
     handleInvokeBinary(node, op, node.sourceInformation);
   }
@@ -1481,11 +1520,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitTruncatingDivide(HTruncatingDivide node) {
-    assert(node.isUInt31(_abstractValueDomain));
+    assert(node.isUInt31(_abstractValueDomain).isDefinitelyTrue);
     // TODO(karlklose): Enable this assertion again when type propagation is
     // fixed. Issue 23555.
 //    assert(node.left.isUInt32(compiler));
-    assert(node.right.isPositiveInteger(_abstractValueDomain));
+    assert(node.right.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue);
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
@@ -1646,35 +1685,76 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateIf(HIf node, HIfBlockInformation info) {
-    use(node.inputs[0]);
-    js.Expression test = pop();
-
     HStatementInformation thenGraph = info.thenGraph;
     HStatementInformation elseGraph = info.elseGraph;
-    js.Statement thenPart =
-        unwrapStatement(generateStatementsInNewBlock(thenGraph));
-    js.Statement elsePart =
-        unwrapStatement(generateStatementsInNewBlock(elseGraph));
+    HInstruction condition = node.inputs.single;
 
-    js.Statement code;
+    js.Expression test;
+    js.Statement thenPart;
+    js.Statement elsePart;
+
+    HBasicBlock thenBlock = node.block.successors[0];
+    // If we believe we will generate S1 as empty, instead of
+    //
+    //     if (e) S1; else S2;
+    //
+    // try to generate
+    //
+    //     if (!e) S2; else S1;
+    //
+    // It is better to generate `!e` rather than try and negate it later.
+    // Recognize a single then-block with no code and no controlled phis.
+    if (isGenerateAtUseSite(condition) &&
+        thenBlock.successors.length == 1 &&
+        thenBlock.successors.single == node.joinBlock &&
+        node.joinBlock.phis.isEmpty &&
+        thenBlock.first is HGoto) {
+      generateNot(condition, condition.sourceInformation);
+      test = pop();
+      // Swap branches but visit in same order as register allocator.
+      elsePart = unwrapStatement(generateStatementsInNewBlock(thenGraph));
+      thenPart = unwrapStatement(generateStatementsInNewBlock(elseGraph));
+      assert(elsePart is js.EmptyStatement);
+    } else {
+      use(condition);
+      test = pop();
+      thenPart = unwrapStatement(generateStatementsInNewBlock(thenGraph));
+      elsePart = unwrapStatement(generateStatementsInNewBlock(elseGraph));
+    }
+
+    js.Statement code = _assembleIfThenElse(test, thenPart, elsePart);
+    pushStatement(code.withSourceInformation(node.sourceInformation));
+  }
+
+  js.Statement _assembleIfThenElse(
+      js.Expression test, js.Statement thenPart, js.Statement elsePart) {
     // Peephole rewrites:
     //
-    //     if (e); else S;   -->   if(!e) S;
+    //     if (e); else S;   -->   if (!e) S;
     //
     //     if (e);   -->   e;
     //
-    // TODO(sra): This peephole optimization would be better done as an SSA
-    // optimization.
+    // TODO(sra): We might be able to do better with reshaping the CFG.
     if (thenPart is js.EmptyStatement) {
       if (elsePart is js.EmptyStatement) {
-        code = new js.ExpressionStatement(test);
-      } else {
-        code = new js.If.noElse(new js.Prefix('!', test), elsePart);
+        return js.ExpressionStatement(test);
       }
-    } else {
-      code = new js.If(test, thenPart, elsePart);
+      test = js.Prefix('!', test);
+      var temp = thenPart;
+      thenPart = elsePart;
+      elsePart = temp;
     }
-    pushStatement(code.withSourceInformation(node.sourceInformation));
+
+    if (_options.experimentToBoolean) {
+      if (elsePart is js.EmptyStatement &&
+          thenPart is js.ExpressionStatement &&
+          thenPart.expression is js.Call) {
+        return js.ExpressionStatement(
+            js.Binary('&&', test, thenPart.expression));
+      }
+    }
+
+    return js.If(test, thenPart, elsePart);
   }
 
   visitIf(HIf node) {
@@ -1758,7 +1838,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
         // optimization.  The optimization ensures any type checks or
-        // conversions have been satisified.
+        // conversions have been satisfied.
         methodName = _nativeData.getFixedBackendName(target);
       }
     }
@@ -1890,8 +1970,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void registerSetter(HInvokeDynamic node) {
-    if (node.element != null) {
+  void registerSetter(HInvokeDynamic node, {bool needsCheck: false}) {
+    if (node.element is FieldEntity && !needsCheck) {
       // This is a dynamic update which we have found to have a single
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
@@ -1928,7 +2008,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(js
         .propertyCall(pop(), name, visitArguments(node.inputs))
         .withSourceInformation(node.sourceInformation));
-    registerSetter(node);
+    registerSetter(node, needsCheck: node.needsCheck);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -2086,7 +2166,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
-    push(new js.Assignment(new js.PropertyAccess(receiver, name), pop())
+    push(new js.Assignment(
+            new js.PropertyAccess(receiver, name)
+                .withSourceInformation(node.sourceInformation),
+            pop())
         .withSourceInformation(node.sourceInformation));
   }
 
@@ -2127,7 +2210,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerForeignTypes(HForeign node) {
-    native.NativeBehavior nativeBehavior = node.nativeBehavior;
+    NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
     _nativeEnqueuer.registerNativeBehavior(
         _registry.worldImpact, nativeBehavior, node);
@@ -2247,15 +2330,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.isStringOrNull(_abstractValueDomain) &&
-          right.isStringOrNull(_abstractValueDomain)) {
+      if (left.isStringOrNull(_abstractValueDomain).isDefinitelyTrue &&
+          right.isStringOrNull(_abstractValueDomain).isDefinitelyTrue) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.isInteger(_abstractValueDomain) &&
-          right.isInteger(_abstractValueDomain);
+      return left.isInteger(_abstractValueDomain).isDefinitelyTrue &&
+          right.isInteger(_abstractValueDomain).isDefinitelyTrue;
     }
 
     bool handledBySpecialCase = false;
@@ -2391,13 +2474,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger(_abstractValueDomain)) {
+        if (node.index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger(_abstractValueDomain)) {
+      } else if (node.index
+          .isInteger(_abstractValueDomain)
+          .isPotentiallyFalse) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2518,10 +2603,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringify(HStringify node) {
     HInstruction input = node.inputs.first;
-    if (input.isString(_abstractValueDomain)) {
+    if (input.isString(_abstractValueDomain).isDefinitelyTrue) {
       use(input);
-    } else if (input.isInteger(_abstractValueDomain) ||
-        input.isBoolean(_abstractValueDomain)) {
+    } else if (input.isInteger(_abstractValueDomain).isDefinitelyTrue ||
+        input.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -2911,9 +2996,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (type.isFunctionType) {
         checkType(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if ((input.canBePrimitive(_abstractValueDomain) &&
-              !input.canBePrimitiveArray(_abstractValueDomain)) ||
-          input.canBeNull(_abstractValueDomain)) {
+      } else if ((input.isPrimitive(_abstractValueDomain).isPotentiallyTrue &&
+              input.isPrimitiveArray(_abstractValueDomain).isDefinitelyFalse) ||
+          input.isNull(_abstractValueDomain).isPotentiallyTrue) {
         checkObject(input, relation, node.sourceInformation);
         js.Expression objectTest = pop();
         checkType(input, interceptor, type, sourceInformation,
@@ -2936,44 +3021,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
+    DartType type = node.typeExpression;
     HInstruction input = node.checkedInput;
-    AbstractValue inputType = node.inputType ?? input.instructionType;
     AbstractValue checkedType = node.checkedType;
     // This path is no longer used for indexable primitive types.
-    assert(!_abstractValueDomain.isJsIndexable(checkedType));
+    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
     // Figure out if it is beneficial to use a null check.  V8 generally prefers
     // 'typeof' checks, but for integers we cannot compile this test into a
     // single typeof check so the null check is cheaper.
-    bool isIntCheck = _abstractValueDomain.isIntegerOrNull(checkedType);
-    bool turnIntoNumCheck =
-        isIntCheck && _abstractValueDomain.isIntegerOrNull(inputType);
-    bool turnIntoNullCheck = !turnIntoNumCheck &&
-        (_abstractValueDomain.includeNull(checkedType) == inputType) &&
-        isIntCheck;
-
-    if (turnIntoNullCheck) {
-      use(input);
-      return new js.Binary("==", pop(), new js.LiteralNull())
-          .withSourceInformation(input.sourceInformation);
-    } else if (isIntCheck && !turnIntoNumCheck) {
-      // input is !int
-      checkBigInt(input, '!==', input.sourceInformation);
-      return pop();
-    } else if (turnIntoNumCheck ||
-        _abstractValueDomain.isNumberOrNull(checkedType)) {
+    if (type == _commonElements.numType) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain.isBooleanOrNull(checkedType)) {
+    } else if (type == _commonElements.boolType) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain.isStringOrNull(checkedType)) {
-      // input is !string
-      checkString(input, '!==', input.sourceInformation);
-      return pop();
     }
-    throw failedAt(input, 'Unexpected check: $checkedType.');
+    throw failedAt(input, 'Unexpected check: $type.');
   }
 
   void visitTypeConversion(HTypeConversion node) {

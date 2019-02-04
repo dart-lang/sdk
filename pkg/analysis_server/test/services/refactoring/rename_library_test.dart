@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -40,7 +40,7 @@ library my.app;
   }
 
   test_createChange() async {
-    addSource('/project/part.dart', '''
+    addSource('/home/test/lib/part.dart', '''
 part of my.app;
 ''');
     await indexTestUnit('''
@@ -57,13 +57,13 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/project/part.dart', '''
+    assertFileChangeResult('/home/test/lib/part.dart', '''
 part of the.new.name;
 ''');
   }
 
   test_createChange_hasWhitespaces() async {
-    addSource('/project/part.dart', '''
+    addSource('/home/test/lib/part.dart', '''
 part of my .  app;
 ''');
     await indexTestUnit('''
@@ -80,7 +80,7 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/project/part.dart', '''
+    assertFileChangeResult('/home/test/lib/part.dart', '''
 part of the.new.name;
 ''');
   }

@@ -54,7 +54,6 @@ _completeDeferredLoads() {
   // which have not completed, remember them for next time in
   // stillOutstandingLoadRequests.
   var stillOutstandingLoadRequests = new List<List>();
-  var completedLoadRequests = new List<List>();
 
   // Make a copy of the outstandingRequests because the call to _load below
   // may recursively trigger another call to |_completeDeferredLoads|, which

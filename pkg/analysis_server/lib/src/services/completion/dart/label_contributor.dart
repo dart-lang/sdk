@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -91,6 +91,11 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    // ignored
+  }
+
+  @override
   void declaredLabel(Label label, bool isCaseLabel) {
     if (isCaseLabel ? includeCaseLabels : includeStatementLabels) {
       CompletionSuggestion suggestion = _addSuggestion(label.label);
@@ -98,6 +103,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
         suggestion.element = createLocalElement(
             request.source, protocol.ElementKind.LABEL, label.label,
             returnType: NO_RETURN_TYPE);
+        suggestion.elementUri = request.source.toString();
       }
     }
   }

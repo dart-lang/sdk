@@ -31,7 +31,11 @@ class ThreadRegistry {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
-  void PrepareForGC();
+
+  void ReleaseStoreBuffers();
+  void AcquireMarkingStacks();
+  void ReleaseMarkingStacks();
+
   Thread* mutator_thread() const { return mutator_thread_; }
 
 #ifndef PRODUCT
@@ -79,6 +83,7 @@ class ThreadRegistry {
 
   friend class Isolate;
   friend class SafepointHandler;
+  friend class Scavenger;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);
 };
 

@@ -9,88 +9,23 @@ import '../transformations/constants.dart';
 import '../core_types.dart';
 
 class VmConstantsBackend implements ConstantsBackend {
-  final Map<String, String> defines;
-
   final Class immutableMapClass;
-  final Class internalSymbolClass;
-  final Field symbolNameField;
 
-  VmConstantsBackend._(this.defines, this.immutableMapClass,
-      this.internalSymbolClass, this.symbolNameField);
+  VmConstantsBackend._(this.immutableMapClass);
 
   /// If [defines] is not `null` it will be used for handling
   /// `const {bool,...}.fromEnvironment()` otherwise the current VM's values
   /// will be used.
-  factory VmConstantsBackend(Map<String, String> defines, CoreTypes coreTypes) {
+  factory VmConstantsBackend(CoreTypes coreTypes) {
     final Library coreLibrary = coreTypes.coreLibrary;
     final Class immutableMapClass = coreLibrary.classes
         .firstWhere((Class klass) => klass.name == '_ImmutableMap');
     assert(immutableMapClass != null);
 
-    final Class internalSymbolClass = coreTypes.internalSymbolClass;
-    assert(internalSymbolClass != null);
-
-    final Field symbolNameField =
-        internalSymbolClass.fields.where((Field field) {
-      return field.isInstanceMember && field.name.name == '_name';
-    }).single;
-
-    return new VmConstantsBackend._(
-        defines, immutableMapClass, internalSymbolClass, symbolNameField);
+    return new VmConstantsBackend._(immutableMapClass);
   }
 
-  Constant buildConstantForNative(
-      String nativeName,
-      List<DartType> typeArguments,
-      List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments) {
-    switch (nativeName) {
-      case 'Bool_fromEnvironment':
-        final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final bool defaultValue = constant is BoolConstant
-            ? constant.value
-            : (constant is NullConstant ? null : false);
-        bool value;
-        if (defines != null) {
-          value = defines[name] == 'true'
-              ? true
-              : (defines[name] == 'false' ? false : defaultValue);
-        } else {
-          value = new bool.fromEnvironment(name, defaultValue: defaultValue);
-        }
-        return value != null ? new BoolConstant(value) : new NullConstant();
-      case 'Integer_fromEnvironment':
-        final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final int defaultValue =
-            constant is IntConstant ? constant.value : null;
-        int value;
-        if (defines != null) {
-          final String defineValue = defines[name];
-          value = defineValue != null
-              ? (int.tryParse(defineValue) ?? defaultValue)
-              : defaultValue;
-        } else {
-          value = new int.fromEnvironment(name, defaultValue: defaultValue);
-        }
-        return value != null ? new IntConstant(value) : new NullConstant();
-      case 'String_fromEnvironment':
-        final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final String defaultValue =
-            constant is StringConstant ? constant.value : null;
-        String value;
-        if (defines != null) {
-          value = defines[name] ?? defaultValue;
-        } else {
-          value = new String.fromEnvironment(name, defaultValue: defaultValue);
-        }
-        return value == null ? new NullConstant() : new StringConstant(value);
-    }
-    throw 'No native effect registered for constant evaluation: $nativeName';
-  }
-
+  @override
   Constant lowerMapConstant(MapConstant constant) {
     // The _ImmutableMap class is implemented via one field pointing to a list
     // of key/value pairs -- see runtime/lib/immutable_map.dart!
@@ -101,8 +36,8 @@ class VmConstantsBackend implements ConstantsBackend {
       kvListPairs[2 * i] = entry.key;
       kvListPairs[2 * i + 1] = entry.value;
     }
-    // Strong mode is a bit fishy here, since we merge the key and the value
-    // type by putting both into the same list!
+    // This is a bit fishy, since we merge the key and the value type by
+    // putting both into the same list.
     final kvListConstant = new ListConstant(const DynamicType(), kvListPairs);
     assert(immutableMapClass.fields.length == 1);
     final Field kvPairListField = immutableMapClass.fields[0];
@@ -114,6 +49,7 @@ class VmConstantsBackend implements ConstantsBackend {
     });
   }
 
+  @override
   Constant lowerListConstant(ListConstant constant) {
     // Currently we let vipunen deal with the [ListConstant]s.
     return constant;

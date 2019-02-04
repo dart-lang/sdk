@@ -6,9 +6,14 @@
 #define RUNTIME_VM_COMPILER_COMPILER_STATE_H_
 
 #include "vm/compiler/cha.h"
+#include "vm/heap/safepoint.h"
 #include "vm/thread.h"
 
 namespace dart {
+
+class LocalScope;
+class LocalVariable;
+class SlotCache;
 
 // Deoptimization Id logic.
 //
@@ -49,9 +54,10 @@ class DeoptId : public AllStatic {
 };
 
 // Global compiler state attached to the thread.
-class CompilerState : public StackResource {
+class CompilerState : public ThreadStackResource {
  public:
-  explicit CompilerState(Thread* thread) : StackResource(thread), cha_(thread) {
+  explicit CompilerState(Thread* thread)
+      : ThreadStackResource(thread), cha_(thread) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -79,17 +85,54 @@ class CompilerState : public StackResource {
     return Thread::Current()->compiler_state();
   }
 
+  SlotCache* slot_cache() const { return slot_cache_; }
+  void set_slot_cache(SlotCache* cache) { slot_cache_ = cache; }
+
+  // Create a dummy list of local variables representing a context object
+  // with the given number of captured variables and given ID.
+  //
+  // Used during bytecode to IL translation because AllocateContext and
+  // CloneContext IL instructions need a list of local varaibles and bytecode
+  // does not record this information.
+  //
+  // TODO(vegorov): create context classes for distinct context IDs and
+  // populate them with slots without creating variables.
+  const GrowableArray<LocalVariable*>& GetDummyContextVariables(
+      intptr_t context_id,
+      intptr_t num_context_variables);
+
+  // Create a dummy LocalVariable that represents a captured local variable
+  // at the given index in the context with given ID.
+  //
+  // Used during bytecode to IL translation because StoreInstanceField and
+  // LoadField IL instructions need Slot, which can only be created from a
+  // LocalVariable.
+  //
+  // This function returns the same variable when it is called with the
+  // same index.
+  //
+  // TODO(vegorov): disambiguate slots for different context IDs.
+  LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
 
+  // Cache for Slot objects created during compilation (see slot.h).
+  SlotCache* slot_cache_ = nullptr;
+
+  // Caches for dummy LocalVariables and LocalScopes created during
+  // bytecode to IL translation.
+  ZoneGrowableArray<LocalScope*>* dummy_scopes_ = nullptr;
+  ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
+
   CompilerState* previous_;
 };
 
-class DeoptIdScope : public StackResource {
+class DeoptIdScope : public ThreadStackResource {
  public:
   DeoptIdScope(Thread* thread, intptr_t deopt_id)
-      : StackResource(thread),
+      : ThreadStackResource(thread),
         prev_deopt_id_(thread->compiler_state().deopt_id()) {
     thread->compiler_state().set_deopt_id(deopt_id);
   }
@@ -100,6 +143,24 @@ class DeoptIdScope : public StackResource {
   const intptr_t prev_deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptIdScope);
+};
+
+/// Ensures that there were no deopt id allocations during the lifetime of this
+/// object.
+class AssertNoDeoptIdsAllocatedScope : public ThreadStackResource {
+ public:
+  explicit AssertNoDeoptIdsAllocatedScope(Thread* thread)
+      : ThreadStackResource(thread),
+        prev_deopt_id_(thread->compiler_state().deopt_id()) {}
+
+  ~AssertNoDeoptIdsAllocatedScope() {
+    ASSERT(thread()->compiler_state().deopt_id() == prev_deopt_id_);
+  }
+
+ private:
+  const intptr_t prev_deopt_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(AssertNoDeoptIdsAllocatedScope);
 };
 
 }  // namespace dart

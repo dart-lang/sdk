@@ -29,6 +29,14 @@ main() {
   Expect.equals(b, b.path1[2]);
 
   Expect.equals(2, b.path2.length); // NPE.
+
+  // Regression test for dartdevc comma expressions (js_ast printer did not
+  // generate parentheses around the comma expression).
+  var expectedList = [3, 2, 1];
+  for (var actual in expectedList.toList()..sort()) {
+    Expect.equals(
+        expectedList.removeLast(), actual, "list items should be sorted");
+  }
 }
 
 class Element {

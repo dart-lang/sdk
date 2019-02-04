@@ -16,6 +16,12 @@
 
 namespace dart {
 
+static bool IsUserClass(intptr_t cid) {
+  if (cid == kContextCid) return true;
+  if (cid == kTypeArgumentsCid) return false;
+  return cid >= kInstanceCid;
+}
+
 // The state of a pre-order, depth-first traversal of an object graph.
 // When a node is visited, *all* its children are pushed to the stack at once.
 // We insert a sentinel between the node and its children on the stack, to
@@ -35,12 +41,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
       if ((*current)->IsHeapObject() && !(*current)->IsGraphMarked()) {
-        if (!include_vm_objects_) {
-          intptr_t cid = (*current)->GetClassId();
-          if (((cid < kInstanceCid) || (cid == kTypeArgumentsCid)) &&
-              (cid != kContextCid) && (cid != kFieldCid)) {
-            continue;
-          }
+        if (!include_vm_objects_ && !IsUserClass((*current)->GetClassId())) {
+          continue;
         }
         (*current)->SetGraphMarked();
         Node node;
@@ -197,7 +199,7 @@ static void IterateUserFields(ObjectPointerVisitor* visitor) {
   }
 }
 
-ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
+ObjectGraph::ObjectGraph(Thread* thread) : ThreadStackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
   ASSERT(thread->isolate() != Dart::vm_isolate());
@@ -501,6 +503,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   HeapIterationScope iteration(Thread::Current());
+  NoSafepointScope no_safepoint;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
   iteration.IterateObjects(&visitor);
   return visitor.length();
@@ -535,8 +538,7 @@ class WritePointerVisitor : public ObjectPointerVisitor {
         // we'll need to encode which fields were omitted here.
         continue;
       }
-      if (only_instances_ && ((object->GetClassId() < kInstanceCid) ||
-                              (object->GetClassId() == kTypeArgumentsCid))) {
+      if (only_instances_ && !IsUserClass(object->GetClassId())) {
         continue;
       }
       WritePtr(object, stream_);

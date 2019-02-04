@@ -1082,7 +1082,7 @@ class _BigIntImpl implements BigInt {
   /// The `multiplicandDigits` in the range `i` to `i`+`n`-1 are the
   /// multiplicand digits.
   ///
-  /// The `acculumatorDigits` in the range `j` to `j`+`n`-1 are the accumulator
+  /// The `accumulatorDigits` in the range `j` to `j`+`n`-1 are the accumulator
   /// digits.
   ///
   /// Concretely:
@@ -1132,7 +1132,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// The `xDigits` in the range `i` to `used`-1 are the multiplicand digits.
   ///
-  /// The `acculumatorDigits` in the range 2*`i` to `i`+`used`-1 are the
+  /// The `accumulatorDigits` in the range 2*`i` to `i`+`used`-1 are the
   /// accumulator digits.
   ///
   /// Concretely:
@@ -2572,9 +2572,6 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   //   args[_rhoDigit.._rhoHighDigit] =
   //     1/args[_xDigit.._xHighDigit] mod _digitBase^2.
   static void _invDigitPair(Uint32List args) {
-    var two = _BigIntImpl.two;
-    var mask32 = _BigIntImpl._oneDigitMask;
-    var mask64 = _BigIntImpl._twoDigitMask;
     var xl = args[_xDigit]; // Lower 32-bit digit of x.
     var y = xl & 3; // y == 1/x mod 2^2
     y = (y * (2 - (xl & 0xf) * y)) & 0xf; // y == 1/x mod 2^4

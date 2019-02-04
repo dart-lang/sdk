@@ -10,7 +10,7 @@ import 'dart:io' show Directory, File;
 
 import 'log.dart' show splitLines;
 
-import 'test_description.dart' show FileBasedTestDescription;
+import 'test_description.dart' show FileBasedTestDescription, TestDescription;
 
 bool isError(Set<String> expectations) {
   if (expectations.contains("compile-time error")) return true;
@@ -24,8 +24,8 @@ bool isCheckedModeError(Set<String> expectations) {
   return isError(expectations);
 }
 
-class MultitestTransformer extends StreamTransformerBase<
-    FileBasedTestDescription, FileBasedTestDescription> {
+class MultitestTransformer
+    extends StreamTransformerBase<TestDescription, TestDescription> {
   static RegExp multitestMarker = new RegExp(r"//[#/]");
   static int _multitestMarkerLength = 3;
 
@@ -42,8 +42,7 @@ class MultitestTransformer extends StreamTransformerBase<
   static final Set<String> validOutcomes =
       new Set<String>.from(validOutcomesList);
 
-  Stream<FileBasedTestDescription> bind(
-      Stream<FileBasedTestDescription> stream) async* {
+  Stream<TestDescription> bind(Stream<TestDescription> stream) async* {
     List<String> errors = <String>[];
     reportError(String error) {
       errors.add(error);
@@ -51,9 +50,17 @@ class MultitestTransformer extends StreamTransformerBase<
     }
 
     nextTest:
-    await for (FileBasedTestDescription test in stream) {
-      String contents = await test.file.readAsString();
-      if (!contents.contains(multitestMarker)) {
+    await for (TestDescription test in stream) {
+      FileBasedTestDescription multitest;
+      String contents;
+      if (test is FileBasedTestDescription) {
+        contents = await test.file.readAsString();
+        if (contents.contains(multitestMarker)) {
+          multitest = test;
+        }
+      }
+
+      if (multitest == null) {
         yield test;
         continue nextTest;
       }
@@ -82,13 +89,8 @@ class MultitestTransformer extends StreamTransformerBase<
                 .split(",")
                 .map((s) => s.trim())
                 .toList();
-            if (subtestName == "none") {
-              reportError(test.formatError(
-                  "$lineNumber: $subtestName can't be used as test name."));
-              continue nextTest;
-            }
             if (subtestOutcomesList.isEmpty) {
-              reportError(test
+              reportError(multitest
                   .formatError("$lineNumber: Expected <testname>:<outcomes>"));
               continue nextTest;
             }
@@ -106,7 +108,7 @@ class MultitestTransformer extends StreamTransformerBase<
               if (validOutcomes.contains(outcome)) {
                 subtestOutcomes.add(outcome);
               } else {
-                reportError(test.formatError(
+                reportError(multitest.formatError(
                     "$lineNumber: '$outcome' isn't a recognized outcome."));
                 continue nextTest;
               }
@@ -120,7 +122,8 @@ class MultitestTransformer extends StreamTransformerBase<
         }
       }
       Uri root = Uri.base.resolve("generated/");
-      Directory generated = new Directory.fromUri(root.resolve(test.shortName));
+      Directory generated =
+          new Directory.fromUri(root.resolve(multitest.shortName));
       generated = await generated.create(recursive: true);
       for (String name in testsAsLines.keys) {
         List<String> lines = testsAsLines[name];

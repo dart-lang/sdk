@@ -209,14 +209,17 @@ void DFE::CompileAndReadScript(const char* script_uri,
       *exit_code = 0;
       break;
     case Dart_KernelCompilationStatus_Error:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kCompilationErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Crash:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kDartFrontendErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Unknown:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kErrorExitCode;
       break;
@@ -351,14 +354,17 @@ class KernelIRNode {
 // /projects/mytest/build/bin/main.vm.dill
 // /projects/mytest/build/packages/mytest/lib.vm.dill
 // ```
-static bool TryReadKernelListBuffer(uint8_t* buffer, uint8_t** kernel_ir,
+static bool TryReadKernelListBuffer(uint8_t* buffer,
+                                    intptr_t buffer_size,
+                                    uint8_t** kernel_ir,
                                     intptr_t* kernel_ir_size) {
   KernelIRNode* kernel_ir_head = NULL;
   KernelIRNode* kernel_ir_tail = NULL;
   // Add all kernels to the linked list
   char* filename =
       reinterpret_cast<char*>(buffer + kernel_list_magic_number.length);
-  char* tail = strstr(filename, "\n");
+  intptr_t filename_size = buffer_size - kernel_list_magic_number.length;
+  char* tail = reinterpret_cast<char*>(memchr(filename, '\n', filename_size));
   while (tail != NULL) {
     *tail = '\0';
     intptr_t this_kernel_size;
@@ -378,8 +384,9 @@ static bool TryReadKernelListBuffer(uint8_t* buffer, uint8_t** kernel_ir,
     }
     KernelIRNode::Add(&kernel_ir_head, &kernel_ir_tail,
                       new KernelIRNode(this_kernel_ir, this_kernel_size));
+    filename_size -= tail + 1 - filename;
     filename = tail + 1;
-    tail = strstr(filename, "\n");
+    tail = reinterpret_cast<char*>(memchr(filename, '\n', filename_size));
   }
   free(buffer);
 
@@ -402,7 +409,8 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   DartUtils::MagicNumber magic_number =
       DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size);
   if (magic_number == DartUtils::kKernelListMagicNumber) {
-    return TryReadKernelListBuffer(buffer, kernel_ir, kernel_ir_size);
+    return TryReadKernelListBuffer(buffer, *kernel_ir_size, kernel_ir,
+                                   kernel_ir_size);
   }
   return TryReadSimpleKernelBuffer(buffer, kernel_ir, kernel_ir_size);
 }

@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class F3<T extends core::Object = dynamic> extends core::Object {
+  constructor •(core::Iterable<core::Iterable<self::F3::T>> a) → self::F3<self::F3::T>
+    : super core::Object::•() {}
+}
+class F4<T extends core::Object = dynamic> extends core::Object {
+  constructor •({core::Iterable<core::Iterable<self::F4::T>> a = null}) → self::F4<self::F4::T>
+    : super core::Object::•() {}
+}
+static method main() → void {
+  new self::F3::•<dynamic>(<dynamic>[]);
+  new self::F4::•<dynamic>(a: <dynamic>[]);
+}

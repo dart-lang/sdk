@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -86,7 +86,7 @@ main() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     newFile('/project/bin/myLib.dart',
         content:
-            'library L; part "${convertPathForImport(testFile)}"; class A {static int s2;}');
+            'library L; part "${toUriStr(testFile)}"; class A {static int s2;}');
     addTestFile('part of L; foo() {A.^}');
     await getSuggestionsWith({
       'L.A': ['s2']

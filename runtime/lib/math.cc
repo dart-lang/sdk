@@ -9,65 +9,64 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/scanner.h"
 #include "vm/symbols.h"
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Math_sqrt, 1) {
+DEFINE_NATIVE_ENTRY(Math_sqrt, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(sqrt(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_sin, 1) {
+DEFINE_NATIVE_ENTRY(Math_sin, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(sin(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_cos, 1) {
+DEFINE_NATIVE_ENTRY(Math_cos, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(cos(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_tan, 1) {
+DEFINE_NATIVE_ENTRY(Math_tan, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(tan(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_asin, 1) {
+DEFINE_NATIVE_ENTRY(Math_asin, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(asin(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_acos, 1) {
+DEFINE_NATIVE_ENTRY(Math_acos, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(acos(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_atan, 1) {
+DEFINE_NATIVE_ENTRY(Math_atan, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(atan(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_atan2, 2) {
+DEFINE_NATIVE_ENTRY(Math_atan2, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand1, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand2, arguments->NativeArgAt(1));
   return Double::New(atan2_ieee(operand1.value(), operand2.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_exp, 1) {
+DEFINE_NATIVE_ENTRY(Math_exp, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(exp(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_log, 1) {
+DEFINE_NATIVE_ENTRY(Math_log, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(log(operand.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
+DEFINE_NATIVE_ENTRY(Math_doublePow, 0, 2) {
   const double operand =
-      Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+      Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, exponent_object,
                                arguments->NativeArgAt(1));
   const double exponent = exponent_object.value();
@@ -95,7 +94,7 @@ static RawTypedData* GetRandomStateArray(const Instance& receiver) {
 //       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & (1 << 64) - 1);
 //   _state[_kSTATE_LO] = state & (1 << 32) - 1);
 //   _state[_kSTATE_HI] = state >> 32;
-DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
+DEFINE_NATIVE_ENTRY(Random_nextState, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, receiver, arguments->NativeArgAt(0));
   const TypedData& array = TypedData::Handle(GetRandomStateArray(receiver));
   const uint64_t state_lo = array.GetUint32(0);
@@ -144,7 +143,7 @@ uint64_t mix64(uint64_t n) {
 //   result[_kSTATE_LO] = seed & ((1 << 32) - 1);
 //   result[_kSTATE_HI] = seed >> 32;
 //   return result;
-DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
+DEFINE_NATIVE_ENTRY(Random_setupSeed, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, seed_int, arguments->NativeArgAt(0));
   uint64_t seed = mix64(static_cast<uint64_t>(seed_int.AsInt64Value()));
 
@@ -154,14 +153,14 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
   return CreateRandomState(zone, seed);
 }
 
-DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
+DEFINE_NATIVE_ENTRY(Random_initialSeed, 0, 0) {
   Random* rnd = isolate->random();
   uint64_t seed = rnd->NextUInt32();
   seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
   return CreateRandomState(zone, seed);
 }
 
-DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 1) {
+DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(0));
   const intptr_t n = count.Value();
   ASSERT((n > 0) && (n <= 8));

@@ -1,10 +1,33 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                     ^
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'Stream' is from 'dart:async'.
+//   await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                           ^
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                 ^
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'Stream' is from 'dart:async'.
+//   await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                       ^
+//
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
 static method test() → dynamic /* originally async */ {
-  final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic> :return_value;
   dynamic :async_stack_trace;
   dynamic :async_op_then;
@@ -20,27 +43,29 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         core::String s;
-        for (final dynamic #t1 in let<BottomType> _ = null in let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t1 in let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
   for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
-                                                    ^" in let final core::String #t3 = s in null) {
+                                                    ^" in s as{TypeError} core::Iterable<dynamic>) {
           core::int x = #t1 as{TypeError} core::int;
         }
         {
-          dynamic :stream = let<BottomType> _ = null in let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+          dynamic :stream = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
   await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
-                                                          ^" in let final core::String #t5 = s in null;
+                                                          ^" in s as{TypeError} asy::Stream<dynamic>;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L2:
             while (true) {
-              dynamic #t6 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t7 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              dynamic #t4 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t5 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
-                final dynamic #t8 = :for-iterator.{asy::_StreamIterator::current};
+                final dynamic #t6 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::int x = #t8 as{TypeError} core::int;
+                  core::int x = #t6 as{TypeError} core::int;
                 }
               }
               else
@@ -48,32 +73,34 @@ static method test() → dynamic /* originally async */ {
             }
           finally
             if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
-              [yield] let dynamic #t9 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t7 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }
         core::int y;
-        for (final dynamic #t10 in let<BottomType> _ = null in let final dynamic #t11 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t8 in let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
   for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
-                                                ^" in let final core::String #t12 = s in null) {
-          y = #t10 as{TypeError} core::int;
+                                                ^" in s as{TypeError} core::Iterable<dynamic>) {
+          y = #t8 as{TypeError} core::int;
         }
         {
-          dynamic :stream = let<BottomType> _ = null in let final dynamic #t13 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+          dynamic :stream = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
   await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
-                                                      ^" in let final core::String #t14 = s in null;
+                                                      ^" in s as{TypeError} asy::Stream<dynamic>;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L3:
             while (true) {
-              dynamic #t15 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t16 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              dynamic #t11 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t12 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
-                final dynamic #t17 = :for-iterator.{asy::_StreamIterator::current};
+                final dynamic #t13 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  y = #t17 as{TypeError} core::int;
+                  y = #t13 as{TypeError} core::int;
                 }
               }
               else
@@ -81,7 +108,7 @@ static method test() → dynamic /* originally async */ {
             }
           finally
             if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
-              [yield] let dynamic #t18 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t14 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }
@@ -95,7 +122,7 @@ static method test() → dynamic /* originally async */ {
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  asy::Future::microtask<dynamic>(:async_op);
+  :async_completer.start(:async_op);
   return :async_completer.{asy::Completer::future};
 }
 static method main() → dynamic {}

@@ -20,8 +20,7 @@ void main() {
       return elementEnvironment.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForMember =
-        compiler.backend.outputUnitData.outputUnitForMember;
+    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
 
     dynamic lib = lookupLibrary("memory:lib.dart");
     var a = elementEnvironment.lookupLibraryMember(lib, "a");

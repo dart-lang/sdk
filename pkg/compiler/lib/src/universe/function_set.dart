@@ -6,7 +6,7 @@ library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../types/abstract_value_domain.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import 'selector.dart' show Selector;
 
@@ -108,11 +108,15 @@ class SelectorMask {
 
   bool applies(MemberEntity element, AbstractValueDomain domain) {
     if (!selector.appliesUnnamed(element)) return false;
-    return domain.canHit(receiver, element, selector);
+    return domain
+        .isTargetingMember(receiver, element, selector.memberName)
+        .isPotentiallyTrue;
   }
 
   bool needsNoSuchMethodHandling(AbstractValueDomain domain) {
-    return domain.needsNoSuchMethodHandling(receiver, selector);
+    return domain
+        .needsNoSuchMethodHandling(receiver, selector)
+        .isPotentiallyTrue;
   }
 
   bool operator ==(other) {

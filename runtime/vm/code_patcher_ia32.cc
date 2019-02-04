@@ -227,10 +227,6 @@ RawCode* CodePatcher::GetNativeCallAt(uword return_address,
   return NULL;
 }
 
-intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  return InstanceCall::kPatternSize;
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

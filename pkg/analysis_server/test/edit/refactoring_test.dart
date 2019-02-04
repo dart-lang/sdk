@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -350,6 +350,32 @@ main() {
   print(res); // marker
 }
 ''');
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new EditGetRefactoringParams(
+            RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request = new EditGetRefactoringParams(
+            RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+            convertPath('/foo/../bar/test.dart'),
+            0,
+            0,
+            true)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_names() async {
@@ -899,6 +925,27 @@ class MyWidget extends StatelessWidget {
     await waitForTasksFinished();
     await getRefactoringsForString('new Text');
     expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new EditGetAvailableRefactoringsParams('test.dart', 0, 0)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request = new EditGetAvailableRefactoringsParams(
+            convertPath('/foo/../bar/test.dart'), 0, 0)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   Future test_rename_hasElement_class() {

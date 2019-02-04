@@ -1,0 +1,63 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
+// class C = Object with Missing;
+//       ^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:5:17: Error: Type 'Missing' not found.
+// class A extends Missing {}
+//                 ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:7:20: Error: Type 'Missing' not found.
+// class B implements Missing {}
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:23: Error: Type 'Missing' not found.
+// class C = Object with Missing;
+//                       ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Couldn't find constructor 'Missing'.
+//   factory D() = Missing;
+//                 ^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Error: Redirection constructor target not found: 'Missing'
+//   factory D() = Missing;
+//           ^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Error: Method not found: 'Missing'.
+//   factory D() = Missing;
+//           ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  const synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::D::•];
+  static factory •() → self::D
+    let core::String #redirecting_factory = "Missing" in invalid-expression;
+}
+static method main() → void {
+  new self::A::•();
+  new self::B::•();
+  new self::C::•();
+  invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Error: Method not found: 'Missing'.
+  factory D() = Missing;
+          ^^^^^^^";
+}

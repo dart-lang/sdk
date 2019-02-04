@@ -1,0 +1,72 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/implicit_new.dart:18:18: Warning: Method not found: 'Bar'.
+//   var y = prefix.Bar();
+//                  ^^^
+//
+// pkg/front_end/testcases/implicit_new.dart:19:10: Warning: Method not found: 'Bar'.
+//   prefix.Bar();
+//          ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///implicit_new.dart" as prefix;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+}
+class Bar extends core::Object {
+  constructor named() → self::Bar
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+}
+class IndexTester extends core::Object {
+  synthetic constructor •() → self::IndexTester
+    : super core::Object::•()
+    ;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic _a, dynamic _b) → void {}
+}
+static method testNSM() → dynamic {
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method f(dynamic x) → dynamic
+  return x;
+static method main() → dynamic {
+  dynamic x = new self::Foo::•();
+  x = new self::Foo::•();
+  dynamic z = new self::Bar::named();
+  z = new self::Bar::named();
+  self::f(new self::Foo::•());
+  self::f(new self::Foo::•());
+  self::f(new self::Bar::named());
+  self::f(new self::Bar::named());
+  dynamic l = <dynamic>[new self::Foo::•(), new self::Bar::named()];
+  l = <dynamic>[new self::Foo::•(), new self::Bar::named()];
+  dynamic m = <dynamic, dynamic>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  m = <dynamic, dynamic>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  dynamic i = new self::IndexTester::•();
+  i.[](new self::Foo::•());
+  i.[](new self::Foo::•());
+  i.[](new self::Bar::named());
+  i.[](new self::Bar::named());
+  i.[]=(new self::Foo::•(), null);
+  i.[]=(new self::Foo::•(), null);
+  i.[]=(new self::Bar::named(), null);
+  i.[]=(new self::Bar::named(), null);
+  new self::Foo::•().+(new self::Bar::named());
+  new self::Foo::•().+(new self::Bar::named());
+  new self::Bar::named().+(new self::Foo::•());
+  new self::Bar::named().+(new self::Foo::•());
+}

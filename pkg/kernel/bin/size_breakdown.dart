@@ -20,11 +20,14 @@ void usage() {
 }
 
 main(args) {
-  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
+  CommandLineHelper.requireExactlyOneArgument(args, usage,
+      requireFileExists: true);
   List<int> bytes = new File(args[0]).readAsBytesSync();
   try {
     Component p = new Component();
-    new WrappedBinaryBuilder(bytes).readComponent(p);
+    new WrappedBinaryBuilder(bytes)
+      ..readComponent(p)
+      ..report();
   } catch (e) {
     print("Argument given isn't a dill file that can be loaded.");
     usage();
@@ -33,41 +36,50 @@ main(args) {
 
 class WrappedBinaryBuilder extends BinaryBuilder {
   WrappedBinaryBuilder(var _bytes) : super(_bytes, disableLazyReading: true);
+  int offsetsSize = 0;
+  int stringTableSize = 0;
+  int linkTableSize = 0;
+  int uriToSourceSize = 0;
+  int constantTableSize = 0;
+  Map<Uri, int> librarySizes = {};
+
+  int readOffset() {
+    offsetsSize -= byteOffset;
+    int result = super.readOffset();
+    offsetsSize += byteOffset;
+    return result;
+  }
 
   void readStringTable(List<String> table) {
-    int size = -byteOffset;
+    stringTableSize -= byteOffset;
     super.readStringTable(table);
-    size += super.byteOffset;
-    print("String table: ${_bytesToReadable(size)}.");
+    stringTableSize += byteOffset;
   }
 
   void readLinkTable(CanonicalName linkRoot) {
-    int size = -byteOffset;
+    linkTableSize -= byteOffset;
     super.readLinkTable(linkRoot);
-    size += super.byteOffset;
-    print("Link table: ${_bytesToReadable(size)}.");
+    linkTableSize += byteOffset;
   }
 
   Map<Uri, Source> readUriToSource() {
-    int size = -byteOffset;
+    uriToSourceSize -= byteOffset;
     var result = super.readUriToSource();
-    size += super.byteOffset;
-    print("URI to sources map: ${_bytesToReadable(size)}.");
+    uriToSourceSize += byteOffset;
     return result;
   }
 
   void readConstantTable() {
-    int size = -byteOffset;
+    constantTableSize -= byteOffset;
     super.readConstantTable();
-    size += super.byteOffset;
-    print("Constant table: ${_bytesToReadable(size)}.");
+    constantTableSize += byteOffset;
   }
 
   Library readLibrary(Component component, int endOffset) {
     int size = -byteOffset;
     var result = super.readLibrary(component, endOffset);
-    size += super.byteOffset;
-    print("Library '${result.importUri}': ${_bytesToReadable(size)}.");
+    size += byteOffset;
+    librarySizes[result.importUri] = size;
     return result;
   }
 
@@ -80,5 +92,17 @@ class WrappedBinaryBuilder extends BinaryBuilder {
       dSize /= 1024;
     }
     return "${dSize.toStringAsFixed(1)} ${what[idx]} ($size B)";
+  }
+
+  void report() {
+    print("Offsets: ${_bytesToReadable(offsetsSize)}");
+    print("String table: ${_bytesToReadable(stringTableSize)}");
+    print("Link table: ${_bytesToReadable(linkTableSize)}");
+    print("URI to source table: ${_bytesToReadable(uriToSourceSize)}");
+    print("Constant table: ${_bytesToReadable(constantTableSize)}");
+    print("");
+    for (Uri uri in librarySizes.keys) {
+      print("Library '$uri': ${_bytesToReadable(librarySizes[uri])}.");
+    }
   }
 }

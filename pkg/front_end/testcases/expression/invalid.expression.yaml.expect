@@ -1,8 +1,13 @@
 Errors: {
-  Can't find ')' to match '('. (@4)
-  Expected an identifier, but got '*'. (@0)
-  Method not found: 'foo'. (@1)
-  Getter not found: ''. (@0)
+  org-dartlang-debug:synthetic_debug_expression:1:5: Error: Can't find ')' to match '('.
+  *foo(3,
+      ^
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Expected an identifier, but got '*'.
+  *foo(3,
+  ^
+  org-dartlang-debug:synthetic_debug_expression:1:2: Error: Method not found: 'foo'.
+  *foo(3,
+   ^^^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return (throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#, 33, const <dart.core::Type>[], const <dynamic>[], dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{})))).*(throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#foo, 32, const <dart.core::Type>[], dart.core::List::unmodifiable<dynamic>(<dynamic>[3]), dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{}))));
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: This couldn't be parsed.\n*foo(3,\n^".*(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:2: Error: Method not found: 'foo'.\n*foo(3,\n ^^^");

@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends self::B implements self::A {
+  synthetic constructor •() → self::C
+    : super self::B::•()
+    ;
+}
+static field core::List<self::A> list;
+static method g<T extends self::A = dynamic>(self::g::T t) → core::List<self::g::T> {
+  self::list = <self::g::T>[];
+  core::print(self::list.runtimeType);
+  return self::list;
+}
+static method f<S extends core::Object = dynamic>(self::f::S s) → core::List<self::f::S> {
+  if(s is self::A) {
+    dynamic list = self::g<dynamic>(s);
+    return list;
+  }
+  return null;
+}
+static method main() → dynamic {
+  self::f<self::B>(new self::C::•());
+  core::print(self::list.runtimeType);
+  core::List<self::A> aList;
+  aList = self::list;
+  core::Object o = aList;
+  aList = o;
+}

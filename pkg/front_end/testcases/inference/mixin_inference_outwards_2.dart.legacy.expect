@@ -1,0 +1,58 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'M0 with M1' can't implement both 'I<int>' and 'I<dynamic>'
+//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart'.
+// class A extends M0<int> with M1, M2 {}
+//       ^
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'M0 with M1, M2' can't implement both 'I<int>' and 'I<dynamic>'
+//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart'.
+// class A extends M0<int> with M1, M2 {}
+//       ^
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'A' can't implement both 'I<int>' and 'I<dynamic>'
+//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart'.
+// class A extends M0<int> with M1, M2 {}
+//       ^
+//
+library;
+import self as self;
+import "dart:core" as core;
+
+class I<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::X>
+    : super core::Object::•()
+    ;
+}
+class M0<T extends core::Object = dynamic> extends self::I<self::M0::T> {
+  synthetic constructor •() → self::M0<self::M0::T>
+    : super self::I::•()
+    ;
+}
+class M1<T extends core::Object = dynamic> extends self::I<self::M1::T> {
+  synthetic constructor •() → self::M1<self::M1::T>
+    : super self::I::•()
+    ;
+}
+class M2<T extends core::Object = dynamic> extends self::I<self::M2::T> {
+  synthetic constructor •() → self::M2<self::M2::T>
+    : super self::I::•()
+    ;
+}
+abstract class _A&M0&M1 = self::M0<core::int> with self::M1<dynamic> {
+  synthetic constructor •() → self::_A&M0&M1
+    : super self::M0::•()
+    ;
+}
+abstract class _A&M0&M1&M2 = self::_A&M0&M1 with self::M2<dynamic> {
+  synthetic constructor •() → self::_A&M0&M1&M2
+    : super self::_A&M0&M1::•()
+    ;
+}
+class A extends self::_A&M0&M1&M2 {
+  synthetic constructor •() → self::A
+    : super self::_A&M0&M1&M2::•()
+    ;
+}
+static method main() → dynamic {}

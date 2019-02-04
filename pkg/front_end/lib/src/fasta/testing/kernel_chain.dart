@@ -10,8 +10,7 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/ast.dart'
-    show Component, Field, Library, ListLiteral, StringLiteral;
+import 'package:kernel/ast.dart' show Component, Library;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -21,19 +20,23 @@ import 'package:kernel/error_formatter.dart' show ErrorFormatter;
 
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 
-import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
-
-import 'package:kernel/target/targets.dart' show Target;
+import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
+import 'package:kernel/text/text_serialization_verifier.dart'
+    show
+        TextDeserializationFailure,
+        TextRoundTripFailure,
+        TextSerializationFailure,
+        TextSerializationVerificationFailure,
+        TextSerializationVerifier;
+
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step, TestDescription;
+    show ChainContext, Expectation, ExpectationSet, Result, StdioProcess, Step;
 
 import '../../api_prototype/compiler_options.dart'
-    show CompilerOptions, FormattedMessage, Severity;
-
-import '../../api_prototype/kernel_generator.dart' show kernelForProgram;
+    show CompilerOptions, DiagnosticMessage;
 
 import '../../base/processed_options.dart' show ProcessedOptions;
 
@@ -46,6 +49,78 @@ import '../kernel/verifier.dart' show verifyComponent;
 
 import '../messages.dart' show LocatedMessage;
 
+import '../fasta_codes.dart'
+    show templateInternalProblemUnhandled, templateUnspecified;
+
+import '../util/relativize.dart' show relativizeUri;
+
+final Uri platformBinariesLocation = computePlatformBinariesLocation();
+
+abstract class MatchContext implements ChainContext {
+  bool get updateExpectations;
+
+  ExpectationSet get expectationSet;
+
+  Expectation get expectationFileMismatch =>
+      expectationSet["ExpectationFileMismatch"];
+
+  Expectation get expectationFileMissing =>
+      expectationSet["ExpectationFileMissing"];
+
+  Future<Result<O>> match<O>(
+    String suffix,
+    String actual,
+    Uri uri,
+    O output,
+  ) async {
+    actual = actual.trim();
+    if (actual.isNotEmpty) {
+      actual += "\n";
+    }
+    File expectedFile = new File("${uri.toFilePath()}$suffix");
+    if (await expectedFile.exists()) {
+      String expected = await expectedFile.readAsString();
+      if (expected != actual) {
+        if (updateExpectations) {
+          return updateExpectationFile<O>(expectedFile.uri, actual, output);
+        }
+        String diff = await runDiff(expectedFile.uri, actual);
+        return new Result<O>(output, expectationFileMismatch,
+            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+      } else {
+        return new Result<O>.pass(output);
+      }
+    } else {
+      if (actual.isEmpty) return new Result<O>.pass(output);
+      if (updateExpectations) {
+        return updateExpectationFile(expectedFile.uri, actual, output);
+      }
+      return new Result<O>(
+          output,
+          expectationFileMissing,
+          """
+Please create file ${expectedFile.path} with this content:
+$actual""",
+          null);
+    }
+  }
+
+  Future<Result<O>> updateExpectationFile<O>(
+    Uri uri,
+    String actual,
+    O output,
+  ) async {
+    if (actual.isEmpty) {
+      await new File.fromUri(uri).delete();
+    } else {
+      await openWrite(uri, (IOSink sink) {
+        sink.write(actual);
+      });
+    }
+    return new Result<O>.pass(output);
+  }
+}
+
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
 
@@ -53,13 +128,18 @@ class Print extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(Component component, _) async {
     StringBuffer sb = new StringBuffer();
-    for (Library library in component.libraries) {
+    await CompilerContext.runWithDefaultOptions((compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+
       Printer printer = new Printer(sb);
-      if (library.importUri.scheme != "dart" &&
-          library.importUri.scheme != "package") {
-        printer.writeLibraryFile(library);
+      for (Library library in component.libraries) {
+        if (library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package") {
+          printer.writeLibraryFile(library);
+        }
       }
-    }
+      printer.writeConstantTable(component);
+    });
     print("$sb");
     return pass(component);
   }
@@ -74,25 +154,26 @@ class Verify extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(
       Component component, ChainContext context) async {
-    StringBuffer problems = new StringBuffer();
+    StringBuffer messages = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
-            if (problems.isNotEmpty) {
-              problems.write("\n");
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
             }
-            problems.write(problem.formatted);
+            messages.writeAll(message.plainTextFormatted, "\n");
           });
-    return await CompilerContext.runWithOptions(options, (_) async {
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);
-      assert(verificationErrors.isEmpty || problems.isNotEmpty);
-      if (problems.isEmpty) {
+      assert(verificationErrors.isEmpty || messages.isNotEmpty);
+      if (messages.isEmpty) {
         return pass(component);
       } else {
         return new Result<Component>(null,
-            context.expectationSet["VerificationError"], "$problems", null);
+            context.expectationSet["VerificationError"], "$messages", null);
       }
     }, errorOnMissingInput: false);
   }
@@ -107,7 +188,7 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
       Component component, ChainContext context) async {
     var errorFormatter = new ErrorFormatter();
     var checker =
-        new StrongModeTypeChecker(errorFormatter, component, ignoreSdk: true);
+        new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
       return pass(component);
@@ -123,71 +204,115 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
   }
 }
 
-class MatchExpectation extends Step<Component, Component, ChainContext> {
+class MatchExpectation extends Step<Component, Component, MatchContext> {
   final String suffix;
 
-  // TODO(ahe): This is true by default which doesn't match well with the class
-  // name.
-  final bool updateExpectations;
-
-  const MatchExpectation(this.suffix, {this.updateExpectations: false});
+  const MatchExpectation(this.suffix);
 
   String get name => "match expectations";
 
-  Future<Result<Component>> run(Component component, dynamic context) async {
-    StringBuffer problems = context.componentToProblems[component];
-    Library library = component.libraries
-        .firstWhere((Library library) => library.importUri.scheme != "dart");
-    Uri uri = library.importUri;
+  Future<Result<Component>> run(Component component, MatchContext context) {
+    StringBuffer messages =
+        (context as dynamic).componentToDiagnostics[component];
+    Uri uri =
+        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+    Iterable<Library> libraries = component.libraries.where(
+        ((Library library) =>
+            library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package"));
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
-    if (problems.isNotEmpty) {
-      buffer.write("// Formatted problems:\n//");
-      for (String line in "${problems}".split("\n")) {
-        buffer.write("\n// $line".trimRight());
-      }
-      buffer.write("\n\n");
-      problems.clear();
+    messages.clear();
+    Printer printer = new Printer(buffer)
+      ..writeProblemsAsJson("Problems in component", component.problemsAsJson);
+    libraries.forEach((Library library) {
+      printer.writeLibraryFile(library);
+      printer.endLine();
+    });
+    String actual = "$buffer";
+    String binariesPath = relativizeUri(platformBinariesLocation);
+    if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
+      // We are running from the built SDK.
+      actual = actual.replaceAll(
+          binariesPath.substring(
+              0, binariesPath.length - "lib/_internal/".length),
+          "sdk/");
     }
-    for (Field field in library.fields) {
-      if (field.name.name != "#errors") continue;
-      ListLiteral list = field.initializer;
-      buffer.write("// Unhandled errors:");
-      for (StringLiteral string in list.expressions) {
-        buffer.write("\n//");
-        for (String line in string.value.split("\n")) {
-          buffer.write("\n// $line");
-        }
-      }
-      buffer.write("\n\n");
-    }
-    new ErrorPrinter(buffer).writeLibraryFile(library);
-    String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
+    actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
-    File expectedFile = new File("${uri.toFilePath()}$suffix");
-    if (await expectedFile.exists()) {
-      String expected = await expectedFile.readAsString();
-      if (expected.trim() != actual.trim()) {
-        if (!updateExpectations) {
-          String diff = await runDiff(expectedFile.uri, actual);
-          return fail(null, "$uri doesn't match ${expectedFile.uri}\n$diff");
+    return context.match<Component>(suffix, actual, uri, component);
+  }
+}
+
+class KernelTextSerialization extends Step<Component, Component, ChainContext> {
+  const KernelTextSerialization();
+
+  String get name => "kernel text serialization";
+
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
+    StringBuffer messages = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
+            }
+            messages.writeAll(message.plainTextFormatted, "\n");
+          });
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+      TextSerializationVerifier verifier = new TextSerializationVerifier();
+      for (Library library in component.libraries) {
+        if (library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package") {
+          library.accept(verifier);
         }
-      } else {
-        return pass(component);
       }
-    }
-    if (updateExpectations) {
-      await openWrite(expectedFile.uri, (IOSink sink) {
-        sink.writeln(actual.trim());
-      });
+      for (TextSerializationVerificationFailure failure in verifier.failures) {
+        LocatedMessage message;
+        if (failure is TextSerializationFailure) {
+          message = templateUnspecified
+              .withArguments(
+                  "Failed to serialize a node: ${failure.message.isNotEmpty}")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else if (failure is TextDeserializationFailure) {
+          message = templateUnspecified
+              .withArguments(
+                  "Failed to deserialize a node: ${failure.message.isNotEmpty}")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else if (failure is TextRoundTripFailure) {
+          String formattedInitial =
+              failure.initial.isNotEmpty ? failure.initial : "<empty>";
+          String formattedSerialized =
+              failure.serialized.isNotEmpty ? failure.serialized : "<empty>";
+          message = templateUnspecified
+              .withArguments(
+                  "Round trip failure: initial doesn't match serialized.\n"
+                  "  Initial    : $formattedInitial\n"
+                  "  Serialized : $formattedSerialized")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else {
+          message = templateInternalProblemUnhandled
+              .withArguments(
+                  "${failure.runtimeType}", "KernelTextSerialization.run")
+              .withLocation(failure.uri, failure.offset, 1);
+        }
+        options.report(message, message.code.severity);
+      }
+
+      if (verifier.failures.isNotEmpty) {
+        return new Result<Component>(
+            null,
+            context.expectationSet["TextSerializationFailure"],
+            "$messages",
+            null);
+      }
       return pass(component);
-    } else {
-      return fail(component, """
-Please create file ${expectedFile.path} with this content:
-$actual""");
-    }
+    });
   }
 }
 
@@ -247,49 +372,6 @@ class Copy extends Step<Component, Component, ChainContext> {
   }
 }
 
-/// A `package:testing` step that runs the `package:front_end` compiler to
-/// generate a kernel component for an individual file.
-///
-/// Most options are hard-coded, but if necessary they could be moved to the
-/// [CompileContext] object in the future.
-class Compile extends Step<TestDescription, Component, CompileContext> {
-  const Compile();
-
-  String get name => "fasta compilation";
-
-  Future<Result<Component>> run(
-      TestDescription description, CompileContext context) async {
-    Result<Component> result;
-    Uri sdk = Uri.base.resolve("sdk/");
-    var options = new CompilerOptions()
-      ..sdkRoot = sdk
-      ..compileSdk = true
-      ..packagesFileUri = Uri.base.resolve('.packages')
-      ..strongMode = context.strongMode
-      ..onProblem = (FormattedMessage problem, Severity severity,
-          List<FormattedMessage> context) {
-        result ??= fail(null, problem.formatted);
-      };
-    if (context.target != null) {
-      options.target = context.target;
-      // Do not link platform.dill, but recompile the platform libraries. This
-      // ensures that if target defines extra libraries that those get included
-      // too.
-    } else {
-      options.linkedDependencies = [
-        computePlatformBinariesLocation().resolve("vm_platform.dill"),
-      ];
-    }
-    Component p = await kernelForProgram(description.uri, options);
-    return result ??= pass(p);
-  }
-}
-
-abstract class CompileContext implements ChainContext {
-  bool get strongMode;
-  Target get target;
-}
-
 class BytesCollector implements Sink<List<int>> {
   final List<List<int>> lists = <List<int>>[];
 
@@ -329,31 +411,4 @@ Future<void> openWrite(Uri uri, f(IOSink sink)) async {
     await sink.close();
   }
   print("Wrote $uri");
-}
-
-class ErrorPrinter extends Printer {
-  ErrorPrinter(StringSink sink, {Object importTable, Object metadata})
-      : super(sink, importTable: importTable, metadata: metadata);
-
-  ErrorPrinter._inner(ErrorPrinter parent, Object importTable, Object metadata)
-      : super(parent.sink,
-            importTable: importTable,
-            metadata: metadata,
-            syntheticNames: parent.syntheticNames,
-            annotator: parent.annotator,
-            showExternal: parent.showExternal,
-            showOffsets: parent.showOffsets,
-            showMetadata: parent.showMetadata);
-
-  @override
-  ErrorPrinter createInner(importTable, metadata) {
-    return new ErrorPrinter._inner(this, importTable, metadata);
-  }
-
-  @override
-  visitField(Field node) {
-    if (node.name.name != "#errors") {
-      super.visitField(node);
-    }
-  }
 }

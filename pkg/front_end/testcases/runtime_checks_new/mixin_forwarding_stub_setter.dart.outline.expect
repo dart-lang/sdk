@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   get x() → core::int
     ;
@@ -15,7 +15,7 @@ class B extends core::Object {
     ;
 }
 abstract class I<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I<self::I::T>
     ;
   abstract get x() → self::I::T;
   abstract set x(self::I::T value) → void;
@@ -23,7 +23,7 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
   abstract set y(covariant core::Object value) → void;
 }
 class M extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::M
     ;
   get x() → core::int
     ;
@@ -35,7 +35,7 @@ class M extends core::Object {
     ;
 }
 class C = self::B with self::M implements self::I<core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
 }

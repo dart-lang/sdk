@@ -204,6 +204,9 @@ class VMService extends MessageRouter {
   /// Collection of currently running isolates.
   RunningIsolates runningIsolates = new RunningIsolates();
 
+  /// Flag to indicate VM service is exiting.
+  bool isExiting = false;
+
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
 
@@ -323,6 +326,8 @@ class VMService extends MessageRouter {
   }
 
   Future _exit() async {
+    isExiting = true;
+
     // Stop the server.
     if (VMServiceEmbedderHooks.serverStop != null) {
       await VMServiceEmbedderHooks.serverStop();
@@ -342,6 +347,7 @@ class VMService extends MessageRouter {
     if (VMServiceEmbedderHooks.cleanup != null) {
       await VMServiceEmbedderHooks.cleanup();
     }
+
     // Notify the VM that we have exited.
     _onExit();
   }

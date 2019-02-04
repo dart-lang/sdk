@@ -1,0 +1,28 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/type_with_parse_error.dart:21:7: Error: Expected ';' after this.
+//   int i
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {
+    new self::B::•<self::A>();
+  }
+}
+class B<T extends core::Object = dynamic> extends core::Object {
+  field core::int i = null;
+  synthetic constructor •() → self::B<self::B::T>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  new self::B::•<self::A>();
+}

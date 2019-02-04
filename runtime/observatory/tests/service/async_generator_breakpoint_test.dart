@@ -1,8 +1,8 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override --verbose-debug --no-sync-async
-// VMOptions=--error_on_bad_type --error_on_bad_override --verbose-debug --stacktrace-every=55 --stress-async-stacks --no-sync-async
+// VMOptions=--verbose-debug
+// VMOptions=--verbose-debug --stacktrace-every=55 --stress-async-stacks
 
 import 'dart:async';
 import 'package:observatory/service_io.dart';
@@ -10,19 +10,21 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 printSync() {
-  print('sync'); // Line 12
+  print('sync'); // Line 13
 }
 
 printAsync() async {
-  print('async'); // Line 16
+  await null;
+  print('async'); // Line 18
 }
 
 printAsyncStar() async* {
-  print('async*'); // Line 20
+  await null;
+  print('async*'); // Line 23
 }
 
 printSyncStar() sync* {
-  print('sync*'); // Line 24
+  print('sync*'); // Line 27
 }
 
 var testerReady = false;
@@ -39,7 +41,7 @@ testeeDo() {
   var stream = printAsyncStar();
   var iterator = printSyncStar();
 
-  print('middle'); // Line 42
+  print('middle'); // Line 44
 
   future.then((v) => print(v));
   stream.toList();
@@ -50,19 +52,19 @@ Future testAsync(Isolate isolate) async {
   await isolate.rootLibrary.load();
   var script = isolate.rootLibrary.scripts[0];
 
-  var bp1 = await isolate.addBreakpoint(script, 12);
+  var bp1 = await isolate.addBreakpoint(script, 13);
   expect(bp1, isNotNull);
   expect(bp1 is Breakpoint, isTrue);
-  var bp2 = await isolate.addBreakpoint(script, 16);
+  var bp2 = await isolate.addBreakpoint(script, 18);
   expect(bp2, isNotNull);
   expect(bp2 is Breakpoint, isTrue);
-  var bp3 = await isolate.addBreakpoint(script, 20);
+  var bp3 = await isolate.addBreakpoint(script, 23);
   expect(bp3, isNotNull);
   expect(bp3 is Breakpoint, isTrue);
-  var bp4 = await isolate.addBreakpoint(script, 24);
+  var bp4 = await isolate.addBreakpoint(script, 27);
   expect(bp4, isNotNull);
   expect(bp4 is Breakpoint, isTrue);
-  var bp5 = await isolate.addBreakpoint(script, 42);
+  var bp5 = await isolate.addBreakpoint(script, 44);
   print("BP5 - $bp5");
   expect(bp5, isNotNull);
   expect(bp5 is Breakpoint, isTrue);

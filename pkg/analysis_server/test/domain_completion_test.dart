@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
+import 'mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -180,7 +181,6 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor() async {
     addTestFile('class A {bool foo; A() : ^;}');
     await getSuggestions();
@@ -190,7 +190,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor2() async {
     addTestFile('class A {bool foo; A() : s^;}');
     await getSuggestions();
@@ -200,7 +199,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor3() async {
     addTestFile('class A {bool foo; A() : a=7,^;}');
     await getSuggestions();
@@ -210,7 +208,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor4() async {
     addTestFile('class A {bool foo; A() : a=7,s^;}');
     await getSuggestions();
@@ -220,7 +217,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor5() async {
     addTestFile('class A {bool foo; A() : a=7,s^}');
     await getSuggestions();
@@ -230,7 +226,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor6() async {
     addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
     await getSuggestions();
@@ -244,7 +239,7 @@ class A {
     //
     // We no longer support the analysis of non-dart files.
     //
-    testFile = resourceProvider.convertPath('/project/web/test.html');
+    testFile = convertPath('/project/web/test.html');
     addTestFile('''
       <html>^</html>
     ''');
@@ -257,7 +252,7 @@ class A {
 
   test_import_uri_with_trailing() {
     final filePath = '/project/bin/testA.dart';
-    final incompleteImportText = convertPathForImport('/project/bin/t');
+    final incompleteImportText = toUriStr('/project/bin/t');
     newFile(filePath, content: 'library libA;');
     addTestFile('''
     import "$incompleteImportText^.dart";
@@ -266,8 +261,7 @@ class A {
       expect(replacementOffset,
           equals(completionOffset - incompleteImportText.length));
       expect(replacementLength, equals(5 + incompleteImportText.length));
-      assertHasResult(
-          CompletionSuggestionKind.IMPORT, convertPathForImport(filePath));
+      assertHasResult(CompletionSuggestionKind.IMPORT, toUriStr(filePath));
       assertNoResult('test');
     });
   }
@@ -515,7 +509,7 @@ class A {
   foo(bar) => 0;''');
     addTestFile('''
   library libA;
-  part "${convertPathForImport('/testA.dart')}";
+  part "${toUriStr('/testA.dart')}";
   import "dart:math";
   /// The [^]
   main(aaa, bbb) {}
@@ -538,11 +532,11 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_inherited() {
-    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import ${convertPathForImport('/libA.dart')};
+class A {
+  m() {}
+}
 class B extends A {
   x() {^}
 }
@@ -552,6 +546,27 @@ class B extends A {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request =
+        new CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request = new CompletionGetSuggestionsParams(
+            convertPath('/foo/../bar/test.dart'), 0)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_invocation() {
@@ -653,9 +668,9 @@ main() {
   }
 
   test_local_override() {
-    newFile('/libA.dart', content: 'class A {m() {}}');
+    newFile('/project/bin/a.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '../../libA.dart';
+import 'a.dart';
 class B extends A {
   m() {}
   x() {^}
@@ -724,9 +739,9 @@ main() {
   }
 
   test_overrides() {
-    newFile('/libA.dart', content: 'class A {m() {}}');
+    newFile('/project/bin/a.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '../../libA.dart';
+import 'a.dart';
 class B extends A {m() {^}}
 ''');
     return getSuggestions().then((_) {
@@ -738,10 +753,10 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    newFile('/project/bin/testA.dart', content: '''
+    newFile('/project/bin/a.dart', content: '''
       library libA;
-      part "${convertPathForImport(testFile)}";
       import 'dart:html';
+      part 'test.dart';
       class A { }
     ''');
     addTestFile('''
@@ -761,12 +776,12 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    newFile('/testA.dart', content: '''
+    newFile('/project/bin/a.dart', content: '''
       part of libA;
       class A { }''');
     addTestFile('''
       library libA;
-      part "${convertPathForImport("/testA.dart")}";
+      part "a.dart";
       import 'dart:html';
       main() {^}
     ''');

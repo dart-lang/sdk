@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_29983.dart:7:10: Error: Getter not found: 'missing'.
 //   return missing;
@@ -15,18 +17,7 @@
 // pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.
 // g() sync* => dummy;
 //              ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_29983.dart:7:10: Error: Getter not found: 'missing'.
-//   return missing;
-//          ^^^^^^^
-//
-// pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: Getter not found: 'dummy'.
-// g() sync* => dummy;
-//              ^^^^^
-
-library;
 import self as self;
 import "dart:core" as core;
 

@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -15,6 +16,8 @@ class Field;
 class FlowGraph;
 class ForwardInstructionIterator;
 class Function;
+class FunctionEntryInstr;
+class GraphEntryInstr;
 class ICData;
 class InstanceCallInstr;
 class Instruction;
@@ -66,7 +69,7 @@ class SpeculativeInliningPolicy {
  private:
   bool IsBlacklisted(intptr_t id) const {
     for (intptr_t i = 0; i < inlining_blacklist_.length(); ++i) {
-      if (inlining_blacklist_[i] != id) return true;
+      if (inlining_blacklist_[i] == id) return true;
     }
     return false;
   }
@@ -134,8 +137,10 @@ class FlowGraphInliner : ValueObject {
                                         Definition* receiver,
                                         TokenPosition token_pos,
                                         const ICData* ic_data,
-                                        TargetEntryInstr** entry,
+                                        GraphEntryInstr* graph_entry,
+                                        FunctionEntryInstr** entry,
                                         Instruction** last,
+                                        Definition** result,
                                         SpeculativeInliningPolicy* policy,
                                         ExactnessInfo* exactness = nullptr);
 

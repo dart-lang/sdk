@@ -23,9 +23,11 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
+
 [ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
 sample_extension/test/sample_extension_test: RuntimeError
 
 # Skip tests that use dart:io
@@ -34,4 +36,3 @@ sample_extension/*: Skip
 
 [ $hot_reload || $hot_reload_rollback ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-sample_extension/test/sample_extension_script_snapshot_test: SkipByDesign # Cannot reload with URI pointing to script snapshot.

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.21.0</version>
+  <version>1.23.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -605,7 +605,7 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getReachableSources" deprecated="true">
     <p>
       Return the transitive closure of reachable sources for a given file.
     </p>
@@ -695,6 +695,12 @@
         <ref>String</ref>
         <p>The name of the function being invoked at the given offset.</p>
       </field>
+      <field name="parameters">
+        <list>
+          <ref>ParameterInfo</ref>
+        </list>
+        <p>A list of information about each of the parameters of the function being invoked.</p>
+      </field>
       <field name="dartdoc" optional="true">
         <ref>String</ref>
         <p>
@@ -705,38 +711,14 @@
           referenced element, or if the element has no dartdoc.
         </p>
       </field>
-      <field name="parameters">
-        <list>
-          <ref>ParameterInfo</ref>
-        </list>
-        <p>A list of information about each of the parameters of the function being invoked.</p>
-      </field>
     </result>
   </request>
   <request method="reanalyze">
     <p>
-      Force the re-analysis of everything contained in the specified
-      analysis roots. This will cause all previously computed analysis
-      results to be discarded and recomputed, and will cause all subscribed
-      notifications to be re-sent.
+      Force re-reading of all potentially changed files, re-resolving of all
+      referenced URIs, and corresponding re-analysis of everything affected in
+      the current analysis roots.
     </p>
-    <p>
-      If no analysis roots are provided, then all current analysis roots
-      will be re-analyzed. If an empty list of analysis roots is provided,
-      then nothing will be re-analyzed. If the list contains one or more
-      paths that are not currently analysis roots, then an error of type
-      <tt>INVALID_ANALYSIS_ROOT</tt> will be generated.
-    </p>
-    <params>
-      <field name="roots" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          A list of the analysis roots that are to be re-analyzed.
-        </p>
-      </field>
-    </params>
   </request>
   <request method="setAnalysisRoots">
     <p>
@@ -1430,6 +1412,96 @@
       </field>
     </result>
   </request>
+  <request method="setSubscriptions" experimental="true">
+    <p>
+      Subscribe for completion services. All previous subscriptions are
+      replaced by the given set of services.
+    </p>
+    <p>
+      It is an error if any of the elements in the list are not valid
+      services. If there is an error, then the current subscriptions will
+      remain unchanged.
+    </p>
+    <params>
+      <field name="subscriptions">
+        <list>
+          <ref>CompletionService</ref>
+        </list>
+        <p>A list of the services being subscribed to.</p>
+      </field>
+    </params>
+  </request>
+  <request method="registerLibraryPaths" experimental="true">
+    <p>
+      The client can make this request to express interest in certain
+      libraries to receive completion suggestions from based on the client path.
+      If this request is received before the client has used
+      'completion.setSubscriptions' to subscribe to the <tt>AVAILABLE_SUGGESTION_SETS</tt>
+      service, then an error of type <tt>NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS</tt>
+      will be generated. All previous paths are replaced by the given set of paths.
+    </p>
+    <params>
+      <field name="paths">
+        <list>
+          <ref>LibraryPathSet</ref>
+        </list>
+        <p>
+          A list of objects each containing a path and the additional libraries from which
+          the client is interested in receiving completion suggestions.
+          If one configured path is beneath another, the descendent
+          will override the ancestors' configured libraries of interest.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="getSuggestionDetails" experimental="true">
+    <p>
+      Clients must make this request when the user has selected a completion
+      suggestion from an <tt>AvailableSuggestionSet</tt>. Analysis server will respond with
+      the text to insert as well as any <tt>SourceChange</tt> that needs to be applied
+      in case the completion requires an additional import to be added. It is an error
+      if the id is no longer valid, for instance if the library has been removed after
+      the completion suggestion is accepted.
+    </p>
+    <params>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label from the <tt>AvailableSuggestionSet</tt> with the `id`
+          for which insertion information is requested.
+        </p>
+      </field>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The path of the file into which this completion is being inserted.
+        </p>
+      </field>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          The identifier of the <tt>AvailableSuggestionSet</tt> containing
+          the selected name.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="completion">
+        <ref>String</ref>
+        <p>
+          The full text to insert, including any optional import prefix.
+        </p>
+      </field>
+      <field name="change" optional="true">
+        <ref>SourceChange</ref>
+        <p>
+          A change for the client to apply in case the library containing
+          the accepted completion suggestion needs to be imported. The field
+          will be omitted if there are no additional changes that need to be made.
+        </p>
+      </field>
+    </result>
+  </request>
   <notification event="results">
     <p>
       Reports the completion suggestions that should be presented
@@ -1482,6 +1554,56 @@
         <p>
           True if this is that last set of results that will be
           returned for the indicated completion.
+        </p>
+      </field>
+      <field name="includedSuggestionSets" optional="true">
+        <list>
+          <ref>IncludedSuggestionSet</ref>
+        </list>
+        <p>
+          This field is experimental. References to <tt>AvailableSuggestionSet</tt>
+          objects previously sent to the client. The client can include applicable
+          names from the referenced library in code completion suggestions.
+        </p>
+      </field>
+      <field name="includedSuggestionKinds" optional="true">
+        <list>
+          <ref>ElementKind</ref>
+        </list>
+        <p>
+          This field is experimental. The client is expected to check this list against the
+          <tt>ElementKind</tt> sent in <tt>IncludedSuggestionSet</tt> to decide
+          whether or not these symbols should should be presented to the user.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="availableSuggestions" experimental="true">
+    <p>
+      Reports the pre-computed, candidate completions from symbols defined
+      in a corresponding library. This notification may be sent multiple times.
+      When a notification is processed, clients should replace any previous
+      information about the libraries in the list of changedLibraries, discard
+      any information about the libraries in the list of removedLibraries, and
+      preserve any previously received information about any libraries that are
+      not included in either list.
+    </p>
+    <params>
+      <field name="changedLibraries" optional="true">
+        <list>
+          <ref>AvailableSuggestionSet</ref>
+        </list>
+        <p>
+          A list of pre-computed, potential completions coming from
+          this set of completion suggestions.
+        </p>
+      </field>
+      <field name="removedLibraries" optional="true">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          A list of library ids that no longer apply.
         </p>
       </field>
     </params>
@@ -1929,6 +2051,124 @@
         <p>
           The kinds of refactorings that are valid for the given
           selection.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getDartfixInfo" experimental="true">
+    <p>
+      Request information about edit.dartfix
+      such as the list of known fixes that can be specified
+      in an edit.dartfix request.
+    </p>
+    <params>
+    </params>
+    <result>
+      <field name="fixes">
+        <list>
+          <ref>DartFix</ref>
+        </list>
+        <p>
+          A list of fixes that can be specified
+          in an edit.dartfix request.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="dartfix" experimental="true">
+    <p>
+      Analyze the specified sources for recommended changes
+      and return a set of suggested edits for those sources.
+      These edits may include changes to sources outside the set
+      of specified sources if a change in a specified source requires it.
+    </p>
+    <p>
+      If includedFixes is specified, then those fixes will be applied.
+      If includeRequiredFixes is specified, then "required" fixes will be applied
+      in addition to whatever fixes are specified in includedFixes if any.
+      If neither includedFixes nor includeRequiredFixes is specified,
+      then all fixes will be applied.
+      If excludedFixes is specified, then those fixes will not be applied
+      regardless of whether they are "required" or specified in includedFixes.
+    </p>
+    <params>
+      <field name="included">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the files and directories for which edits should be suggested.
+        </p>
+        <p>
+          If a request is made with a path that is invalid, e.g. is not absolute and normalized,
+          an error of type <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not currently subject to analysis
+          (e.g. because it is not associated with any analysis root specified to analysis.setAnalysisRoots),
+          an error of type <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+      </field>
+      <field name="includedFixes" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of names indicating which fixes should be applied.
+        </p>
+        <p>
+          If a name is specified that does not match the name of a known fix,
+          an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+        </p>
+      </field>
+      <field name="includeRequiredFixes" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating that "required" fixes should be applied.
+        </p>
+      </field>
+      <field name="excludedFixes" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of names indicating which fixes should not be applied.
+        </p>
+        <p>
+          If a name is specified that does not match the name of a known fix,
+          an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="suggestions">
+        <list>
+          <ref>DartFixSuggestion</ref>
+        </list>
+        <p>
+          A list of recommended changes that can be automatically made
+          by applying the 'edits' included in this response.
+        </p>
+      </field>
+      <field name="otherSuggestions">
+        <list>
+          <ref>DartFixSuggestion</ref>
+        </list>
+        <p>
+          A list of recommended changes that could not be automatically made.
+        </p>
+      </field>
+      <field name="hasErrors">
+        <ref>bool</ref>
+        <p>
+          True if the analyzed source contains errors that might impact the correctness
+          of the recommended changes that can be automatically applied.
+        </p>
+      </field>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          A list of source edits to apply the recommended changes.
         </p>
       </field>
     </result>
@@ -3252,12 +3492,155 @@
       The identifier for a execution context.
     </p>
   </type>
+  <type name="AvailableSuggestion" experimental="true">
+    <p>
+      A partial completion suggestion that can be used in combination with
+      info from <tt>completion.results</tt> to build completion suggestions
+      for not yet imported library tokens.
+    </p>
+    <object>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The identifier to present to the user for code completion.
+        </p>
+      </field>
+      <field name="element">
+        <ref>Element</ref>
+        <p>
+          Information about the element reference being suggested.
+        </p>
+      </field>
+      <field name="docComplete" optional="true">
+        <ref>String</ref>
+        <p>
+          The Dartdoc associated with the element being suggested. This field
+          is omitted if there is no Dartdoc associated with the element.
+        </p>
+      </field>
+      <field name="docSummary" optional="true">
+        <ref>String</ref>
+        <p>
+          An abbreviated version of the Dartdoc associated with the element being suggested.
+          This field is omitted if there is no Dartdoc associated with the element.
+        </p>
+      </field>
+      <field name="parameterNames" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          If the element is an executable, the names of the formal parameters of
+          all kinds - required, optional positional, and optional named. The
+          names of positional parameters are empty strings. Omitted if the element
+          is not an executable.
+        </p>
+      </field>
+      <field name="parameterTypes" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          If the element is an executable, the declared types of the formal parameters
+          of all kinds - required, optional positional, and optional named.
+          Omitted if the element is not an executable.
+        </p>
+      </field>
+      <field name="requiredParameterCount" optional="true">
+        <ref>int</ref>
+      </field>
+    </object>
+  </type>
+  <type name="AvailableSuggestionSet" experimental="true">
+    <object>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          The id associated with the library.
+        </p>
+      </field>
+      <field name="uri">
+        <ref>String</ref>
+        <p>
+          The URI of the library.
+        </p>
+      </field>
+      <field name="items">
+        <list>
+          <ref>AvailableSuggestion</ref>
+        </list>
+      </field>
+    </object>
+  </type>
+  <type name="IncludedSuggestionSet" experimental="true">
+    <p>
+      A reference to an <tt>AvailableSuggestionSet</tt> noting
+      that the library's members which match the kind of this ref
+      should be presented to the user.
+    </p>
+    <object>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          Clients should use it to access the set of precomputed completions
+          to be displayed to the user.
+        </p>
+      </field>
+      <field name="relevance">
+        <ref>int</ref>
+        <p>
+          The relevance of completion suggestions from this
+          library where a higher number indicates a higher relevance.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="CompletionService" experimental="true">
+    <p>
+      An enumeration of the completion services to which a client can subscribe.
+    </p>
+    <enum>
+      <value>
+        <code>AVAILABLE_SUGGESTION_SETS</code>
+        <p>
+          The client will receive notifications once subscribed with completion suggestion sets from
+          the libraries of interest. The client should keep an up-to-date record of these in
+          memory so that it will be able to union these candidates with other
+          completion suggestions when applicable at completion time.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="LibraryPathSet" experimental="true">
+    <p>
+      A list of associations between paths and the libraries that should be
+      included for code completion when editing a file beneath that path.
+    </p>
+    <object>
+      <field name="scope">
+        <ref>FilePath</ref>
+        <p>
+          The filepath for which this request's libraries should be active
+          in completion suggestions. This object associates filesystem regions
+          to libraries and library directories of interest to the client.
+        </p>
+      </field>
+      <field name="libraryPaths">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The paths of the libraries of interest to the client for completion suggestions.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="RuntimeCompletionExpression">
     <p>
       An expression for which we want to know its runtime type.
-      In expressions like `a.b.c.where((e) => e.^)` we want to know the
-      runtime type of `a.b.c` to enforce it statically at the time when we
-      compute completion suggestions, and get better type for `e`.
+      In expressions like 'a.b.c.where((e) => e.^)' we want to know the
+      runtime type of 'a.b.c' to enforce it statically at the time when we
+      compute completion suggestions, and get better type for 'e'.
     </p>
     <object>
       <field name="offset">
@@ -4145,17 +4528,11 @@
         </p>
       </value>
       <value>
-        <code>UNANALYZED_PRIORITY_FILES</code>
+        <code>UNKNOWN_FIX</code>
         <p>
-          An "analysis.setPriorityFiles" request includes one or
-          more files that are not being analyzed.
+          A dartfix request was received containing the name of a fix
+          which does not match the name of any known fixes.
         </p>
-        <p>
-          This is a legacy error; it will be removed before the
-          API reaches version 1.0.
-        </p>
-        <!-- TODO(paulberry): remove this error and the code that
-                 generates it. -->
       </value>
       <value>
         <code>UNKNOWN_REQUEST</code>
@@ -4163,13 +4540,6 @@
           A request was received which the analysis server does
           not recognize, or cannot handle in its current
           configuration.
-        </p>
-      </value>
-      <value>
-        <code>UNKNOWN_SOURCE</code>
-        <p>
-          The analysis server was requested to perform an action
-          on a source that does not exist.
         </p>
       </value>
       <value>
@@ -4193,6 +4563,50 @@
       An identifier used to associate search results with a search
       request.
     </p>
+  </type>
+  <type name="DartFix" experimental="true">
+    <p>
+      A "fix" that can be specified in an edit.dartfix request.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the fix.
+        </p>
+      </field>
+      <field name="description" optional="true">
+        <ref>String</ref>
+        <p>
+          A human readable description of the fix.
+        </p>
+      </field>
+      <field name="isRequired" optional="true">
+        <ref>bool</ref>
+        <p>
+          `true` if the fix is in the "required" fixes group.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="DartFixSuggestion" experimental="true">
+    <p>
+      A suggestion from an edit.dartfix request.
+    </p>
+    <object>
+      <field name="description">
+        <ref>String</ref>
+        <p>
+          A human readable description of the suggested change.
+        </p>
+      </field>
+      <field name="location" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the suggested change.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="SearchResult">
     <p>

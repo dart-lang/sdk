@@ -2,9 +2,8 @@
 
 **Owner**: leafp@google.com
 
-**Status**: Implemented.
-
-Status: Ready for implementation
+**Status**: This document is now background material.
+For normative text, please consult the language specification.
 
 **Note: Also see alternative presentation at the bottom for a dual presentation
 of these rules in terms of which things are errors, rather than which things are

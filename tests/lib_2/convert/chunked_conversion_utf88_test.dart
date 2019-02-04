@@ -117,7 +117,6 @@ main() {
   const CHAR_A = 0x61;
 
   // Test surrogates at all kinds of locations.
-  var tests = [];
   var codeUnits = <int>[];
   for (int i = 0; i < 2049; i++) {
     // Invariant: codeUnits[0..i - 1] is filled with CHAR_A (character 'a').

@@ -13,7 +13,12 @@ main() {
 /*element: Class1.:[exact=Class1]*/
 class Class1 {
   /*element: Class1.noSuchMethod:[exact=JSUInt31]*/
-  noSuchMethod(/*[null|subclass=Object]*/ _) => 42;
+  noSuchMethod(
+          Invocation
+              /*strong.[null|subclass=Object]*/
+              /*omit.[null|exact=JSInvocationMirror]*/
+              _) =>
+      42;
 
   /*element: Class1.method:[exact=JSUInt31]*/
   method() {
@@ -32,7 +37,12 @@ missingGetter() => new Class1(). /*invoke: [exact=Class1]*/ method();
 /*element: Class2.:[exact=Class2]*/
 class Class2 {
   /*element: Class2.noSuchMethod:[exact=JSUInt31]*/
-  noSuchMethod(/*[null|subclass=Object]*/ _) => 42;
+  noSuchMethod(
+          Invocation
+              /*strong.[null|subclass=Object]*/
+              /*omit.[null|exact=JSInvocationMirror]*/
+              _) =>
+      42;
 
   /*element: Class2.method:[exact=JSUInt31]*/
   method() {
@@ -51,13 +61,17 @@ missingMethod() => new Class2(). /*invoke: [exact=Class2]*/ method();
 /*element: Class3.:[exact=Class3]*/
 class Class3 {
   /*element: Class3.noSuchMethod:[null|subclass=Object]*/
-  noSuchMethod(Invocation /*[null|subclass=Object]*/ invocation) {
+  noSuchMethod(
+      Invocation
+          /*strong.[null|subclass=Object]*/
+          /*omit.[null|exact=JSInvocationMirror]*/
+          invocation) {
     return invocation
         .
-        /*strong.[null|exact=JSInvocationMirror]*/
+        /*[null|exact=JSInvocationMirror]*/
         positionalArguments
         .
-        /*strong.[exact=JSUnmodifiableArray]*/
+        /*[exact=JSUnmodifiableArray]*/
         first;
   }
 
@@ -83,13 +97,17 @@ class Class4 {
   var field;
 
   /*element: Class4.noSuchMethod:[null]*/
-  noSuchMethod(Invocation /*[null|subclass=Object]*/ invocation) {
+  noSuchMethod(
+      Invocation
+          /*strong.[null|subclass=Object]*/
+          /*omit.[null|exact=JSInvocationMirror]*/
+          invocation) {
     this. /*update: [exact=Class4]*/ field = invocation
         .
-        /*strong.[null|exact=JSInvocationMirror]*/
+        /*[null|exact=JSInvocationMirror]*/
         positionalArguments
         .
-        /*strong.[exact=JSUnmodifiableArray]*/
+        /*[exact=JSUnmodifiableArray]*/
         first;
     return null;
   }

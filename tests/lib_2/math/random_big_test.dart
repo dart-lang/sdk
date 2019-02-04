@@ -4,9 +4,6 @@
 
 // Test that Random can deal with a seed outside 64-bit range.
 
-// Library tag to allow Dartium to run the test.
-library random_big;
-
 import "package:expect/expect.dart";
 import 'dart:math';
 

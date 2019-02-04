@@ -10,6 +10,7 @@
 #include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
@@ -79,7 +80,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return Connect(fd, addr);
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
@@ -96,6 +100,23 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     int optval = 1;
     VOID_NO_RETRY_EXPECTED(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+  }
+
+  if (reusePort) {
+    // ignore reusePort - not supported on this platform.
+    Log::PrintErr(
+        "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
+        "Android.",
+        __FILE__, __LINE__);
+  }
+
+  if (!SocketBase::SetMulticastHops(fd,
+                                    addr.addr.sa_family == AF_INET
+                                        ? SocketAddress::TYPE_IPV4
+                                        : SocketAddress::TYPE_IPV6,
+                                    ttl)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
   }
 
   if (NO_RETRY_EXPECTED(

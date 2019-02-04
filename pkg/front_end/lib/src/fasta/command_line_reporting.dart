@@ -8,13 +8,13 @@
 /// [CompilerContext].
 library fasta.command_line_reporting;
 
-import 'dart:io' show exitCode;
-
 import 'dart:math' show min;
 
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart' show Location;
+
+import '../compute_platform_binaries_location.dart' show translateSdk;
 
 import 'colors.dart' show green, magenta, red;
 
@@ -26,7 +26,7 @@ import 'fasta_codes.dart' show LocatedMessage;
 
 import 'messages.dart' show getLocation, getSourceLine;
 
-import 'problems.dart' show DebugAbort, unhandled;
+import 'problems.dart' show unhandled;
 
 import 'severity.dart' show Severity, severityPrefixes;
 
@@ -74,7 +74,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
     }
 
     if (message.uri != null) {
-      String path = relativizeUri(message.uri);
+      String path = relativizeUri(translateSdk(message.uri));
       int offset = message.charOffset;
       location ??= (offset == -1 ? null : getLocation(message.uri, offset));
       String sourceLine = getSourceLine(location);
@@ -161,26 +161,6 @@ bool shouldThrowOn(Severity severity) {
   }
 }
 
-/// Print a formatted message and throw when errors are treated as fatal.
-/// Also set [exitCode] depending on the value of
-/// `CompilerContext.current.options.setExitCodeOnProblem`.
-void _printAndThrowIfDebugging(
-    String text, Severity severity, Uri uri, int charOffset) {
-  // I believe we should only set it if we are reporting something, if we are
-  // formatting to embed the error in the program, then we probably don't want
-  // to do it in format.
-  // Note: I also want to limit dependencies to dart:io for when we use the FE
-  // outside of the VM. This default reporting is likely not going to be used in
-  // that context, but the default formatter is.
-  if (CompilerContext.current.options.setExitCodeOnProblem) {
-    exitCode = 1;
-  }
-  print(text);
-  if (shouldThrowOn(severity)) {
-    throw new DebugAbort(uri, charOffset, severity, StackTrace.current);
-  }
-}
-
 bool isCompileTimeError(Severity severity) {
   switch (severity) {
     case Severity.error:
@@ -188,7 +168,7 @@ bool isCompileTimeError(Severity severity) {
       return true;
 
     case Severity.errorLegacyWarning:
-      return CompilerContext.current.options.strongMode;
+      return !CompilerContext.current.options.legacyMode;
 
     case Severity.warning:
     case Severity.context:
@@ -198,18 +178,4 @@ bool isCompileTimeError(Severity severity) {
       break; // Fall-through to unhandled below.
   }
   return unhandled("$severity", "isCompileTimeError", -1, null);
-}
-
-/// Report [message] unless [severity] is suppressed (see [isHidden]). Throws
-/// an exception if [severity] is fatal (see [isFatal]).
-///
-/// This method isn't intended to be called directly. Use
-/// [CompilerContext.report] instead.
-void report(LocatedMessage message, Severity severity) {
-  if (isHidden(severity)) return;
-  if (isCompileTimeError(severity)) {
-    CompilerContext.current.logError(message, severity);
-  }
-  _printAndThrowIfDebugging(
-      format(message, severity), severity, message.uri, message.charOffset);
 }

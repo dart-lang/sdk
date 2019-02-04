@@ -97,13 +97,7 @@ class KernelDartTypes extends DartTypes {
 class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
   final IrToElementMap elementMap;
 
-  KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls)
-      : super(cls, elementMap.commonElements.objectType,
-            reporter: elementMap.reporter);
-
-  // TODO(sigmund): delete once Issue #31118 is fixed.
-  @override
-  bool get reportMultiInheritanceIssue => false;
+  KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls) : super(cls);
 
   InterfaceType getThisType(ClassEntity cls) {
     return elementMap.getThisType(cls);

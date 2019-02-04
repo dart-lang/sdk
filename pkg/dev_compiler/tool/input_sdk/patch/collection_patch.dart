@@ -5,6 +5,7 @@
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;
+import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
     show
         NoInline,
@@ -248,7 +249,7 @@ class _HashSet<E> extends _InternalSet<E>
     int length = JS('', '#.size', map);
     for (E key in objects) {
       if (key == null) {
-        key = null;
+        key = null; // converts undefined to null, if needed.
       } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
           dart.identityEquals)) {
         key = putLinkedMapKey(key, _keyMap);
@@ -300,6 +301,29 @@ class _HashSet<E> extends _InternalSet<E>
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
+}
+
+class ImmutableSet<E> extends _HashSet<E> {
+  ImmutableSet.from(JSArray entries) {
+    var map = _map;
+    for (Object key in entries) {
+      if (key == null) {
+        key = null; // converts undefined to null, if needed.
+      } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
+          dart.identityEquals)) {
+        key = putLinkedMapKey(key, _keyMap);
+      }
+      JS('', '#.add(#)', map, key);
+    }
+  }
+
+  bool add(Object other) => throw _unsupported();
+  void addAll(Object other) => throw _unsupported();
+  void clear() => throw _unsupported();
+  bool remove(Object key) => throw _unsupported();
+
+  static Error _unsupported() =>
+      UnsupportedError("Cannot modify unmodifiable map");
 }
 
 class _IdentityHashSet<E> extends _InternalSet<E>
@@ -509,7 +533,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 /// Base class for our internal [LinkedHashSet]/[HashSet] implementations.
 ///
 /// This implements the common functionality.
-abstract class _InternalSet<E> extends _HashSetBase<E> {
+abstract class _InternalSet<E> extends _SetBase<E> {
   @notNull
   get _map;
 
@@ -546,5 +570,32 @@ abstract class _InternalSet<E> extends _HashSetBase<E> {
         self._modifications,
         ConcurrentModificationError(self),
         iterator);
+  }
+}
+
+@patch
+abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
+  @patch
+  Node _splayMin(Node node) {
+    Node current = node;
+    while (current.left != null) {
+      Node left = current.left;
+      current.left = left.right;
+      left.right = current;
+      current = left;
+    }
+    return current;
+  }
+
+  @patch
+  Node _splayMax(Node node) {
+    Node current = node;
+    while (current.right != null) {
+      Node right = current.right;
+      current.right = right.left;
+      right.left = current;
+      current = right;
+    }
+    return current;
   }
 }

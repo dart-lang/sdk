@@ -280,19 +280,10 @@ void testInvalidUrls() {
   checkInvalid("s://x@x:x/");
   // At most one port.
   checkInvalid("s://x@x:9:9/");
-  // At most one #.
-  checkInvalid("s://x/x#foo#bar");
   // @ not allowed in scheme.
   checkInvalid("s@://x:9/x?x#x");
   // ] not allowed alone in host.
   checkInvalid("s://xx]/");
-  // ] not allowed anywhere except in host.
-  checkInvalid("s://xx/]");
-  checkInvalid("s://xx/?]");
-  checkInvalid("s://xx/#]");
-  checkInvalid("s:/]");
-  checkInvalid("s:/?]");
-  checkInvalid("s:/#]");
   // IPv6 must be enclosed in [ and ] for Uri.parse.
   // It is allowed un-enclosed as argument to `Uri(host:...)` because we don't
   // need to delimit.
@@ -387,6 +378,18 @@ void testNormalization() {
       "scheme:///#",
       new Uri(scheme: "scheme", host: "", path: "/", query: "", fragment: "")
           .toString());
+
+  // We allow, and escape, general delimiters in paths, queries and fragments.
+  // Allow `[` and `]` in path:
+  Expect.equals("s:/%5B%5D", Uri.parse("s:/[]").toString());
+  Expect.equals("s:%5B%5D", Uri.parse("s:[]").toString());
+  Expect.equals("%5B%5D", Uri.parse("[]").toString());
+  // Allow `[`, `]` and `?` in query (anything after *first* `?`).
+  // The `?` is not escaped.
+  Expect.equals("s://xx/?%5B%5D?", Uri.parse("s://xx/?[]?").toString());
+  // Allow `[`, `]`, `?` and `#` in fragment (anything after *first* `#`).
+  // The `?` is not escaped.
+  Expect.equals("s://xx/#%5B%5D%23?", Uri.parse("s://xx/#[]#?").toString());
 }
 
 void testReplace() {

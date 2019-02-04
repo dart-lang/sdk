@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class I1 extends core::Object {
+  field core::int x = null;
+  synthetic constructor •() → self::I1
+    : super core::Object::•()
+    ;
+}
+class I2 extends self::I1 {
+  field core::int y = null;
+  synthetic constructor •() → self::I2
+    : super self::I1::•()
+    ;
+}
+class A extends core::Object {
+  final field self::I1 a = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  final field self::I2 a = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C1 extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C1
+    : super core::Object::•()
+    ;
+  get a() → dynamic
+    return null;
+}
+class C2 extends core::Object implements self::B, self::A {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+  get a() → dynamic
+    return null;
+}
+static method main() → dynamic {}

@@ -2,31 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show HashSet, Queue;
 import 'dart:convert' show json;
 import 'dart:io' show File;
 
-import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, StaticWarningCode;
-import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show LibraryElement, UriReferencedElement;
-import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
-import 'package:analyzer/file_system/physical_file_system.dart'
-    show PhysicalResourceProvider;
-import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
-import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
-import 'package:analyzer/src/generated/source.dart'
-    show ContentCache, DartUriResolver;
-import 'package:analyzer/src/generated/source_io.dart'
-    show SourceKind, UriResolver;
-import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummarySource, InputPackagesResultProvider, SummaryDataStore;
+import 'package:analyzer/error/error.dart';
+
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
 
@@ -38,191 +23,102 @@ import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'code_generator.dart' show CodeGenerator;
-import 'context.dart' show AnalyzerOptions, createSourceFactory;
+import 'context.dart';
+
+import 'driver.dart';
 import 'error_helpers.dart';
-import 'extension_types.dart' show ExtensionTypeSet;
 
 /// Compiles a set of Dart files into a single JavaScript module.
 ///
-/// For a single [BuildUnit] definition, this will produce a [JSModuleFile].
-/// Those objects are record types that record the data consumed and produced
-/// for a single compile.
+/// For a single build unit, this will produce a [JSModuleFile].
+///
+/// A build unit is a collection of Dart sources that is sufficient to be
+/// compiled together. This can be as small as a single Dart library file, but
+/// if the library has parts, or if the library has cyclic dependencies on other
+/// libraries, those must be included as well. A common build unit is the lib
+/// directory of a Dart package.
 ///
 /// This class exists to cache global state associated with a single in-memory
-/// AnalysisContext, such as information about extension types in the Dart SDK.
-/// It can be used once to produce a single module, or reused to save warm-up
-/// time. (Currently there is no warm up, but there may be in the future.)
+/// [AnalysisContext], such as information about extension types in the Dart
+/// SDK. It can be used once to produce a single module, or reused to save
+/// warm-up time. (Currently there is no warm up, but there may be in the
+/// future.)
 ///
 /// The SDK source code is assumed to be immutable for the life of this class.
 ///
-/// For all other files, it is up to the [AnalysisContext] to decide whether or
+/// For all other files, it is up to the analysis context to decide whether or
 /// not any caching is performed. By default an analysis context will assume
 /// sources are immutable for the life of the context, and cache information
 /// about them.
-class ModuleCompiler {
-  final AnalysisContext context;
-  final SummaryDataStore summaryData;
-  final ExtensionTypeSet _extensionTypes;
+JSModuleFile compileWithAnalyzer(
+    CompilerAnalysisDriver compilerDriver,
+    List<String> sourcePaths,
+    AnalyzerOptions analyzerOptions,
+    CompilerOptions options) {
+  var trees = <CompilationUnit>[];
 
-  ModuleCompiler._(AnalysisContext context, this.summaryData)
-      : context = context,
-        _extensionTypes = ExtensionTypeSet(context);
+  var explicitSources = <Uri>[];
+  var compilingSdk = false;
+  for (var sourcePath in sourcePaths) {
+    var sourceUri = sourcePathToUri(sourcePath);
+    if (sourceUri.scheme == "dart") {
+      compilingSdk = true;
+    }
+    explicitSources.add(sourceUri);
+  }
+  var driver = compilerDriver.linkLibraries(explicitSources, analyzerOptions);
 
-  factory ModuleCompiler(AnalyzerOptions options,
-      {ResourceProvider resourceProvider,
-      String analysisRoot,
-      List<UriResolver> fileResolvers,
-      SummaryDataStore summaryData,
-      Iterable<String> summaryPaths = const []}) {
-    // TODO(danrubel): refactor with analyzer CLI into analyzer common code
-    AnalysisEngine.instance.processRequiredPlugins();
+  var errors = ErrorCollector(driver.analysisOptions, options.replCompile);
+  for (var libraryUri in driver.libraryUris) {
+    var analysisResults = driver.analyzeLibrary(libraryUri);
 
-    resourceProvider ??= PhysicalResourceProvider.INSTANCE;
-    analysisRoot ??= path.current;
-
-    var contextBuilder = ContextBuilder(resourceProvider,
-        DartSdkManager(options.dartSdkPath, true), ContentCache(),
-        options: options.contextBuilderOptions);
-
-    var analysisOptions = contextBuilder.getAnalysisOptions(analysisRoot);
-    var sdk = contextBuilder.findSdk(null, analysisOptions);
-
-    var sdkResolver = DartUriResolver(sdk);
-
-    // Read the summaries.
-    summaryData ??= SummaryDataStore(summaryPaths,
-        resourceProvider: resourceProvider,
-        // TODO(vsm): Reset this to true once we cleanup internal build rules.
-        disallowOverlappingSummaries: false);
-
-    var sdkSummaryBundle = sdk.getLinkedBundle();
-    if (sdkSummaryBundle != null) {
-      summaryData.addBundle(null, sdkSummaryBundle);
+    CompilationUnit definingUnit;
+    for (var result in analysisResults.values) {
+      if (result.file.uriStr == libraryUri) definingUnit = result.unit;
+      errors.addAll(result.unit.lineInfo, result.errors);
+      trees.add(result.unit);
     }
 
-    var srcFactory = createSourceFactory(options,
-        sdkResolver: sdkResolver,
-        fileResolvers: fileResolvers,
-        summaryData: summaryData,
-        resourceProvider: resourceProvider);
+    var library = driver.getLibrary(libraryUri);
 
-    var context =
-        AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
-    context.analysisOptions = analysisOptions;
-    context.sourceFactory = srcFactory;
-    if (sdkSummaryBundle != null) {
-      context.resultProvider =
-          InputPackagesResultProvider(context, summaryData);
+    // TODO(jmesserly): remove "dart:mirrors" from DDC's SDK, and then remove
+    // this special case error message.
+    if (!compilingSdk && !options.emitMetadata) {
+      var node = _getDartMirrorsImport(library);
+      if (node != null) {
+        errors.add(
+            definingUnit.lineInfo,
+            AnalysisError(library.source, node.uriOffset, node.uriEnd,
+                invalidImportDartMirrors));
+      }
     }
-    var variables = Map<String, String>.from(options.declaredVariables)
-      ..addAll(sdkLibraryVariables);
-
-    context.declaredVariables = DeclaredVariables.fromMap(variables);
-    if (!context.analysisOptions.strongMode) {
-      throw ArgumentError('AnalysisContext must be strong mode');
-    }
-    if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
-      throw ArgumentError('AnalysisContext must have strong mode SDK');
-    }
-
-    return ModuleCompiler._(context, summaryData);
   }
 
-  /// Compiles a single Dart build unit into a JavaScript module.
-  ///
-  /// *Warning* - this may require resolving the entire world.
-  /// If that is not desired, the analysis context must be pre-configured using
-  /// summaries before calling this method.
-  JSModuleFile compile(BuildUnit unit, CompilerOptions options) {
-    var trees = <CompilationUnit>[];
-    var errors = <AnalysisError>[];
-
-    var librariesToCompile = Queue<LibraryElement>();
-
-    var compilingSdk = false;
-    for (var sourcePath in unit.sources) {
-      var sourceUri = sourcePathToUri(sourcePath);
-      if (sourceUri.scheme == "dart") {
-        compilingSdk = true;
-      }
-      var source = context.sourceFactory.forUri2(sourceUri);
-
-      var fileUsage = 'You need to pass at least one existing .dart file as an'
-          ' argument.';
-      if (source == null) {
-        throw UsageException(
-            'Could not create a source for "$sourcePath". The file name is in'
-            ' the wrong format or was not found.',
-            fileUsage);
-      } else if (!source.exists()) {
-        throw UsageException(
-            'Given file "$sourcePath" does not exist.', fileUsage);
-      }
-
-      // Ignore parts. They need to be handled in the context of their library.
-      if (context.computeKindOf(source) == SourceKind.PART) {
-        continue;
-      }
-
-      librariesToCompile.add(context.computeLibraryElement(source));
+  JS.Program jsProgram;
+  if (options.unsafeForceCompile || !errors.hasFatalErrors) {
+    var codeGenerator = CodeGenerator(
+        driver,
+        driver.typeProvider,
+        compilerDriver.summaryData,
+        options,
+        compilerDriver.extensionTypes,
+        errors);
+    try {
+      jsProgram = codeGenerator.compile(trees);
+    } catch (e) {
+      // If force compilation failed, suppress the exception and report the
+      // static errors instead. Otherwise, rethrow an internal compiler error.
+      if (!errors.hasFatalErrors) rethrow;
     }
 
-    var libraries = HashSet<LibraryElement>();
-    while (librariesToCompile.isNotEmpty) {
-      var library = librariesToCompile.removeFirst();
-      if (library.source is InSummarySource) continue;
-      if (!compilingSdk && library.source.isInSystemLibrary) continue;
-      if (!libraries.add(library)) continue;
-
-      librariesToCompile.addAll(library.importedLibraries);
-      librariesToCompile.addAll(library.exportedLibraries);
-
-      // TODO(jmesserly): remove "dart:mirrors" from DDC's SDK, and then remove
-      // this special case error message.
-      if (!compilingSdk && !options.emitMetadata) {
-        var node = _getDartMirrorsImport(library);
-        if (node != null) {
-          errors.add(AnalysisError(library.source, node.uriOffset, node.uriEnd,
-              invalidImportDartMirrors));
-        }
-      }
-
-      var tree = context.resolveCompilationUnit(library.source, library);
-      trees.add(tree);
-
-      var unitErrors = context.computeErrors(library.source);
-      errors.addAll(_filterJsErrors(library, unitErrors));
-
-      for (var part in library.parts) {
-        trees.add(context.resolveCompilationUnit(part.source, library));
-
-        var unitErrors = context.computeErrors(part.source);
-        errors.addAll(_filterJsErrors(library, unitErrors));
-      }
+    if (!options.unsafeForceCompile && errors.hasFatalErrors) {
+      jsProgram = null;
     }
-
-    var codeGenerator =
-        CodeGenerator(context, summaryData, options, _extensionTypes, errors);
-    return codeGenerator.compile(unit, trees);
   }
 
-  Iterable<AnalysisError> _filterJsErrors(
-      LibraryElement library, Iterable<AnalysisError> errors) {
-    var libraryUriStr = library.source.uri.toString();
-    if (libraryUriStr == 'dart:html' ||
-        libraryUriStr == 'dart:svg' ||
-        libraryUriStr == 'dart:_interceptors') {
-      return errors.where((error) {
-        return error.errorCode !=
-                StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 &&
-            error.errorCode !=
-                StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 &&
-            error.errorCode !=
-                StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS;
-      });
-    }
-    return errors;
-  }
+  var jsModule = JSModuleFile(
+      errors.formattedErrors.toList(), options, jsProgram, driver.summaryBytes);
+  return jsModule;
 }
 
 UriReferencedElement _getDartMirrorsImport(LibraryElement library) {
@@ -256,6 +152,10 @@ class CompilerOptions extends SharedCompilerOptions {
   /// [summaryModules].
   final String moduleRoot;
 
+  /// *deprecated* If specified, `dartdevc` will synthesize library names that
+  /// are relative to this path for all libraries in the JS module.
+  String libraryRoot;
+
   CompilerOptions(
       {bool sourceMap = true,
       this.sourceMapComment = true,
@@ -269,7 +169,8 @@ class CompilerOptions extends SharedCompilerOptions {
       Map<String, String> bazelMapping = const {},
       this.summaryOutPath,
       Map<String, String> summaryModules = const {},
-      this.moduleRoot})
+      this.moduleRoot,
+      this.libraryRoot})
       : super(
             sourceMap: sourceMap,
             summarizeApi: summarizeApi,
@@ -286,6 +187,7 @@ class CompilerOptions extends SharedCompilerOptions {
         unsafeForceCompile = args['unsafe-force-compile'] as bool,
         summaryOutPath = args['summary-out'] as String,
         moduleRoot = args['module-root'] as String,
+        libraryRoot = _getLibraryRoot(args),
         super.fromArguments(args, args['module-root'] as String,
             args['summary-extension'] as String);
 
@@ -312,27 +214,15 @@ class CompilerOptions extends SharedCompilerOptions {
       ..addOption('module-root',
           help: '(deprecated) used to determine the default module name and\n'
               'summary import name if those are not provided.',
-          hide: hide);
+          hide: hide)
+      ..addOption('library-root',
+          help: '(deprecated) used to name libraries inside the module.');
   }
-}
 
-/// A unit of Dart code that can be built into a single JavaScript module.
-class BuildUnit {
-  /// The name of this module.
-  final String name;
-
-  /// All library names are relative to this path/prefix.
-  final String libraryRoot;
-
-  /// The list of sources in this module.
-  ///
-  /// The set of Dart files can be arbitrarily large, but it must contain
-  /// complete libraries including all of their parts, as well as all libraries
-  /// that are part of a library cycle.
-  final List<String> sources;
-
-  BuildUnit(String modulePath, this.libraryRoot, this.sources)
-      : name = '${path.toUri(modulePath)}';
+  static String _getLibraryRoot(ArgResults args) {
+    var root = args['library-root'] as String;
+    return root != null ? path.absolute(root) : path.current;
+  }
 }
 
 /// The output of Dart->JS compilation.
@@ -340,9 +230,6 @@ class BuildUnit {
 /// This contains the file contents of the JS module, as well as a list of
 /// Dart libraries that are contained in this module.
 class JSModuleFile {
-  /// The name of this module.
-  final String name;
-
   /// The list of messages (errors and warnings)
   final List<String> errors;
 
@@ -364,12 +251,14 @@ class JSModuleFile {
   /// replace the ID once the source map is generated.
   static String sourceMapHoleID = 'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
 
-  JSModuleFile(
-      this.name, this.errors, this.options, this.moduleTree, this.summaryBytes);
+  JSModuleFile(this.errors, this.options, this.moduleTree, this.summaryBytes);
 
-  JSModuleFile.invalid(this.name, this.errors, this.options)
+  JSModuleFile.invalid(this.errors, this.options)
       : moduleTree = null,
         summaryBytes = null;
+
+  /// The name of this module.
+  String get name => options.moduleName;
 
   /// True if this library was successfully compiled.
   bool get isValid => moduleTree != null;

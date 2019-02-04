@@ -4,7 +4,9 @@ import "package:expect/expect.dart";
 
 main() {
   print("Spawning isolate.");
-  var t = new Timer(new Duration(seconds: 5), () {
+  var t = new Timer(new Duration(seconds: 30), () {
+    // it might take some time for new isolate to get spawned from source since
+    // it needs to be compiled first.
     Expect.fail("Isolate was not spawned successfully.");
   });
   var rp = new RawReceivePort();

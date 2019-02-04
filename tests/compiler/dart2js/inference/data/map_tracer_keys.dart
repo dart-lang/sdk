@@ -87,7 +87,7 @@ consume3(
 
 /*element: test3:[null]*/
 test3() {
-  dynamic theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
+  dynamic theMap = <dynamic, dynamic>{'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
       /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSDouble], [null|exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
       ['d'] = aList3;

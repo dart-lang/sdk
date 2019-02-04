@@ -22,13 +22,14 @@ import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/severity.dart'
     show Severity, severityEnumValues;
@@ -89,7 +90,7 @@ class MessageTestSuite extends ChainContext {
       List<Example> examples = <Example>[];
       String externalTest;
       bool frontendInternal = false;
-      String analyzerCode;
+      List<String> analyzerCodes;
       Severity severity;
       YamlNode badSeverity;
       YamlNode unnecessarySeverity;
@@ -116,7 +117,9 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "analyzerCode":
-            analyzerCode = value;
+            analyzerCodes = value is String
+                ? <String>[value]
+                : new List<String>.from(value);
             break;
 
           case "bytes":
@@ -263,7 +266,7 @@ class MessageTestSuite extends ChainContext {
           null,
           exampleAndAnalyzerCodeRequired &&
                   !frontendInternal &&
-                  analyzerCode == null
+                  analyzerCodes == null
               ? "No analyzer code for $name."
                   "\nTry running"
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
@@ -273,7 +276,8 @@ class MessageTestSuite extends ChainContext {
     }
   }
 
-  String formatProblems(String message, Example example, List<List> problems) {
+  String formatProblems(
+      String message, Example example, List<DiagnosticMessage> messages) {
     var span = example.node.span;
     StringBuffer buffer = new StringBuffer();
     buffer
@@ -285,12 +289,11 @@ class MessageTestSuite extends ChainContext {
       ..write(": error: ")
       ..write(message);
     buffer.write("\n${span.text}");
-    for (List problem in problems) {
-      FormattedMessage message = problem[0];
-      String formatted = message.formatted;
-      buffer.write("\nCode: ${message.code.name}");
+    for (DiagnosticMessage message in messages) {
+      buffer.write("\nCode: ${getMessageCodeObject(message).name}");
       buffer.write("\n  > ");
-      buffer.write(formatted.replaceAll("\n", "\n  > "));
+      buffer.write(
+          message.plainTextFormatted.join("\n").replaceAll("\n", "\n  > "));
     }
 
     return "$buffer";
@@ -398,7 +401,7 @@ class ScriptExample extends Example {
     if (script is! String && script is! Map) {
       throw suite.formatProblems(
           "A script must be either a String or a Map in $code:",
-          this, <List>[]);
+          this, <DiagnosticMessage>[]);
     }
   }
 
@@ -452,51 +455,46 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
     print("Compiling $main");
-    List<List> problems = <List>[];
+    List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
         new CompilerOptions()
-          ..sdkSummary = computePlatformBinariesLocation()
+          ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
-          ..target = new VmTarget(new TargetFlags(strongMode: true))
+          ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
-            problems.add([problem, severity]);
-          }
-          ..strongMode = true,
+          ..onDiagnostic = messages.add,
         main,
         output);
 
-    List<List> unexpectedProblems = <List>[];
-    for (List problem in problems) {
-      FormattedMessage message = problem[0];
-      if (message.code.name != example.expectedCode) {
-        unexpectedProblems.add(problem);
+    List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
+    for (DiagnosticMessage message in messages) {
+      if (getMessageCodeObject(message).name != example.expectedCode) {
+        unexpectedMessages.add(message);
       }
     }
-    if (unexpectedProblems.isEmpty) {
-      switch (problems.length) {
+    if (unexpectedMessages.isEmpty) {
+      switch (messages.length) {
         case 0:
           return fail(
               null,
-              suite.formatProblems("No problem reported in ${example.name}:",
-                  example, problems));
+              suite.formatProblems("No message reported in ${example.name}:",
+                  example, messages));
         case 1:
           return pass(null);
         default:
           return fail(
               null,
               suite.formatProblems(
-                  "Problem reported multiple times in ${example.name}:",
+                  "Message reported multiple times in ${example.name}:",
                   example,
-                  problems));
+                  messages));
       }
     }
     return fail(
         null,
-        suite.formatProblems("Too many problems reported in ${example.name}:",
-            example, problems));
+        suite.formatProblems("Too many messages reported in ${example.name}:",
+            example, messages));
   }
 }
 

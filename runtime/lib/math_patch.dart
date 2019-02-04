@@ -245,7 +245,7 @@ class _Random implements Random {
   static const _POW2_27_D = 1.0 * (1 << 27);
 
   // Use a singleton Random object to get a new seed if no seed was passed.
-  static var _prng = new _Random._withState(_initialSeed());
+  static final _prng = new _Random._withState(_initialSeed());
 
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.

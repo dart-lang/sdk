@@ -6,9 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/api_prototype/compilation_message.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerOptions, DiagnosticMessage, computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -30,12 +29,10 @@ main() {
   final sdkRoot = computePlatformBinariesLocation();
   final options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..strongMode = true
-    ..target = new VmTarget(new TargetFlags(strongMode: true))
+    ..target = new VmTarget(new TargetFlags())
     ..linkedDependencies = <Uri>[platformKernel]
-    ..reportMessages = true
-    ..onError = (CompilationMessage error) {
-      fail("Compilation error: ${error}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
   group('basic', () {
@@ -46,6 +43,31 @@ main() {
 
       IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
       Component component = await compiler.compile();
+
+      final StringBuffer buffer = new StringBuffer();
+      new Printer(buffer, showExternal: false, showMetadata: true)
+          .writeLibraryFile(component.mainMethod.enclosingLibrary);
+      expect(
+          buffer.toString(),
+          equals('library;\n'
+              'import self as self;\n'
+              '\n'
+              'static method main() → dynamic {}\n'));
+    });
+
+    test('compile exclude sources', () async {
+      var systemTempDir = Directory.systemTemp;
+      var file = new File('${systemTempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+
+      CompilerOptions optionsExcludeSources = options..embedSourceText = false;
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(optionsExcludeSources, file.uri);
+      Component component = await compiler.compile();
+
+      for (Source source in component.uriToSource.values) {
+        expect(source.source.length, equals(0));
+      }
 
       final StringBuffer buffer = new StringBuffer();
       new Printer(buffer, showExternal: false, showMetadata: true)

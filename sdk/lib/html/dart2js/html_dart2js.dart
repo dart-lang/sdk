@@ -67,6 +67,7 @@ import 'dart:_interceptors'
         setDispatchProperty;
 
 export 'dart:math' show Rectangle, Point;
+export 'dart:_internal' show HttpStatus;
 
 /**
  * Top-level container for a web page, which is usually a browser tab or window.
@@ -142,6 +143,8 @@ class HtmlElement extends Element implements NoncedElement {
  */
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+
+WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1192,18 +1195,15 @@ class BackgroundFetchManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future fetch(String id, Object requests, [Map options]) {
+  Future<BackgroundFetchRegistration> fetch(String id, Object requests,
+      [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _fetch_1(id, requests, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _fetch_2(id, requests);
+    return promiseToFuture<BackgroundFetchRegistration>(
+        JS("", "#.fetch(#, #, #)", this, id, requests, options_dict));
   }
-
-  @JSName('fetch')
-  Future _fetch_1(id, requests, options) native;
-  @JSName('fetch')
-  Future _fetch_2(id, requests) native;
 
   Future<BackgroundFetchRegistration> get(String id) =>
       promiseToFuture<BackgroundFetchRegistration>(
@@ -1840,17 +1840,13 @@ class CacheStorage extends Interceptor {
   Future keys() => promiseToFuture(JS("", "#.keys()", this));
 
   Future match(/*RequestInfo*/ request, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _match_1(request, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _match_2(request);
+    return promiseToFuture(
+        JS("", "#.match(#, #)", this, request, options_dict));
   }
-
-  @JSName('match')
-  Future _match_1(request, options) native;
-  @JSName('match')
-  Future _match_2(request) native;
 
   Future open(String cacheName) =>
       promiseToFuture(JS("", "#.open(#)", this, cacheName));
@@ -1971,8 +1967,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
   Object _getContext_2(contextId) native;
 
-  void toBlob(BlobCallback callback, String type, [Object arguments]) native;
-
   @JSName('toDataURL')
   String _toDataUrl(String type, [arguments_OR_quality]) native;
 
@@ -2066,6 +2060,17 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   String toDataUrl([String type = 'image/png', num quality]) =>
       _toDataUrl(type, quality);
+
+  @JSName('toBlob')
+  void _toBlob(BlobCallback callback, String type, [Object arguments]) native;
+
+  Future<Blob> toBlob(String type, [Object arguments]) {
+    var completer = new Completer<Blob>();
+    _toBlob((value) {
+      completer.complete(value);
+    }, type, arguments);
+    return completer.future;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2823,18 +2828,14 @@ class Clients extends Interceptor {
 
   Future get(String id) => promiseToFuture(JS("", "#.get(#)", this, id));
 
-  Future matchAll([Map options]) {
+  Future<List<Client>> matchAll([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _matchAll_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _matchAll_2();
+    return promiseToFuture<List<Client>>(
+        JS("", "#.matchAll(#)", this, options_dict));
   }
-
-  @JSName('matchAll')
-  Future _matchAll_1(options) native;
-  @JSName('matchAll')
-  Future _matchAll_2() native;
 
   Future<WindowClient> openWindow(String url) =>
       promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
@@ -2997,30 +2998,21 @@ class CookieStore extends Interceptor {
   }
 
   Future getAll([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _getAll_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _getAll_2();
+    return promiseToFuture(JS("", "#.getAll(#)", this, options_dict));
   }
-
-  @JSName('getAll')
-  Future _getAll_1(options) native;
-  @JSName('getAll')
-  Future _getAll_2() native;
 
   Future set(String name, String value, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _set_1(name, value, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _set_2(name, value);
+    return promiseToFuture(
+        JS("", "#.set(#, #, #)", this, name, value, options_dict));
   }
-
-  @JSName('set')
-  Future _set_1(name, value, options) native;
-  @JSName('set')
-  Future _set_2(name, value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3090,30 +3082,20 @@ class CredentialsContainer extends Interceptor {
   }
 
   Future create([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _create_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _create_2();
+    return promiseToFuture(JS("", "#.create(#)", this, options_dict));
   }
-
-  @JSName('create')
-  Future _create_1(options) native;
-  @JSName('create')
-  Future _create_2() native;
 
   Future get([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _get_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _get_2();
+    return promiseToFuture(JS("", "#.get(#)", this, options_dict));
   }
-
-  @JSName('get')
-  Future _get_1(options) native;
-  @JSName('get')
-  Future _get_2() native;
 
   Future preventSilentAccess() =>
       promiseToFuture(JS("", "#.preventSilentAccess()", this));
@@ -8580,12 +8562,25 @@ class DataTransfer extends Interceptor {
 
   void setDragImage(Element image, int x, int y) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DataTransferItem")
 class DataTransferItem extends Interceptor {
+  Entry getAsEntry() {
+    Entry entry = _webkitGetAsEntry();
+
+    if (entry.isFile)
+      applyExtension('FileEntry', entry);
+    else if (entry.isDirectory)
+      applyExtension('DirectoryEntry', entry);
+    else
+      applyExtension('Entry', entry);
+
+    return entry;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() {
     throw new UnsupportedError("Not supported");
@@ -8600,7 +8595,7 @@ class DataTransferItem extends Interceptor {
   @JSName('webkitGetAsEntry')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Entry getAsEntry() native;
+  Entry _webkitGetAsEntry() native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8722,7 +8717,12 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  static DedicatedWorkerGlobalScope get instance {
+    return _workerSelf as DedicatedWorkerGlobalScope;
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9177,8 +9177,15 @@ class DirectoryReader extends Interceptor {
 
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
-    _readEntries((value) {
-      completer.complete(new List<Entry>.from(value));
+    _readEntries((values) {
+      values.forEach((value) {
+        applyExtension('Entry', value);
+        Entry entry = value as Entry;
+        if (entry.isFile)
+          applyExtension('FileEntry', entry);
+        else if (entry.isDirectory) applyExtension('DirectoryEntry', entry);
+      });
+      completer.complete(new List<Entry>.from(values));
     }, (error) {
       completer.completeError(error);
     });
@@ -9595,6 +9602,7 @@ class Document extends Node {
   Stream<ClipboardEvent> get onCut => Element.cutEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Document].
+  @DomName('Document.ondblclick')
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   /// Stream of `drag` events handled by this [Document].
@@ -11379,6 +11387,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   ElementStream<ClipboardEvent> get onCut;
 
   /// Stream of `doubleclick` events handled by this [Element].
+  @DomName('Element.ondblclick')
   ElementStream<Event> get onDoubleClick;
 
   /**
@@ -11743,6 +11752,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
       Element.cutEvent._forElementList(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
+  @DomName('Element.ondblclick')
   ElementStream<Event> get onDoubleClick =>
       Element.doubleClickEvent._forElementList(this);
 
@@ -12296,6 +12306,66 @@ class Element extends Node
     }
   }
 
+  @pragma('dart2js:tryInline')
+  String getAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  String getAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttribute(String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttribute(name, value);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttributeNS(String namespaceURI, String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttributeNS(namespaceURI, name, value);
+  }
+
   /**
    * List of the direct children of this element.
    *
@@ -12331,6 +12401,30 @@ class Element extends Node
    */
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+  @JSName('setApplyScroll')
+  void _setApplyScroll(ScrollStateCallback scrollStateCallback,
+      String nativeScrollBehavior) native;
+
+  Future<ScrollState> setApplyScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+    _setApplyScroll((value) {
+      completer.complete(value);
+    }, nativeScrollBehavior);
+    return completer.future;
+  }
+
+  @JSName('setDistributeScroll')
+  void _setDistributeScroll(ScrollStateCallback scrollStateCallback,
+      String nativeScrollBehavior) native;
+
+  Future<ScrollState> setDistributeScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+    _setDistributeScroll((value) {
+      completer.complete(value);
+    }, nativeScrollBehavior);
+    return completer.future;
+  }
 
   /**
    * The set of CSS classes applied to this element.
@@ -12409,8 +12503,10 @@ class Element extends Node
    *
    * See also:
    *
-   * * [CSS Inheritance and Cascade](http://docs.webplatform.org/wiki/tutorials/inheritance_and_cascade)
-   * * [Pseudo-elements](http://docs.webplatform.org/wiki/css/selectors/pseudo-elements)
+   * * [Cascade and Inheritance](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Cascade_and_inheritance)
+   *   from MDN.
+   * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
+   *   from MDN.
    */
   CssStyleDeclaration getComputedStyle([String pseudoElement]) {
     if (pseudoElement == null) {
@@ -12592,8 +12688,10 @@ class Element extends Node
    *
    * See also:
    *
-   * * [scrollIntoView](http://docs.webplatform.org/wiki/dom/methods/scrollIntoView)
-   * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
+   * * [scrollIntoView](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)
+   *   from MDN.
+   * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
    */
   void scrollIntoView([ScrollAlignment alignment]) {
     var hasScrollIntoViewIfNeeded = true;
@@ -13293,6 +13391,7 @@ class Element extends Node
    *
    * See [EventStreamProvider] for usage information.
    */
+  @DomName('Element.dblclickEvent')
   static const EventStreamProvider<Event> doubleClickEvent =
       const EventStreamProvider<Event>('dblclick');
 
@@ -13876,9 +13975,11 @@ class Element extends Node
 
   List<Animation> getAnimations() native;
 
-  String getAttribute(String name) native;
+  @JSName('getAttribute')
+  String _getAttribute(String name) native;
 
-  String getAttributeNS(String namespaceURI, String localName) native;
+  @JSName('getAttributeNS')
+  String _getAttributeNS(String namespaceURI, String localName) native;
 
   List<String> getAttributeNames() native;
 
@@ -14043,15 +14144,11 @@ class Element extends Node
   @JSName('scrollTo')
   void _scrollTo_3(num x, y) native;
 
-  void setApplyScroll(ScrollStateCallback scrollStateCallback,
-      String nativeScrollBehavior) native;
+  @JSName('setAttribute')
+  void _setAttribute(String name, String value) native;
 
-  void setAttribute(String name, String value) native;
-
-  void setAttributeNS(String namespaceURI, String name, String value) native;
-
-  void setDistributeScroll(ScrollStateCallback scrollStateCallback,
-      String nativeScrollBehavior) native;
+  @JSName('setAttributeNS')
+  void _setAttributeNS(String namespaceURI, String name, String value) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -14061,9 +14158,9 @@ class Element extends Node
    *
    * ## Other resources
    *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   tutorial from WebPlatform.org.
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -14158,6 +14255,7 @@ class Element extends Node
   ElementStream<ClipboardEvent> get onCut => cutEvent.forElement(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
+  @DomName('Element.ondblclick')
   ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
 
   /**
@@ -14567,6 +14665,7 @@ class Entry extends Interceptor {
   Future<Entry> getParent() {
     var completer = new Completer<Entry>();
     _getParent((value) {
+      applyExtension('Entry', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -16108,47 +16207,53 @@ class Geolocation extends Interceptor {
   void _getCurrentPosition(_PositionCallback successCallback,
       [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      _getCurrentPosition_1(successCallback, errorCallback, options_1);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      var options_2 = convertDartToNative_Dictionary(options);
+      _getCurrentPosition_1(successCallback_1, errorCallback, options_2);
       return;
     }
     if (errorCallback != null) {
-      _getCurrentPosition_2(successCallback, errorCallback);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      _getCurrentPosition_2(successCallback_1, errorCallback);
       return;
     }
-    _getCurrentPosition_3(successCallback);
+    var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+    _getCurrentPosition_3(successCallback_1);
     return;
   }
 
   @JSName('getCurrentPosition')
-  void _getCurrentPosition_1(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback, options) native;
+  void _getCurrentPosition_1(
+      successCallback, _PositionErrorCallback errorCallback, options) native;
   @JSName('getCurrentPosition')
-  void _getCurrentPosition_2(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback) native;
+  void _getCurrentPosition_2(
+      successCallback, _PositionErrorCallback errorCallback) native;
   @JSName('getCurrentPosition')
-  void _getCurrentPosition_3(_PositionCallback successCallback) native;
+  void _getCurrentPosition_3(successCallback) native;
 
   int _watchPosition(_PositionCallback successCallback,
       [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _watchPosition_1(successCallback, errorCallback, options_1);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _watchPosition_1(successCallback_1, errorCallback, options_2);
     }
     if (errorCallback != null) {
-      return _watchPosition_2(successCallback, errorCallback);
+      var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+      return _watchPosition_2(successCallback_1, errorCallback);
     }
-    return _watchPosition_3(successCallback);
+    var successCallback_1 = convertDartClosureToJS(successCallback, 1);
+    return _watchPosition_3(successCallback_1);
   }
 
   @JSName('watchPosition')
-  int _watchPosition_1(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback, options) native;
+  int _watchPosition_1(
+      successCallback, _PositionErrorCallback errorCallback, options) native;
   @JSName('watchPosition')
-  int _watchPosition_2(_PositionCallback successCallback,
-      _PositionErrorCallback errorCallback) native;
+  int _watchPosition_2(successCallback, _PositionErrorCallback errorCallback)
+      native;
   @JSName('watchPosition')
-  int _watchPosition_3(_PositionCallback successCallback) native;
+  int _watchPosition_3(successCallback) native;
 }
 
 /**
@@ -16219,6 +16324,7 @@ abstract class GlobalEventHandlers implements EventTarget {
   static const EventStreamProvider<MouseEvent> contextMenuEvent =
       const EventStreamProvider<MouseEvent>('contextmenu');
 
+  @DomName('GlobalEventHandlers.dblclickEvent')
   static const EventStreamProvider<Event> doubleClickEvent =
       const EventStreamProvider<Event>('dblclick');
 
@@ -16383,6 +16489,7 @@ abstract class GlobalEventHandlers implements EventTarget {
 
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
+  @DomName('GlobalEventHandlers.ondblclick')
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
@@ -16867,9 +16974,9 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -17114,9 +17221,6 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Creates a GET request for the specified [url].
    *
-   * The server response must be a `text/` mime type for this request to
-   * succeed.
-   *
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
@@ -17127,7 +17231,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *     var name = Uri.encodeQueryComponent('John');
    *     var id = Uri.encodeQueryComponent('42');
    *     HttpRequest.getString('users.json?name=$name&id=$id')
-   *       .then((HttpRequest resp) {
+   *       .then((String resp) {
    *         // Do something with the response.
    *     });
    *
@@ -17145,8 +17249,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar
-   * to sending a FormData object with broader browser support but limited to
+   * This is roughly the POST equivalent of [getString]. This method is similar
+   * to sending a [FormData] object with broader browser support but limited to
    * String values.
    *
    * If [data] is supplied, the key/value pairs are URI encoded with
@@ -17443,11 +17547,11 @@ class HttpRequest extends HttpRequestEventTarget {
    * Specify the desired `url`, and `method` to use in making the request.
    *
    * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
+   * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
    * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
+   * calling [abort].
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
@@ -17677,7 +17781,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * response.
    *
    * This value must be set before the request has been sent. See also the list
-   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)
+   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml).
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -17975,25 +18079,18 @@ class ImageCapture extends Interceptor {
       promiseToFuture<ImageBitmap>(JS("", "#.grabFrame()", this));
 
   Future setOptions(Map photoSettings) {
-    var photoSettings_1 = convertDartToNative_Dictionary(photoSettings);
-    return _setOptions_1(photoSettings_1);
+    var photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
+    return promiseToFuture(JS("", "#.setOptions(#)", this, photoSettings_dict));
   }
 
-  @JSName('setOptions')
-  Future _setOptions_1(photoSettings) native;
-
-  Future takePhoto([Map photoSettings]) {
+  Future<Blob> takePhoto([Map photoSettings]) {
+    var photoSettings_dict = null;
     if (photoSettings != null) {
-      var photoSettings_1 = convertDartToNative_Dictionary(photoSettings);
-      return _takePhoto_1(photoSettings_1);
+      photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
     }
-    return _takePhoto_2();
+    return promiseToFuture<Blob>(
+        JS("", "#.takePhoto(#)", this, photoSettings_dict));
   }
-
-  @JSName('takePhoto')
-  Future _takePhoto_1(photoSettings) native;
-  @JSName('takePhoto')
-  Future _takePhoto_2() native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18809,10 +18906,12 @@ class IntersectionObserver extends Interceptor {
   factory IntersectionObserver(IntersectionObserverCallback callback,
       [Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return IntersectionObserver._create_1(callback, options_1);
+      var callback_1 = convertDartClosureToJS(callback, 2);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return IntersectionObserver._create_1(callback_1, options_2);
     }
-    return IntersectionObserver._create_2(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return IntersectionObserver._create_2(callback_1);
   }
   static IntersectionObserver _create_1(callback, options) => JS(
       'IntersectionObserver',
@@ -19344,21 +19443,17 @@ class MediaCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future decodingInfo(Map configuration) {
-    var configuration_1 = convertDartToNative_Dictionary(configuration);
-    return _decodingInfo_1(configuration_1);
+  Future<MediaCapabilitiesInfo> decodingInfo(Map configuration) {
+    var configuration_dict = convertDartToNative_Dictionary(configuration);
+    return promiseToFuture<MediaCapabilitiesInfo>(
+        JS("", "#.decodingInfo(#)", this, configuration_dict));
   }
 
-  @JSName('decodingInfo')
-  Future _decodingInfo_1(configuration) native;
-
-  Future encodingInfo(Map configuration) {
-    var configuration_1 = convertDartToNative_Dictionary(configuration);
-    return _encodingInfo_1(configuration_1);
+  Future<MediaCapabilitiesInfo> encodingInfo(Map configuration) {
+    var configuration_dict = convertDartToNative_Dictionary(configuration);
+    return promiseToFuture<MediaCapabilitiesInfo>(
+        JS("", "#.encodingInfo(#)", this, configuration_dict));
   }
-
-  @JSName('encodingInfo')
-  Future _encodingInfo_1(configuration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20166,17 +20261,13 @@ class MediaStreamTrack extends EventTarget {
   final String readyState;
 
   Future applyConstraints([Map constraints]) {
+    var constraints_dict = null;
     if (constraints != null) {
-      var constraints_1 = convertDartToNative_Dictionary(constraints);
-      return _applyConstraints_1(constraints_1);
+      constraints_dict = convertDartToNative_Dictionary(constraints);
     }
-    return _applyConstraints_2();
+    return promiseToFuture(
+        JS("", "#.applyConstraints(#)", this, constraints_dict));
   }
-
-  @JSName('applyConstraints')
-  Future _applyConstraints_1(constraints) native;
-  @JSName('applyConstraints')
-  Future _applyConstraints_2() native;
 
   MediaStreamTrack clone() native;
 
@@ -20385,6 +20476,10 @@ class MessageEvent extends Event {
   final String lastEventId;
 
   final String origin;
+
+  @Unstable()
+  @Creates('JSExtendableArray')
+  final List<MessagePort> ports;
 
   EventTarget get source => _convertNativeToDart_EventTarget(this._get_source);
   @JSName('source')
@@ -21562,22 +21657,21 @@ class Navigator extends NavigatorConcurrentHardware
   }
 
   @JSName('requestKeyboardLock')
-  Future _requestKeyboardLock_1(List keyCodes) native;
+  Future _requestKeyboardLock_1(List keyCodes) =>
+      promiseToFuture(JS("", "#.requestKeyboardLock(#)", this, keyCodes));
   @JSName('requestKeyboardLock')
-  Future _requestKeyboardLock_2() native;
+  Future _requestKeyboardLock_2() =>
+      promiseToFuture(JS("", "#.requestKeyboardLock()", this));
 
+  @JSName('requestMIDIAccess')
   Future requestMidiAccess([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestMidiAccess_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _requestMidiAccess_2();
+    return promiseToFuture(
+        JS("", "#.requestMidiAccess(#)", this, options_dict));
   }
-
-  @JSName('requestMIDIAccess')
-  Future _requestMidiAccess_1(options) native;
-  @JSName('requestMIDIAccess')
-  Future _requestMidiAccess_2() native;
 
   Future requestMediaKeySystemAccess(
           String keySystem, List<Map> supportedConfigurations) =>
@@ -21587,17 +21681,12 @@ class Navigator extends NavigatorConcurrentHardware
   bool sendBeacon(String url, Object data) native;
 
   Future share([Map data]) {
+    var data_dict = null;
     if (data != null) {
-      var data_1 = convertDartToNative_Dictionary(data);
-      return _share_1(data_1);
+      data_dict = convertDartToNative_Dictionary(data);
     }
-    return _share_2();
+    return promiseToFuture(JS("", "#.share(#)", this, data_dict));
   }
-
-  @JSName('share')
-  Future _share_1(data) native;
-  @JSName('share')
-  Future _share_2() native;
 
   // From NavigatorAutomationInformation
 
@@ -22748,18 +22837,14 @@ class OffscreenCanvas extends EventTarget {
 
   int width;
 
-  Future convertToBlob([Map options]) {
+  Future<Blob> convertToBlob([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _convertToBlob_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _convertToBlob_2();
+    return promiseToFuture<Blob>(
+        JS("", "#.convertToBlob(#)", this, options_dict));
   }
-
-  @JSName('convertToBlob')
-  Future _convertToBlob_1(options) native;
-  @JSName('convertToBlob')
-  Future _convertToBlob_2() native;
 
   Object getContext(String contextType, [Map attributes]) {
     if (attributes != null) {
@@ -22892,8 +22977,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23269,8 +23353,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23596,12 +23679,10 @@ class PaymentInstruments extends Interceptor {
       promiseToFuture<List<String>>(JS("", "#.keys()", this));
 
   Future set(String instrumentKey, Map details) {
-    var details_1 = convertDartToNative_Dictionary(details);
-    return _set_1(instrumentKey, details_1);
+    var details_dict = convertDartToNative_Dictionary(details);
+    return promiseToFuture(
+        JS("", "#.set(#, #)", this, instrumentKey, details_dict));
   }
-
-  @JSName('set')
-  Future _set_1(instrumentKey, details) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23933,7 +24014,8 @@ class PerformanceObserver extends Interceptor {
   }
 
   factory PerformanceObserver(PerformanceObserverCallback callback) {
-    return PerformanceObserver._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return PerformanceObserver._create_1(callback_1);
   }
   static PerformanceObserver _create_1(callback) =>
       JS('PerformanceObserver', 'new PerformanceObserver(#)', callback);
@@ -24132,33 +24214,27 @@ class Permissions extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future query(Map permission) {
-    var permission_1 = convertDartToNative_Dictionary(permission);
-    return _query_1(permission_1);
+  Future<PermissionStatus> query(Map permission) {
+    var permission_dict = convertDartToNative_Dictionary(permission);
+    return promiseToFuture<PermissionStatus>(
+        JS("", "#.query(#)", this, permission_dict));
   }
 
-  @JSName('query')
-  Future _query_1(permission) native;
-
-  Future request(Map permissions) {
-    var permissions_1 = convertDartToNative_Dictionary(permissions);
-    return _request_1(permissions_1);
+  Future<PermissionStatus> request(Map permissions) {
+    var permissions_dict = convertDartToNative_Dictionary(permissions);
+    return promiseToFuture<PermissionStatus>(
+        JS("", "#.request(#)", this, permissions_dict));
   }
-
-  @JSName('request')
-  Future _request_1(permissions) native;
 
   Future<PermissionStatus> requestAll(List<Map> permissions) =>
       promiseToFuture<PermissionStatus>(
           JS("", "#.requestAll(#)", this, permissions));
 
-  Future revoke(Map permission) {
-    var permission_1 = convertDartToNative_Dictionary(permission);
-    return _revoke_1(permission_1);
+  Future<PermissionStatus> revoke(Map permission) {
+    var permission_dict = convertDartToNative_Dictionary(permission);
+    return promiseToFuture<PermissionStatus>(
+        JS("", "#.revoke(#)", this, permission_dict));
   }
-
-  @JSName('revoke')
-  Future _revoke_1(permission) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24758,30 +24834,21 @@ class PushManager extends Interceptor {
       promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
 
   Future permissionState([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _permissionState_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _permissionState_2();
+    return promiseToFuture(JS("", "#.permissionState(#)", this, options_dict));
   }
 
-  @JSName('permissionState')
-  Future _permissionState_1(options) native;
-  @JSName('permissionState')
-  Future _permissionState_2() native;
-
-  Future subscribe([Map options]) {
+  Future<PushSubscription> subscribe([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _subscribe_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _subscribe_2();
+    return promiseToFuture<PushSubscription>(
+        JS("", "#.subscribe(#)", this, options_dict));
   }
-
-  @JSName('subscribe')
-  Future _subscribe_1(options) native;
-  @JSName('subscribe')
-  Future _subscribe_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25089,7 +25156,8 @@ class ReportingObserver extends Interceptor {
   }
 
   factory ReportingObserver(ReportingObserverCallback callback) {
-    return ReportingObserver._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return ReportingObserver._create_1(callback_1);
   }
   static ReportingObserver _create_1(callback) =>
       JS('ReportingObserver', 'new ReportingObserver(#)', callback);
@@ -25125,7 +25193,8 @@ class ResizeObserver extends Interceptor {
   }
 
   factory ResizeObserver(ResizeObserverCallback callback) {
-    return ResizeObserver._create_1(callback);
+    var callback_1 = convertDartClosureToJS(callback, 2);
+    return ResizeObserver._create_1(callback_1);
   }
   static ResizeObserver _create_1(callback) =>
       JS('ResizeObserver', 'new ResizeObserver(#)', callback);
@@ -25456,26 +25525,6 @@ class RtcPeerConnection extends EventTarget {
     return false;
   }
 
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer((value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    }, mediaConstraints);
-    return completer.future;
-  }
-
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer((value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    }, mediaConstraints);
-    return completer.future;
-  }
-
   /**
   * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
   * new getStats API.
@@ -25599,47 +25648,14 @@ class RtcPeerConnection extends EventTarget {
 
   void close() native;
 
-  Future _createAnswer(
-      [options_OR_successCallback,
-      RtcPeerConnectionErrorCallback failureCallback,
-      Map mediaConstraints]) {
-    if (options_OR_successCallback == null &&
-        failureCallback == null &&
-        mediaConstraints == null) {
-      return _createAnswer_1();
+  Future<RtcSessionDescription> createAnswer([Map options]) {
+    var options_dict = null;
+    if (options != null) {
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    if ((options_OR_successCallback is Map) &&
-        failureCallback == null &&
-        mediaConstraints == null) {
-      var options_1 =
-          convertDartToNative_Dictionary(options_OR_successCallback);
-      return _createAnswer_2(options_1);
-    }
-    if (failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback) &&
-        mediaConstraints == null) {
-      return _createAnswer_3(options_OR_successCallback, failureCallback);
-    }
-    if (mediaConstraints != null &&
-        failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback)) {
-      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
-      return _createAnswer_4(
-          options_OR_successCallback, failureCallback, mediaConstraints_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return promiseToFuture<RtcSessionDescription>(
+        JS("", "#.createAnswer(#)", this, options_dict));
   }
-
-  @JSName('createAnswer')
-  Future _createAnswer_1() native;
-  @JSName('createAnswer')
-  Future _createAnswer_2(options) native;
-  @JSName('createAnswer')
-  Future _createAnswer_3(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-  @JSName('createAnswer')
-  Future _createAnswer_4(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback, mediaConstraints) native;
 
   @JSName('createDTMFSender')
   RtcDtmfSender createDtmfSender(MediaStreamTrack track) native;
@@ -25657,47 +25673,14 @@ class RtcPeerConnection extends EventTarget {
   @JSName('createDataChannel')
   RtcDataChannel _createDataChannel_2(label) native;
 
-  Future _createOffer(
-      [options_OR_successCallback,
-      RtcPeerConnectionErrorCallback failureCallback,
-      Map rtcOfferOptions]) {
-    if (options_OR_successCallback == null &&
-        failureCallback == null &&
-        rtcOfferOptions == null) {
-      return _createOffer_1();
+  Future<RtcSessionDescription> createOffer([Map options]) {
+    var options_dict = null;
+    if (options != null) {
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    if ((options_OR_successCallback is Map) &&
-        failureCallback == null &&
-        rtcOfferOptions == null) {
-      var options_1 =
-          convertDartToNative_Dictionary(options_OR_successCallback);
-      return _createOffer_2(options_1);
-    }
-    if (failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback) &&
-        rtcOfferOptions == null) {
-      return _createOffer_3(options_OR_successCallback, failureCallback);
-    }
-    if (rtcOfferOptions != null &&
-        failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback)) {
-      var rtcOfferOptions_1 = convertDartToNative_Dictionary(rtcOfferOptions);
-      return _createOffer_4(
-          options_OR_successCallback, failureCallback, rtcOfferOptions_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return promiseToFuture<RtcSessionDescription>(
+        JS("", "#.createOffer(#)", this, options_dict));
   }
-
-  @JSName('createOffer')
-  Future _createOffer_1() native;
-  @JSName('createOffer')
-  Future _createOffer_2(options) native;
-  @JSName('createOffer')
-  Future _createOffer_3(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-  @JSName('createOffer')
-  Future _createOffer_4(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback, rtcOfferOptions) native;
 
   List<MediaStream> getLocalStreams() native;
 
@@ -25723,48 +25706,16 @@ class RtcPeerConnection extends EventTarget {
   @JSName('setConfiguration')
   void _setConfiguration_1(configuration) native;
 
-  Future _setLocalDescription(Map description, VoidCallback successCallback,
-      [RtcPeerConnectionErrorCallback failureCallback]) {
-    var description_1 = convertDartToNative_Dictionary(description);
-    return _setLocalDescription_1(
-        description_1, successCallback, failureCallback);
-  }
-
-  @JSName('setLocalDescription')
-  Future _setLocalDescription_1(description, VoidCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-
-  @JSName('setLocalDescription')
   Future setLocalDescription(Map description) {
-    var completer = new Completer();
-    _setLocalDescription(description, () {
-      completer.complete();
-    }, (exception) {
-      completer.completeError(exception);
-    });
-    return completer.future;
+    var description_dict = convertDartToNative_Dictionary(description);
+    return promiseToFuture(
+        JS("", "#.setLocalDescription(#)", this, description_dict));
   }
 
-  Future _setRemoteDescription(Map description, VoidCallback successCallback,
-      [RtcPeerConnectionErrorCallback failureCallback]) {
-    var description_1 = convertDartToNative_Dictionary(description);
-    return _setRemoteDescription_1(
-        description_1, successCallback, failureCallback);
-  }
-
-  @JSName('setRemoteDescription')
-  Future _setRemoteDescription_1(description, VoidCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-
-  @JSName('setRemoteDescription')
   Future setRemoteDescription(Map description) {
-    var completer = new Completer();
-    _setRemoteDescription(description, () {
-      completer.complete();
-    }, (exception) {
-      completer.completeError(exception);
-    });
-    return completer.future;
+    var description_dict = convertDartToNative_Dictionary(description);
+    return promiseToFuture(
+        JS("", "#.setRemoteDescription(#)", this, description_dict));
   }
 
   /// Stream of `addstream` events handled by this [RtcPeerConnection].
@@ -26458,7 +26409,21 @@ class ServiceWorker extends EventTarget implements AbstractWorker {
 
   final String state;
 
-  void postMessage(Object message, [List<Object> transfer]) native;
+  void postMessage(/*any*/ message, [List<Object> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+
+  @JSName('postMessage')
+  void _postMessage_1(message, List<Object> transfer) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
@@ -26489,18 +26454,14 @@ class ServiceWorkerContainer extends EventTarget {
       promiseToFuture<List<ServiceWorkerRegistration>>(
           JS("", "#.getRegistrations()", this));
 
-  Future register(String url, [Map options]) {
+  Future<ServiceWorkerRegistration> register(String url, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _register_1(url, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _register_2(url);
+    return promiseToFuture<ServiceWorkerRegistration>(
+        JS("", "#.register(#, #)", this, url, options_dict));
   }
-
-  @JSName('register')
-  Future _register_1(url, options) native;
-  @JSName('register')
-  Future _register_2(url) native;
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
@@ -26546,7 +26507,12 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   Stream<Event> get onInstall => installEvent.forTarget(this);
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  static ServiceWorkerGlobalScope get instance {
+    return _workerSelf as ServiceWorkerGlobalScope;
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26576,31 +26542,23 @@ class ServiceWorkerRegistration extends EventTarget {
 
   final ServiceWorker waiting;
 
-  Future getNotifications([Map filter]) {
+  Future<List<Notification>> getNotifications([Map filter]) {
+    var filter_dict = null;
     if (filter != null) {
-      var filter_1 = convertDartToNative_Dictionary(filter);
-      return _getNotifications_1(filter_1);
+      filter_dict = convertDartToNative_Dictionary(filter);
     }
-    return _getNotifications_2();
+    return promiseToFuture<List<Notification>>(
+        JS("", "#.getNotifications(#)", this, filter_dict));
   }
-
-  @JSName('getNotifications')
-  Future _getNotifications_1(filter) native;
-  @JSName('getNotifications')
-  Future _getNotifications_2() native;
 
   Future showNotification(String title, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _showNotification_1(title, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _showNotification_2(title);
+    return promiseToFuture(
+        JS("", "#.showNotification(#, #)", this, title, options_dict));
   }
-
-  @JSName('showNotification')
-  Future _showNotification_1(title, options) native;
-  @JSName('showNotification')
-  Future _showNotification_2(title) native;
 
   Future<bool> unregister() =>
       promiseToFuture<bool>(JS("", "#.unregister()", this));
@@ -26813,7 +26771,12 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
 
   /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   Stream<Event> get onConnect => connectEvent.forTarget(this);
+
+  static SharedWorkerGlobalScope get instance {
+    return _workerSelf as SharedWorkerGlobalScope;
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29533,30 +29496,20 @@ class VRDevice extends EventTarget {
   final bool isExternal;
 
   Future requestSession([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestSession_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _requestSession_2();
+    return promiseToFuture(JS("", "#.requestSession(#)", this, options_dict));
   }
-
-  @JSName('requestSession')
-  Future _requestSession_1(options) native;
-  @JSName('requestSession')
-  Future _requestSession_2() native;
 
   Future supportsSession([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _supportsSession_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _supportsSession_2();
+    return promiseToFuture(JS("", "#.supportsSession(#)", this, options_dict));
   }
-
-  @JSName('supportsSession')
-  Future _supportsSession_1(options) native;
-  @JSName('supportsSession')
-  Future _supportsSession_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29775,17 +29728,13 @@ class VRSession extends EventTarget {
   Future end() => promiseToFuture(JS("", "#.end()", this));
 
   Future requestFrameOfReference(String type, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestFrameOfReference_1(type, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _requestFrameOfReference_2(type);
+    return promiseToFuture(
+        JS("", "#.requestFrameOfReference(#, #)", this, type, options_dict));
   }
-
-  @JSName('requestFrameOfReference')
-  Future _requestFrameOfReference_1(type, options) native;
-  @JSName('requestFrameOfReference')
-  Future _requestFrameOfReference_2(type) native;
 
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
@@ -30565,8 +30514,6 @@ class Window extends EventTarget
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
-   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
-   *   from WebPlatform.org.
    */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
@@ -30953,8 +30900,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)
-   *   from WebPlatform.org.
+   * * [Window.innerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight)
+   *   from MDN.
    */
   final int innerHeight;
 
@@ -30963,8 +30910,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)
-   *   from WebPlatform.org.
+   * * [Window.innerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth)
+   *   from MDN.
    */
   final int innerWidth;
 
@@ -31011,8 +30958,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
-   *   from WebPlatform.org.
+   * * [Window.name](https://developer.mozilla.org/en-US/docs/Web/API/Window/name)
+   *   from MDN.
    */
   String name;
 
@@ -31032,7 +30979,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)
+   * * [offscreenBuffering](https://webplatform.github.io/docs/dom/HTMLElement/offscreenBuffering/)
    *   from WebPlatform.org.
    */
   final bool offscreenBuffering;
@@ -31056,8 +31003,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)
-   *   from WebPlatform.org.
+   * * [Window.outerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerHeight)
+   *   from MDN.
    */
   final int outerHeight;
 
@@ -31066,8 +31013,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)
-   *   from WebPlatform.org.
+   * * [Window.outerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerWidth)
+   *   from MDN.
    */
   final int outerWidth;
 
@@ -31347,17 +31294,12 @@ class Window extends EventTarget
   bool confirm([String message]) native;
 
   Future fetch(/*RequestInfo*/ input, [Map init]) {
+    var init_dict = null;
     if (init != null) {
-      var init_1 = convertDartToNative_Dictionary(init);
-      return _fetch_1(input, init_1);
+      init_dict = convertDartToNative_Dictionary(init);
     }
-    return _fetch_2(input);
+    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
   }
-
-  @JSName('fetch')
-  Future _fetch_1(input, init) native;
-  @JSName('fetch')
-  Future _fetch_2(input) native;
 
   /**
    * Finds text in this window.
@@ -31463,24 +31405,26 @@ class Window extends EventTarget
 
   int requestIdleCallback(IdleRequestCallback callback, [Map options]) {
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestIdleCallback_1(callback, options_1);
+      var callback_1 = convertDartClosureToJS(callback, 1);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _requestIdleCallback_1(callback_1, options_2);
     }
-    return _requestIdleCallback_2(callback);
+    var callback_1 = convertDartClosureToJS(callback, 1);
+    return _requestIdleCallback_2(callback_1);
   }
 
   @JSName('requestIdleCallback')
-  int _requestIdleCallback_1(IdleRequestCallback callback, options) native;
+  int _requestIdleCallback_1(callback, options) native;
   @JSName('requestIdleCallback')
-  int _requestIdleCallback_2(IdleRequestCallback callback) native;
+  int _requestIdleCallback_2(callback) native;
 
   /**
    * Resizes this window by an offset.
    *
    * ## Other resources
    *
-   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)
-   *   from WebPlatform.org.
+   * * [Window.resizeBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/resizeBy)
+   *   from MDN.
    */
   void resizeBy(int x, int y) native;
 
@@ -31489,8 +31433,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)
-   *   from WebPlatform.org.
+   * * [Window.resizeTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/resizeTo)
+   *   from MDN.
    */
   void resizeTo(int x, int y) native;
 
@@ -31501,8 +31445,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void scroll([options_OR_x, y, Map scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
@@ -31538,8 +31482,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_1() native;
   @JSName('scroll')
@@ -31550,8 +31494,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_2(options) native;
   @JSName('scroll')
@@ -31562,8 +31506,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_3(num x, num y) native;
   @JSName('scroll')
@@ -31574,8 +31518,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_4(int x, int y) native;
   @JSName('scroll')
@@ -31586,8 +31530,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_5(int x, int y, scrollOptions) native;
 
@@ -31596,8 +31540,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void scrollBy([options_OR_x, y, Map scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
@@ -31631,8 +31575,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_1() native;
   @JSName('scrollBy')
@@ -31641,8 +31585,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_2(options) native;
   @JSName('scrollBy')
@@ -31651,8 +31595,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_3(num x, num y) native;
   @JSName('scrollBy')
@@ -31661,8 +31605,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_4(int x, int y) native;
   @JSName('scrollBy')
@@ -31671,8 +31615,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_5(int x, int y, scrollOptions) native;
 
@@ -31683,8 +31627,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void scrollTo([options_OR_x, y, Map scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
@@ -31720,8 +31664,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_1() native;
   @JSName('scrollTo')
@@ -31732,8 +31676,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_2(options) native;
   @JSName('scrollTo')
@@ -31744,8 +31688,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_3(num x, num y) native;
   @JSName('scrollTo')
@@ -31756,8 +31700,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_4(int x, int y) native;
   @JSName('scrollTo')
@@ -31768,8 +31712,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_5(int x, int y, scrollOptions) native;
 
@@ -31892,6 +31836,7 @@ class Window extends EventTarget
       Element.contextMenuEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Window].
+  @DomName('Window.ondblclick')
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   /// Stream of `devicemotion` events handled by this [Window].
@@ -32347,7 +32292,21 @@ class Worker extends EventTarget implements AbstractWorker {
   static bool get supported =>
       JS('bool', '(typeof window.Worker != "undefined")');
 
-  void postMessage(Object message, [List<Object> transfer]) native;
+  void postMessage(/*any*/ message, [List<Object> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+
+  @JSName('postMessage')
+  void _postMessage_1(message, List<Object> transfer) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 
   void terminate() native;
 
@@ -32399,17 +32358,12 @@ class WorkerGlobalScope extends EventTarget
   final WorkerGlobalScope self;
 
   Future fetch(/*RequestInfo*/ input, [Map init]) {
+    var init_dict = null;
     if (init != null) {
-      var init_1 = convertDartToNative_Dictionary(init);
-      return _fetch_1(input, init_1);
+      init_dict = convertDartToNative_Dictionary(init);
     }
-    return _fetch_2(input);
+    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
   }
-
-  @JSName('fetch')
-  Future _fetch_1(input, init) native;
-  @JSName('fetch')
-  Future _fetch_2(input) native;
 
   void importScripts(String urls) native;
 
@@ -32443,7 +32397,10 @@ class WorkerGlobalScope extends EventTarget
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   Stream<Event> get onError => errorEvent.forTarget(this);
+
+  static WorkerGlobalScope get instance => _workerSelf;
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34257,11 +34214,8 @@ class _ElementAttributeMap extends _AttributeMap {
     _element.setAttribute(key, value);
   }
 
-  String remove(Object key) {
-    String value = _element.getAttribute(key);
-    _element._removeAttribute(key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -34271,6 +34225,21 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == null;
+
+  // Inline this because almost all call sites of [remove] do not use [value],
+  // and the annotations on the `getAttribute` call allow it to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttribute(#)',
+        element,
+        key);
+    JS('', '#.removeAttribute(#)', element, key);
+    return value;
+  }
 }
 
 /**
@@ -34293,11 +34262,9 @@ class _NamespacedAttributeMap extends _AttributeMap {
     _element.setAttributeNS(_namespace, key, value);
   }
 
-  String remove(Object key) {
-    String value = this[key];
-    _element._removeAttributeNS(_namespace, key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) =>
+      key is String ? _remove(_namespace, _element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -34307,6 +34274,23 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == _namespace;
+
+  // Inline this because almost all call sites of [remove] do not use the
+  // returned [value], and the annotations on the `getAttributeNS` call allow it
+  // to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(String namespace, Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttributeNS(#, #)',
+        element,
+        namespace,
+        key);
+    JS('', '#.removeAttributeNS(#, #)', element, namespace, key);
+    return value;
+  }
 }
 
 /**
@@ -34393,7 +34377,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   /**
    * Converts a string name with hyphens into an identifier, by removing hyphens
    * and capitalizing the following letter. Optionally [startUppercase] to
-   * captialize the first letter.
+   * capitalize the first letter.
    */
   String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
     var segments = hyphenedName.split('-');
@@ -35284,9 +35268,9 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<String> iterable) {
+  static void _removeAll(Element _element, Iterable<Object> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (var value in iterable) {
+    for (String value in iterable) {
       _classListRemove(list, value);
     }
   }
@@ -35466,7 +35450,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
@@ -35490,7 +35475,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
     return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
@@ -35508,7 +35494,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {
@@ -38666,8 +38653,8 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Fields.
   HistoryBase get history =>
       _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
-  LocationBase get location => _LocationCrossFrame
-      ._createSafe(JS('LocationBase', '#.location', _window));
+  LocationBase get location => _LocationCrossFrame._createSafe(
+      JS('LocationBase', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 

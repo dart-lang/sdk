@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,9 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
 
@@ -107,14 +105,11 @@ class SocketServerTest {
   }
 
   static SocketServer _createSocketServer() {
-    PhysicalResourceProvider resourceProvider =
-        PhysicalResourceProvider.INSTANCE;
     return new SocketServer(
         new AnalysisServerOptions(),
         new DartSdkManager('', false),
-        new FolderBasedDartSdk(resourceProvider,
-            FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)),
         InstrumentationService.NULL_SERVICE,
+        null,
         null,
         null,
         null);

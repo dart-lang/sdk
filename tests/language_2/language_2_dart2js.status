@@ -5,12 +5,13 @@
 
 [ $compiler == dart2js ]
 arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+async_star/async_star_await_for_test: RuntimeError
+async_star/async_star_cancel_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bit_operations_test: RuntimeError, OK # non JS number semantics
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bug32372_test: CompileTimeError
 call_method_as_cast_test/06: RuntimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
@@ -19,8 +20,6 @@ call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
-const_constructor_mixin3_test: CompileTimeError # Issue 33644.
-const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -30,49 +29,39 @@ external_test/10: CompileTimeError # External non-js-interop function are treate
 external_test/13: CompileTimeError # External non-js-interop function are treated as compile-time errors.
 external_test/20: CompileTimeError # External non-js-interop function are treated as compile-time errors.
 function_propagation_test: RuntimeError
-generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 instantiate_tearoff_of_call_test: RuntimeError
 int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int64_literal_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/05: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/10: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/20: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/40: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/02: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/04: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/05: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/06: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/11: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/12: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/14: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/16: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/17: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/19: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/none: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
-issue32353_test: CompileTimeError
-library_env_test/has_mirror_support: RuntimeError, OK
+library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
+library_env_test/has_mirror_support: Fail # mirrors not supported on web
 library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
 list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mixin_type_parameter_inference_error_test/none: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/none: CompileTimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/08: CompileTimeError
-mixin_type_parameter_inference_test/09: CompileTimeError
-mixin_type_parameter_inference_test/10: CompileTimeError
-mixin_type_parameter_inference_test/12: CompileTimeError
-mixin_type_parameter_inference_test/13: CompileTimeError
-mixin_type_parameter_inference_test/16: CompileTimeError
-mixin_type_parameter_inference_test/none: CompileTimeError
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 partial_instantiation_eager_bounds_check_test: RuntimeError # Issue #34295
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
-type_alias_equality_test/02: RuntimeError # Issue 32784
+private_method_tearoff_test: RuntimeError
+type_constants_test/none: RuntimeError # Issue 35052
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
@@ -91,6 +80,8 @@ stacktrace_test: RuntimeError
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 ]
+conditional_import_string_test: SkipByDesign # No XHR in d8
+conditional_import_test: SkipByDesign # No XHR in d8
 implicit_creation/implicit_new_constructor_generic_test: Pass
 
 [ $compiler == dart2js && $runtime == d8 && !$checked ]
@@ -129,12 +120,6 @@ stacktrace_test: RuntimeError
 [ $compiler == dart2js && $system == windows ]
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
-[ $compiler == dart2js && $browser ]
-library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
-
-[ $compiler == dart2js && !$browser ]
-library_env_test/has_no_io_support: RuntimeError, OK # dart2js supports io when using '--categories=all'.
-
 [ $compiler == dart2js && $checked ]
 covariant_subtyping_test: CompileTimeError
 
@@ -158,8 +143,6 @@ canonical_const2_test: RuntimeError, OK # non JS number semantics
 checked_method_error_order_test: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-compile_time_constant_o_test/01: MissingCompileTimeError
-compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -212,7 +195,6 @@ const_constructor2_test/18: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
@@ -268,7 +250,7 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
-generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_dcall_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_typedef_test: RuntimeError
 identical_closure2_test: RuntimeError # non JS number semantics
@@ -345,29 +327,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_of_mixin_test/none: CompileTimeError
-mixin_super_2_test/none: CompileTimeError
-mixin_super_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
-mixin_superclass_test: CompileTimeError
-mixin_supertype_subclass2_test/01: CompileTimeError
-mixin_supertype_subclass2_test/02: CompileTimeError
-mixin_supertype_subclass2_test/03: CompileTimeError
-mixin_supertype_subclass2_test/04: CompileTimeError
-mixin_supertype_subclass2_test/05: CompileTimeError
-mixin_supertype_subclass2_test/none: CompileTimeError
-mixin_supertype_subclass3_test/01: CompileTimeError
-mixin_supertype_subclass3_test/02: CompileTimeError
-mixin_supertype_subclass3_test/03: CompileTimeError
-mixin_supertype_subclass3_test/04: CompileTimeError
-mixin_supertype_subclass3_test/05: CompileTimeError
-mixin_supertype_subclass3_test/none: CompileTimeError
-mixin_supertype_subclass4_test/01: CompileTimeError
-mixin_supertype_subclass4_test/02: CompileTimeError
-mixin_supertype_subclass4_test/03: CompileTimeError
-mixin_supertype_subclass4_test/04: CompileTimeError
-mixin_supertype_subclass4_test/05: CompileTimeError
-mixin_supertype_subclass4_test/none: CompileTimeError
 mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
@@ -403,11 +362,6 @@ stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
 stacktrace_test: RuntimeError # Issue 12698
-switch_bad_case_test/01: MissingCompileTimeError
-switch_bad_case_test/02: MissingCompileTimeError
-switch_case_test/00: MissingCompileTimeError
-switch_case_test/01: MissingCompileTimeError
-switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
@@ -422,15 +376,6 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 issue31596_super_test/05: RuntimeError
 
-[ $compiler == dart2js && $fast_startup ]
-library_env_test/has_mirror_support: Fail # mirrors not supported
-library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
-
-[ $compiler == dart2js && $fast_startup && $strong ]
-async_star_cancel_while_paused_test: RuntimeError
-covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
-issue23244_test: RuntimeError
-
 [ $compiler == dart2js && $host_checked && $strong ]
 async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
@@ -439,21 +384,10 @@ class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
 config_import_corelib_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
-identical_const_test/01: MissingCompileTimeError
-identical_const_test/02: MissingCompileTimeError
-identical_const_test/03: MissingCompileTimeError
-identical_const_test/04: MissingCompileTimeError
-issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 library_env_test/has_no_html_support: RuntimeError
-library_env_test/has_no_io_support: RuntimeError
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -463,7 +397,6 @@ regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
-type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
 
 [ $compiler == dart2js && $minified ]
 cyclic_type2_test: RuntimeError # Issue 31054
@@ -489,23 +422,13 @@ call_with_no_such_method_test: RuntimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
 config_import_corelib_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
-identical_const_test/01: MissingCompileTimeError
-identical_const_test/02: MissingCompileTimeError
-identical_const_test/03: MissingCompileTimeError
-identical_const_test/04: MissingCompileTimeError
 invocation_mirror2_test: RuntimeError # mirrors not supported
 invocation_mirror_test: RuntimeError
-issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 library_env_test/has_no_html_support: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 mixin_generic_test: RuntimeError # Issue 12605
 mixin_mixin_type_arguments_test: RuntimeError
@@ -520,19 +443,17 @@ stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 symbol_conflict_test: RuntimeError # Issue 23857
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
-type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
 
 [ $compiler == dart2js && $strong ]
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
+async_star_cancel_while_paused_test: RuntimeError
 async_star_test/02: RuntimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 closure_type_arguments_test: Crash # Issue 34272
-compile_time_constant_o_test/01: MissingCompileTimeError
-compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
@@ -540,7 +461,6 @@ compile_time_constant_static5_test/23: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_test: RuntimeError
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
-const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
@@ -550,7 +470,7 @@ const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
-covariant_subtyping_test: Crash
+covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 ct_const_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
@@ -575,11 +495,10 @@ full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 function_subtype_inline2_test: RuntimeError
 generic_function_bounds_test: RuntimeError
-generic_function_dcall_test: RuntimeError
+generic_function_dcall_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
-generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
@@ -588,19 +507,12 @@ if_null_precedence_test/none: RuntimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
 instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-int64_literal_test/01: RuntimeError
-int64_literal_test/02: RuntimeError
-int64_literal_test/04: RuntimeError
-int64_literal_test/05: RuntimeError
-int64_literal_test/10: RuntimeError
-int64_literal_test/20: RuntimeError
-int64_literal_test/40: RuntimeError
-int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
 internal_library_test/02: Crash
 invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_invoke_on_test: RuntimeError
 issue21079_test: RuntimeError
+issue23244_test: RuntimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 left_shift_test: RuntimeError # non JS number semantics
@@ -646,33 +558,6 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_method_override_test/G5: Skip # Issue 34354
-mixin_of_mixin_test/none: CompileTimeError
-mixin_super_2_test/none: CompileTimeError
-mixin_super_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
-mixin_superclass_test: CompileTimeError
-mixin_supertype_subclass2_test/01: CompileTimeError
-mixin_supertype_subclass2_test/02: CompileTimeError
-mixin_supertype_subclass2_test/03: CompileTimeError
-mixin_supertype_subclass2_test/04: CompileTimeError
-mixin_supertype_subclass2_test/05: CompileTimeError
-mixin_supertype_subclass2_test/none: CompileTimeError
-mixin_supertype_subclass3_test/01: CompileTimeError
-mixin_supertype_subclass3_test/02: CompileTimeError
-mixin_supertype_subclass3_test/03: CompileTimeError
-mixin_supertype_subclass3_test/04: CompileTimeError
-mixin_supertype_subclass3_test/05: CompileTimeError
-mixin_supertype_subclass3_test/none: CompileTimeError
-mixin_supertype_subclass4_test/01: CompileTimeError
-mixin_supertype_subclass4_test/02: CompileTimeError
-mixin_supertype_subclass4_test/03: CompileTimeError
-mixin_supertype_subclass4_test/04: CompileTimeError
-mixin_supertype_subclass4_test/05: CompileTimeError
-mixin_supertype_subclass4_test/none: CompileTimeError
-mixin_supertype_subclass_test/01: CompileTimeError
-mixin_supertype_subclass_test/03: CompileTimeError
-mixin_supertype_subclass_test/04: CompileTimeError
-mixin_supertype_subclass_test/none: CompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
@@ -697,16 +582,9 @@ stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
 super_test: RuntimeError
-switch_bad_case_test/01: MissingCompileTimeError
-switch_bad_case_test/02: MissingCompileTimeError
-switch_case_test/00: MissingCompileTimeError
-switch_case_test/01: MissingCompileTimeError
-switch_case_test/02: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 type_error_test: RuntimeError

@@ -4,7 +4,8 @@
 
 part of dart.developer;
 
-const bool _isProduct = const bool.fromEnvironment("dart.vm.product");
+const bool _hasTimeline =
+    const bool.fromEnvironment("dart.developer.timeline", defaultValue: true);
 
 /// A typedef for the function argument to [Timeline.timeSync].
 typedef dynamic TimelineSyncFunction();
@@ -100,22 +101,18 @@ class Timeline {
   /// a [Flow] event. This operation must be finished before
   /// returning to the event queue.
   static void startSync(String name, {Map arguments, Flow flow}) {
-    if (_isProduct) {
-      return;
-    }
-    if (name is! String) {
-      throw new ArgumentError.value(name, 'name', 'Must be a String');
-    }
+    if (!_hasTimeline) return;
+    ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Push a null onto the stack and return.
       _stack.add(null);
       return;
     }
     var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
-    if (arguments is Map) {
+    if (arguments != null) {
       block._arguments = arguments;
     }
-    if (flow is Flow) {
+    if (flow != null) {
       block.flow = flow;
     }
     _stack.add(block);
@@ -123,7 +120,7 @@ class Timeline {
 
   /// Finish the last synchronous operation that was started.
   static void finishSync() {
-    if (_isProduct) {
+    if (!_hasTimeline) {
       return;
     }
     if (_stack.length == 0) {
@@ -141,18 +138,14 @@ class Timeline {
 
   /// Emit an instant event.
   static void instantSync(String name, {Map arguments}) {
-    if (_isProduct) {
-      return;
-    }
-    if (name is! String) {
-      throw new ArgumentError.value(name, 'name', 'Must be a String');
-    }
+    if (!_hasTimeline) return;
+    ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Stream is disabled.
       return;
     }
     Map instantArguments;
-    if (arguments is Map) {
+    if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
     _reportInstantEvent(
@@ -189,22 +182,16 @@ class TimelineTask {
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task from one isolate to another.
   TimelineTask.withTaskId(int taskId) : _taskId = taskId {
-    if (taskId is! int) {
-      throw new ArgumentError.value(taskId, 'taskId', 'Must be an int');
-    }
+    ArgumentError.checkNotNull(taskId, 'taskId');
   }
 
   /// Start a synchronous operation within this task named [name].
   /// Optionally takes a [Map] of [arguments].
   void start(String name, {Map arguments}) {
-    if (_isProduct) {
-      return;
-    }
-    if (name is! String) {
-      throw new ArgumentError.value(name, 'name', 'Must be a String');
-    }
+    if (!_hasTimeline) return;
+    ArgumentError.checkNotNull(name, 'name');
     var block = new _AsyncBlock._(name, _taskId);
-    if (arguments is Map) {
+    if (arguments != null) {
       block._arguments = arguments;
     }
     _stack.add(block);
@@ -213,14 +200,10 @@ class TimelineTask {
 
   /// Emit an instant event for this task.
   void instant(String name, {Map arguments}) {
-    if (_isProduct) {
-      return;
-    }
-    if (name is! String) {
-      throw new ArgumentError.value(name, 'name', 'Must be a String');
-    }
+    if (!_hasTimeline) return;
+    ArgumentError.checkNotNull(name, 'name');
     Map instantArguments;
-    if (arguments is Map) {
+    if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
     _reportTaskEvent(_getTraceClock(), _taskId, 'n', 'Dart', name,
@@ -229,7 +212,7 @@ class TimelineTask {
 
   /// Finish the last synchronous operation that was started.
   void finish() {
-    if (_isProduct) {
+    if (!_hasTimeline) {
       return;
     }
     if (_stack.length == 0) {

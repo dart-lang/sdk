@@ -102,21 +102,21 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
-  TimelineDurationScope tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+  TimelineDurationScope api_tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 #define API_TIMELINE_DURATION_BASIC(thread)                                    \
   API_TIMELINE_DURATION(thread);                                               \
-  tds.SetNumArguments(1);                                                      \
-  tds.CopyArgument(0, "mode", "basic");
+  api_tds.SetNumArguments(1);                                                  \
+  api_tds.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END(thread)                                         \
-  TimelineBeginEndScope tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+  TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 
 #define API_TIMELINE_BEGIN_END_BASIC(thread)                                   \
   API_TIMELINE_BEGIN_END(thread);                                              \
-  tbes.SetNumArguments(1);                                                     \
-  tbes.CopyArgument(0, "mode", "basic");
+  api_tbes.SetNumArguments(1);                                                 \
+  api_tbes.CopyArgument(0, "mode", "basic");
 #else
 #define API_TIMELINE_DURATION(thread)                                          \
   do {                                                                         \
@@ -131,12 +131,12 @@ const char* CanonicalFunction(const char* func);
 class Api : AllStatic {
  public:
   // Create on the stack to provide a new throw-safe api scope.
-  class Scope : public StackResource {
+  class Scope : public ThreadStackResource {
    public:
-    explicit Scope(Thread* thread) : StackResource(thread) {
-      Dart_EnterScope();
+    explicit Scope(Thread* thread) : ThreadStackResource(thread) {
+      thread->EnterApiScope();
     }
-    ~Scope() { Dart_ExitScope(); }
+    ~Scope() { thread()->ExitApiScope(); }
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Scope);
@@ -238,11 +238,14 @@ class Api : AllStatic {
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Thread* thread);
 
-  // Performs one-time initialization needed by the API.
-  static void InitOnce();
+  // Performs initialization needed by the API.
+  static void Init();
 
   // Allocates handles for objects in the VM isolate.
   static void InitHandles();
+
+  // Cleanup
+  static void Cleanup();
 
   // Helper function to get the peer value of an external string object.
   static bool StringGetPeerHelper(NativeArguments* args,

@@ -24,7 +24,7 @@ export 'declaration.dart' show Declaration;
 
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
 
-export 'enum_builder.dart' show EnumBuilder;
+export 'enum_builder.dart' show EnumBuilder, EnumConstantInfo;
 
 export 'field_builder.dart' show FieldBuilder;
 
@@ -45,6 +45,8 @@ export 'metadata_builder.dart' show MetadataBuilder;
 export 'mixin_application_builder.dart' show MixinApplicationBuilder;
 
 export 'modifier_builder.dart' show ModifierBuilder;
+
+export 'name_iterator.dart' show NameIterator;
 
 export 'named_type_builder.dart' show NamedTypeBuilder;
 

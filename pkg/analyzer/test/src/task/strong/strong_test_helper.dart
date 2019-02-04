@@ -16,19 +16,19 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
-
-import '../../context/mock_sdk.dart';
 
 SourceSpanWithContext _createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,
@@ -237,14 +237,15 @@ void _reportFailure(
   fail('Checker errors do not match expected errors:\n\n$message');
 }
 
-class AbstractStrongTest {
-  MemoryResourceProvider _resourceProvider = new MemoryResourceProvider();
+class AbstractStrongTest with ResourceProviderMixin {
   bool _checkCalled = false;
 
   AnalysisContext _context = null;
   AnalysisDriver _driver = null;
 
   bool get enableNewAnalysisDriver => false;
+
+  List<String> get enabledExperiments => [];
 
   /// Adds a file to check. The file should contain:
   ///
@@ -266,7 +267,7 @@ class AbstractStrongTest {
   /// For a single file, you may also use [checkFile].
   void addFile(String content, {String name: '/main.dart'}) {
     name = name.replaceFirst('^package:', '/packages/');
-    _resourceProvider.newFile(_resourceProvider.convertPath(name), content);
+    newFile(name, content: content);
   }
 
   /// Run the checker on a program, staring from '/main.dart', and verifies that
@@ -277,31 +278,24 @@ class AbstractStrongTest {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool declarationCasts: true,
-      bool implicitCasts: true,
-      bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
-      bool superMixins: false}) async {
+      {bool implicitCasts: true, bool implicitDynamic: true}) async {
     _checkCalled = true;
 
-    File mainFile =
-        _resourceProvider.getFile(_resourceProvider.convertPath('/main.dart'));
+    File mainFile = getFile('/main.dart');
     expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.strongModeHints = true;
-    analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
-    analysisOptions.nonnullableTypes = nonnullableTypes;
-    analysisOptions.enableSuperMixins = superMixins;
+    analysisOptions.enabledExperiments = enabledExperiments;
 
-    var mockSdk = new MockSdk(resourceProvider: _resourceProvider);
+    var mockSdk = new MockSdk(resourceProvider: resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
 
     SourceFactory sourceFactory;
     {
-      var uriResolver = new _TestUriResolver(_resourceProvider);
+      var uriResolver = new _TestUriResolver(resourceProvider);
       sourceFactory =
           new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
     }
@@ -315,7 +309,7 @@ class AbstractStrongTest {
       _driver = new AnalysisDriver(
           scheduler,
           log,
-          _resourceProvider,
+          resourceProvider,
           new MemoryByteStore(),
           fileContentOverlay,
           null,
@@ -371,18 +365,12 @@ class AbstractStrongTest {
   ///
   /// Also returns the resolved compilation unit.
   Future<CompilationUnit> checkFile(String content,
-      {bool declarationCasts: true,
-      bool implicitCasts: true,
-      bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
-      bool superMixins: false}) async {
+      {bool implicitCasts: true, bool implicitDynamic: true}) async {
     addFile(content);
     return await check(
-        declarationCasts: declarationCasts,
-        implicitCasts: implicitCasts,
-        implicitDynamic: implicitDynamic,
-        nonnullableTypes: nonnullableTypes,
-        superMixins: superMixins);
+      implicitCasts: implicitCasts,
+      implicitDynamic: implicitDynamic,
+    );
   }
 
   void setUp() {

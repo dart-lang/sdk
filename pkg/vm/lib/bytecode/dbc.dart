@@ -2,259 +2,127 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Dart kernel bytecode instructions (described in runtime/vm/constants_kbc.h).
+
 library vm.bytecode.dbc;
 
-// List of changes from original DBC (described in runtime/vm/constants_dbc.h):
-//
-// 1. StoreFieldTOS, LoadFieldTOS instructions:
-//    D = index of constant pool entry with InstanceField tag.
-//    (instead of field offset in words).
-//
-// 2. EntryOptional instruction is revived in order to re-shuffle optional
-//    parameters. This DBC instruction was removed at
-//    https://github.com/dart-lang/sdk/commit/cf1de7d46cd88e204380e8f96a993439be56b24c
-//
-// 3. NativeCall instruction is modified to have 'D' format and take 1 argument:
-//    D = index of NativeEntry constant pool entry
-//
-// 4. JumpIfNoAsserts instruction is added. This instruction jumps to the given
-//    target if assertions are not enabled. It has the same format as Jump
-//    instruction.
-//
-// 5. StoreContextParent stores context SP[0] into `parent` field of context SP[-1].
-//
-// 6. LoadContextParent loads parent from context SP[0].
-//
-// 7. StoreContextVar stores value SP[0] into context SP[-1] at index D.
-//
-// 8. LoadContextVar loads value from context SP[0] at index D.
-//
-// 9. LoadTypeArgumentsField loads instantiator type arguments from an
-//    instance SP[0].
-//    D = index of TypeArgumentsField constant pool entry corresponding
-//    to an instance's class.
-//
-// 10. InstanceCall1 and InstanceCall2 instructions are superseded by
-//     InstanceCall which works for any number of checked arguments.
-//
-// 11. EntryFixed instruction works like Entry. In addition, it checks number
-//     of fixed arguments.
-//
-// 12. JumpIfNotZeroTypeArgs instruction jumps if number of passed
-//     function type arguments is not zero.
-//
-// 13. PushNull, PushTrue, PushFalse, PushInt instructions added.
-//
+/// Version of stable bytecode format, produced by default.
+/// Before bumping stable bytecode version format, make sure that
+/// all users have switched to a VM which is able to consume next
+/// version of bytecode.
+const int stableBytecodeFormatVersion = 1;
+
+/// Version of bleeding edge bytecode format.
+/// Produced by bytecode generator when --use-future-bytecode-format
+/// option is enabled.
+/// Should match kMaxSupportedBytecodeFormatVersion in
+/// runtime/vm/constants_kbc.h.
+const int futureBytecodeFormatVersion = stableBytecodeFormatVersion + 1;
+
+/// Alignment of bytecode instructions.
+const int bytecodeInstructionsAlignment = 4;
 
 enum Opcode {
   kTrap,
-  kNop,
-  kCompile,
-  kHotCheck,
-  kIntrinsic,
-  kDrop1,
-  kDropR,
-  kDrop,
-  kJump,
-  kJumpIfNoAsserts,
-  kJumpIfNotZeroTypeArgs,
-  kReturn,
-  kReturnTOS,
-  kMove,
-  kSwap,
-  kPush,
+
+  // Prologue and stack management.
+  kEntry,
+  kEntryFixed,
+  kEntryOptional,
   kLoadConstant,
-  kLoadClassId,
-  kLoadClassIdTOS,
+  kFrame,
+  kCheckFunctionTypeArgs,
+  kCheckStack,
+
+  // Object allocation.
+  kAllocate,
+  kAllocateT,
+  kCreateArrayTOS,
+
+  // Context allocation and access.
+  kAllocateContext,
+  kCloneContext,
+  kLoadContextParent,
+  kStoreContextParent,
+  kLoadContextVar,
+  kStoreContextVar,
+
+  // Constants.
   kPushConstant,
   kPushNull,
   kPushTrue,
   kPushFalse,
   kPushInt,
-  kStoreLocal,
+
+  // Locals and expression stack.
+  kDrop1,
+  kPush,
   kPopLocal,
-  kIndirectStaticCall,
-  kStaticCall,
-  kInstanceCall,
-  kInstanceCall1Opt,
-  kInstanceCall2Opt,
-  kPushPolymorphicInstanceCall,
-  kPushPolymorphicInstanceCallByRange,
-  kNativeCall,
-  kOneByteStringFromCharCode,
-  kStringToCharCode,
-  kAddTOS,
-  kSubTOS,
-  kMulTOS,
-  kBitOrTOS,
-  kBitAndTOS,
-  kEqualTOS,
-  kLessThanTOS,
-  kGreaterThanTOS,
-  kSmiAddTOS,
-  kSmiSubTOS,
-  kSmiMulTOS,
-  kSmiBitAndTOS,
-  kAdd,
-  kSub,
-  kMul,
-  kDiv,
-  kMod,
-  kShl,
-  kShr,
-  kShlImm,
-  kNeg,
-  kBitOr,
-  kBitAnd,
-  kBitXor,
-  kBitNot,
-  kMin,
-  kMax,
-  kWriteIntoDouble,
-  kUnboxDouble,
-  kCheckedUnboxDouble,
-  kUnboxInt32,
-  kBoxInt32,
-  kBoxUint32,
-  kSmiToDouble,
-  kDoubleToSmi,
-  kDAdd,
-  kDSub,
-  kDMul,
-  kDDiv,
-  kDNeg,
-  kDSqrt,
-  kDMin,
-  kDMax,
-  kDCos,
-  kDSin,
-  kDPow,
-  kDMod,
-  kDTruncate,
-  kDFloor,
-  kDCeil,
-  kDoubleToFloat,
-  kFloatToDouble,
-  kDoubleIsNaN,
-  kDoubleIsInfinite,
-  kStoreStaticTOS,
-  kPushStatic,
-  kInitStaticTOS,
-  kIfNeStrictTOS,
-  kIfEqStrictTOS,
-  kIfNeStrictNumTOS,
-  kIfEqStrictNumTOS,
-  kIfSmiLtTOS,
-  kIfSmiLeTOS,
-  kIfSmiGeTOS,
-  kIfSmiGtTOS,
-  kIfNeStrict,
-  kIfEqStrict,
-  kIfLe,
-  kIfLt,
-  kIfGe,
-  kIfGt,
-  kIfULe,
-  kIfULt,
-  kIfUGe,
-  kIfUGt,
-  kIfDNe,
-  kIfDEq,
-  kIfDLe,
-  kIfDLt,
-  kIfDGe,
-  kIfDGt,
-  kIfNeStrictNum,
-  kIfEqStrictNum,
-  kIfEqNull,
-  kIfNeNull,
-  kCreateArrayTOS,
-  kCreateArrayOpt,
-  kAllocate,
-  kAllocateT,
-  kAllocateOpt,
-  kAllocateTOpt,
-  kStoreIndexedTOS,
-  kStoreIndexed,
-  kStoreIndexedUint8,
-  kStoreIndexedExternalUint8,
-  kStoreIndexedOneByteString,
-  kStoreIndexedUint32,
-  kStoreIndexedFloat32,
-  kStoreIndexed4Float32,
-  kStoreIndexedFloat64,
-  kStoreIndexed8Float64,
-  kNoSuchMethod,
-  kTailCall,
-  kTailCallOpt,
-  kLoadArgDescriptor,
-  kLoadArgDescriptorOpt,
-  kLoadFpRelativeSlot,
-  kLoadFpRelativeSlotOpt,
-  kStoreFpRelativeSlot,
-  kStoreFpRelativeSlotOpt,
-  kLoadIndexedTOS,
-  kLoadIndexed,
-  kLoadIndexedUint8,
-  kLoadIndexedInt8,
-  kLoadIndexedInt32,
-  kLoadIndexedUint32,
-  kLoadIndexedExternalUint8,
-  kLoadIndexedExternalInt8,
-  kLoadIndexedFloat32,
-  kLoadIndexed4Float32,
-  kLoadIndexedFloat64,
-  kLoadIndexed8Float64,
-  kLoadIndexedOneByteString,
-  kLoadIndexedTwoByteString,
-  kStoreField,
-  kStoreFieldExt,
-  kStoreFieldTOS,
-  kStoreContextParent,
-  kStoreContextVar,
-  kLoadField,
-  kLoadFieldExt,
-  kLoadUntagged,
+  kStoreLocal,
+
+  // Instance fields and arrays.
   kLoadFieldTOS,
+  kStoreFieldTOS,
+  kStoreIndexedTOS,
+
+  // Static fields.
+  kPushStatic,
+  kStoreStaticTOS,
+
+  // Jumps.
+  kJump,
+  kJumpIfNoAsserts,
+  kJumpIfNotZeroTypeArgs,
+  kJumpIfEqStrict,
+  kJumpIfNeStrict,
+  kJumpIfTrue,
+  kJumpIfFalse,
+  kJumpIfNull,
+  kJumpIfNotNull,
+
+  // Calls.
+  kIndirectStaticCall,
+  kInterfaceCall,
+  kDynamicCall,
+  kNativeCall,
+  kReturnTOS,
+
+  // Types and type checks.
+  kAssertAssignable,
+  kAssertBoolean,
+  kAssertSubtype,
   kLoadTypeArgumentsField,
-  kLoadContextParent,
-  kLoadContextVar,
-  kBooleanNegateTOS,
-  kBooleanNegate,
-  kThrow,
-  kEntry,
-  kEntryFixed,
-  kEntryOptional,
-  kEntryOptimized,
-  kFrame,
-  kSetFrame,
-  kAllocateContext,
-  kAllocateUninitializedContext,
-  kCloneContext,
-  kMoveSpecial,
   kInstantiateType,
   kInstantiateTypeArgumentsTOS,
-  kInstanceOf,
-  kBadTypeError,
-  kAssertAssignable,
-  kAssertSubtype,
-  kAssertBoolean,
-  kTestSmi,
-  kTestCids,
-  kCheckSmi,
-  kCheckEitherNonSmi,
-  kCheckClassId,
-  kCheckClassIdRange,
-  kCheckBitTest,
-  kCheckCids,
-  kCheckCidsByRange,
-  kCheckStack,
-  kCheckStackAlwaysExit,
-  kCheckFunctionTypeArgs,
-  kDebugStep,
-  kDebugBreak,
-  kDeopt,
-  kDeoptRewind,
+
+  // Exception handling.
+  kThrow,
+  kMoveSpecial,
+  kSetFrame,
+
+  // Bool operations.
+  kBooleanNegateTOS,
+
+  // Null operations.
+  kEqualsNull,
+
+  // Int operations.
+  kNegateInt,
+  kAddInt,
+  kSubInt,
+  kMulInt,
+  kTruncDivInt,
+  kModInt,
+  kBitAndInt,
+  kBitOrInt,
+  kBitXorInt,
+  kShlInt,
+  kShrInt,
+  kCompareIntEq,
+  kCompareIntGt,
+  kCompareIntLt,
+  kCompareIntGe,
+  kCompareIntLe,
 }
 
 enum Encoding {
@@ -288,42 +156,38 @@ class Format {
 const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kTrap: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kNop: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kCompile: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kHotCheck: const Format(
+  Opcode.kEntry: const Format(
+      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kEntryFixed: const Format(
       Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kIntrinsic: const Format(
-      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kDrop1: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kDropR: const Format(
-      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kDrop: const Format(
-      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kJump: const Format(
-      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
-  Opcode.kJumpIfNoAsserts: const Format(
-      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
-  Opcode.kJumpIfNotZeroTypeArgs: const Format(
-      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
-  Opcode.kReturn: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kReturnTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kMove: const Format(
-      Encoding.kAX, const [Operand.reg, Operand.xeg, Operand.none]),
-  Opcode.kSwap: const Format(
-      Encoding.kAX, const [Operand.reg, Operand.xeg, Operand.none]),
-  Opcode.kPush: const Format(
-      Encoding.kX, const [Operand.xeg, Operand.none, Operand.none]),
+  Opcode.kEntryOptional: const Format(
+      Encoding.kABC, const [Operand.imm, Operand.imm, Operand.imm]),
   Opcode.kLoadConstant: const Format(
       Encoding.kAD, const [Operand.reg, Operand.lit, Operand.none]),
-  Opcode.kLoadClassId: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kLoadClassIdTOS: const Format(
+  Opcode.kFrame: const Format(
+      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kCheckFunctionTypeArgs: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.reg, Operand.none]),
+  Opcode.kCheckStack: const Format(
+      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kAllocate: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kAllocateT: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCreateArrayTOS: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kAllocateContext: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+  Opcode.kCloneContext: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+  Opcode.kLoadContextParent: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kStoreContextParent: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kLoadContextVar: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+  Opcode.kStoreContextVar: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kPushConstant: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kPushNull: const Format(
@@ -334,373 +198,105 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kPushInt: const Format(
       Encoding.kX, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kStoreLocal: const Format(
+  Opcode.kDrop1: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kPush: const Format(
       Encoding.kX, const [Operand.xeg, Operand.none, Operand.none]),
   Opcode.kPopLocal: const Format(
       Encoding.kX, const [Operand.xeg, Operand.none, Operand.none]),
-  Opcode.kIndirectStaticCall: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kStaticCall: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kInstanceCall: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kInstanceCall1Opt: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kInstanceCall2Opt: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kPushPolymorphicInstanceCall: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kPushPolymorphicInstanceCallByRange: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kNativeCall: const Format(
-      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
-  Opcode.kOneByteStringFromCharCode: const Format(
-      Encoding.kAX, const [Operand.reg, Operand.xeg, Operand.none]),
-  Opcode.kStringToCharCode: const Format(
-      Encoding.kAX, const [Operand.reg, Operand.xeg, Operand.none]),
-  Opcode.kAddTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kSubTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kMulTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kBitOrTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kBitAndTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kEqualTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kLessThanTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kGreaterThanTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kSmiAddTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kSmiSubTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kSmiMulTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kSmiBitAndTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kAdd: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kSub: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kMul: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDiv: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kMod: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kShl: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kShr: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kShlImm: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
-  Opcode.kNeg: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kBitOr: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kBitAnd: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kBitXor: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kBitNot: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kMin: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kMax: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kWriteIntoDouble: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kUnboxDouble: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kCheckedUnboxDouble: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kUnboxInt32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
-  Opcode.kBoxInt32: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kBoxUint32: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kSmiToDouble: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDoubleToSmi: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDAdd: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDSub: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDMul: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDDiv: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDNeg: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDSqrt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDMin: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDMax: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDCos: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDSin: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDPow: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDMod: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kDTruncate: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDFloor: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDCeil: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDoubleToFloat: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kFloatToDouble: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kDoubleIsNaN: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kDoubleIsInfinite: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kStoreStaticTOS: const Format(
-      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
-  Opcode.kPushStatic: const Format(
-      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
-  Opcode.kInitStaticTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfNeStrictTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfEqStrictTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfNeStrictNumTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfEqStrictNumTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfSmiLtTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfSmiLeTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfSmiGeTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfSmiGtTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kIfNeStrict: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfEqStrict: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfLe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfLt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfGe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfGt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfULe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfULt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfUGe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfUGt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfDNe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfDEq: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfDLe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfDLt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfDGe: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfDGt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfNeStrictNum: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfEqStrictNum: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kIfEqNull: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kIfNeNull: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kCreateArrayTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kCreateArrayOpt: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kAllocate: const Format(
-      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
-  Opcode.kAllocateT: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kAllocateOpt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.lit, Operand.none]),
-  Opcode.kAllocateTOpt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.lit, Operand.none]),
-  Opcode.kStoreIndexedTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kStoreIndexed: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexedUint8: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexedExternalUint8: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexedOneByteString: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexedUint32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexedFloat32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexed4Float32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexedFloat64: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreIndexed8Float64: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kNoSuchMethod: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kTailCall: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kTailCallOpt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kLoadArgDescriptor: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kLoadArgDescriptorOpt: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kLoadFpRelativeSlot: const Format(
-      Encoding.kX, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kLoadFpRelativeSlotOpt: const Format(
-      Encoding.kABY, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreFpRelativeSlot: const Format(
-      Encoding.kX, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kStoreFpRelativeSlotOpt: const Format(
-      Encoding.kABY, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kLoadIndexed: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedUint8: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedInt8: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedInt32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedUint32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedExternalUint8: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedExternalInt8: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedFloat32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexed4Float32: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedFloat64: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexed8Float64: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedOneByteString: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kLoadIndexedTwoByteString: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.reg]),
-  Opcode.kStoreField: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.imm, Operand.reg]),
-  Opcode.kStoreFieldExt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kStoreFieldTOS: const Format(
-      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
-  Opcode.kStoreContextParent: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kStoreContextVar: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kLoadField: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
-  Opcode.kLoadFieldExt: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kLoadUntagged: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
+  Opcode.kStoreLocal: const Format(
+      Encoding.kX, const [Operand.xeg, Operand.none, Operand.none]),
   Opcode.kLoadFieldTOS: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kStoreFieldTOS: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kStoreIndexedTOS: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kPushStatic: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kStoreStaticTOS: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kJump: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNoAsserts: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNotZeroTypeArgs: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfEqStrict: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNeStrict: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfTrue: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfFalse: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNull: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNotNull: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kIndirectStaticCall: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kInterfaceCall: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kDynamicCall: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kNativeCall: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kReturnTOS: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kAssertAssignable: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kAssertBoolean: const Format(
+      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kAssertSubtype: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kLoadTypeArgumentsField: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
-  Opcode.kLoadContextParent: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kLoadContextVar: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kBooleanNegateTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kBooleanNegate: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kThrow: const Format(
-      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kEntry: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kEntryFixed: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kEntryOptional: const Format(
-      Encoding.kABC, const [Operand.imm, Operand.imm, Operand.imm]),
-  Opcode.kEntryOptimized: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kFrame: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kSetFrame: const Format(
-      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kAllocateContext: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kAllocateUninitializedContext: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.imm, Operand.none]),
-  Opcode.kCloneContext: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kMoveSpecial: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.spe, Operand.none]),
   Opcode.kInstantiateType: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kInstantiateTypeArgumentsTOS: const Format(
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kInstanceOf: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kBadTypeError: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kAssertAssignable: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kAssertSubtype: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kAssertBoolean: const Format(
+  Opcode.kThrow: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kTestSmi: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kTestCids: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.imm, Operand.none]),
-  Opcode.kCheckSmi: const Format(
-      Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
-  Opcode.kCheckEitherNonSmi: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
-  Opcode.kCheckClassId: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.imm, Operand.none]),
-  Opcode.kCheckClassIdRange: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.imm, Operand.none]),
-  Opcode.kCheckBitTest: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.imm, Operand.none]),
-  Opcode.kCheckCids: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.imm, Operand.imm]),
-  Opcode.kCheckCidsByRange: const Format(
-      Encoding.kABC, const [Operand.reg, Operand.imm, Operand.imm]),
-  Opcode.kCheckStack: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kCheckStackAlwaysExit: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kCheckFunctionTypeArgs: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kDebugStep: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kDebugBreak: const Format(
+  Opcode.kMoveSpecial: const Format(
+      Encoding.kAX, const [Operand.spe, Operand.xeg, Operand.none]),
+  Opcode.kSetFrame: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kDeopt: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kDeoptRewind: const Format(
+  Opcode.kBooleanNegateTOS: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kEqualsNull: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kNegateInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kAddInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kSubInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kMulInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kTruncDivInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kModInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kBitAndInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kBitOrInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kBitXorInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kShlInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kShrInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntEq: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntGt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntLt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntGe: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntLe: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
 };
 
@@ -713,3 +309,54 @@ enum SpecialIndex {
 }
 
 bool isJump(Opcode opcode) => BytecodeFormats[opcode].encoding == Encoding.kT;
+
+bool isThrow(Opcode opcode) => opcode == Opcode.kThrow;
+
+bool isCall(Opcode opcode) {
+  switch (opcode) {
+    case Opcode.kIndirectStaticCall:
+    case Opcode.kInterfaceCall:
+    case Opcode.kDynamicCall:
+    case Opcode.kNativeCall:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool isReturn(Opcode opcode) => opcode == Opcode.kReturnTOS;
+
+bool isControlFlow(Opcode opcode) =>
+    isJump(opcode) || isThrow(opcode) || isCall(opcode) || isReturn(opcode);
+
+bool isPush(Opcode opcode) {
+  switch (opcode) {
+    case Opcode.kPush:
+    case Opcode.kPushConstant:
+    case Opcode.kPushNull:
+    case Opcode.kPushTrue:
+    case Opcode.kPushFalse:
+    case Opcode.kPushInt:
+    case Opcode.kPushStatic:
+      return true;
+    default:
+      return false;
+  }
+}
+
+// Bytecode instructions reference constant pool indices using
+// unsigned 16-bit operands.
+const int constantPoolIndexLimit = 1 << 16;
+
+// Local variables are referenced using 16-bit signed operands.
+const int localVariableIndexLimit = 1 << 15;
+
+// Captured variables are referenced using 16-bit unsigned operands.
+const int capturedVariableIndexLimit = 1 << 16;
+
+// Context IDs are referenced using 8-bit unsigned operands.
+const int contextIdLimit = 1 << 8;
+
+// Base class for exceptions thrown when certain limit of bytecode
+// format is exceeded.
+abstract class BytecodeLimitExceededException {}

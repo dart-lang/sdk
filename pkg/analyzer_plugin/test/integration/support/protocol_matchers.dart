@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -134,6 +134,7 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() =>
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
+ *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -165,6 +166,7 @@ final Matcher isCompletionSuggestion =
           "isPotential": isBool
         }, optionalFields: {
           "displayText": isString,
+          "elementUri": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,

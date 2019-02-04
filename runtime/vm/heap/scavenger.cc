@@ -90,6 +90,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   void VisitingOldObject(RawObject* obj) {
     ASSERT((obj == NULL) || obj->IsOldObject());
     visiting_old_object_ = obj;
+    if (obj != NULL) {
+      // Card update happens in HeapPage::VisitRememberedCards.
+      ASSERT(!obj->IsCardRemembered());
+    }
   }
 
   intptr_t bytes_promoted() const { return bytes_promoted_; }
@@ -173,9 +177,15 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         // Promoted: update age/barrier tags.
         uint32_t tags = new_obj->ptr()->tags_;
         tags = RawObject::OldBit::update(true, tags);
-        tags = RawObject::OldAndNotMarkedBit::update(true, tags);
         tags = RawObject::OldAndNotRememberedBit::update(true, tags);
         tags = RawObject::NewBit::update(false, tags);
+        // Setting the forwarding pointer below will make this tenured object
+        // visible to the concurrent marker, but we haven't visited its slots
+        // yet. We mark the object here to prevent the concurrent marker from
+        // adding it to the mark stack and visiting its unprocessed slots. We
+        // push it to the mark stack after forwarding its slots.
+        tags =
+            RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
       }
 
@@ -271,44 +281,52 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 }
 
 SemiSpace::~SemiSpace() {
-  if (reserved_ != NULL) {
-#if defined(DEBUG)
-    memset(reserved_->address(), Heap::kZapByte,
-           size_in_words() << kWordSizeLog2);
-#endif  // defined(DEBUG)
-    delete reserved_;
-  }
+  delete reserved_;
 }
 
 Mutex* SemiSpace::mutex_ = NULL;
 SemiSpace* SemiSpace::cache_ = NULL;
 
-void SemiSpace::InitOnce() {
-  ASSERT(mutex_ == NULL);
-  mutex_ = new Mutex();
+void SemiSpace::Init() {
+  if (mutex_ == NULL) {
+    mutex_ = new Mutex();
+  }
   ASSERT(mutex_ != NULL);
 }
 
+void SemiSpace::Cleanup() {
+  MutexLocker locker(mutex_);
+  delete cache_;
+  cache_ = NULL;
+}
+
 SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
+  SemiSpace* result = nullptr;
   {
     MutexLocker locker(mutex_);
     // TODO(koda): Cache one entry per size.
-    if (cache_ != NULL && cache_->size_in_words() == size_in_words) {
-      SemiSpace* result = cache_;
-      cache_ = NULL;
-      return result;
+    if (cache_ != nullptr && cache_->size_in_words() == size_in_words) {
+      result = cache_;
+      cache_ = nullptr;
     }
   }
+  if (result != nullptr) {
+#ifdef DEBUG
+    result->reserved_->Protect(VirtualMemory::kReadWrite);
+#endif
+    return result;
+  }
+
   if (size_in_words == 0) {
-    return new SemiSpace(NULL);
+    return new SemiSpace(nullptr);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
     const bool kExecutable = false;
     VirtualMemory* memory =
         VirtualMemory::Allocate(size_in_bytes, kExecutable, name);
-    if (memory == NULL) {
+    if (memory == nullptr) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
-      return NULL;
+      return nullptr;
     }
 #if defined(DEBUG)
     memset(memory->address(), Heap::kZapByte, size_in_bytes);
@@ -319,12 +337,13 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 
 void SemiSpace::Delete() {
 #ifdef DEBUG
-  if (reserved_ != NULL) {
+  if (reserved_ != nullptr) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
     memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
+    reserved_->Protect(VirtualMemory::kNoAccess);
   }
 #endif
-  SemiSpace* old_cache = NULL;
+  SemiSpace* old_cache = nullptr;
   {
     MutexLocker locker(mutex_);
     old_cache = cache_;
@@ -408,7 +427,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
 
-  isolate->PrepareForGC();
+  isolate->ReleaseStoreBuffers();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -428,13 +447,6 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   resolved_top_ = top_;
   end_ = to_->end();
 
-  // Throw out the old information about the from space
-  if (isolate->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = isolate->mutator_thread();
-    mutator_thread->set_top(top_);
-    mutator_thread->set_end(end_);
-  }
-
   return from;
 }
 
@@ -442,13 +454,10 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   // All objects in the to space have been copied from the from space at this
   // moment.
 
-  // Ensure the mutator thread now has the up-to-date top_ and end_ of the
-  // semispace
-  if (isolate->IsMutatorThreadScheduled()) {
-    Thread* thread = isolate->mutator_thread();
-    thread->set_top(top_);
-    thread->set_end(end_);
-  }
+  // Ensure the mutator thread will fail the next allocation. This will force
+  // mutator to allocate a new TLAB
+  Thread* mutator_thread = isolate->mutator_thread();
+  ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
 
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
@@ -566,6 +575,10 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     isolate->store_buffer()->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
     pending = next;
   }
+
+  visitor->VisitingOldObject(NULL);
+  heap_->old_space()->VisitRememberedCards(visitor);
+
   heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
   heap_->RecordData(kDataUnused2, 0);
@@ -579,18 +592,14 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
   if (!FLAG_support_service) {
     return;
   }
-  ObjectIdRing* ring = isolate->object_id_ring();
-  if (ring == NULL) {
-    // --gc_at_alloc can get us here before the ring has been initialized.
-    ASSERT(FLAG_gc_at_alloc);
-    return;
-  }
-  ring->VisitPointers(visitor);
+  isolate->object_id_ring()->VisitPointers(visitor);
 #endif  // !PRODUCT
 }
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
-  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
+#ifdef SUPPORT_TIMELINE
+  Thread* thread = Thread::Current();
+#endif
   int64_t start = OS::GetCurrentMonotonicMicros();
   {
     TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");
@@ -636,6 +645,8 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 }
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
+  Thread* thread = Thread::Current();
+
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
@@ -659,6 +670,14 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
         raw_object->VisitPointersNonvirtual(visitor);
+        if (raw_object->IsMarked()) {
+          // Complete our promise from ScavengePointer. Note that marker cannot
+          // visit this object until it pops a block from the mark stack, which
+          // involves a memory fence from the mutex, so even on architectures
+          // with a relaxed memory model, the marker will see the fully
+          // forwarded contents of this object.
+          thread->MarkingStackAddObject(raw_object);
+        }
       }
       visitor->VisitingOldObject(NULL);
     }
@@ -811,11 +830,45 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-void Scavenger::FlushTLS() const {
+void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
+         (Thread::Current()->task_kind() == Thread::kCompactorTask));
+  Thread* current = heap_->isolate()->thread_registry()->active_list();
+  while (current != NULL) {
+    if (current->HasActiveTLAB()) {
+      heap_->MakeTLABIterable(current);
+    }
+    current = current->next();
+  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    heap_->MakeTLABIterable(mutator_thread);
+  }
+}
+
+void Scavenger::MakeNewSpaceIterable() const {
   ASSERT(heap_ != NULL);
-  if (heap_->isolate()->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = heap_->isolate()->mutator_thread();
-    mutator_thread->heap()->new_space()->set_top(mutator_thread->top());
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
+         (Thread::Current()->task_kind() == Thread::kCompactorTask));
+  if (!scavenging_) {
+    MakeAllTLABsIterable(heap_->isolate());
+  }
+}
+
+void Scavenger::AbandonAllTLABs(Isolate* isolate) {
+  ASSERT(Thread::Current()->IsAtSafepoint());
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = isolate->thread_registry()->active_list();
+  while (current != NULL) {
+    heap_->AbandonRemainingTLAB(current);
+    current = current->next();
+  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    heap_->AbandonRemainingTLAB(mutator_thread);
   }
 }
 
@@ -823,7 +876,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  FlushTLS();
+  MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -834,7 +887,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
-  FlushTLS();
+  MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -849,7 +902,7 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
 
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
-  FlushTLS();
+  MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
@@ -863,6 +916,35 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
     ASSERT(cur == top_);
   }
   return Object::null();
+}
+
+uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  ASSERT(heap_ != Dart::vm_isolate()->heap());
+  ASSERT(!scavenging_);
+  MutexLocker ml(&space_lock_);
+  uword result = top_;
+  intptr_t remaining = end_ - top_;
+  if (remaining < size) {
+    // Grab whatever is remaining
+    size = remaining;
+  } else {
+    // Reduce TLAB size so we land at even TLAB size for future TLABs.
+    intptr_t survived_size = UsedInWords() * kWordSize;
+    size -= survived_size % size;
+  }
+  size = Utils::RoundDown(size, kObjectAlignment);
+  if (size == 0) {
+    return 0;
+  }
+  ASSERT(to_->Contains(result));
+  ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+  top_ += size;
+  ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+  ASSERT(result < top_);
+  thread->set_top(result);
+  thread->set_end(top_);
+  return result;
 }
 
 void Scavenger::Scavenge() {
@@ -890,15 +972,22 @@ void Scavenger::Scavenge() {
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
 
+  AbandonAllTLABs(isolate);
+
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
+    heap_->AbandonRemainingTLAB(mutator_thread);
+  }
+
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
-    heap_->Verify(kForbidMarked);
+    heap_->VerifyGC(kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
   // Prepare for a scavenge.
-  FlushTLS();
+  MakeNewSpaceIterable();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
@@ -938,7 +1027,7 @@ void Scavenger::Scavenge() {
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying after Scavenge...");
-    heap_->Verify(kForbidMarked);
+    heap_->VerifyGC(kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
@@ -1006,11 +1095,6 @@ void Scavenger::Evacuate() {
 
   // Forces the next scavenge to promote all the objects in the new space.
   survivor_end_ = top_;
-
-  if (heap_->isolate()->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = heap_->isolate()->mutator_thread();
-    survivor_end_ = mutator_thread->top();
-  }
 
   Scavenge();
 

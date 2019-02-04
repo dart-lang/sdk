@@ -17,7 +17,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
 import '../options.dart';
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../universe/codegen_world_builder.dart';
 
 import 'code_emitter_task.dart' show Emitter;
 

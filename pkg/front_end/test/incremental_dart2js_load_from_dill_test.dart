@@ -6,6 +6,10 @@ import 'dart:async' show Future;
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+import 'package:kernel/kernel.dart' show Component;
 
 import 'incremental_load_from_dill_test.dart'
     show normalCompile, initializedCompile, checkIsEqual;
@@ -35,6 +39,30 @@ Future<void> testDart2jsCompile() async {
   Stopwatch stopwatch = new Stopwatch()..start();
   await normalCompile(dart2jsUrl, normalDill);
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+  {
+    // Check that we don't include the source from files from the sdk.
+    final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    Uri platformUri = sdkRoot.resolve("vm_platform.dill");
+    Component cSdk = new Component();
+    new BinaryBuilder(new File.fromUri(platformUri).readAsBytesSync(),
+            disableLazyReading: false)
+        .readComponent(cSdk);
+
+    Component c = new Component();
+    new BinaryBuilder(new File.fromUri(normalDill).readAsBytesSync(),
+            disableLazyReading: false)
+        .readComponent(c);
+    for (Uri uri in c.uriToSource.keys) {
+      if (cSdk.uriToSource.containsKey(uri)) {
+        if ((c.uriToSource[uri].source?.length ?? 0) != 0) {
+          throw "Compile contained sources for the sdk $uri";
+        }
+        if ((c.uriToSource[uri].lineStarts?.length ?? 0) != 0) {
+          throw "Compile contained line starts for the sdk $uri";
+        }
+      }
+    }
+  }
 
   // Compile dart2js, initializing from the just-compiled dill,
   // a nonexisting file and a dill file that isn't valid.
@@ -47,7 +75,7 @@ Future<void> testDart2jsCompile() async {
     stopwatch.reset();
     bool initializeResult = await initializedCompile(
         dart2jsUrl, fullDillFromInitialized, initializeWith, [invalidateUri]);
-    Expect.equals(initializeExpect, initializeResult);
+    Expect.equals(initializeResult, initializeExpect);
     print("Initialized compile(s) from ${initializeWith.pathSegments.last} "
         "took ${stopwatch.elapsedMilliseconds} ms");
 

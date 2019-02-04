@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:10:29: Warning: Method not found: 'ExistingClass.nonExistingConstructor'.
+//   var x = new ExistingClass.nonExistingConstructor();
+//                             ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:11:11: Warning: Method not found: 'ExistingClass'.
+//   x = new ExistingClass();
+//           ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:12:11: Warning: Method not found: 'ExistingClass'.
+//   x = new ExistingClass<String>();
+//           ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:13:33: Warning: Method not found: 'ExistingClass.nonExistingConstructor'.
+//   x = new ExistingClass<String>.nonExistingConstructor();
+//                                 ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:14:41: Warning: Method not found: 'ExistingClass.nonExistingConstructor'.
+//   x = new ExistingClass<String, String>.nonExistingConstructor();
+//                                         ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:15:11: Warning: Method not found: 'NonExistingClass'.
+//   x = new NonExistingClass();
+//           ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class ExistingClass extends core::Object {
+  constructor existingConstructor() → self::ExistingClass
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#NonExistingClass, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}

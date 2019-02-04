@@ -6,6 +6,7 @@
 #define RUNTIME_VM_STACK_FRAME_H_
 
 #include "vm/allocation.h"
+#include "vm/frame_layout.h"
 #include "vm/interpreter.h"
 #include "vm/object.h"
 #include "vm/stack_frame_kbc.h"
@@ -32,61 +33,6 @@ class ObjectPointerVisitor;
 class RawContext;
 class LocalVariable;
 
-struct FrameLayout {
-  // The offset (in words) from FP to the first object.
-  int first_object_from_fp;
-
-  // The offset (in words) from FP to the last fixed object.
-  int last_fixed_object_from_fp;
-
-  // The offset (in words) from FP to the first local.
-  int param_end_from_fp;
-
-  // The offset (in words) from FP to the first local.
-  int first_local_from_fp;
-
-  // The fixed size of the frame.
-  int dart_fixed_frame_size;
-
-  // The offset (in words) from FP to the saved pool (if applicable).
-  int saved_caller_pp_from_fp;
-
-  // The offset (in words) from FP to the code object (if applicable).
-  int code_from_fp;
-
-  // The number of fixed slots below the saved PC.
-  int saved_below_pc() const { return -first_local_from_fp; }
-
-  // Returns the FP-relative index where [variable] can be found (assumes
-  // [variable] is not captured), in words.
-  int FrameSlotForVariable(const LocalVariable* variable) const;
-
-  // Returns the FP-relative index where [variable_index] can be found (assumes
-  // [variable_index] comes from a [LocalVariable::index()], which is not
-  // captured).
-  int FrameSlotForVariableIndex(int index) const;
-
-  // Returns the FP-relative index where [variable] can be found (assumes
-  // [variable] is not captured), in bytes.
-  int FrameOffsetInBytesForVariable(const LocalVariable* variable) const {
-    return FrameSlotForVariable(variable) * kWordSize;
-  }
-
-  // Returns the variable index from a FP-relative index.
-  intptr_t VariableIndexForFrameSlot(intptr_t frame_slot) const {
-    if (frame_slot <= first_local_from_fp) {
-      return frame_slot - first_local_from_fp;
-    } else {
-      ASSERT(frame_slot > param_end_from_fp);
-      return frame_slot - param_end_from_fp;
-    }
-  }
-
-  // Called to initialize the stack frame layout during startup.
-  static void InitOnce();
-};
-
-extern FrameLayout compiler_frame_layout;
 extern FrameLayout runtime_frame_layout;
 
 // Generic stack frame.
@@ -114,11 +60,11 @@ class StackFrame : public ValueObject {
     ASSERT(!is_interpreted());
     uword raw_pc =
         *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize));
-    return raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint();
+    return raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint();
   }
   void MarkForLazyDeopt() {
     ASSERT(!is_interpreted());
-    set_pc(StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    set_pc(StubCode::DeoptimizeLazyFromReturn().EntryPoint());
   }
   void UnmarkForLazyDeopt() {
     // If this frame was marked for lazy deopt, pc_ was computed to be the
@@ -126,8 +72,7 @@ class StackFrame : public ValueObject {
     // Write this value back into the frame.
     ASSERT(!is_interpreted());
     uword original_pc = pc();
-    ASSERT(original_pc !=
-           StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    ASSERT(original_pc != StubCode::DeoptimizeLazyFromReturn().EntryPoint());
     set_pc(original_pc);
   }
 
@@ -153,6 +98,18 @@ class StackFrame : public ValueObject {
   // Check validity of a frame, used for assertion purposes.
   virtual bool IsValid() const;
 
+  // Returns the isolate containing the bare instructions of the current frame.
+  //
+  // If the frame does not belong to a bare instructions snapshot, it will
+  // return nullptr.
+  Isolate* IsolateOfBareInstructionsFrame() const;
+
+  // Returns true iff the current frame is a bare instructions dart frame.
+  bool IsBareInstructionsDartFrame() const;
+
+  // Returns true iff the current frame is a bare instructions stub frame.
+  bool IsBareInstructionsStubFrame() const;
+
   // Frame type.
   virtual bool IsDartFrame(bool validate = true) const {
     ASSERT(!validate || IsValid());
@@ -161,10 +118,12 @@ class StackFrame : public ValueObject {
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
+
   virtual bool is_interpreted() const { return is_interpreted_; }
 
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
+  RawBytecode* LookupDartBytecode() const;
   bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
@@ -180,7 +139,9 @@ class StackFrame : public ValueObject {
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const {
-    return IsStubFrame() ? "stub" : "dart";
+    if (IsBareInstructionsStubFrame()) return "bare-stub";
+    if (IsStubFrame()) return "stub";
+    return IsBareInstructionsDartFrame() ? "bare-dart" : "dart";
   }
 
   Isolate* isolate() const { return thread_->isolate(); }
@@ -189,7 +150,7 @@ class StackFrame : public ValueObject {
 
  private:
   RawCode* GetCodeObject() const;
-  RawCode* UncheckedGetCodeObject() const;
+  RawBytecode* GetBytecodeObject() const;
 
   uword GetCallerSp() const {
     return fp() +
@@ -209,8 +170,8 @@ class StackFrame : public ValueObject {
         fp() + ((is_interpreted() ? kKBCSavedCallerPcSlotFromFp
                                   : kSavedCallerPcSlotFromFp) *
                 kWordSize)));
-    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint());
-    if (raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint()) {
+    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
+    if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
       return isolate()->FindPendingDeopt(GetCallerFp());
     }
     return raw_pc;

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,9 +42,9 @@ f(List<MyClass> list) {
 ''');
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    FunctionDeclaration f = declarations[1];
+    FunctionDeclaration f = declarations[1] as FunctionDeclaration;
     expect(f, isNotNull);
-    BlockFunctionBody body = f.functionExpression.body;
+    BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
     expect(statement, const TypeMatcher<ForEachStatement>());
     statement.accept(new TestVisitor(statement.offset));
@@ -68,6 +68,9 @@ class TestVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
+
+  @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {}
 
   @override
   void declaredLabel(Label label, bool isCaseLabel) {}

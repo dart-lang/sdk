@@ -13,12 +13,10 @@
 #include "platform/utils.h"
 #include "vm/constants_ia32.h"
 #include "vm/constants_x86.h"
+#include "vm/pointer_tagging.h"
 
 namespace dart {
-
-// Forward declarations.
-class RuntimeEntry;
-class StubEntry;
+namespace compiler {
 
 class Immediate : public ValueObject {
  public:
@@ -221,18 +219,13 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches = false)
-      : buffer_(),
-        prologue_offset_(-1),
+      : AssemblerBase(object_pool_builder),
         jit_cookie_(0),
-        comments_(),
-        code_(Code::ZoneHandle()) {
-    // On ia32 we don't use object pools.
-    USE(object_pool_wrapper);
-
+        code_(NewZoneHandle(ThreadState::Current()->zone())) {
     // This mode is only needed and implemented for ARM.
     ASSERT(!use_far_branches);
   }
@@ -615,6 +608,10 @@ class Assembler : public ValueObject {
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
                        CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreIntoArray(Register object,  // Object we are storing into.
+                      Register slot,    // Where we are storing into.
+                      Register value,   // Value we are storing.
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -651,13 +648,13 @@ class Assembler : public ValueObject {
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
-  void Call(const StubEntry& stub_entry, bool movable_target = false);
+  void Call(const Code& code, bool movable_target = false);
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
 
-  void Jmp(const StubEntry& stub_entry);
-  void J(Condition condition, const StubEntry& stub_entry);
+  void Jmp(const Code& code);
+  void J(Condition condition, const Code& code);
 
   /*
    * Loading and comparing classes of objects.
@@ -665,8 +662,6 @@ class Assembler : public ValueObject {
   void LoadClassId(Register result, Register object);
 
   void LoadClassById(Register result, Register class_id);
-
-  void LoadClass(Register result, Register object, Register scratch);
 
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
@@ -693,7 +688,7 @@ class Assembler : public ValueObject {
                                            intptr_t extra_disp = 0);
 
   static Address VMTagAddress() {
-    return Address(THR, Thread::vm_tag_offset());
+    return Address(THR, target::Thread::vm_tag_offset());
   }
 
   /*
@@ -717,29 +712,7 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
-  // Address of code at offset.
-  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
-
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
   bool has_single_entry_point() const { return true; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.
-  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
@@ -800,18 +773,14 @@ class Assembler : public ValueObject {
                             Label* trace,
                             bool near_jump);
 
-  void UpdateAllocationStats(intptr_t cid,
-                             Register temp_reg,
-                             Heap::Space space);
+  void UpdateAllocationStats(intptr_t cid, Register temp_reg);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Register temp_reg,
-                                     Heap::Space space);
+                                     Register temp_reg);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
-                                     Register temp_reg,
-                                     Heap::Space space);
+                                     Register temp_reg);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -833,63 +802,34 @@ class Assembler : public ValueObject {
 
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
   static const char* FpuRegisterName(FpuRegister reg);
 
-  // Smis that do not fit into 17 bits (16 bits of payload) are unsafe.
+  // Check if the given value is an integer value that can be directly
+  // emdedded into the code without additional XORing with jit_cookie.
+  // We consider 16-bit integers, powers of two and corresponding masks
+  // as safe values that can be emdedded into the code object.
   static bool IsSafeSmi(const Object& object) {
-    if (!object.IsSmi()) {
-      return false;
+    int64_t value;
+    if (HasIntegerValue(object, &value)) {
+      return Utils::IsInt(16, value) || Utils::IsPowerOfTwo(value) ||
+             Utils::IsPowerOfTwo(value + 1);
     }
-
-    if (Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()))) {
-      return true;
-    }
-
-    // Single bit smis (powers of two) and corresponding masks are safe.
-    const intptr_t value = Smi::Cast(object).Value();
-    if (Utils::IsPowerOfTwo(value) || Utils::IsPowerOfTwo(value + 1)) {
-      return true;
-    }
-
     return false;
   }
   static bool IsSafe(const Object& object) {
-    return !object.IsSmi() || IsSafeSmi(object);
+    return !target::IsSmi(object) || IsSafeSmi(object);
   }
 
-  void set_code_object(const Code& code) { code_ ^= code.raw(); }
+  Object& GetSelfHandle() const { return code_; }
 
   void PushCodeObject();
 
  private:
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
   void Alu(int bytes, uint8_t opcode, Register dst, Register src);
   void Alu(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void Alu(int bytes, uint8_t opcode, Register dst, const Address& src);
@@ -929,16 +869,10 @@ class Assembler : public ValueObject {
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
 
-  void UnverifiedStoreOldObject(const Address& dest, const Object& value);
-
   int32_t jit_cookie();
 
-  AssemblerBuffer buffer_;
-  ObjectPoolWrapper object_pool_wrapper_;
-  intptr_t prologue_offset_;
   int32_t jit_cookie_;
-  GrowableArray<CodeComment*> comments_;
-  Code& code_;
+  Object& code_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
@@ -968,6 +902,12 @@ inline void Assembler::EmitFixup(AssemblerFixup* fixup) {
 inline void Assembler::EmitOperandSizeOverride() {
   EmitUint8(0x66);
 }
+
+}  // namespace compiler
+
+using compiler::Address;
+using compiler::FieldAddress;
+using compiler::Immediate;
 
 }  // namespace dart
 

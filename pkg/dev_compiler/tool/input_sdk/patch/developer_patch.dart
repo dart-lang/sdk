@@ -20,6 +20,9 @@ bool debugger({bool when = true, String message}) {
 
 @patch
 Object inspect(Object object) {
+  // Note: this log level does not show up by default in Chrome.
+  // This is used for communication with the debugger service.
+  JS('', 'console.debug("dart.developer.inspect", #)', object);
   return object;
 }
 
@@ -32,7 +35,17 @@ void log(String message,
     Zone zone,
     Object error,
     StackTrace stackTrace}) {
-  // TODO.
+  Object items =
+      JS('!', '{ message: #, name: #, level: # }', message, name, level);
+  if (time != null) JS('', '#.time = #', items, time);
+  if (sequenceNumber != null) {
+    JS('', '#.sequenceNumber = #', items, sequenceNumber);
+  }
+  if (zone != null) JS('', '#.zone = #', items, zone);
+  if (error != null) JS('', '#.error = #', items, error);
+  if (stackTrace != null) JS('', '#.stackTrace = #', items, stackTrace);
+
+  JS('', 'console.debug("dart.developer.log", #)', items);
 }
 
 final _extensions = Map<String, ServiceExtensionHandler>();
@@ -45,11 +58,13 @@ ServiceExtensionHandler _lookupExtension(String method) {
 @patch
 _registerExtension(String method, ServiceExtensionHandler handler) {
   _extensions[method] = handler;
+  JS('', 'console.debug("dart.developer.registerExtension", #)', method);
 }
 
 @patch
 void _postEvent(String eventKind, String eventData) {
-  // TODO.
+  JS('', 'console.debug("dart.developer.postEvent", #, #)', eventKind,
+      eventData);
 }
 
 @patch

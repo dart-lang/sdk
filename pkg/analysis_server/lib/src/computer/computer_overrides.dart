@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -32,7 +32,7 @@ class DartUnitOverridesComputer {
    */
   List<proto.Override> compute() {
     for (CompilationUnitMember unitMember in _unit.declarations) {
-      if (unitMember is ClassDeclaration) {
+      if (unitMember is ClassOrMixinDeclaration) {
         for (ClassMember classMember in unitMember.members) {
           if (classMember is MethodDeclaration) {
             if (classMember.isStatic) {
@@ -198,6 +198,7 @@ class _OverriddenElementsFinder {
 
     _addSuperOverrides(type.superclass);
     type.mixins.forEach(_addSuperOverrides);
+    type.superclassConstraints.forEach(_addSuperOverrides);
   }
 
   Element _lookupMember(ClassElement classElement) {

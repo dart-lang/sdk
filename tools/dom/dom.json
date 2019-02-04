@@ -7478,7 +7478,7 @@
         "comment": "http://dev.w3.org/csswg/cssom-view/#widl-Element-scrollIntoView-void-boolean-top"
       },
       "scrollIntoViewIfNeeded": {
-        "comment": "http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded",
+        "comment": "https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded",
         "support_level": "nonstandard"
       },
       "scrollLeft": {},
@@ -8033,6 +8033,9 @@
       },
       "createWriter": {},
       "file": {},
+      "fileBlob": {
+        "support_level": "untriaged"
+      },
       "filesystem": {
         "support_level": "untriaged"
       },

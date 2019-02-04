@@ -16,6 +16,10 @@ ThreadRegistry::~ThreadRegistry() {
     MonitorLocker ml(threads_lock());
     // At this point the active list should be empty.
     ASSERT(active_list_ == NULL);
+
+    // The [mutator_thread_] is kept alive until the destruction of the isolate.
+    mutator_thread_->isolate_ = nullptr;
+
     // We have cached the mutator thread, delete it.
     delete mutator_thread_;
     mutator_thread_ = NULL;
@@ -78,12 +82,36 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
-void ThreadRegistry::PrepareForGC() {
+void ThreadRegistry::ReleaseStoreBuffers() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
     if (!thread->BypassSafepoints()) {
-      thread->PrepareForGC();
+      thread->ReleaseStoreBuffer();
+    }
+    thread = thread->next_;
+  }
+}
+
+void ThreadRegistry::AcquireMarkingStacks() {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    if (!thread->BypassSafepoints()) {
+      thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
+    }
+    thread = thread->next_;
+  }
+}
+
+void ThreadRegistry::ReleaseMarkingStacks() {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    if (!thread->BypassSafepoints()) {
+      thread->MarkingStackRelease();
+      thread->DeferredMarkingStackRelease();
     }
     thread = thread->next_;
   }
@@ -164,7 +192,7 @@ Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
 
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != NULL);
-  ASSERT(thread->os_thread_ == NULL);
+  ASSERT(thread->os_thread() == NULL);
   ASSERT(thread->isolate_ == NULL);
   ASSERT(thread->heap_ == NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());

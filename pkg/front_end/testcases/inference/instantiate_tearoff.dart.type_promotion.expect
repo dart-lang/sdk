@@ -1,0 +1,15 @@
+pkg/front_end/testcases/inference/instantiate_tearoff.dart:18:10: Context: Write to func@399
+    func = super. /*@target=C::f*/ f;
+         ^
+pkg/front_end/testcases/inference/instantiate_tearoff.dart:25:8: Context: Write to func@504
+  func = f;
+       ^
+pkg/front_end/testcases/inference/instantiate_tearoff.dart:26:8: Context: Write to func@504
+  func = new C(). /*@target=C::f*/ f;
+       ^
+pkg/front_end/testcases/inference/instantiate_tearoff.dart:27:8: Context: Write to func@504
+  func = C.g;
+       ^
+pkg/front_end/testcases/inference/instantiate_tearoff.dart:28:8: Context: Write to func@504
+  func = h;
+       ^

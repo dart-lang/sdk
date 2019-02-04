@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -26,6 +26,8 @@ typedef ImportPrefixGenerator = String Function(Uri);
 abstract class DartChangeBuilder implements ChangeBuilder {
   /**
    * Initialize a newly created change builder.
+   *
+   * TODO(scheglov) Replace this constructor with using workspace.
    */
   factory DartChangeBuilder(AnalysisSession session) = DartChangeBuilderImpl;
 
@@ -203,12 +205,17 @@ abstract class DartEditBuilder implements EditBuilder {
       Iterable<DartType> superclassConstraints});
 
   /**
-   * Append a placeholder for an override of the specified inherited [member].
-   * If provided, write a string value suitable for display (e.g., in a
-   * completion popup) in the given [displayTextBuffer].
+   * Append a placeholder for an override of the specified inherited
+   * [signature]. If provided, write a string value suitable for display
+   * (e.g., in a completion popup) in the given [displayTextBuffer].
+   * If [invokeSuper] is `true`, then the corresponding `super.name()` will be
+   * added in the body.
    */
-  void writeOverrideOfInheritedMember(ExecutableElement member,
-      {StringBuffer displayTextBuffer});
+  void writeOverride(
+    FunctionType signature, {
+    StringBuffer displayTextBuffer,
+    bool invokeSuper: false,
+  });
 
   /**
    * Write the code for a single parameter with the given [name].
@@ -347,6 +354,26 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   String importLibrary(Uri uri);
 
   /**
+   * Ensure that the requested [library] is imported into the target library,
+   * and the top-level [element] is accessible.
+   *
+   * If there is already an import for the [library], and the [element] is in
+   * the namespace of the import directive, and the name of the element is not
+   * ambiguous in existing import directives, and the name does not conflict
+   * with local declarations, return the import prefix of the existing import
+   * directive.
+   *
+   * If there is no existing import, or there is a conflict, a new import is
+   * added, possibly with an import prefix.
+   *
+   * This method can be used only alone, and only once.
+   */
+  ImportLibraryElementResult importLibraryElement(
+    LibraryElement library,
+    Element element,
+  );
+
+  /**
    * Optionally create an edit to replace the given [typeAnnotation] with the
    * type `Future` (with the given type annotation as the type argument). The
    * [typeProvider] is used to check the current type, because if it is already
@@ -367,4 +394,11 @@ abstract class DartLinkedEditBuilder implements LinkedEditBuilder {
    * suggestions for the current linked edit group.
    */
   void addSuperTypesAsSuggestions(DartType type);
+}
+
+/// Information about a library to import.
+abstract class ImportLibraryElementResult {
+  /// If the library is already imported with a prefix, or should be imported
+  /// with a prefix, the prefix name (without `.`).  Otherwise `null`.
+  String get prefix;
 }

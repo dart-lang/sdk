@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29940.dart:7:3: Warning: 'a.b' can't be used as a type because 'a' doesn't refer to an import prefix.
+//   a.b c = null;
+//   ^^^
+//
+import self as self;
+
+static method main() → dynamic {
+  dynamic a = "";
+  invalid-type c = null;
+}

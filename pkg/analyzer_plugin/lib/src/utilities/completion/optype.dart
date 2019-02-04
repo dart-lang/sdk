@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,6 +87,21 @@ class OpType {
   bool inStaticMethodBody = false;
 
   /**
+   * Indicates whether the completion location is in the body of a method.
+   */
+  bool inMethodBody = false;
+
+  /**
+   * Indicates whether the completion location is in the body of a function.
+   */
+  bool inFunctionBody = false;
+
+  /**
+   * Indicates whether the completion location is in the body of a constructor.
+   */
+  bool inConstructorBody = false;
+
+  /**
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
@@ -114,12 +129,26 @@ class OpType {
       return optype;
     }
 
-    target.containingNode
-        .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
-    var mthDecl =
-        target.containingNode.getAncestor((p) => p is MethodDeclaration);
-    optype.inStaticMethodBody =
-        mthDecl is MethodDeclaration && mthDecl.isStatic;
+    var targetNode = target.containingNode;
+    targetNode.accept(new _OpTypeAstVisitor(optype, target.entity, offset));
+
+    var functionBody = targetNode.thisOrAncestorOfType<FunctionBody>();
+    if (functionBody != null) {
+      var parent = functionBody.parent;
+
+      if (parent is ConstructorDeclaration) {
+        optype.inConstructorBody = true;
+      }
+
+      if (parent is FunctionExpression) {
+        optype.inFunctionBody = true;
+      }
+
+      if (parent is MethodDeclaration) {
+        optype.inMethodBody = true;
+        optype.inStaticMethodBody = parent.isStatic;
+      }
+    }
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
@@ -458,13 +487,21 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
     if (identical(entity, node.name)) {
       TypeName type = node.type;
       if (type != null) {
-        SimpleIdentifier prefix = type.name;
+        Identifier prefix = type.name;
         if (prefix != null) {
           optype.includeConstructorSuggestions = true;
           optype.isPrefixed = true;
@@ -524,7 +561,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     // Given f[], the parser drops the [] from the expression statement
     // but the [] token is the CompletionTarget entity
     if (entity is Token) {
-      Token token = entity;
+      Token token = entity as Token;
       if (token.lexeme == '[]' && offset == token.offset + 1) {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
@@ -779,14 +816,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       AstNode grandparent = node.parent.parent;
       if (grandparent is ConstructorReferenceNode) {
         ConstructorElement element =
-            (grandparent as ConstructorReferenceNode).staticElement;
+            // TODO(paulberry): remove the unnecessary cast when we are ready to
+            // depend on a version of the analyzer that includes
+            // https://dart-review.googlesource.com/c/sdk/+/89923
+            (grandparent // ignore: unnecessary_cast
+                    as ConstructorReferenceNode)
+                .staticElement;
         if (element != null) {
           List<ParameterElement> parameters = element.parameters;
           ParameterElement parameterElement = parameters.firstWhere((e) {
             if (e is DefaultFieldFormalParameterElementImpl) {
-              return e.field?.name == node.name.label.name;
+              return e.field?.name == node.name.label?.name;
             }
-            return e.isNamed && e.name == node.name.label.name;
+            return e.isNamed && e.name == node.name.label?.name;
           }, orElse: () => null);
           // Suggest tear-offs.
           if (parameterElement?.type is FunctionType) {
@@ -952,7 +994,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (entity is Token) {
-      Token token = entity;
+      Token token = entity as Token;
       if (token.isSynthetic || token.lexeme == ';') {
         optype.includeVarNameSuggestions = true;
       }

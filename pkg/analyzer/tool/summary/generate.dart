@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,12 +17,11 @@
  * the entity being built into the given FlatBuffer and returns the `Offset`
  * reference to it.
  */
-library analyzer.tool.summary.generate;
-
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/testing/package_root.dart' as package_root;
@@ -87,6 +86,7 @@ class _CodeGenerator {
     var startingToken = scanner.tokenize();
     var listener = new MiniAstBuilder();
     var parser = new MiniAstParser(listener);
+    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     parser.parseUnit(startingToken);
     extractIdl(listener.compilationUnit);
     checkIdl();
@@ -1002,16 +1002,21 @@ class _CodeGenerator {
    */
   String _getNodeDoc(AnnotatedNode node) {
     Comment comment = node.documentationComment;
-    if (comment != null &&
-        comment.isDocumentation &&
-        comment.tokens.length == 1 &&
-        comment.tokens.first.lexeme.startsWith('/*')) {
-      Token token = comment.tokens.first;
-      return token.lexeme.split('\n').map((String line) {
-        line = line.trimLeft();
-        if (line.startsWith('*')) line = ' ' + line;
-        return line;
-      }).join('\n');
+    if (comment != null && comment.isDocumentation) {
+      if (comment.tokens.length == 1 &&
+          comment.tokens.first.lexeme.startsWith('/*')) {
+        Token token = comment.tokens.first;
+        return token.lexeme.split('\n').map((String line) {
+          line = line.trimLeft();
+          if (line.startsWith('*')) line = ' ' + line;
+          return line;
+        }).join('\n');
+      } else if (comment.tokens
+          .every((token) => token.lexeme.startsWith('///'))) {
+        return comment.tokens
+            .map((token) => token.lexeme.trimLeft())
+            .join('\n');
+      }
     }
     return null;
   }

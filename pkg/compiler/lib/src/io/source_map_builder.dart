@@ -211,48 +211,44 @@ class SourceMapBuilder {
   void writeMinifiedNames(Map<String, String> minifiedNames,
       IndexMap<String> nameMap, StringBuffer buffer) {
     bool first = true;
-    buffer.write('{');
+    buffer.write('"');
     minifiedNames.forEach((String minifiedName, String name) {
       if (!first) buffer.write(',');
-      buffer.write('"');
-      writeJsonEscapedCharsOn(minifiedName, buffer);
-      buffer.write('"');
-      buffer.write(':');
+      // minifiedNames are valid JS identifiers so they don't need to be escaped
+      buffer.write(minifiedName);
+      buffer.write(',');
       buffer.write(nameMap[name]);
       first = false;
     });
-    buffer.write('}');
+    buffer.write('"');
   }
 
   void writeFrames(
       IndexMap<Uri> uriMap, IndexMap<String> nameMap, StringBuffer buffer) {
-    bool first = true;
-    buffer.write('[');
+    var offsetEncoder = DeltaEncoder();
+    var uriEncoder = DeltaEncoder();
+    var lineEncoder = DeltaEncoder();
+    var columnEncoder = DeltaEncoder();
+    var nameEncoder = DeltaEncoder();
+    buffer.write('"');
     frames.forEach((int offset, List<FrameEntry> entries) {
-      if (!first) buffer.write(',');
-      buffer.write('[');
-      buffer.write(offset);
       for (var entry in entries) {
-        buffer.write(',');
+        offsetEncoder.encode(buffer, offset);
         if (entry.isPush) {
           SourceLocation location = entry.pushLocation;
-          buffer.write('[');
-          buffer.write(uriMap[location.sourceUri]);
-          buffer.write(',');
-          buffer.write(location.line - 1);
-          buffer.write(',');
-          buffer.write(location.column - 1);
-          buffer.write(',');
-          buffer.write(nameMap[entry.inlinedMethodName]);
-          buffer.write(']');
+          uriEncoder.encode(buffer, uriMap[location.sourceUri]);
+          lineEncoder.encode(buffer, location.line - 1);
+          columnEncoder.encode(buffer, location.column - 1);
+          nameEncoder.encode(buffer, nameMap[entry.inlinedMethodName]);
         } else {
-          buffer.write(entry.isEmptyPop ? 0 : -1);
+          // ; and , are not used by VLQ so we can distinguish them in the
+          // encoding, this is the same reason they are used in the mappings
+          // field.
+          buffer.write(entry.isEmptyPop ? ";" : ",");
         }
       }
-      buffer.write(']');
-      first = false;
     });
-    buffer.write(']');
+    buffer.write('"');
   }
 
   /// Returns the source map tag to put at the end a .js file in [fileUri] to

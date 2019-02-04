@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,8 +12,6 @@
  * Instances of these constant values are accessed through the
  * [element model](../element/element.dart).
  */
-library analyzer.dart.constant.value;
-
 import 'package:analyzer/dart/element/type.dart';
 
 /**
@@ -130,6 +128,14 @@ abstract class DartObject {
    * * the value of the object being represented is `null`.
    */
   Map<DartObject, DartObject> toMapValue();
+
+  /**
+   * Return a set corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'Set', or
+   * * the value of the object being represented is `null`.
+   */
+  Set<DartObject> toSetValue();
 
   /**
    * Return a string corresponding to the value of the object being represented,

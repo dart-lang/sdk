@@ -11,7 +11,7 @@ class A {}
 /*class: B:checks=[]*/
 class B implements A {}
 
-/*class: C:checks=[$isA]*/
+/*class: C:checks=[$isA],indirectInstance*/
 class C = Object with B;
 
 /*class: D:checks=[],instance*/

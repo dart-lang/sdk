@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
-import '../common.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 
@@ -29,6 +29,12 @@ abstract class KernelToElementMap {
 
   /// Access to the [DartTypes] object.
   DartTypes get types;
+
+  /// Returns the type environment for the underlying kernel model.
+  ir.TypeEnvironment get typeEnvironment;
+
+  /// Returns the class hierarchy for the underlying kernel model.
+  ir.ClassHierarchy get classHierarchy;
 
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
@@ -54,6 +60,10 @@ abstract class KernelToElementMap {
   /// access of [node].
   Selector getSelector(ir.Expression node);
 
+  /// Returns the [Selector] corresponding to the invocation of [name] with
+  /// [arguments].
+  Selector getInvocationSelector(ir.Name name, ir.Arguments arguments);
+
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
 
@@ -75,12 +85,7 @@ abstract class KernelToElementMap {
 
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
-  ///
-  /// The IR doesn't always resolve super accesses to the corresponding
-  /// [target]. If not, the target is computed using [name] and [setter] from
-  /// the enclosing class of [context].
-  MemberEntity getSuperMember(
-      MemberEntity context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
@@ -90,17 +95,16 @@ abstract class KernelToElementMap {
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  /// Computes the [NativeBehavior] for a call to the [JS] function.
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
 
-  /// Computes the [native.NativeBehavior] for a call to the
+  /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
@@ -115,12 +119,8 @@ abstract class KernelToElementMap {
   /// Return the [ImportEntity] corresponding to [node].
   ImportEntity getImport(ir.LibraryDependency node);
 
-  /// Returns the definition information for [cls].
-  ClassDefinition getClassDefinition(covariant ClassEntity cls);
-
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
+  /// Returns the defining node for [cls].
+  ir.Class getClassNode(covariant ClassEntity cls);
 
   /// Adds libraries in [component] to the set of libraries.
   ///
@@ -151,15 +151,15 @@ abstract class KernelToElementMap {
   bool isNativeClass(ir.Class node);
 
   /// Computes the native behavior for reading the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+  NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+  NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
   /// Computes the native behavior for calling the function or constructor
   /// [member].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+  NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.
@@ -179,121 +179,8 @@ abstract class KernelToElementMap {
   /// Returns the node that defines [typedef].
   ir.Typedef getTypedefNode(covariant TypedefEntity typedef);
 
-  /// Returns the definition information for [member].
-  MemberDefinition getMemberDefinition(covariant MemberEntity member);
-
-  /// Returns the element type of a async/sync*/async* function.
-  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode);
-}
-
-// TODO(johnniwinther,efortuna): Add more when needed.
-// TODO(johnniwinther): Should we split regular into method, field, etc.?
-enum MemberKind {
-  // A regular member defined by an [ir.Node].
-  regular,
-  // A constructor whose initializer is defined by an [ir.Constructor] node.
-  constructor,
-  // A constructor whose body is defined by an [ir.Constructor] node.
-  constructorBody,
-  // A closure class `call` method whose body is defined by an
-  // [ir.FunctionExpression] or [ir.FunctionDeclaration].
-  closureCall,
-  // A field corresponding to a captured variable in the closure. It does not
-  // have a corresponding ir.Node.
-  closureField,
-  // A method that describes the type of a function (in this case the type of
-  // the closure class. It does not have a corresponding ir.Node or a method
-  // body.
-  signature,
-  // A separated body of a generator (sync*/async/async*) function.
-  generatorBody,
-}
-
-/// Definition information for a [MemberEntity].
-abstract class MemberDefinition {
-  /// The defined member.
-  MemberEntity get member;
-
-  /// The kind of the defined member. This determines the semantics of [node].
-  MemberKind get kind;
-
-  /// The defining [ir.Node] for this member, if supported by its [kind].
-  ///
-  /// For a regular class this is the [ir.Class] node. For closure classes this
-  /// might be an [ir.FunctionExpression] node if needed.
-  ir.Node get node;
-
-  /// The canonical location of [member]. This is used for sorting the members
-  /// in the emitted code.
-  SourceSpan get location;
-}
-
-enum ClassKind {
-  regular,
-  closure,
-  // TODO(efortuna, johnniwinther): Record is not a class, but is
-  // masquerading as one currently for consistency with the old element model.
-  record,
-}
-
-/// A member directly defined by its [ir.Member] node.
-class RegularMemberDefinition implements MemberDefinition {
-  final MemberEntity member;
-  final ir.Member node;
-
-  RegularMemberDefinition(this.member, this.node);
-
-  SourceSpan get location => computeSourceSpanFromTreeNode(node);
-
-  MemberKind get kind => MemberKind.regular;
-
-  String toString() => 'RegularMemberDefinition(kind:$kind,member:$member,'
-      'node:$node,location:$location)';
-}
-
-/// The definition of a special kind of member
-class SpecialMemberDefinition implements MemberDefinition {
-  final MemberEntity member;
-  final ir.TreeNode node;
-  final MemberKind kind;
-
-  SpecialMemberDefinition(this.member, this.node, this.kind);
-
-  SourceSpan get location => computeSourceSpanFromTreeNode(node);
-
-  String toString() => 'SpecialMemberDefinition(kind:$kind,member:$member,'
-      'node:$node,location:$location)';
-}
-
-/// Definition information for a [ClassEntity].
-abstract class ClassDefinition {
-  /// The defined class.
-  ClassEntity get cls;
-
-  /// The kind of the defined class. This determines the semantics of [node].
-  ClassKind get kind;
-
-  /// The defining [ir.Node] for this class, if supported by its [kind].
-  ir.Node get node;
-
-  /// The canonical location of [cls]. This is used for sorting the classes
-  /// in the emitted code.
-  SourceSpan get location;
-}
-
-/// A class directly defined by its [ir.Class] node.
-class RegularClassDefinition implements ClassDefinition {
-  final ClassEntity cls;
-  final ir.Class node;
-
-  RegularClassDefinition(this.cls, this.node);
-
-  SourceSpan get location => computeSourceSpanFromTreeNode(node);
-
-  ClassKind get kind => ClassKind.regular;
-
-  String toString() => 'RegularClassDefinition(kind:$kind,cls:$cls,'
-      'node:$node,location:$location)';
+  /// Returns the defining node for [member].
+  ir.Member getMemberNode(covariant MemberEntity member);
 }
 
 /// Kinds of foreign functions.

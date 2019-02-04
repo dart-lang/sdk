@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+ * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package org.dartlang.analysis.server.protocol;
@@ -165,22 +165,16 @@ public class RequestErrorCode {
   public static final String SORT_MEMBERS_PARSE_ERRORS = "SORT_MEMBERS_PARSE_ERRORS";
 
   /**
-   * An "analysis.setPriorityFiles" request includes one or more files that are not being analyzed.
-   *
-   * This is a legacy error; it will be removed before the API reaches version 1.0.
+   * A dartfix request was received containing the name of a fix which does not match the name of any
+   * known fixes.
    */
-  public static final String UNANALYZED_PRIORITY_FILES = "UNANALYZED_PRIORITY_FILES";
+  public static final String UNKNOWN_FIX = "UNKNOWN_FIX";
 
   /**
    * A request was received which the analysis server does not recognize, or cannot handle in its
    * current configuration.
    */
   public static final String UNKNOWN_REQUEST = "UNKNOWN_REQUEST";
-
-  /**
-   * The analysis server was requested to perform an action on a source that does not exist.
-   */
-  public static final String UNKNOWN_SOURCE = "UNKNOWN_SOURCE";
 
   /**
    * The analysis server was requested to perform an action which is not supported.

@@ -79,7 +79,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return Connect(fd, addr);
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
@@ -92,11 +95,33 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     return -1;
   }
 
+
   if (reuseAddress) {
     int optval = 1;
     VOID_NO_RETRY_EXPECTED(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
   }
+
+  if (reusePort) {
+    int optval = 1;
+    VOID_NO_RETRY_EXPECTED(
+        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)));
+  }
+
+  if (!SocketBase::SetMulticastHops(fd,
+                                    addr.addr.sa_family == AF_INET
+                                        ? SocketAddress::TYPE_IPV4
+                                        : SocketAddress::TYPE_IPV6,
+                                    ttl)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+
+  // Don't raise SIGPIPE when attempting to write to a connection which has
+  // already closed.
+  int optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval)));
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
@@ -129,6 +154,12 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   int optval = 1;
   VOID_NO_RETRY_EXPECTED(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+
+  // Don't raise SIGPIPE when attempting to write to a connection which has
+  // already closed.
+  optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval)));
 
   if (addr.ss.ss_family == AF_INET6) {
     optval = v6_only ? 1 : 0;

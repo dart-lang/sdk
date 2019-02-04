@@ -71,9 +71,4 @@ class Object {
   bool _simpleInstanceOfTrue(type) => true;
   @pragma("vm:entry-point")
   bool _simpleInstanceOfFalse(type) => false;
-
-  // Call this function instead of inlining 'as', thus collecting type
-  // feedback. Returns receiver.
-  _as(instantiatorTypeArguments, functionTypeArguments, type)
-      native "Object_as";
 }

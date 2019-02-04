@@ -27,7 +27,7 @@ class C {
       Expect.equals(posArgs[i], m.positionalArguments[i]);
     }
     for (var k in namedArgs.keys) {
-      Expect.equals(namedArgs[k], m.namedArguments[new Symbol(k)]);
+      Expect.equals(namedArgs[k], m.namedArguments[k]);
     }
     return 123;
   }
@@ -55,7 +55,7 @@ main() {
   }
 
   // Test named and positional arguments.
-  var c = new C(1, 2, [100], {"n1": 101, "n2": 102}) as dynamic;
+  var c = new C(1, 2, [100], {#n1: 101, #n2: 102}) as dynamic;
   for (var i = 0; i < 20; ++i) {
     Expect.equals(123, c.bar(100, n1: 101, n2: 102));
     Expect.equals(123, c.bar(100, n2: 102, n1: 101));

@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef G<V extends core::Object = dynamic> = () → core::List<V>;
+class C<T extends core::Object = dynamic> extends self::D<self::C::T> {
+  synthetic constructor •() → self::C<self::C::T>
+    : super self::D::•()
+    ;
+  method f<U extends core::Object = dynamic>(dynamic g) → dynamic
+    return null;
+}
+abstract class D<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::T>
+    : super core::Object::•()
+    ;
+  abstract method f<U extends core::Object = dynamic>(() → core::List<self::D::f::U> g) → void;
+}
+static method main() → dynamic {}

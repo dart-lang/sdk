@@ -6,13 +6,16 @@ library fasta.tool.command_line;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exit, exitCode;
+import 'dart:io' show exit, stderr;
 
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, parseExperimentalFlags;
+
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
 
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
@@ -26,9 +29,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
@@ -62,6 +62,7 @@ class CommandLineProblem {
 class ParsedArguments {
   final Map<String, dynamic> options = <String, dynamic>{};
   final List<String> arguments = <String>[];
+  final Map<String, String> defines = <String, String>{};
 
   toString() => "ParsedArguments($options, $arguments)";
 
@@ -111,11 +112,16 @@ class ParsedArguments {
     while (iterator.moveNext()) {
       String argument = iterator.current;
       if (argument.startsWith("-") || argument == "/?" || argument == "/h") {
-        index = argument.indexOf("=");
         String value;
-        if (index != -1) {
-          value = argument.substring(index + 1);
-          argument = argument.substring(0, index);
+        if (argument.startsWith("-D")) {
+          value = argument.substring("-D".length);
+          argument = "-D";
+        } else {
+          index = argument.indexOf("=");
+          if (index != -1) {
+            value = argument.substring(index + 1);
+            argument = argument.substring(0, index);
+          }
         }
         var valueSpecification = specification[argument];
         if (valueSpecification == null) {
@@ -123,7 +129,9 @@ class ParsedArguments {
               "Unknown option '$argument'.");
         }
         String canonicalArgument = argument;
-        if (valueSpecification is String && valueSpecification != ",") {
+        if (valueSpecification is String &&
+            valueSpecification != "," &&
+            valueSpecification != "<define>") {
           canonicalArgument = valueSpecification;
           valueSpecification = specification[valueSpecification];
         }
@@ -149,6 +157,20 @@ class ParsedArguments {
                 .addAll(value.split(","));
             break;
 
+          case "<define>":
+            int index = value.indexOf('=');
+            String name;
+            String expression;
+            if (index != -1) {
+              name = value.substring(0, index);
+              expression = value.substring(index + 1);
+            } else {
+              name = value;
+              expression = value;
+            }
+            result.defines[name] = expression;
+            break;
+
           case "int":
           case "bool":
           case "String":
@@ -160,10 +182,11 @@ class ParsedArguments {
             }
             var parsedValue;
             if (valueSpecification == int) {
-              parsedValue = int.parse(value, onError: (_) {
+              parsedValue = int.tryParse(value);
+              if (parsedValue == null) {
                 return throw new CommandLineProblem.deprecated(
                     "Value for '$argument', '$value', isn't an int.");
-              });
+              }
             } else if (valueSpecification == bool) {
               if (value == null || value == "true" || value == "yes") {
                 parsedValue = true;
@@ -216,27 +239,28 @@ class ParsedArguments {
 //  * Document the option.
 //  * Get an explicit approval from the front-end team.
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
+  "--bytecode": false,
   "--compile-sdk": Uri,
   "--dump-ir": false,
+  "--enable-experiment": ",",
   "--exclude-source": false,
+  "--omit-platform": false,
   "--fatal": ",",
   "--help": false,
   "--legacy": "--legacy-mode",
-  "--legacy-mode": true,
+  "--legacy-mode": false,
   "--libraries-json": Uri,
   "--output": Uri,
   "--packages": Uri,
   "--platform": Uri,
   "--sdk": Uri,
-  "--single-root-scheme": String,
   "--single-root-base": Uri,
-  "--strong": "--strong-mode",
-  "--strong-mode": false,
-  "--sync-async": true,
+  "--single-root-scheme": String,
+  "--supermixin": true,
   "--target": String,
   "--verbose": false,
   "--verify": false,
-  "--bytecode": false,
+  "-D": "<define>",
   "-h": "--help",
   "-o": "--output",
   "-t": "--target",
@@ -244,6 +268,10 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "/?": "--help",
   "/h": "--help",
 };
+
+void throwCommandLineProblem(String message) {
+  throw new CommandLineProblem.deprecated(message);
+}
 
 ProcessedOptions analyzeCommandLine(
     String programName,
@@ -267,14 +295,11 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  final bool strongMode = options["--strong-mode"] || !options["--legacy-mode"];
-
-  final bool syncAsync = options["--sync-async"];
+  final bool legacyMode = options["--legacy-mode"];
 
   final String targetName = options["--target"] ?? "vm";
 
-  final TargetFlags flags =
-      new TargetFlags(strongMode: strongMode, syncAsync: syncAsync);
+  final TargetFlags flags = new TargetFlags(legacyMode: legacyMode);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -288,6 +313,8 @@ ProcessedOptions analyzeCommandLine(
   final bool dumpIr = options["--dump-ir"];
 
   final bool excludeSource = options["--exclude-source"];
+
+  final bool omitPlatform = options["--omit-platform"];
 
   final Uri packages = options["--packages"];
 
@@ -306,9 +333,7 @@ ProcessedOptions analyzeCommandLine(
   final Uri singleRootBase = options["--single-root-base"];
 
   FileSystem fileSystem = StandardFileSystem.instance;
-  List<String> extraSchemes = const [];
   if (singleRootScheme != null) {
-    extraSchemes = [singleRootScheme];
     fileSystem = new SchemeBasedFileSystem({
       'file': fileSystem,
       'data': fileSystem,
@@ -319,6 +344,9 @@ ProcessedOptions analyzeCommandLine(
           singleRootScheme, singleRootBase, fileSystem),
     });
   }
+
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      options["--enable-experiment"], throwCommandLineProblem);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -337,28 +365,28 @@ ProcessedOptions analyzeCommandLine(
     return new ProcessedOptions(
         options: new CompilerOptions()
           ..sdkSummary = options["--platform"]
-          ..librariesSpecificationUri =
-              resolveInputUri(arguments[1], extraSchemes: extraSchemes)
+          ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true
           ..fileSystem = fileSystem
           ..packagesFileUri = packages
-          ..strongMode = strongMode
+          ..legacyMode = legacyMode
           ..target = target
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
+          ..omitPlatform = omitPlatform
           ..verbose = verbose
           ..verify = verify
-          ..bytecode = bytecode,
+          ..bytecode = bytecode
+          ..experimentalFlags = experimentalFlags,
         inputs: <Uri>[Uri.parse(arguments[0])],
-        output: resolveInputUri(arguments[3], extraSchemes: extraSchemes));
+        output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
 
-  final Uri defaultOutput =
-      resolveInputUri("${arguments.first}.dill", extraSchemes: extraSchemes);
+  final Uri defaultOutput = resolveInputUri("${arguments.first}.dill");
 
   final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
 
@@ -367,7 +395,8 @@ ProcessedOptions analyzeCommandLine(
   final Uri platform = compileSdk
       ? null
       : (options["--platform"] ??
-          computePlatformBinariesLocation().resolve("vm_platform.dill"));
+          computePlatformBinariesLocation(forceBuildDir: true).resolve(
+              legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
@@ -375,21 +404,23 @@ ProcessedOptions analyzeCommandLine(
     ..sdkRoot = sdk
     ..sdkSummary = platform
     ..packagesFileUri = packages
-    ..strongMode = strongMode
+    ..legacyMode = legacyMode
     ..target = target
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..embedSourceText = !excludeSource
     ..debugDump = dumpIr
+    ..omitPlatform = omitPlatform
     ..verbose = verbose
-    ..verify = verify;
+    ..verify = verify
+    ..experimentalFlags = experimentalFlags;
 
   // TODO(ahe): What about chase dependencies?
 
   List<Uri> inputs = <Uri>[];
   if (areRestArgumentsInputs) {
     for (String argument in arguments) {
-      inputs.add(resolveInputUri(argument, extraSchemes: extraSchemes));
+      inputs.add(resolveInputUri(argument));
     }
   }
   return new ProcessedOptions(
@@ -413,6 +444,13 @@ Future<T> withGlobalOptions<T>(
   ProcessedOptions options;
   CommandLineProblem problem;
   try {
+    if (arguments.contains("--strong") &&
+        arguments.contains("--target=flutter")) {
+      // TODO(ahe): Temporarily ignore option to unbreak flutter build.
+      arguments = new List<String>.from(arguments);
+      arguments.remove("--strong");
+      stderr.writeln("Note: the option '--strong' is deprecated.");
+    }
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
         programName, parsedArguments, areRestArgumentsInputs, verbose);
@@ -483,10 +521,6 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     // DebugAbort should never happen in production code, so we want test.py to
     // treat this as a crash which is signalled by exiting with 255.
     exit(255);
-  } on deprecated_InputError catch (e) {
-    exitCode = 1;
-    await CompilerContext.runWithDefaultOptions((c) =>
-        new Future<void>.sync(() => c.report(e.message, Severity.error)));
   }
   return failingValue;
 }

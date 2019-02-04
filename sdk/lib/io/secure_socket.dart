@@ -377,6 +377,7 @@ abstract class RawSecureSocket implements RawSocket {
  * X509Certificate represents an SSL certificate, with accessors to
  * get the fields of the certificate.
  */
+@pragma("vm:entry-point")
 abstract class X509Certificate {
   @pragma("vm:entry-point")
   external factory X509Certificate._();
@@ -508,9 +509,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       this.requireClientCertificate,
       this.onBadCertificate,
       List<String> supportedProtocols) {
-    if (context == null) {
-      context = SecurityContext.defaultContext;
-    }
+    context ??= SecurityContext.defaultContext;
     _controller = new StreamController<RawSocketEvent>(
         sync: true,
         onListen: _onSubscriptionStateChange,
@@ -582,21 +581,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
     }
-    if (requestedPort is! int) {
-      throw new ArgumentError("requestedPort is not an int");
-    }
+    ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
-      throw new ArgumentError("requestedPort is not in the range 0..65535");
+      throw ArgumentError("requestedPort is not in the range 0..65535");
     }
-    if (requestClientCertificate is! bool) {
-      throw new ArgumentError("requestClientCertificate is not a bool");
-    }
-    if (requireClientCertificate is! bool) {
-      throw new ArgumentError("requireClientCertificate is not a bool");
-    }
-    if (onBadCertificate != null && onBadCertificate is! Function) {
-      throw new ArgumentError("onBadCertificate is not null or a Function");
-    }
+    ArgumentError.checkNotNull(
+        requestClientCertificate, "requestClientCertificate");
+    ArgumentError.checkNotNull(
+        requireClientCertificate, "requireClientCertificate");
   }
 
   int get port => _socket.port;
@@ -715,8 +707,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       return 0;
     }
     if (_status != connectedStatus) return 0;
-    if (offset == null) offset = 0;
-    if (bytes == null) bytes = data.length - offset;
+    offset ??= 0;
+    bytes ??= data.length - offset;
 
     int written =
         _secureFilter.buffers[writePlaintextId].write(data, offset, bytes);
@@ -742,6 +734,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool setOption(SocketOption option, bool enabled) {
     if (_socket == null) return false;
     return _socket.setOption(option, enabled);
+  }
+
+  Uint8List getRawOption(RawSocketOption option) {
+    return _socket?.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _socket?.setRawOption(option);
   }
 
   void _eventDispatcher(RawSocketEvent event) {
@@ -1264,7 +1264,7 @@ class TlsException implements IOException {
   final OSError osError;
 
   @pragma("vm:entry-point")
-  const TlsException([String message = "", OSError osError = null])
+  const TlsException([String message = "", OSError osError])
       : this._("TlsException", message, osError);
 
   const TlsException._(this.type, this.message, this.osError);
@@ -1272,7 +1272,7 @@ class TlsException implements IOException {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(type);
-    if (!message.isEmpty) {
+    if (message.isNotEmpty) {
       sb.write(": $message");
       if (osError != null) {
         sb.write(" ($osError)");
@@ -1288,9 +1288,10 @@ class TlsException implements IOException {
  * An exception that happens in the handshake phase of establishing
  * a secure network connection.
  */
+@pragma("vm:entry-point")
 class HandshakeException extends TlsException {
   @pragma("vm:entry-point")
-  const HandshakeException([String message = "", OSError osError = null])
+  const HandshakeException([String message = "", OSError osError])
       : super._("HandshakeException", message, osError);
 }
 
@@ -1301,6 +1302,6 @@ class HandshakeException extends TlsException {
  */
 class CertificateException extends TlsException {
   @pragma("vm:entry-point")
-  const CertificateException([String message = "", OSError osError = null])
+  const CertificateException([String message = "", OSError osError])
       : super._("CertificateException", message, osError);
 }

@@ -71,6 +71,8 @@ class Flags {
 
   static bool Initialized() { return initialized_; }
 
+  static void Cleanup();
+
 #ifndef PRODUCT
   static void PrintJSON(JSONStream* js);
 #endif  // !PRODUCT

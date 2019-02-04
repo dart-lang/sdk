@@ -40,7 +40,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.disableCacheFlushing = true;
     modifiedOptions.enabledPluginNames = ['somePackage'];
     modifiedOptions.enableLazyAssignmentOperators = true;
-    modifiedOptions.enableSuperMixins = true;
     modifiedOptions.enableTiming = true;
     modifiedOptions.errorProcessors = [null];
     modifiedOptions.excludePatterns = ['a'];
@@ -63,7 +62,6 @@ class AnalysisOptionsImplTest {
     expect(modifiedOptions.enabledPluginNames, isEmpty);
     expect(modifiedOptions.enableLazyAssignmentOperators,
         defaultOptions.enableLazyAssignmentOperators);
-    expect(modifiedOptions.enableSuperMixins, defaultOptions.enableSuperMixins);
     expect(modifiedOptions.enableTiming, defaultOptions.enableTiming);
     expect(modifiedOptions.errorProcessors, defaultOptions.errorProcessors);
     expect(modifiedOptions.excludePatterns, defaultOptions.excludePatterns);

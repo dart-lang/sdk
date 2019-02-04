@@ -32,6 +32,16 @@ const int staticMask = finalMask << 1;
 
 const int namedMixinApplicationMask = staticMask << 1;
 
+/// Not a modifier, used for mixins declared explicitly by using the `mixin`
+/// keyword.
+const int mixinDeclarationMask = namedMixinApplicationMask << 1;
+
+/// Not a modifier, used by fields to track if they have an initializer.
+const int hasInitializerMask = mixinDeclarationMask << 1;
+
+/// Not a modifier, used by formal parameters to track if they are initializing.
+const int initializingFormalMask = hasInitializerMask << 1;
+
 /// Not a real modifier, and by setting it to zero, it is automatically ignored
 /// by [Modifier.validate] below.
 const int varMask = 0;

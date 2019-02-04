@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A
+    ;
+}
+class B extends core::Object {
+  constructor •(core::int x, core::double y, core::String s) → self::B
+    ;
+}
+class C<T extends core::Object = dynamic> extends core::Object {
+  constructor •() → self::C<self::C::T>
+    ;
+}
+class D<T extends core::Object = dynamic, S extends core::Object = dynamic> extends core::Object {
+  constructor •(self::D::T x, self::D::S y) → self::D<self::D::T, self::D::S>
+    ;
+}
+static method main() → void
+  ;

@@ -4,24 +4,24 @@
 
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
-/**
- * Replaces some instructions with specialized versions to make codegen easier.
- * Caches codegen information on nodes.
- */
+/// Replaces some instructions with specialized versions to make codegen easier.
+/// Caches codegen information on nodes.
 class SsaInstructionSelection extends HBaseVisitor {
   final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
+  final CompilerOptions _options;
   HGraph graph;
 
-  SsaInstructionSelection(this._closedWorld, this._interceptorData);
+  SsaInstructionSelection(
+      this._options, this._closedWorld, this._interceptorData);
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
@@ -83,39 +83,49 @@ class SsaInstructionSelection extends HBaseVisitor {
   }
 
   /// Returns the single JavaScript comparison (`==` or `===`) if that
-  /// implements `identical(left, right)`, or returns `null` if a more complex
-  /// expression is needed.
+  /// implements `identical(left, right)`, or returns `null` if the more complex
+  /// ternary `left == null ? right == null : left === right` is required.
   String simpleOp(HInstruction left, HInstruction right) {
     AbstractValue leftType = left.instructionType;
     AbstractValue rightType = right.instructionType;
-    if (_abstractValueDomain.canBeNull(leftType) &&
-        _abstractValueDomain.canBeNull(rightType)) {
-      // Can't use `===` on Dart `null` since it is implemented by JavaScript
-      // `null` and `undefined`.
-      if (left.isConstantNull() || right.isConstantNull()) {
-        return '==';
-      }
-      if (_abstractValueDomain.isNumberOrNull(leftType) &&
-          _abstractValueDomain.isNumberOrNull(rightType)) {
-        return '==';
-      }
-      if (_abstractValueDomain.isStringOrNull(leftType) &&
-          _abstractValueDomain.isStringOrNull(rightType)) {
-        return '==';
-      }
-      if (_abstractValueDomain.isBooleanOrNull(leftType) &&
-          _abstractValueDomain.isBooleanOrNull(rightType)) {
-        return '==';
-      }
-
-      // TODO(34439): There are more cases that can compile to `==` without
-      // triggering a conversion in the JavaScript evaluation. `==` will work
-      // for most Dart objects, but we have to ensure neither side can be a
-      // JavaScript Number, String, Symbol or Boolean.
-      return null;
+    if (_abstractValueDomain.isNull(leftType).isDefinitelyFalse) {
+      return '===';
     }
-    return '===';
+    if (_abstractValueDomain.isNull(rightType).isDefinitelyFalse) {
+      return '===';
+    }
+
+    // Dart `null` is implemented by JavaScript `null` and `undefined` which are
+    // not strict-equals, so we can't use `===`. We would like to use `==` but
+    // need to avoid any cases from ES6 7.2.14 that involve conversions.
+    if (left.isConstantNull() || right.isConstantNull()) {
+      return '==';
+    }
+
+    if (_abstractValueDomain.isNumberOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isNumberOrNull(rightType).isDefinitelyTrue) {
+      return '==';
+    }
+    if (_abstractValueDomain.isStringOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isStringOrNull(rightType).isDefinitelyTrue) {
+      return '==';
+    }
+    if (_abstractValueDomain.isBooleanOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isBooleanOrNull(rightType).isDefinitelyTrue) {
+      return '==';
+    }
+
+    if (_intercepted(leftType)) return null;
+    if (_intercepted(rightType)) return null;
+    return '==';
   }
+
+  // ToPrimitive conversions of an object occur when the other operand is a
+  // primitive (Number, String, Symbol and, indirectly, Boolean). We use
+  // 'intercepted' types as a proxy for all the primitive types.
+  bool _intercepted(AbstractValue type) => _abstractValueDomain
+      .isInterceptor(_abstractValueDomain.excludeNull(type))
+      .isPotentiallyTrue;
 
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     if (node.isInterceptedCall) {
@@ -132,7 +142,12 @@ class SsaInstructionSelection extends HBaseVisitor {
     return node;
   }
 
-  void tryReplaceInterceptorWithDummy(
+  HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
+    // The receiver parameter should never be replaced with a dummy constant.
+    return node;
+  }
+
+  bool tryReplaceInterceptorWithDummy(
       HInvoke node, Selector selector, AbstractValue mask) {
     // Calls of the form
     //
@@ -140,7 +155,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     //
     // where the interceptor calling convention is used come from recognizing
     // that 'a' is a 'self-interceptor'.  If the selector matches only methods
-    // that ignore the explicit receiver parameter, replace occurences of the
+    // that ignore the explicit receiver parameter, replace occurrences of the
     // receiver argument with a dummy receiver '0':
     //
     //     a.foo$1(a, x)   --->   a.foo$1(0, x)
@@ -156,7 +171,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
     // TODO(15933): Make automatically generated property extraction closures
     // work with the dummy receiver optimization.
-    if (selector.isGetter) return;
+    if (selector.isGetter) return false;
 
     // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
     HInstruction interceptor = node.inputs[0];
@@ -173,8 +188,10 @@ class SsaInstructionSelection extends HBaseVisitor {
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
         dummy.usedBy.add(node);
+        return true;
       }
     }
+    return false;
   }
 
   HInstruction visitFieldSet(HFieldSet setter) {
@@ -266,7 +283,9 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(_abstractValueDomain)) return simpleBinary(assignOp);
+      if (op.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+        return simpleBinary(assignOp);
+      }
       return noMatchingRead();
     }
 
@@ -284,12 +303,44 @@ class SsaInstructionSelection extends HBaseVisitor {
 
     return noMatchingRead();
   }
+
+  visitIf(HIf node) {
+    if (!_options.experimentToBoolean) return node;
+    HInstruction condition = node.inputs.single;
+    // if (x != null) --> if (x)
+    if (condition is HNot) {
+      HInstruction test = condition.inputs.single;
+      if (test is HIdentity) {
+        HInstruction operand1 = test.inputs[0];
+        HInstruction operand2 = test.inputs[1];
+        if (operand2.isNull(_abstractValueDomain).isDefinitelyTrue &&
+            !_intercepted(operand1.instructionType)) {
+          if (test.usedBy.length == 1 && condition.usedBy.length == 1) {
+            node.changeUse(condition, operand1);
+            condition.block.remove(condition);
+            test.block.remove(test);
+          }
+        }
+      }
+    }
+    // if (x == null) => if (!x)
+    if (condition is HIdentity && condition.usedBy.length == 1) {
+      HInstruction operand1 = condition.inputs[0];
+      HInstruction operand2 = condition.inputs[1];
+      if (operand2.isNull(_abstractValueDomain).isDefinitelyTrue &&
+          !_intercepted(operand1.instructionType)) {
+        var not = HNot(operand1, _abstractValueDomain.boolType);
+        node.block.addBefore(node, not);
+        node.changeUse(condition, not);
+        condition.block.remove(condition);
+      }
+    }
+    return node;
+  }
 }
 
-/**
- * Remove [HTypeKnown] instructions from the graph, to make codegen
- * analysis easier.
- */
+/// Remove [HTypeKnown] instructions from the graph, to make codegen
+/// analysis easier.
 class SsaTypeKnownRemover extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -315,10 +366,8 @@ class SsaTypeKnownRemover extends HBaseVisitor {
   }
 }
 
-/**
- * Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
- * mode.
- */
+/// Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
+/// mode.
 class SsaTrustedCheckRemover extends HBaseVisitor {
   final CompilerOptions _options;
 
@@ -346,29 +395,25 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
   }
 }
 
-/**
- * Instead of emitting each SSA instruction with a temporary variable
- * mark instructions that can be emitted at their use-site.
- * For example, in:
- *   t0 = 4;
- *   t1 = 3;
- *   t2 = add(t0, t1);
- * t0 and t1 would be marked and the resulting code would then be:
- *   t2 = add(4, 3);
- */
+/// Instead of emitting each SSA instruction with a temporary variable
+/// mark instructions that can be emitted at their use-site.
+/// For example, in:
+///   t0 = 4;
+///   t1 = 3;
+///   t2 = add(t0, t1);
+/// t0 and t1 would be marked and the resulting code would then be:
+///   t2 = add(4, 3);
 class SsaInstructionMerger extends HBaseVisitor {
   final AbstractValueDomain _abstractValueDomain;
   final SuperMemberData _superMemberData;
-  /**
-   * List of [HInstruction] that the instruction merger expects in
-   * order when visiting the inputs of an instruction.
-   */
+
+  /// List of [HInstruction] that the instruction merger expects in
+  /// order when visiting the inputs of an instruction.
   List<HInstruction> expectedInputs;
-  /**
-   * Set of pure [HInstruction] that the instruction merger expects to
-   * find. The order of pure instructions do not matter, as they will
-   * not be affected by side effects.
-   */
+
+  /// Set of pure [HInstruction] that the instruction merger expects to
+  /// find. The order of pure instructions do not matter, as they will
+  /// not be affected by side effects.
   Set<HInstruction> pureInputs;
   Set<HInstruction> generateAtUseSite;
 
@@ -655,11 +700,9 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 }
 
-/**
- *  Detect control flow arising from short-circuit logical and
- *  conditional operators, and prepare the program to be generated
- *  using these operators instead of nested ifs and boolean variables.
- */
+///  Detect control flow arising from short-circuit logical and
+///  conditional operators, and prepare the program to be generated
+///  using these operators instead of nested ifs and boolean variables.
 class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> generateAtUseSite;
   Set<HInstruction> controlFlowOperators;
@@ -675,10 +718,8 @@ class SsaConditionMerger extends HGraphVisitor {
     visitPostDominatorTree(graph);
   }
 
-  /**
-   * Check if a block has at least one statement other than
-   * [instruction].
-   */
+  /// Check if a block has at least one statement other than
+  /// [instruction].
   bool hasAnyStatement(HBasicBlock block, HInstruction instruction) {
     // If [instruction] is not in [block], then if the block is not
     // empty, we know there will be a statement to emit.
@@ -831,4 +872,189 @@ class SsaConditionMerger extends HGraphVisitor {
       markAsGenerateAtUseSite(thenInput);
     }
   }
+}
+
+/// Insert 'caches' for whole-function region-constants when the local minified
+/// name would be shorter than repeated references.  These are caches for 'this'
+/// and constant values.
+class SsaShareRegionConstants extends HBaseVisitor {
+  final CompilerOptions _options;
+
+  SsaShareRegionConstants(this._options);
+
+  visitGraph(HGraph graph) {
+    if (!_options.experimentLocalNames) return;
+    // We need the async rewrite to be smarter about hoisting region constants
+    // before it is worth-while.
+    if (graph.needsAsyncRewrite) return;
+
+    // 'HThis' and constants are in the entry block. No need to walk the rest of
+    // the graph.
+    visitBasicBlock(graph.entry);
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  // Not all occurrences should be replaced with a local variable cache, so we
+  // filter the uses.
+  int _countCacheableUses(
+      HInstruction node, bool Function(HInstruction) cacheable) {
+    return node.usedBy.where(cacheable).length;
+  }
+
+  // Replace cacheable uses with a reference to a HLateValue node.
+  _cache(
+      HInstruction node, bool Function(HInstruction) cacheable, String name) {
+    var users = node.usedBy.toList();
+    var reference = new HLateValue(node);
+    // TODO(sra): The sourceInformation should really be from the function
+    // entry, not the use of `this`.
+    reference.sourceInformation = node.sourceInformation;
+    reference.sourceElement = _ExpressionName(name);
+    node.block.addAfter(node, reference);
+    for (HInstruction user in users) {
+      if (cacheable(user)) {
+        user.changeUse(node, reference);
+      }
+    }
+  }
+
+  void visitThis(HThis node) {
+    int size = 4;
+    // Compare the size of the unchanged minified with the size of the minified
+    // code where 'this' is assigned to a variable. We assume the variable has
+    // minified size 1.
+    //
+    // The size overhead of introducing a variable in the worst case includes
+    // 'var ':
+    //
+    //           1234   // size
+    //     var x=this;  // (minified ';' can be end-of-line)
+    //     123456    7  // additional overhead
+    //
+    // TODO(sra): If there are multiple values that can potentially be cached,
+    // they can share the 'var ' cost, even if none of them are beneficial
+    // individually.
+    int useCount = node.usedBy.length;
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, (_) => true, '_this');
+  }
+
+  void visitConstant(HConstant node) {
+    if (node.usedBy.length <= 1) return;
+    ConstantValue constant = node.constant;
+
+    if (constant.isNull) {
+      _handleNull(node);
+      return;
+    }
+
+    if (constant.isInt) {
+      _handleInt(node, constant);
+      return;
+    }
+
+    if (constant.isString) {
+      _handleString(node, constant);
+      return;
+    }
+  }
+
+  void _handleNull(HConstant node) {
+    int size = 4;
+
+    bool _isCacheableUse(HInstruction instruction) {
+      // One-shot interceptors have `null` as a dummy interceptor.
+      if (instruction is HOneShotInterceptor) return false;
+
+      if (instruction is HInvoke) return true;
+      if (instruction is HCreate) return true;
+      if (instruction is HPhi) return true;
+
+      // We return `null` by removing the return expression or statement.
+      if (instruction is HReturn) return false;
+
+      // JavaScript `x == null` is more efficient than `x == _null`.
+      if (instruction is HIdentity) return false;
+
+      // TODO(sra): Determine if other uses result in faster JavaScript code.
+      return false;
+    }
+
+    int useCount = _countCacheableUses(node, _isCacheableUse);
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, _isCacheableUse, '_null');
+    return;
+  }
+
+  void _handleInt(HConstant node, IntConstantValue intConstant) {
+    BigInt value = intConstant.intValue;
+    String text = value.toString();
+    int size = text.length;
+    if (size <= 3) return;
+
+    bool _isCacheableUse(HInstruction instruction) {
+      if (instruction is HInvoke) return true;
+      if (instruction is HCreate) return true;
+      if (instruction is HReturn) return true;
+      if (instruction is HPhi) return true;
+
+      // JavaScript `x === 5` is more efficient than `x === _5`.
+      if (instruction is HIdentity) return false;
+
+      // Foreign code templates may use literals in ways that are beneficial.
+      if (instruction is HForeignCode) return false;
+
+      // TODO(sra): Determine if other uses result in faster JavaScript code.
+      return false;
+    }
+
+    int useCount = _countCacheableUses(node, _isCacheableUse);
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, _isCacheableUse, '_${text.replaceFirst("-", "_")}');
+  }
+
+  void _handleString(HConstant node, StringConstantValue stringConstant) {
+    String value = stringConstant.stringValue;
+    int length = value.length;
+    int size = length + 2; // Include quotes.
+    if (size <= 2) return;
+
+    bool _isCacheableUse(HInstruction instruction) {
+      // Foreign code templates may use literals in ways that are beneficial.
+      if (instruction is HForeignCode) return false;
+
+      // Cache larger strings even if unfortunate.
+      if (length >= 16) return true;
+
+      if (instruction is HInvoke) return true;
+      if (instruction is HCreate) return true;
+      if (instruction is HReturn) return true;
+      if (instruction is HPhi) return true;
+
+      // TODO(sra): Check if a.x="s" can avoid or specialize a write barrier.
+      if (instruction is HFieldSet) return true;
+
+      // TODO(sra): Determine if other uses result in faster JavaScript code.
+      return false;
+    }
+
+    int useCount = _countCacheableUses(node, _isCacheableUse);
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, _isCacheableUse, '_s${length}_');
+  }
+}
+
+/// A simple Entity to give intermediate values nice names when not generating
+/// minified code.
+class _ExpressionName implements Entity {
+  final String name;
+  _ExpressionName(this.name);
 }

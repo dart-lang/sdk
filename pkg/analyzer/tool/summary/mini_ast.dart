@@ -403,6 +403,12 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
+  }
+
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
   }
@@ -472,8 +478,9 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
+    reportErrorIfNullableType(questionMark);
     List<TypeName> typeArguments = popTypedList();
     String name = pop();
     push(new TypeName(name, typeArguments));
@@ -484,6 +491,11 @@ class MiniAstBuilder extends StackListener {
   List<T> popTypedList<T>() {
     List list = pop();
     return list != null ? new List<T>.from(list) : null;
+  }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
   }
 }
 

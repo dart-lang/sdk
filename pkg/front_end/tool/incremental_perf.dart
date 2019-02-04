@@ -47,7 +47,6 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
 import 'package:front_end/src/api_prototype/front_end.dart';
@@ -55,7 +54,6 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 
 import 'perf_common.dart';
@@ -74,7 +72,7 @@ ${argParser.usage}""";
       parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
   bool verbose = options["verbose"];
   bool verboseCompilation = options["verbose-compilation"];
-  bool strongMode = options["mode"] == "strong";
+  bool legacyMode = options["mode"] == "legacy";
   bool isFlutter = options["target"] == "flutter";
   bool useMinimalGenerator = options["implementation"] == "minimal";
   TimingsCollector collector = new TimingsCollector(verbose);
@@ -83,7 +81,7 @@ ${argParser.usage}""";
     await benchmark(
         collector,
         entryUri,
-        strongMode,
+        legacyMode,
         isFlutter,
         useMinimalGenerator,
         verbose,
@@ -100,7 +98,7 @@ ${argParser.usage}""";
 Future benchmark(
     TimingsCollector collector,
     Uri entryUri,
-    bool strongMode,
+    bool legacyMode,
     bool isFlutter,
     bool useMinimalGenerator,
     bool verbose,
@@ -113,9 +111,9 @@ Future benchmark(
   var compilerOptions = new CompilerOptions()
     ..verbose = verboseCompilation
     ..fileSystem = overlayFs
-    ..strongMode = strongMode
-    ..onError = onErrorHandler(strongMode)
-    ..target = createTarget(isFlutter: isFlutter, strongMode: strongMode);
+    ..legacyMode = legacyMode
+    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: legacyMode)
+    ..target = createTarget(isFlutter: isFlutter, legacyMode: legacyMode);
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
   }
@@ -125,7 +123,6 @@ Future benchmark(
   }
 
   var dir = Directory.systemTemp.createTempSync("ikg-cache");
-  compilerOptions.byteStore = createByteStore(cache, dir.path);
 
   final processedOptions =
       new ProcessedOptions(options: compilerOptions, inputs: [entryUri]);
@@ -261,21 +258,6 @@ class OverlayFileSystemEntity implements FileSystemEntity {
 
   void writeAsStringSync(String contents) =>
       _fs.memory.entityForUri(uri).writeAsStringSync(contents);
-}
-
-ByteStore createByteStore(String cachePolicy, String path) {
-  switch (cachePolicy) {
-    case 'memory':
-      return new MemoryByteStore();
-    case 'protected':
-      return new ProtectedFileByteStore(path);
-    case 'evicting':
-      return new MemoryCachingByteStore(
-          new EvictingFileByteStore(path, 1024 * 1024 * 1024 /* 1G */),
-          64 * 1024 * 1024 /* 64M */);
-    default:
-      throw new UnsupportedError('Unknown cache policy: $cachePolicy');
-  }
 }
 
 /// A string replacement edit in a source file.

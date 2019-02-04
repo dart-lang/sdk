@@ -3,13 +3,15 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
+import "dart:collection";
+
 class A<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A<self::A::T>
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method fun() → dynamic {

@@ -13,7 +13,7 @@ import '../js/js.dart' show js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -46,36 +46,35 @@ class NativeEmitter {
   NativeData get _nativeData => _closedWorld.nativeData;
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
-  /**
-   * Prepares native classes for emission. Returns the unneeded classes.
-   *
-   * Removes trivial classes (that can be represented by a super type) and
-   * generates properties that have to be added to classes (native or not).
-   *
-   * Updates the `nativeLeafTags`, `nativeNonLeafTags` and `nativeExtensions`
-   * fields of the given classes. This data must be emitted with the
-   * corresponding classes.
-   *
-   * The interceptors are filtered to avoid emitting trivial interceptors.  For
-   * example, if the program contains no code that can distinguish between the
-   * numerous subclasses of `Element` then we can pretend that `Element` is a
-   * leaf class, and all instances of subclasses of `Element` are instances of
-   * `Element`.
-   *
-   * There is also a performance benefit (in addition to the obvious code size
-   * benefit), due to how [getNativeInterceptor] works.  Finding the interceptor
-   * of a leaf class in the hierarchy is more efficient that a non-leaf, so it
-   * improves performance when more classes can be treated as leaves.
-   *
-   * [classes] contains native classes, mixin applications, and user subclasses
-   * of native classes.
-   *
-   * [interceptorClassesNeededByConstants] contains the interceptors that are
-   * referenced by constants.
-   *
-   * [classesModifiedByEmitRTISupport] contains the list of classes that must
-   * exist, because runtime-type support adds information to the class.
-   */
+  /// Prepares native classes for emission. Returns the unneeded classes.
+  ///
+  /// Removes trivial classes (that can be represented by a super type) and
+  /// generates properties that have to be added to classes (native or not).
+  ///
+  /// Updates the `nativeLeafTags`, `nativeNonLeafTags` and `nativeExtensions`
+  /// fields of the given classes. This data must be emitted with the
+  /// corresponding classes.
+  ///
+  /// The interceptors are filtered to avoid emitting trivial interceptors.  For
+  /// example, if the program contains no code that can distinguish between the
+  /// numerous subclasses of `Element` then we can pretend that `Element` is a
+  /// leaf class, and all instances of subclasses of `Element` are instances of
+  /// `Element`.
+  ///
+  /// There is also a performance benefit (in addition to the obvious code size
+  /// benefit), due to how [getNativeInterceptor] works.  Finding the
+  /// interceptor of a leaf class in the hierarchy is more efficient that a
+  /// non-leaf, so it improves performance when more classes can be treated as
+  /// leaves.
+  ///
+  /// [classes] contains native classes, mixin applications, and user subclasses
+  /// of native classes.
+  ///
+  /// [interceptorClassesNeededByConstants] contains the interceptors that are
+  /// referenced by constants.
+  ///
+  /// [classesModifiedByEmitRTISupport] contains the list of classes that must
+  /// exist, because runtime-type support adds information to the class.
   Set<Class> prepareNativeClasses(
       List<Class> classes,
       Set<ClassEntity> interceptorClassesNeededByConstants,
@@ -219,11 +218,9 @@ class NativeEmitter {
         .toSet();
   }
 
-  /**
-   * Computes the native classes that are extended (subclassed) by non-native
-   * classes and the set non-mative classes that extend them.  (A List is used
-   * instead of a Set for out stability).
-   */
+  /// Computes the native classes that are extended (subclassed) by non-native
+  /// classes and the set non-mative classes that extend them.  (A List is used
+  /// instead of a Set for out stability).
   Map<Class, List<Class>> computeExtensionPoints(List<Class> classes) {
     Class nativeSuperclassOf(Class cls) {
       if (cls == null) return null;

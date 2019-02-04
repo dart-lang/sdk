@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "./public_method_tearoff_lib.dart" as pub;
+
+import "org-dartlang-testcase:///public_method_tearoff_lib.dart";
+
+class Foo extends pub::Bar {
+  synthetic constructor •() → self::Foo
+    : super pub::Bar::•()
+    ;
+}
+static method main() → void {
+  pub::baz(new self::Foo::•());
+}
+
+library;
+import self as pub;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pub::Bar
+    : super core::Object::•()
+    ;
+  method f() → void {}
+}
+static method baz(pub::Bar bar) → void {
+  core::print("${bar.f.runtimeType}");
+}

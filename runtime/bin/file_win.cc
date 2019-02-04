@@ -375,63 +375,32 @@ typedef struct _REPARSE_DATA_BUFFER {
 static const int kReparseDataHeaderSize = sizeof ULONG + 2 * sizeof USHORT;
 static const int kMountPointHeaderSize = 4 * sizeof USHORT;
 
+// Note: CreateLink used to create junctions on Windows instead of true
+// symbolic links. All File::*Link methods now support handling links created
+// as junctions and symbolic links.
 bool File::CreateLink(Namespace* namespc,
                       const char* utf8_name,
                       const char* utf8_target) {
   Utf8ToWideScope name(utf8_name);
-  int create_status = CreateDirectoryW(name.wide(), NULL);
-  // If the directory already existed, treat it as a success.
-  if ((create_status == 0) &&
-      ((GetLastError() != ERROR_ALREADY_EXISTS) ||
-       ((GetFileAttributesW(name.wide()) & FILE_ATTRIBUTE_DIRECTORY) != 0))) {
-    return false;
-  }
-
-  HANDLE dir_handle = CreateFileW(
-      name.wide(), GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-      NULL);
-  if (dir_handle == INVALID_HANDLE_VALUE) {
-    return false;
-  }
-
   Utf8ToWideScope target(utf8_target);
-  int target_len = wcslen(target.wide());
-  if (target_len > MAX_PATH - 1) {
-    CloseHandle(dir_handle);
-    return false;
+  DWORD flags = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
+
+  File::Type type = File::GetType(namespc, utf8_target, true);
+  if (type == kIsDirectory) {
+    flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
   }
 
-  int reparse_data_buffer_size =
-      sizeof REPARSE_DATA_BUFFER + 2 * MAX_PATH * sizeof WCHAR;
-  REPARSE_DATA_BUFFER* reparse_data_buffer =
-      reinterpret_cast<REPARSE_DATA_BUFFER*>(malloc(reparse_data_buffer_size));
-  reparse_data_buffer->ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
-  wcscpy(reparse_data_buffer->MountPointReparseBuffer.PathBuffer,
-         target.wide());
-  wcscpy(
-      reparse_data_buffer->MountPointReparseBuffer.PathBuffer + target_len + 1,
-      target.wide());
-  reparse_data_buffer->MountPointReparseBuffer.SubstituteNameOffset = 0;
-  reparse_data_buffer->MountPointReparseBuffer.SubstituteNameLength =
-      target_len * sizeof WCHAR;
-  reparse_data_buffer->MountPointReparseBuffer.PrintNameOffset =
-      (target_len + 1) * sizeof WCHAR;
-  reparse_data_buffer->MountPointReparseBuffer.PrintNameLength =
-      target_len * sizeof WCHAR;
-  reparse_data_buffer->ReparseDataLength =
-      (target_len + 1) * 2 * sizeof WCHAR + kMountPointHeaderSize;
-  DWORD dummy_received_bytes;
-  int result = DeviceIoControl(
-      dir_handle, FSCTL_SET_REPARSE_POINT, reparse_data_buffer,
-      reparse_data_buffer->ReparseDataLength + kReparseDataHeaderSize, NULL, 0,
-      &dummy_received_bytes, NULL);
-  free(reparse_data_buffer);
-  if (CloseHandle(dir_handle) == 0) {
-    return false;
+  int create_status = CreateSymbolicLinkW(name.wide(), target.wide(), flags);
+
+  // If running on a Windows 10 build older than 14972, an invalid parameter
+  // error will be returned when trying to use the
+  // SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE flag. Retry without the flag.
+  if ((create_status == 0) && (GetLastError() == ERROR_INVALID_PARAMETER)) {
+    flags &= ~SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
+    create_status = CreateSymbolicLinkW(name.wide(), target.wide(), flags);
   }
-  return (result != 0);
+
+  return (create_status != 0);
 }
 
 bool File::Delete(Namespace* namespc, const char* name) {
@@ -444,12 +413,18 @@ bool File::DeleteLink(Namespace* namespc, const char* name) {
   Utf8ToWideScope system_name(name);
   bool result = false;
   DWORD attributes = GetFileAttributesW(system_name.wide());
-  if ((attributes != INVALID_FILE_ATTRIBUTES) &&
-      (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    // It's a junction(link), delete it.
+  if ((attributes == INVALID_FILE_ATTRIBUTES) ||
+      ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0)) {
+    SetLastError(ERROR_NOT_A_REPARSE_POINT);
+    return false;
+  }
+  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+    // It's a junction, which is a special type of directory, or a symbolic
+    // link to a directory. Remove the directory.
     result = (RemoveDirectoryW(system_name.wide()) != 0);
   } else {
-    SetLastError(ERROR_NOT_A_REPARSE_POINT);
+    // Symbolic link to a file. Remove the file.
+    result = (DeleteFileW(system_name.wide()) != 0);
   }
   return result;
 }
@@ -458,65 +433,59 @@ bool File::Rename(Namespace* namespc,
                   const char* old_path,
                   const char* new_path) {
   File::Type type = GetType(namespc, old_path, false);
-  if (type == kIsFile) {
-    Utf8ToWideScope system_old_path(old_path);
-    Utf8ToWideScope system_new_path(new_path);
-    DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
-    int move_status =
-        MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
-    return (move_status != 0);
-  } else {
+  if (type != kIsFile) {
     SetLastError(ERROR_FILE_NOT_FOUND);
+    return false;
   }
-  return false;
+  Utf8ToWideScope system_old_path(old_path);
+  Utf8ToWideScope system_new_path(new_path);
+  DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
+  int move_status =
+      MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
+  return (move_status != 0);
 }
 
 bool File::RenameLink(Namespace* namespc,
                       const char* old_path,
                       const char* new_path) {
   File::Type type = GetType(namespc, old_path, false);
-  if (type == kIsLink) {
-    Utf8ToWideScope system_old_path(old_path);
-    Utf8ToWideScope system_new_path(new_path);
-    DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
-    // Links on Windows appear as special directories. MoveFileExW's
-    // MOVEFILE_REPLACE_EXISTING does not allow for replacement of directories,
-    // so we need to remove it before renaming a link.
-    if (Directory::Exists(namespc, new_path) == Directory::EXISTS) {
-      bool result = true;
-      if (GetType(namespc, new_path, false) == kIsLink) {
-        result = DeleteLink(namespc, new_path);
-      } else {
-        result = Delete(namespc, new_path);
-      }
-      // Bail out if the Delete calls fail.
-      if (!result) {
-        return false;
-      }
-    }
-    int move_status =
-        MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
-    return (move_status != 0);
-  } else {
+  if (type != kIsLink) {
     SetLastError(ERROR_FILE_NOT_FOUND);
+    return false;
   }
-  return false;
+  Utf8ToWideScope system_old_path(old_path);
+  Utf8ToWideScope system_new_path(new_path);
+  DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
+
+  // Junction links on Windows appear as special directories. MoveFileExW's
+  // MOVEFILE_REPLACE_EXISTING does not allow for replacement of directories,
+  // so we need to remove it before renaming a link. This step is only
+  // necessary for junctions created by the old Link.create implementation.
+  if ((Directory::Exists(namespc, new_path) == Directory::EXISTS) &&
+      (GetType(namespc, new_path, false) == kIsLink)) {
+    // Bail out if the DeleteLink call fails.
+    if (!DeleteLink(namespc, new_path)) {
+      return false;
+    }
+  }
+  int move_status =
+      MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
+  return (move_status != 0);
 }
 
 bool File::Copy(Namespace* namespc,
                 const char* old_path,
                 const char* new_path) {
   File::Type type = GetType(namespc, old_path, false);
-  if (type == kIsFile) {
-    Utf8ToWideScope system_old_path(old_path);
-    Utf8ToWideScope system_new_path(new_path);
-    bool success = CopyFileExW(system_old_path.wide(), system_new_path.wide(),
-                               NULL, NULL, NULL, 0) != 0;
-    return success;
-  } else {
+  if (type != kIsFile) {
     SetLastError(ERROR_FILE_NOT_FOUND);
+    return false;
   }
-  return false;
+  Utf8ToWideScope system_old_path(old_path);
+  Utf8ToWideScope system_new_path(new_path);
+  bool success = CopyFileExW(system_old_path.wide(), system_new_path.wide(),
+                             NULL, NULL, NULL, 0) != 0;
+  return success;
 }
 
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {

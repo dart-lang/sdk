@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method main() → dynamic async {
+  dynamic f = () → asy::Stream<dynamic> async* {
+    yield null;
+  };
+  asy::Stream<dynamic> y = f.call();
+  asy::Stream<core::String> z = f.call();
+  core::String s = await f.call().first;
+}

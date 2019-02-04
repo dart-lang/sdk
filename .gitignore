@@ -42,6 +42,13 @@ CMakeLists.txt
 .vscode
 .history
 
+# analysis server files
+analysis_options.yaml
+compile_commands.json
+
+# GDB files
+.gdb_history
+
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
 

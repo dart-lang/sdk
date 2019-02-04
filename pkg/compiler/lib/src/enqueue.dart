@@ -15,8 +15,10 @@ import 'compiler.dart' show Compiler;
 import 'options.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'inferrer/types.dart';
 import 'js_backend/enqueuer.dart';
-import 'types/types.dart';
+import 'universe/member_usage.dart';
+import 'universe/resolution_world_builder.dart';
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show
@@ -74,6 +76,14 @@ class EnqueueTask extends CompilerTask {
 }
 
 abstract class Enqueuer {
+  /// If `true` the checking for unenqueued members is skipped. The current
+  /// implementation registers parameter usages as a side-effect so unit
+  /// testing of member usage we need to test both with and without the
+  /// enqueuer check.
+  // TODO(johnniwinther): [checkEnqueuerConsistency] should not have
+  // side-effects.
+  static bool skipEnqueuerCheckForTesting = false;
+
   WorldBuilder get worldBuilder;
 
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
@@ -275,6 +285,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   bool checkNoEnqueuedInvokedInstanceMethods(
       ElementEnvironment elementEnvironment) {
+    if (Enqueuer.skipEnqueuerCheckForTesting) return true;
     return checkEnqueuerConsistency(elementEnvironment);
   }
 
@@ -367,9 +378,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
             nativeUsage: true, globalDependency: true);
         break;
       case TypeUseKind.IS_CHECK:
-      case TypeUseKind.AS_CAST:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
+        break;
+      case TypeUseKind.AS_CAST:
+        if (!_options.omitAsCasts) {
+          _registerIsCheck(type);
+        }
         break;
       case TypeUseKind.IMPLICIT_CAST:
         if (_options.implicitDowncastCheckPolicy.isEmitted) {

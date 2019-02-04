@@ -1,11 +1,11 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /**
  * Code for enumerating the set of types implied by the API.
  */
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
 

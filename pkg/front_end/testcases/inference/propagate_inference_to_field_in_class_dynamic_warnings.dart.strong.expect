@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int x = 2;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }

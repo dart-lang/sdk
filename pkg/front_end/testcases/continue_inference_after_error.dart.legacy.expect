@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/continue_inference_after_error.dart:10:3: Error: A prefix can't be used as an expression.
+//   lib(new C().missing());
+//   ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///continue_inference_after_error_lib.dart" as lib;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/continue_inference_after_error.dart:10:3: Error: A prefix can't be used as an expression.
+  lib(new C().missing());
+  ^^^" in let final core::Object #t2 = new self::C::•().missing() in null;
+}
+static method main() → dynamic {}
+
+library;
+import self as self2;

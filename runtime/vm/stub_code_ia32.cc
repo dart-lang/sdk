@@ -27,7 +27,6 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
 #define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
 
@@ -45,6 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   __ EnterStubFrame();
 
   // Save exit frame information to enable stack walking as we are about
@@ -55,7 +55,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -83,7 +83,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -160,7 +160,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -191,7 +191,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
   __ call(wrapper);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -237,7 +237,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -265,7 +265,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -330,7 +330,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  __ Call(*StubCode::AllocateArray_entry());
+  __ Call(StubCode::AllocateArray());
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).
@@ -381,13 +381,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EAX);
   const intptr_t saved_exception_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EAX);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler_frame_layout.first_local_from_fp + 1 -
+      compiler::target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EDX);
   // Result in EAX is preserved as part of pushing all registers below.
 
@@ -447,14 +447,18 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
-    __ movl(EBX, Address(EBP, compiler_frame_layout.first_local_from_fp *
-                                  kWordSize));
+    __ movl(EBX,
+            Address(EBP, compiler::target::frame_layout.first_local_from_fp *
+                             kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into EBX.
-    __ movl(EBX, Address(EBP, compiler_frame_layout.first_local_from_fp *
-                                  kWordSize));
-    __ movl(ECX, Address(EBP, (compiler_frame_layout.first_local_from_fp - 1) *
-                                  kWordSize));
+    __ movl(EBX,
+            Address(EBP, compiler::target::frame_layout.first_local_from_fp *
+                             kWordSize));
+    __ movl(
+        ECX,
+        Address(EBP, (compiler::target::frame_layout.first_local_from_fp - 1) *
+                         kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
@@ -628,7 +632,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EBX: allocation size.
 
   const intptr_t cid = kArrayCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ movl(EAX, Address(THR, Thread::top_offset()));
   __ addl(EBX, EAX);
   __ j(CARRY, &slow_case);
@@ -646,7 +649,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ movl(Address(THR, Thread::top_offset()), EBX);
   __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -732,12 +735,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   ESP + 16 : current thread.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  const intptr_t kTargetCodeOffset = 2 * kWordSize;
-  const intptr_t kArgumentsDescOffset = 3 * kWordSize;
-  const intptr_t kArgumentsOffset = 4 * kWordSize;
-  const intptr_t kThreadOffset = 5 * kWordSize;
+  const intptr_t kTargetCodeOffset = 3 * kWordSize;
+  const intptr_t kArgumentsDescOffset = 4 * kWordSize;
+  const intptr_t kArgumentsOffset = 5 * kWordSize;
+  const intptr_t kThreadOffset = 6 * kWordSize;
 
-  // Save frame pointer coming in.
+  __ pushl(Address(ESP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -756,9 +759,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(ECX, Assembler::VMTagAddress());
   __ pushl(ECX);
 
-  // Mark that the thread is executing Dart code.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
-
   // Save top resource and top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movl(EDX, Address(THR, Thread::top_resource_offset()));
@@ -770,6 +770,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -832,6 +836,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
+  __ popl(ECX);
 
   __ ret();
 }
@@ -862,7 +867,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // EDX: number of context variables.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     __ movl(EAX, Address(THR, Thread::top_offset()));
     __ addl(EBX, EAX);
     // Check if the allocation fits into the remaining space.
@@ -891,7 +895,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ subl(EBX, EAX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
+    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI));
 
     // Calculate the size tag.
     // EAX: new object.
@@ -977,10 +981,19 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
-// Helper stub to implement Assembler::StoreIntoObject.
+// Helper stub to implement Assembler::StoreIntoObject/Array.
 // Input parameters:
-//   EDX: Address being stored
-void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+//   EDX: Object (old)
+//   EDI: Slot
+// If EDX is not remembered, mark as remembered and add to the store buffer.
+COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
+COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
+COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
+static void GenerateWriteBarrierStubHelper(Assembler* assembler,
+                                           Address stub_code,
+                                           bool cards) {
+  Label remember_card;
+
   // Save values being destroyed.
   __ pushl(EAX);
   __ pushl(ECX);
@@ -1001,6 +1014,21 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // EDX: Address being stored
   // EAX: Current tag value
   __ Bind(&add_to_buffer);
+
+  if (cards) {
+    // Check if this object is using remembered cards.
+    __ testl(EAX, Immediate(1 << RawObject::kCardRememberedBit));
+    __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
+  } else {
+#if defined(DEBUG)
+    Label ok;
+    __ testl(EAX, Immediate(1 << RawObject::kCardRememberedBit));
+    __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
+    __ Stop("Wrong barrier");
+    __ Bind(&ok);
+#endif
+  }
+
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(EDX, Object::tags_offset()),
@@ -1039,6 +1067,48 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
   __ ret();
+
+  if (cards) {
+    Label remember_card_slow;
+
+    // Get card table.
+    __ Bind(&remember_card);
+    __ movl(EAX, EDX);                   // Object.
+    __ andl(EAX, Immediate(kPageMask));  // HeapPage.
+    __ cmpl(Address(EAX, HeapPage::card_table_offset()), Immediate(0));
+    __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
+
+    // Dirty the card.
+    __ subl(EDI, EAX);  // Offset in page.
+    __ movl(EAX, Address(EAX, HeapPage::card_table_offset()));  // Card table.
+    __ shrl(EDI,
+            Immediate(HeapPage::kBytesPerCardLog2));  // Index in card table.
+    __ movb(Address(EAX, EDI, TIMES_1, 0), Immediate(1));
+    __ popl(ECX);
+    __ popl(EAX);
+    __ ret();
+
+    // Card table not yet allocated.
+    __ Bind(&remember_card_slow);
+    __ EnterCallRuntimeFrame(2 * kWordSize);
+    __ movl(Address(ESP, 0 * kWordSize), EDX);  // Object
+    __ movl(Address(ESP, 1 * kWordSize), EDI);  // Slot
+    __ CallRuntime(kRememberCardRuntimeEntry, 2);
+    __ LeaveCallRuntimeFrame();
+    __ popl(ECX);
+    __ popl(EAX);
+    __ ret();
+  }
+}
+
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::write_barrier_code_offset()), false);
+}
+
+void StubCode::GenerateArrayWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::array_write_barrier_code_offset()), true);
 }
 
 // Called for inline allocation of objects.
@@ -1074,7 +1144,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     __ movl(EAX, Address(THR, Thread::top_offset()));
     __ leal(EBX, Address(EAX, instance_size));
     // Check if the allocation fits into the remaining space.
@@ -1087,7 +1156,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address(THR, Thread::top_offset()), EBX);
-    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX, space));
+    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX));
 
     // EAX: new object start (untagged).
     // EBX: next object start.
@@ -1748,8 +1817,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-
-  __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+  if (n >= 4) {
+    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
+  } else {
+    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+  }
   __ cmpl(kInstanceCidOrFunction, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
@@ -1942,7 +2014,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
   // Set tag.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.

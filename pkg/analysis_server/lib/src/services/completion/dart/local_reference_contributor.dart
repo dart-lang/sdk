@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,12 +11,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -65,7 +65,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         return visitor.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 
@@ -226,6 +226,20 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    if (optype.includeTypeNameSuggestions) {
+      // TODO (danrubel) determine parameters and return type
+      _addLocalSuggestion_includeTypeNameSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          declaration.functionType.returnType,
+          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+          isAbstract: true,
+          isDeprecated: isDeprecated(declaration));
+    }
+  }
+
+  @override
   void declaredLabel(Label label, bool isCaseLabel) {
     // ignored
   }
@@ -303,14 +317,30 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
+  @override
+  void declaredTypeParameter(TypeParameter node) {
+    if (optype.includeTypeNameSuggestions) {
+      _addLocalSuggestion(
+        null,
+        node.name,
+        null,
+        protocol.ElementKind.TYPE_PARAMETER,
+        isDeprecated: isDeprecated(node),
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_TYPE_PARAMETER,
+      );
+    }
+  }
+
   void _addLocalSuggestion(Comment documentationComment, SimpleIdentifier id,
       TypeAnnotation typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
+      ClassOrMixinDeclaration classDecl,
+      CompletionSuggestionKind kind,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    CompletionSuggestionKind kind = targetIsFunctionalArgument
+    kind ??= targetIsFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : optype.suggestKind;
     CompletionSuggestion suggestion = createLocalSuggestion(
@@ -328,6 +358,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           isDeprecated: isDeprecated,
           parameters: param?.toSource(),
           returnType: typeName);
+      suggestion.elementUri = request.source.toString();
       if ((elemKind == protocol.ElementKind.METHOD ||
               elemKind == protocol.ElementKind.FUNCTION) &&
           param != null) {
@@ -369,6 +400,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             constantDeclaration.name.length,
             0,
             0));
+    suggestion.elementUri = request.source.uri.toString();
   }
 
   void _addLocalSuggestion_includeReturnValueSuggestions(
@@ -378,7 +410,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
+      ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     relevance = optype.returnValueSuggestionsFilter(
@@ -510,7 +542,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .map((Token t) => t.toString())
           .join('\n')
           .replaceAll('\r\n', '\n');
-      String doc = removeDartDocDelimiters(text);
+      String doc = getDartDocPlainText(text);
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }

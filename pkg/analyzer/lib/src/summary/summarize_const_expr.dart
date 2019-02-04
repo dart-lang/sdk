@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -56,6 +56,34 @@ UnlinkedConstructorInitializerBuilder serializeConstructorInitializer(
         argumentNames: argumentNames);
   }
   throw new StateError('Unexpected initializer type ${node.runtimeType}');
+}
+
+/// Converts all the tokens between [startToken] and [endToken] (inclusive) into
+/// a string which, when scanned, will yield the same tokens back.
+String tokensToString(Token startToken, Token endToken) {
+  var buffer = StringBuffer();
+  var token = startToken;
+  var spaceNeeded = false;
+  while (true) {
+    if (token.type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+      buffer.write(token.lexeme);
+      buffer.write(tokensToString(token.next, token.endGroup));
+      spaceNeeded = false;
+      token = token.endGroup;
+    } else if (token.type == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+      buffer.write(token.lexeme);
+      buffer.write(token.next.lexeme);
+      spaceNeeded = false;
+      token = token.next;
+    } else {
+      if (spaceNeeded) buffer.write(' ');
+      buffer.write(token.lexeme);
+      spaceNeeded = true;
+    }
+    if (identical(token, endToken)) break;
+    token = token.next;
+  }
+  return buffer.toString();
 }
 
 /// Instances of this class keep track of intermediate state during
@@ -175,7 +203,7 @@ abstract class AbstractConstExprSerializer {
 
   /// Return the [UnlinkedExprBuilder] that corresponds to the state of this
   /// serializer.
-  UnlinkedExprBuilder toBuilder() {
+  UnlinkedExprBuilder toBuilder(Token startToken, Token endToken) {
     return new UnlinkedExprBuilder(
         isValidConst: isValidConst,
         operations: operations,
@@ -183,7 +211,8 @@ abstract class AbstractConstExprSerializer {
         ints: ints,
         doubles: doubles,
         strings: strings,
-        references: references);
+        references: references,
+        sourceRepresentation: tokensToString(startToken, endToken));
   }
 
   /// Return `true` if the given [expr] is a sequence of identifiers.
@@ -317,6 +346,8 @@ abstract class AbstractConstExprSerializer {
       _serializeListLiteral(expr);
     } else if (expr is MapLiteral) {
       _serializeMapLiteral(expr);
+    } else if (expr is SetLiteral) {
+      _serializeSetLiteral(expr);
     } else if (expr is MethodInvocation) {
       _serializeMethodInvocation(expr);
     } else if (expr is BinaryExpression) {
@@ -356,8 +387,11 @@ abstract class AbstractConstExprSerializer {
       }
     } else if (expr is FunctionExpressionInvocation) {
       isValidConst = false;
-      // TODO(scheglov) implement
-      operations.add(UnlinkedExprOperation.pushNull);
+      _serialize(expr.function);
+      _serializeArguments(expr.argumentList, expr.typeArguments != null);
+      strings.add('call');
+      _serializeTypeArguments(expr.typeArguments);
+      operations.add(UnlinkedExprOperation.invokeMethod);
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
@@ -615,6 +649,23 @@ abstract class AbstractConstExprSerializer {
       }
       strings.add(expr.propertyName.name);
       operations.add(UnlinkedExprOperation.extractProperty);
+    }
+  }
+
+  void _serializeSetLiteral(SetLiteral expr) {
+    if (forConst || expr.typeArguments == null) {
+      List<Expression> elements = expr.elements;
+      elements.forEach(_serialize);
+      ints.add(elements.length);
+    } else {
+      ints.add(0);
+    }
+    if (expr.typeArguments != null &&
+        expr.typeArguments.arguments.length == 1) {
+      references.add(serializeType(expr.typeArguments.arguments[0]));
+      operations.add(UnlinkedExprOperation.makeTypedSet);
+    } else {
+      operations.add(UnlinkedExprOperation.makeUntypedSet);
     }
   }
 

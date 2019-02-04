@@ -17,19 +17,19 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_intrinsified_natives);
-
-DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
-  const Integer& value = Integer::CheckedHandle(arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 0, 2) {
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
+  const Integer& value =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(1));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Double_doubleFromInteger %s\n", value.ToCString());
   }
   return Double::New(value.AsDoubleValue());
 }
 
-DEFINE_NATIVE_ENTRY(Double_add, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_add, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
@@ -38,8 +38,8 @@ DEFINE_NATIVE_ENTRY(Double_add, 2) {
   return Double::New(left + right);
 }
 
-DEFINE_NATIVE_ENTRY(Double_sub, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_sub, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
@@ -48,8 +48,8 @@ DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   return Double::New(left - right);
 }
 
-DEFINE_NATIVE_ENTRY(Double_mul, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_mul, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
@@ -58,8 +58,8 @@ DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   return Double::New(left * right);
 }
 
-DEFINE_NATIVE_ENTRY(Double_div, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
@@ -85,8 +85,8 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
   return Integer::New(ival);
 }
 
-DEFINE_NATIVE_ENTRY(Double_hashCode, 1) {
-  double val = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
+  double val = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Double_hashCode %f\n", val);
   }
@@ -102,8 +102,8 @@ DEFINE_NATIVE_ENTRY(Double_hashCode, 1) {
   return Smi::New(((uval >> 32) ^ (uval)) & kSmiMax);
 }
 
-DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_trunc_div, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
@@ -113,22 +113,22 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
                          "Result of truncating division is Infinity or NaN");
 }
 
-DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_modulo, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   return Double::New(DartModulo(left, right));
 }
 
-DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
-  double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+DEFINE_NATIVE_ENTRY(Double_remainder, 0, 2) {
+  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   return Double::New(fmod_ieee(left, right));
 }
 
-DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
-  const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_greaterThan, 0, 2) {
+  const Double& left = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
   bool result = right.IsNull() ? false : (left.value() > right.value());
   if (FLAG_trace_intrinsified_natives) {
@@ -138,14 +138,14 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   return Bool::Get(result).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 2) {
-  const Double& right = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 0, 2) {
+  const Double& right = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   return Bool::Get(left.AsDoubleValue() > right.value()).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_equal, 2) {
-  const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_equal, 0, 2) {
+  const Double& left = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
   bool result = right.IsNull() ? false : (left.value() == right.value());
   if (FLAG_trace_intrinsified_natives) {
@@ -155,29 +155,29 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   return Bool::Get(result).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_equalToInteger, 2) {
-  const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_equalToInteger, 0, 2) {
+  const Double& left = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
   return Bool::Get(left.value() == right.AsDoubleValue()).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_round, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_round, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Double::New(round(arg.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Double_floor, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_floor, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Double::New(floor(arg.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Double_ceil, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_ceil, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Double::New(ceil(arg.value()));
 }
 
-DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_truncate, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Double::New(trunc(arg.value()));
 }
 
@@ -186,12 +186,12 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_toInt, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return DoubleToInteger(arg.value(), "Infinity or NaN toInt");
 }
 
-DEFINE_NATIVE_ENTRY(Double_parse, 3) {
+DEFINE_NATIVE_ENTRY(Double_parse, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, startValue, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, endValue, arguments->NativeArgAt(2));
@@ -210,17 +210,17 @@ DEFINE_NATIVE_ENTRY(Double_parse, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Double_toString, 1) {
-  const Number& number = Number::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_toString, 0, 1) {
+  const Number& number = Number::CheckedHandle(zone, arguments->NativeArgAt(0));
   return number.ToString(Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
+DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 0, 2) {
   // The boundaries are exclusive.
   static const double kLowerBoundary = -1e21;
   static const double kUpperBoundary = 1e21;
 
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
   double d = arg.value();
   intptr_t fraction_digits_value = fraction_digits.Value();
@@ -234,8 +234,8 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 0, 2) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
   double d = arg.value();
   intptr_t fraction_digits_value = fraction_digits.Value();
@@ -249,8 +249,8 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 0, 2) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, precision, arguments->NativeArgAt(1));
   double d = arg.value();
   intptr_t precision_value = precision.Value();
@@ -263,25 +263,25 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(Double_getIsInfinite, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_getIsInfinite, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(isinf(arg.value())).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_getIsNaN, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_getIsNaN, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(isnan(arg.value())).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_getIsNegative, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   // Include negative zero, infinity.
   double dval = arg.value();
   return Bool::Get(signbit(dval) && !isnan(dval)).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Double_flipSignBit, 1) {
-  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Double_flipSignBit, 0, 1) {
+  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   const double in_val = arg.value();
   const int64_t bits = bit_cast<int64_t, double>(in_val) ^ kSignBitDouble;
   return Double::New(bit_cast<double, int64_t>(bits));

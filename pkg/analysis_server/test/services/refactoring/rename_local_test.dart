@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -442,29 +442,42 @@ main() {
   }
 
   test_createChange_parameter_named_inOtherFile() async {
-    await indexTestUnit('''
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
 class A {
   A({test});
 }
 ''');
-    await indexUnit('/project/test2.dart', '''
-import 'test.dart';
+    newFile(b, content: r'''
+import 'a.dart';
+
 main() {
   new A(test: 2);
 }
 ''');
-    // configure refactoring
+    driver.addFile(a);
+    driver.addFile(b);
+
+    var session = driver.currentSession;
+    testAnalysisResult = await session.getResolvedUnit(a);
+    testFile = testAnalysisResult.path;
+    testCode = testAnalysisResult.content;
+    testUnit = testAnalysisResult.unit;
+
     createRenameRefactoringAtString('test});');
     expect(refactoring.refactoringName, 'Rename Parameter');
     refactoring.newName = 'newName';
-    // validate change
+
     await assertSuccessfulRefactoring('''
 class A {
   A({newName});
 }
 ''');
-    assertFileChangeResult('/project/test2.dart', '''
-import 'test.dart';
+    assertFileChangeResult(b, '''
+import 'a.dart';
+
 main() {
   new A(newName: 2);
 }
@@ -472,15 +485,15 @@ main() {
   }
 
   test_createChange_parameter_named_updateHierarchy() async {
-    await indexUnit('/project/test2.dart', '''
+    await indexUnit('/home/test/lib/test2.dart', '''
 library test2;
 class A {
-  void foo({int test: 1}) {
+  void foo({int test}) {
     print(test);
   }
 }
 class B extends A {
-  void foo({int test: 2}) {
+  void foo({int test}) {
     print(test);
   }
 }
@@ -493,7 +506,7 @@ main() {
   new C().foo(test: 30);
 }
 class C extends A {
-  void foo({int test: 3}) {
+  void foo({int test}) {
     print(test);
   }
 }
@@ -511,20 +524,20 @@ main() {
   new C().foo(newName: 30);
 }
 class C extends A {
-  void foo({int newName: 3}) {
+  void foo({int newName}) {
     print(newName);
   }
 }
 ''');
-    assertFileChangeResult('/project/test2.dart', '''
+    assertFileChangeResult('/home/test/lib/test2.dart', '''
 library test2;
 class A {
-  void foo({int newName: 1}) {
+  void foo({int newName}) {
     print(newName);
   }
 }
 class B extends A {
-  void foo({int newName: 2}) {
+  void foo({int newName}) {
     print(newName);
   }
 }

@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Foo<T extends core::Object = dynamic> extends core::Object {
+  final field () → asy::Future<dynamic> quux;
+  generic-covariant-impl field self::Foo::T t;
+  constructor •(() → asy::Future<dynamic> quux, self::Foo::T t) → self::Foo<self::Foo::T>
+    : self::Foo::quux = quux, self::Foo::t = t, super core::Object::•()
+    ;
+  method call() → asy::Future<self::Foo::T>
+    return this.{self::Foo::quux}().{asy::Future::then}<self::Foo::T>((dynamic _) → self::Foo::T => this.{self::Foo::t});
+}
+class Bar extends core::Object {
+  field self::Foo<self::Baz> qux = null;
+  synthetic constructor •() → self::Bar
+    : super core::Object::•()
+    ;
+  method quuz() → asy::Future<void>
+    return this.{self::Bar::qux}().{asy::Future::then}<self::Grault>((self::Baz baz) → self::Grault => this.{self::Bar::corge}(baz)).{asy::Future::then}<void>((self::Grault grault) → void => this.{self::Bar::garply}(grault));
+  method corge(self::Baz baz) → self::Grault
+    return null;
+  method garply(self::Grault grault) → void {}
+}
+class Baz extends core::Object {
+  synthetic constructor •() → self::Baz
+    : super core::Object::•()
+    ;
+}
+class Grault extends core::Object {
+  synthetic constructor •() → self::Grault
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

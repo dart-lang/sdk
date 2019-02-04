@@ -9,9 +9,9 @@
 
 #include "platform/globals.h"
 
-#include "vm/ast.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
+#include "vm/dart_entry.h"
 #include "vm/globals.h"
 #include "vm/heap/heap.h"
 #include "vm/isolate.h"
@@ -64,8 +64,10 @@
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
+    TransitionNativeToVM transition1(__thread__);                              \
     StackZone __zone__(__thread__);                                            \
     HandleScope __hs__(__thread__);                                            \
+    TransitionVMToNative transition2(__thread__);                              \
     Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
   static void Dart_TestHelper##name(Thread* thread)
@@ -90,8 +92,8 @@
       bool use_far_branches = false;                                           \
       LongJumpScope jump;                                                      \
       if (setjmp(*jump.Set()) == 0) {                                          \
-        ObjectPoolWrapper object_pool_wrapper;                                 \
-        Assembler assembler(&object_pool_wrapper, use_far_branches);           \
+        ObjectPoolBuilder object_pool_builder;                                 \
+        Assembler assembler(&object_pool_builder, use_far_branches);           \
         AssemblerTest test("" #name, &assembler);                              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
@@ -103,8 +105,8 @@
     const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
     if (error.raw() == Object::branch_offset_error().raw()) {                  \
       bool use_far_branches = true;                                            \
-      ObjectPoolWrapper object_pool_wrapper;                                   \
-      Assembler assembler(&object_pool_wrapper, use_far_branches);             \
+      ObjectPoolBuilder object_pool_builder;                                   \
+      Assembler assembler(&object_pool_builder, use_far_branches);             \
       AssemblerTest test("" #name, &assembler);                                \
       AssemblerTestGenerate##name(test.assembler());                           \
       test.Assemble();                                                         \
@@ -114,70 +116,6 @@
     }                                                                          \
   }                                                                            \
   static void AssemblerTestRun##name(AssemblerTest* test)
-
-// Populate node list with AST nodes.
-#define CODEGEN_TEST_GENERATE(name, test)                                      \
-  static void CodeGenTestGenerate##name(CodeGenTest* test)
-
-// Populate node list with AST nodes, possibly using the provided function
-// object built by a previous CODEGEN_TEST_GENERATE.
-#define CODEGEN_TEST2_GENERATE(name, function, test)                           \
-  static void CodeGenTestGenerate##name(const Function& function,              \
-                                        CodeGenTest* test)
-
-// Pass the name of test and the expected results as RawObject.
-#define CODEGEN_TEST_RUN(name, expected)                                       \
-  static void CodeGenTestRun##name(const Function& function);                  \
-  ISOLATE_UNIT_TEST_CASE(name) {                                               \
-    CodeGenTest __test__("" #name);                                            \
-    CodeGenTestGenerate##name(&__test__);                                      \
-    __test__.Compile();                                                        \
-    CodeGenTestRun##name(__test__.function());                                 \
-  }                                                                            \
-  static void CodeGenTestRun##name(const Function& function) {                 \
-    Object& result = Object::Handle();                                         \
-    result = DartEntry::InvokeFunction(function, Object::empty_array());       \
-    EXPECT(!result.IsError());                                                 \
-    Instance& actual = Instance::Handle();                                     \
-    actual ^= result.raw();                                                    \
-    EXPECT(actual.CanonicalizeEquals(Instance::Handle(expected)));             \
-  }
-
-// Pass the name of test, and use the generated function to call it
-// and evaluate its result.
-#define CODEGEN_TEST_RAW_RUN(name, function)                                   \
-  static void CodeGenTestRun##name(const Function& function);                  \
-  ISOLATE_UNIT_TEST_CASE(name) {                                               \
-    CodeGenTest __test__("" #name);                                            \
-    CodeGenTestGenerate##name(&__test__);                                      \
-    __test__.Compile();                                                        \
-    CodeGenTestRun##name(__test__.function());                                 \
-  }                                                                            \
-  static void CodeGenTestRun##name(const Function& function)
-
-// Generate code for two sequences of AST nodes and execute the first one.
-// The first one may reference the Function object generated by the second one.
-#define CODEGEN_TEST2_RUN(name1, name2, expected)                              \
-  static void CodeGenTestRun##name1(const Function& function);                 \
-  ISOLATE_UNIT_TEST_CASE(name1) {                                              \
-    /* Generate code for name2 */                                              \
-    CodeGenTest __test2__("" #name2);                                          \
-    CodeGenTestGenerate##name2(&__test2__);                                    \
-    __test2__.Compile();                                                       \
-    /* Generate code for name1, providing function2 */                         \
-    CodeGenTest __test1__("" #name1);                                          \
-    CodeGenTestGenerate##name1(__test2__.function(), &__test1__);              \
-    __test1__.Compile();                                                       \
-    CodeGenTestRun##name1(__test1__.function());                               \
-  }                                                                            \
-  static void CodeGenTestRun##name1(const Function& function) {                \
-    Object& result = Object::Handle();                                         \
-    result = DartEntry::InvokeFunction(function, Object::empty_array());       \
-    EXPECT(!result.IsError());                                                 \
-    Instance& actual = Instance::Handle();                                     \
-    actual ^= result.raw();                                                    \
-    EXPECT(actual.CanonicalizeEquals(Instance::Handle(expected)));             \
-  }
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 #if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
@@ -260,7 +198,9 @@ inline Dart_Handle NewString(const char* str) {
 namespace dart {
 
 // Forward declarations.
+namespace compiler {
 class Assembler;
+}
 class CodeGenerator;
 class VirtualMemory;
 
@@ -272,10 +212,40 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
-extern const uint8_t* platform_dill;
 extern const uint8_t* platform_strong_dill;
-extern const intptr_t platform_dill_size;
 extern const intptr_t platform_strong_dill_size;
+
+class TesterState : public AllStatic {
+ public:
+  static const uint8_t* vm_snapshot_data;
+  static Dart_IsolateCreateCallback create_callback;
+  static Dart_IsolateShutdownCallback shutdown_callback;
+  static Dart_IsolateCleanupCallback cleanup_callback;
+  static const char** argv;
+  static int argc;
+};
+
+class KernelBufferList {
+ public:
+  explicit KernelBufferList(const uint8_t* kernel_buffer)
+      : kernel_buffer_(kernel_buffer), next_(NULL) {}
+
+  KernelBufferList(const uint8_t* kernel_buffer, KernelBufferList* next)
+      : kernel_buffer_(kernel_buffer), next_(next) {}
+
+  ~KernelBufferList() {
+    free(const_cast<uint8_t*>(kernel_buffer_));
+    if (next_ != NULL) {
+      delete next_;
+    }
+  }
+
+  void AddBufferToList(const uint8_t* kernel_buffer);
+
+ private:
+  const uint8_t* kernel_buffer_;
+  KernelBufferList* next_;
+};
 
 class TestCaseBase {
  public:
@@ -289,8 +259,11 @@ class TestCaseBase {
 
   static void RunAll();
   static void RunAllRaw();
+  static void CleanupState();
+  static void AddToKernelBuffers(const uint8_t* kernel_buffer);
 
  protected:
+  static KernelBufferList* current_kernel_buffers_;
   bool raw_test_;
 
  private:
@@ -312,9 +285,6 @@ class TestCase : TestCaseBase {
   typedef void(RunEntry)();
 
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
-
-  static bool UsingDartFrontend();
-  static bool UsingStrongMode();
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
@@ -382,10 +352,13 @@ class TestCase : TestCaseBase {
   static Dart_Handle SetReloadTestScript(const char* script);
 
   // Initiates the reload.
-  static Dart_Handle TriggerReload();
+  static Dart_Handle TriggerReload(const uint8_t* kernel_buffer,
+                                   intptr_t kernel_buffer_size);
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
+
+  // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestKernel(const uint8_t* kernel_buffer,
                                       intptr_t kernel_buffer_size);
 
@@ -602,31 +575,6 @@ class AssemblerTest {
   char disassembly_[DISASSEMBLY_SIZE];
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
-};
-
-class CodeGenTest {
- public:
-  explicit CodeGenTest(const char* name);
-  ~CodeGenTest() {}
-
-  // Accessors.
-  const Function& function() const { return function_; }
-
-  SequenceNode* node_sequence() const { return node_sequence_; }
-
-  void set_default_parameter_values(ZoneGrowableArray<const Instance*>* value) {
-    default_parameter_values_ = value;
-  }
-
-  // Compile test and set code in function.
-  void Compile();
-
- private:
-  Function& function_;
-  SequenceNode* node_sequence_;
-  ZoneGrowableArray<const Instance*>* default_parameter_values_;
-
-  DISALLOW_COPY_AND_ASSIGN(CodeGenTest);
 };
 
 class CompilerTest : public AllStatic {

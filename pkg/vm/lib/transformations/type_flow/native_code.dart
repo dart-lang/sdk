@@ -5,17 +5,15 @@
 /// Handling of native code and entry points.
 library vm.transformations.type_flow.native_code;
 
-import 'dart:convert' show json;
 import 'dart:core' hide Type;
-import 'dart:io' show File;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 
 import 'calls.dart';
 import 'types.dart';
 import 'utils.dart';
+import '../pragma.dart';
 
 abstract class EntryPointsListener {
   /// Add call by the given selector with arbitrary ('raw') arguments.
@@ -26,96 +24,13 @@ abstract class EntryPointsListener {
 
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
-}
 
-abstract class ParsedPragma {}
+  /// Record the fact that given member is called via interface selector
+  /// (not dynamically, and not from `this`).
+  void recordMemberCalledViaInterfaceSelector(Member target);
 
-enum PragmaEntryPointType { Always, GetterOnly, SetterOnly }
-
-class ParsedEntryPointPragma extends ParsedPragma {
-  final PragmaEntryPointType type;
-  ParsedEntryPointPragma(this.type);
-}
-
-class ParsedResultTypeByTypePragma extends ParsedPragma {
-  final DartType type;
-  ParsedResultTypeByTypePragma(this.type);
-}
-
-class ParsedResultTypeByPathPragma extends ParsedPragma {
-  final String path;
-  ParsedResultTypeByPathPragma(this.path);
-}
-
-const kEntryPointPragmaName = "vm:entry-point";
-const kExactResultTypePragmaName = "vm:exact-result-type";
-
-abstract class PragmaAnnotationParser {
-  /// May return 'null' if the annotation does not represent a recognized
-  /// @pragma.
-  ParsedPragma parsePragma(Expression annotation);
-}
-
-class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
-  final CoreTypes coreTypes;
-
-  ConstantPragmaAnnotationParser(this.coreTypes);
-
-  ParsedPragma parsePragma(Expression annotation) {
-    InstanceConstant pragmaConstant;
-    if (annotation is ConstantExpression) {
-      Constant constant = annotation.constant;
-      if (constant is InstanceConstant) {
-        if (constant.classReference.node == coreTypes.pragmaClass) {
-          pragmaConstant = constant;
-        }
-      }
-    }
-    if (pragmaConstant == null) return null;
-
-    String pragmaName;
-    Constant name = pragmaConstant.fieldValues[coreTypes.pragmaName.reference];
-    if (name is StringConstant) {
-      pragmaName = name.value;
-    } else {
-      return null;
-    }
-
-    Constant options =
-        pragmaConstant.fieldValues[coreTypes.pragmaOptions.reference];
-    assertx(options != null);
-
-    switch (pragmaName) {
-      case kEntryPointPragmaName:
-        PragmaEntryPointType type;
-        if (options is NullConstant) {
-          type = PragmaEntryPointType.Always;
-        } else if (options is BoolConstant && options.value == true) {
-          type = PragmaEntryPointType.Always;
-        } else if (options is StringConstant) {
-          if (options.value == "get") {
-            type = PragmaEntryPointType.GetterOnly;
-          } else if (options.value == "set") {
-            type = PragmaEntryPointType.SetterOnly;
-          } else {
-            throw "Error: string directive to @pragma('$kEntryPointPragmaName', ...) "
-                "must be either 'get' or 'set'.";
-          }
-        }
-        return type != null ? new ParsedEntryPointPragma(type) : null;
-      case kExactResultTypePragmaName:
-        if (options == null) return null;
-        if (options is TypeLiteralConstant) {
-          return new ParsedResultTypeByTypePragma(options.type);
-        } else if (options is StringConstant) {
-          return new ParsedResultTypeByPathPragma(options.value);
-        }
-        throw "ERROR: Unsupported option to '$kExactResultTypePragmaName' "
-            "pragma: $options";
-      default:
-        return null;
-    }
-  }
+  /// Record the fact that given member is called from this.
+  void recordMemberCalledViaThis(Member target);
 }
 
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
@@ -140,13 +55,15 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
-    var type = _annotationsDefineRoot(klass.annotations);
-    if (type != null) {
-      if (type != PragmaEntryPointType.Always) {
-        throw "Error: pragma entry-point definition on a class must evaluate "
-            "to null, true or false. See entry_points_pragma.md.";
+    if (!klass.isAbstract) {
+      var type = _annotationsDefineRoot(klass.annotations);
+      if (type != null) {
+        if (type != PragmaEntryPointType.Always) {
+          throw "Error: pragma entry-point definition on a class must evaluate "
+              "to null, true or false. See entry_points_pragma.md.";
+        }
+        entryPoints.addAllocatedClass(klass);
       }
-      entryPoints.addAllocatedClass(klass);
     }
     currentClass = klass;
     klass.visitChildren(this);
@@ -202,11 +119,17 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         addSelector(CallKind.PropertyGet);
         break;
       case PragmaEntryPointType.SetterOnly:
+        if (field.isFinal) {
+          throw "Error: can't use 'set' in entry-point pragma for final field "
+              "$field";
+        }
         addSelector(CallKind.PropertySet);
         break;
       case PragmaEntryPointType.Always:
         addSelector(CallKind.PropertyGet);
-        addSelector(CallKind.PropertySet);
+        if (!field.isFinal) {
+          addSelector(CallKind.PropertySet);
+        }
         break;
     }
 
@@ -236,12 +159,14 @@ class NativeCodeOracle {
   Type handleNativeProcedure(
       Member member, EntryPointsListener entryPointsListener) {
     Type returnType = null;
+    bool nullable = null;
 
     for (var annotation in member.annotations) {
       ParsedPragma pragma = _matcher.parsePragma(annotation);
       if (pragma == null) continue;
       if (pragma is ParsedResultTypeByTypePragma ||
-          pragma is ParsedResultTypeByPathPragma) {
+          pragma is ParsedResultTypeByPathPragma ||
+          pragma is ParsedNonNullableResultType) {
         // We can only use the 'vm:exact-result-type' pragma on methods in core
         // libraries for safety reasons. See 'result_type_pragma.md', detail 1.2
         // for explanation.
@@ -254,7 +179,7 @@ class NativeCodeOracle {
         var type = pragma.type;
         if (type is InterfaceType) {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
-          break;
+          continue;
         }
         throw "ERROR: Invalid return type for native method: ${pragma.type}";
       } else if (pragma is ParsedResultTypeByPathPragma) {
@@ -269,32 +194,22 @@ class NativeCodeOracle {
         // Error is thrown on the next line if the class is not found.
         Class klass = _libraryIndex.getClass(libName, klassName);
         Type concreteClass = entryPointsListener.addAllocatedClass(klass);
-
         returnType = concreteClass;
-        break;
+      } else if (pragma is ParsedNonNullableResultType) {
+        nullable = false;
       }
+    }
+
+    if (returnType != null && nullable != null) {
+      throw 'ERROR: Cannot have both, @pragma("$kExactResultTypePragmaName") '
+          'and @pragma("$kNonNullableResultType"), annotating the same member.';
     }
 
     if (returnType != null) {
       return returnType;
     } else {
-      return new Type.fromStatic(member.function.returnType);
-    }
-  }
-
-  /// Reads JSON files [jsonFiles] describing entry points and native methods.
-  /// Currently just checks that JSON file is empty as it is deprecated.
-  void processEntryPointsJSONFiles(
-      List<String> jsonFiles, EntryPointsListener entryPointsListener) {
-    for (var file in jsonFiles) {
-      String jsonString = new File(file).readAsStringSync();
-      final jsonObject = json.decode(jsonString);
-
-      final roots = jsonObject['roots'];
-      if (roots != null && roots.isNotEmpty) {
-        throw "Error: Found non-empty entry points JSON file $file."
-            " Use the @pragma('vm:entry-point') annotation instead.";
-      }
+      final coneType = new Type.cone(member.function.returnType);
+      return nullable == false ? coneType : new Type.nullable(coneType);
     }
   }
 }

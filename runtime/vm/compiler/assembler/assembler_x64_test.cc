@@ -11,6 +11,7 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
+namespace compiler {
 
 #define __ assembler->
 
@@ -72,33 +73,33 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movq(RAX, Address(R13, 0));
   __ movq(R10, Address(RAX, 0));
 
-  __ movq(RAX, Address(RSP, kWordSize));
-  __ movq(RAX, Address(RBP, kWordSize));
-  __ movq(RAX, Address(RAX, kWordSize));
-  __ movq(RAX, Address(R10, kWordSize));
-  __ movq(RAX, Address(R12, kWordSize));
-  __ movq(RAX, Address(R13, kWordSize));
+  __ movq(RAX, Address(RSP, target::kWordSize));
+  __ movq(RAX, Address(RBP, target::kWordSize));
+  __ movq(RAX, Address(RAX, target::kWordSize));
+  __ movq(RAX, Address(R10, target::kWordSize));
+  __ movq(RAX, Address(R12, target::kWordSize));
+  __ movq(RAX, Address(R13, target::kWordSize));
 
-  __ movq(RAX, Address(RSP, -kWordSize));
-  __ movq(RAX, Address(RBP, -kWordSize));
-  __ movq(RAX, Address(RAX, -kWordSize));
-  __ movq(RAX, Address(R10, -kWordSize));
-  __ movq(RAX, Address(R12, -kWordSize));
-  __ movq(RAX, Address(R13, -kWordSize));
+  __ movq(RAX, Address(RSP, -target::kWordSize));
+  __ movq(RAX, Address(RBP, -target::kWordSize));
+  __ movq(RAX, Address(RAX, -target::kWordSize));
+  __ movq(RAX, Address(R10, -target::kWordSize));
+  __ movq(RAX, Address(R12, -target::kWordSize));
+  __ movq(RAX, Address(R13, -target::kWordSize));
 
-  __ movq(RAX, Address(RSP, 256 * kWordSize));
-  __ movq(RAX, Address(RBP, 256 * kWordSize));
-  __ movq(RAX, Address(RAX, 256 * kWordSize));
-  __ movq(RAX, Address(R10, 256 * kWordSize));
-  __ movq(RAX, Address(R12, 256 * kWordSize));
-  __ movq(RAX, Address(R13, 256 * kWordSize));
+  __ movq(RAX, Address(RSP, 256 * target::kWordSize));
+  __ movq(RAX, Address(RBP, 256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, 256 * target::kWordSize));
+  __ movq(RAX, Address(R10, 256 * target::kWordSize));
+  __ movq(RAX, Address(R12, 256 * target::kWordSize));
+  __ movq(RAX, Address(R13, 256 * target::kWordSize));
 
-  __ movq(RAX, Address(RSP, -256 * kWordSize));
-  __ movq(RAX, Address(RBP, -256 * kWordSize));
-  __ movq(RAX, Address(RAX, -256 * kWordSize));
-  __ movq(RAX, Address(R10, -256 * kWordSize));
-  __ movq(RAX, Address(R12, -256 * kWordSize));
-  __ movq(RAX, Address(R13, -256 * kWordSize));
+  __ movq(RAX, Address(RSP, -256 * target::kWordSize));
+  __ movq(RAX, Address(RBP, -256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, -256 * target::kWordSize));
+  __ movq(RAX, Address(R10, -256 * target::kWordSize));
+  __ movq(RAX, Address(R12, -256 * target::kWordSize));
+  __ movq(RAX, Address(R13, -256 * target::kWordSize));
 
   __ movq(RAX, Address(RAX, TIMES_1, 0));
   __ movq(RAX, Address(RAX, TIMES_2, 0));
@@ -111,17 +112,17 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movq(RAX, Address(R12, TIMES_2, 0));
   __ movq(RAX, Address(R13, TIMES_2, 0));
 
-  __ movq(RAX, Address(RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R13, TIMES_2, 256 * target::kWordSize));
 
   __ movq(RAX, Address(RAX, RBP, TIMES_2, 0));
   __ movq(RAX, Address(RAX, RAX, TIMES_2, 0));
@@ -159,77 +160,77 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movq(RAX, Address(R13, R12, TIMES_2, 0));
   __ movq(RAX, Address(R13, R13, TIMES_2, 0));
 
-  __ movq(RAX, Address(RAX, RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RAX, RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RAX, R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RAX, R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RAX, R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RAX, RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RAX, RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RAX, R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RAX, R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RAX, R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(RBP, RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RBP, RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RBP, R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RBP, R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RBP, R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RBP, RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RBP, RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RBP, R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RBP, R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RBP, R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(RSP, RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RSP, RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RSP, R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RSP, R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(RSP, R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RSP, RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RSP, RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RSP, R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RSP, R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(RSP, R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(R10, RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R10, RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R10, R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R10, R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R10, R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R10, RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R10, RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R10, R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R10, R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R10, R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(R12, RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R12, RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R12, R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R12, R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R12, R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R12, RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R12, RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R12, R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R12, R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R12, R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(R13, RBP, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R13, RAX, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R13, R10, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R13, R12, TIMES_2, kWordSize));
-  __ movq(RAX, Address(R13, R13, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R13, RBP, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R13, RAX, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R13, R10, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R13, R12, TIMES_2, target::kWordSize));
+  __ movq(RAX, Address(R13, R13, TIMES_2, target::kWordSize));
 
-  __ movq(RAX, Address(RAX, RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RAX, RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RAX, R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RAX, R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RAX, R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RAX, RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RAX, R13, TIMES_2, 256 * target::kWordSize));
 
-  __ movq(RAX, Address(RBP, RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RBP, RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RBP, R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RBP, R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RBP, R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RBP, RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RBP, RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RBP, R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RBP, R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RBP, R13, TIMES_2, 256 * target::kWordSize));
 
-  __ movq(RAX, Address(RSP, RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RSP, RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RSP, R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RSP, R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(RSP, R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RSP, RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RSP, RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RSP, R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RSP, R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(RSP, R13, TIMES_2, 256 * target::kWordSize));
 
-  __ movq(RAX, Address(R10, RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R10, RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R10, R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R10, R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R10, R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R10, RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R10, RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R10, R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R10, R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R10, R13, TIMES_2, 256 * target::kWordSize));
 
-  __ movq(RAX, Address(R12, RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R12, RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R12, R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R12, R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R12, R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R12, RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R12, RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R12, R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R12, R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R12, R13, TIMES_2, 256 * target::kWordSize));
 
-  __ movq(RAX, Address(R13, RBP, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R13, RAX, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R13, R10, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R13, R12, TIMES_2, 256 * kWordSize));
-  __ movq(RAX, Address(R13, R13, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R13, RBP, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R13, RAX, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R13, R10, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R13, R12, TIMES_2, 256 * target::kWordSize));
+  __ movq(RAX, Address(R13, R13, TIMES_2, 256 * target::kWordSize));
 
   __ movq(RAX, Address::AddressBaseImm32(RSP, 0));
   __ movq(RAX, Address::AddressBaseImm32(RBP, 0));
@@ -239,19 +240,19 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movq(RAX, Address::AddressBaseImm32(R13, 0));
   __ movq(R10, Address::AddressBaseImm32(RAX, 0));
 
-  __ movq(RAX, Address::AddressBaseImm32(RSP, kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(RBP, kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(RAX, kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(R10, kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(R12, kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(R13, kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RSP, target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RBP, target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RAX, target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R10, target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R12, target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R13, target::kWordSize));
 
-  __ movq(RAX, Address::AddressBaseImm32(RSP, -kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(RBP, -kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(RAX, -kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(R10, -kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(R12, -kWordSize));
-  __ movq(RAX, Address::AddressBaseImm32(R13, -kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RSP, -target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RBP, -target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RAX, -target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R10, -target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R12, -target::kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R13, -target::kWordSize));
 }
 
 ASSEMBLER_TEST_RUN(AddressingModes, test) {
@@ -1163,7 +1164,7 @@ ASSEMBLER_TEST_GENERATE(MoveExtendMemory, assembler) {
   __ movzxb(RAX, Address(RSP, 0));  // RAX = 0xff
   __ movsxw(R8, Address(RSP, 0));   // R8 = -1
   __ movzxw(RCX, Address(RSP, 0));  // RCX = 0xffff
-  __ addq(RSP, Immediate(kWordSize));
+  __ addq(RSP, Immediate(target::kWordSize));
 
   __ addq(R8, RCX);
   __ addq(RAX, R8);
@@ -1189,9 +1190,9 @@ ASSEMBLER_TEST_RUN(MoveExtendMemory, test) {
 ASSEMBLER_TEST_GENERATE(MoveExtend32Memory, assembler) {
   __ pushq(Immediate(0xffffffff));
   __ pushq(Immediate(0x7fffffff));
-  __ movsxd(RDX, Address(RSP, kWordSize));
+  __ movsxd(RDX, Address(RSP, target::kWordSize));
   __ movsxd(RAX, Address(RSP, 0));
-  __ addq(RSP, Immediate(kWordSize * 2));
+  __ addq(RSP, Immediate(target::kWordSize * 2));
 
   __ addq(RAX, RDX);
   __ ret();
@@ -1218,7 +1219,7 @@ ASSEMBLER_TEST_GENERATE(MoveWord, assembler) {
   __ movq(RCX, Immediate(-1));
   __ movw(Address(RAX, 0), RCX);
   __ movzxw(RAX, Address(RAX, 0));  // RAX = 0xffff
-  __ addq(RSP, Immediate(kWordSize));
+  __ addq(RSP, Immediate(target::kWordSize));
   __ ret();
 }
 
@@ -1298,7 +1299,7 @@ ASSEMBLER_TEST_GENERATE(MoveWordRex, assembler) {
   __ movzxw(R8, Address(R8, 0));  // 0xffff
   __ xorq(RAX, RAX);
   __ addq(RAX, R8);  // RAX = 0xffff
-  __ addq(RSP, Immediate(kWordSize));
+  __ addq(RSP, Immediate(target::kWordSize));
   __ ret();
 }
 
@@ -1615,10 +1616,10 @@ ASSEMBLER_TEST_GENERATE(AddAddress, assembler) {
   __ pushq(CallingConventions::kArg3Reg);
   __ pushq(CallingConventions::kArg2Reg);
   __ pushq(CallingConventions::kArg1Reg);
-  __ movq(R10, Address(RSP, 0 * kWordSize));  // al.
-  __ addq(R10, Address(RSP, 2 * kWordSize));  // bl.
-  __ movq(RAX, Address(RSP, 1 * kWordSize));  // ah.
-  __ adcq(RAX, Address(RSP, 3 * kWordSize));  // bh.
+  __ movq(R10, Address(RSP, 0 * target::kWordSize));  // al.
+  __ addq(R10, Address(RSP, 2 * target::kWordSize));  // bl.
+  __ movq(RAX, Address(RSP, 1 * target::kWordSize));  // ah.
+  __ adcq(RAX, Address(RSP, 3 * target::kWordSize));  // bh.
   // RAX = high64(ah:al + bh:bl).
   __ Drop(4);
   __ ret();
@@ -1711,10 +1712,10 @@ ASSEMBLER_TEST_GENERATE(SubAddress, assembler) {
   __ pushq(CallingConventions::kArg3Reg);
   __ pushq(CallingConventions::kArg2Reg);
   __ pushq(CallingConventions::kArg1Reg);
-  __ movq(R10, Address(RSP, 0 * kWordSize));  // al.
-  __ subq(R10, Address(RSP, 2 * kWordSize));  // bl.
-  __ movq(RAX, Address(RSP, 1 * kWordSize));  // ah.
-  __ sbbq(RAX, Address(RSP, 3 * kWordSize));  // bh.
+  __ movq(R10, Address(RSP, 0 * target::kWordSize));  // al.
+  __ subq(R10, Address(RSP, 2 * target::kWordSize));  // bl.
+  __ movq(RAX, Address(RSP, 1 * target::kWordSize));  // ah.
+  __ sbbq(RAX, Address(RSP, 3 * target::kWordSize));  // bh.
   // RAX = high64(ah:al - bh:bl).
   __ Drop(4);
   __ ret();
@@ -3935,7 +3936,7 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x1f]\n"
+      "movq pp,[r12+0x27]\n"
       "movl rax,0x........\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -3972,7 +3973,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x1f]\n"
+      "movq pp,[r12+0x27]\n"
       "movl rax,-0x........\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -4007,7 +4008,7 @@ ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x1f]\n"
+      "movq pp,[r12+0x27]\n"
       "movl rax,0x........\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -4852,7 +4853,7 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x1f]\n"
+      "movq pp,[r12+0x27]\n"
       "movq rax,[pp+0xf]\n"
       "cmpq rax,[pp+0xf]\n"
       "jnz 0x................\n"
@@ -5290,7 +5291,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x1f]\n"
+      "movq pp,[r12+0x27]\n"
       "movq r11,[thr+0x...]\n"
       "andpd xmm0,[r11]\n"
       "pop thr\n"
@@ -5417,9 +5418,9 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ pushq(CallingConventions::kArg1Reg);     // from.
   __ pushq(CallingConventions::kArg2Reg);     // to.
   __ pushq(CallingConventions::kArg3Reg);     // count.
-  __ movq(RSI, Address(RSP, 2 * kWordSize));  // from.
-  __ movq(RDI, Address(RSP, 1 * kWordSize));  // to.
-  __ movq(RCX, Address(RSP, 0 * kWordSize));  // count.
+  __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
+  __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
+  __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.
   __ rep_movsb();
   // Remove saved arguments.
   __ popq(RAX);
@@ -5835,6 +5836,8 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ pushq(RAX),
                Address(RSP, 0),
                __ popq(RAX))
+
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

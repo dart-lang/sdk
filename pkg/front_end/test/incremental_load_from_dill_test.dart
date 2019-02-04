@@ -14,7 +14,7 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -22,16 +22,12 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
-
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -45,6 +41,9 @@ import "package:vm/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
 import "incremental_utils.dart" as util;
+
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show DiagnosticMessageFromJson, FormattedMessage;
 
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, "../testing.json");
@@ -136,10 +135,11 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
     }
     String source = sourceFiles[filename];
     if (filename == ".packages") {
-      source = substituteVariables(source, outDir.uri);
       packagesUri = uri;
     }
-    new File.fromUri(uri).writeAsStringSync(source);
+    File file = new File.fromUri(uri);
+    await file.parent.create(recursive: true);
+    await file.writeAsString(source);
   }
   for (String invalidateFilename in invalidateFilenames) {
     if (invalidateFilename.startsWith('package:')) {
@@ -180,7 +180,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
 }
 
 Future<Null> newWorldTest(bool strong, List worlds) async {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
   final Uri initializeFrom = base.resolve("initializeFrom.dill");
@@ -193,7 +193,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
   final List<int> sdkSummaryData =
       await new File.fromUri(platformUri).readAsBytes();
 
-  List<int> newestWholeComponent;
+  List<int> newestWholeComponentData;
+  Component newestWholeComponent;
   MemoryFileSystem fs;
   Map<String, String> sourceFiles;
   CompilerOptions options;
@@ -209,8 +210,11 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     }
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
     bool expectInitializeFromDill = false;
-    if (newestWholeComponent != null && newestWholeComponent.isNotEmpty) {
-      fs.entityForUri(initializeFrom).writeAsBytesSync(newestWholeComponent);
+    if (newestWholeComponentData != null &&
+        newestWholeComponentData.isNotEmpty) {
+      fs
+          .entityForUri(initializeFrom)
+          .writeAsBytesSync(newestWholeComponentData);
       expectInitializeFromDill = true;
     }
     if (world["expectInitializeFromDill"] != null) {
@@ -219,14 +223,14 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     if (brandNewWorld) {
       sourceFiles = new Map<String, String>.from(world["sources"]);
     } else {
-      sourceFiles.addAll(new Map<String, String>.from(world["sources"]));
+      sourceFiles.addAll(
+          new Map<String, String>.from(world["sources"] ?? <String, String>{}));
     }
     Uri packagesUri;
     for (String filename in sourceFiles.keys) {
       String data = sourceFiles[filename] ?? "";
       Uri uri = base.resolve(filename);
       if (filename == ".packages") {
-        data = substituteVariables(data, base);
         packagesUri = uri;
       }
       fs.entityForUri(uri).writeAsStringSync(data);
@@ -242,24 +246,38 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       }
     }
     bool gotError = false;
-    final List<String> formattedErrors = <String>[];
+    final Set<String> formattedErrors = Set<String>();
     bool gotWarning = false;
-    final List<String> formattedWarnings = <String>[];
+    final Set<String> formattedWarnings = Set<String>();
 
-    options.onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error) {
+    options.onDiagnostic = (DiagnosticMessage message) {
+      String stringId = message.ansiFormatted.join("\n");
+      if (message is FormattedMessage) {
+        stringId = message.toJsonString();
+      } else if (message is DiagnosticMessageFromJson) {
+        stringId = message.toJsonString();
+      }
+      if (message.severity == Severity.error) {
         gotError = true;
-        formattedErrors.add(problem.formatted);
-      } else if (severity == Severity.warning) {
+        if (!formattedErrors.add(stringId)) {
+          Expect.fail("Got the same message twice: ${stringId}");
+        }
+      } else if (message.severity == Severity.warning) {
         gotWarning = true;
-        formattedWarnings.add(problem.formatted);
+        if (!formattedWarnings.add(stringId)) {
+          Expect.fail("Got the same message twice: ${stringId}");
+        }
       }
     };
 
     Uri entry = base.resolve(world["entry"]);
     if (brandNewWorld) {
-      compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+      if (world["fromComponent"] == true) {
+        compiler = new TestIncrementalCompiler.fromComponent(
+            options, entry, newestWholeComponent);
+      } else {
+        compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+      }
     }
 
     List<Uri> invalidated = new List<Uri>();
@@ -278,15 +296,28 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
         world, gotError, formattedErrors, gotWarning, formattedWarnings);
     util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-    newestWholeComponent = serializeComponent(component);
+    newestWholeComponentData = util.postProcess(component);
+    newestWholeComponent = component;
     print("*****\n\ncomponent:\n${componentToString(component)}\n\n\n");
-    if (component.libraries.length != world["expectedLibraryCount"]) {
-      throw "Expected ${world["expectedLibraryCount"]} libraries, "
-          "got ${component.libraries.length}";
+
+    int nonSyntheticLibraries = countNonSyntheticLibraries(component);
+    int syntheticLibraries = countSyntheticLibraries(component);
+    if (nonSyntheticLibraries != world["expectedLibraryCount"]) {
+      throw "Expected ${world["expectedLibraryCount"]} non-synthetic "
+          "libraries, got ${nonSyntheticLibraries}";
     }
-    if (component.libraries[0].importUri != entry) {
-      throw "Expected the first library to have uri $entry but was "
-          "${component.libraries[0].importUri}";
+    if (world["expectedSyntheticLibraryCount"] != null) {
+      if (syntheticLibraries != world["expectedSyntheticLibraryCount"]) {
+        throw "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
+            "libraries, got ${syntheticLibraries}";
+      }
+    }
+    List<Library> entryLib = component.libraries
+        .where((Library lib) => lib.importUri == entry)
+        .toList();
+    if (entryLib.length != 1) {
+      throw "Expected the entry to become a library. Got ${entryLib.length} "
+          "libraries for it.";
     }
     if (compiler.initializedFromDill != expectInitializeFromDill) {
       throw "Expected that initializedFromDill would be "
@@ -300,9 +331,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
             world["invalidate"].length, filteredInvalidated?.length ?? 0);
         List expectedInvalidatedUri = world["expectedInvalidatedUri"];
         if (expectedInvalidatedUri != null) {
-          Expect.setEquals(
-              expectedInvalidatedUri
-                  .map((s) => Uri.parse(substituteVariables(s, base))),
+          Expect.setEquals(expectedInvalidatedUri.map((s) => base.resolve(s)),
               filteredInvalidated);
         }
       } else {
@@ -312,6 +341,8 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     }
 
     {
+      Set<String> prevFormattedErrors = formattedErrors.toSet();
+      Set<String> prevFormattedWarnings = formattedWarnings.toSet();
       gotError = false;
       formattedErrors.clear();
       gotWarning = false;
@@ -319,19 +350,58 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       Component component2 = await compiler.computeDelta(fullComponent: true);
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
-      List<int> thisWholeComponent = serializeComponent(component2);
+      List<int> thisWholeComponent = util.postProcess(component2);
       print("*****\n\ncomponent2:\n${componentToString(component2)}\n\n\n");
-      checkIsEqual(newestWholeComponent, thisWholeComponent);
+      checkIsEqual(newestWholeComponentData, thisWholeComponent);
+      if (prevFormattedErrors.length != formattedErrors.length) {
+        Expect.fail("Previously had ${prevFormattedErrors.length} errors, "
+            "now had ${formattedErrors.length}.\n\n"
+            "Before:\n"
+            "${prevFormattedErrors.join("\n")}"
+            "\n\n"
+            "Now:\n"
+            "${formattedErrors.join("\n")}");
+      }
+      if ((prevFormattedErrors.toSet()..removeAll(formattedErrors))
+          .isNotEmpty) {
+        Expect.fail("Previously got error messages $prevFormattedErrors, "
+            "now had ${formattedErrors}.");
+      }
+      if (prevFormattedWarnings.length != formattedWarnings.length) {
+        Expect.fail("Previously had ${prevFormattedWarnings.length} errors, "
+            "now had ${formattedWarnings.length}.");
+      }
+      if ((prevFormattedWarnings.toSet()..removeAll(formattedWarnings))
+          .isNotEmpty) {
+        Expect.fail("Previously got error messages $prevFormattedWarnings, "
+            "now had ${formattedWarnings}.");
+      }
     }
   }
+}
+
+int countNonSyntheticLibraries(Component c) {
+  int result = 0;
+  for (Library lib in c.libraries) {
+    if (!lib.isSynthetic) result++;
+  }
+  return result;
+}
+
+int countSyntheticLibraries(Component c) {
+  int result = 0;
+  for (Library lib in c.libraries) {
+    if (lib.isSynthetic) result++;
+  }
+  return result;
 }
 
 void performErrorAndWarningCheck(
     YamlMap world,
     bool gotError,
-    List<String> formattedErrors,
+    Set<String> formattedErrors,
     bool gotWarning,
-    List<String> formattedWarnings) {
+    Set<String> formattedWarnings) {
   if (world["errors"] == true && !gotError) {
     throw "Expected error, but didn't get any.";
   } else if (world["errors"] != true && gotError) {
@@ -358,18 +428,19 @@ void checkIsEqual(List<int> a, List<int> b) {
 }
 
 CompilerOptions getOptions(bool strong) {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..target = new VmTarget(new TargetFlags(strongMode: strong))
+    ..target = new VmTarget(new TargetFlags(legacyMode: !strong))
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error || severity == Severity.warning) {
-        Expect.fail("Unexpected error: ${problem.formatted}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      if (message.severity == Severity.error ||
+          message.severity == Severity.warning) {
+        Expect.fail(
+            "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
     }
-    ..strongMode = strong;
+    ..legacyMode = !strong;
   if (strong) {
     options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   } else {
@@ -454,31 +525,29 @@ Future<bool> initializedCompile(
   return result;
 }
 
-String substituteVariables(String source, Uri base) {
-  return source.replaceAll(r"${outDirUri}", "${base}");
-}
-
 class TestIncrementalCompiler extends IncrementalCompiler {
   Set<Uri> invalidatedImportUrisForTesting;
   final Uri entryPoint;
 
   /// Filter out the automatically added entryPoint, unless it's explicitly
   /// specified as being invalidated.
+  /// Also filter out uris with "nonexisting.dart" in the name as synthetic
+  /// libraries are invalidated automatically too.
   /// This is not perfect, but works for what it's currently used for.
   Set<Uri> getFilteredInvalidatedImportUrisForTesting(
       List<Uri> invalidatedUris) {
     if (invalidatedImportUrisForTesting == null) return null;
+
     Set<String> invalidatedFilenames =
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
-    if (invalidatedFilenames.contains(entryPoint.pathSegments.last)) {
-      return invalidatedImportUrisForTesting;
-    }
-
     Set<Uri> result = new Set<Uri>();
     for (Uri uri in invalidatedImportUrisForTesting) {
-      if (invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
+      if (uri.pathSegments.last == "nonexisting.dart") continue;
+      if (invalidatedFilenames.contains(entryPoint.pathSegments.last) ||
+          invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
     }
-    return result;
+
+    return result.isEmpty ? null : result;
   }
 
   TestIncrementalCompiler(CompilerOptions options, this.entryPoint,
@@ -488,8 +557,31 @@ class TestIncrementalCompiler extends IncrementalCompiler {
                 new ProcessedOptions(options: options, inputs: [entryPoint])),
             initializeFrom);
 
+  TestIncrementalCompiler.fromComponent(CompilerOptions options,
+      this.entryPoint, Component componentToInitializeFrom)
+      : super.fromComponent(
+            new CompilerContext(
+                new ProcessedOptions(options: options, inputs: [entryPoint])),
+            componentToInitializeFrom);
+
   @override
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
     invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
+  }
+
+  @override
+  Future<Component> computeDelta(
+      {Uri entryPoint, bool fullComponent = false}) async {
+    Component result = await super
+        .computeDelta(entryPoint: entryPoint, fullComponent: fullComponent);
+
+    // We should at least have the SDK builders available. Slight smoke test.
+    if (!dillLoadedData.loader.builders.keys
+        .map((uri) => uri.toString())
+        .contains("dart:core")) {
+      throw "Loaders builder should contain the sdk, "
+          "but didn't even contain dart:core.";
+    }
+    return result;
   }
 }

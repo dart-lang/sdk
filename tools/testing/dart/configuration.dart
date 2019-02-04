@@ -26,7 +26,6 @@ class TestConfiguration {
       this.progress,
       this.selectors,
       this.testList,
-      this.appendLogs,
       this.repeat,
       this.batch,
       this.batchDart2JS,
@@ -34,6 +33,8 @@ class TestConfiguration {
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
+      this.cleanExit,
+      this.silentFailures,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -41,16 +42,14 @@ class TestConfiguration {
       this.skipCompilation,
       this.useKernelBytecode,
       this.writeDebugLog,
-      this.writeTestOutcomeLog,
-      this.writeResultLog,
       this.writeResults,
+      this.writeLogs,
       this.drtPath,
       this.chromePath,
       this.safariPath,
       this.firefoxPath,
       this.dartPath,
       this.dartPrecompiledPath,
-      this.flutterPath,
       this.taskCount,
       this.shardCount,
       this.shard,
@@ -59,6 +58,7 @@ class TestConfiguration {
       this.testServerCrossOriginPort,
       this.testDriverErrorPort,
       this.localIP,
+      this.keepGeneratedFiles,
       this.dart2jsOptions,
       String packages,
       this.packageRoot,
@@ -77,7 +77,6 @@ class TestConfiguration {
 
   // Boolean flags.
 
-  final bool appendLogs;
   final bool batch;
   final bool batchDart2JS;
   final bool copyCoreDumps;
@@ -85,6 +84,8 @@ class TestConfiguration {
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
+  final bool cleanExit;
+  final bool silentFailures;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -92,9 +93,8 @@ class TestConfiguration {
   final bool skipCompilation;
   final bool useKernelBytecode;
   final bool writeDebugLog;
-  final bool writeTestOutcomeLog;
-  final bool writeResultLog;
   final bool writeResults;
+  final bool writeLogs;
   final bool printPassingStdout;
 
   Architecture get architecture => configuration.architecture;
@@ -115,7 +115,6 @@ class TestConfiguration {
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
   bool get useSdk => configuration.useSdk;
-  bool get useFastStartup => configuration.useFastStartup;
   bool get useEnableAsserts => configuration.enableAsserts;
   bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
   bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
@@ -128,7 +127,6 @@ class TestConfiguration {
   final String firefoxPath;
   final String dartPath;
   final String dartPrecompiledPath;
-  final String flutterPath;
   final List<String> testList;
 
   final int taskCount;
@@ -141,6 +139,7 @@ class TestConfiguration {
   final int testServerCrossOriginPort;
   final int testDriverErrorPort;
   final String localIP;
+  final bool keepGeneratedFiles;
 
   /// Extra dart2js options passed to the testing script.
   final List<String> dart2jsOptions;
@@ -243,7 +242,6 @@ class TestConfiguration {
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
-    if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
     if (useDart2JSOldFrontend) args.add("--use-old-frontend");
@@ -284,9 +282,6 @@ class TestConfiguration {
         break;
       case Runtime.firefox:
         location = firefoxPath;
-        break;
-      case Runtime.flutter:
-        location = flutterPath;
         break;
       case Runtime.safari:
         location = safariPath;
@@ -370,17 +365,6 @@ class TestConfiguration {
       isValid = false;
     }
 
-    if (runtime == Runtime.flutter && flutterPath == null) {
-      print("-rflutter requires the flutter engine executable to "
-          "be specified using --flutter");
-      isValid = false;
-    }
-
-    if (runtime == Runtime.flutter && architecture != Architecture.x64) {
-      isValid = false;
-      print("-rflutter is applicable only for --arch=x64");
-    }
-
     return isValid;
   }
 
@@ -461,7 +445,6 @@ class TestConfiguration {
         'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
-        'fast_startup': useFastStartup,
         'timeout': timeout,
         'no_preview_dart_2': noPreviewDart2,
         'use_cfe': useAnalyzerCfe,

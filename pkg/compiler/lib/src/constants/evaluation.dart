@@ -4,7 +4,7 @@
 
 library dart2js.constants.evaluation;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common_elements.dart' show CommonElements;
@@ -23,6 +23,12 @@ abstract class EvaluationEnvironment {
 
   /// Type in the enclosing constructed
   InterfaceType get enclosingConstructedType;
+
+  /// Whether the immediate parent is a set literal.
+  ///
+  /// Used to distinguish map-literal from set-literal errors. This will be
+  /// removed once the CFE reports errors on constants.
+  bool get immediateUnderSetLiteral;
 
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
@@ -55,21 +61,32 @@ abstract class EvaluationEnvironment {
   ConstantValue evaluateConstructor(ConstructorEntity constructor,
       InterfaceType type, ConstantValue evaluate());
 
+  ConstantValue evaluateMapBody(ConstantValue evaluate());
+
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate());
 
   /// `true` if assertions are enabled.
   bool get enableAssertions;
+
+  /// If `true`, implicit casts should be checked.
+  ///
+  /// This is used to avoid circular dependencies between js-interop classes
+  /// and their metadata. For non-metadata constants we always check the casts.
+  bool get checkCasts;
 }
 
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   Link<Spannable> _spannableStack = const Link<Spannable>();
   InterfaceType enclosingConstructedType;
+  bool immediateUnderSetLiteral = false;
   final Set<FieldEntity> _currentlyEvaluatedFields = new Set<FieldEntity>();
   final bool constantRequired;
 
   EvaluationEnvironmentBase(Spannable spannable, {this.constantRequired}) {
     _spannableStack = _spannableStack.prepend(spannable);
   }
+
+  bool get checkCasts => true;
 
   DiagnosticReporter get reporter;
 
@@ -109,10 +126,23 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
     _spannableStack = _spannableStack.prepend(constructor);
     var old = enclosingConstructedType;
     enclosingConstructedType = type;
+    if (type.element == commonElements.unmodifiableSetClass) {
+      immediateUnderSetLiteral = true;
+    }
     ConstantValue result = evaluate();
+    // All const set literals have as an immediate child a const map. The map
+    // evaluate method calls evaluateMapBody and reset this flag immediately.
+    // Because there are no other children, the flag is kept false.
+    assert(!immediateUnderSetLiteral);
     enclosingConstructedType = old;
     _spannableStack = _spannableStack.tail;
     return result;
+  }
+
+  @override
+  ConstantValue evaluateMapBody(ConstantValue evaluate()) {
+    immediateUnderSetLiteral = false;
+    return evaluate();
   }
 
   @override

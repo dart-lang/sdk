@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library get_object_rpc_test;
 
@@ -953,8 +952,8 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Code'));
-    expect(result['name'], equals('_DummyClass.dummyFunction'));
-    expect(result['_vmName'], equals('dummyFunction'));
+    expect(result['name'], endsWith('_DummyClass.dummyFunction'));
+    expect(result['_vmName'], endsWith('dummyFunction'));
     expect(result['kind'], equals('Dart'));
     expect(result['_optimized'], new isInstanceOf<bool>());
     expect(result['function']['type'], equals('@Function'));

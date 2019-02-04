@@ -65,13 +65,14 @@ const Register THR = ESI;            // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = EBX;
 const Register CALLEE_SAVED_TEMP2 = EDI;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = EAX;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = EDX;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = EDX;
+const Register kWriteBarrierValueReg = kNoRegister;
+const Register kWriteBarrierSlotReg = EDI;
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;

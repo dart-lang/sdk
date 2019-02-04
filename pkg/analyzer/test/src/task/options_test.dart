@@ -1,21 +1,22 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/task/api/general.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,7 +30,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextConfigurationTest);
     defineReflectiveTests(ErrorCodeValuesTest);
-    defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
     defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
     defineReflectiveTests(OptionsFileValidatorTest);
     defineReflectiveTests(OptionsProviderTest);
@@ -51,33 +51,6 @@ class ContextConfigurationTest extends AbstractContextTest {
   YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
-  test_configure_bad_options_contents() {
-    configureContext('''
-analyzer:
-  language:
-    enableSuperMixins true; # misformatted
-''');
-    expect(analysisOptions.enableSuperMixins, false);
-  }
-
-  test_configure_enableSuperMixins() {
-    configureContext('''
-analyzer:
-  language:
-    enableSuperMixins: true
-''');
-    expect(analysisOptions.enableSuperMixins, true);
-  }
-
-  test_configure_enableSuperMixins_badValue() {
-    configureContext('''
-analyzer:
-  language:
-    enableSuperMixins: true;
-''');
-    expect(analysisOptions.enableSuperMixins, false);
-  }
-
   test_configure_error_processors() {
     configureContext('''
 analyzer:
@@ -93,8 +66,8 @@ analyzer:
         new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment =
-        new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+    var invalid_assignment = new AnalysisError(
+        new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
@@ -220,6 +193,7 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_CAST_LITERAL);
         removeCode(StrongModeCode.INVALID_CAST_LITERAL_LIST);
         removeCode(StrongModeCode.INVALID_CAST_LITERAL_MAP);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_SET);
         removeCode(StrongModeCode.INVALID_CAST_FUNCTION_EXPR);
         removeCode(StrongModeCode.INVALID_CAST_NEW_EXPR);
         removeCode(StrongModeCode.INVALID_CAST_METHOD);
@@ -227,9 +201,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
         removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
         removeCode(StrongModeCode.DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE);
-        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE);
-        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN);
         removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
@@ -291,190 +262,6 @@ class ErrorProcessorMatcher extends Matcher {
 }
 
 @reflectiveTest
-class GenerateNewOptionsErrorsTaskTest extends AbstractContextTest {
-  Source source;
-
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
-
-  LineInfo lineInfo(String source) =>
-      GenerateOptionsErrorsTask.computeLineInfo(source);
-
-  @override
-  setUp() {
-    super.setUp();
-    source = newSource(optionsFilePath);
-  }
-
-  test_buildInputs() {
-    Map<String, TaskInput> inputs =
-        GenerateOptionsErrorsTask.buildInputs(source);
-    expect(inputs, isNotNull);
-    expect(inputs.keys,
-        unorderedEquals([GenerateOptionsErrorsTask.CONTENT_INPUT_NAME]));
-  }
-
-  test_compute_lineInfo() {
-    expect(lineInfo('foo\nbar').getLocation(4).lineNumber, 2);
-    expect(lineInfo('foo\nbar').getLocation(4).columnNumber, 1);
-    expect(lineInfo('foo\r\nbar').getLocation(5).lineNumber, 2);
-    expect(lineInfo('foo\r\nbar').getLocation(5).columnNumber, 1);
-    expect(lineInfo('foo\rbar').getLocation(4).lineNumber, 2);
-    expect(lineInfo('foo\rbar').getLocation(4).columnNumber, 1);
-    expect(lineInfo('foo').getLocation(0).lineNumber, 1);
-    expect(lineInfo('foo').getLocation(0).columnNumber, 1);
-    expect(lineInfo('').getLocation(1).lineNumber, 1);
-  }
-
-  test_constructor() {
-    GenerateOptionsErrorsTask task =
-        new GenerateOptionsErrorsTask(context, source);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, source);
-  }
-
-  test_createTask() {
-    GenerateOptionsErrorsTask task =
-        GenerateOptionsErrorsTask.createTask(context, source);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, source);
-  }
-
-  test_description() {
-    GenerateOptionsErrorsTask task =
-        new GenerateOptionsErrorsTask(null, source);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = GenerateOptionsErrorsTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
-  @failingTest
-  test_perform_bad_yaml() {
-    // We have lost the ability to detect this kind of error.
-    String code = r'''
-:
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    expect(errors[0].errorCode, AnalysisOptionsErrorCode.PARSE_ERROR);
-  }
-
-  test_perform_include() {
-    newSource('/other_options.yaml', '');
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(0));
-  }
-
-  test_perform_include_bad_value() {
-    newSource('/other_options.yaml', '''
-analyzer:
-  errors:
-    unused_local_variable: ftw
-''');
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.errorCode, AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING);
-    expect(error.source, target.source);
-    expect(error.offset, 10);
-    expect(error.length, 18);
-    expect(error.message, contains('other_options.yaml(47..49)'));
-  }
-
-  @failingTest
-  test_perform_include_bad_yaml() {
-    // We have lost the ability to detect this kind of error.
-    newSource('/other_options.yaml', ':');
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.errorCode, AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR);
-    expect(error.source, target.source);
-    expect(error.offset, 10);
-    expect(error.length, 18);
-    expect(error.message, contains('other_options.yaml(0..0)'));
-  }
-
-  test_perform_include_missing() {
-    String code = r'''
-include: other_options.yaml
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.errorCode, AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND);
-    expect(error.offset, 10);
-    expect(error.length, 18);
-  }
-
-  test_perform_OK() {
-    String code = r'''
-analyzer:
-  strong-mode: true
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    expect(outputs[ANALYSIS_OPTIONS_ERRORS], hasLength(1));
-    expect(outputs[ANALYSIS_OPTIONS_ERRORS].first.errorCode,
-        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED);
-
-    LineInfo lineInfo = outputs[LINE_INFO];
-    expect(lineInfo, isNotNull);
-    expect(lineInfo.getLocation(1).lineNumber, 1);
-    expect(lineInfo.getLocation(10).lineNumber, 2);
-  }
-
-  test_perform_unsupported_analyzer_option() {
-    String code = r'''
-analyzer:
-  not_supported: true
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors =
-        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
-    expect(errors, hasLength(1));
-    expect(errors[0].errorCode,
-        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
-  }
-}
-
-@reflectiveTest
 class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
@@ -515,6 +302,22 @@ class OptionsFileValidatorTest {
   final OptionsFileValidator validator =
       new OptionsFileValidator(new TestSource());
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+
+  test_analyzer_enableExperiment_badValue() {
+    validate('''
+analyzer:
+  enable-experiment:
+    - not-an-experiment
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+  }
+
+  test_analyzer_enableExperiment_notAList() {
+    validate('''
+analyzer:
+  enable-experiment:
+    experiment: true
+    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
 
   test_analyzer_error_code_supported() {
     validate('''
@@ -558,14 +361,6 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
-  test_analyzer_language_supported() {
-    validate('''
-analyzer:
-  language:
-    enableSuperMixins: true
-''', []);
-  }
-
   test_analyzer_language_supports_empty() {
     validate('''
 analyzer:
@@ -578,14 +373,14 @@ analyzer:
 analyzer:
   language:
     unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
   }
 
   test_analyzer_language_unsupported_value() {
     validate('''
 analyzer:
-  language:
-    enableSuperMixins: foo
+  strong-mode:
+    implicit-dynamic: foo
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 

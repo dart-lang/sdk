@@ -4,16 +4,18 @@
 
 part of masks;
 
-/**
- * A [MapTypeMask] is a [TypeMask] for a specific allocation
- * site of a map (currently only internal Map class) that will get specialized
- * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
- */
-class MapTypeMask<T> extends AllocationTypeMask<T> {
+/// A [MapTypeMask] is a [TypeMask] for a specific allocation
+/// site of a map (currently only internal Map class) that will get specialized
+/// once the [TypeGraphInferrer] phase finds a key and/or value type for it.
+class MapTypeMask extends AllocationTypeMask {
+  /// Tag used for identifying serialized [MapTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'map-type-mask';
+
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
-  final T allocationNode;
+  final ir.TreeNode allocationNode;
 
   // The [MemberEntity] where this type mask was created.
   final MemberEntity allocationElement;
@@ -26,6 +28,32 @@ class MapTypeMask<T> extends AllocationTypeMask<T> {
 
   MapTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
       this.keyType, this.valueType);
+
+  /// Deserializes a [MapTypeMask] object from [source].
+  factory MapTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
+    MemberEntity allocationElement = source.readMemberOrNull();
+    TypeMask keyType = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask valueType = new TypeMask.readFromDataSource(source, closedWorld);
+    source.end(tag);
+    return new MapTypeMask(
+        forwardTo, allocationNode, allocationElement, keyType, valueType);
+  }
+
+  /// Serializes this [MapTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.map);
+    sink.begin(tag);
+    forwardTo.writeToDataSink(sink);
+    sink.writeTreeNodeOrNull(allocationNode);
+    sink.writeMemberOrNull(allocationElement);
+    keyType.writeToDataSink(sink);
+    valueType.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   TypeMask nullable() {
     return isNullable

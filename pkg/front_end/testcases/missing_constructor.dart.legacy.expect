@@ -1,0 +1,71 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/missing_constructor.dart:10:11: Warning: Superclass has no constructor named 'Super'.
+//   Sub() : super();
+//           ^^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:11:15: Warning: Superclass has no constructor named 'Super.foo'.
+//   Sub.foo() : super.foo();
+//               ^^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:15:15: Warning: Couldn't find constructor 'Bad'.
+//   Bad.foo() : this();
+//               ^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:16:15: Warning: Couldn't find constructor 'Bad.baz'.
+//   Bad.bar() : this.baz();
+//               ^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:22:24: Warning: Superclass has no constructor named 'Super'.
+//   MixinApplication() : super();
+//                        ^^^^^
+//
+// pkg/front_end/testcases/missing_constructor.dart:23:28: Warning: Superclass has no constructor named 'Super.foo'.
+//   MixinApplication.foo() : super.foo();
+//                            ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor _() → self::Super
+    : super core::Object::•()
+    ;
+}
+class Sub extends self::Super {
+  constructor •() → self::Sub
+    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    ;
+  constructor foo() → self::Sub
+    : final dynamic #t2 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super.foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    ;
+}
+class Bad extends core::Object {
+  constructor foo() → self::Bad
+    : final dynamic #t3 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bad, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    ;
+  constructor bar() → self::Bad
+    : final dynamic #t4 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bad.baz, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    ;
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M
+    : super core::Object::•()
+    ;
+}
+abstract class _MixinApplication&Super&M = self::Super with self::M {
+  synthetic constructor _() → self::_MixinApplication&Super&M
+    : super self::Super::_()
+    ;
+}
+class MixinApplication extends self::_MixinApplication&Super&M {
+  constructor •() → self::MixinApplication
+    : final dynamic #t5 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    ;
+  constructor foo() → self::MixinApplication
+    : final dynamic #t6 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super.foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    ;
+}
+static method main() → dynamic {}

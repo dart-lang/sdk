@@ -8,12 +8,10 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/types/abstract_value_domain.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../helpers/memory_compiler.dart';
@@ -42,7 +40,7 @@ runTest(List<String> options, {bool trust: true}) async {
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =
@@ -51,11 +49,10 @@ runTest(List<String> options, {bool trust: true}) async {
       helperLibrary, 'loadDeferredLibrary');
   TypeMask typeMask;
 
-  JsBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting
-      .getLocalsMap(loadDeferredLibrary);
+  KernelToLocalsMap localsMap =
+      closedWorld.globalLocalsMap.getLocalsMap(loadDeferredLibrary);
   MemberDefinition definition =
-      backendStrategy.elementMap.getMemberDefinition(loadDeferredLibrary);
+      closedWorld.elementMap.getMemberDefinition(loadDeferredLibrary);
   ir.Procedure procedure = definition.node;
   typeMask = compiler.globalInference.resultsForTesting.resultOfParameter(
       localsMap

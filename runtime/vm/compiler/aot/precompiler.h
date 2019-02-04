@@ -6,9 +6,11 @@
 #define RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_
 
 #include "vm/allocation.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/hash_map.h"
 #include "vm/hash_table.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -229,153 +231,49 @@ class InstanceKeyValueTrait {
 
 typedef DirectChainedHashMap<InstanceKeyValueTrait> InstanceSet;
 
-struct PrecompilerFieldInfo {
-  intptr_t cid;
-
-  // The most recently compiled constructor which stored the field.
-  // Used in DartPrecompilationPipeline::FinalizeCompilation to find out if
-  // this field was not initialized in the constructor being compiled.
-  const RawFunction* constructor;
-
-  bool operator==(const PrecompilerFieldInfo& other) const {
-    return (cid == other.cid) && (constructor == other.constructor);
-  }
-
-  bool operator!=(const PrecompilerFieldInfo& other) const {
-    return !(*this == other);
-  }
-};
-
-struct FieldTypePair {
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Field* Key;
-  typedef PrecompilerFieldInfo Value;
-  typedef FieldTypePair Pair;
-
-  static Key KeyOf(Pair kv) { return kv.field; }
-
-  static Value ValueOf(Pair kv) { return kv.field_info; }
-
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.field->raw() == key->raw();
-  }
-
-  FieldTypePair(const Field* f, intptr_t cid, const RawFunction* constructor)
-      : field(f), field_info({cid, constructor}) {}
-
-  FieldTypePair() : field(nullptr), field_info({-1, nullptr}) {}
-
-  const Field* field;
-  PrecompilerFieldInfo field_info;
-};
-
-typedef DirectChainedHashMap<FieldTypePair> FieldTypeMap;
-
-struct IntptrPair {
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef intptr_t Key;
-  typedef intptr_t Value;
-  typedef IntptrPair Pair;
-
-  static Key KeyOf(Pair kv) { return kv.key_; }
-
-  static Value ValueOf(Pair kv) { return kv.value_; }
-
-  static inline intptr_t Hashcode(Key key) { return key; }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) { return pair.key_ == key; }
-
-  IntptrPair(intptr_t key, intptr_t value) : key_(key), value_(value) {}
-
-  IntptrPair() : key_(kIllegalCid), value_(kIllegalCid) {}
-
-  Key key_;
-  Value value_;
-};
-
-typedef DirectChainedHashMap<IntptrPair> CidMap;
-
-struct FunctionFeedbackKey {
-  FunctionFeedbackKey() : owner_cid_(kIllegalCid), token_(0), kind_(0) {}
-  FunctionFeedbackKey(intptr_t owner_cid, intptr_t token, intptr_t kind)
-      : owner_cid_(owner_cid), token_(token), kind_(kind) {}
-
-  intptr_t owner_cid_;
-  intptr_t token_;
-  intptr_t kind_;
-};
-
-struct FunctionFeedbackPair {
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef FunctionFeedbackKey Key;
-  typedef ParsedJSONObject* Value;
-  typedef FunctionFeedbackPair Pair;
-
-  static Key KeyOf(Pair kv) { return kv.key_; }
-
-  static Value ValueOf(Pair kv) { return kv.value_; }
-
-  static inline intptr_t Hashcode(Key key) {
-    return key.token_ ^ key.owner_cid_ ^ key.kind_;
-  }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return (pair.key_.owner_cid_ == key.owner_cid_) &&
-           (pair.key_.token_ == key.token_) && (pair.key_.kind_ == key.kind_);
-  }
-
-  FunctionFeedbackPair(Key key, Value value) : key_(key), value_(value) {}
-
-  FunctionFeedbackPair() : key_(), value_(NULL) {}
-
-  Key key_;
-  Value value_;
-};
-
-typedef DirectChainedHashMap<FunctionFeedbackPair> FunctionFeedbackMap;
-
 class Precompiler : public ValueObject {
  public:
-  static RawError* CompileAll(
-      Dart_QualifiedFunctionName embedder_entry_points[]);
+  static RawError* CompileAll();
 
   static RawError* CompileFunction(Precompiler* precompiler,
                                    Thread* thread,
                                    Zone* zone,
-                                   const Function& function,
-                                   FieldTypeMap* field_type_map = NULL);
+                                   const Function& function);
 
-  static RawObject* EvaluateStaticInitializer(const Field& field);
-  static RawObject* ExecuteOnce(SequenceNode* fragment);
-
-  static RawFunction* CompileStaticInitializer(const Field& field,
-                                               bool compute_type);
+  static RawFunction* CompileStaticInitializer(const Field& field);
 
   // Returns true if get:runtimeType is not overloaded by any class.
   bool get_runtime_type_is_unique() const {
     return get_runtime_type_is_unique_;
   }
 
-  FieldTypeMap* field_type_map() { return &field_type_map_; }
+  compiler::ObjectPoolBuilder* global_object_pool_builder() {
+    ASSERT(FLAG_use_bare_instructions);
+    return &global_object_pool_builder_;
+  }
+
+  static Precompiler* Instance() { return singleton_; }
 
  private:
-  explicit Precompiler(Thread* thread);
+  static Precompiler* singleton_;
 
-  void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
-  void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
+  explicit Precompiler(Thread* thread);
+  ~Precompiler();
+
+  void DoCompileAll();
+  void AddRoots();
   void AddAnnotatedRoots();
-  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[],
-                      PrecompilerEntryPointsPrinter* entry_points_printer);
   void Iterate();
 
   void AddType(const AbstractType& type);
   void AddTypesOf(const Class& cls);
   void AddTypesOf(const Function& function);
   void AddTypeArguments(const TypeArguments& args);
-  void AddCalleesOf(const Function& function);
-  void AddConstObject(const Instance& instance);
+  void AddCalleesOf(const Function& function, intptr_t gop_offset);
+  void AddCalleesOfHelper(const Object& entry,
+                          String* temp_selector,
+                          Class* temp_cls);
+  void AddConstObject(const class Instance& instance);
   void AddClosureCall(const Array& arguments_descriptor);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
@@ -385,7 +283,6 @@ class Precompiler : public ValueObject {
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
-  void TraceConstFunctions();
   void CollectCallbackFields();
 
   void AttachOptimizedTypeTestingStub();
@@ -404,7 +301,6 @@ class Precompiler : public ValueObject {
 
   void BindStaticCalls();
   void SwitchICCalls();
-  void ResetPrecompilerState();
 
   void Obfuscate();
 
@@ -435,6 +331,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_type_count_;
   intptr_t dropped_library_count_;
 
+  compiler::ObjectPoolBuilder global_object_pool_builder_;
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
@@ -445,9 +342,6 @@ class Precompiler : public ValueObject {
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
-  FieldTypeMap field_type_map_;
-  CidMap feedback_cid_map_;
-  FunctionFeedbackMap function_feedback_map_;
   Error& error_;
 
   bool get_runtime_type_is_unique_;
@@ -557,13 +451,13 @@ class Obfuscator : public ValueObject {
   // Serialize renaming map as a malloced array of strings.
   static const char** SerializeMap(Thread* thread);
 
+  void PreventRenaming(const char* name);
+  void PreventRenaming(const String& name) { state_->PreventRenaming(name); }
+
  private:
   // Populate renaming map with names that should have identity renaming.
   // (or in other words: with those names that should not be renamed).
   void InitializeRenamingMap(Isolate* isolate);
-  void PreventRenaming(Dart_QualifiedFunctionName* entry_points);
-  void PreventRenaming(const char* name);
-  void PreventRenaming(const String& name) { state_->PreventRenaming(name); }
 
   // ObjectStore::obfuscation_map() is an Array with two elements:
   // first element is the last used rename and the second element is
@@ -680,6 +574,7 @@ class Obfuscator {
     return name.raw();
   }
 
+  void PreventRenaming(const String& name) {}
   static void ObfuscateSymbolInstance(Thread* thread,
                                       const Instance& instance) {}
 

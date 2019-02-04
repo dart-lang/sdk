@@ -44,9 +44,6 @@ abstract class RuntimeConfiguration {
       case Runtime.vm:
         return new StandaloneDartRuntimeConfiguration();
 
-      case Runtime.flutter:
-        return new StandaloneFlutterEngineConfiguration();
-
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
           return new DartPrecompiledAdbRuntimeConfiguration(
@@ -81,7 +78,8 @@ abstract class RuntimeConfiguration {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     // TODO(ahe): Make this method abstract.
     throw "Unimplemented runtime '$runtimeType'";
   }
@@ -99,7 +97,8 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     return <Command>[];
   }
 }
@@ -125,7 +124,8 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact);
     return [
@@ -147,7 +147,8 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     checkArtifact(artifact);
     return [
       Command.jsCommandLine(
@@ -189,12 +190,11 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (_configuration.compiler == Compiler.dartkb) {
       multiplier *= 4;
     }
-
     if (mode.isDebug) {
       multiplier *= 2;
-      if (isReload) {
-        multiplier *= 2;
-      }
+    }
+    if (isReload) {
+      multiplier *= 2;
     }
     return multiplier;
   }
@@ -206,7 +206,8 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     String script = artifact.filename;
     String type = artifact.mimeType;
     if (script != null &&
@@ -216,32 +217,14 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
         type != 'application/kernel-ir-fully-linked') {
       throw "Dart VM cannot run files of type '$type'.";
     }
-
+    if (isCrashExpected) {
+      arguments.insert(0, '--suppress-core-dump');
+    }
     String executable = suite.dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
       executable = suite.dartVmExecutableFileName;
     }
     return [Command.vm(executable, arguments, environmentOverrides)];
-  }
-}
-
-/// The flutter engine binary, "sky_shell".
-class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
-  List<Command> computeRuntimeCommands(
-      TestSuite suite,
-      CommandArtifact artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    String script = artifact.filename;
-    String type = artifact.mimeType;
-    if (script != null &&
-        type != 'application/dart' &&
-        type != 'application/dart-snapshot') {
-      throw "Flutter Engine cannot run files of type '$type'.";
-    }
-    String executable = suite.flutterEngineBinaryFileName;
-    var args = <String>['--non-interactive']..addAll(arguments);
-    return [Command.vm(executable, args, environmentOverrides)];
   }
 }
 
@@ -253,7 +236,8 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     String script = artifact.filename;
     String type = artifact.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
@@ -280,7 +264,8 @@ class DartPrecompiledAdbRuntimeConfiguration
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     String script = artifact.filename;
     String type = artifact.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
@@ -316,7 +301,8 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     String executable = suite.dartVmBinaryFileName;
     return selfCheckers
         .map((String tester) => Command.vmBatch(
@@ -337,7 +323,8 @@ class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
       TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
+      Map<String, String> environmentOverrides,
+      bool isCrashExpected) {
     throw "Unimplemented runtime '$runtimeType'";
   }
 }

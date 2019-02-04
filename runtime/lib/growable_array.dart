@@ -150,6 +150,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   void _setIndexed(int index, T value) native "GrowableList_setIndexed";
 
+  @pragma("vm:entry-point")
   void add(T value) {
     var len = length;
     if (len == _capacity) {
@@ -224,7 +225,6 @@ class _GrowableList<T> extends ListBase<T> {
     if (length == 1) return this[0];
     if (length == 0) throw IterableElementError.noElement();
     throw IterableElementError.tooMany();
-    ;
   }
 
   // Shared array used as backing for new empty growable arrays.

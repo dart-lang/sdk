@@ -92,7 +92,7 @@ class _LibraryVirtualFieldModel {
         HashMap.fromIterables(allClasses, allClasses.map(getInstanceFieldMap));
 
     for (var class_ in allClasses) {
-      Set<Class> superclasses = null;
+      Set<Class> superclasses;
 
       // Visit accessors in the current class, and see if they override an
       // otherwise private field.
@@ -124,8 +124,7 @@ class _LibraryVirtualFieldModel {
 
           collectSupertypes(class_);
           superclasses.remove(class_);
-          superclasses.removeWhere(
-              (s) => s.enclosingLibrary != class_.enclosingLibrary);
+          superclasses.removeWhere((s) => s.enclosingLibrary != library);
         }
 
         // Look in all super classes to see if we're overriding a field in our

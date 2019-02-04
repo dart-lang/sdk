@@ -1,10 +1,11 @@
 # Generic Function Instantiation
 
-Author: eernst@.
+**Author**: eernst@.
 
-Version: 0.3 (2018-04-05)
+**Version**: 0.3 (2018-04-05)
 
-Status: Under implementation.
+**Status**: This document is now background material.
+For normative text, please consult the language specification.
 
 **This document** is a Dart 2 feature specification of _generic function
 instantiation_, which is the feature that implicitly coerces a reference to

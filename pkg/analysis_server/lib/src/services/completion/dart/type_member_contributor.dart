@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,23 +28,23 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
     if (containingLibrary == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Recompute the target since resolution may have changed it
     Expression expression = request.dotTarget;
     if (expression == null || expression.isSynthetic) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
       Element elem = expression.staticElement;
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor
-        return EMPTY_LIST;
+        return const <CompletionSuggestion>[];
       }
       if (elem is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor
-        return EMPTY_LIST;
+        return const <CompletionSuggestion>[];
       }
     }
 
@@ -75,13 +75,15 @@ class TypeMemberContributor extends DartCompletionContributor {
       }
     }
     String containingMethodName;
+    List<InterfaceType> mixins;
     if (expression is SuperExpression && type is InterfaceType) {
       // Suggest members from superclass if target is "super"
+      mixins = (type as InterfaceType).mixins;
       type = (type as InterfaceType).superclass;
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
       MethodDeclaration containingMethod =
-          expression.getAncestor((p) => p is MethodDeclaration);
+          expression.thisOrAncestorOfType<MethodDeclaration>();
       if (containingMethod != null) {
         SimpleIdentifier id = containingMethod.name;
         if (id != null) {
@@ -97,10 +99,10 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Build the suggestions
     if (type is InterfaceType) {
       _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
-      builder.buildSuggestions(type, containingMethodName);
+      builder.buildSuggestions(type, containingMethodName, mixins: mixins);
       return builder.suggestions.toList();
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 
@@ -164,6 +166,17 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
       TypeAnnotation typeName = declaration.returnType;
+      if (typeName != null) {
+        typeFound = typeName.type;
+      }
+      finished();
+    }
+  }
+
+  @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    if (declaration.name.name == targetName) {
+      TypeAnnotation typeName = declaration.functionType.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -259,12 +272,12 @@ class _SuggestionBuilder {
    * Note: the enumerated values stored in this map are intended to be bitwise
    * compared.
    */
-  Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+  final Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
 
   /**
    * Map from completion identifier to completion suggestion
    */
-  Map<String, CompletionSuggestion> _suggestionMap =
+  final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
   _SuggestionBuilder(this.containingLibrary);
@@ -276,12 +289,16 @@ class _SuggestionBuilder {
    * If the 'dot' completion is a super expression, then [containingMethodName]
    * is the name of the method in which the completion is requested.
    */
-  void buildSuggestions(InterfaceType type, String containingMethodName) {
+  void buildSuggestions(InterfaceType type, String containingMethodName,
+      {List<InterfaceType> mixins}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
     List<InterfaceType> types = _getTypeOrdering(type);
+    if (mixins != null) {
+      types.addAll(mixins);
+    }
     for (InterfaceType targetType in types) {
       for (MethodElement method in targetType.methods) {
         // Exclude static methods when completion on an instance
@@ -406,6 +423,7 @@ class _SuggestionBuilder {
       if (nextType.superclass != null) {
         typesToVisit.add(nextType.superclass);
       }
+      typesToVisit.addAll(nextType.superclassConstraints);
       typesToVisit.addAll(nextType.mixins);
     }
     return result;

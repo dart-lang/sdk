@@ -65,6 +65,30 @@ class _List<E> extends FixedLengthListBase<E> {
     }
   }
 
+  void setAll(int index, Iterable<E> iterable) {
+    if (index < 0 || index > this.length) {
+      throw new RangeError.range(index, 0, this.length, "index");
+    }
+    List<E> iterableAsList;
+    if (identical(this, iterable)) {
+      iterableAsList = this;
+    } else if (ClassID.getID(iterable) == ClassID.cidArray) {
+      iterableAsList = iterable;
+    } else if (iterable is List<E>) {
+      iterableAsList = iterable;
+    } else {
+      for (var value in iterable) {
+        this[index++] = value;
+      }
+      return;
+    }
+    int length = iterableAsList.length;
+    if (index + length > this.length) {
+      throw new RangeError.range(index + length, 0, this.length);
+    }
+    Lists.copy(iterableAsList, 0, this, index, length);
+  }
+
   List<E> sublist(int start, [int end]) {
     end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;

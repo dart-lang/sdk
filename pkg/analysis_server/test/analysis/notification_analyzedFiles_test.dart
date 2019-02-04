@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -119,7 +119,7 @@ class A {}
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
-    modifyTestFile('import "${convertPathForImport('/foo.dart')}";');
+    modifyTestFile('import "${toUriStr('/foo.dart')}";');
     await prepareAnalyzedFiles();
     assertHasFile(convertPath('/foo.dart'));
   }

@@ -1,0 +1,57 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:5:24: Error: Expected an initializer.
+// class C1 { int f; C1() : ; }
+//                        ^
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:6:26: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+// class C2 { int f; C2() : f; }
+//                          ^
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:7:26: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+// class C3 { int f; C3() : f++; }
+//                          ^
+//
+// pkg/front_end/testcases/constructor_initializer_invalid.dart:7:26: Error: Can't access 'this' in a field initializer to read 'f'.
+// class C3 { int f; C3() : f++; }
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int f = null;
+  constructor •() → self::C1
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/constructor_initializer_invalid.dart:5:26: Error: This couldn't be parsed.
+class C1 { int f; C1() : ; }
+                         ^"
+    ;
+}
+class C2 extends core::Object {
+  field core::int f;
+  constructor •() → self::C2
+    : self::C2::f = invalid-expression "pkg/front_end/testcases/constructor_initializer_invalid.dart:6:27: Error: This couldn't be parsed.
+class C2 { int f; C2() : f; }
+                          ^" as{TypeError} core::int, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  field core::int f = null;
+  constructor •() → self::C3
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/constructor_initializer_invalid.dart:7:26: Error: This couldn't be parsed.
+class C3 { int f; C3() : f++; }
+                         ^"
+    ;
+}
+static method main() → dynamic {
+  self::C1 c1 = new self::C1::•();
+  c1.{core::Object::toString}();
+  self::C2 c2 = new self::C2::•();
+  c2.{core::Object::toString}();
+  self::C3 c3 = new self::C3::•();
+  c3.{core::Object::toString}();
+}

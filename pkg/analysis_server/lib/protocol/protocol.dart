@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -402,7 +402,7 @@ class Response {
   Response.formatInvalidFile(Request request)
       : this(request.id,
             error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
-                'Error during `edit.format`: invalid file.'));
+                'Error during `${request.method}`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the FORMAT_WITH_ERROR
@@ -629,31 +629,12 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent an error condition caused
-   * by a `analysis.setPriorityFiles` [request] that includes one or more files
-   * that are not being analyzed.
-   */
-  Response.unanalyzedPriorityFiles(String requestId, String fileNames)
-      : this(requestId,
-            error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES,
-                "Unanalyzed files cannot be a priority: '$fileNames'"));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
   Response.unknownRequest(Request request)
       : this(request.id,
             error: new RequestError(
                 RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a [request] referencing a source that does not exist.
-   */
-  Response.unknownSource(Request request)
-      : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused

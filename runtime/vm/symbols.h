@@ -80,7 +80,6 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
-  V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
@@ -164,13 +163,10 @@ class ObjectPointerVisitor;
   V(Null, "Null")                                                              \
   V(null, "null")                                                              \
   V(Dynamic, "dynamic")                                                        \
-  V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "Type")                                                              \
   V(_Type, "_Type")                                                            \
   V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeParameter, "_TypeParameter")                                          \
-  V(_BoundedType, "_BoundedType")                                              \
-  V(_MixinAppType, "_MixinAppType")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(Patch, "patch")                                                            \
   V(Pragma, "pragma")                                                          \
@@ -184,14 +180,13 @@ class ObjectPointerVisitor;
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
-  V(LiteralToken, "LiteralToken")                                              \
-  V(TokenStream, "TokenStream")                                                \
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
   V(Namespace, "Namespace")                                                    \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(Code, "Code")                                                              \
+  V(Bytecode, "Bytecode")                                                      \
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
@@ -241,7 +236,6 @@ class ObjectPointerVisitor;
   V(ColonStream, ":stream")                                                    \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
-  V(Int64, "_int64")                                                           \
   V(Double, "double")                                                          \
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \
@@ -366,7 +360,6 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
-  V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
@@ -387,6 +380,7 @@ class ObjectPointerVisitor;
   V(DartVMService, "dart:_vmservice")                                          \
   V(DartIOLibName, "dart.io")                                                  \
   V(DartVMProduct, "dart.vm.product")                                          \
+  V(DartDeveloperTimeline, "dart.developer.timeline")                          \
   V(EvalSourceUri, "evaluate:source")                                          \
   V(ExternalName, "ExternalName")                                              \
   V(_Random, "_Random")                                                        \
@@ -416,6 +410,7 @@ class ObjectPointerVisitor;
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \
   V(ClassID, "ClassID")                                                        \
+  V(getID, "getID")                                                            \
   V(DartIsVM, "dart.isVM")                                                     \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
@@ -451,8 +446,6 @@ class ObjectPointerVisitor;
   V(options, "options")                                                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
-  V(_classRangeAssert, "_classRangeAssert")                                    \
-  V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(PrependTypeArguments, "_prependTypeArguments")                             \
@@ -462,6 +455,7 @@ class ObjectPointerVisitor;
   V(DebugProcedureName, ":Eval")                                               \
   V(DebugClassName, "#DebugClass")                                             \
   V(vm_entry_point, "vm:entry-point")                                          \
+  V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(Get, "get")                                                                \
   V(Set, "set")                                                                \
@@ -607,8 +601,8 @@ class Symbols : public AllStatic {
   static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
-  static void InitOnce(Isolate* isolate);
-  static void InitOnceFromSnapshot(Isolate* isolate);
+  static void Init(Isolate* isolate);
+  static void InitFromSnapshot(Isolate* isolate);
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
@@ -680,6 +674,7 @@ class Symbols : public AllStatic {
   }
 
   static void DumpStats(Isolate* isolate);
+  static void DumpTable(Isolate* isolate);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>

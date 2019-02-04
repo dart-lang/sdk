@@ -6,8 +6,7 @@
 /// the flow, where incremental deltas can be rejected by VM.
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/kernel.dart';
 
 const String kDebugProcedureName = ":Eval";
@@ -33,6 +32,8 @@ class IncrementalCompiler {
   Uri initializeFromDillUri;
   Uri _entryPoint;
 
+  Uri get entryPoint => _entryPoint;
+
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
       {this.initializeFromDillUri}) {
     _generator = new IncrementalKernelGenerator(
@@ -45,6 +46,7 @@ class IncrementalCompiler {
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
   Future<Component> compile({Uri entryPoint}) async {
+    _entryPoint = entryPoint ?? _entryPoint;
     Component component = await _generator.computeDelta(
         entryPoint: entryPoint, fullComponent: fullComponent);
     initialized = true;

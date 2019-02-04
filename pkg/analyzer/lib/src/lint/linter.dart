@@ -1,16 +1,24 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -121,7 +129,9 @@ class DartLinter implements AnalysisErrorListener {
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
-          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
+          contents: sourceFile.readAsStringSync(),
+          sourcePath: options.resourceProvider.pathContext
+              .normalize(sourceFile.absolute.path));
 }
 
 class FileGlobFilter extends LintFilter {
@@ -184,6 +194,87 @@ class Hyperlink {
   String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
+/// Provides access to information needed by lint rules that is not available
+/// from AST nodes or the element model.
+abstract class LinterContext {
+  List<LinterContextUnit> get allUnits;
+
+  LinterContextUnit get currentUnit;
+
+  DeclaredVariables get declaredVariables;
+
+  TypeProvider get typeProvider;
+
+  TypeSystem get typeSystem;
+
+  /// Return `true` if it would be valid for the given instance creation
+  /// [expression] to have a keyword of `const`.
+  ///
+  /// The [expression] is expected to be a node within one of the compilation
+  /// units in [allUnits].
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool canBeConst(InstanceCreationExpression expression);
+}
+
+/// Implementation of [LinterContext]
+class LinterContextImpl implements LinterContext {
+  @override
+  final List<LinterContextUnit> allUnits;
+
+  @override
+  final LinterContextUnit currentUnit;
+
+  @override
+  final DeclaredVariables declaredVariables;
+
+  @override
+  final TypeProvider typeProvider;
+
+  @override
+  final TypeSystem typeSystem;
+
+  LinterContextImpl(this.allUnits, this.currentUnit, this.declaredVariables,
+      this.typeProvider, this.typeSystem);
+
+  @override
+  bool canBeConst(InstanceCreationExpression expression) {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = expression.staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = expression.keyword;
+    ConstantAnalysisErrorListener listener =
+        new ConstantAnalysisErrorListener();
+    try {
+      expression.keyword = new KeywordToken(Keyword.CONST, expression.offset);
+      LibraryElement library = element.library;
+      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
+      expression.accept(new ConstantVerifier(
+          errorReporter, library, typeProvider, declaredVariables));
+    } finally {
+      expression.keyword = oldKeyword;
+    }
+    return !listener.hasConstError;
+  }
+}
+
+class LinterContextUnit {
+  final String content;
+
+  final CompilationUnit unit;
+
+  LinterContextUnit(this.content, this.unit);
+}
+
 /// Thrown when an error occurs in linting.
 class LinterException implements Exception {
   /// A message describing the error.
@@ -200,13 +291,14 @@ class LinterException implements Exception {
 /// Linter options.
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
+  String analysisOptions;
   LintFilter filter;
   file_system.ResourceProvider resourceProvider;
-  LinterOptions([this.enabledLints]) {
+  // todo (pq): consider migrating to named params (but note Linter dep).
+  LinterOptions([this.enabledLints, this.analysisOptions]) {
     enabledLints ??= Registry.ruleRegistry;
   }
   void configure(LintConfig config) {
-    // TODO(pquitslund): revisit these default-to-on semantics.
     enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
     filter = new FileGlobFilter(config.fileIncludes, config.fileExcludes);
@@ -272,15 +364,21 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   @override
   AstVisitor getVisitor() => null;
 
-  void reportLint(AstNode node, {bool ignoreSyntheticNodes: true}) {
+  void reportLint(AstNode node,
+      {List<Object> arguments: const [],
+      ErrorCode errorCode,
+      bool ignoreSyntheticNodes: true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(lintCode, node, []);
+      reporter.reportErrorForNode(lintCode, node, arguments);
     }
   }
 
-  void reportLintForToken(Token token, {bool ignoreSyntheticTokens: true}) {
+  void reportLintForToken(Token token,
+      {List<Object> arguments: const [],
+      ErrorCode errorCode,
+      bool ignoreSyntheticTokens: true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(lintCode, token, []);
+      reporter.reportErrorForToken(lintCode, token, arguments);
     }
   }
 
@@ -301,7 +399,9 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
 class Maturity implements Comparable<Maturity> {
   static const Maturity stable = const Maturity._('stable', ordinal: 0);
-  static const Maturity experimental = const Maturity._('stable', ordinal: 1);
+  static const Maturity experimental =
+      const Maturity._('experimental', ordinal: 1);
+  static const Maturity deprecated = const Maturity._('deprecated', ordinal: 2);
 
   final String name;
   final int ordinal;
@@ -312,6 +412,8 @@ class Maturity implements Comparable<Maturity> {
         return stable;
       case 'experimental':
         return experimental;
+      case 'deprecated':
+        return deprecated;
       default:
         return new Maturity._(name, ordinal: ordinal);
     }
@@ -328,8 +430,20 @@ class Maturity implements Comparable<Maturity> {
 abstract class NodeLintRule {
   /// This method is invoked to let the [LintRule] register node processors
   /// in the given [registry].
-  void registerNodeProcessors(NodeLintRegistry registry);
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
+  void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
 }
+
+/// [LintRule]s that implement this interface want to process only some types
+/// of AST nodes, and will register their processors in the registry.
+///
+/// This class exists solely to allow a smoother transition from analyzer
+/// version 0.33.*.  It will be removed in a future analyzer release, so please
+/// use [NodeLintRule] instead.
+@deprecated
+abstract class NodeLintRuleWithContext extends NodeLintRule {}
 
 class PrintingReporter implements Reporter, Logger {
   final Printer _print;

@@ -1,34 +1,49 @@
-// Formatted problems:
+library test;
 //
-// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   A.x = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
 //
-// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   B.y = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "./infer_from_variables_in_non_cycle_imports_with_flag2_a.dart" as inf;
 
+import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_flag2_a.dart";
+
 class B extends core::Object {
   static field core::int y = inf::A::x;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 }
 static method test1() → dynamic {
-  inf::A::x = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  inf::A::x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
   A.x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                     ^" in let final dynamic #t2 = "hi" in null;
-  self::B::y = let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+                                     ^" in "hi" as{TypeError} core::int;
+  self::B::y = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
   B.y = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                     ^" in let final dynamic #t4 = "hi" in null;
+                                     ^" in "hi" as{TypeError} core::int;
+}
+static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field core::int x = 2;
+  synthetic constructor •() → inf::A
+    : super core::Object::•()
+    ;
 }
 static method main() → dynamic {}

@@ -1,6 +1,8 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/analysis/session.dart';
 
 /// This library is capable of producing linked summaries from unlinked
 /// ones (or prelinked ones).  It functions by building a miniature
@@ -60,12 +62,13 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -78,7 +81,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
-import 'package:front_end/src/dependency_walker.dart';
 
 final _typesWithImplicitArguments = new Expando();
 
@@ -144,6 +146,36 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
   return linkedLibraries;
 }
 
+/// Collects all the type references appearing on the "right hand side" of a
+/// typedef.
+///
+/// The "right hand side" of a typedef is the type appearing after the "=" in a
+/// new style typedef declaration, or for an old style typedef declaration, the
+/// type that *would* appear after the "=" if it were converted to a new style
+/// typedef declaration.  This means that type parameter declarations and their
+/// bounds are not included.
+List<EntityRef> _collectTypedefRhsTypes(UnlinkedTypedef unlinkedTypedef) {
+  var types = <EntityRef>[];
+  void visitParams(List<UnlinkedParam> params) {
+    for (var param in params) {
+      var type = param.type;
+      if (type != null) {
+        types.add(type);
+      }
+      if (param.isFunctionTyped) {
+        visitParams(param.parameters);
+      }
+    }
+  }
+
+  var returnType = unlinkedTypedef.returnType;
+  if (returnType != null) {
+    types.add(returnType);
+  }
+  visitParams(unlinkedTypedef.parameters);
+  return types;
+}
+
 /// Create an [EntityRefBuilder] representing the given [type], in a form
 /// suitable for inclusion in [LinkedUnit.types].  [compilationUnit] is the
 /// compilation unit in which the type will be used.  If [slot] is provided, it
@@ -151,7 +183,7 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
 EntityRefBuilder _createLinkedType(
     DartType type,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext,
+    TypeParameterSerializationContext typeParameterContext,
     {int slot}) {
   EntityRefBuilder result = new EntityRefBuilder(slot: slot);
   if (type is InterfaceType) {
@@ -176,7 +208,7 @@ EntityRefBuilder _createLinkedType(
       result.paramReference = deBruijnIndex;
     } else {
       throw new StateError('The type parameter $type (in ${element?.location}) '
-          'is out of scope on ${typeParameterContext?.location}.');
+          'is out of scope.');
     }
     return result;
   } else if (type is FunctionType) {
@@ -217,7 +249,8 @@ EntityRefBuilder _createLinkedType(
     }
     if (element is GenericFunctionTypeElementImpl) {
       // Function types are their own type parameter context
-      typeParameterContext = element;
+      typeParameterContext =
+          new InlineFunctionTypeParameterContext(element, typeParameterContext);
       result.entityKind = EntityRefKind.genericFunctionType;
       result.syntheticReturnType = _createLinkedType(
           type.returnType, compilationUnit, typeParameterContext);
@@ -279,7 +312,7 @@ void _relink(
 UnlinkedParamBuilder _serializeSyntheticParam(
     ParameterElement parameter,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext) {
+    TypeParameterSerializationContext typeParameterContext) {
   UnlinkedParamBuilder b = new UnlinkedParamBuilder();
   b.name = parameter.name;
   if (parameter.isNotOptional) {
@@ -313,7 +346,7 @@ UnlinkedParamBuilder _serializeSyntheticParam(
 UnlinkedTypeParamBuilder _serializeSyntheticTypeParameter(
     TypeParameterElement typeParameter,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext) {
+    TypeParameterSerializationContext typeParameterContext) {
   TypeParameterElementImpl impl = typeParameter as TypeParameterElementImpl;
   EntityRefBuilder boundBuilder = typeParameter.bound != null
       ? _createLinkedType(
@@ -357,7 +390,7 @@ void _storeTypeArguments(
     List<DartType> typeArguments,
     EntityRefBuilder encodedType,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext) {
+    TypeParameterSerializationContext typeParameterContext) {
   int count = typeArguments.length;
   List<EntityRefBuilder> encodedTypeArguments =
       new List<EntityRefBuilder>(count);
@@ -386,17 +419,12 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   AnalysisOptionsForLink(this._linker);
 
   @override
-  bool get declarationCasts => true;
-
-  @override
   bool get hint => false;
 
   @override
   bool get implicitCasts => true;
 
-  @override
-  List<String> get nonnullableTypes => AnalysisOptionsImpl.NONNULLABLE_TYPES;
-
+  @deprecated
   @override
   bool get previewDart2 => true;
 
@@ -407,12 +435,15 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   bool get strongModeHints => false;
 
   @override
+  ExperimentStatus get experimentStatus => new ExperimentStatus();
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Element representing a class or enum resynthesized from a summary
 /// during linking.
-abstract class ClassElementForLink extends Object
+abstract class ClassElementForLink
     with ReferenceableElementForLink
     implements AbstractClassElementImpl {
   Map<String, ReferenceableElementForLink> _containedNames;
@@ -446,7 +477,7 @@ abstract class ClassElementForLink extends Object
   List<ConstructorElementForLink> get constructors;
 
   @override
-  CompilationUnitElementImpl get enclosingUnit => enclosingElement;
+  CompilationUnitElementForLink get enclosingUnit => enclosingElement;
 
   @override
   List<FieldElementForLink> get fields;
@@ -456,6 +487,9 @@ abstract class ClassElementForLink extends Object
 
   @override
   LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  Source get librarySource => library.source;
 
   @override
   List<MethodElementForLink> get methods;
@@ -535,7 +569,7 @@ abstract class ClassElementForLink extends Object
 /// Element representing a class resynthesized from a summary during
 /// linking.
 class ClassElementForLink_Class extends ClassElementForLink
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, SimplyBoundableForLinkMixin
     implements ClassElementImpl {
   /// The unlinked representation of the class in the summary.
   final UnlinkedClass _unlinkedClass;
@@ -561,7 +595,9 @@ class ClassElementForLink_Class extends ClassElementForLink
 
   ClassElementForLink_Class(CompilationUnitElementForLink enclosingElement,
       this._unlinkedClass, this.isMixin, this._astForInference)
-      : super(enclosingElement);
+      : super(enclosingElement) {
+    _initSimplyBoundable();
+  }
 
   @override
   List<PropertyAccessorElementForLink> get accessors {
@@ -668,6 +704,9 @@ class ClassElementForLink_Class extends ClassElementForLink
       _unlinkedClass.interfaces.map(_computeInterfaceType).toList();
 
   @override
+  bool get isAbstract => _unlinkedClass.isAbstract;
+
+  @override
   bool get isEnum => false;
 
   @override
@@ -715,7 +754,7 @@ class ClassElementForLink_Class extends ClassElementForLink
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {
             var mixinSupertypeConstraints = context.typeSystem
-                .gatherMixinSupertypeConstraints(mixinElement);
+                .gatherMixinSupertypeConstraintsForInference(mixinElement);
             if (mixinSupertypeConstraints.isNotEmpty) {
               if (supertypesForMixinInference == null) {
                 supertypesForMixinInference = <InterfaceType>[];
@@ -768,8 +807,26 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get name => _unlinkedClass.name;
 
   @override
-  List<InterfaceType> get superclassConstraints => _superclassConstraints ??=
-      _unlinkedClass.superclassConstraints.map(_computeInterfaceType).toList();
+  AnalysisSession get session => enclosingUnit.session;
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    if (_superclassConstraints == null) {
+      if (isMixin) {
+        _superclassConstraints = _unlinkedClass.superclassConstraints
+            .map(_computeInterfaceType)
+            .toList();
+        if (_superclassConstraints.isEmpty) {
+          _superclassConstraints = [
+            enclosingElement.enclosingElement._linker.typeProvider.objectType
+          ];
+        }
+      } else {
+        _superclassConstraints = const <InterfaceType>[];
+      }
+    }
+    return _superclassConstraints;
+  }
 
   @override
   InterfaceType get supertype {
@@ -805,6 +862,17 @@ class ClassElementForLink_Class extends ClassElementForLink
   int get version => 0;
 
   @override
+  int get _notSimplyBoundedSlot => _unlinkedClass.notSimplyBoundedSlot;
+
+  @override
+  List<EntityRef> get _rhsTypesForSimplyBoundable => const [];
+
+  @override
+  List<UnlinkedTypeParam> get _typeParametersForSimplyBoundable {
+    return _unlinkedClass.typeParameters;
+  }
+
+  @override
   DartType buildType(
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     int numTypeParameters = _unlinkedClass.typeParameters.length;
@@ -836,6 +904,8 @@ class ClassElementForLink_Class extends ClassElementForLink
     // return value from the getter; we just need it to execute and record the
     // mixin inference results as a side effect.
     this.mixins;
+
+    _linkSimplyBoundable();
 
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(compilationUnit);
@@ -940,6 +1010,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
 
   @override
   List<InterfaceType> get interfaces => const [];
+
+  @override
+  bool get isAbstract => false;
 
   @override
   bool get isEnum => true;
@@ -1169,6 +1242,9 @@ abstract class CompilationUnitElementForLink
   ResynthesizerContext get resynthesizerContext => this;
 
   @override
+  AnalysisSession get session => library.session;
+
+  @override
   List<TopLevelVariableElementForLink> get topLevelVariables {
     if (_topLevelVariables == null) {
       List<Expression> initializerExpressionsForInference;
@@ -1357,7 +1433,13 @@ abstract class CompilationUnitElementForLink
       return context.typeParameterContext
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
-      return new GenericFunctionTypeElementForLink(this, context, entity).type;
+      return new GenericFunctionTypeElementForLink(
+              this,
+              context,
+              entity.typeParameters,
+              entity.syntheticReturnType,
+              entity.syntheticParams)
+          .type;
     } else if (entity.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementForLink_Synthetic(this, context, entity);
@@ -1551,10 +1633,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   /// compilation unit.
   void link() {
     new InstanceMemberInferrer(
-            enclosingElement._linker.typeProvider,
-            (clazz) =>
-                (clazz.library as LibraryElementInBuildUnit).inheritanceManager)
-        .inferCompilationUnit(this);
+      library._linker.typeProvider,
+      library._linker.inheritanceManager,
+    ).inferCompilationUnit(this);
     for (TopLevelVariableElementForLink variable in topLevelVariables) {
       variable.link(this);
     }
@@ -1563,6 +1644,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     }
     for (ClassElementForLink classElement in mixins) {
       classElement.link(this);
+    }
+    for (var functionTypeAlias in functionTypeAliases) {
+      functionTypeAlias.link(this);
     }
   }
 
@@ -1573,6 +1657,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     _linkedUnit.parametersInheritingCovariant.clear();
     _linkedUnit.references.length = _unlinkedUnit.references.length;
     _linkedUnit.types.clear();
+    _linkedUnit.notSimplyBounded.clear();
   }
 
   /// Store the fact that the given [slot] represents a constant constructor
@@ -1590,7 +1675,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   /// Store the given [linkedType] in the given [slot] of the this compilation
   /// unit's linked type list.
   void _storeLinkedType(int slot, DartType linkedType,
-      TypeParameterizedElementMixin typeParameterContext) {
+      TypeParameterSerializationContext typeParameterContext) {
     if (slot != 0) {
       if (linkedType != null && !linkedType.isDynamic) {
         _linkedUnit.types.add(_createLinkedType(
@@ -1839,6 +1924,7 @@ abstract class ConstNode extends Node<ConstNode> {
           break;
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedSet:
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
@@ -1861,6 +1947,7 @@ abstract class ConstNode extends Node<ConstNode> {
           refPtr += numTypeArguments;
           break;
         case UnlinkedExprOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedSet:
           refPtr++;
           intPtr++;
           break;
@@ -2024,9 +2111,135 @@ class ContextForLink implements AnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/**
+ * An instance of [DependencyWalker] contains the core algorithms for
+ * walking a dependency graph and evaluating nodes in a safe order.
+ */
+abstract class DependencyWalker<NodeType extends Node<NodeType>> {
+  /**
+   * Called by [walk] to evaluate a single non-cyclical node, after
+   * all that node's dependencies have been evaluated.
+   */
+  void evaluate(NodeType v);
+
+  /**
+   * Called by [walk] to evaluate a strongly connected component
+   * containing one or more nodes.  All dependencies of the strongly
+   * connected component have been evaluated.
+   */
+  void evaluateScc(List<NodeType> scc);
+
+  /**
+   * Walk the dependency graph starting at [startingPoint], finding
+   * strongly connected components and evaluating them in a safe order
+   * by calling [evaluate] and [evaluateScc].
+   *
+   * This is an implementation of Tarjan's strongly connected
+   * components algorithm
+   * (https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm).
+   */
+  void walk(NodeType startingPoint) {
+    // TODO(paulberry): consider rewriting in a non-recursive way so
+    // that long dependency chains don't cause stack overflow.
+
+    // TODO(paulberry): in the event that an exception occurs during
+    // the walk, restore the state of the [Node] data structures so
+    // that further evaluation will be safe.
+
+    // The index which will be assigned to the next node that is
+    // freshly visited.
+    int index = 1;
+
+    // Stack of nodes which have been seen so far and whose strongly
+    // connected component is still being determined.  Nodes are only
+    // popped off the stack when they are evaluated, so sometimes the
+    // stack contains nodes that were visited after the current node.
+    List<NodeType> stack = <NodeType>[];
+
+    void strongConnect(NodeType node) {
+      bool hasTrivialCycle = false;
+
+      // Assign the current node an index and add it to the stack.  We
+      // haven't seen any of its dependencies yet, so set its lowLink
+      // to its index, indicating that so far it is the only node in
+      // its strongly connected component.
+      node._index = node._lowLink = index++;
+      stack.add(node);
+
+      // Consider the node's dependencies one at a time.
+      for (NodeType dependency in Node.getDependencies(node)) {
+        // If the dependency has already been evaluated, it can't be
+        // part of this node's strongly connected component, so we can
+        // skip it.
+        if (dependency.isEvaluated) {
+          continue;
+        }
+        if (identical(node, dependency)) {
+          // If a node includes itself as a dependency, there is no need to
+          // explore the dependency further.
+          hasTrivialCycle = true;
+        } else if (dependency._index == 0) {
+          // The dependency hasn't been seen yet, so recurse on it.
+          strongConnect(dependency);
+          // If the dependency's lowLink refers to a node that was
+          // visited before the current node, that means that the
+          // current node, the dependency, and the node referred to by
+          // the dependency's lowLink are all part of the same
+          // strongly connected component, so we need to update the
+          // current node's lowLink accordingly.
+          if (dependency._lowLink < node._lowLink) {
+            node._lowLink = dependency._lowLink;
+          }
+        } else {
+          // The dependency has already been seen, so it is part of
+          // the current node's strongly connected component.  If it
+          // was visited earlier than the current node's lowLink, then
+          // it is a new addition to the current node's strongly
+          // connected component, so we need to update the current
+          // node's lowLink accordingly.
+          if (dependency._index < node._lowLink) {
+            node._lowLink = dependency._index;
+          }
+        }
+      }
+
+      // If the current node's lowLink is the same as its index, then
+      // we have finished visiting a strongly connected component, so
+      // pop the stack and evaluate it before moving on.
+      if (node._lowLink == node._index) {
+        // The strongly connected component has only one node.  If there is a
+        // cycle, it's a trivial one.
+        if (identical(stack.last, node)) {
+          stack.removeLast();
+          if (hasTrivialCycle) {
+            evaluateScc(<NodeType>[node]);
+          } else {
+            evaluate(node);
+          }
+        } else {
+          // There are multiple nodes in the strongly connected
+          // component.
+          List<NodeType> scc = <NodeType>[];
+          while (true) {
+            NodeType otherNode = stack.removeLast();
+            scc.add(otherNode);
+            if (identical(otherNode, node)) {
+              break;
+            }
+          }
+          evaluateScc(scc);
+        }
+      }
+    }
+
+    // Kick off the algorithm starting with the starting point.
+    strongConnect(startingPoint);
+  }
+}
+
 /// Base class for executable elements resynthesized from a summary during
 /// linking.
-abstract class ExecutableElementForLink extends Object
+abstract class ExecutableElementForLink
     with TypeParameterizedElementMixin, ParameterParentElementForLink
     implements ExecutableElementImpl {
   /// The unlinked representation of the method in the summary.
@@ -2110,6 +2323,9 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
+  bool get isAbstract => serializedExecutable.isAbstract;
+
+  @override
   bool get isGenerator => serializedExecutable.isGenerator;
 
   @override
@@ -2139,6 +2355,9 @@ abstract class ExecutableElementForLink extends Object
   void set returnType(DartType inferredType) {
     _inferredReturnType = inferredType;
   }
+
+  @override
+  AnalysisSession get session => compilationUnit.session;
 
   @override
   FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
@@ -2244,8 +2463,9 @@ class ExprTypeComputer {
       nameScope = new ClassScope(
           new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
     }
+    var inheritance = new InheritanceManager2(linker.typeSystem);
     var resolverVisitor = new ResolverVisitor(
-        library, source, typeProvider, errorListener,
+        inheritance, library, source, typeProvider, errorListener,
         nameScope: nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
@@ -2256,7 +2476,7 @@ class ExprTypeComputer {
         library, source, typeProvider, errorListener,
         nameScope: nameScope);
     var partialResolverVisitor = new PartialResolverVisitor(
-        library, source, typeProvider, errorListener,
+        inheritance, library, source, typeProvider, errorListener,
         nameScope: nameScope);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,
@@ -2302,7 +2522,7 @@ class ExprTypeComputer {
         expression = AstCloner().cloneNode(expressionForInference);
         expression.accept(LocalElementBuilder(ElementHolder(), null));
       }
-    } else if (_builder.uc != null && _builder.uc.operations.isNotEmpty) {
+    } else if (_builder.hasNonEmptyExpr) {
       expression = _builder.build();
     }
     if (expression == null) {
@@ -2523,7 +2743,7 @@ class FieldFormalParameterElementForLink extends ParameterElementForLink
 
 /// Element representing a function-typed parameter resynthesied from a summary
 /// during linking.
-class FunctionElementForLink_FunctionTypedParam extends Object
+class FunctionElementForLink_FunctionTypedParam
     with ParameterParentElementForLink
     implements FunctionElement {
   @override
@@ -2576,7 +2796,7 @@ class FunctionElementForLink_FunctionTypedParam extends Object
 }
 
 /// Element representing the initializer expression of a variable.
-class FunctionElementForLink_Initializer extends Object
+class FunctionElementForLink_Initializer
     with ReferenceableElementForLink, TypeParameterizedElementMixin
     implements FunctionElementForLink_Local {
   /// The variable for which this element is the initializer.
@@ -2887,11 +3107,12 @@ class FunctionElementForLink_Synthetic extends ExecutableElementForLink
 }
 
 /// Element representing a typedef resynthesized from a summary during linking.
-class FunctionTypeAliasElementForLink extends Object
+class FunctionTypeAliasElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
-        ReferenceableElementForLink
+        ReferenceableElementForLink,
+        SimplyBoundableForLinkMixin
     implements FunctionTypeAliasElement, ElementImpl {
   @override
   final CompilationUnitElementForLink enclosingElement;
@@ -2901,8 +3122,12 @@ class FunctionTypeAliasElementForLink extends Object
 
   FunctionTypeImpl _type;
   DartType _returnType;
+  GenericFunctionTypeElementForLink _function;
 
-  FunctionTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef);
+  FunctionTypeAliasElementForLink(
+      this.enclosingElement, this._unlinkedTypedef) {
+    _initSimplyBoundable();
+  }
 
   @override
   DartType get asStaticType {
@@ -2916,7 +3141,12 @@ class FunctionTypeAliasElementForLink extends Object
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
-  CompilationUnitElementImpl get enclosingUnit => enclosingElement;
+  CompilationUnitElementForLink get enclosingUnit => enclosingElement;
+
+  @override
+  GenericFunctionTypeElementImpl get function =>
+      _function ??= new GenericFunctionTypeElementForLink(enclosingUnit, this,
+          const [], _unlinkedTypedef.returnType, _unlinkedTypedef.parameters);
 
   @override
   String get identifier => _unlinkedTypedef.name;
@@ -2938,6 +3168,9 @@ class FunctionTypeAliasElementForLink extends Object
       enclosingElement.resolveTypeRef(this, _unlinkedTypedef.returnType);
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
@@ -2945,6 +3178,17 @@ class FunctionTypeAliasElementForLink extends Object
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedTypedef.typeParameters;
+
+  @override
+  int get _notSimplyBoundedSlot => _unlinkedTypedef.notSimplyBoundedSlot;
+
+  @override
+  List<EntityRef> get _rhsTypesForSimplyBoundable =>
+      _collectTypedefRhsTypes(_unlinkedTypedef);
+
+  @override
+  List<UnlinkedTypeParam> get _typeParametersForSimplyBoundable =>
       _unlinkedTypedef.typeParameters;
 
   @override
@@ -2958,12 +3202,15 @@ class FunctionTypeAliasElementForLink extends Object
         return context.typeSystem
             .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
       } else {
-        return new FunctionTypeImpl.forTypedef(this,
-            typeArguments: typeArguments);
+        return GenericTypeAliasElementImpl.doInstantiate(this, typeArguments);
       }
     } else {
       return _type ??= new FunctionTypeImpl.forTypedef(this);
     }
+  }
+
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    _linkSimplyBoundable();
   }
 
   @override
@@ -2975,7 +3222,7 @@ class FunctionTypeAliasElementForLink extends Object
 
 /// Element representing a generic function resynthesized from a summary during
 /// linking.
-class GenericFunctionTypeElementForLink extends Object
+class GenericFunctionTypeElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -2987,14 +3234,24 @@ class GenericFunctionTypeElementForLink extends Object
   @override
   final ElementImpl enclosingElement;
 
-  /// The linked representation of the generic function in the summary.
-  final EntityRef _entity;
+  @override
+  final List<UnlinkedTypeParam> unlinkedTypeParams;
+
+  /// The representation of the generic function's return type in the summary.
+  final EntityRef _unlinkedReturnType;
+
+  @override
+  final List<UnlinkedParam> unlinkedParameters;
 
   DartType _returnType;
   FunctionTypeImpl _type;
 
   GenericFunctionTypeElementForLink(
-      this.enclosingUnit, this.enclosingElement, this._entity);
+      this.enclosingUnit,
+      this.enclosingElement,
+      this.unlinkedTypeParams,
+      this._unlinkedReturnType,
+      this.unlinkedParameters);
 
   @override
   DartType get asStaticType {
@@ -3025,8 +3282,11 @@ class GenericFunctionTypeElementForLink extends Object
   String get name => '-';
 
   @override
-  DartType get returnType => _returnType ??=
-      enclosingUnit.resolveTypeRef(this, _entity.syntheticReturnType);
+  DartType get returnType =>
+      _returnType ??= enclosingUnit.resolveTypeRef(this, _unlinkedReturnType);
+
+  @override
+  AnalysisSession get session => enclosingElement.session;
 
   @override
   FunctionType get type {
@@ -3037,12 +3297,6 @@ class GenericFunctionTypeElementForLink extends Object
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
-  List<UnlinkedParam> get unlinkedParameters => _entity.syntheticParams;
-
-  @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams => _entity.typeParameters;
-
-  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
@@ -3051,19 +3305,24 @@ class GenericFunctionTypeElementForLink extends Object
 
 /// Element representing a generic typedef resynthesized from a summary during
 /// linking.
-class GenericTypeAliasElementForLink extends Object
+class GenericTypeAliasElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
-        ReferenceableElementForLink
-    implements FunctionTypeAliasElementForLink, ElementImpl {
+        ReferenceableElementForLink,
+        SimplyBoundableForLinkMixin
+    implements FunctionTypeAliasElementForLink, GenericTypeAliasElementImpl {
   @override
   final CompilationUnitElementForLink enclosingElement;
 
   /// The unlinked representation of the typedef in the summary.
   final UnlinkedTypedef _unlinkedTypedef;
 
-  GenericTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef);
+  GenericFunctionTypeElementForLink _function;
+
+  GenericTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef) {
+    _initSimplyBoundable();
+  }
 
   @override
   DartType get asStaticType {
@@ -3077,7 +3336,18 @@ class GenericTypeAliasElementForLink extends Object
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
-  CompilationUnitElementImpl get enclosingUnit => enclosingElement;
+  CompilationUnitElementForLink get enclosingUnit => enclosingElement;
+
+  @override
+  GenericFunctionTypeElementImpl get function {
+    var unlinkedType = _unlinkedTypedef.returnType;
+    return _function ??= new GenericFunctionTypeElementForLink(
+        enclosingUnit,
+        this,
+        unlinkedType.typeParameters,
+        unlinkedType.syntheticReturnType,
+        unlinkedType.syntheticParams);
+  }
 
   @override
   String get identifier => _unlinkedTypedef.name;
@@ -3099,6 +3369,9 @@ class GenericTypeAliasElementForLink extends Object
       this, _unlinkedTypedef.returnType.syntheticReturnType);
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
@@ -3113,6 +3386,17 @@ class GenericTypeAliasElementForLink extends Object
   }
 
   @override
+  int get _notSimplyBoundedSlot => _unlinkedTypedef.notSimplyBoundedSlot;
+
+  @override
+  List<EntityRef> get _rhsTypesForSimplyBoundable =>
+      _collectTypedefRhsTypes(_unlinkedTypedef);
+
+  @override
+  List<UnlinkedTypeParam> get _typeParametersForSimplyBoundable =>
+      _unlinkedTypedef.typeParameters;
+
+  @override
   DartType buildType(
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     int numTypeParameters = _unlinkedTypedef.typeParameters.length;
@@ -3123,12 +3407,15 @@ class GenericTypeAliasElementForLink extends Object
         return context.typeSystem
             .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
       } else {
-        return new FunctionTypeImpl.forTypedef(this,
-            typeArguments: typeArguments);
+        return GenericTypeAliasElementImpl.doInstantiate(this, typeArguments);
       }
     } else {
       return new FunctionTypeImpl.forTypedef(this);
     }
+  }
+
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    _linkSimplyBoundable();
   }
 
   @override
@@ -3136,6 +3423,30 @@ class GenericTypeAliasElementForLink extends Object
 
   @override
   String toString() => '$enclosingElement.$name';
+}
+
+/// Context for serializing a possibly generic function type that is used in
+/// another context.
+class InlineFunctionTypeParameterContext
+    implements TypeParameterSerializationContext {
+  final GenericFunctionTypeElementImpl _functionTypeElement;
+
+  final TypeParameterSerializationContext _usageContext;
+
+  InlineFunctionTypeParameterContext(
+      this._functionTypeElement, this._usageContext);
+
+  @override
+  int computeDeBruijnIndex(TypeParameterElement typeParameter,
+      {int offset: 0}) {
+    var typeFormals = _functionTypeElement.typeParameters;
+    var numTypeFormals = typeFormals.length;
+    for (int i = 0; i < numTypeFormals; i++) {
+      if (typeFormals[i] == typeParameter) return i + offset + 1;
+    }
+    return _usageContext.computeDeBruijnIndex(typeParameter,
+        offset: offset + numTypeFormals);
+  }
 }
 
 /// Specialization of [DependencyWalker] for linking library cycles.
@@ -3444,8 +3755,6 @@ class LibraryElementInBuildUnit
   /// graph.
   LibraryNode _libraryNode;
 
-  InheritanceManager _inheritanceManager;
-
   List<ImportElement> _imports;
 
   List<PrefixElement> _prefixes;
@@ -3459,10 +3768,6 @@ class LibraryElementInBuildUnit
   List<ImportElement> get imports =>
       _imports ??= LibraryElementImpl.buildImportsFromSummary(this,
           _unlinkedDefiningUnit.imports, _linkedLibrary.importDependencies);
-
-  /// Get the inheritance manager for this library (creating it if necessary).
-  InheritanceManager get inheritanceManager =>
-      _inheritanceManager ??= new InheritanceManager(this, ignoreErrors: true);
 
   @override
   LibraryCycleForLink get libraryCycleForLink {
@@ -3633,8 +3938,10 @@ class Linker {
   SpecialTypeElementForLink _voidElement;
   SpecialTypeElementForLink _dynamicElement;
   SpecialTypeElementForLink _bottomElement;
+  InheritanceManager2 _inheritanceManager;
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
+
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
       this.getUnit, this.getAst) {
     // Create elements for the libraries to be linked.  The rest of
@@ -3671,6 +3978,10 @@ class Linker {
   SpecialTypeElementForLink get dynamicElement => _dynamicElement ??=
       new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
 
+  /// Get an instance of [InheritanceManager2] for use during linking.
+  InheritanceManager2 get inheritanceManager =>
+      _inheritanceManager ??= new InheritanceManager2(typeSystem);
+
   /// Indicates whether type inference should use strong mode rules.
   @deprecated
   bool get strongMode => true;
@@ -3681,7 +3992,7 @@ class Linker {
 
   /// Get an instance of [TypeSystem] for use during linking.
   TypeSystem get typeSystem =>
-      _typeSystem ??= new StrongTypeSystemImpl(typeProvider);
+      _typeSystem ??= new Dart2TypeSystem(typeProvider);
 
   /// Get the element representing `void`.
   SpecialTypeElementForLink get voidElement => _voidElement ??=
@@ -3746,6 +4057,47 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
   String toString() => '$enclosingElement.$name';
 }
 
+/**
+ * Instances of [Node] represent nodes in a dependency graph.  The
+ * type parameter, [NodeType], is the derived type (this affords some
+ * extra type safety by making it difficult to accidentally construct
+ * bridges between unrelated dependency graphs).
+ */
+abstract class Node<NodeType> {
+  /**
+   * Index used by Tarjan's strongly connected components algorithm.
+   * Zero means the node has not been visited yet; a nonzero value
+   * counts the order in which the node was visited.
+   */
+  int _index = 0;
+
+  /**
+   * Low link used by Tarjan's strongly connected components
+   * algorithm.  This represents the smallest [_index] of all the nodes
+   * in the strongly connected component to which this node belongs.
+   */
+  int _lowLink = 0;
+
+  List<NodeType> _dependencies;
+
+  /**
+   * Indicates whether this node has been evaluated yet.
+   */
+  bool get isEvaluated;
+
+  /**
+   * Compute the dependencies of this node.
+   */
+  List<NodeType> computeDependencies();
+
+  /**
+   * Gets the dependencies of the given node, computing them if necessary.
+   */
+  static List<NodeType> getDependencies<NodeType>(Node<NodeType> node) {
+    return node._dependencies ??= node.computeDependencies();
+  }
+}
+
 /// Element used for references that result from trying to access a non-static
 /// member of an element that is not a container (e.g. accessing the "length"
 /// property of a constant).
@@ -3753,8 +4105,7 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
 /// Accesses to a chain of non-static members separated by '.' are handled by
 /// creating a [NonstaticMemberElementForLink] that points to another
 /// [NonstaticMemberElementForLink], to whatever nesting level is necessary.
-class NonstaticMemberElementForLink extends Object
-    with ReferenceableElementForLink {
+class NonstaticMemberElementForLink with ReferenceableElementForLink {
   /// The [ReferenceableElementForLink] which is the target of the non-static
   /// reference.
   final ReferenceableElementForLink _target;
@@ -3915,18 +4266,6 @@ class ParameterElementForLink implements ParameterElementImpl {
   bool get isCovariant {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
-    }
-    for (UnlinkedExpr annotation in unlinkedParam.annotations) {
-      if (annotation.operations.length == 1 &&
-          annotation.operations[0] == UnlinkedExprOperation.pushReference) {
-        ReferenceableElementForLink element =
-            this.compilationUnit.resolveRef(annotation.references[0].reference);
-        if (element is PropertyAccessorElementForLink &&
-            element.name == 'checked' &&
-            element.library.name == 'meta') {
-          return true;
-        }
-      }
     }
     return false;
   }
@@ -4133,7 +4472,7 @@ abstract class PropertyAccessorElementForLink
 
 /// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
 /// implied by the synthetic fields of an enum declaration.
-class PropertyAccessorElementForLink_EnumField extends Object
+class PropertyAccessorElementForLink_EnumField
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -4148,6 +4487,9 @@ class PropertyAccessorElementForLink_EnumField extends Object
 
   @override
   Element get enclosingElement => variable.enclosingElement;
+
+  @override
+  bool get isAbstract => false;
 
   @override
   bool get isGetter => true;
@@ -4270,7 +4612,7 @@ class PropertyAccessorElementForLink_Executable
 
 /// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
 /// implied by a field or variable declaration.
-class PropertyAccessorElementForLink_Variable extends Object
+class PropertyAccessorElementForLink_Variable
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -4297,6 +4639,9 @@ class PropertyAccessorElementForLink_Variable extends Object
 
   @override
   Element get enclosingElement => variable.enclosingElement;
+
+  @override
+  bool get isAbstract => false;
 
   @override
   bool get isGetter => !isSetter;
@@ -4385,7 +4730,7 @@ class PropertyAccessorElementForLink_Variable extends Object
 /// Base class representing an element which can be the target of a reference.
 /// When used as a mixin, implements the default behavior shared by most
 /// elements.
-abstract class ReferenceableElementForLink implements Element {
+mixin ReferenceableElementForLink implements Element {
   /// If this element is a class reference, return it. Otherwise return `null`.
   ClassElementForLink get asClass => null;
 
@@ -4408,8 +4753,21 @@ abstract class ReferenceableElementForLink implements Element {
   /// Otherwise return `null`.
   TypeInferenceNode get asTypeInferenceNode => null;
 
+  /// See [TypeParameterElement.isSimplyBounded].
+  bool get isSimplyBounded => true;
+
   @override
   ElementLocation get location => new ElementLocationImpl.con1(this);
+
+  /// If non-null, the [SimplyBoundedNode] for determining whether this element
+  /// is simply bounded.
+  ///
+  /// If null, this element is known to be simply bounded based on its unlinked
+  /// representation alone (for example, it is a class declaration with no type
+  /// parameters, or it is a class declaration whose type parameters all lack
+  /// explicit bounds).  Or it is an element for which simple boundedness is
+  /// not relevant.
+  SimplyBoundedNode get _simplyBoundedNode => null;
 
   /// Return the type indicated by this element when it is used in a
   /// type instantiation context.  If this element can't legally be
@@ -4438,9 +4796,220 @@ abstract class ReferenceableElementForLink implements Element {
   FunctionElementForLink_Local getLocalFunction(int index) => null;
 }
 
+/// Mixin providing the implementation of
+/// [ReferenceableElementForLink.isSimplyBounded] for elements representing a
+/// type.
+abstract class SimplyBoundableForLinkMixin
+    implements ReferenceableElementForLink {
+  @override
+  SimplyBoundedNode _simplyBoundedNode;
+
+  CompilationUnitElementForLink get enclosingUnit;
+
+  @override
+  bool get isSimplyBounded {
+    var slot = _notSimplyBoundedSlot;
+    if (slot == 0) return true;
+    if (enclosingUnit.isInBuildUnit) {
+      assert(_simplyBoundedNode.isEvaluated);
+      return _simplyBoundedNode.isSimplyBounded;
+    } else {
+      return !enclosingUnit._linkedUnit.notSimplyBounded.contains(slot);
+    }
+  }
+
+  int get _notSimplyBoundedSlot;
+
+  List<EntityRef> get _rhsTypesForSimplyBoundable;
+
+  List<UnlinkedTypeParam> get _typeParametersForSimplyBoundable;
+
+  void _initSimplyBoundable() {
+    if (enclosingUnit.isInBuildUnit && _notSimplyBoundedSlot != 0) {
+      _simplyBoundedNode = SimplyBoundedNode(enclosingUnit,
+          _typeParametersForSimplyBoundable, _rhsTypesForSimplyBoundable);
+    }
+  }
+
+  void _linkSimplyBoundable() {
+    if (_simplyBoundedNode != null) {
+      if (!_simplyBoundedNode.isEvaluated) {
+        new SimplyBoundedDependencyWalker().walk(_simplyBoundedNode);
+      }
+      if (!_simplyBoundedNode.isSimplyBounded) {
+        enclosingUnit._linkedUnit.notSimplyBounded.add(_notSimplyBoundedSlot);
+      }
+    }
+  }
+}
+
+/// Specialization of [DependencyWalker] for evaluating whether types are simply
+/// bounded.
+class SimplyBoundedDependencyWalker
+    extends DependencyWalker<SimplyBoundedNode> {
+  @override
+  void evaluate(SimplyBoundedNode v) {
+    v._evaluate();
+  }
+
+  @override
+  void evaluateScc(List<SimplyBoundedNode> scc) {
+    for (var node in scc) {
+      node._markCircular();
+    }
+  }
+}
+
+/// Specialization of [Node] used to construct the dependency graph for
+/// evaluating whether types are simply bounded.
+class SimplyBoundedNode extends Node<SimplyBoundedNode> {
+  /// The compilation unit enclosing the type whose simple-boundedness we need
+  /// to check
+  final CompilationUnitElementForLink _unit;
+
+  /// The type parameters of the type whose simple-boundedness we need to check
+  final List<UnlinkedTypeParam> _typeParameters;
+
+  /// If the type whose simple-boundedness we need to check is a typedef, the
+  /// types appering in its "right hand side"
+  final List<EntityRef> _rhsTypes;
+
+  @override
+  bool isEvaluated = false;
+
+  /// After execution of [_evaluate], indicates whether the type is
+  /// simply bounded.
+  ///
+  /// Prior to execution of [computeDependencies], `true`.
+  ///
+  /// Between execution of [computeDependencies] and [_evaluate], `true`
+  /// indicates that the type is simply bounded only if all of its dependencies
+  /// are simply bounded; `false` indicates that the type is not simply bounded.
+  bool isSimplyBounded = true;
+
+  SimplyBoundedNode(this._unit, this._typeParameters, this._rhsTypes);
+
+  @override
+  List<SimplyBoundedNode> computeDependencies() {
+    var dependencies = <SimplyBoundedNode>[];
+    for (var typeParameter in _typeParameters) {
+      var bound = typeParameter.bound;
+      if (bound != null) {
+        if (!_visitType(dependencies, bound, true)) {
+          // Note: we might consider setting isEvaluated=true here to prevent an
+          // unnecessary call to SimplyBoundedDependencyWalker.evaluate.
+          // However, we'd have to be careful to make sure this doesn't violate
+          // an invariant of the DependencyWalker algorithm, since normally it
+          // only expects isEvaluated to change during a call to .evaluate or
+          // .evaluateScc.
+          isSimplyBounded = false;
+          return const [];
+        }
+      }
+    }
+    for (var type in _rhsTypes) {
+      if (!_visitType(dependencies, type, false)) {
+        // Note: we might consider setting isEvaluated=true here to prevent an
+        // unnecessary call to SimplyBoundedDependencyWalker.evaluate.
+        // However, we'd have to be careful to make sure this doesn't violate
+        // an invariant of the DependencyWalker algorithm, since normally it
+        // only expects isEvaluated to change during a call to .evaluate or
+        // .evaluateScc.
+        isSimplyBounded = false;
+        return const [];
+      }
+    }
+    return dependencies;
+  }
+
+  void _evaluate() {
+    for (var dependency in _dependencies) {
+      if (!dependency.isSimplyBounded) {
+        isSimplyBounded = false;
+        break;
+      }
+    }
+    isEvaluated = true;
+  }
+
+  void _markCircular() {
+    isSimplyBounded = false;
+    isEvaluated = true;
+  }
+
+  /// Visits the parameters in [params], storing the [SimplyBoundedNode] for any
+  /// types they reference in [dependencies].
+  ///
+  /// If a type is found that is already known to be not simply bounded (because
+  /// it is in another build unit), or [disallowTypeParamReferences] is `true`
+  /// and a reference to a type parameter is found, `false` is returned and
+  /// further visiting is short-circuited.  Otherwise `true` is returned.
+  bool _visitParams(List<SimplyBoundedNode> dependencies,
+      List<UnlinkedParam> params, bool disallowTypeParamReferences) {
+    for (var param in params) {
+      if (!_visitType(dependencies, param.type, disallowTypeParamReferences)) {
+        return false;
+      }
+      if (isSimplyBounded && param.isFunctionTyped) {
+        if (!_visitParams(
+            dependencies, param.parameters, disallowTypeParamReferences)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /// Visits the type specified by [type], storing the [SimplyBoundedNode] for
+  /// any types it references in [dependencies].
+  ///
+  /// If a type is found that is already known to be not simply bounded (because
+  /// it is in another build unit), or [disallowTypeParamReferences] is `true`
+  /// and a reference to a type parameter is found, `false` is returned and
+  //  /// further visiting is short-circuited.  Otherwise `true` is returned.
+  bool _visitType(List<SimplyBoundedNode> dependencies, EntityRef type,
+      bool disallowTypeParamReferences) {
+    if (type != null) {
+      if (type.paramReference != 0) {
+        if (disallowTypeParamReferences) {
+          return false;
+        }
+      } else if (type.entityKind == EntityRefKind.genericFunctionType) {
+        if (!_visitParams(
+            dependencies, type.syntheticParams, disallowTypeParamReferences)) {
+          return false;
+        }
+        if (!_visitType(dependencies, type.syntheticReturnType,
+            disallowTypeParamReferences)) {
+          return false;
+        }
+      } else {
+        if (type.typeArguments.isEmpty) {
+          var ref = _unit.resolveRef(type.reference);
+          var dep = ref._simplyBoundedNode;
+          if (dep == null) {
+            if (!ref.isSimplyBounded) {
+              return false;
+            }
+          } else {
+            dependencies.add(dep);
+          }
+        } else {
+          for (var typeArgument in type.typeArguments) {
+            if (!_visitType(
+                dependencies, typeArgument, disallowTypeParamReferences)) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+}
+
 /// Element used for references to special types such as `void`.
-class SpecialTypeElementForLink extends Object
-    with ReferenceableElementForLink {
+class SpecialTypeElementForLink with ReferenceableElementForLink {
   final Linker linker;
   final DartType type;
 
@@ -4628,9 +5197,11 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           break;
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedSet:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedSet:
           refPtr++;
           intPtr++;
           break;
@@ -4726,7 +5297,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             bodyType = (bodyType as InterfaceType).typeArguments[0];
           }
           bodyType = typeProvider.futureType
-              .instantiate([bodyType.flattenFutures(typeSystem)]);
+              .instantiate([typeSystem.flatten(bodyType)]);
         }
         functionElement._setInferredType(bodyType);
       }
@@ -4751,12 +5322,15 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _futureType;
   InterfaceType _intType;
   InterfaceType _iterableDynamicType;
+  InterfaceType _iterableObjectType;
   InterfaceType _iterableType;
   InterfaceType _listType;
   InterfaceType _mapType;
+  InterfaceType _mapObjectObjectType;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
+  InterfaceType _setType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -4817,12 +5391,20 @@ class TypeProviderForLink extends TypeProviderBase {
       iterableType.instantiate(<DartType>[dynamicType]);
 
   @override
+  InterfaceType get iterableObjectType =>
+      _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
+
+  @override
   InterfaceType get iterableType =>
       _iterableType ??= _buildInterfaceType(_linker.coreLibrary, 'Iterable');
 
   @override
   InterfaceType get listType =>
       _listType ??= _buildInterfaceType(_linker.coreLibrary, 'List');
+
+  @override
+  InterfaceType get mapObjectObjectType => _mapObjectObjectType ??=
+      mapType.instantiate(<DartType>[objectType, objectType]);
 
   @override
   InterfaceType get mapType =>
@@ -4845,6 +5427,10 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get objectType =>
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
+
+  @override
+  InterfaceType get setType =>
+      _setType ??= _buildInterfaceType(_linker.coreLibrary, 'Set');
 
   @override
   InterfaceType get stackTraceType => _stackTraceType ??=
@@ -4884,7 +5470,7 @@ class TypeProviderForLink extends TypeProviderBase {
 }
 
 /// Singleton element used for unresolved references.
-class UndefinedElementForLink extends Object with ReferenceableElementForLink {
+class UndefinedElementForLink with ReferenceableElementForLink {
   static final UndefinedElementForLink instance =
       new UndefinedElementForLink._();
 
@@ -5103,7 +5689,13 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   CompilationUnitElementForLink _unit;
 
   @override
+  LibraryElement get library => _unit.library;
+
+  @override
   TypeProvider get typeProvider => _unit.library._linker.typeProvider;
+
+  @override
+  TypeSystem get typeSystem => _unit.library._linker._typeSystem;
 
   @override
   DartType buildType(ElementImpl context, EntityRef type) =>

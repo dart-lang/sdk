@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,35 +36,6 @@ main() {
   }, name: 'Driver');
 }
 
-/**
- * Call a test that we think will fail.
- *
- * Ensure that we return any thrown exception correctly (avoiding the
- * package:test zone error handler).
- */
-callFailingTest(NoArgFunction expectedFailingTestFn) {
-  final Completer completer = new Completer();
-
-  try {
-    runZoned(
-      () async => await expectedFailingTestFn(),
-      onError: (error) {
-        completer.completeError(error);
-      },
-    ).then((result) {
-      completer.complete(result);
-    }).catchError((error) {
-      completer.completeError(error);
-    });
-  } catch (error) {
-    completer.completeError(error);
-  }
-
-  return completer.future;
-}
-
-typedef dynamic NoArgFunction();
-
 class BaseTest {
   static const emptyOptionsFile = 'data/empty_options.yaml';
 
@@ -85,7 +56,7 @@ class BaseTest {
   /// [args] and an [options] file path. The value of [options] defaults to an
   /// empty options file to avoid unwanted configuration from an otherwise
   /// discovered options file.
-  Future<Null> drive(
+  Future<void> drive(
     String source, {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
@@ -94,11 +65,13 @@ class BaseTest {
   }
 
   /// Like [drive], but takes an array of sources.
-  Future<Null> driveMany(
+  Future<void> driveMany(
     List<String> sources, {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
   }) async {
+    options = _p(options);
+
     driver = new Driver(isTesting: true);
     var cmd = <String>[];
     if (options != null) {
@@ -141,6 +114,23 @@ class BaseTest {
     String uriPrefix = fileSpec.substring(0, uriPrefixLength);
     String relativePath = fileSpec.substring(uriPrefixLength);
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
+  }
+
+  /**
+   * Convert the given posix [filePath] to conform to this provider's path context.
+   *
+   * This is a utility method for testing; paths passed in to other methods in
+   * this class are never converted automatically.
+   */
+  String _p(String filePath) {
+    if (filePath == null) {
+      return null;
+    }
+    if (path.style == path.windows.style) {
+      filePath =
+          filePath.replaceAll(path.posix.separator, path.windows.separator);
+    }
+    return filePath;
   }
 }
 
@@ -221,7 +211,7 @@ import 'package:aaa/a.dart';
 var b = a;
 ''');
 
-      Future<Null> buildUnlinked(String uri, String path, String output) async {
+      Future<void> buildUnlinked(String uri, String path, String output) async {
         await _doDrive(path, uri: uri, additionalArgs: [
           '--build-summary-only',
           '--build-summary-only-unlinked',
@@ -495,11 +485,14 @@ var b = new B();
     });
   }
 
-  Future<Null> _doDrive(String path,
+  Future<void> _doDrive(String path,
       {String uri,
       List<String> additionalArgs: const [],
       String dartSdkSummaryPath}) async {
+    path = _p(path);
+
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+    var options = _p('data/options_tests_project/' + optionsFileName);
 
     List<String> args = <String>[];
     if (dartSdkSummaryPath != null) {
@@ -517,8 +510,7 @@ var b = new B();
     uri ??= 'file:///test_file.dart';
     String source = '$uri|$path';
 
-    await drive(source,
-        args: args, options: 'data/options_tests_project/$optionsFileName');
+    await drive(source, args: args, options: options);
   }
 
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
@@ -531,17 +523,23 @@ var b = new B();
           .existsSync();
     }
 
+    String makeAbsoluteAndNormalized(String result) {
+      result = path.absolute(result);
+      result = path.normalize(result);
+      return result;
+    }
+
     // Usually the sdk directory is the parent of the parent of the "dart"
     // executable.
     Directory executableParent = new File(Platform.executable).parent;
     Directory executableGrandparent = executableParent.parent;
     if (isSuitable(executableGrandparent.path)) {
-      return executableGrandparent.path;
+      return makeAbsoluteAndNormalized(executableGrandparent.path);
     }
     // During build bot execution, the sdk directory is simply the parent of the
     // "dart" executable.
     if (isSuitable(executableParent.path)) {
-      return executableParent.path;
+      return makeAbsoluteAndNormalized(executableParent.path);
     }
     // If neither of those are suitable, assume we are running locally within the
     // SDK project (e.g. within an IDE).  Find the build output directory and
@@ -555,7 +553,7 @@ var b = new B();
           if (subdir is Directory) {
             String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
             if (isSuitable(candidateSdkDir)) {
-              return candidateSdkDir;
+              return makeAbsoluteAndNormalized(candidateSdkDir);
             }
           }
         }
@@ -750,17 +748,17 @@ linter:
   YamlMap _parseOptions(String src) =>
       new AnalysisOptionsProvider().getOptionsFromString(src);
 
-  Future<Null> _runLinter_defaultLints() async {
+  Future<void> _runLinter_defaultLints() async {
     await drive('data/linter_project/test_file.dart',
         options: 'data/linter_project/$optionsFileName', args: ['--lints']);
   }
 
-  Future<Null> _runLinter_lintsInOptions() async {
+  Future<void> _runLinter_lintsInOptions() async {
     await drive('data/linter_project/test_file.dart',
         options: 'data/linter_project/$optionsFileName', args: ['--lints']);
   }
 
-  Future<Null> _runLinter_noLintsFlag() async {
+  Future<void> _runLinter_noLintsFlag() async {
     await drive('data/no_lints_project/test_file.dart',
         options: 'data/no_lints_project/$optionsFileName');
   }
@@ -878,11 +876,6 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
-  test_basic_language() async {
-    await _driveBasic();
-    expect(analysisOptions.enableSuperMixins, isTrue);
-  }
-
   test_includeDirective() async {
     String testDir = path.join(
         testDirectory, 'data', 'options_include_directive_tests_project');
@@ -924,21 +917,17 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
-  Future<Null> _driveBasic() async {
+  Future<void> _driveBasic() async {
     await drive('data/options_tests_project/test_file.dart',
         options: 'data/options_tests_project/$optionsFileName');
   }
 
   void _expectUndefinedClassErrorsWithoutExclusions() {
-    bool isStrong = usePreviewDart2 || new AnalysisOptionsImpl().previewDart2;
-    final String issueType = isStrong ? 'error' : 'warning';
     expect(bulletToDash(outSink),
-        contains("$issueType - Undefined class 'IncludedUndefinedClass'"));
-    expect(
-        bulletToDash(outSink),
-        isNot(
-            contains("$issueType - Undefined class 'ExcludedUndefinedClass'")));
-    expect(outSink.toString(), contains("1 $issueType found."));
+        contains("error - Undefined class 'IncludedUndefinedClass'"));
+    expect(bulletToDash(outSink),
+        isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
+    expect(outSink.toString(), contains("1 error found."));
   }
 }
 

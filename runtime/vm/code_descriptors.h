@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_CODE_DESCRIPTORS_H_
 #define RUNTIME_VM_CODE_DESCRIPTORS_H_
 
-#include "vm/ast.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -14,6 +13,8 @@
 #include "vm/runtime_entry.h"
 
 namespace dart {
+
+static const intptr_t kInvalidTryIndex = -1;
 
 class DescriptorList : public ZoneAllocated {
  public:
@@ -118,7 +119,7 @@ class ExceptionHandlerList : public ZoneAllocated {
   // Called by rethrows, to mark their enclosing handlers.
   void SetNeedsStackTrace(intptr_t try_index) {
     // Rethrows can be generated outside a try by the compiler.
-    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+    if (try_index == kInvalidTryIndex) {
       return;
     }
     ASSERT(try_index >= 0);

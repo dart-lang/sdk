@@ -5,12 +5,10 @@
 library leg_apiimpl;
 
 import 'dart:async';
+import 'dart:convert' show utf8;
 
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart' as pkgs;
-import 'package:package_config/src/packages_impl.dart'
-    show MapPackages, NonFilePackagesDirectoryPackages;
-import 'package:package_config/src/util.dart' show checkValidPackageUri;
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show getSupportedLibraryNames;
 
 import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show GenericTask, Measurer;
@@ -18,9 +16,8 @@ import 'common.dart';
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'environment.dart';
+import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
-import 'platform_configuration.dart' as platform_configuration;
-import 'resolved_uri_translator.dart';
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
@@ -28,15 +25,9 @@ class CompilerImpl extends Compiler {
   final Measurer measurer;
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
-  Packages packages;
-
-  ForwardingResolvedUriTranslator resolvedUriTranslator;
 
   GenericTask userHandlerTask;
   GenericTask userProviderTask;
-  GenericTask userPackagesDiscoveryTask;
-
-  Uri get libraryRoot => options.platformConfigUri.resolve(".");
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
       CompilerOptions options,
@@ -44,19 +35,14 @@ class CompilerImpl extends Compiler {
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
       : measurer = new Measurer(enableTaskMeasurements: options.verbose),
-        resolvedUriTranslator = new ForwardingResolvedUriTranslator(),
         super(
             options: options,
             outputProvider: outputProvider,
             environment: new _Environment(options.environment),
             makeReporter: makeReporter) {
-    _Environment env = environment;
-    env.compiler = this;
     tasks.addAll([
       userHandlerTask = new GenericTask('Diagnostic handler', measurer),
       userProviderTask = new GenericTask('Input provider', measurer),
-      userPackagesDiscoveryTask =
-          new GenericTask('Package discovery', measurer),
     ]);
   }
 
@@ -65,68 +51,27 @@ class CompilerImpl extends Compiler {
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  /**
-   * Translates a readable URI into a resource URI.
-   *
-   * See [LibraryLoader] for terminology on URIs.
-   */
-  Uri translateUri(Spannable node, Uri uri) =>
-      uri.scheme == 'package' ? translatePackageUri(node, uri) : uri;
-
-  Uri translatePackageUri(Spannable node, Uri uri) {
-    try {
-      checkValidPackageUri(uri);
-    } on ArgumentError catch (e) {
-      reporter.reportErrorMessage(node, MessageKind.INVALID_PACKAGE_URI,
-          {'uri': uri, 'exception': e.message});
-      return null;
-    }
-    return packages.resolve(uri, notFound: (Uri notFound) {
-      reporter.reportErrorMessage(
-          node, MessageKind.LIBRARY_NOT_FOUND, {'resolvedUri': uri});
-      return null;
-    });
-  }
-
-  Future setupPackages(Uri uri) {
-    if (options.packageRoot != null) {
-      // Use "non-file" packages because the file version requires a [Directory]
-      // and we can't depend on 'dart:io' classes.
-      packages = new NonFilePackagesDirectoryPackages(options.packageRoot);
-    } else if (options.packageConfig != null) {
-      Future<api.Input<List<int>>> future =
-          callUserProvider(options.packageConfig, api.InputKind.binary);
-      return future.then((api.Input<List<int>> binary) {
-        packages =
-            new MapPackages(pkgs.parse(binary.data, options.packageConfig));
-      }).catchError((error) {
-        reporter.reportErrorMessage(
-            NO_LOCATION_SPANNABLE,
-            MessageKind.INVALID_PACKAGE_CONFIG,
-            {'uri': options.packageConfig, 'exception': error});
-        packages = Packages.noPackages;
-      });
-    } else {
-      if (options.packagesDiscoveryProvider == null) {
-        packages = Packages.noPackages;
-      } else {
-        return callUserPackagesDiscovery(uri).then((p) {
-          packages = p;
-        });
-      }
-    }
-    return new Future.value();
-  }
-
   Future setupSdk() {
     var future = new Future.value(null);
-    if (resolvedUriTranslator.isNotSet) {
+    _Environment env = environment;
+    if (env.supportedLibraries == null) {
       future = future.then((_) {
-        return platform_configuration
-            .load(options.platformConfigUri, provider)
-            .then((Map<String, Uri> mapping) {
-          resolvedUriTranslator.resolvedUriTranslator =
-              new ResolvedUriTranslator(mapping);
+        Uri specificationUri = options.librariesSpecificationUri;
+        return provider.readFromUri(specificationUri).then((api.Input spec) {
+          String json = null;
+          // TODO(sigmund): simplify this, we have some API inconsistencies when
+          // our internal input adds a terminating zero.
+          if (spec is SourceFile) {
+            json = spec.slowText();
+          } else if (spec is Binary) {
+            json = utf8.decode(spec.data);
+          }
+
+          // TODO(sigmund): would be nice to front-load some of the CFE option
+          // processing and parse this .json file only once.
+          env.supportedLibraries = getSupportedLibraryNames(specificationUri,
+                  json, options.compileForServer ? "dart2js_server" : "dart2js")
+              .toSet();
         });
       });
     }
@@ -137,14 +82,9 @@ class CompilerImpl extends Compiler {
   }
 
   Future<bool> run(Uri uri) {
-    Duration setupDuration = measurer.wallClock.elapsed;
-    return selfTask.measureSubtask("CompilerImpl.run", () {
-      log('Using platform configuration at ${options.platformConfigUri}');
-
-      return setupSdk().then((_) => setupPackages(uri)).then((_) {
-        assert(resolvedUriTranslator.isSet);
-        assert(packages != null);
-
+    Duration setupDuration = measurer.elapsedWallClock;
+    return selfTask.measureSubtask("impl.run", () {
+      return setupSdk().then((_) {
         return super.run(uri);
       }).then((bool success) {
         if (options.verbose) {
@@ -163,23 +103,36 @@ class CompilerImpl extends Compiler {
 
   void computeTimings(Duration setupDuration, StringBuffer timings) {
     timings.writeln("Timings:");
-    Duration totalDuration = measurer.wallClock.elapsed;
-    Duration asyncDuration = measurer.asyncWallClock.elapsed;
+    Duration totalDuration = measurer.elapsedWallClock;
+    Duration asyncDuration = measurer.elapsedAsyncWallClock;
     Duration cumulatedDuration = Duration.zero;
+    List<_TimingData> timingData = [];
     for (final task in tasks) {
-      String running = task.isRunning ? "*" : "";
+      String running = task.isRunning ? "*" : " ";
       Duration duration = task.duration;
       if (duration != Duration.zero) {
         cumulatedDuration += duration;
-        timings.writeln('    $running${task.name}:'
-            ' ${_formatMs(duration.inMilliseconds)}');
+        int milliseconds = duration.inMilliseconds;
+        timingData.add(_TimingData('   $running${task.name}:', milliseconds,
+            milliseconds * 100 / totalDuration.inMilliseconds));
         for (String subtask in task.subtasks) {
           int subtime = task.getSubtaskTime(subtask);
-          String running = task.getSubtaskIsRunning(subtask) ? "*" : "";
-          timings.writeln(
-              '    $running${task.name} > $subtask: ${_formatMs(subtime)}');
+          String running = task.getSubtaskIsRunning(subtask) ? "*" : " ";
+          timingData.add(_TimingData('   $running${task.name} > $subtask:',
+              subtime, subtime * 100 / totalDuration.inMilliseconds));
         }
       }
+    }
+    int longestDescription = timingData
+        .map((d) => d.description.length)
+        .fold(0, (a, b) => a < b ? b : a);
+    for (var data in timingData) {
+      var ms = _formatMs(data.milliseconds);
+      var padding =
+          " " * (longestDescription + 10 - data.description.length - ms.length);
+      var percentPadding = data.percent < 10 ? " " : "";
+      timings.writeln('${data.description}$padding $ms '
+          '$percentPadding(${data.percent.toStringAsFixed(1)}%)');
     }
     Duration unaccountedDuration =
         totalDuration - cumulatedDuration - setupDuration - asyncDuration;
@@ -236,32 +189,15 @@ class CompilerImpl extends Compiler {
       rethrow;
     }
   }
-
-  Future<Packages> callUserPackagesDiscovery(Uri uri) {
-    try {
-      return userPackagesDiscoveryTask
-          .measureIo(() => options.packagesDiscoveryProvider(uri));
-    } catch (ex, s) {
-      reportCrashInUserCode('Uncaught exception in package discovery', ex, s);
-      rethrow;
-    }
-  }
 }
 
 class _Environment implements Environment {
   final Map<String, String> definitions;
-
-  // TODO(sigmund): break the circularity here: Compiler needs an environment to
-  // initialize the library loader, but the environment here needs to know about
-  // how the sdk is set up and about whether the backend supports mirrors.
-  CompilerImpl compiler;
+  Set<String> supportedLibraries;
 
   _Environment(this.definitions);
 
   String valueOf(String name) {
-    assert(compiler.resolvedUriTranslator != null,
-        failedAt(NO_LOCATION_SPANNABLE, "setupSdk() has not been run"));
-
     var result = definitions[name];
     if (result != null || definitions.containsKey(name)) return result;
     if (!name.startsWith(_dartLibraryEnvironmentPrefix)) return null;
@@ -270,28 +206,7 @@ class _Environment implements Environment {
 
     // Private libraries are not exposed to the users.
     if (libraryName.startsWith("_")) return null;
-
-    Uri libraryUri = compiler.resolvedUriTranslator.sdkLibraries[libraryName];
-    // TODO(sigmund): use libraries.json instead of .platform files, then simply
-    // use the `supported` bit.
-    if (libraryUri != null && libraryUri.scheme != "unsupported") {
-      if (libraryName == 'mirrors') return null;
-      if (libraryName == 'isolate') return null;
-      return "true";
-    }
-
-    // Note: we return null on `dart:io` here, even if we allow users to
-    // unconditionally import it.
-    //
-    // In the past it was invalid to import `dart:io` for client apps. We just
-    // made it valid to import it as a stopgap measure to support packages like
-    // `http`. This is temporary until we support config-imports in the
-    // language.
-    //
-    // Because it is meant to be temporary and because the returned `dart:io`
-    // implementation will throw on most APIs, we still preserve that
-    // when compiling client apps the `dart:io` library is technically not
-    // supported, and so `const bool.fromEnvironment(dart.library.io)` is false.
+    if (supportedLibraries.contains(libraryName)) return "true";
     return null;
   }
 }
@@ -303,3 +218,11 @@ class _Environment implements Environment {
 /// For example 'dart:html' has the environment variable 'dart.library.html' set
 /// to "true".
 const String _dartLibraryEnvironmentPrefix = 'dart.library.';
+
+class _TimingData {
+  final String description;
+  final int milliseconds;
+  final double percent;
+
+  _TimingData(this.description, this.milliseconds, this.percent);
+}

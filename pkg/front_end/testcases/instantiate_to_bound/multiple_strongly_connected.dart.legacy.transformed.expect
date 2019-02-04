@@ -1,0 +1,85 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:9: Error: Type 'T' is a bound of itself via 'U', 'Y', 'Z'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
+//         ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:22: Error: Type 'U' is a bound of itself via 'Y', 'Z', 'T'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
+//                      ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:28: Error: Type 'Y' is a bound of itself via 'Z', 'T', 'U'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+//     X extends Function(V), Y extends Z, Z extends T> {}
+//                            ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:41: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
+// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+//     X extends Function(V), Y extends Z, Z extends T> {}
+//                                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+class B<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X, self::B::Y>
+    : super core::Object::•()
+    ;
+}
+class C<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X, self::C::Y>
+    : super core::Object::•()
+    ;
+}
+class D<X extends self::A<self::D::X> = dynamic, Y extends self::A<self::D::Y> = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::X, self::D::Y>
+    : super core::Object::•()
+    ;
+}
+class E<W extends self::B<self::E::W, self::E::X> = dynamic, X extends self::C<self::E::W, self::E::X> = dynamic, Y extends self::B<self::E::Y, self::E::Z> = dynamic, Z extends self::C<self::E::Y, self::E::Z> = dynamic> extends core::Object {
+  synthetic constructor •() → self::E<self::E::W, self::E::X, self::E::Y, self::E::Z>
+    : super core::Object::•()
+    ;
+}
+class F<V extends core::num = dynamic, W extends self::B<self::F::W, self::F::X> = dynamic, X extends self::C<self::F::W, self::F::X> = dynamic, Y extends self::B<self::F::W, self::F::X> = dynamic, Z extends self::C<self::F::Y, self::F::Z> = dynamic> extends core::Object {
+  synthetic constructor •() → self::F<self::F::V, self::F::W, self::F::X, self::F::Y, self::F::Z>
+    : super core::Object::•()
+    ;
+}
+class G<V extends core::num = dynamic, W extends self::B<self::G::V, self::G::X> = dynamic, X extends self::C<self::G::W, self::G::V> = dynamic, Y extends self::B<self::G::W, self::G::X> = dynamic, Z extends self::C<self::G::Y, self::G::Z> = dynamic> extends core::Object {
+  synthetic constructor •() → self::G<self::G::V, self::G::W, self::G::X, self::G::Y, self::G::Z>
+    : super core::Object::•()
+    ;
+}
+class H<S extends self::A<self::H::S> = dynamic, T extends self::B<self::H::T, self::H::U> = dynamic, U extends self::C<self::H::T, self::H::U> = dynamic, V extends self::A<self::H::V> = dynamic, W extends self::H::S = dynamic, X extends self::H::T = dynamic, Y extends self::H::U = dynamic, Z extends self::H::V = dynamic> extends core::Object {
+  synthetic constructor •() → self::H<self::H::S, self::H::T, self::H::U, self::H::V, self::H::W, self::H::X, self::H::Y, self::H::Z>
+    : super core::Object::•()
+    ;
+}
+class I<T extends self::I::U = dynamic, U extends self::I::Y = dynamic, V extends (self::I::W) → dynamic = dynamic, W extends (self::I::X) → dynamic = dynamic, X extends (self::I::V) → dynamic = dynamic, Y extends self::I::Z = dynamic, Z extends self::I::T = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T, self::I::U, self::I::V, self::I::W, self::I::X, self::I::Y, self::I::Z>
+    : super core::Object::•()
+    ;
+}
+class J<S extends (self::J::U) → self::J::T = dynamic, T extends (self::J::S) → self::J::U = dynamic, U extends (self::J::T) → self::J::S = dynamic, V extends self::J::W = dynamic, W extends self::J::X = dynamic, X extends (self::J::V) → self::J::Y = dynamic, Y extends self::J::Z = dynamic, Z extends self::J::X = dynamic> extends core::Object {
+  synthetic constructor •() → self::J<self::J::S, self::J::T, self::J::U, self::J::V, self::J::W, self::J::X, self::J::Y, self::J::Z>
+    : super core::Object::•()
+    ;
+}
+static field self::D<dynamic, dynamic> d;
+static field self::E<dynamic, dynamic, dynamic, dynamic> e;
+static field self::F<dynamic, dynamic, dynamic, dynamic, dynamic> f;
+static field self::G<dynamic, dynamic, dynamic, dynamic, dynamic> g;
+static field self::H<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic> h;
+static field self::I<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic> i;
+static field self::J<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic> j;
+static method main() → dynamic {}

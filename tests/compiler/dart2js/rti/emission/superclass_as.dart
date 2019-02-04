@@ -8,7 +8,7 @@ import 'package:meta/dart2js.dart';
 /*class: A:checkedInstance,checks=[],instance*/
 class A<T> {}
 
-/*class: B:checks=[]*/
+/*class: B:checks=[],indirectInstance*/
 class B<T, S> {
   @noInline
   method() => new A<S>();

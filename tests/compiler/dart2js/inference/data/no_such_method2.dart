@@ -5,7 +5,11 @@
 /*element: A.:[subclass=B]*/
 abstract class A {
   /*element: A.noSuchMethod:[exact=JSUInt31]*/
-  noSuchMethod(/*[null|subclass=Object]*/ im) => 42;
+  noSuchMethod(
+          /*strong.[null|subclass=Object]*/
+          /*omit.[null|exact=JSInvocationMirror]*/
+          im) =>
+      42;
 }
 
 /*element: B.:[exact=B]*/
@@ -26,7 +30,11 @@ class D implements A {
   foo() => {};
 
   /*element: D.noSuchMethod:[exact=JSDouble]*/
-  noSuchMethod(/*[null|subclass=Object]*/ im) => 42.5;
+  noSuchMethod(
+          /*strong.[null|subclass=Object]*/
+          /*omit.[null|exact=JSInvocationMirror]*/
+          im) =>
+      42.5;
 }
 
 /*element: a:Union([exact=D], [null|subclass=B])*/

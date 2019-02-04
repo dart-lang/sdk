@@ -381,17 +381,20 @@ abstract class _StreamControllerLifecycle<T> {
   Future _recordCancel(StreamSubscription<T> subscription) => null;
 }
 
+// Base type for implementations of stream controllers.
+abstract class _StreamControllerBase<T>
+    implements
+        StreamController<T>,
+        _StreamControllerLifecycle<T>,
+        _EventSink<T>,
+        _EventDispatch<T> {}
+
 /**
  * Default implementation of [StreamController].
  *
  * Controls a stream that only supports a single controller.
  */
-abstract class _StreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+abstract class _StreamController<T> implements _StreamControllerBase<T> {
   // The states are bit-flags. More than one can be set at a time.
   //
   // The "subscription state" goes through the states:
@@ -516,7 +519,7 @@ abstract class _StreamController<T>
   _StreamImplEvents<T> _ensurePendingEvents() {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      if (_varData == null) _varData = new _StreamImplEvents<T>();
+      _varData ??= new _StreamImplEvents<T>();
       return _varData;
     }
     _StreamControllerAddStreamState<T> state = _varData;
@@ -571,9 +574,7 @@ abstract class _StreamController<T>
   Future get done => _ensureDoneFuture();
 
   Future _ensureDoneFuture() {
-    if (_doneFuture == null) {
-      _doneFuture = _isCanceled ? Future._nullFuture : new _Future();
-    }
+    _doneFuture ??= _isCanceled ? Future._nullFuture : new _Future();
     return _doneFuture;
   }
 
@@ -824,9 +825,8 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! _ControllerStream) return false;
-    _ControllerStream otherStream = other;
-    return identical(otherStream._controller, this._controller);
+    return other is _ControllerStream &&
+        identical(other._controller, this._controller);
   }
 }
 
@@ -933,7 +933,7 @@ class _StreamControllerAddStreamState<T> extends _AddStreamState<T> {
   var varData;
 
   _StreamControllerAddStreamState(_StreamController<T> controller, this.varData,
-      Stream source, bool cancelOnError)
+      Stream<T> source, bool cancelOnError)
       : super(controller, source, cancelOnError) {
     if (controller.isPaused) {
       addSubscription.pause();

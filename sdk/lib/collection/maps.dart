@@ -250,7 +250,7 @@ class _MapBaseValueIterable<K, V> extends EfficientLengthIterable<V> {
 class _MapBaseValueIterator<K, V> implements Iterator<V> {
   final Iterator<K> _keys;
   final Map<K, V> _map;
-  V _current = null;
+  V _current;
 
   _MapBaseValueIterator(Map<K, V> map)
       : _map = map,

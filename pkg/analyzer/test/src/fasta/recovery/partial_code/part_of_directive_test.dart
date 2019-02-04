@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -34,7 +34,8 @@ class PartOfDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              'part of "";'),
+              'part of "";',
+              failing: ['mixin']),
         ],
         nonIdentifierSuffixes);
     buildTests(

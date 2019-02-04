@@ -8,13 +8,16 @@ final values = <int>[];
 
 class Mock {
   noSuchMethod(Invocation i) {
-    var expected = i.isGetter ? #_x : const Symbol("_x=");
-    Expect.equals(expected, i.memberName);
+    // See dartbug.com/34904 for why we have to do this dance with symbols.
+    var expected = i.isGetter ? const Symbol("_x") : const Symbol("_x=");
+    Expect.equals(expected.toString(), i.memberName.toString());
     values.add(i.positionalArguments[0]);
   }
 }
 
 class Foo {
+  // Prevent obfuscation of '_x'.
+  @pragma("vm:entry-point")
   int _x;
 }
 

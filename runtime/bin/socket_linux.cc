@@ -10,7 +10,9 @@
 #include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "platform/signal_blocker.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -71,7 +73,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return Connect(fd, addr);
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family,
@@ -85,6 +90,39 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     int optval = 1;
     VOID_NO_RETRY_EXPECTED(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+  }
+
+  if (reusePort) {
+#ifdef SO_REUSEPORT  // Not all Linux versions support this.
+    int optval = 1;
+    int reuse_port_success =
+        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+    // Even if it's defined, we might be running on a kernel
+    // that doesn't support it at runtime.
+    if (reuse_port_success != 0) {
+      if (errno == EINTR) {
+        FATAL("Unexpected EINTR errno");
+      }
+      const int kBufferSize = 1024;
+      char error_buf[kBufferSize];
+      Log::PrintErr("Dart Socket ERROR: %s:%d: %s.", __FILE__, __LINE__,
+                    Utils::StrError(errno, error_buf, kBufferSize));
+    }
+#else   // !defined SO_REUSEPORT
+    Log::PrintErr(
+        "Dart Socket ERROR: %s:%d: `reusePort` not available on this Linux "
+        "version.",
+        __FILE__, __LINE__);
+#endif  // SO_REUSEPORT
+  }
+
+  if (!SocketBase::SetMulticastHops(fd,
+                                    addr.addr.sa_family == AF_INET
+                                        ? SocketAddress::TYPE_IPV4
+                                        : SocketAddress::TYPE_IPV6,
+                                    ttl)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
   }
 
   if (NO_RETRY_EXPECTED(

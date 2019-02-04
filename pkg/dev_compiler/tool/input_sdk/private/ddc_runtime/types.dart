@@ -17,7 +17,7 @@ final metadata = JS('', 'Symbol("metadata")');
 ///     and the type arguments with which it was instantiated.  This
 ///     association can be queried via the "classes" module".
 ///
-///   - All other types are represented as instances of class TypeRep,
+///   - All other types are represented as instances of class [DartType],
 ///     defined in this module.
 ///     - Dynamic, Void, and Bottom are singleton instances of sentinal
 ///       classes.
@@ -52,7 +52,7 @@ final metadata = JS('', 'Symbol("metadata")');
 /// types, etc.)
 // TODO(jmesserly): we shouldn't implement Type here. It should be moved down
 // to AbstractFunctionType.
-class TypeRep implements Type {
+class DartType implements Type {
   String get name => this.toString();
 
   // TODO(jmesserly): these should never be reached, can be make them abstract?
@@ -67,7 +67,7 @@ class TypeRep implements Type {
   check_T(object) => cast(object, this, true);
 }
 
-class DynamicType extends TypeRep {
+class DynamicType extends DartType {
   toString() => 'dynamic';
 
   @JSExportName('is')
@@ -89,7 +89,7 @@ bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 /// because it's not available (such as with mocks). To handle this gracefully,
 /// we disable type checks for in these cases, and allow any JS object to work
 /// as if it were an instance of this JS type.
-class LazyJSType extends TypeRep {
+class LazyJSType extends DartType {
   Function() _getRawJSTypeFn;
   @notNull
   final String _dartName;
@@ -147,7 +147,7 @@ class LazyJSType extends TypeRep {
 /// An anonymous JS type
 ///
 /// For the purposes of subtype checks, these match any JS type.
-class AnonymousJSType extends TypeRep {
+class AnonymousJSType extends DartType {
   final String _dartName;
   AnonymousJSType(this._dartName);
   toString() => _dartName;
@@ -190,33 +190,62 @@ anonymousJSType(String name) {
 @JSExportName('dynamic')
 final _dynamic = DynamicType();
 
-class VoidType extends TypeRep {
+class VoidType extends DartType {
   toString() => 'void';
 }
 
 @JSExportName('void')
 final void_ = VoidType();
 
-class BottomType extends TypeRep {
+class BottomType extends DartType {
   toString() => 'bottom';
 }
 
 final bottom = BottomType();
 
-class JSObjectType extends TypeRep {
+class JSObjectType extends DartType {
   toString() => 'NativeJavaScriptObject';
 }
 
 final jsobject = JSObjectType();
 
-class WrappedType extends Type {
-  final _wrappedType;
-  WrappedType(this._wrappedType);
-  toString() => typeName(_wrappedType);
+/// Dev Compiler's implementation of Type, wrapping its internal [_type].
+class _Type extends Type {
+  /// The internal type representation, either a [DartType] or class constructor
+  /// function.
+  // TODO(jmesserly): introduce InterfaceType so we don't have to special case
+  // classes
+  @notNull
+  final Object _type;
+
+  _Type(this._type);
+
+  toString() => typeName(_type);
+
+  Type get runtimeType => Type;
 }
 
+/// Given an internal runtime type object, wraps it in a `_Type` object
+/// that implements the dart:core Type interface.
+Type wrapType(type) {
+  // If we've already wrapped this type once, use the previous wrapper. This
+  // way, multiple references to the same type return an identical Type.
+  if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
+    return JS('', '#[#]', type, _typeObject);
+  }
+  var result = _Type(type);
+  JS('', '#[#] = #', type, _typeObject, result);
+  return result;
+}
+
+/// The symbol used to store the cached `Type` object associated with a class.
+final _typeObject = JS('', 'Symbol("typeObject")');
+
+/// Given a WrappedType, return the internal runtime type object.
+Object unwrapType(Type obj) => JS<_Type>('', '#', obj)._type;
+
 // Marker class for generic functions, typedefs, and non-generic functions.
-abstract class AbstractFunctionType extends TypeRep {}
+abstract class AbstractFunctionType extends DartType {}
 
 /// Memo table for named argument groups. A named argument packet
 /// {name1 : type1, ..., namen : typen} corresponds to the path
@@ -275,13 +304,6 @@ _canonicalizeNamed(named, map) => JS('', '''(() => {
     key.push(type);
   }
   return $_memoizeArray($map, key, () => $named);
-})()''');
-
-_lookupNonTerminal(map, key) => JS('', '''(() => {
-  let result = $map.get($key);
-  if (result !== void 0) return result;
-  $map.set($key, result = new Map());
-  return result;
 })()''');
 
 // TODO(leafp): This handles some low hanging fruit, but
@@ -436,17 +458,10 @@ class FunctionType extends AbstractFunctionType {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
       // Allow them to subtype all Dart function types.
-      return JS('!', '# == null || !!#', actual, isSubtype(actual, this));
+      return actual == null || isSubtypeOf(actual, this);
     }
     return false;
   }
-
-  static final void Function(Object, Object) _logIgnoredCast =
-      JS('', '''(() => $_ignoreMemo((actual, expected) => {
-        console.warn('Ignoring cast fail from ' + $typeName(actual) +
-                     ' to ' + $typeName(expected));
-        return null;
-        }))()''');
 
   @JSExportName('as')
   as_T(obj, [@notNull bool isImplicit = false]) {
@@ -455,13 +470,8 @@ class FunctionType extends AbstractFunctionType {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
       // Allow them to subtype all Dart function types.
-      if (actual == null) return obj;
-      var result = isSubtype(actual, this);
-      if (result == true) return obj;
-      if (result == null &&
-          isImplicit &&
-          JS<bool>('!', 'dart.__ignoreWhitelistedErrors')) {
-        _logIgnoredCast(actual, this);
+      if (actual == null ||
+          _isSubtypeOrIgnorableCastFailure(actual, this, isImplicit)) {
         return obj;
       }
     }
@@ -472,48 +482,8 @@ class FunctionType extends AbstractFunctionType {
   check_T(obj) => as_T(obj, true);
 }
 
-class Typedef extends AbstractFunctionType {
-  dynamic _name;
-  AbstractFunctionType Function() _closure;
-  AbstractFunctionType _functionType;
-
-  Typedef(this._name, this._closure) {}
-
-  toString() {
-    var typeArgs = getGenericArgs(this);
-    if (typeArgs == null) return name;
-
-    var result = name + '<';
-    var allDynamic = true;
-    for (int i = 0, n = JS('!', '#.length', typeArgs); i < n; ++i) {
-      if (i > 0) result += ', ';
-      var typeArg = JS('', '#[#]', typeArgs, i);
-      if (JS('!', '# !== #', typeArg, _dynamic)) allDynamic = false;
-      result += typeName(typeArg);
-    }
-    result += '>';
-    return allDynamic ? name : result;
-  }
-
-  String get name => JS('!', '#', _name);
-
-  AbstractFunctionType get functionType {
-    var ft = _functionType;
-    return ft == null ? _functionType = _closure() : ft;
-  }
-
-  @JSExportName('is')
-  bool is_T(object) => functionType.is_T(object);
-
-  @JSExportName('as')
-  as_T(object) => functionType.as_T(object);
-
-  @JSExportName('_check')
-  check_T(object) => functionType.check_T(object);
-}
-
 /// A type variable, used by [GenericFunctionType] to represent a type formal.
-class TypeVariable extends TypeRep {
+class TypeVariable extends DartType {
   final String name;
 
   TypeVariable(this.name);
@@ -546,7 +516,7 @@ class GenericFunctionType extends AbstractFunctionType {
     var bounds = instantiateTypeBounds(typeArgs);
     var typeFormals = this.typeFormals;
     for (var i = 0; i < typeArgs.length; i++) {
-      checkTypeBound(typeArgs[i], bounds[i], typeFormals[i]);
+      checkTypeBound(typeArgs[i], bounds[i], typeFormals[i].name);
     }
   }
 
@@ -669,7 +639,7 @@ class GenericFunctionType extends AbstractFunctionType {
   bool is_T(obj) {
     if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
-      return JS('!', '# != null && !!#', actual, isSubtype(actual, this));
+      return actual != null && isSubtypeOf(actual, this);
     }
     return false;
   }
@@ -711,9 +681,6 @@ List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
   }
 }
 
-Typedef typedef(name, AbstractFunctionType Function() closure) =>
-    Typedef(name, closure);
-
 /// Create a function type.
 FunctionType fnType(returnType, List args, [extra = undefined]) =>
     FunctionType.create(returnType, args, extra);
@@ -742,21 +709,23 @@ getFunctionTypeMirror(AbstractFunctionType type) {
   return type;
 }
 
+/// Whether the given JS constructor [obj] is a Dart class type.
+@notNull
 bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
 
-void checkTypeBound(type, bound, name) {
-  // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, it would
-  // be nice to have similar optimizations for the subtype relation.
-  if (JS('!', '#', isSubtype(type, bound))) return;
-
-  throwTypeError('type `$type` does not extend `$bound` of `$name`.');
+void checkTypeBound(
+    @notNull Object type, @notNull Object bound, @notNull String name) {
+  if (!isSubtypeOf(type, bound)) {
+    throwTypeError('type `$type` does not extend `$bound` of `$name`.');
+  }
 }
 
+@notNull
 String typeName(type) => JS('', '''(() => {
   if ($type === void 0) return "undefined type";
   if ($type === null) return "null type";
   // Non-instance types
-  if ($type instanceof $TypeRep) {
+  if ($type instanceof $DartType) {
     return $type.toString();
   }
 
@@ -804,7 +773,7 @@ _isFunctionSubtype(ft1, ft2, isCovariant) => JS('', '''(() => {
 
   for (let i = 0; i < args1.length; ++i) {
     if (!$_isSubtype(args2[i], args1[i], !$isCovariant)) {
-      // Even if isSubtype returns false, assignability
+      // Even if isSubtypeOf returns false, assignability
       // means that we can't be definitive
       return null;
     }
@@ -856,25 +825,29 @@ _isFunctionSubtype(ft1, ft2, isCovariant) => JS('', '''(() => {
   return true;
 })()''');
 
+/// Whether [t1] <: [t2].
+@notNull
+bool isSubtypeOf(Object t1, Object t2) {
+  // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
+  // dispatched on the type. Can we optimize the subtype relation too?
+  return JS('!', '!!#', _isSubtypeOrLegacySubtype(t1, t2));
+}
+
 /// Returns true if [t1] <: [t2].
-/// Returns false if [t1] </: [t2] in both spec and strong mode
-/// Returns undefined if [t1] </: [t2] in strong mode, but spec
-///  mode may differ
-bool isSubtype(t1, t2) {
-  // TODO(leafp): This duplicates code in operations.dart.
-  // I haven't found a way to factor it out that makes the
-  // code generator happy though.
-  var map;
-  bool result;
+/// Returns false if [t1] </: [t2] and we should not ignore this cast failure.
+/// Returns null if [t1] </: [t2] and we should ignore this cast failure when
+/// the appropriate flags are set.
+bool _isSubtypeOrLegacySubtype(Object t1, Object t2) {
+  Object map;
   if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
     JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
+    _cacheMaps.add(map);
   } else {
     map = JS('', '#[#]', t1, _subtypeCache);
-    result = JS('bool|Null', '#.get(#)', map, t2);
+    bool result = JS('', '#.get(#)', map, t2);
     if (JS('!', '# !== void 0', result)) return result;
   }
-  result =
-      JS('bool|Null', '# === # || #(#, #, true)', t1, t2, _isSubtype, t1, t2);
+  var result = _isSubtype(t1, t2, true);
   JS('', '#.set(#, #)', map, t2, result);
   return result;
 }
@@ -893,6 +866,7 @@ bool _isTop(type) {
       type, void_);
 }
 
+@notNull
 bool _isFutureOr(type) =>
     identical(getGenericClass(type), getGenericClass(FutureOr));
 
@@ -960,10 +934,6 @@ bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
 
   // Function subtyping.
   if (!($t1 instanceof $AbstractFunctionType)) return false;
-
-  // Unwrap typedefs.
-  if ($t1 instanceof $Typedef) $t1 = $t1.functionType;
-  if ($t2 instanceof $Typedef) $t2 = $t2.functionType;
 
   // Handle generic functions.
   if ($t1 instanceof $GenericFunctionType) {
@@ -1414,11 +1384,11 @@ class TypeConstraint {
 
   void _constrainLower(Object type) {
     if (lower != null) {
-      if (isSubtype(lower, type)) {
+      if (isSubtypeOf(lower, type)) {
         // nothing to do, existing lower bound is lower than the new one.
         return;
       }
-      if (!isSubtype(type, lower)) {
+      if (!isSubtypeOf(type, lower)) {
         // Neither bound is lower and we don't have GLB, so use bottom type.
         type = unwrapType(Null);
       }
@@ -1428,11 +1398,11 @@ class TypeConstraint {
 
   void _constrainUpper(Object type) {
     if (upper != null) {
-      if (isSubtype(type, upper)) {
+      if (isSubtypeOf(type, upper)) {
         // nothing to do, existing upper bound is higher than the new one.
         return;
       }
-      if (!isSubtype(upper, type)) {
+      if (!isSubtypeOf(upper, type)) {
         // Neither bound is higher and we don't have LUB, so use top type.
         type = unwrapType(Object);
       }

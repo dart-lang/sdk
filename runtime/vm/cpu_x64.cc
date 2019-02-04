@@ -34,8 +34,8 @@ const char* HostCPUFeatures::hardware_ = NULL;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
   sse4_1_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
                       CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");

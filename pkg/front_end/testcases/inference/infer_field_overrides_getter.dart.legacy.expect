@@ -1,0 +1,53 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract get x() → core::int;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 0;
+}
+class C extends self::A {
+  field dynamic x = null;
+  synthetic constructor •() → self::C
+    : super self::A::•()
+    ;
+}
+class D extends self::B {
+  field dynamic x = null;
+  synthetic constructor •() → self::D
+    : super self::B::•()
+    ;
+}
+class E extends core::Object implements self::A {
+  field dynamic x = null;
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+}
+class F extends core::Object implements self::B {
+  field dynamic x = null;
+  synthetic constructor •() → self::F
+    : super core::Object::•()
+    ;
+}
+abstract class _G&Object&B = core::Object with self::B {
+  const synthetic constructor •() → self::_G&Object&B
+    : super core::Object::•()
+    ;
+}
+class G extends self::_G&Object&B {
+  field dynamic x = null;
+  synthetic constructor •() → self::G
+    : super self::_G&Object&B::•()
+    ;
+}
+static method main() → dynamic {}

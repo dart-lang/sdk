@@ -75,6 +75,8 @@ class Simulator {
 
   // High address.
   uword stack_base() const { return stack_base_; }
+  // Limit for StackOverflowError.
+  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // Low address.
   uword stack_limit() const { return stack_limit_; }
 
@@ -82,7 +84,7 @@ class Simulator {
   uint64_t get_icount() const { return icount_; }
 
   // Call on program start.
-  static void InitOnce();
+  static void Init();
 
   // Dart generally calls into generated code with 4 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
@@ -136,6 +138,7 @@ class Simulator {
   int64_t pc_;
   char* stack_;
   uword stack_limit_;
+  uword overflow_stack_limit_;
   uword stack_base_;
   bool pc_modified_;
   uint64_t icount_;

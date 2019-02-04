@@ -10,26 +10,49 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         Class,
+        Constructor,
         ConstructorInvocation,
         DartType,
         DynamicType,
         Expression,
         Field,
+        FunctionNode,
+        FunctionType,
+        InterfaceType,
         Library,
         LibraryDependency,
         LibraryPart,
+        ListLiteral,
+        MapLiteral,
         Member,
         Name,
         Procedure,
         ProcedureKind,
+        SetLiteral,
         StaticInvocation,
         StringLiteral,
+        Supertype,
         TreeNode,
         Typedef,
+        TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VoidType;
 
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import 'package:kernel/clone.dart' show CloneVisitor;
+
+import 'package:kernel/src/bounds_checks.dart'
+    show
+        TypeArgumentIssue,
+        findTypeArgumentIssues,
+        findTypeArgumentIssuesForInvocation,
+        getGenericTypeName;
+
+import 'package:kernel/type_algebra.dart' show substitute;
+
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../scanner/token.dart' show Token;
 
@@ -37,10 +60,13 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         messageConflictsWithTypeVariableCause,
         messageGenericFunctionTypeInBound,
+        messageGenericFunctionTypeUsedAsActualTypeArgument,
+        messageIncorrectTypeArgumentVariable,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         noLength,
@@ -50,7 +76,14 @@ import '../fasta_codes.dart'
         templateDuplicatedImport,
         templateDuplicatedImportInType,
         templateExportHidesExport,
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateImportHidesImport,
+        templateIncorrectTypeArgument,
+        templateIncorrectTypeArgumentInReturnType,
+        templateIncorrectTypeArgumentInferred,
+        templateIncorrectTypeArgumentQualified,
+        templateIncorrectTypeArgumentQualifiedInferred,
+        templateIntersectionTypeAsTypeArgument,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
@@ -62,14 +95,24 @@ import '../import.dart' show Import;
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
-    show abstractMask, namedMixinApplicationMask, staticMask;
+    show
+        abstractMask,
+        hasInitializerMask,
+        initializingFormalMask,
+        mixinDeclarationMask,
+        namedMixinApplicationMask,
+        staticMask;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../severity.dart' show Severity;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
     show DeclarationBuilder, SourceLibraryBuilder;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import 'kernel_builder.dart'
     show
@@ -79,7 +122,9 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         DynamicTypeBuilder,
+        EnumConstantInfo,
         FormalParameterBuilder,
+        ImplicitType,
         InvalidTypeBuilder,
         KernelClassBuilder,
         KernelConstructorBuilder,
@@ -100,6 +145,7 @@ import 'kernel_builder.dart'
         LoadLibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NameIterator,
         PrefixBuilder,
         ProcedureBuilder,
         QualifiedName,
@@ -138,6 +184,11 @@ class KernelLibraryBuilder
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
 
+  // List of types inferred in the outline.  Errors in these should be reported
+  // differently than for specified types.
+  // TODO(dmitryas):  Find a way to mark inferred types.
+  final Set<DartType> inferredTypes = new Set<DartType>.identity();
+
   /// Exports that can't be serialized.
   ///
   /// The key is the name of the exported member.
@@ -148,6 +199,8 @@ class KernelLibraryBuilder
   /// Otherwise, this represents an error (an ambiguous export). In this case,
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
+
+  List<KernelFormalParameterBuilder> untypedInitializingFormals;
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
@@ -188,6 +241,26 @@ class KernelLibraryBuilder
           const VoidType(), this, charOffset));
   }
 
+  @override
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity,
+      bool problemOnLibrary: false}) {
+    FormattedMessage formattedMessage = super.addProblem(
+        message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: true);
+    if (formattedMessage != null) {
+      target.problemsAsJson ??= <String>[];
+      target.problemsAsJson.add(formattedMessage.toJsonString());
+    }
+    return formattedMessage;
+  }
+
   void addClass(
       String documentationComment,
       List<MetadataBuilder> metadata,
@@ -214,14 +287,19 @@ class KernelLibraryBuilder
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
-    Scope constructorScope = new Scope(constructors, null, null, "constructors",
-        isModifiable: false);
+    Scope constructorScope =
+        new Scope(constructors, null, null, className, isModifiable: false);
+    bool isMixinDeclaration = false;
+    if (modifiers & mixinDeclarationMask != 0) {
+      isMixinDeclaration = true;
+      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, supertypeOffset, className,
+        applyMixins(supertype, charOffset, className, isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,
         classScope,
@@ -230,7 +308,8 @@ class KernelLibraryBuilder
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         startCharOffset,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        isMixinDeclaration: isMixinDeclaration);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
 
@@ -296,8 +375,8 @@ class KernelLibraryBuilder
     return typeVariablesByName;
   }
 
-  KernelTypeBuilder applyMixins(
-      KernelTypeBuilder type, int charOffset, String subclassName,
+  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
+      String subclassName, bool isMixinDeclaration,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
@@ -375,32 +454,33 @@ class KernelLibraryBuilder
         }
       }
 
-      /// The type variables used in [supertype] and the current mixin.
-      Map<String, TypeVariableBuilder> usedTypeVariables;
+      /// Helper function that returns `true` if a type variable with a name
+      /// from [typeVariableNames] is referenced in [type].
+      bool usesTypeVariables(KernelTypeBuilder type) {
+        if (type is KernelNamedTypeBuilder) {
+          if (type.declaration is KernelTypeVariableBuilder) {
+            return typeVariableNames.contains(type.declaration.name);
+          }
 
-      /// Helper function that updates [usedTypeVariables]. It needs to be
-      /// called twice per iteration: once on supertype and once on the current
-      /// mixin.
-      void computeUsedTypeVariables(KernelNamedTypeBuilder type) {
-        List<KernelTypeBuilder> typeArguments = type.arguments;
-        if (typeArguments != null && typeVariables != null) {
-          for (KernelTypeBuilder argument in typeArguments) {
-            if (typeVariableNames.contains(argument.name)) {
-              usedTypeVariables ??= <String, TypeVariableBuilder>{};
-              KernelTypeVariableBuilder freshTypeVariable =
-                  (usedTypeVariables[argument.name] ??=
-                      addTypeVariable(argument.name, null, charOffset));
-              // Notice that [argument] may have been created below as part of
-              // [applicationTypeArguments] and have to be rebound now
-              // (otherwise it would refer to a type variable in the subclass).
-              argument.bind(freshTypeVariable);
-            } else {
-              if (argument is KernelNamedTypeBuilder) {
-                computeUsedTypeVariables(argument);
+          List<KernelTypeBuilder> typeArguments = type.arguments;
+          if (typeArguments != null && typeVariables != null) {
+            for (KernelTypeBuilder argument in typeArguments) {
+              if (usesTypeVariables(argument)) {
+                return true;
               }
             }
           }
+        } else if (type is KernelFunctionTypeBuilder) {
+          if (type.formals != null) {
+            for (FormalParameterBuilder formal in type.formals) {
+              if (usesTypeVariables(formal.type)) {
+                return true;
+              }
+            }
+          }
+          return usesTypeVariables(type.returnType);
         }
+        return false;
       }
 
       /// Iterate over the mixins from left to right. At the end of each
@@ -409,14 +489,14 @@ class KernelLibraryBuilder
       for (int i = 0; i < type.mixins.length; i++) {
         KernelTypeBuilder mixin = type.mixins[i];
         isNamedMixinApplication = name != null && mixin == type.mixins.last;
-        usedTypeVariables = null;
+        bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (supertype is KernelNamedTypeBuilder) {
-            computeUsedTypeVariables(supertype);
+            isGeneric = isGeneric || usesTypeVariables(supertype);
           }
           if (mixin is KernelNamedTypeBuilder) {
             runningName += "&${extractName(mixin.name)}";
-            computeUsedTypeVariables(mixin);
+            isGeneric = isGeneric || usesTypeVariables(mixin);
           }
         }
         String fullname =
@@ -430,20 +510,42 @@ class KernelLibraryBuilder
         } else {
           // Otherwise, we pass the fresh type variables to the mixin
           // application in the same order as they're declared on the subclass.
-          if (usedTypeVariables != null) {
-            applicationTypeVariables = <TypeVariableBuilder>[];
+          if (isGeneric) {
+            this.beginNestedDeclaration("mixin application");
+
+            applicationTypeVariables =
+                copyTypeVariables(typeVariables, currentDeclaration);
+
+            List<TypeBuilder> newTypes = <TypeBuilder>[];
+            if (supertype is KernelNamedTypeBuilder &&
+                supertype.arguments != null) {
+              for (int i = 0; i < supertype.arguments.length; ++i) {
+                supertype.arguments[i] = supertype.arguments[i].clone(newTypes);
+              }
+            }
+            if (mixin is KernelNamedTypeBuilder && mixin.arguments != null) {
+              for (int i = 0; i < mixin.arguments.length; ++i) {
+                mixin.arguments[i] = mixin.arguments[i].clone(newTypes);
+              }
+            }
+            for (TypeBuilder newType in newTypes) {
+              currentDeclaration.addType(
+                  new UnresolvedType<KernelTypeBuilder>(newType, -1, null));
+            }
+
+            DeclarationBuilder mixinDeclaration =
+                this.endNestedDeclaration("mixin application");
+            mixinDeclaration.resolveTypes(applicationTypeVariables, this);
+
             applicationTypeArguments = <KernelTypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
-              TypeVariableBuilder freshTypeVariable =
-                  usedTypeVariables[typeVariable.name];
-              if (freshTypeVariable != null) {
-                applicationTypeVariables.add(freshTypeVariable);
-                applicationTypeArguments.add(
-                    addNamedType(typeVariable.name, null, charOffset)..bind(
-                        // This may be rebound in the next iteration when
-                        // calling [computeUsedTypeVariables].
-                        typeVariable));
-              }
+              applicationTypeArguments
+                  .add(addNamedType(typeVariable.name, null, charOffset)..bind(
+                      // The type variable types passed as arguments to the
+                      // generic class representing the anonymous mixin
+                      // application should refer back to the type variables of
+                      // the class that extend the anonymous mixin application.
+                      typeVariable));
             }
           }
         }
@@ -458,20 +560,21 @@ class KernelLibraryBuilder
                 : abstractMask,
             fullname,
             applicationTypeVariables,
-            supertype,
-            isNamedMixinApplication ? interfaces : null,
+            isMixinDeclaration ? null : supertype,
+            isNamedMixinApplication
+                ? interfaces
+                : isMixinDeclaration ? [supertype, mixin] : null,
             new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
                 scope.withTypeVariables(typeVariables),
                 "mixin $fullname ", isModifiable: false),
-            new Scope(<String, MemberBuilder>{}, null, null, "constructors",
+            new Scope(<String, MemberBuilder>{}, null, null, fullname,
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],
             startCharOffset,
             charOffset,
             TreeNode.noOffset,
-            null,
-            mixin);
+            mixedInType: isMixinDeclaration ? null : mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);
@@ -502,7 +605,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(
-        mixinApplication, charOffset, name,
+        mixinApplication, charOffset, name, false,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
@@ -520,13 +623,21 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       int charOffset,
+      int charEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
-    var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
-        charOffset, initializerTokenForInference, hasInitializer);
-    addBuilder(name, builder, charOffset);
+    if (hasInitializer) {
+      modifiers |= hasInitializerMask;
+    }
+    KernelFieldBuilder field = new KernelFieldBuilder(
+        metadata, type, name, modifiers, this, charOffset, charEndOffset);
+    addBuilder(name, field, charOffset);
+    if (initializerTokenForInference != null) {
+      assert(type == null);
+      field.target.type = new ImplicitType(field, initializerTokenForInference);
+    }
     loader.target.metadataCollector
-        ?.setDocumentationComment(builder.target, documentationComment);
+        ?.setDocumentationComment(field.target, documentationComment);
   }
 
   void addConstructor(
@@ -557,6 +668,11 @@ class KernelLibraryBuilder
         charOpenParenOffset,
         charEndOffset,
         nativeMethodName);
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        formals[i].parent = procedure;
+      }
+    }
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
@@ -691,22 +807,17 @@ class KernelLibraryBuilder
     }
   }
 
+  @override
   void addEnum(
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(
-        metadataCollector,
-        metadata,
-        name,
-        constantNamesAndOffsets,
-        this,
-        charOffset,
-        charEndOffset);
+    KernelEnumBuilder builder = new KernelEnumBuilder(metadataCollector,
+        metadata, name, enumConstantInfos, this, charOffset, charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);
@@ -750,8 +861,16 @@ class KernelLibraryBuilder
       String name,
       bool hasThis,
       int charOffset) {
-    return new KernelFormalParameterBuilder(
-        metadata, modifiers, type, name, hasThis, this, charOffset);
+    if (hasThis) {
+      modifiers |= initializingFormalMask;
+    }
+    KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
+        metadata, modifiers, type, name, this, charOffset);
+    if (legacyMode && hasThis && type == null) {
+      (untypedInitializingFormals ??= <KernelFormalParameterBuilder>[])
+          .add(formal);
+    }
+    return formal;
   }
 
   KernelTypeVariableBuilder addTypeVariable(
@@ -796,11 +915,24 @@ class KernelLibraryBuilder
       return;
     }
     if (cls != null) {
+      if (declaration.next != null) {
+        int count = 0;
+        Declaration current = declaration.next;
+        while (current != null) {
+          count++;
+          current = current.next;
+        }
+        cls.name += "#$count";
+      }
       library.addClass(cls);
     } else if (member != null) {
-      library.addMember(member);
+      if (declaration.next == null) {
+        library.addMember(member);
+      }
     } else if (typedef != null) {
-      library.addTypedef(typedef);
+      if (declaration.next == null) {
+        library.addTypedef(typedef);
+      }
     }
   }
 
@@ -881,6 +1013,7 @@ class KernelLibraryBuilder
 
     if (modifyTarget == false) return library;
 
+    library.isSynthetic = isSynthetic;
     addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector
@@ -1048,6 +1181,7 @@ class KernelLibraryBuilder
           return unhandled(
               "null", forwarder.name.name, origin.fileOffset, origin.fileUri);
         }
+        if (originNamed.initializer == null) continue;
         forwarderNamed.initializer = cloner.clone(originNamed.initializer);
         forwarderNamed.initializer.parent = forwarderNamed;
       }
@@ -1101,11 +1235,11 @@ class KernelLibraryBuilder
 
     int computeDefaultTypesForVariables(
         List<TypeVariableBuilder<TypeBuilder, Object>> variables,
-        bool strongMode) {
+        bool legacyMode) {
       if (variables == null) return 0;
 
       bool haveErroneousBounds = false;
-      if (strongMode) {
+      if (!legacyMode) {
         for (int i = 0; i < variables.length; ++i) {
           TypeVariableBuilder<TypeBuilder, Object> variable = variables[i];
           List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
@@ -1127,7 +1261,7 @@ class KernelLibraryBuilder
         }
       }
 
-      if (!strongMode || haveErroneousBounds) {
+      if (legacyMode || haveErroneousBounds) {
         // In Dart 1, put `dynamic` everywhere.
         for (int i = 0; i < variables.length; ++i) {
           variables[i].defaultType = dynamicType;
@@ -1149,47 +1283,47 @@ class KernelLibraryBuilder
       }
     }
 
-    bool strongMode = loader.target.strongMode;
+    bool legacyMode = loader.target.legacyMode;
     for (var declaration in libraryDeclaration.members.values) {
       if (declaration is KernelClassBuilder) {
         {
-          List<Object> issues = strongMode
-              ? getNonSimplicityIssuesForDeclaration(declaration,
-                  performErrorRecovery: true)
-              : const <Object>[];
+          List<Object> issues = legacyMode
+              ? const <Object>[]
+              : getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true);
           reportIssues(issues);
-          // In case of issues, use non-strong mode for error recovery.
+          // In case of issues, use legacy mode for error recovery.
           count += computeDefaultTypesForVariables(
-              declaration.typeVariables, strongMode && issues.length == 0);
+              declaration.typeVariables, legacyMode || issues.isNotEmpty);
         }
         declaration.forEach((String name, Declaration member) {
           if (member is KernelProcedureBuilder) {
-            List<Object> issues = strongMode
-                ? getNonSimplicityIssuesForTypeVariables(member.typeVariables)
-                : const <Object>[];
+            List<Object> issues = legacyMode
+                ? const <Object>[]
+                : getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             reportIssues(issues);
-            // In case of issues, use non-strong mode for error recovery.
+            // In case of issues, use legacy mode for error recovery.
             count += computeDefaultTypesForVariables(
-                member.typeVariables, strongMode && issues.length == 0);
+                member.typeVariables, legacyMode || issues.isNotEmpty);
           }
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
-        List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForDeclaration(declaration,
-                performErrorRecovery: true)
-            : const <Object>[];
+        List<Object> issues = legacyMode
+            ? const <Object>[]
+            : getNonSimplicityIssuesForDeclaration(declaration,
+                performErrorRecovery: true);
         reportIssues(issues);
-        // In case of issues, use non-strong mode for error recovery.
+        // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
-            declaration.typeVariables, strongMode && issues.length == 0);
+            declaration.typeVariables, legacyMode || issues.isNotEmpty);
       } else if (declaration is KernelFunctionBuilder) {
-        List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForTypeVariables(declaration.typeVariables)
-            : const <Object>[];
+        List<Object> issues = legacyMode
+            ? const <Object>[]
+            : getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         reportIssues(issues);
-        // In case of issues, use non-strong mode for error recovery.
+        // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
-            declaration.typeVariables, strongMode && issues.length == 0);
+            declaration.typeVariables, legacyMode || issues.isNotEmpty);
       }
     }
 
@@ -1197,10 +1331,17 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(covariant KernelLibraryBuilder part, Set<Uri> usedParts) {
-    super.includePart(part, usedParts);
+  void includePart(
+      covariant KernelLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
+    super.includePart(part, usedParts, partOffset);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+    // Check that the targets are different. This is not normally a problem
+    // but is for patch files.
+    if (target != part.target && part.target.problemsAsJson != null) {
+      target.problemsAsJson ??= <String>[];
+      target.problemsAsJson.addAll(part.target.problemsAsJson);
+    }
   }
 
   @override
@@ -1230,7 +1371,10 @@ class KernelLibraryBuilder
   @override
   void applyPatches() {
     if (!isPatch) return;
-    origin.forEach((String name, Declaration member) {
+    NameIterator originDeclarations = origin.nameIterator;
+    while (originDeclarations.moveNext()) {
+      String name = originDeclarations.name;
+      Declaration member = originDeclarations.current;
       bool isSetter = member.isSetter;
       Declaration patch = isSetter ? scope.setters[name] : scope.local[name];
       if (patch != null) {
@@ -1248,8 +1392,11 @@ class KernelLibraryBuilder
           scopeBuilder.addMember(name, member);
         }
       }
-    });
-    forEach((String name, Declaration member) {
+    }
+    NameIterator patchDeclarations = nameIterator;
+    while (patchDeclarations.moveNext()) {
+      String name = patchDeclarations.name;
+      Declaration member = patchDeclarations.current;
       // We need to inject all non-patch members into the origin library. This
       // should only apply to private members.
       if (member.isPatch) {
@@ -1259,15 +1406,16 @@ class KernelLibraryBuilder
       } else {
         origin.exportMemberFromPatch(name, member);
       }
-    });
+    }
   }
 
   int finishPatchMethods() {
     if (!isPatch) return 0;
     int count = 0;
-    forEach((String name, Declaration member) {
-      count += member.finishPatch();
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      count += iterator.current.finishPatch();
+    }
     return count;
   }
 
@@ -1295,6 +1443,340 @@ class KernelLibraryBuilder
     assert((member.isSetter && scope.setters[name] == null) ||
         (!member.isSetter && scope.local[name] == null));
     addToExportScope(name, member);
+  }
+
+  void reportTypeArgumentIssues(List<TypeArgumentIssue> issues, int offset,
+      {bool inferred, DartType targetReceiver, String targetName}) {
+    for (TypeArgumentIssue issue in issues) {
+      DartType argument = issue.argument;
+      TypeParameter typeParameter = issue.typeParameter;
+
+      Message message;
+      bool issueInferred = inferred ?? inferredTypes.contains(argument);
+      if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (issueInferred) {
+          message = templateGenericFunctionTypeInferredAsActualTypeArgument
+              .withArguments(argument);
+        } else {
+          message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+        }
+        typeParameter = null;
+      } else if (argument is TypeParameterType &&
+          argument.promotedBound != null) {
+        addProblem(
+            templateIntersectionTypeAsTypeArgument.withArguments(
+                typeParameter.name, argument, argument.promotedBound),
+            offset,
+            noLength,
+            fileUri);
+        continue;
+      } else {
+        if (issue.enclosingType == null && targetReceiver != null) {
+          if (issueInferred) {
+            message =
+                templateIncorrectTypeArgumentQualifiedInferred.withArguments(
+                    argument,
+                    typeParameter.bound,
+                    typeParameter.name,
+                    targetReceiver,
+                    targetName);
+          } else {
+            message = templateIncorrectTypeArgumentQualified.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                targetReceiver,
+                targetName);
+          }
+        } else {
+          String enclosingName = issue.enclosingType == null
+              ? targetName
+              : getGenericTypeName(issue.enclosingType);
+          assert(enclosingName != null);
+          if (issueInferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(argument,
+                typeParameter.bound, typeParameter.name, enclosingName);
+          }
+        }
+      }
+
+      reportTypeArgumentIssue(message, offset, typeParameter);
+    }
+  }
+
+  void reportTypeArgumentIssue(
+      Message message, int fileOffset, TypeParameter typeParameter) {
+    List<LocatedMessage> context;
+    if (typeParameter != null && typeParameter.fileOffset != -1) {
+      // It looks like when parameters come from patch files, they don't
+      // have a reportable location.
+      context = <LocatedMessage>[
+        messageIncorrectTypeArgumentVariable.withLocation(
+            typeParameter.location.file, typeParameter.fileOffset, noLength)
+      ];
+    }
+    addProblem(message, fileOffset, noLength, fileUri, context: context);
+  }
+
+  void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInType(field.type, typeEnvironment, field.fileOffset,
+        allowSuperBounded: true);
+  }
+
+  void checkBoundsInFunctionNodeParts(
+      TypeEnvironment typeEnvironment, int fileOffset,
+      {List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      DartType returnType}) {
+    if (loader.target.legacyMode) return;
+    if (typeParameters != null) {
+      for (TypeParameter parameter in typeParameters) {
+        checkBoundsInType(
+            parameter.bound, typeEnvironment, parameter.fileOffset,
+            allowSuperBounded: false);
+      }
+    }
+    if (positionalParameters != null) {
+      for (VariableDeclaration formal in positionalParameters) {
+        checkBoundsInType(formal.type, typeEnvironment, formal.fileOffset,
+            allowSuperBounded: true);
+      }
+    }
+    if (namedParameters != null) {
+      for (VariableDeclaration named in namedParameters) {
+        checkBoundsInType(named.type, typeEnvironment, named.fileOffset,
+            allowSuperBounded: true);
+      }
+    }
+    if (returnType != null) {
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          returnType, typeEnvironment,
+          allowSuperBounded: true);
+      if (issues != null) {
+        int offset = fileOffset;
+        for (TypeArgumentIssue issue in issues) {
+          DartType argument = issue.argument;
+          TypeParameter typeParameter = issue.typeParameter;
+
+          // We don't need to check if [argument] was inferred or specified
+          // here, because inference in return types boils down to instantiate-
+          // -to-bound, and it can't provide a type that violates the bound.
+          Message message;
+          if (argument is FunctionType && argument.typeParameters.length > 0) {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+            typeParameter = null;
+          } else {
+            message = templateIncorrectTypeArgumentInReturnType.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                getGenericTypeName(issue.enclosingType));
+          }
+
+          reportTypeArgumentIssue(message, offset, typeParameter);
+        }
+      }
+    }
+  }
+
+  void checkBoundsInFunctionNode(
+      FunctionNode function, TypeEnvironment typeEnvironment) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInFunctionNodeParts(typeEnvironment, function.fileOffset,
+        typeParameters: function.typeParameters,
+        positionalParameters: function.positionalParameters,
+        namedParameters: function.namedParameters,
+        returnType: function.returnType);
+  }
+
+  void checkBoundsInListLiteral(
+      ListLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInSetLiteral(SetLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInMapLiteral(MapLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInType(node.keyType, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+    checkBoundsInType(node.valueType, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInType(
+      DartType type, TypeEnvironment typeEnvironment, int offset,
+      {bool inferred, bool allowSuperBounded = true}) {
+    if (loader.target.legacyMode) return;
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        type, typeEnvironment,
+        allowSuperBounded: allowSuperBounded);
+    if (issues != null) {
+      reportTypeArgumentIssues(issues, offset, inferred: inferred);
+    }
+  }
+
+  void checkBoundsInVariableDeclaration(
+      VariableDeclaration node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    if (node.type == null) return;
+    checkBoundsInType(node.type, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInConstructorInvocation(
+      ConstructorInvocation node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    if (node.arguments.types.isEmpty) return;
+    Constructor constructor = node.target;
+    Class klass = constructor.enclosingClass;
+    DartType constructedType = new InterfaceType(klass, node.arguments.types);
+    checkBoundsInType(constructedType, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: false);
+  }
+
+  void checkBoundsInFactoryInvocation(
+      StaticInvocation node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    if (node.arguments.types.isEmpty) return;
+    Procedure factory = node.target;
+    assert(factory.isFactory);
+    Class klass = factory.enclosingClass;
+    DartType constructedType = new InterfaceType(klass, node.arguments.types);
+    checkBoundsInType(constructedType, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: false);
+  }
+
+  void checkBoundsInStaticInvocation(
+      StaticInvocation node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    if (node.arguments.types.isEmpty) return;
+    Class klass = node.target.enclosingClass;
+    List<TypeParameter> parameters = node.target.function.typeParameters;
+    List<DartType> arguments = node.arguments.types;
+    // The following error is to be reported elsewhere.
+    if (parameters.length != arguments.length) return;
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        parameters, arguments, typeEnvironment);
+    if (issues != null) {
+      DartType targetReceiver;
+      if (klass != null) {
+        targetReceiver = new InterfaceType(klass);
+      }
+      String targetName = node.target.name.name;
+      reportTypeArgumentIssues(issues, node.fileOffset,
+          inferred: inferred,
+          targetReceiver: targetReceiver,
+          targetName: targetName);
+    }
+  }
+
+  void checkBoundsInMethodInvocation(
+      DartType receiverType,
+      TypeEnvironment typeEnvironment,
+      ClassHierarchy hierarchy,
+      TypeInferrerImpl typeInferrer,
+      Name name,
+      Member interfaceTarget,
+      Arguments arguments,
+      int offset,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    if (arguments.types.isEmpty) return;
+    Class klass;
+    List<DartType> receiverTypeArguments;
+    if (receiverType is InterfaceType) {
+      klass = receiverType.classNode;
+      receiverTypeArguments = receiverType.typeArguments;
+    } else {
+      return;
+    }
+    // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
+    Member method = hierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
+    if (method == null || method is! Procedure) {
+      return;
+    }
+    if (klass != method.enclosingClass) {
+      Supertype parent =
+          hierarchy.getClassAsInstanceOf(klass, method.enclosingClass);
+      klass = method.enclosingClass;
+      receiverTypeArguments = parent.typeArguments;
+    }
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    for (int i = 0; i < receiverTypeArguments.length; ++i) {
+      substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
+    }
+    List<TypeParameter> methodParameters = method.function.typeParameters;
+    // The error is to be reported elsewhere.
+    if (methodParameters.length != arguments.types.length) return;
+    List<TypeParameter> instantiatedMethodParameters =
+        new List<TypeParameter>.filled(methodParameters.length, null);
+    for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
+      instantiatedMethodParameters[i] =
+          new TypeParameter(methodParameters[i].name);
+      substitutionMap[methodParameters[i]] =
+          new TypeParameterType(instantiatedMethodParameters[i]);
+    }
+    for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
+      instantiatedMethodParameters[i].bound =
+          substitute(methodParameters[i].bound, substitutionMap);
+    }
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        instantiatedMethodParameters, arguments.types, typeEnvironment);
+    if (issues != null) {
+      reportTypeArgumentIssues(issues, offset,
+          inferred: inferred,
+          targetReceiver: receiverType,
+          targetName: name.name);
+    }
+  }
+
+  void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
+    if (loader.target.legacyMode) return;
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Declaration declaration = iterator.current;
+      if (declaration is KernelFieldBuilder) {
+        checkBoundsInField(declaration.target, typeEnvironment);
+      } else if (declaration is KernelProcedureBuilder) {
+        checkBoundsInFunctionNode(declaration.target.function, typeEnvironment);
+      } else if (declaration is KernelClassBuilder) {
+        declaration.checkBoundsInOutline(typeEnvironment);
+      }
+    }
+    inferredTypes.clear();
+  }
+
+  @override
+  int finalizeInitializingFormals() {
+    if (!legacyMode || untypedInitializingFormals == null) return 0;
+    for (int i = 0; i < untypedInitializingFormals.length; i++) {
+      untypedInitializingFormals[i].finalizeInitializingFormal();
+    }
+    int count = untypedInitializingFormals.length;
+    untypedInitializingFormals = null;
+    return count;
   }
 }
 

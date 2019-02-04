@@ -6,7 +6,7 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show Message, templateUnexpectedToken;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -17,6 +17,8 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'member_kind.dart' show MemberKind;
+
+import 'util.dart' show optional;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -249,8 +251,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Export");
   }
 
-  void beginExpressionStatement(Token token) {}
-
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.
@@ -258,7 +258,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExtraneousExpression");
   }
 
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     logEvent("ExpressionStatement");
   }
 
@@ -301,12 +301,35 @@ class Listener implements UnescapeErrorListener {
     logEvent("Fields");
   }
 
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was an empty statement.
+  void handleForInitializerEmptyStatement(Token token) {
+    logEvent("ForInitializerEmptyStatement");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was an expression statement.
+  void handleForInitializerExpressionStatement(Token token) {
+    logEvent("ForInitializerExpressionStatement");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was a `localVariableDeclaration`.
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    logEvent("ForInitializerLocalVariableDeclaration");
+  }
+
   /// Marks the start of a for statement which is ended by either
   /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
 
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  /// Marks the end of parsing the control structure of a for statement
+  /// or for control flow entry up to and including the closing parenthesis.
+  /// `for` `(` initialization `;` condition `;` updaters `)`
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {}
+
+  void endForStatement(Token endToken) {
     logEvent("ForStatement");
   }
 
@@ -316,9 +339,14 @@ class Listener implements UnescapeErrorListener {
     logEvent("ForStatementBody");
   }
 
+  /// Marks the end of parsing the control structure of a for-in statement
+  /// or for control flow entry up to and including the closing parenthesis.
+  /// `for` `(` (type)? identifier `in` iterator `)`
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {}
+
   // One of the two possible corresponding end events for [beginForStatement].
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void endForIn(Token endToken) {
     logEvent("ForIn");
   }
 
@@ -660,9 +688,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("LibraryName");
   }
 
-  void beginLiteralMapEntry(Token token) {}
-
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     logEvent("LiteralMapEntry");
   }
 
@@ -917,8 +943,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     logEvent("Type");
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle nullable types
+  void reportErrorIfNullableType(Token questionMark) {
+    if (questionMark != null) {
+      assert(optional('?', questionMark));
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(questionMark),
+          questionMark,
+          questionMark);
+    }
   }
 
   void handleNoName(Token token) {
@@ -933,7 +971,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type variables
   /// - Return type
   /// - Formal parameters
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     logEvent("FunctionType");
   }
 
@@ -941,6 +979,12 @@ class Listener implements UnescapeErrorListener {
 
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     logEvent("TypeArguments");
+  }
+
+  /// After endTypeArguments has been called,
+  /// this event is called if those type arguments are invalid.
+  void handleInvalidTypeArguments(Token token) {
+    logEvent("NoTypeArguments");
   }
 
   void handleNoTypeArguments(Token token) {
@@ -1040,6 +1084,50 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstExpression");
   }
 
+  /// Called before parsing a "for" control flow list, set, or map entry.
+  void beginForControlFlow(Token awaitToken, Token forToken) {}
+
+  /// Called after parsing a "for" control flow list, set, or map entry.
+  void endForControlFlow(Token token) {
+    logEvent('endForControlFlow');
+  }
+
+  /// Called after parsing a "for-in" control flow list, set, or map entry.
+  void endForInControlFlow(Token token) {
+    logEvent('endForInControlFlow');
+  }
+
+  /// Called before parsing an `if` control flow list, set, or map entry.
+  void beginIfControlFlow(Token ifToken) {}
+
+  /// Called before parsing the `else` portion of an `if` control flow list,
+  /// set, or map entry.
+  void handleElseControlFlow(Token elseToken) {}
+
+  /// Called after parsing an `if` control flow list, set, or map entry.
+  /// Substructures:
+  /// - if conditional expression
+  /// - expression
+  void endIfControlFlow(Token token) {
+    logEvent("endIfControlFlow");
+  }
+
+  /// Called after parsing an if-else control flow list, set, or map entry.
+  /// Substructures:
+  /// - if conditional expression
+  /// - then expression
+  /// - else expression
+  void endIfElseControlFlow(Token token) {
+    logEvent("endIfElseControlFlow");
+  }
+
+  /// Called after parsing a list, set, or map entry that starts with
+  /// one of the spread collection tokens `...` or `...?`.  Substructures:
+  /// - expression
+  void handleSpreadExpression(Token spreadToken) {
+    logEvent("SpreadExpression");
+  }
+
   /// Handle the start of a function typed formal parameter.  Substructures:
   /// - type variables
   void beginFunctionTypedFormalParameter(Token token) {}
@@ -1117,6 +1205,16 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralMap");
   }
 
+  void handleLiteralSet(
+      int count, Token beginToken, Token constKeyword, Token token) {
+    logEvent("LiteralSet");
+  }
+
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    logEvent('LiteralSetOrMap');
+  }
+
   void handleLiteralNull(Token token) {
     logEvent("LiteralNull");
   }
@@ -1137,10 +1235,6 @@ class Listener implements UnescapeErrorListener {
 
   void handleNoArguments(Token token) {
     logEvent("NoArguments");
-  }
-
-  void handleNoExpression(Token token) {
-    logEvent("NoExpression");
   }
 
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {

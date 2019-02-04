@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35266.dart:8:11: Error: 'B.foo' is already declared in this scope.
+//   factory B.foo() = B<T>;
+//           ^^^^^
+// pkg/front_end/testcases/regress/issue_35266.dart:7:11: Context: Previous declaration of 'B.foo'.
+//   factory B.foo() = B<T>;
+//           ^^^^^
+//
+// pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Can't use 'B.foo' because it is declared more than once.
+//   factory C.bar() = B<K>.foo;
+//           ^
+//
+// pkg/front_end/testcases/regress/issue_35266.dart:13:11: Warning: Method not found: 'B.foo'.
+//   factory C.bar() = B<K>.foo;
+//           ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Object = dynamic> extends self::C<self::B::T> {
+  static field dynamic _redirecting# = <dynamic>[self::B::foo];
+  constructor •() → self::B<self::B::T>
+    : super self::C::•()
+    ;
+  static factory foo<T extends core::Object = dynamic>() → self::B<self::B::foo::T>
+    let dynamic #redirecting_factory = self::B::• in let self::B::foo::T #typeArg0 = null in invalid-expression;
+}
+class C<K extends core::Object = dynamic> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::C::bar];
+  constructor •() → self::C<self::C::K>
+    : super core::Object::•()
+    ;
+  static factory bar<K extends core::Object = dynamic>() → self::C<self::C::bar::K>
+    let dynamic #redirecting_factory = "B.foo" in invalid-expression;
+}
+static method main() → dynamic {
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#B.foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[dynamic]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}

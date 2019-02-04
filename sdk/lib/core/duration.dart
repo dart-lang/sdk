@@ -23,32 +23,31 @@ part of dart.core;
  *
  * To create a new Duration object, use this class's single constructor
  * giving the appropriate arguments:
- *
- *     Duration fastestMarathon = new Duration(hours:2, minutes:3, seconds:2);
- *
+ * ```dart
+ * Duration fastestMarathon = new Duration(hours:2, minutes:3, seconds:2);
+ * ```
  * The [Duration] is the sum of all individual parts.
  * This means that individual parts can be larger than the next-bigger unit.
  * For example, [inMinutes] can be greater than 59.
- *
- *     assert(fastestMarathon.inMinutes == 123);
- *
+ * ```dart
+ * assert(fastestMarathon.inMinutes == 123);
+ * ```
  * All individual parts are allowed to be negative.
  *
  * Use one of the properties, such as [inDays],
  * to retrieve the integer value of the Duration in the specified time unit.
  * Note that the returned value is rounded down.
  * For example,
- *
- *     Duration aLongWeekend = new Duration(hours:88);
- *     assert(aLongWeekend.inDays == 3);
- *
+ * ```dart
+ * Duration aLongWeekend = new Duration(hours:88);
+ * assert(aLongWeekend.inDays == 3);
+ * ```
  * This class provides a collection of arithmetic
  * and comparison operators,
  * plus a set of constants useful for converting time units.
  *
  * See [DateTime] to represent a point in time.
  * See [Stopwatch] to measure time-spans.
- *
  */
 class Duration implements Comparable<Duration> {
   static const int microsecondsPerMillisecond = 1000;
@@ -212,17 +211,15 @@ class Duration implements Comparable<Duration> {
   int get inMicroseconds => _duration;
 
   /**
-   * Returns `true` if this Duration is the same object as [other].
+   * Returns `true` if this [Duration] has the same value as [other].
    */
-  bool operator ==(other) {
-    if (other is! Duration) return false;
-    return _duration == other._duration;
-  }
+  bool operator ==(dynamic other) =>
+      other is Duration && _duration == other.inMicroseconds;
 
   int get hashCode => _duration.hashCode;
 
   /**
-   * Compares this Duration to [other], returning zero if the values are equal.
+   * Compares this [Duration] to [other], returning zero if the values are equal.
    *
    * Returns a negative integer if this `Duration` is shorter than
    * [other], or a positive integer if it is longer.

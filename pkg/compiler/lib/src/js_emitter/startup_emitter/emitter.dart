@@ -174,6 +174,9 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   int generatedSize(OutputUnit unit) {
+    if (_emitter.omittedFragments.any((f) => f.outputUnit == unit)) {
+      return 0;
+    }
     Fragment key = _emitter.outputBuffers.keys
         .firstWhere((Fragment fragment) => fragment.outputUnit == unit);
     return _emitter.outputBuffers[key].length;

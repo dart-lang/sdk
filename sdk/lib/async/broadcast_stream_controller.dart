@@ -57,11 +57,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
 }
 
 abstract class _BroadcastStreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+    implements _StreamControllerBase<T> {
   static const int _STATE_INITIAL = 0;
   static const int _STATE_EVENT_ID = 1;
   static const int _STATE_FIRING = 2;
@@ -206,7 +202,7 @@ abstract class _BroadcastStreamController<T>
   StreamSubscription<T> _subscribe(void onData(T data), Function onError,
       void onDone(), bool cancelOnError) {
     if (isClosed) {
-      if (onDone == null) onDone = _nullDoneHandler;
+      onDone ??= _nullDoneHandler;
       return new _DoneStreamSubscription<T>(onDone);
     }
     StreamSubscription<T> subscription = new _BroadcastSubscription<T>(
@@ -466,9 +462,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   bool get _hasPending => _pending != null && !_pending.isEmpty;
 
   void _addPendingEvent(_DelayedEvent event) {
-    if (_pending == null) {
-      _pending = new _StreamImplEvents<T>();
-    }
+    _pending ??= new _StreamImplEvents<T>();
     _pending.add(event);
   }
 

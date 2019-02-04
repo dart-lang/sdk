@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 
@@ -72,7 +70,7 @@ class ElementFactory {
       [Source librarySource]) {
     Source source =
         new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.source = source;
     if (librarySource == null) {
       librarySource = source;
@@ -418,8 +416,8 @@ class ElementFactory {
       AnalysisContext context, String libraryName) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library =
-        new LibraryElementImpl(context, libraryName, 0, libraryName.length);
+    LibraryElementImpl library = new LibraryElementImpl(
+        context, null, libraryName, 0, libraryName.length);
     library.definingCompilationUnit = unit;
     return library;
   }

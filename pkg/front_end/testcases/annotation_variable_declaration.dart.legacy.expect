@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef hest_t = ({@self::foo dynamic named}) → dynamic;
+class Bar extends core::Object {
+  const constructor •() → self::Bar
+    : super core::Object::•()
+    ;
+  const constructor named(dynamic x) → self::Bar
+    : super core::Object::•()
+    ;
+}
+class Baz extends core::Object {
+  constructor •(@self::foo dynamic constructorFormal) → self::Baz
+    : super core::Object::•()
+    ;
+  static factory bazFactory(@self::foo dynamic factoryFormal) → self::Baz
+    return null;
+  method fisk(@self::foo dynamic formal1, @self::Bar::•() dynamic formal2, @self::Bar::named(self::foo) dynamic formal3, @self::foo @self::Bar::named(self::foo) dynamic formal4, [@self::foo dynamic optional = null]) → dynamic {
+    @self::foo dynamic local1;
+    @self::Bar::•() dynamic local2;
+    @self::Bar::named(self::foo) dynamic local3;
+    @self::foo @self::Bar::named(self::foo) dynamic local4;
+    @self::foo dynamic localWithInitializer = "hello";
+    @self::foo @self::Bar::named(self::foo) dynamic localGroupPart1;
+    @self::foo @self::Bar::named(self::foo) dynamic localGroupPart2;
+    function naebdyr(@self::foo dynamic nestedFormal) → dynamic
+      return null;
+    dynamic roedmus = (@self::foo dynamic closureFormal) → dynamic => null;
+  }
+  method hest({@self::foo dynamic named = null}) → dynamic
+    return null;
+}
+static const field core::int foo = 42;
+static method main() → dynamic {}

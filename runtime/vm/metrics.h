@@ -44,18 +44,20 @@ class Metric {
 
   Metric();
 
-  static void InitOnce();
+  static void Init();
 
   static void Cleanup();
 
   // Initialize and register a metric for an isolate.
-  void Init(Isolate* isolate,
-            const char* name,
-            const char* description,
-            Unit unit);
+  void InitInstance(Isolate* isolate,
+                    const char* name,
+                    const char* description,
+                    Unit unit);
 
   // Initialize and register a metric for the VM.
-  void Init(const char* name, const char* description, Unit unit);
+  void InitInstance(const char* name, const char* description, Unit unit);
+
+  void CleanupInstance();
 
   virtual ~Metric();
 
@@ -177,6 +179,13 @@ class MetricHeapUsed : public Metric {
  protected:
   virtual int64_t Value() const;
 };
+
+#if !defined(PRODUCT)
+#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
+  static type vm_metric_##variable##_;
+VM_METRIC_LIST(VM_METRIC_VARIABLE);
+#undef VM_METRIC_VARIABLE
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart
 

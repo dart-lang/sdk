@@ -34,6 +34,7 @@ class Zone;
 #define TIMELINE_STREAM_LIST(V)                                                \
   V(API, false)                                                                \
   V(Compiler, false)                                                           \
+  V(CompilerVerbose, false)                                                    \
   V(Dart, false)                                                               \
   V(Debugger, false)                                                           \
   V(Embedder, false)                                                           \
@@ -76,10 +77,10 @@ class TimelineStream {
 class Timeline : public AllStatic {
  public:
   // Initialize timeline system. Not thread safe.
-  static void InitOnce();
+  static void Init();
 
-  // Shutdown timeline system. Not thread safe.
-  static void Shutdown();
+  // Cleanup timeline system. Not thread safe.
+  static void Cleanup();
 
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder();
@@ -89,8 +90,10 @@ class Timeline : public AllStatic {
 
   static void Clear();
 
+#ifndef PRODUCT
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
+#endif
 
 #define TIMELINE_STREAM_ACCESSOR(name, not_used)                               \
   static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
@@ -311,7 +314,9 @@ class TimelineEvent {
   // The highest time value stored in this event.
   int64_t HighTime() const;
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
+#endif
 
   ThreadId thread() const { return thread_; }
 
@@ -447,7 +452,9 @@ class TimelineEvent {
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
+#define TIMELINE_DURATION(thread, stream, name)                                \
+  TimelineDurationScope tds(thread, Timeline::Get##stream##Stream(), name);
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
   TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
   if (tds.enabled()) {                                                         \
@@ -463,6 +470,7 @@ class TimelineEvent {
   tds.SetNumArguments(1);                                                      \
   tds.CopyArgument(0, "mode", "basic");
 #else
+#define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
@@ -598,7 +606,9 @@ class TimelineEventBlock {
   ThreadId thread_id() const { return thread_id_; }
 
  protected:
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
+#endif
 
   TimelineEvent* StartEvent();
 
@@ -689,15 +699,19 @@ class TimelineEventRecorder {
   TimelineEventBlock* GetNewBlock();
 
   // Interface method(s) which must be implemented.
+#ifndef PRODUCT
   virtual void PrintJSON(JSONStream* js, TimelineEventFilter* filter) = 0;
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
+#endif
   virtual const char* name() const = 0;
   int64_t GetNextAsyncId();
 
   void FinishBlock(TimelineEventBlock* block);
 
  protected:
+#ifndef PRODUCT
   void WriteTo(const char* directory);
+#endif
 
   // Interface method(s) which must be implemented.
   virtual TimelineEvent* StartEvent() = 0;
@@ -707,7 +721,9 @@ class TimelineEventRecorder {
   virtual void Clear() = 0;
 
   // Utility method(s).
+#ifndef PRODUCT
   void PrintJSONMeta(JSONArray* array) const;
+#endif
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
 
@@ -739,8 +755,10 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
   virtual ~TimelineEventFixedBufferRecorder();
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+#endif
 
  protected:
   TimelineEvent* StartEvent();
@@ -749,7 +767,9 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   intptr_t FindOldestBlockIndex() const;
   void Clear();
 
+#ifndef PRODUCT
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
+#endif
 
   VirtualMemory* memory_;
   TimelineEventBlock* blocks_;
@@ -793,8 +813,10 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   TimelineEventCallbackRecorder();
   virtual ~TimelineEventCallbackRecorder();
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+#endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.
@@ -818,8 +840,10 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   TimelineEventEndlessRecorder();
   virtual ~TimelineEventEndlessRecorder();
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+#endif
 
   const char* name() const { return "Endless"; }
 
@@ -830,7 +854,9 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetHeadBlockLocked();
   void Clear();
 
+#ifndef PRODUCT
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
+#endif
 
   TimelineEventBlock* head_;
   intptr_t block_index_;
@@ -865,8 +891,10 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   TimelineEventPlatformRecorder();
   virtual ~TimelineEventPlatformRecorder();
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+#endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.

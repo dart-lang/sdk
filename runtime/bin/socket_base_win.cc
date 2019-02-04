@@ -396,6 +396,27 @@ bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
                     reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
 
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  return setsockopt(handle->socket(), level, option, data, length) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int optlen = static_cast<int>(*length);
+  auto result = getsockopt(handle->socket(), level, option, data, &optlen);
+  *length = static_cast<unsigned int>(optlen);
+  return result == 0;
+}
+
 bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
                                const RawAddr&,

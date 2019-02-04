@@ -11,9 +11,9 @@
 
 set -e
 
-# Pick the architecture and mode to build and test.
-BUILD_FLAGS="-m debug -a x64 --bytecode"
-BUILD_SUBDIR="DebugX64KBC"
+# Pick the architecture and mode to test.
+BUILD_FLAGS="-m release -a x64"
+BUILD_SUBDIR="ReleaseX64"
 
 function follow_links() {
   file="$1"
@@ -33,23 +33,9 @@ CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 SDK_DIR="$CUR_DIR/../../.."
 BUILD_DIR="$SDK_DIR/out/$BUILD_SUBDIR"
 
-# Verify that the VM supports the interpreter, if not, rebuild it.
-REBUILD=0
-if [ -f $BUILD_DIR/dart ]
-then
-  $BUILD_DIR/dart --trace-interpreter-after=-1 \
-    $SDK_DIR/runtime/tests/vm/dart/hello_world_test.dart > /dev/null 2>&1 \
-    || REBUILD=1
-else
-  REBUILD=1
-fi
-if [ $REBUILD -ne 0 ]
-then
-  echo "Rebuilding VM to support interpreter"
-  rm -rf $BUILD_DIR
-  $SDK_DIR/tools/gn.py $BUILD_FLAGS
-  $SDK_DIR/tools/build.py $BUILD_FLAGS runtime
-fi
+# Regenerate vm_platform_strong.dill to contain bytecode if needed:
+# $SDK_DIR/tools/gn.py $BUILD_FLAGS --bytecode
+# $SDK_DIR/tools/build.py $BUILD_FLAGS runtime
 
 # Generate dill file containing bytecode for input dart source.
 $CUR_DIR/gen_kernel --platform $BUILD_DIR/vm_platform_strong.dill \
@@ -63,10 +49,11 @@ $CUR_DIR/gen_kernel --platform $BUILD_DIR/vm_platform_strong.dill \
 # $BUILD_DIR/dart $SDK_DIR/pkg/vm/bin/dump_kernel.dart \
 #   $BUILD_DIR/test_bytecode.dill $BUILD_DIR/test_bytecode.txt
 
-# Required flags.
-DART_VM_FLAGS="--optimization-counter-threshold=-1 $DART_VM_FLAGS"
+# Required flag.
+DART_VM_FLAGS="--enable-interpreter $DART_VM_FLAGS"
 
 # Optional flags examples. Uncomment as needed.
+# DART_VM_FLAGS="--compilation-counter-threshold=-1 $DART_VM_FLAGS"
 # DART_VM_FLAGS="--force-log-flush --isolate-log-filter=\"\" $DART_VM_FLAGS"
 # DART_VM_FLAGS="--dump-kernel-bytecode $DART_VM_FLAGS"
 # DART_VM_FLAGS="--trace-interpreter-after=0 $DART_VM_FLAGS"

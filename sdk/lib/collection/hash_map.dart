@@ -153,4 +153,17 @@ abstract class HashMap<K, V> implements Map<K, V> {
     MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
+
+  /**
+   * Creates a [HashMap] containing the entries of [entries].
+   *
+   * Returns a new `HashMap<K, V>` where all entries of [entries]
+   * have been added in iteration order.
+   *
+   * If multiple [entries] have the same key,
+   * later occurrences overwrite the earlier ones.
+   */
+  @Since("2.1")
+  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
+      HashMap<K, V>()..addEntries(entries);
 }

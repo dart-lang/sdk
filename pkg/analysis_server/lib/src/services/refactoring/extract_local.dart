@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,7 +31,7 @@ const String _TOKEN_SEPARATOR = "\uFFFF";
  */
 class ExtractLocalRefactoringImpl extends RefactoringImpl
     implements ExtractLocalRefactoring {
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
   SourceRange selectionRange;
@@ -56,7 +56,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   ExtractLocalRefactoringImpl(
       this.resolveResult, this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils = new CorrectionUtils(unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   String get file => resolveResult.path;
@@ -219,14 +219,20 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return !_checkSelection().hasFatalError;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   /**
    * Checks if [selectionRange] selects [Expression] which can be extracted, and
    * location of this [Expression] in AST allows extracting.
    */
   RefactoringStatus _checkSelection() {
+    if (selectionOffset <= 0) {
+      return new RefactoringStatus.fatal(
+          'The selection offset must be greater than zero.');
+    }
+    if (selectionOffset + selectionLength >= resolveResult.content.length) {
+      return new RefactoringStatus.fatal(
+          'The selection end offset must be less then the length of the file.');
+    }
+
     String selectionStr;
     // exclude whitespaces
     {
@@ -313,7 +319,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // into this block.  If it has an expression body, we can convert it into
     // the block body first.
     if (coveringNode == null ||
-        coveringNode.getAncestor((node) => node is FunctionBody) == null) {
+        coveringNode.thisOrAncestorOfType<FunctionBody>() == null) {
       return new RefactoringStatus.fatal(
           'An expression inside a function must be selected '
           'to activate this refactoring.');
@@ -408,7 +414,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return expressionBody;
     }
     // single Statement
-    AstNode target = commonParent.getAncestor((node) => node is Statement);
+    AstNode target = commonParent.thisOrAncestorOfType<Statement>();
     while (target.parent is! Block) {
       target = target.parent;
     }
@@ -595,7 +601,7 @@ class _HasStatementVisitor extends GeneralizingAstVisitor {
   }
 }
 
-class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
+class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractLocalRefactoringImpl ref;
   final List<SourceRange> occurrences;
   final String selectionSource;
@@ -603,24 +609,24 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   _OccurrencesVisitor(this.ref, this.occurrences, this.selectionSource);
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (!_hasStatements(node)) {
       _tryToFindOccurrenceFragments(node);
-      return null;
+      return;
     }
-    return super.visitBinaryExpression(node);
+    super.visitBinaryExpression(node);
   }
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     if (ref._isExtractable(range.node(node))) {
       _tryToFindOccurrence(node);
     }
-    return super.visitExpression(node);
+    super.visitExpression(node);
   }
 
   @override
-  Object visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     if (ref.stringLiteralPart != null) {
       int length = ref.stringLiteralPart.length;
       String value = ref.utils.getNodeText(node);
@@ -635,9 +641,9 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
         SourceRange range = new SourceRange(start, length);
         occurrences.add(range);
       }
-      return null;
+      return;
     }
-    return visitExpression(node);
+    visitExpression(node);
   }
 
   void _addOccurrence(SourceRange range) {

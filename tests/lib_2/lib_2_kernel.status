@@ -3,12 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
-#
-# Note: Sections in this file are normalized so we can update them with
-# automated tools. Please add any new status lines affecting those two compilers
-# in the existing sections, if possible keep the alphabetic ordering. If we are
-# missing a section you need, please reach out to sigmund@ to see the best way
-# to add them.
+
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
+
+[ $builder_tag == asan ]
+isolate/non_fatal_exception_in_timer_callback_test: Pass, Fail # Issue 34724
+mirrors/dynamic_load_test: Fail # Issue 32187
 
 [ $compiler == app_jitk ]
 async/slow_consumer2_test: RuntimeError
@@ -28,13 +28,13 @@ isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
 
 [ $fasta ]
+async/future_or_type_test: CompileTimeError # Issue 34626
 mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
-mirrors/generic_bounded_test/01: MissingCompileTimeError
-mirrors/generic_bounded_test/02: MissingCompileTimeError
-mirrors/generic_interface_test/01: MissingCompileTimeError
+mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 34613
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
+mirrors/redirecting_factory_test/01: CompileTimeError # Issue 34714
+mirrors/redirecting_factory_test/none: CompileTimeError # Issue 34714
 
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mint_maker_test: Timeout # Please triage.
@@ -42,8 +42,23 @@ isolate/mint_maker_test: Timeout # Please triage.
 [ $arch == simdbc64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
+[ $arch == simdbc64 && $hot_reload_rollback ]
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
+
+[ $arch == simdbc64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
+isolate/issue_24243_parent_isolate_test: RuntimeError # dartbug.com/35373
+
+[ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
+mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
+
 [ $arch == x64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
+
+[ $arch == x64 && ($hot_reload || $hot_reload_rollback) ]
+isolate/int32_length_overflow_test: Timeout  # Issue 35733
+
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+collection/list_test: RuntimeError # Issue 34911
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
@@ -64,6 +79,17 @@ isolate/browser/compute_this_script_browser_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
+
+# The failures below still need to be investigated and possibly fixed, or marked as skipped.
+[ $compiler == dartkb && $strong ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
+isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
+isolate/mandel_isolate_test: Pass, Timeout # Please triage.
+isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
+mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232
+mirrors/invocation_fuzz_test/false: Skip # Times out, issue 32232
+mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
+mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
@@ -113,11 +139,10 @@ mirrors/reflected_type_generics_test/02: Pass
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
-convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/issue_21398_parent_isolate1_test: RuntimeError # Issue 31402 (List literal)
+isolate/issue_21398_parent_isolate1_test: RuntimeError, Crash # Issue 31402 (List literal), Issue 35374.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -135,7 +160,6 @@ mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qu
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
-mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
 mirrors/fake_function_without_call_test: RuntimeError, OK
@@ -143,7 +167,6 @@ mirrors/function_apply_test: RuntimeError, OK
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
-mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/invocation_fuzz_test: RuntimeError, Crash
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
@@ -192,7 +215,7 @@ mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
-mirrors/repeated_private_anon_mixin_app_test: RuntimeError
+mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Mangled mixin application class name
 mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/symbol_validation_test/01: RuntimeError # Issue 31537
@@ -231,6 +254,9 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
+[ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+isolate/issue_6610_test: RuntimeError, Crash # Sources are looked up on every reload request.
+
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
@@ -239,26 +265,8 @@ isolate/pause_test: Skip # Timeout
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
-isolate/cross_isolate_message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/error_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/issue_21398_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/issue_24243_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/mandel_isolate_test: Pass, Timeout
-isolate/message2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/nested_spawn2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/nested_spawn_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/raw_port_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/request_reply_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_function_custom_class_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_exported_main_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_multi_test/none: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_nested_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/nested_spawn2_test: Pass, RuntimeError # RuntimeError caused by timeout
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
 [ $strong && ($compiler == dartk || $compiler == dartkb) ]
@@ -290,40 +298,8 @@ mirrors/redirecting_factory_reflection_test: RuntimeError
 *: SkipByDesign
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-async/stream_from_iterable_test: Skip # Timeout
-async/stream_iterator_test: Skip # Timeout
-async/stream_periodic2_test: Skip # Timeout
-async/stream_periodic3_test: Skip # Timeout
-async/stream_periodic4_test: Skip # Timeout
-async/stream_periodic5_test: Skip # Timeout
-async/stream_periodic6_test: Skip # Timeout
-async/stream_periodic_test: Skip # Timeout
-async/stream_single_test: Skip # Timeout
-async/stream_single_to_multi_subscriber_test: Skip # Timeout
-async/stream_state_test: Skip # Timeout
-async/stream_timeout_test: Skip # Timeout
-async/stream_transform_test: Skip # Timeout
-async/stream_transformation_broadcast_test: Skip # Timeout
-async/timer_cancel1_test: Skip # Timeout
-async/timer_isActive_test: Skip # Timeout
-async/timer_test: Skip # Timeout
-isolate/count_test: Skip # Timeout
-isolate/cross_isolate_message_test: Skip # Timeout
-isolate/isolate_complex_messages_test: Skip # Timeout
-isolate/isolate_import_test/none: Skip # Timeout
-isolate/issue_21398_parent_isolate1_test: Skip # Timeout
-isolate/mandel_isolate_test: Skip # Timeout
-isolate/message2_test: Skip # Timeout
+isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
 isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
-isolate/nested_spawn2_test: Skip # Timeout
-isolate/nested_spawn_test: Skip # Timeout
-isolate/raw_port_test: Skip # Timeout
-isolate/spawn_function_test: Skip # Timeout
-isolate/spawn_uri_test: Skip # Timeout
-isolate/spawn_uri_vm_test: Skip # Timeout
-isolate/timer_isolate_test: Skip # Timeout
-isolate/timer_multiple_isolates_test: Skip # Timeout
-isolate/unresolved_ports_test: Skip # Timeout
 mirrors/dynamic_load_test: Crash
 mirrors/library_uri_io_test: Skip # Timeout
 mirrors/library_uri_package_test: Skip # Timeout

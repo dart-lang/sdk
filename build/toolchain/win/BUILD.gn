@@ -22,13 +22,13 @@ tool_wrapper_path = rebase_path("tool_wrapper.py", root_build_dir)
 
 # Setup the Visual Studio state.
 toolchain_data = exec_script("setup_toolchain.py",
-                                 [
-                                   visual_studio_path,
-                                   windows_sdk_path,
-                                   visual_studio_runtime_dirs,
-                                   current_cpu,
-                                 ],
-                                 "scope")
+                             [
+                               visual_studio_path,
+                               windows_sdk_path,
+                               visual_studio_runtime_dirs,
+                               current_cpu,
+                             ],
+                             "scope")
 
 if (vc_bin_dir == "") {
   vc_bin_dir = toolchain_data.vc_bin_dir
@@ -164,6 +164,26 @@ template("msvc_toolchain") {
       rspfile_content = "{{libs}} {{solibs}} {{inputs_newline}} {{ldflags}}"
     }
 
+    tool("solink_module") {
+      dllname = "{{output_dir}}/{{target_output_name}}{{output_extension}}"  # e.g. foo.dll
+      pdbname = "${dllname}.pdb"
+      rspfile = "${dllname}.rsp"
+
+      command = "$python_path $tool_wrapper_path link-wrapper $env False link.exe /nologo /DLL /OUT:$dllname /PDB:$pdbname @$rspfile"
+      default_output_extension = ".dll"
+      default_output_dir = "{{root_out_dir}}"
+      description = "LINK_MODULE(DLL) {{output}}"
+      outputs = [
+        dllname,
+        pdbname,
+      ]
+      runtime_outputs = outputs
+
+      # The use of inputs_newline is to work around a fixed per-line buffer
+      # size in the linker.
+      rspfile_content = "{{libs}} {{solibs}} {{inputs_newline}} {{ldflags}}"
+    }
+
     tool("link") {
       binary_output =
           "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
@@ -194,8 +214,7 @@ template("msvc_toolchain") {
     }
 
     tool("copy") {
-      command =
-          "$python_path $tool_wrapper_path recursive-mirror {{source}} {{output}}"
+      command = "$python_path $tool_wrapper_path recursive-mirror {{source}} {{output}}"
       description = "COPY {{source}} {{output}}"
     }
 

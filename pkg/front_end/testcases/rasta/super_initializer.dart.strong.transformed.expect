@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/super_initializer.dart:14:15: Error: Can't have initializers after 'super'.
+//       : super.arg0(),
+//               ^
+//
+// pkg/front_end/testcases/rasta/super_initializer.dart:17:15: Error: Can't have initializers after 'super'.
+//       : super.arg1(a),
+//               ^
+//
+// pkg/front_end/testcases/rasta/super_initializer.dart:20:15: Error: Can't have initializers after 'super'.
+//       : super.arg2(a, b),
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor arg0() → self::Super
+    : super core::Object::•()
+    ;
+  constructor arg1(dynamic a) → self::Super
+    : super core::Object::•()
+    ;
+  constructor arg2(dynamic a, dynamic b) → self::Super
+    : super core::Object::•()
+    ;
+}
+class Sub extends self::Super {
+  field dynamic field = null;
+  constructor arg0() → self::Sub
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:14:15: Error: Can't have initializers after 'super'.
+      : super.arg0(),
+              ^", super self::Super::arg0()
+    ;
+  constructor arg1(dynamic a) → self::Sub
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:17:15: Error: Can't have initializers after 'super'.
+      : super.arg1(a),
+              ^", super self::Super::arg1(a)
+    ;
+  constructor arg2(dynamic a, dynamic b) → self::Sub
+    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:20:15: Error: Can't have initializers after 'super'.
+      : super.arg2(a, b),
+              ^", super self::Super::arg2(a, b)
+    ;
+}

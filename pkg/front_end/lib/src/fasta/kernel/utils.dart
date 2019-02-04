@@ -9,7 +9,15 @@ import 'dart:io' show BytesBuilder, File, IOSink;
 import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/ast.dart'
-    show Library, Component, Procedure, Class, TypeParameter, Supertype;
+    show
+        DartType,
+        Library,
+        Component,
+        Procedure,
+        Class,
+        TypeParameter,
+        TypeParameterType,
+        Supertype;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -25,11 +33,13 @@ void printComponentText(Component component,
     {bool libraryFilter(Library library)}) {
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
+  Printer printer = new Printer(sb);
+  printer.writeComponentProblems(component);
   for (Library library in component.libraries) {
     if (libraryFilter != null && !libraryFilter(library)) continue;
-    Printer printer = new Printer(sb);
     printer.writeLibraryFile(library);
   }
+  printer.writeConstantTable(component);
   print(sb);
 }
 
@@ -70,17 +80,29 @@ List<int> serializeProcedure(Procedure procedure) {
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;
 
-    CloneVisitor cloner = new CloneVisitor();
-
     Class fakeClass = new Class(name: kDebugClassName);
+    Map<TypeParameter, TypeParameter> typeParams =
+        <TypeParameter, TypeParameter>{};
+    Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
+    for (TypeParameter typeParam in realClass.typeParameters) {
+      var newNode = new TypeParameter(typeParam.name);
+      typeParams[typeParam] = newNode;
+      typeSubstitution[typeParam] = new TypeParameterType(newNode);
+    }
+    CloneVisitor cloner = new CloneVisitor(
+        typeSubstitution: typeSubstitution, typeParams: typeParams);
+
     for (TypeParameter typeParam in realClass.typeParameters) {
       fakeClass.typeParameters.add(typeParam.accept(cloner));
     }
 
     fakeClass.parent = fakeLibrary;
-    fakeClass.supertype = new Supertype.byReference(
-        realClass.supertype.className,
-        realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    if (realClass.supertype != null) {
+      // supertype is null for Object.
+      fakeClass.supertype = new Supertype.byReference(
+          realClass.supertype.className,
+          realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    }
 
     // Rebind the type parameters in the procedure.
     procedure = procedure.accept(cloner);

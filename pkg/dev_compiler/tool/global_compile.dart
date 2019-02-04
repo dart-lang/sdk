@@ -6,7 +6,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart' show StringLiteral, parseDirectives;
+import 'package:analyzer/analyzer.dart' show parseDirectives;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:args/args.dart' show ArgParser;
 import 'package:path/path.dart' as path;

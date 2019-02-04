@@ -6,7 +6,6 @@ library dart2js.src.options;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler.dart' show PackagesDiscoveryProvider;
 import 'commandline_options.dart' show Flags;
 
 /// Options used for controlling diagnostic messages.
@@ -42,9 +41,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
   Uri entryPoint;
 
-  /// Root location where SDK libraries are found.
-  Uri libraryRoot;
-
   /// Package root location.
   ///
   /// If not null then [packageConfig] should be null.
@@ -55,13 +51,27 @@ class CompilerOptions implements DiagnosticOptions {
   /// If not null then [packageRoot] should be null.
   Uri packageConfig;
 
-  // TODO(sigmund): Move out of here, maybe to CompilerInput. Options should not
-  // hold code, just configuration options.
-  PackagesDiscoveryProvider packagesDiscoveryProvider;
+  /// Location from which serialized inference data is read.
+  ///
+  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// frontend work is skipped.
+  Uri readDataUri;
+
+  /// Location to which inference data is serialized.
+  ///
+  /// If this is set, the compilation stops after type inference.
+  Uri writeDataUri;
+
+  /// Whether to run only the CFE and emit the generated kernel file in
+  /// [outputUri].
+  bool cfeOnly = false;
 
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   Map<String, String> environment = const <String, String>{};
+
+  /// Flags enabling language experiments.
+  Map<fe.ExperimentalFlag, bool> languageExperiments = {};
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
@@ -87,6 +97,25 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
   Uri deferredMapUri;
+
+  /// Whether to apply the new deferred split fixes. The fixes improve on
+  /// performance and fix a soundness issue with inferred types. The latter will
+  /// move more code to the main output unit, because of that we are not
+  /// enabling the feature by default right away.
+  ///
+  /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
+  /// flag to produce the same or better results than the current unsound
+  /// implementation.
+  bool newDeferredSplit = false;
+
+  /// Show errors when a deferred type is inferred as a return type of a closure
+  /// or in a type parameter. Those cases cause the compiler today to behave
+  /// unsoundly by putting the code in a deferred output unit. In the future
+  /// when [newDeferredSplit] is on by default, those cases will be treated
+  /// soundly and will cause more code to be moved to the main output unit.
+  ///
+  /// This flag is presented to help developers find and fix the affected code.
+  bool reportInvalidInferredDeferredTypes = false;
 
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
@@ -117,6 +146,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to disable global type inference.
   bool disableTypeInference = false;
 
+  /// Whether to use the trivial abstract value domain.
+  bool useTrivialAbstractValueDomain = false;
+
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
 
@@ -141,6 +173,11 @@ class CompilerOptions implements DiagnosticOptions {
   // TODO(sigmund): rename to minify
   bool enableMinification = false;
 
+  /// Flag to turn off minification even if enabled elsewhere, e.g. via
+  /// -O2. Both [enableMinification] and [_disableMinification] can be true, in
+  /// which case [_disableMinification] wins.
+  bool _disableMinification = false;
+
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
@@ -156,10 +193,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// URI of the main output if the compiler is generating source maps.
   Uri outputUri;
-
-  /// Location of the platform configuration file.
-  // TODO(sigmund): deprecate and remove, use only [librariesSpecificationUri]
-  Uri platformConfigUri;
 
   /// Location of the libraries specification file.
   Uri librariesSpecificationUri;
@@ -181,6 +214,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
+
+  /// Whether to omit as casts.
+  bool omitAsCasts = false;
 
   /// Whether to omit class type arguments only needed for `toString` on
   /// `Object.runtimeType`.
@@ -216,18 +252,33 @@ class CompilerOptions implements DiagnosticOptions {
   /// (experimental)
   bool useNewSourceInfo = false;
 
-  /// Whether the user requested to use the fast startup emitter. The full
-  /// emitter might still be used if the program uses dart:mirrors.
-  bool useStartupEmitter = false;
-
-  /// Enable verbose printing during compilation. Includes progress messages
-  /// during each phase and a time-breakdown between phases at the end.
+  /// Enable verbose printing during compilation. Includes a time-breakdown
+  /// between phases at the end.
   bool verbose = false;
+
+  /// On top of --verbose, enable more verbose printing, like progress messages
+  /// during each phase of compilation.
+  bool showInternalProgress = false;
 
   /// Track allocations in the JS output.
   ///
   /// This is an experimental feature.
   bool experimentalTrackAllocations = false;
+
+  /// Expermental optimization.
+  bool experimentLocalNames = false;
+
+  /// Experimental part file function generation.
+  bool experimentStartupFunctions = false;
+
+  /// Experimental reliance on JavaScript ToBoolean conversions.
+  bool experimentToBoolean = false;
+
+  /// Experimental instrumentation to investigate code bloat.
+  ///
+  /// If [true], the compiler will emit code that logs whenever a method is
+  /// called.
+  bool experimentCallInstrumentation = false;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -237,44 +288,47 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   String experimentalAllocationsPath;
 
-  // -------------------------------------------------
-  // Options for deprecated features
-  // -------------------------------------------------
-  // TODO(sigmund): delete these as we delete the underlying features
-
-  /// Whether to start `async` functions synchronously.
-  bool startAsyncSynchronously = false;
-
   /// If specified, a bundle of optimizations to enable (or disable).
   int optimizationLevel = null;
 
+  // -------------------------------------------------
+  // Options for deprecated features
+  // -------------------------------------------------
+
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
-      {Uri libraryRoot, Uri platformBinaries}) {
+      {Uri librariesSpecificationUri, Uri platformBinaries}) {
     return new CompilerOptions()
-      ..libraryRoot = libraryRoot
+      ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
           _hasOption(options, Flags.benchmarkingProduction)
       ..buildId =
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
-      ..compileForServer = _resolveCompileForServerFromOptions(options)
+      ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
+      ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      ..reportInvalidInferredDeferredTypes =
+          _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
+      ..languageExperiments = _extractExperiments(options)
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
+      ..useTrivialAbstractValueDomain =
+          _hasOption(options, Flags.useTrivialAbstractValueDomain)
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..enableExperimentalMirrors =
           _hasOption(options, Flags.enableExperimentalMirrors)
       ..enableMinification = _hasOption(options, Flags.minify)
+      .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
@@ -283,17 +337,21 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
           options, "${Flags.experimentalAllocationsPath}=", null)
+      ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
+      ..experimentStartupFunctions =
+          _hasOption(options, Flags.experimentStartupFunctions)
+      ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
+      ..experimentCallInstrumentation =
+          _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
-      ..platformConfigUri =
-          _resolvePlatformConfigFromOptions(libraryRoot, options)
-      ..librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot)
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
+      ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
@@ -306,20 +364,23 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
-      ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
-      ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
-      ..verbose = _hasOption(options, Flags.verbose);
+      ..verbose = _hasOption(options, Flags.verbose)
+      ..showInternalProgress = _hasOption(options, Flags.progress)
+      ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
+      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..cfeOnly = _hasOption(options, Flags.cfeOnly);
   }
 
   void validate() {
     // TODO(sigmund): should entrypoint be here? should we validate it is not
     // null? In unittests we use the same compiler to analyze or build multiple
     // entrypoints.
-    if (libraryRoot == null) {
-      throw new ArgumentError("[libraryRoot] is null.");
+    if (librariesSpecificationUri == null) {
+      throw new ArgumentError("[librariesSpecificationUri] is null.");
     }
-    if (!libraryRoot.path.endsWith("/")) {
-      throw new ArgumentError("[libraryRoot] must end with a /");
+    if (librariesSpecificationUri.path.endsWith('/')) {
+      throw new ArgumentError(
+          "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
     if (packageRoot != null && packageConfig != null) {
       throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
@@ -335,7 +396,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   void deriveOptions() {
     if (benchmarkingProduction) {
-      useStartupEmitter = true;
       trustPrimitives = true;
       omitImplicitChecks = true;
     }
@@ -360,10 +420,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     // TODO(johnniwinther): Should we support this in the future?
     generateCodeWithCompileTimeErrors = false;
-    if (platformConfigUri == null) {
-      platformConfigUri = _resolvePlatformConfig(libraryRoot, null, const []);
-    }
-    librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot);
 
     // Strong mode always trusts type annotations (inferred or explicit), so
     // assignments checks should be trusted.
@@ -374,6 +430,10 @@ class CompilerOptions implements DiagnosticOptions {
     } else {
       parameterCheckPolicy = CheckPolicy.checked;
       implicitDowncastCheckPolicy = CheckPolicy.checked;
+    }
+
+    if (_disableMinification) {
+      enableMinification = false;
     }
   }
 
@@ -409,18 +469,13 @@ class CheckPolicy {
   /// Whether the type assertion should be emitted and checked.
   final bool isEmitted;
 
-  /// Whether the type assertion should be ignored.
-  final bool isIgnored;
-
-  const CheckPolicy(
-      {this.isTrusted: false, this.isEmitted: false, this.isIgnored: false});
+  const CheckPolicy({this.isTrusted: false, this.isEmitted: false});
 
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
-  static const ignored = const CheckPolicy(isIgnored: true);
 
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
-      'isEmitted=$isEmitted,isIgnored=$isIgnored)';
+      'isEmitted=$isEmitted)';
 }
 
 String _extractStringOption(
@@ -436,16 +491,6 @@ String _extractStringOption(
 Uri _extractUriOption(List<String> options, String prefix) {
   var option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : Uri.parse(option);
-}
-
-// CSV: Comma separated values.
-List<String> _extractCsvOption(List<String> options, String prefix) {
-  for (String option in options) {
-    if (option.startsWith(prefix)) {
-      return option.substring(prefix.length).split(',');
-    }
-  }
-  return const <String>[];
 }
 
 bool _hasOption(List<String> options, String option) {
@@ -468,44 +513,11 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
   return null;
 }
 
-Uri _resolvePlatformConfig(
-    Uri libraryRoot, String platformConfigPath, Iterable<String> categories) {
-  if (platformConfigPath != null) {
-    return libraryRoot.resolve(platformConfigPath);
-  } else {
-    if (categories.length == 0) {
-      return libraryRoot.resolve(_clientPlatform);
-    }
-    assert(categories.length <= 2);
-    if (categories.contains("Client")) {
-      if (categories.contains("Server")) {
-        return libraryRoot.resolve(_sharedPlatform);
-      }
-      return libraryRoot.resolve(_clientPlatform);
-    }
-    assert(categories.contains("Server"));
-    return libraryRoot.resolve(_serverPlatform);
-  }
+Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
+  List<String> experiments =
+      _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
+  return fe.parseExperimentalFlags(
+      experiments, (String error) => throw new ArgumentError(error));
 }
-
-bool _resolveCompileForServerFromOptions(List<String> options) {
-  var categories = _extractCsvOption(options, '--categories=');
-  return categories.length == 1 && categories.single == 'Server';
-}
-
-Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
-  return _resolvePlatformConfig(
-      libraryRoot,
-      _extractStringOption(options, "--platform-config=", null),
-      _extractCsvOption(options, '--categories='));
-}
-
-Uri _resolveLibrariesSpecification(Uri libraryRoot) =>
-    libraryRoot.resolve('lib/libraries.json');
-
-/// Locations of the platform descriptor files relative to the library root.
-const String _clientPlatform = "lib/dart_client.platform";
-const String _serverPlatform = "lib/dart_server.platform";
-const String _sharedPlatform = "lib/dart_shared.platform";
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

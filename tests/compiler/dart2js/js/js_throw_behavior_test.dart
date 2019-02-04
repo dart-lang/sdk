@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:compiler/src/native/native.dart';
+import 'package:compiler/src/native/behavior.dart';
+import 'package:compiler/src/native/js.dart';
 import 'package:compiler/src/js/js.dart' as js;
 
 void test(String source, NativeThrowBehavior expectedThrowBehavior) {
@@ -15,9 +16,9 @@ void test(String source, NativeThrowBehavior expectedThrowBehavior) {
 
 void main() {
   final MAY = NativeThrowBehavior.MAY;
-  final MUST = NativeThrowBehavior.MUST;
   final NEVER = NativeThrowBehavior.NEVER;
-  final NULL_NSM = NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+  final NULL_NSM = NativeThrowBehavior.NULL_NSM;
+  final NULL_NSM_THEN_MAY = NativeThrowBehavior.NULL_NSM_THEN_MAY;
 
   test('0', NEVER);
   test('void 0', NEVER);
@@ -85,6 +86,7 @@ void main() {
 
   test('console', MAY);
   test('Array', NEVER);
+  test('Math', NEVER);
   test('Object', NEVER);
 
   test('typeof #', NEVER);
@@ -92,8 +94,25 @@ void main() {
   test('typeof foo.#', MAY);
   test('typeof #.foo', NULL_NSM);
 
-  test('throw 123', MUST);
-  test('throw #', MUST);
-  test('throw #.x', MUST); // Could be better: is also an NSM guard.
-  test('throw #.x = 123', MUST);
+  test('throw 123', MAY);
+  test('throw #', MAY);
+  test('throw #.x', NULL_NSM_THEN_MAY);
+  test('throw #.x = 123', MAY);
+
+  test('#.f()', NULL_NSM_THEN_MAY);
+  test('#.f(#, #)', NULL_NSM_THEN_MAY);
+  test('#[#](#, #)', NULL_NSM_THEN_MAY);
+  test('#[f()](#, #)', MAY); // f() evaluated before
+
+  test('[]', NEVER);
+  test('[,,6,,,]', NEVER);
+  test('[#.f()]', NULL_NSM_THEN_MAY);
+  test('[,,#.f(),,f(),,]', NULL_NSM_THEN_MAY);
+  test('[,,f(),,#.f(),,]', MAY);
+
+  test('{}', NEVER);
+  test('{one: 1}', NEVER);
+  test('{one: #.f()}', NULL_NSM_THEN_MAY);
+  test('{one: #.f(), two: f()}', NULL_NSM_THEN_MAY);
+  test('{one: f(), two: #.f()}', MAY);
 }

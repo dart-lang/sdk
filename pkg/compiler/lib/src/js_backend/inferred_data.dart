@@ -6,13 +6,28 @@ import 'dart:collection' show Queue;
 
 import '../common.dart';
 import '../elements/entities.dart';
-import '../types/abstract_value_domain.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
 import 'annotations.dart';
 
 abstract class InferredData {
+  /// Deserializes a [InferredData] object from [source].
+  factory InferredData.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    bool isTrivial = source.readBool();
+    if (isTrivial) {
+      return new TrivialInferredData();
+    } else {
+      return new InferredDataImpl.readFromDataSource(source, closedWorld);
+    }
+  }
+
+  /// Serializes this [InferredData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(FunctionEntity element);
 
@@ -62,6 +77,10 @@ abstract class InferredDataBuilder {
 }
 
 class InferredDataImpl implements InferredData {
+  /// Tag used for identifying serialized [InferredData] objects in a
+  /// debugging data stream.
+  static const String tag = 'inferred-data';
+
   final JClosedWorld _closedWorld;
   final Set<MemberEntity> _functionsCalledInLoop;
   final Map<FunctionEntity, SideEffects> _sideEffects;
@@ -79,6 +98,40 @@ class InferredDataImpl implements InferredData {
       this._sideEffectsFreeElements,
       this._elementsThatCannotThrow,
       this._functionsThatMightBePassedToApply);
+
+  factory InferredDataImpl.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    Set<MemberEntity> functionsCalledInLoop = source.readMembers().toSet();
+    Map<FunctionEntity, SideEffects> sideEffects =
+        source.readMemberMap(() => new SideEffects.readFromDataSource(source));
+    Set<FunctionEntity> sideEffectsFreeElements =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> elementsThatCannotThrow =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> functionsThatMightBePassedToApply =
+        source.readMembers<FunctionEntity>().toSet();
+    source.end(tag);
+    return new InferredDataImpl(
+        closedWorld,
+        functionsCalledInLoop,
+        sideEffects,
+        sideEffectsFreeElements,
+        elementsThatCannotThrow,
+        functionsThatMightBePassedToApply);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(false); // Is _not_ trivial.
+    sink.begin(tag);
+    sink.writeMembers(_functionsCalledInLoop);
+    sink.writeMemberMap(_sideEffects,
+        (SideEffects sideEffects) => sideEffects.writeToDataSink(sink));
+    sink.writeMembers(_sideEffectsFreeElements);
+    sink.writeMembers(_elementsThatCannotThrow);
+    sink.writeMembers(_functionsThatMightBePassedToApply);
+    sink.end(tag);
+  }
 
   @override
   SideEffects getSideEffectsOfSelector(
@@ -205,8 +258,7 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   }
 
   static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
-    // TODO(johnniwinther): Optimize this algorithm, possibly by using
-    // `pkg/front_end/lib/src/dependency_walker.dart`.
+    // TODO(johnniwinther): Optimize this algorithm.
     Queue<SideEffectsBuilder> queue = new Queue<SideEffectsBuilder>();
     Set<SideEffectsBuilder> inQueue = new Set<SideEffectsBuilder>();
 
@@ -250,6 +302,11 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
 
 class TrivialInferredData implements InferredData {
   final SideEffects _allSideEffects = new SideEffects();
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(true); // Is trivial.
+  }
 
   @override
   SideEffects getSideEffectsOfElement(FunctionEntity element) {

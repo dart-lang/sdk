@@ -138,8 +138,8 @@ abstract class ChainContext {
           !partialSelectors.any((s) => selector.startsWith(s))) {
         continue;
       }
-      final Set<Expectation> expectedOutcomes =
-          expectations.expectations(description.shortName);
+      final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
+          expectations.expectations(description.shortName));
       final StringBuffer sb = new StringBuffer();
       final Step lastStep = steps.isNotEmpty ? steps.last : null;
       final Iterator<Step> iterator = steps.iterator;
@@ -253,6 +253,10 @@ abstract class ChainContext {
     } else {
       throw "${suite.uri} isn't a directory";
     }
+  }
+
+  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+    return outcomes;
   }
 
   Result processTestResult(

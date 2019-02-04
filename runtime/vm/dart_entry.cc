@@ -6,6 +6,7 @@
 
 #include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
 #include "vm/heap/safepoint.h"
@@ -20,6 +21,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, precompiled_mode);
 
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
@@ -58,9 +60,9 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
 #if defined(USING_SIMULATOR)
-    thread->SetStackLimit(Simulator::Current()->stack_limit());
+    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
 #else
-    thread->SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
+    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
     // TODO(regis): For now, the interpreter is using its own stack limit.
 #endif
 
@@ -91,10 +93,11 @@ class ScopedIsolateStackLimits : public ValueObject {
 
 // Clears/restores Thread::long_jump_base on construction/destruction.
 // Ensures that we do not attempt to long jump across Dart frames.
-class SuspendLongJumpScope : public StackResource {
+class SuspendLongJumpScope : public ThreadStackResource {
  public:
   explicit SuspendLongJumpScope(Thread* thread)
-      : StackResource(thread), saved_long_jump_base_(thread->long_jump_base()) {
+      : ThreadStackResource(thread),
+        saved_long_jump_base_(thread->long_jump_base()) {
     thread->set_long_jump_base(NULL);
   }
 
@@ -115,11 +118,20 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
   // and never start the VM service isolate. So we should never end up invoking
   // any dart code in the Dart 2.0 AOT compiler.
+  if (FLAG_precompiled_mode) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_strong && FLAG_precompiled_mode) {
     UNREACHABLE();
-  }
+#else
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      Thread* thread = Thread::Current();
+      thread->set_global_object_pool(
+          thread->isolate()->object_store()->global_object_pool());
+      ASSERT(thread->global_object_pool() != Object::null());
+    }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ASSERT(!function.IsNull());
 
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
@@ -130,36 +142,42 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
-    // There's no native code. If we're not using the interpreter, then we
-    // compile to native code. If we are using the interpreter, but there's no
-    // native code and no bytecode, then we invoke the compiler to extract the
-    // bytecode.
-    if (!FLAG_enable_interpreter || !function.HasBytecode()) {
-      const Object& result =
-          Object::Handle(zone, Compiler::CompileFunction(thread, function));
-      if (result.IsError()) {
-        return Error::Cast(result).raw();
+    if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
+      if (!function.HasBytecode()) {
+        RawError* error =
+            kernel::BytecodeReader::ReadFunctionBytecode(thread, function);
+        if (error != Error::null()) {
+          return error;
+        }
       }
+
+      // If we have bytecode but no native code then invoke the interpreter.
+      if (function.HasBytecode()) {
+        ASSERT(thread->no_callback_scope_depth() == 0);
+        SuspendLongJumpScope suspend_long_jump_scope(thread);
+        TransitionToGenerated transition(thread);
+        return Interpreter::Current()->Call(function, arguments_descriptor,
+                                            arguments, thread);
+      }
+
+      // No bytecode, fall back to compilation.
     }
 
-    // At this point we should have either native code or bytecode.
-    ASSERT(function.HasCode() || function.HasBytecode());
-
-    // If we have bytecode but no native code then invoke the interpreter.
-    if (!function.HasCode() && function.HasBytecode()) {
-      ASSERT(thread->no_callback_scope_depth() == 0);
-      SuspendLongJumpScope suspend_long_jump_scope(thread);
-      TransitionToGenerated transition(thread);
-      return Interpreter::Current()->Call(function, arguments_descriptor,
-                                          arguments, thread);
+    const Object& result =
+        Object::Handle(zone, Compiler::CompileFunction(thread, function));
+    if (result.IsError()) {
+      return Error::Cast(result).raw();
     }
+
+    // At this point we should have native code.
+    ASSERT(function.HasCode());
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Now Call the invoke stub which will invoke the dart function.
 #if !defined(TARGET_ARCH_DBC)
-  invokestub entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCode_entry()->EntryPoint());
+  invokestub entrypoint =
+      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
 #endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
@@ -495,9 +513,16 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   return descriptor.raw();
 }
 
-void ArgumentsDescriptor::InitOnce() {
+void ArgumentsDescriptor::Init() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     cached_args_descriptors_[i] = NewNonCached(/*type_args_len=*/0, i, false);
+  }
+}
+
+void ArgumentsDescriptor::Cleanup() {
+  for (int i = 0; i < kCachedDescriptorCount; i++) {
+    // Don't free pointers to RawArray objects managed by the VM.
+    cached_args_descriptors_[i] = NULL;
   }
 }
 

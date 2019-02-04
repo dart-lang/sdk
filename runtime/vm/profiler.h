@@ -30,32 +30,39 @@ class AllocationSampleBuffer;
 class SampleBuffer;
 class ProfileTrieNode;
 
+#define PROFILER_COUNTERS(V)                                                   \
+  V(bail_out_unknown_task)                                                     \
+  V(bail_out_jump_to_exception_handler)                                        \
+  V(bail_out_check_isolate)                                                    \
+  V(single_frame_sample_deoptimizing)                                          \
+  V(single_frame_sample_register_check)                                        \
+  V(single_frame_sample_get_and_validate_stack_bounds)                         \
+  V(stack_walker_native)                                                       \
+  V(stack_walker_dart_exit)                                                    \
+  V(stack_walker_dart)                                                         \
+  V(stack_walker_none)                                                         \
+  V(incomplete_sample_fp_bounds)                                               \
+  V(incomplete_sample_fp_step)                                                 \
+  V(incomplete_sample_bad_pc)                                                  \
+  V(failure_native_allocation_sample)
+
 struct ProfilerCounters {
-  // Count of bail out reasons:
-  ALIGN8 int64_t bail_out_unknown_task;
-  ALIGN8 int64_t bail_out_jump_to_exception_handler;
-  ALIGN8 int64_t bail_out_check_isolate;
-  // Count of single frame sampling reasons:
-  ALIGN8 int64_t single_frame_sample_deoptimizing;
-  ALIGN8 int64_t single_frame_sample_register_check;
-  ALIGN8 int64_t single_frame_sample_get_and_validate_stack_bounds;
-  // Count of stack walkers used:
-  ALIGN8 int64_t stack_walker_native;
-  ALIGN8 int64_t stack_walker_dart_exit;
-  ALIGN8 int64_t stack_walker_dart;
-  ALIGN8 int64_t stack_walker_none;
-  // Count of failed checks:
-  ALIGN8 int64_t failure_native_allocation_sample;
+#define DECLARE_PROFILER_COUNTER(name) ALIGN8 int64_t name;
+  PROFILER_COUNTERS(DECLARE_PROFILER_COUNTER)
+#undef DECLARE_PROFILER_COUNTER
 };
 
 class Profiler : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void InitAllocationSampleBuffer();
-  static void Shutdown();
+  static void Cleanup();
 
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
+  // Restarts sampling with a given profile period. This is called after the
+  // profile period is changed via the service protocol.
+  static void UpdateSamplePeriod();
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
   static AllocationSampleBuffer* allocation_sample_buffer() {
@@ -353,7 +360,7 @@ class Sample {
     set_metadata(cid);
   }
 
-  static void InitOnce();
+  static void Init();
 
   static intptr_t instance_size() { return instance_size_; }
 
@@ -434,10 +441,83 @@ class NativeAllocationSampleFilter : public SampleFilter {
   }
 };
 
+class AbstractCode {
+ public:
+  explicit AbstractCode(RawObject* code) : code_(Object::Handle(code)) {
+    ASSERT(code_.IsNull() || code_.IsCode() || code_.IsBytecode());
+  }
+
+  RawObject* raw() const { return code_.raw(); }
+  const Object* handle() const { return &code_; }
+
+  uword PayloadStart() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).PayloadStart();
+    } else {
+      return Bytecode::Cast(code_).PayloadStart();
+    }
+  }
+
+  uword Size() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).Size();
+    } else {
+      return Bytecode::Cast(code_).Size();
+    }
+  }
+
+  int64_t compile_timestamp() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).compile_timestamp();
+    } else {
+      return 0;
+    }
+  }
+
+  const char* Name() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).Name();
+    } else {
+      return Bytecode::Cast(code_).Name();
+    }
+  }
+
+  const char* QualifiedName() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).QualifiedName();
+    } else {
+      return Bytecode::Cast(code_).QualifiedName();
+    }
+  }
+
+  RawObject* owner() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).owner();
+    } else {
+      return Bytecode::Cast(code_).function();
+    }
+  }
+
+  bool IsNull() const { return code_.IsNull(); }
+  bool IsCode() const { return code_.IsCode(); }
+  bool IsBytecode() const { return code_.IsBytecode(); }
+
+  bool is_optimized() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).is_optimized();
+    } else {
+      return false;
+    }
+  }
+
+ private:
+  const Object& code_;
+};
+
 // A Code object descriptor.
 class CodeDescriptor : public ZoneAllocated {
  public:
-  explicit CodeDescriptor(const Code& code);
+  explicit CodeDescriptor(const AbstractCode code);
 
   uword Start() const;
 
@@ -445,7 +525,7 @@ class CodeDescriptor : public ZoneAllocated {
 
   int64_t CompileTimestamp() const;
 
-  RawCode* code() const { return code_.raw(); }
+  const AbstractCode code() const { return code_; }
 
   const char* Name() const { return code_.Name(); }
 
@@ -471,7 +551,7 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
  private:
-  const Code& code_;
+  const AbstractCode code_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeDescriptor);
 };
@@ -492,7 +572,7 @@ class CodeLookupTable : public ZoneAllocated {
  private:
   void Build(Thread* thread);
 
-  void Add(const Code& code);
+  void Add(const Object& code);
 
   // Code objects sorted by entry.
   ZoneGrowableArray<CodeDescriptor*> code_objects_;

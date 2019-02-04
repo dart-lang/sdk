@@ -52,27 +52,6 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->movq(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
-void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler,
-                                                  Label* normal_ir_body) {
-  __ movq(RDX, Address(RSP, +1 * kWordSize));  // Value.
-  __ movq(RCX, Address(RSP, +2 * kWordSize));  // Index.
-  __ movq(RAX, Address(RSP, +3 * kWordSize));  // Array.
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, normal_ir_body);
-  // Range check.
-  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, normal_ir_body);
-  // Note that RBX is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  // Destroy RCX (ic data) as we will not continue in the function.
-  __ StoreIntoObject(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
-                     RDX);
-  // Caller is responsible of preserving the value if necessary.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -108,34 +87,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-// Add an element to growable array if it doesn't need to grow, otherwise
-// call into regular code.
-// On stack: growable array (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->argument_type_checks()) return;
-
-  __ movq(RAX, Address(RSP, +2 * kWordSize));  // Array.
-  __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
-  // RCX: length.
-  __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
-  // RDX: data.
-  // Compare length with capacity.
-  __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
-  __ j(EQUAL, normal_ir_body);  // Must grow data.
-  // len = len + 1;
-  __ IncrementSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()),
-                       1);
-  __ movq(RAX, Address(RSP, +1 * kWordSize));  // Value
-  ASSERT(kSmiTagShift == 1);
-  __ StoreIntoObject(RDX, FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
-                     RAX);
-  __ LoadObject(RAX, Object::null_object());
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
@@ -163,7 +114,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler,
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
   __ movq(RAX, Address(THR, Thread::top_offset()));                            \
   __ movq(RCX, RAX);                                                           \
                                                                                \
@@ -182,7 +132,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movq(Address(THR, Thread::top_offset()), RCX);                            \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));           \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));                  \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -748,7 +698,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&last);
   __ shldq(RDX, R8, RCX);  // R8 == 0.
   __ movq(Address(RBX, 0), RDX);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(RAX, Object::null_object());
   __ ret();
 }
 
@@ -784,7 +734,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&last);
   __ shrdq(RDX, RSI, RCX);  // RSI == 0.
   __ movq(Address(RBX, 0), RDX);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(RAX, Object::null_object());
   __ ret();
 }
 
@@ -839,7 +789,7 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
           Immediate(1));
 
   __ Bind(&done);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(RAX, Object::null_object());
   __ ret();
 }
 
@@ -888,7 +838,7 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(RAX, Object::null_object());
   __ ret();
 }
 
@@ -1601,7 +1551,7 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_integer, not_double;
+  Label use_declaration_type, not_integer, not_double;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
@@ -1610,7 +1560,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
 
   __ cmpl(RCX, Immediate(kNumPredefinedCids));
-  __ j(ABOVE, &use_canonical_type);
+  __ j(ABOVE, &use_declaration_type);
 
   // If object is a instance of _Double return double type.
   __ cmpl(RCX, Immediate(kDoubleCid));
@@ -1635,7 +1585,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movq(RAX, RCX);
-  JumpIfNotString(assembler, RAX, &use_canonical_type);
+  JumpIfNotString(assembler, RAX, &use_declaration_type);
 
   __ LoadIsolate(RAX);
   __ movq(RAX, Address(RAX, Isolate::object_store_offset()));
@@ -1643,12 +1593,12 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   // Object is neither double, nor integer, nor string.
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(RDI, RCX);
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RDI, Class::canonical_type_offset()));
+  __ movq(RAX, FieldAddress(RDI, Class::declaration_type_offset()));
   __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -2014,7 +1964,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andq(RDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
   __ movq(RAX, Address(THR, Thread::top_offset()));
 
   // RDI: allocation size.
@@ -2033,7 +1982,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(THR, Thread::top_offset()), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
@@ -2278,11 +2227,10 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  if (!FLAG_support_timeline) {
-    __ LoadObject(RAX, Bool::False());
-    __ ret();
-    return;
-  }
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadObject(RAX, Bool::False());
+  __ ret();
+#else
   Label true_label;
   // Load TimelineStream*.
   __ movq(RAX, Address(THR, Thread::dart_stream_offset()));
@@ -2297,6 +2245,7 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ Bind(&true_label);
   __ LoadObject(RAX, Bool::True());
   __ ret();
+#endif
 }
 
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,

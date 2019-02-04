@@ -1,12 +1,11 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /**
  * Code generation for the file "AnalysisServer.java".
  */
-import 'package:analyzer/src/codegen/tools.dart';
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
 import 'codegen_java.dart';
@@ -72,6 +71,59 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       });
 
       //
+      // addRequestListener(..)
+      //
+      publicMethod('addRequestListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when
+   * requests are made by an analysis server client.
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln('public void addRequestListener(RequestListener listener);');
+      });
+
+      //
+      // removeRequestListener(..)
+      //
+      publicMethod('removeRequestListener', () {
+        writeln('''/**
+ * Remove the given listener from the list of listeners that will receive notification when
+   * requests are made by an analysis server client.
+ * 
+ * @param listener the listener to be removed
+ */''');
+        writeln('public void removeRequestListener(RequestListener listener);');
+      });
+
+      //
+      // addResponseListener(..)
+      //
+      publicMethod('addResponseListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when
+ * responses are received by an analysis server client.
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln('public void addResponseListener(ResponseListener listener);');
+      });
+
+      //
+      // removeResponseListener(..)
+      //
+      publicMethod('removeResponseListener', () {
+        writeln('''/**
+ * Remove the given listener from the list of listeners that will receive notification when
+   * responses are received by an analysis server client.
+ * 
+ * @param listener the listener to be removed
+ */''');
+        writeln(
+            'public void removeResponseListener(ResponseListener listener);');
+      });
+
+      //
       // addStatusListener(..)
       //
       publicMethod('addStatusListener', () {
@@ -113,7 +165,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
     String methodName = '${request.domainName}_${request.method}';
     publicMethod(methodName, () {
       docComment(toHtmlVisitor.collectHtml(() {
-        toHtmlVisitor.write('{@code ${request.longMethod }}');
+        toHtmlVisitor.write('{@code ${request.longMethod}}');
         toHtmlVisitor.translateHtml(request.html);
         toHtmlVisitor.javadocParams(request.params);
         if (request.deprecated) {

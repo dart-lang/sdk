@@ -1,11 +1,13 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-#ifndef PRODUCT
+#include "vm/globals.h"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/source_report.h"
 
 #include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
+#include "vm/kernel_loader.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/profiler.h"
@@ -90,6 +92,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -98,7 +101,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.IsRedirectingFactory()) {
+      func.IsRedirectingFactory() || func.is_no_such_method_forwarder()) {
     return true;
   }
   if (func.IsNonImplicitClosureFunction() &&
@@ -111,16 +114,41 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   return false;
 }
 
+bool SourceReport::ShouldSkipField(const Field& field) {
+  if (!field.token_pos().IsReal() || !field.end_token_pos().IsReal()) {
+    // At least one of the token positions is not known.
+    return true;
+  }
+
+  if (script_ != NULL && !script_->IsNull()) {
+    if (field.Script() != script_->raw()) {
+      // The field is from the wrong script.
+      return true;
+    }
+    if (((start_pos_ > TokenPosition::kMinSource) &&
+         (field.end_token_pos() < start_pos_)) ||
+        ((end_pos_ > TokenPosition::kMinSource) &&
+         (field.token_pos() > end_pos_))) {
+      // The field does not intersect with the requested token range.
+      return true;
+    }
+  }
+  return false;
+}
+
 intptr_t SourceReport::GetScriptIndex(const Script& script) {
+  ScriptTableEntry wrapper;
   const String& url = String::Handle(zone(), script.url());
-  ScriptTableEntry* pair = script_table_.LookupValue(&url);
+  wrapper.key = &url;
+  wrapper.script = &Script::Handle(zone(), script.raw());
+  ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
   if (pair != NULL) {
     return pair->index;
   }
   ScriptTableEntry* tmp = new ScriptTableEntry();
   tmp->key = &url;
   tmp->index = next_script_index_++;
-  tmp->script = &Script::Handle(zone(), script.raw());
+  tmp->script = wrapper.script;
   script_table_entries_.Add(tmp);
   script_table_.Insert(tmp);
   ASSERT(script_table_entries_.length() == next_script_index_);
@@ -139,7 +167,10 @@ void SourceReport::VerifyScriptTable() {
     ASSERT(i == index);
     const String& url2 = String::Handle(zone(), script->url());
     ASSERT(url2.Equals(*url));
-    ScriptTableEntry* pair = script_table_.LookupValue(&url2);
+    ScriptTableEntry wrapper;
+    wrapper.key = &url2;
+    wrapper.script = &Script::Handle(zone(), script->raw());
+    ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
     ASSERT(i == pair->index);
   }
 }
@@ -383,12 +414,13 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   const TokenPosition end_pos = func.end_token_pos();
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
+  Bytecode& bytecode = Bytecode::Handle(zone());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
-    code = func.Bytecode();
+    bytecode = func.bytecode();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  if (code.IsNull()) {
+  if (code.IsNull() && bytecode.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
           Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
@@ -405,7 +437,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       code = func.unoptimized_code();
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
-        code = func.Bytecode();
+        bytecode = func.bytecode();
       }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
@@ -418,7 +450,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       return;
     }
   }
-  ASSERT(!code.IsNull());
+  ASSERT(!code.IsNull() || !bytecode.IsNull());
 
   // We skip compiled async functions.  Once an async function has
   // been compiled, there is another function with the same range which
@@ -432,8 +464,14 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   range.AddProperty("scriptIndex", GetScriptIndex(script));
   range.AddProperty("startPos", begin_pos);
   range.AddProperty("endPos", end_pos);
-  range.AddProperty("compiled", true);
+  // TODO(regis): What is the meaning of 'compiled' in the presence of bytecode?
+  // If it means 'called', it should say 'true' if bytecode is present.
+  range.AddProperty("compiled", !code.IsNull());
 
+  // TODO(regis): Do we want a report covering interpreted functions too?
+  if (code.IsNull()) {
+    return;
+  }
   if (IsReportRequested(kCallSites)) {
     PrintCallSitesData(&range, func, code);
   }
@@ -452,25 +490,32 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
 }
 
+void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
+  if (ShouldSkipField(field) || !field.has_initializer()) return;
+  const Function& func =
+      Function::Handle(zone(), GetInitializerFunction(field));
+  VisitFunction(jsarr, func);
+}
+
+RawFunction* SourceReport::GetInitializerFunction(const Field& field) {
+  Thread* const thread = Thread::Current();
+  // Create a function to evaluate the initializer
+  return kernel::CreateFieldInitializerFunction(thread, thread->zone(), field);
+}
+
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Class& cls = Class::Handle(zone());
   Array& functions = Array::Handle(zone());
+  Array& fields = Array::Handle(zone());
   Function& func = Function::Handle(zone());
+  Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
   while (it.HasNext()) {
     cls = it.GetNextClass();
     if (!cls.is_finalized()) {
       if (compile_mode_ == kForceCompile) {
-        Error& err = Error::Handle();
-        if (cls.is_marked_for_parsing()) {
-          const String& error_message = String::Handle(
-              String::New("Unable to process 'force compile' request, "
-                          "while the class is being finalized."));
-          err = ApiError::New(error_message);
-        } else {
-          err = cls.EnsureIsFinalized(thread());
-        }
+        Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
           JSONObject range(jsarr);
@@ -499,6 +544,12 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
       VisitFunction(jsarr, func);
+    }
+
+    fields = cls.fields();
+    for (intptr_t i = 0; i < fields.Length(); i++) {
+      field ^= fields.At(i);
+      VisitField(jsarr, field);
     }
   }
 }
@@ -549,4 +600,4 @@ void SourceReport::PrintJSON(JSONStream* js,
 }
 
 }  // namespace dart
-#endif  // PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

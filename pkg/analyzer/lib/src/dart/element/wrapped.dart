@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Directive;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -62,6 +63,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
 
   @override
   bool get hasJS => wrappedUnit.hasJS;
+
+  @override
+  bool get hasLiteral => wrappedUnit.hasLiteral;
 
   @override
   bool get hasLoadLibraryFunction => wrappedUnit.hasLoadLibraryFunction;
@@ -151,6 +155,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   int get nameOffset => wrappedUnit.nameOffset;
 
   @override
+  AnalysisSession get session => wrappedUnit.session;
+
+  @override
   Source get source => wrappedUnit.source;
 
   @override
@@ -160,6 +167,7 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   @override
   List<ClassElement> get types => wrappedUnit.types;
 
+  @deprecated
   @override
   CompilationUnit get unit => wrappedUnit.unit;
 
@@ -177,8 +185,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
 
   @override
   String computeDocumentationComment() => wrappedUnit
-      .computeDocumentationComment(); // ignore: deprecated_member_use
+      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
 
+  @deprecated
   @override
   CompilationUnit computeNode() => wrappedUnit.computeNode();
 
@@ -247,6 +256,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   bool get hasJS => wrappedImport.hasJS;
+
+  @override
+  bool get hasLiteral => wrappedImport.hasLiteral;
 
   @override
   bool get hasOverride => wrappedImport.hasOverride;
@@ -342,8 +354,12 @@ class WrappedImportElement implements ImportElement {
   int get prefixOffset => wrappedImport.prefixOffset;
 
   @override
+  AnalysisSession get session => wrappedImport.session;
+
+  @override
   Source get source => wrappedImport.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => wrappedImport.unit;
 
@@ -361,8 +377,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   String computeDocumentationComment() => wrappedImport
-      .computeDocumentationComment(); // ignore: deprecated_member_use
+      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
 
+  @deprecated
   @override
   AstNode computeNode() => wrappedImport.computeNode();
 
@@ -441,6 +458,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   bool get hasJS => wrappedLib.hasJS;
+
+  @override
+  bool get hasLiteral => wrappedLib.hasLiteral;
 
   @override
   bool get hasLoadLibraryFunction => wrappedLib.hasLoadLibraryFunction;
@@ -560,8 +580,15 @@ class WrappedLibraryElement implements LibraryElement {
   Namespace get publicNamespace => wrappedLib.publicNamespace;
 
   @override
+  AnalysisSession get session => wrappedLib.session;
+
+  @override
   Source get source => wrappedLib.source;
 
+  @override
+  Iterable<Element> get topLevelElements => wrappedLib.topLevelElements;
+
+  @deprecated
   @override
   CompilationUnit get unit => wrappedLib.unit;
 
@@ -572,9 +599,10 @@ class WrappedLibraryElement implements LibraryElement {
   T accept<T>(ElementVisitor<T> visitor) => wrappedLib.accept(visitor);
 
   @override
-  String computeDocumentationComment() =>
-      wrappedLib.computeDocumentationComment(); // ignore: deprecated_member_use
+  String computeDocumentationComment() => wrappedLib
+      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
 
+  @deprecated
   @override
   AstNode computeNode() => wrappedLib.computeNode();
 

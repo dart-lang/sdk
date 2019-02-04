@@ -1,21 +1,22 @@
-// Formatted problems:
+library test;
 //
-// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   a = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                    ^
 //
-// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   b = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                    ^
 //
-// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   c = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                    ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 
@@ -24,22 +25,22 @@ static field core::int y = 0;
 static final field core::int z = 42;
 static method test1() → dynamic {
   core::int a = self::x;
-  a = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  a = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
   a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in let final dynamic #t2 = "hi" in null;
+                                   ^" in "hi" as{TypeError} core::int;
   a = 3;
   core::int b = self::y;
-  b = let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  b = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
   b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in let final dynamic #t4 = "hi" in null;
+                                   ^" in "hi" as{TypeError} core::int;
   b = 4;
   core::int c = self::z;
-  c = let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  c = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
   c = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in let final dynamic #t6 = "hi" in null;
+                                   ^" in "hi" as{TypeError} core::int;
   c = 4;
 }
 static method main() → dynamic {}

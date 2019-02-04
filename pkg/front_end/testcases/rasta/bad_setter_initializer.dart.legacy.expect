@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_setter_initializer.dart:6:9: Error: 'field' isn't an instance field of this class.
+//   C() : field = null;
+//         ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → self::C
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_setter_initializer.dart:6:9: Error: 'field' isn't an instance field of this class.
+  C() : field = null;
+        ^^^^^"
+    ;
+  set field(dynamic value) → dynamic {}
+}
+static method main() → dynamic {
+  new self::C::•();
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,18 +18,18 @@ import 'dart:async';
 ///       m.release();
 ///     }
 class Mutex {
-  Completer<Null> _lock;
+  Completer<void> _lock;
 
   /// Acquire a lock.
   ///
   /// Returns a [Future] that will be completed when the lock has been acquired.
-  Future<Null> acquire() async {
+  Future<void> acquire() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     while (_lock != null) {
       await _lock.future;
     }
-    _lock = new Completer<Null>();
+    _lock = new Completer<void>();
   }
 
   /// Run the given [criticalSection] with acquired mutex.

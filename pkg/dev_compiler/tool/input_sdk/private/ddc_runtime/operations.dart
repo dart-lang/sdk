@@ -390,73 +390,71 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
-/// TODO(leafp): This duplicates code in types.dart.
-/// I haven't found a way to factor it out that makes the
-/// code generator happy though.
-_ignoreMemo(f) => JS('', '''(() => {
-  let memo = new Map();
-  return (t1, t2) => {
-    let map = memo.get(t1);
-    let result;
-    if (map) {
-      result = map.get(t2);
-      if (result !== void 0) return result;
-    } else {
-      memo.set(t1, map = new Map());
-    }
-    result = $f(t1, t2);
-    map.set(t2, result);
-    return result;
-  };
-})()''');
+final _ignoreSubtypeCache = JS('', 'new Map()');
 
-final Object _ignoreTypeFailure = JS('', '''(() => {
-  return $_ignoreMemo((actual, type) => {
-      // TODO(vsm): Remove this hack ...
-      // This is primarily due to the lack of generic methods,
-      // but we need to triage all the types.
-    if ($_isFutureOr(type)) {
-      // Ignore if we would ignore either side of union.
-      let typeArg = $getGenericArgs(type)[0];
-      let typeFuture = ${getGenericClass(Future)}(typeArg);
-      return $_ignoreTypeFailure(actual, typeFuture) ||
-        $_ignoreTypeFailure(actual, typeArg);
-    }
+/// Whether [t1] <: [t2], or if [isImplicit] is set and we should ignore the
+/// cast failure from t1 to t2.
+///
+/// See [_isSubtypeOrLegacySubtype] and [ignoreWhitelistedErrors].
+@notNull
+bool _isSubtypeOrIgnorableCastFailure(
+    Object t1, Object t2, @notNull bool isImplicit) {
+  var result = _isSubtypeOrLegacySubtype(t1, t2);
+  return result == true ||
+      result == null &&
+          isImplicit &&
+          JS<bool>('!', 'dart.__ignoreWhitelistedErrors') &&
+          _ignoreTypeFailure(t1, t2);
+}
 
-    if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future)) {
-      console.warn('Ignoring cast fail from ' + $typeName(actual) +
-                   ' to ' + $typeName(type));
-      return true;
+@notNull
+bool _ignoreTypeFailure(Object t1, Object t2) {
+  var map = JS('', '#.get(#)', _ignoreSubtypeCache, t1);
+  if (map != null) {
+    bool result = JS('', '#.get(#)', map, t2);
+    if (JS('!', '# !== void 0', result)) return result;
+  } else {
+    map = JS('', 'new Map()');
+    JS('', '#.set(#, #)', _ignoreSubtypeCache, t1, map);
+  }
+
+  // TODO(vsm): Remove this hack ...
+  // This is primarily due to the lack of generic methods,
+  // but we need to triage all the types.
+  @notNull
+  bool result;
+  if (_isFutureOr(t2)) {
+    // Ignore if we would ignore either side of union.
+    var typeArg = getGenericArgs(t2)[0];
+    var typeFuture = JS('', '#(#)', getGenericClass(Future), typeArg);
+    result =
+        _ignoreTypeFailure(t1, typeFuture) || _ignoreTypeFailure(t1, typeArg);
+  } else {
+    result = t1 is FunctionType && t2 is FunctionType ||
+        isSubtypeOf(t2, unwrapType(Iterable)) &&
+            isSubtypeOf(t1, unwrapType(Iterable));
+    if (result) {
+      _warn('Ignoring cast fail from ${typeName(t1)} to ${typeName(t2)}');
     }
-    return false;
-  });
-})()''');
+  }
+  JS('', '#.set(#, #)', map, t2, result);
+  return result;
+}
 
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
-    return JS('!', '# == # || #', type, Null, _isTop(type));
+    return identical(type, unwrapType(Null)) || _isTop(type);
   }
-  return JS('!', '!!#', isSubtype(getReifiedType(obj), type));
+  return isSubtypeOf(getReifiedType(obj), type);
 }
 
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
-  var result = isSubtype(actual, type);
-  if (JS(
-      '!',
-      '# === true || # === null && # && '
-      'dart.__ignoreWhitelistedErrors && #(#, #)',
-      result,
-      result,
-      isImplicit,
-      _ignoreTypeFailure,
-      actual,
-      type)) {
+  if (_isSubtypeOrIgnorableCastFailure(actual, type, isImplicit)) {
     return obj;
   }
   return castError(obj, type, isImplicit);
@@ -504,23 +502,43 @@ _notNull(x) {
 /// The global constant map table.
 final constantMaps = JS('', 'new Map()');
 
-constMap<K, V>(JSArray elements) {
-  Function(Object, Object) lookupNonTerminal = JS('', '''function(map, key) {
-    let result = map.get(key);
-    if (result != null) return result;
-    map.set(key, result = new Map());
-    return result;
-  }''');
+// TODO(leafp): This table gets quite large in apps.
+// Keeping the paths is probably expensive.  It would probably
+// be more space efficient to just use a direct hash table with
+// an appropriately defined structural equality function.
+Object _lookupNonTerminal(Object map, Object key) {
+  var result = JS('', '#.get(#)', map, key);
+  if (result != null) return result;
+  JS('', '#.set(#, # = new Map())', map, key, result);
+  return result;
+}
+
+Map<K, V> constMap<K, V>(JSArray elements) {
   var count = elements.length;
-  var map = lookupNonTerminal(constantMaps, count);
+  var map = _lookupNonTerminal(constantMaps, count);
   for (var i = 0; i < count; i++) {
-    map = lookupNonTerminal(map, JS('', '#[#]', elements, i));
+    map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
-  map = lookupNonTerminal(map, K);
+  map = _lookupNonTerminal(map, K);
   var result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
   result = ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
+  return result;
+}
+
+final constantSets = JS('', 'new Map()');
+
+Set<E> constSet<E>(JSArray<E> elements) {
+  var count = elements.length;
+  var map = _lookupNonTerminal(constantSets, count);
+  for (var i = 0; i < count; i++) {
+    map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
+  }
+  var result = JS('', '#.get(#)', map, E);
+  if (result != null) return result;
+  result = ImmutableSet<E>.from(elements);
+  JS('', '#.set(#, #)', map, E, result);
   return result;
 }
 
@@ -531,76 +549,6 @@ bool dassert(value) {
   }
   return dtest(value);
 }
-
-/// Store a JS error for an exception.  For non-primitives, we store as an
-/// expando.  For primitive, we use a side cache.  To limit memory leakage, we
-/// only keep the last [_maxTraceCache] entries.
-final _error = JS('', 'Symbol("_error")');
-Map _primitiveErrorCache;
-const _maxErrorCache = 10;
-
-bool _isJsError(exception) {
-  return JS('!', '#.Error != null && # instanceof #.Error', global_, exception,
-      global_);
-}
-
-// Record/return the JS error for an exception.  If an error was already
-// recorded, prefer that to [newError].
-recordJsError(exception, [newError]) {
-  if (_isJsError(exception)) return exception;
-
-  var useExpando =
-      exception != null && JS<bool>('!', 'typeof # == "object"', exception);
-  var error;
-  if (useExpando) {
-    error = JS('', '#[#]', exception, _error);
-  } else {
-    if (_primitiveErrorCache == null) _primitiveErrorCache = {};
-    error = _primitiveErrorCache[exception];
-  }
-  if (error != null) return error;
-  if (newError != null) {
-    error = newError;
-  } else {
-    // We should only hit this path when a non-Error was thrown from JS.  In
-    // case, there is no stack trace on the exception, so we create one:
-    error = JS('', 'new Error()');
-  }
-  if (useExpando) {
-    JS('', '#[#] = #', exception, _error, error);
-  } else {
-    _primitiveErrorCache[exception] = error;
-    if (_primitiveErrorCache.length > _maxErrorCache) {
-      _primitiveErrorCache.remove(_primitiveErrorCache.keys.first);
-    }
-  }
-  return error;
-}
-
-@JSExportName('throw')
-throw_(obj) {
-  // Note, we create the error here to avoid the extra frame.
-  // package:stack_trace and tests appear to assume this.  We could fix use
-  // cases instead, but we're already on the exceptional path here.
-  recordJsError(obj, JS('', 'new Error()'));
-  JS('', 'throw #', obj);
-}
-
-@JSExportName('rethrow')
-rethrow_(obj) {
-  JS('', 'throw #', obj);
-}
-
-// This is a utility function: it is only intended to be called from dev
-// tools.
-stackPrint(exception) {
-  var error = recordJsError(exception);
-  JS('', 'console.log(#.stack ? #.stack : "No stack trace for: " + #)', error,
-      error, error);
-}
-
-// Forward to dart:_js_helper to create a _StackTrace object.
-stackTrace(exception) => getTraceFromException(exception);
 
 final _value = JS('', 'Symbol("_value")');
 
@@ -648,22 +596,12 @@ final constants = JS('', 'new Map()');
 /// - nested values of the object are themselves already canonicalized.
 ///
 @JSExportName('const')
-const_(obj) => JS('', '''(() => {
-  // TODO(leafp): This table gets quite large in apps.
-  // Keeping the paths is probably expensive.  It would probably
-  // be more space efficient to just use a direct hash table with
-  // an appropriately defined structural equality function.
-  function lookupNonTerminal(map, key) {
-    let result = map.get(key);
-    if (result !== void 0) return result;
-    map.set(key, result = new Map());
-    return result;
-  };
+const_(obj) => JS('', '''(() => {  
   let names = $getOwnNamesAndSymbols($obj);
   let count = names.length;
   // Index by count.  All of the paths through this map
   // will have 2*count length.
-  let map = lookupNonTerminal($constants, count);
+  let map = $_lookupNonTerminal($constants, count);
   // TODO(jmesserly): there's no guarantee in JS that names/symbols are
   // returned in the same order.
   //
@@ -678,8 +616,8 @@ const_(obj) => JS('', '''(() => {
   // See issue https://github.com/dart-lang/sdk/issues/30876
   for (let i = 0; i < count; i++) {
     let name = names[i];
-    map = lookupNonTerminal(map, name);
-    map = lookupNonTerminal(map, $obj[name]);
+    map = $_lookupNonTerminal(map, name);
+    map = $_lookupNonTerminal(map, $obj[name]);
   }
   // TODO(leafp): It may be the case that the reified type
   // is always one of the keys already used above?
@@ -699,16 +637,10 @@ final constantLists = JS('', 'new Map()');
 
 /// Canonicalize a constant list
 constList(elements, elementType) => JS('', '''(() => {
-  function lookupNonTerminal(map, key) {
-    let result = map.get(key);
-    if (result !== void 0) return result;
-    map.set(key, result = new Map());
-    return result;
-  };
   let count = $elements.length;
-  let map = lookupNonTerminal($constantLists, count);
+  let map = $_lookupNonTerminal($constantLists, count);
   for (let i = 0; i < count; i++) {
-    map = lookupNonTerminal(map, elements[i]);
+    map = $_lookupNonTerminal(map, elements[i]);
   }
   let value = map.get($elementType);
   if (value) return value;

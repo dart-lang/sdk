@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,16 +20,32 @@ class FindNode {
     return _node(search, (n) => n is Annotation);
   }
 
+  AstNode any(String search) {
+    return _node(search, (n) => true);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
+  }
+
+  BinaryExpression binary(String search) {
+    return _node(search, (n) => n is BinaryExpression);
   }
 
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
   }
 
+  ClassDeclaration classDeclaration(String search) {
+    return _node(search, (n) => n is ClassDeclaration);
+  }
+
   CommentReference commentReference(String search) {
     return _node(search, (n) => n is CommentReference);
+  }
+
+  ConditionalExpression conditionalExpression(String search) {
+    return _node(search, (n) => n is ConditionalExpression);
   }
 
   ConstructorDeclaration constructor(String search) {
@@ -40,8 +56,20 @@ class FindNode {
     return _node(search, (n) => n is ExportDirective);
   }
 
+  Expression expression(String search) {
+    return _node(search, (n) => n is Expression);
+  }
+
   FieldFormalParameter fieldFormalParameter(String search) {
     return _node(search, (n) => n is FieldFormalParameter);
+  }
+
+  FunctionBody functionBody(String search) {
+    return _node(search, (n) => n is FunctionBody);
+  }
+
+  FunctionDeclaration functionDeclaration(String search) {
+    return _node(search, (n) => n is FunctionDeclaration);
   }
 
   FunctionExpression functionExpression(String search) {
@@ -56,8 +84,16 @@ class FindNode {
     return _node(search, (n) => n is ImportDirective);
   }
 
+  IndexExpression index(String search) {
+    return _node(search, (n) => n is IndexExpression);
+  }
+
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search, (n) => n is InstanceCreationExpression);
+  }
+
+  LibraryDirective library(String search) {
+    return _node(search, (n) => n is LibraryDirective);
   }
 
   ListLiteral listLiteral(String search) {
@@ -120,6 +156,10 @@ class FindNode {
     return _node(search, (n) => n is SimpleFormalParameter);
   }
 
+  Statement statement(String search) {
+    return _node(search, (n) => n is Statement);
+  }
+
   StringLiteral stringLiteral(String search) {
     return _node(search, (n) => n is StringLiteral);
   }
@@ -134,6 +174,10 @@ class FindNode {
 
   ThrowExpression throw_(String search) {
     return _node(search, (n) => n is ThrowExpression);
+  }
+
+  TypeAnnotation typeAnnotation(String search) {
+    return _node(search, (n) => n is TypeAnnotation);
   }
 
   TypeName typeName(String search) {
@@ -158,7 +202,7 @@ class FindNode {
     var node = new NodeLocator2(index).searchWithin(unit);
     expect(node, isNotNull);
 
-    var result = node.getAncestor(predicate);
+    var result = node.thisOrAncestorMatching(predicate);
     expect(result, isNotNull);
     return result;
   }

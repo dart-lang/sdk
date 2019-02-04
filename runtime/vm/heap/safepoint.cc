@@ -9,7 +9,10 @@
 
 namespace dart {
 
-SafepointOperationScope::SafepointOperationScope(Thread* T) : StackResource(T) {
+DEFINE_FLAG(bool, trace_safepoint, false, "Trace Safepoint logic.");
+
+SafepointOperationScope::SafepointOperationScope(Thread* T)
+    : ThreadStackResource(T) {
   ASSERT(T != NULL);
   Isolate* I = T->isolate();
   ASSERT(I != NULL);
@@ -109,7 +112,7 @@ void SafepointHandler::SafepointThreads(Thread* T) {
       Monitor::WaitResult retval = sl.Wait(1000);
       if (retval == Monitor::kTimedOut) {
         num_attempts += 1;
-        if (num_attempts > 10) {
+        if (FLAG_trace_safepoint && num_attempts > 10) {
           // We have been waiting too long, start logging this as we might
           // have an issue where a thread is not checking in for a safepoint.
           OS::PrintErr("Attempt:%" Pd " waiting for %d threads to check in\n",

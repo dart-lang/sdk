@@ -1,8 +1,9 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
+// VMOptions=
 // VMOptions=--use_compactor
+// VMOptions=--use_compactor --force_evacuation
 
 import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;

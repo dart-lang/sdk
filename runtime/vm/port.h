@@ -54,7 +54,8 @@ class PortMap : public AllStatic {
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
 
-  static void InitOnce();
+  static void Init();
+  static void Cleanup();
 
   static void PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream);

@@ -12,6 +12,8 @@ import 'builder.dart'
 abstract class TypeBuilder {
   const TypeBuilder();
 
+  TypeDeclarationBuilder get declaration => null;
+
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
 
@@ -42,7 +44,7 @@ abstract class TypeBuilder {
 
   build(LibraryBuilder library);
 
-  buildInvalidType(LocatedMessage message);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context});
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 }

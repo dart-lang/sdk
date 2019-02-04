@@ -11,16 +11,14 @@ class Class1<S> {
   /*omit.element: Class1.:*/
   Class1();
 
-  /*strong.element: Class1.method1a:needsArgs*/
-  /*omit.element: Class1.method1a:needsArgs*/
+  /*element: Class1.method1a:*/
   T method1a<T>() => null;
 
-  /*strong.element: Class1.method1b:needsArgs*/
-  /*omit.element: Class1.method1b:needsArgs*/
+  /*element: Class1.method1b:*/
   T method1b<T>() => null;
 
   /*strong.element: Class1.method2:direct,explicit=[method2.T],needsArgs*/
-  /*omit.element: Class1.method2:needsArgs*/
+  /*omit.element: Class1.method2:*/
   T method2<T>(T t, String s) => t;
 }
 

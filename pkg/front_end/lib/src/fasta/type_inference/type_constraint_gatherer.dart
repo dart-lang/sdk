@@ -181,7 +181,7 @@ class TypeConstraintGatherer {
     // above is irrelevant; we just need to find the matched superclass,
     // substitute, and then iterate through type variables.
     var matchingSupertypeOfSubtype =
-        environment.hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
+        environment.getTypeAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtype == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
       if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
@@ -397,4 +397,10 @@ class _ProtoConstraint {
   _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
 
   _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
+
+  String toString() {
+    return isUpper
+        ? "${parameter.name} <: $bound"
+        : "$bound <: ${parameter.name}";
+  }
 }

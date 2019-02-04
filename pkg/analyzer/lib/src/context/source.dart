@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
 
 /**
@@ -83,11 +84,11 @@ class SourceFactoryImpl implements SourceFactory {
     // Start by looking in .packages.
     if (_packages != null) {
       Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+      var pathContext = _resourceProvider.pathContext;
       _packages.asMap().forEach((String name, Uri uri) {
         if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          packageMap[name] = <Folder>[
-            _resourceProvider.getFolder(uri.toFilePath())
-          ];
+          String path = fileUriToNormalizedPath(pathContext, uri);
+          packageMap[name] = <Folder>[_resourceProvider.getFolder(path)];
         }
       });
       return packageMap;
@@ -97,6 +98,14 @@ class SourceFactoryImpl implements SourceFactory {
     PackageMapUriResolver resolver = resolvers
         .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
     return resolver?.packageMap;
+  }
+
+  @override
+  void clearCache() {
+    _absoluteUriToSourceCache.clear();
+    for (var resolver in resolvers) {
+      resolver.clearCache();
+    }
   }
 
   @override

@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -61,12 +60,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(489, 40),
-      'endPos': ifKernel(633, 89),
+      'startPos': ifKernel(432, 40),
+      'endPos': ifKernel(576, 89),
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([489, 539, 590, 619], [40, 55, 73, 83]),
-        'misses': ifKernel([552], [61])
+        'hits': ifKernel([432, 482, 533, 562], [40, 55, 73, 83]),
+        'misses': ifKernel([495], [61])
       }
     };
 
@@ -76,8 +75,12 @@ var tests = <IsolateTest>[
       'scriptId': func.location.script.id
     };
     var coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
+    final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, 6);
+
+    // Running in app_jitk mode will result in the number of ranges being 7
+    // during the training run and 8 when running from the snapshot.
+    expect(((numRanges == 7) || (numRanges == 8)), isTrue);
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(
@@ -92,7 +95,7 @@ var tests = <IsolateTest>[
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, 6);
+    expect(coverage['ranges'].length, numRanges);
     expect(allRangesCompiled(coverage), isTrue);
 
     // One function

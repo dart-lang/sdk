@@ -12,13 +12,13 @@ invalidate:
 sources:
   a.dart: |
     import 'b.dart';
-    class A extends Object with B<C>, D<Object> {}
+    class A extends Object with B<C>, D {}
   b.dart: |
-    abstract class B<ChildType extends Object> extends Object {
+    mixin B<ChildType extends Object> {
       ChildType get child => null;
       set child(ChildType value) {}
     }
 
-    class C extends Object {}
+    class C {}
 
-    abstract class D<T extends Object> extends Object with B<T> {}
+    mixin D<T extends Object> on B<T> {}

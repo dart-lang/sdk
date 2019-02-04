@@ -8,7 +8,7 @@ import 'package:meta/dart2js.dart';
 test(o) => o is Function();
 
 main() {
-  test(/*checks=[],functionType,instance*/ () {});
+  test(/*checks=[$signature],instance*/ () {});
   test(
 
       /*strong.checks=[],instance*/

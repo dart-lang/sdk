@@ -1,22 +1,23 @@
-// Formatted problems:
+library test;
 //
-// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:41: Error: A value of type '(dart.core::num) → dart.core::num' can't be assigned to a variable of type '(dart.core::int) → dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::int'.
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:41: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
 //   d.value /*@checkReturn=(num) -> num*/ += 1;
 //                                         ^
 //
-// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:43: Error: A value of type '(dart.core::num) → dart.core::num' can't be assigned to a variable of type '(dart.core::int) → dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::int'.
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:43: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
 //     d.value /*@checkReturn=(num) -> num*/ += 1;
 //                                           ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   final field (self::C::T) → core::num plusResult;
-  constructor •((self::C::T) → core::num plusResult) → void
+  constructor •((self::C::T) → core::num plusResult) → self::C<self::C::T>
     : self::C::plusResult = plusResult, super core::Object::•()
     ;
   operator +(core::int i) → (self::C::T) → core::num
@@ -25,7 +26,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
 class D extends core::Object {
   final field self::C<core::num> getValue;
   field (core::int) → core::int setValue = null;
-  constructor •(self::C<core::num> getValue) → void
+  constructor •(self::C<core::num> getValue) → self::D
     : self::D::getValue = getValue, super core::Object::•()
     ;
   get value() → self::C<core::num>
@@ -53,17 +54,17 @@ static method numToNum(core::num n) → core::num
   return 2;
 static method main() → void {
   self::D d = new self::D::•(new self::C::•<core::num>(self::numToInt));
-  let final self::D #t1 = d in #t1.{self::D::value} = let dynamic _ = null in let final dynamic #t2 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:41: Error: A value of type '(dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.
+  let final self::D #t1 = d in #t1.{self::D::value} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:41: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
+Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
   d.value /*@checkReturn=(num) -> num*/ += 1;
-                                        ^" in let final dynamic #t3 = #t1.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num in null;
+                                        ^" in (#t1.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num) as{TypeError} (core::int) → core::int;
   self::expect(d.{self::D::setValue}(0), 1);
   d = new self::D::•(new self::C::•<core::num>(self::numToNum));
   self::expectTypeError(() → core::Null {
-    let final self::D #t4 = d in #t4.{self::D::value} = let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:43: Error: A value of type '(dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.
+    let final self::D #t3 = d in #t3.{self::D::value} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:43: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
+Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
     d.value /*@checkReturn=(num) -> num*/ += 1;
-                                          ^" in let final dynamic #t6 = #t4.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num in null;
+                                          ^" in (#t3.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num) as{TypeError} (core::int) → core::int;
   });
   self::expect(d.{self::D::setValue}, null);
 }

@@ -18,16 +18,16 @@ void main() {
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
 
-    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
+    var closedWorld = compiler.backendClosedWorldForTesting;
+    var env = closedWorld.elementEnvironment;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
     var main = env.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
-    var outputUnitForMember =
-        compiler.backend.outputUnitData.outputUnitForMember;
-    var outputUnitForClass = compiler.backend.outputUnitData.outputUnitForClass;
+    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
+    var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
 
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
+    var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     var backend = compiler.backend;
     var classes = backend.emitter.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
@@ -57,7 +57,7 @@ void main() {
     // InputElement is native, so it should be in the mainOutputUnit.
     Expect.equals(mainOutputUnit, outputUnitForClass(inputElement));
 
-    var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
+    var hunksToLoad = closedWorld.outputUnitData.hunksToLoad;
 
     var hunksLib1 = hunksToLoad["lib1"];
     var hunksLib2 = hunksToLoad["lib2"];

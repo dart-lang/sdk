@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_natives);
-
 // Forward declarations.
 class BootstrapNatives;
 class Object;
@@ -41,7 +39,7 @@ class Thread;
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
     uword (*func)() = reinterpret_cast<uword (*)()>(                           \
-        StubCode::GetCStackPointer_entry()->EntryPoint());                     \
+        StubCode::GetCStackPointer().EntryPoint());                            \
     uword current_sp = func();                                                 \
     ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
   }
@@ -133,9 +131,31 @@ class NativeArguments {
     return ArgAt(actual_index);
   }
 
-  RawTypeArguments* NativeTypeArgs() {
+  RawTypeArguments* NativeTypeArgs() const {
     ASSERT(ToGenericFunction());
     return TypeArguments::RawCast(ArgAt(0));
+  }
+
+  int NativeTypeArgCount() const {
+    if (ToGenericFunction()) {
+      TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
+      if (type_args.IsNull()) {
+        // null vector represents infinite list of dynamics
+        return INT_MAX;
+      }
+      return type_args.Length();
+    }
+    return 0;
+  }
+
+  RawAbstractType* NativeTypeArgAt(int index) const {
+    ASSERT((index >= 0) && (index < NativeTypeArgCount()));
+    TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
+    if (type_args.IsNull()) {
+      // null vector represents infinite list of dynamics
+      return Type::dynamic_type().raw();
+    }
+    return TypeArguments::Handle(NativeTypeArgs()).TypeAt(index);
   }
 
   void SetReturn(const Object& value) const { *retval_ = value.raw(); }
@@ -182,7 +202,7 @@ class NativeArguments {
     if (function.IsClosureFunction()) {
       function_bits |= kClosureFunctionBit;
     }
-    if (function.IsGeneric() && FLAG_reify_generic_functions) {
+    if (function.IsGeneric()) {
       function_bits |= kGenericFunctionBit;
       argc++;
     }

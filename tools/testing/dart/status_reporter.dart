@@ -31,12 +31,6 @@ final _combinations = {
       'archs': ['ia32'],
       'compiler': 'dart2js'
     },
-    {
-      'runtimes': ['flutter_engine'],
-      'modes': ['debug', 'release'],
-      'archs': ['x64'],
-      'compiler': 'none'
-    },
   ],
   'windows': [
     {

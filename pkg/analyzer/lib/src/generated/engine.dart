@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,14 +17,18 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -33,16 +37,16 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
-export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
+export 'package:analyzer/src/generated/timestamped_data.dart'
+    show TimestampedData;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -91,12 +95,6 @@ typedef bool AnalyzeFunctionBodiesPredicate(Source source);
  */
 abstract class AnalysisContext {
   /**
-   * An empty list of contexts.
-   */
-  @deprecated
-  static const List<AnalysisContext> EMPTY_LIST = const <AnalysisContext>[];
-
-  /**
    * The file resolver provider used to override the way file URI's are
    * resolved in some contexts.
    */
@@ -104,8 +102,7 @@ abstract class AnalysisContext {
 
   /**
    * Return the set of analysis options controlling the behavior of this
-   * context. Clients should not modify the returned set of options. The options
-   * should only be set by invoking the method [setAnalysisOptions].
+   * context. Clients should not modify the returned set of options.
    */
   AnalysisOptions get analysisOptions;
 
@@ -1147,10 +1144,10 @@ abstract class AnalysisOptions {
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
-   * DEPRECATED: Return the maximum number of sources for which AST structures should be
+   * Return the maximum number of sources for which AST structures should be
    * kept in the cache.
    *
-   * This setting no longer has any effect.
+   * DEPRECATED: This setting no longer has any effect.
    */
   @deprecated
   int get cacheSize;
@@ -1197,6 +1194,15 @@ abstract class AnalysisOptions {
   bool get enableConditionalDirectives;
 
   /**
+   * Return a list containing the names of the experiments that are enabled in
+   * the context associated with these options.
+   *
+   * The process around these experiments is described in this
+   * [doc](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md).
+   */
+  List<String> get enabledExperiments;
+
+  /**
    * Return a list of the names of the packages for which, if they define a
    * plugin, the plugin should be enabled.
    */
@@ -1225,6 +1231,7 @@ abstract class AnalysisOptions {
    * Return `true` if mixins are allowed to inherit from types other than
    * Object, and are allowed to reference `super`.
    */
+  @deprecated
   bool get enableSuperMixins;
 
   /**
@@ -1300,6 +1307,12 @@ abstract class AnalysisOptions {
   bool get previewDart2;
 
   /**
+   * The version range for the SDK specified in `pubspec.yaml`, or `null` if
+   * there is no `pubspec.yaml` or if it does not contain an SDK range.
+   */
+  VersionConstraint get sdkVersionConstraint;
+
+  /**
    * Return the opaque signature of the options.
    *
    * The length of the list is guaranteed to equal [signatureLength].
@@ -1337,6 +1350,7 @@ abstract class AnalysisOptions {
    * Set the values of the cross-context options to match those in the given set
    * of [options].
    */
+  @deprecated
   void setCrossContextOptionsFrom(AnalysisOptions options);
 
   /**
@@ -1372,11 +1386,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int DEFAULT_CACHE_SIZE = 64;
 
   /**
-   * The default list of non-nullable type names.
-   */
-  static const List<String> NONNULLABLE_TYPES = const <String>[];
-
-  /**
    * The length of the list returned by [unlinkedSignature].
    */
   static const int unlinkedSignatureLength = 4;
@@ -1398,13 +1407,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   Uint32List _signature;
 
-  /**
-   * A flag indicating whether declaration casts are allowed in [strongMode]
-   * (they are always allowed in Dart 1.0 mode).
-   *
-   * This option is deprecated and will be removed in a future release.
-   */
-  bool declarationCasts = true;
+  @override
+  VersionConstraint sdkVersionConstraint;
 
   @override
   @deprecated
@@ -1413,14 +1417,18 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool dart2jsHint = false;
 
+  List<String> _enabledExperiments = const <String>[];
+
+  /**
+   * Parsed [enabledExperiments].
+   */
+  ExperimentStatus _experimentStatus = ExperimentStatus();
+
   @override
   List<String> enabledPluginNames = const <String>[];
 
   @override
   bool enableLazyAssignmentOperators = false;
-
-  @override
-  bool enableSuperMixins = false;
 
   @override
   bool enableTiming = false;
@@ -1476,7 +1484,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool disableCacheFlushing = false;
 
-  // A no-op setter.
   /**
    * A flag indicating whether implicit casts are allowed in [strongMode]
    * (they are always allowed in Dart 1.0 mode).
@@ -1484,12 +1491,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * This option is experimental and subject to change.
    */
   bool implicitCasts = true;
-
-  /**
-   * A list of non-nullable type names, prefixed by the library URI they belong
-   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
-   */
-  List<String> nonnullableTypes = NONNULLABLE_TYPES;
 
   /**
    * A flag indicating whether implicit dynamic type is allowed, on by default.
@@ -1504,12 +1505,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitDynamic = true;
 
   /**
-   * Return `true` to enable mixin declarations.
-   * https://github.com/dart-lang/language/issues/12
-   */
-  bool isMixinSupportEnabled = false;
-
-  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1522,9 +1517,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
+    enabledExperiments = options.enabledExperiments;
     enabledPluginNames = options.enabledPluginNames;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
@@ -1536,16 +1531,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
-      declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
-      nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
-      isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
     patchPaths = options.patchPaths;
+    sdkVersionConstraint = options.sdkVersionConstraint;
   }
 
   bool get analyzeFunctionBodies {
@@ -1608,6 +1601,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set enableConditionalDirectives(_) {}
 
   @override
+  List<String> get enabledExperiments => _enabledExperiments;
+
+  set enabledExperiments(List<String> enabledExperiments) {
+    _enabledExperiments = enabledExperiments;
+    _experimentStatus = ExperimentStatus.fromStrings(enabledExperiments);
+  }
+
+  @override
   @deprecated
   bool get enableGenericMethods => true;
 
@@ -1620,6 +1621,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @deprecated
   void set enableInitializingFormalAccess(bool enable) {}
+
+  @override
+  @deprecated
+  bool get enableSuperMixins => false;
+
+  @deprecated
+  void set enableSuperMixins(bool enable) {
+    // Ignored.
+  }
 
   @deprecated
   @override
@@ -1651,6 +1661,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _excludePatterns = patterns;
   }
 
+  /**
+   * The set of enabled experiments.
+   */
+  ExperimentStatus get experimentStatus => _experimentStatus;
+
+  /**
+   * Return `true` to enable mixin declarations.
+   * https://github.com/dart-lang/language/issues/12
+   */
+  @deprecated
+  bool get isMixinSupportEnabled => true;
+
+  @deprecated
+  set isMixinSupportEnabled(bool value) {}
+
   @override
   List<Linter> get lintRules => _lintRules ??= const <Linter>[];
 
@@ -1662,9 +1687,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _lintRules = rules;
   }
 
+  @deprecated
   @override
   bool get previewDart2 => true;
 
+  @deprecated
   set previewDart2(bool value) {}
 
   @override
@@ -1672,16 +1699,23 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (_signature == null) {
       ApiSignature buffer = new ApiSignature();
 
+      // Append environment.
+      if (sdkVersionConstraint != null) {
+        buffer.addString(sdkVersionConstraint.toString());
+      }
+
       // Append boolean flags.
-      buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
-      buffer.addBool(enableSuperMixins);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
-      buffer.addBool(previewDart2);
-      buffer.addBool(isMixinSupportEnabled);
+
+      // Append enabled experiments.
+      buffer.addInt(enabledExperiments.length);
+      for (String experimentName in enabledExperiments) {
+        buffer.addString(experimentName);
+      }
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
@@ -1728,6 +1762,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(useFastaParser);
 
+      // Append enabled experiments.
+      buffer.addInt(enabledExperiments.length);
+      for (String experimentName in enabledExperiments) {
+        buffer.addString(experimentName);
+      }
+
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
       _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
@@ -1737,12 +1777,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void resetToDefaults() {
-    declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
+    enabledExperiments = const <String>[];
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
-    enableSuperMixins = false;
     enableTiming = false;
     _errorProcessors = null;
     _excludePatterns = null;
@@ -1753,18 +1792,17 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     implicitDynamic = true;
     lint = false;
     _lintRules = null;
-    nonnullableTypes = NONNULLABLE_TYPES;
     patchPaths = {};
     preserveComments = true;
     strongModeHints = false;
     trackCacheDependencies = true;
-    useFastaParser = false;
+    useFastaParser = true;
   }
 
+  @deprecated
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableSuperMixins = options.enableSuperMixins;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -2013,12 +2051,6 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
  * An implementation of a [ChangeNotice].
  */
 class ChangeNoticeImpl implements ChangeNotice {
-  /**
-   * An empty list of change notices.
-   */
-  @deprecated
-  static const List<ChangeNoticeImpl> EMPTY_LIST = const <ChangeNoticeImpl>[];
-
   /**
    * The source for which the result is being reported.
    */
@@ -2696,7 +2728,7 @@ class PerformanceStatistics {
  * An visitor that removes any resolution information from an AST structure when
  * used to visit that structure.
  */
-class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+class ResolutionEraser extends GeneralizingAstVisitor<void> {
   /**
    * A flag indicating whether the elements associated with declarations should
    * be erased.
@@ -2704,122 +2736,122 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   bool eraseDeclarations = true;
 
   @override
-  Object visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
-    return super.visitAssignmentExpression(node);
+    super.visitAssignmentExpression(node);
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     node.staticElement = null;
-    return super.visitBinaryExpression(node);
+    super.visitBinaryExpression(node);
   }
 
   @override
-  Object visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     node.target = null;
-    return super.visitBreakStatement(node);
+    super.visitBreakStatement(node);
   }
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     if (eraseDeclarations) {
       node.element = null;
     }
-    return super.visitCompilationUnit(node);
+    super.visitCompilationUnit(node);
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (eraseDeclarations) {
-      node.element = null;
+      (node as ConstructorDeclarationImpl).declaredElement = null;
     }
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
-  Object visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     node.staticElement = null;
-    return super.visitConstructorName(node);
+    super.visitConstructorName(node);
   }
 
   @override
-  Object visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(ContinueStatement node) {
     node.target = null;
-    return super.visitContinueStatement(node);
+    super.visitContinueStatement(node);
   }
 
   @override
-  Object visitDirective(Directive node) {
+  void visitDirective(Directive node) {
     if (eraseDeclarations) {
       node.element = null;
     }
-    return super.visitDirective(node);
+    super.visitDirective(node);
   }
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     node.staticType = null;
-    return super.visitExpression(node);
+    super.visitExpression(node);
   }
 
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (eraseDeclarations) {
-      node.element = null;
+      (node as FunctionExpressionImpl).declaredElement = null;
     }
-    return super.visitFunctionExpression(node);
+    super.visitFunctionExpression(node);
   }
 
   @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.staticElement = null;
-    return super.visitFunctionExpressionInvocation(node);
+    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     node.staticElement = null;
-    return super.visitIndexExpression(node);
+    super.visitIndexExpression(node);
   }
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.staticElement = null;
-    return super.visitInstanceCreationExpression(node);
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     node.staticElement = null;
-    return super.visitPostfixExpression(node);
+    super.visitPostfixExpression(node);
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     node.staticElement = null;
-    return super.visitPrefixExpression(node);
+    super.visitPrefixExpression(node);
   }
 
   @override
-  Object visitRedirectingConstructorInvocation(
+  void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     node.staticElement = null;
-    return super.visitRedirectingConstructorInvocation(node);
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (eraseDeclarations || !node.inDeclarationContext()) {
       node.staticElement = null;
     }
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     node.staticElement = null;
-    return super.visitSuperConstructorInvocation(node);
+    super.visitSuperConstructorInvocation(node);
   }
 
   /**

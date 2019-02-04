@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,17 +17,17 @@ import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:path/path.dart';
 
 // TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
 final bool disableManageImportsOnPaste = true;
@@ -46,34 +46,26 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getErrors` request.
    */
   Future<void> getErrors(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
 
-    void send(engine.AnalysisOptions analysisOptions, LineInfo lineInfo,
-        List<engine.AnalysisError> errors) {
-      if (lineInfo == null) {
-        server.sendResponse(new Response.getErrorsInvalidFile(request));
-      } else {
-        List<AnalysisError> protocolErrors =
-            doAnalysisError_listFromEngine(analysisOptions, lineInfo, errors);
-        server.sendResponse(
-            new AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
-      }
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
     }
 
-    AnalysisResult result = await server.getAnalysisResult(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
 
-    if (server.onResultErrorSupplementor != null) {
-      if (result != null) {
-        await server.onResultErrorSupplementor(file, result.errors);
-      } else {
-        server.onNoAnalysisResult(file, send);
-        return;
-      }
+    if (result?.state != ResultState.VALID) {
+      server.sendResponse(new Response.getErrorsInvalidFile(request));
+      return;
     }
 
-    send(result?.driver?.analysisOptions, result?.lineInfo, result?.errors);
+    List<AnalysisError> protocolErrors = doAnalysisError_listFromEngine(
+      result.session.analysisContext.analysisOptions,
+      result.lineInfo,
+      result.errors,
+    );
+    server.sendResponse(
+        new AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
   }
 
   /**
@@ -83,9 +75,14 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new AnalysisGetHoverParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
 
     // Prepare the resolved units.
-    AnalysisResult result = await server.getAnalysisResult(params.file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     CompilationUnit unit = result?.unit;
 
     // Prepare the hovers.
@@ -109,14 +106,20 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Future<void> getImportedElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    AnalysisGetImportedElementsParams params =
-        new AnalysisGetImportedElementsParams.fromRequest(request);
+    var params = new AnalysisGetImportedElementsParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     //
     // Prepare the resolved unit.
     //
-    AnalysisResult result = await server.getAnalysisResult(params.file);
-    if (result == null) {
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    if (result?.state != ResultState.VALID) {
       server.sendResponse(new Response.getImportedElementsInvalidFile(request));
+      return;
     }
 
     List<ImportedElements> elements;
@@ -172,6 +175,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     int offset = params.offset;
     int length = params.length;
 
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
     AnalysisDriver driver = server.getAnalysisDriver(file);
     if (driver == null) {
       server.sendResponse(new Response.getNavigationInvalidFile(request));
@@ -188,11 +195,12 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       // Compute navigation data generated by server.
       //
       List<AnalysisNavigationParams> allResults = <AnalysisNavigationParams>[];
-      AnalysisResult result = await server.getAnalysisResult(file);
-      CompilationUnit unit = result?.unit;
-      if (unit != null && result.exists) {
+      ResolvedUnitResult result = await server.getResolvedUnit(file);
+      if (result?.state == ResultState.VALID) {
+        CompilationUnit unit = result?.unit;
         NavigationCollectorImpl collector = new NavigationCollectorImpl();
-        computeDartNavigation(collector, unit, offset, length);
+        computeDartNavigation(
+            server.resourceProvider, collector, unit, offset, length);
         collector.createRegions();
         allResults.add(new AnalysisNavigationParams(
             file, collector.regions, collector.targets, collector.files));
@@ -253,16 +261,22 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Future<void> getSignature(Request request) async {
     var params = new AnalysisGetSignatureParams.fromRequest(request);
+    var file = params.file;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
 
     // Prepare the resolved units.
-    AnalysisResult result = await server.getAnalysisResult(params.file);
-    CompilationUnit unit = result?.unit;
-    if (unit == null) {
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
+
+    if (result?.state != ResultState.VALID) {
       server.sendResponse(new Response.getSignatureInvalidFile(request));
       return;
     }
 
     // Ensure the offset provided is a valid location in the file.
+    final unit = result.unit;
     final computer = new DartUnitSignatureComputer(unit, params.offset);
     if (!computer.offsetIsValid) {
       server.sendResponse(new Response.getSignatureInvalidOffset(request));
@@ -329,23 +343,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Response reanalyze(Request request) {
     server.options.analytics?.sendEvent('analysis', 'reanalyze');
 
-    AnalysisReanalyzeParams params =
-        new AnalysisReanalyzeParams.fromRequest(request);
-    List<String> roots = params.roots;
-    if (roots == null || roots.isNotEmpty) {
-      List<String> includedPaths = server.contextManager.includedPaths;
-      List<Resource> rootResources = null;
-      if (roots != null) {
-        rootResources = <Resource>[];
-        for (String rootPath in roots) {
-          if (!includedPaths.contains(rootPath)) {
-            return new Response.invalidAnalysisRoot(request, rootPath);
-          }
-          rootResources.add(server.resourceProvider.getResource(rootPath));
-        }
-      }
-      server.reanalyze(rootResources);
-    }
+    server.reanalyze();
+
     //
     // Restart all of the plugins. This is an async operation that will happen
     // in the background.
@@ -361,6 +360,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the 'analysis.setAnalysisRoots' request.
    */
   Response setAnalysisRoots(Request request) {
+    if (server.options.enableUXExperiment1) {
+      return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
+    }
+
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
     List<String> excludedPathList = params.excluded;
@@ -379,9 +382,17 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         return new Response.invalidFilePathFormat(request, path);
       }
     }
-    // continue in server
-    server.setAnalysisRoots(request.id, includedPathList, excludedPathList,
-        params.packageRoots ?? <String, String>{});
+    Map<String, String> packageRoots =
+        params.packageRoots ?? <String, String>{};
+
+    if (server.options.enableUXExperiment2 &&
+        server.detachableFileSystemManager != null) {
+      server.detachableFileSystemManager.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList, packageRoots);
+    } else {
+      server.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList, packageRoots);
+    }
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
@@ -400,6 +411,52 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response setPriorityFiles(Request request) {
     var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+
+    for (var file in params.files) {
+      if (!server.isAbsoluteAndNormalized(file)) {
+        return Response.invalidFilePathFormat(request, file);
+      }
+    }
+
+    if (server.options.enableUXExperiment1) {
+      // If this experiment is enabled, set the analysis root to be the
+      // containing directory.
+
+      List<String> includedPathList = new List<String>();
+
+      // Reference the priority files, remove files that don't end in dart, yaml
+      // or html suffixes and sort from shortest to longest file paths.
+      List<String> priorityFiles = params.files;
+      priorityFiles.removeWhere((s) =>
+          !s.endsWith('.dart') && !s.endsWith('.yaml') && !s.endsWith('.html'));
+
+      Context pathContext = server.resourceProvider.pathContext;
+      List<String> containingDirectories = <String>[];
+      for (String filePath in priorityFiles) {
+        containingDirectories.add(pathContext.dirname(filePath));
+      }
+      containingDirectories.sort();
+
+      // For each file, add the contained directory to includedPathList iff
+      // some other parent containing directory has not already been added.
+      for (String containedDir in containingDirectories) {
+        // Check that no parent directories have already been added (we have
+        // guarantees here as the list was sorted above.)
+        bool parentDirectoryInListAlready = false;
+        for (int i = 0; i < includedPathList.length; i++) {
+          if (containedDir.startsWith(includedPathList[i])) {
+            parentDirectoryInListAlready = true;
+          }
+        }
+        if (!parentDirectoryInListAlready) {
+          includedPathList.add(containedDir);
+        }
+      }
+
+      server.setAnalysisRoots(
+          request.id, includedPathList, <String>[], <String, String>{});
+    }
+
     server.setPriorityFiles(request.id, params.files);
     //
     // Forward the request to the plugins.
@@ -418,6 +475,15 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response setSubscriptions(Request request) {
     var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
+
+    for (var fileList in params.subscriptions.values) {
+      for (var file in fileList) {
+        if (!server.isAbsoluteAndNormalized(file)) {
+          return Response.invalidFilePathFormat(request, file);
+        }
+      }
+    }
+
     // parse subscriptions
     Map<AnalysisService, Set<String>> subMap = mapMap(params.subscriptions,
         valueCallback: (List<String> subscriptions) => subscriptions.toSet());
@@ -439,6 +505,13 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response updateContent(Request request) {
     var params = new AnalysisUpdateContentParams.fromRequest(request);
+
+    for (var file in params.files.keys) {
+      if (!server.isAbsoluteAndNormalized(file)) {
+        return Response.invalidFilePathFormat(request, file);
+      }
+    }
+
     server.updateContent(request.id, params.files);
     //
     // Forward the request to the plugins.
@@ -473,11 +546,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     if (newOptions.generateLints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.lint = newOptions.generateLints;
-      });
-    }
-    if (newOptions.enableSuperMixins != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableSuperMixins = newOptions.enableSuperMixins;
       });
     }
     server.updateOptions(updaters);

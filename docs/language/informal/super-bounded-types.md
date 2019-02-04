@@ -2,10 +2,14 @@
 
 **Author**: eernst@.
 
-**Version**: 0.7 (2018-06-01).
+**Version**: 0.8 (2018-10-16).
 
 **Status**: Background material.
 The language specification has the normative text on this topic.
+Note that the rules have changed, which means that
+**this document cannot be used as a reference**, it can only be
+used to get an overview of the ideas; please refer to the language
+specification for all technical details.
 
 **This document** is an informal specification of the support in Dart 2 for
 using certain generic types where the declared bounds are violated. The
@@ -31,9 +35,9 @@ void foo<X extends List<num>>(X x) {
   ...
 }
 ```
-cannot be invoked with `foo<List<dynamic>>('Hello!')`, nor can the type
+cannot be invoked with `foo<List<dynamic>>([])`, nor can the type
 argument be inferred to `List<dynamic>` in an invocation like
-`foo('Hello!')`. But `C<void> x = new C<int>();` is OK, and so is
+`foo([])`. But `C<void> x = new C<int>();` is OK, and so is
 `x is C<Object>`.
 
 
@@ -194,9 +198,11 @@ a `C<S>` (where `S` can be anything), but we could also pass it where a
 
 Finally, if we choose to use `C<void>` and so on then we will not even be
 able to access the object where the type information ends: we cannot use
-the value of an expression like `c0.next` at all without an explicit
-cast. This means that we cannot pass `c0.next` as an argument to a function
-that accepts a `C<S>` (for any `S`) without an explicit cast.
+the value of an expression like `c0.next` without an explicit
+cast (OK, `void v = c0.next;` is accepted, but it is mostly impossible to
+use the value of an expression of type `void`). This means that we cannot
+pass `c0.next` as an argument to a function that accepts a `C<S>`
+(for any `S`) without an explicit cast.
 
 In summary, the choice of `dynamic`, `Object`, and `void` offers a range of
 approaches to the lack of typing information, but the amount of information
@@ -580,6 +586,9 @@ class types like `C<C<dynamic>>` that we have already argued are useful.
 
 
 ## Updates
+
+*   Version 0.8 (2018-10-16), emphasized that this document is no longer
+    specifying the current rules, it is for background info only.
 
 *   Version 0.7 (2018-06-01), marked as background material: The normative
     text on variance and on super-bounded types is now part of the language

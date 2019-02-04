@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         Field,
+        FunctionType,
         Library,
         ListLiteral,
         Member,
@@ -23,7 +24,7 @@ import 'package:kernel/ast.dart'
 import '../fasta_codes.dart'
     show
         Message,
-        templateDuplicatedDefinition,
+        templateDuplicatedDeclaration,
         templateTypeNotFound,
         templateUnspecified;
 
@@ -50,11 +51,9 @@ import 'dill_loader.dart' show DillLoader;
 import 'dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
-  final Uri uri;
+  final Library library;
 
   final DillLoader loader;
-
-  Library library;
 
   /// Exports that can't be serialized.
   ///
@@ -62,10 +61,15 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
-  DillLibraryBuilder(this.uri, this.loader)
-      : super(uri, new Scope.top(), new Scope.top());
+  DillLibraryBuilder(this.library, this.loader)
+      : super(library.fileUri, new Scope.top(), new Scope.top());
 
-  Uri get fileUri => uri;
+  @override
+  bool get isSynthetic => library.isSynthetic;
+
+  Uri get uri => library.importUri;
+
+  Uri get fileUri => library.fileUri;
 
   @override
   String get name => library.name;
@@ -131,8 +135,17 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void addTypedef(Typedef typedef) {
-    var typedefBuilder = new DillFunctionTypeAliasBuilder(typedef, this);
-    addBuilder(typedef.name, typedefBuilder, typedef.fileOffset);
+    DartType alias = typedef.type;
+    if (alias is FunctionType) {
+      if (alias.typedefType == null) {
+        unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
+      }
+      addBuilder(typedef.name, new DillFunctionTypeAliasBuilder(typedef, this),
+          typedef.fileOffset);
+    } else {
+      unhandled("${alias.runtimeType}", "addTypedef", typedef.fileOffset,
+          typedef.fileUri);
+    }
   }
 
   @override
@@ -154,7 +167,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (builder.parent == this) return builder;
     return new KernelInvalidTypeBuilder(
         name,
-        templateDuplicatedDefinition
+        templateDuplicatedDeclaration
             .withArguments(name)
             .withLocation(fileUri, charOffset, name.length));
   }

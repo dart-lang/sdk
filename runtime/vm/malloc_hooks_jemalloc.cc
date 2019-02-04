@@ -13,11 +13,11 @@
 
 namespace dart {
 
-void MallocHooks::InitOnce() {
+void MallocHooks::Init() {
   // Do nothing.
 }
 
-void MallocHooks::TearDown() {
+void MallocHooks::Cleanup() {
   // Do nothing.
 }
 

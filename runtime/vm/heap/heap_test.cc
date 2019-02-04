@@ -9,6 +9,7 @@
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -65,12 +66,15 @@ TEST_CASE(LargeSweep) {
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
-  TransitionNativeToVM transition(thread);
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-  heap->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    thread->heap()->CollectGarbage(Heap::kOld);
+  }
   Dart_ExitScope();
-  heap->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    thread->heap()->CollectGarbage(Heap::kOld);
+  }
 }
 
 #ifndef PRODUCT
@@ -117,78 +121,84 @@ TEST_CASE(ClassHeapStats) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
-  TransitionNativeToVM transition(thread);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  const Class& cls = Class::Handle(GetClass(lib, "A"));
-  ASSERT(!cls.IsNull());
-  intptr_t cid = cls.id();
-  ClassHeapStats* class_stats =
-      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
-  // Verify preconditions:
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
-  EXPECT_EQ(0, class_stats->pre_gc.new_count);
-  EXPECT_EQ(0, class_stats->post_gc.new_count);
-  // Class allocated twice since GC from new space.
-  EXPECT_EQ(2, class_stats->recent.new_count);
-  // Perform GC.
-  heap->CollectGarbage(Heap::kNew);
-  // Verify postconditions:
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
-  // Total allocations before GC.
-  EXPECT_EQ(2, class_stats->pre_gc.new_count);
-  // Only one survived.
-  EXPECT_EQ(1, class_stats->post_gc.new_count);
-  EXPECT_EQ(0, class_stats->recent.new_count);
-  // Perform GC. The following is heavily dependent on the behaviour
-  // of the GC: Retained instance of A will be promoted.
-  heap->CollectGarbage(Heap::kNew);
-  // Verify postconditions:
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  // One promoted instance.
-  EXPECT_EQ(1, class_stats->promoted_count);
-  // Promotion counted as an allocation from old space.
-  EXPECT_EQ(1, class_stats->recent.old_count);
-  // There was one instance allocated before GC.
-  EXPECT_EQ(1, class_stats->pre_gc.new_count);
-  // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->post_gc.new_count);
-  // No new allocations.
-  EXPECT_EQ(0, class_stats->recent.new_count);
-  // Perform a GC on new space.
-  heap->CollectGarbage(Heap::kNew);
-  // There were no instances allocated before GC.
-  EXPECT_EQ(0, class_stats->pre_gc.new_count);
-  // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->post_gc.new_count);
-  // No new allocations.
-  EXPECT_EQ(0, class_stats->recent.new_count);
-  // Nothing was promoted.
-  EXPECT_EQ(0, class_stats->promoted_count);
-  heap->CollectGarbage(Heap::kOld);
-  // Verify postconditions:
-  EXPECT_EQ(1, class_stats->pre_gc.old_count);
-  EXPECT_EQ(1, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
+  ClassHeapStats* class_stats;
+  {
+    TransitionNativeToVM transition(thread);
+    Library& lib = Library::Handle();
+    lib ^= Api::UnwrapHandle(h_lib);
+    EXPECT(!lib.IsNull());
+    const Class& cls = Class::Handle(GetClass(lib, "A"));
+    ASSERT(!cls.IsNull());
+    intptr_t cid = cls.id();
+    class_stats =
+        ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
+    // Verify preconditions:
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+    EXPECT_EQ(0, class_stats->pre_gc.new_count);
+    EXPECT_EQ(0, class_stats->post_gc.new_count);
+    // Class allocated twice since GC from new space.
+    EXPECT_EQ(2, class_stats->recent.new_count);
+    // Perform GC.
+    heap->CollectGarbage(Heap::kNew);
+    // Verify postconditions:
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+    // Total allocations before GC.
+    EXPECT_EQ(2, class_stats->pre_gc.new_count);
+    // Only one survived.
+    EXPECT_EQ(1, class_stats->post_gc.new_count);
+    EXPECT_EQ(0, class_stats->recent.new_count);
+    // Perform GC. The following is heavily dependent on the behaviour
+    // of the GC: Retained instance of A will be promoted.
+    heap->CollectGarbage(Heap::kNew);
+    // Verify postconditions:
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    // One promoted instance.
+    EXPECT_EQ(1, class_stats->promoted_count);
+    // Promotion counted as an allocation from old space.
+    EXPECT_EQ(1, class_stats->recent.old_count);
+    // There was one instance allocated before GC.
+    EXPECT_EQ(1, class_stats->pre_gc.new_count);
+    // There are no instances allocated in new space after GC.
+    EXPECT_EQ(0, class_stats->post_gc.new_count);
+    // No new allocations.
+    EXPECT_EQ(0, class_stats->recent.new_count);
+    // Perform a GC on new space.
+    heap->CollectGarbage(Heap::kNew);
+    // There were no instances allocated before GC.
+    EXPECT_EQ(0, class_stats->pre_gc.new_count);
+    // There are no instances allocated in new space after GC.
+    EXPECT_EQ(0, class_stats->post_gc.new_count);
+    // No new allocations.
+    EXPECT_EQ(0, class_stats->recent.new_count);
+    // Nothing was promoted.
+    EXPECT_EQ(0, class_stats->promoted_count);
+    heap->CollectGarbage(Heap::kOld);
+    // Verify postconditions:
+    EXPECT_EQ(1, class_stats->pre_gc.old_count);
+    EXPECT_EQ(1, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+  }
   // Exit scope, freeing instance.
   Dart_ExitScope();
-  // Perform GC.
-  heap->CollectGarbage(Heap::kOld);
-  // Verify postconditions:
-  EXPECT_EQ(1, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
-  // Perform GC.
-  heap->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
+  {
+    TransitionNativeToVM transition(thread);
+    // Perform GC.
+    heap->CollectGarbage(Heap::kOld);
+    // Verify postconditions:
+    EXPECT_EQ(1, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+    // Perform GC.
+    heap->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+  }
   FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 }
 
@@ -213,9 +223,6 @@ TEST_CASE(ArrayHeapStats) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   intptr_t before = class_stats->recent.new_size;
   Dart_Handle result2 = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result2);
@@ -260,12 +267,14 @@ ISOLATE_UNIT_TEST_CASE(FindObject) {
   for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
     const String& obj = String::Handle(String::New("x", spaces[space]));
     {
+      HeapIterationScope iteration(thread);
       NoSafepointScope no_safepoint;
       FindOnly find_only(obj.raw());
       EXPECT(obj.raw() == heap->FindObject(&find_only));
     }
   }
   {
+    HeapIterationScope iteration(thread);
     NoSafepointScope no_safepoint;
     FindNothing find_nothing;
     EXPECT(Object::null() == heap->FindObject(&find_nothing));
@@ -382,21 +391,30 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old.SetAt(0, neu);
-  old = Array::null();
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old.SetAt(0, neu);
+    old = Array::null();
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  EXPECT(size_before == size_after);
+  EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
@@ -404,21 +422,30 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu.SetAt(0, old);
-  old = Array::null();
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu.SetAt(0, old);
+    old = Array::null();
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  EXPECT(size_before == size_after);
+  EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
@@ -426,22 +453,31 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu.SetAt(0, old);
-  old.SetAt(0, neu);
-  old = Array::null();
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu.SetAt(0, old);
+    old.SetAt(0, neu);
+    old = Array::null();
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  EXPECT(size_before == size_after);
+  EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
@@ -449,15 +485,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu.SetAt(0, old);
-  old = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu.SetAt(0, old);
+    old = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -470,15 +515,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old.SetAt(0, neu);
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old.SetAt(0, neu);
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -491,15 +545,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu = Array::null();
-  old.SetAt(0, old);
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu = Array::null();
+    old.SetAt(0, old);
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -512,15 +575,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old = Array::null();
-  neu.SetAt(0, neu);
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old = Array::null();
+    neu.SetAt(0, neu);
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -536,13 +608,20 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old.SetAt(0, old2);
-  neu.SetAt(0, old);
-  old = Array::null();
-  old2 = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old.SetAt(0, old2);
+    neu.SetAt(0, old);
+    old = Array::null();
+    old2 = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
 
@@ -560,13 +639,20 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
-  neu.SetAt(0, neu2);
-  old.SetAt(0, neu);
-  neu = Array::null();
-  neu2 = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
+    neu.SetAt(0, neu2);
+    old.SetAt(0, neu);
+    neu = Array::null();
+    neu2 = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
 
@@ -609,6 +695,51 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
                                      heap->old_space()->ExternalInWords());
 
   EXPECT_EQ(size_before, size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
+  // Alternate between allocating new lists and truncating.
+  // For each list, the life cycle is
+  // 1) the list is allocated and filled with some elements
+  // 2) kNumLists other lists are allocated
+  // 3) the list's backing store is truncated; the list becomes unreachable
+  // 4) kNumLists other lists are allocated
+  // 5) the backing store becomes unreachable
+  // The goal is to cause truncation *during* concurrent mark or sweep, by
+  // truncating an array that had been alive for a while and will be visited by
+  // a GC triggering by the allocations in step 2.
+
+  intptr_t kMaxListLength = 100;
+  intptr_t kNumLists = 1000;
+  Array& lists = Array::Handle(Array::New(kNumLists));
+  Array& arrays = Array::Handle(Array::New(kNumLists));
+
+  GrowableObjectArray& list = GrowableObjectArray::Handle();
+  Array& array = Array::Handle();
+  Object& element = Object::Handle();
+
+  for (intptr_t i = 0; i < kNumLists; i++) {
+    list = GrowableObjectArray::New(Heap::kNew);
+    intptr_t length = i % kMaxListLength;
+    for (intptr_t j = 0; j < length; j++) {
+      list.Add(element, Heap::kNew);
+    }
+    lists.SetAt(i, list);
+  }
+
+  intptr_t kTruncations = 100000;
+  for (intptr_t i = 0; i < kTruncations; i++) {
+    list ^= lists.At(i % kNumLists);
+    array = Array::MakeFixedLength(list);
+    arrays.SetAt(i % kNumLists, array);
+
+    list = GrowableObjectArray::New(Heap::kOld);
+    intptr_t length = i % kMaxListLength;
+    for (intptr_t j = 0; j < length; j++) {
+      list.Add(element, Heap::kOld);
+    }
+    lists.SetAt(i % kNumLists, list);
+  }
 }
 
 }  // namespace dart

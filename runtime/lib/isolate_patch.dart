@@ -240,6 +240,17 @@ void _startMainIsolate(Function entryPoint, List<String> args) {
 }
 
 /**
+ * Returns the _startMainIsolate function. This closurization allows embedders
+ * to setup trampolines to the main function. This workaround can be removed
+ * once support for @pragma("vm:entry_point", "get") as documented in
+ * https://github.com/dart-lang/sdk/issues/35720 lands.
+ */
+@pragma("vm:entry-point")
+Function _getStartMainIsolateFunction() {
+  return _startMainIsolate;
+}
+
+/**
  * Takes the real entry point as argument and invokes it with the initial
  * message.
  */
@@ -458,7 +469,7 @@ class Isolate {
           packageRootString,
           packageConfigString);
       return await _spawnCommon(readyPort);
-    } catch (e, st) {
+    } catch (e) {
       if (readyPort != null) {
         readyPort.close();
       }
@@ -632,7 +643,7 @@ class Isolate {
   static Uri _getCurrentRootUri() {
     try {
       return Uri.parse(_getCurrentRootUriStr());
-    } catch (e, s) {
+    } catch (e) {
       return null;
     }
   }

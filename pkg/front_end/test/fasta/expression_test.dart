@@ -16,13 +16,18 @@ import "package:kernel/ast.dart"
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
+import "package:testing/src/log.dart" show splitLines;
+
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
-import "package:front_end/src/api_prototype/front_end.dart"
-    show CompilationMessage, CompilerOptions;
+import "package:front_end/src/api_prototype/compiler_options.dart"
+    show CompilerOptions, DiagnosticMessage;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+
+import "package:front_end/src/api_prototype/terminal_color_support.dart"
+    show printDiagnosticMessage;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -46,14 +51,15 @@ import 'package:vm/target/vm.dart' show VmTarget;
 
 import '../../lib/src/fasta/testing/kernel_chain.dart' show runDiff, openWrite;
 
-import '../../lib/src/fasta/kernel/utils.dart' show writeComponentToFile;
+import '../../lib/src/fasta/kernel/utils.dart'
+    show writeComponentToFile, serializeProcedure;
 
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
-  final List<CompilationMessage> errors;
+  final List<DiagnosticMessage> errors;
 
   final List<Step> steps;
 
@@ -79,8 +85,8 @@ class Context extends ChainContext {
     snapshot.restore();
   }
 
-  List<CompilationMessage> takeErrors() {
-    List<CompilationMessage> result = new List<CompilationMessage>.from(errors);
+  List<DiagnosticMessage> takeErrors() {
+    List<DiagnosticMessage> result = new List<DiagnosticMessage>.from(errors);
     errors.clear();
     return result;
   }
@@ -88,16 +94,20 @@ class Context extends ChainContext {
 
 class CompilationResult {
   Procedure compiledProcedure;
-  List<CompilationMessage> errors;
+  List<DiagnosticMessage> errors;
   CompilationResult(this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
     buffer.write("Errors: {\n");
     for (var error in errors) {
-      buffer.write("  ");
-      buffer.write("${error.message} (@${error.span.start.offset})");
-      buffer.write("\n");
+      for (String message in error.plainTextFormatted) {
+        for (String line in splitLines(message)) {
+          buffer.write("  ");
+          buffer.write(line);
+        }
+        buffer.write("\n");
+      }
     }
     buffer.write("}\n");
     if (compiledProcedure == null) {
@@ -284,6 +294,37 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
   String get name => "compile expression";
 
+  // Compile [test.expression], update [test.errors] with results.
+  // As a side effect - verify that generated procedure can be serialized.
+  void compileExpression(TestCase test, IncrementalCompiler compiler,
+      Component component, Context context) async {
+    Map<String, DartType> definitions = {};
+    for (String name in test.definitions) {
+      definitions[name] = new DynamicType();
+    }
+    List<TypeParameter> typeParams = [];
+    for (String name in test.typeDefinitions) {
+      typeParams.add(new TypeParameter(name, new DynamicType()));
+    }
+
+    Procedure compiledProcedure = await compiler.compileExpression(
+        test.expression,
+        definitions,
+        typeParams,
+        "debugExpr",
+        test.library,
+        test.className,
+        test.isStaticMethod);
+    List<DiagnosticMessage> errors = context.takeErrors();
+    test.results.add(new CompilationResult(compiledProcedure, errors));
+    if (compiledProcedure != null) {
+      // Confirm we can serialize generated procedure.
+      component.computeCanonicalNames();
+      List<int> list = serializeProcedure(compiledProcedure);
+      assert(list.length > 0);
+    }
+  }
+
   Future<Result<List<TestCase>>> run(
       List<TestCase> tests, Context context) async {
     for (var test in tests) {
@@ -305,39 +346,19 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
         context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(
             await new File.fromUri(dillFileUri).readAsBytes());
       }
+      compileExpression(test, sourceCompiler, component, context);
 
       var dillCompiler =
           new IncrementalCompiler(context.compilerContext, dillFileUri);
-      await dillCompiler.computeDelta(entryPoint: test.entryPoint);
+      component = await dillCompiler.computeDelta(entryPoint: test.entryPoint);
+      component.computeCanonicalNames();
       await dillFile.delete();
 
       errors = context.takeErrors();
-
       // Since it compiled successfully from source, the bootstrap-from-Dill
       // should also succeed without errors.
       assert(errors.isEmpty);
-
-      Map<String, DartType> definitions = {};
-      for (String name in test.definitions) {
-        definitions[name] = new DynamicType();
-      }
-      List<TypeParameter> typeParams = [];
-      for (String name in test.typeDefinitions) {
-        typeParams.add(new TypeParameter(name, new DynamicType()));
-      }
-
-      for (var compiler in [sourceCompiler, dillCompiler]) {
-        Procedure compiledProcedure = await compiler.compileExpression(
-            test.expression,
-            definitions,
-            typeParams,
-            "debugExpr",
-            test.library,
-            test.className,
-            test.isStaticMethod);
-        var errors = context.takeErrors();
-        test.results.add(new CompilationResult(compiledProcedure, errors));
-      }
+      compileExpression(test, dillCompiler, component, context);
     }
     return new Result.pass(tests);
   }
@@ -355,7 +376,8 @@ Future<Context> createContext(
 
   /// The actual location of the dill file.
   final Uri sdkSummaryFile =
-      computePlatformBinariesLocation().resolve("vm_platform.dill");
+      computePlatformBinariesLocation(forceBuildDir: true)
+          .resolve("vm_platform.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 
@@ -363,16 +385,15 @@ Future<Context> createContext(
       .entityForUri(sdkSummary)
       .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
 
-  final List<CompilationMessage> errors = <CompilationMessage>[];
+  final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..strongMode = true
-    ..target = new VmTarget(new TargetFlags(strongMode: true))
-    ..reportMessages = true
+    ..target = new VmTarget(new TargetFlags())
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..onError = (CompilationMessage message) {
+    ..onDiagnostic = (DiagnosticMessage message) {
+      printDiagnosticMessage(message, print);
       errors.add(message);
     };
 
@@ -382,8 +403,15 @@ Future<Context> createContext(
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
 
-  return new Context(new CompilerContext(options), snapshot, errors,
-      new String.fromEnvironment("updateExpectations") == "true");
+  final bool updateExpectations = environment["updateExpectations"] == "true";
+
+  final CompilerContext compilerContext = new CompilerContext(options);
+
+  // Disable colors to ensure that expectation files are the same across
+  // platforms and independent of stdin/stderr.
+  compilerContext.disableColors();
+
+  return new Context(compilerContext, snapshot, errors, updateExpectations);
 }
 
 main([List<String> arguments = const []]) =>

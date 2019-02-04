@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./infer_types_on_generic_instantiations_in_library_cycle.dart" as test;
+
+import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle.dart";
+
+abstract class I<E extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::E>
+    : super core::Object::•()
+    ;
+  abstract method m(dynamic a, (dynamic, core::int) → core::String f) → test::A<self::I::E>;
+}
+static method main() → dynamic {}
+
+library test;
+import self as test;
+import "dart:core" as core;
+import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as self;
+
+import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle_a.dart";
+
+abstract class A<E extends core::Object = dynamic> extends core::Object implements self::I<test::A::E> {
+  final field test::A::E value = null;
+  const constructor •() → test::A<test::A::E>
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object {
+  final field core::int y = 0;
+  synthetic constructor •() → test::M
+    : super core::Object::•()
+    ;
+}
+class B<E extends core::Object = dynamic> extends test::A<test::B::E> implements test::M {
+  const constructor •() → test::B<test::B::E>
+    : super test::A::•()
+    ;
+  get y() → core::int
+    return 0;
+  method m(dynamic a, (dynamic, core::int) → dynamic f) → dynamic {}
+}
+static method foo() → dynamic {
+  core::int y = new test::B::•<core::String>().m(null, null).value;
+  core::String z = new test::B::•<core::String>().m(null, null).value;
+}
+static method main() → dynamic {}

@@ -1,0 +1,12 @@
+pkg/front_end/testcases/implicit_new.dart:31:5: Context: Write to x@522
+  x = prefix.Foo();
+    ^
+pkg/front_end/testcases/implicit_new.dart:33:5: Context: Write to z@559
+  z = prefix.Bar.named();
+    ^
+pkg/front_end/testcases/implicit_new.dart:39:5: Context: Write to l@682
+  l = [prefix.Foo(), prefix.Bar.named()];
+    ^
+pkg/front_end/testcases/implicit_new.dart:41:5: Context: Write to m@756
+  m = {"foo": prefix.Foo(), "bar": prefix.Bar.named()};
+    ^

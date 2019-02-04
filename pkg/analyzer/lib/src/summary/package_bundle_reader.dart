@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 import 'dart:math' show min;
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -17,7 +18,6 @@ import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:front_end/src/base/source.dart';
 
 /**
  * A [ConflictingSummaryException] indicates that two different summaries
@@ -74,8 +74,9 @@ include the same source.
  */
 class InputPackagesResultProvider extends ResynthesizerResultProvider {
   InputPackagesResultProvider(
-      InternalAnalysisContext context, SummaryDataStore dataStore)
-      : super(context, dataStore) {
+      InternalAnalysisContext context, SummaryDataStore dataStore,
+      {AnalysisSession session})
+      : super(context, session, dataStore) {
     createResynthesizer();
     context.typeProvider = resynthesizer.typeProvider;
     resynthesizer.finishCoreAsyncLibraries();
@@ -168,11 +169,12 @@ class InSummaryUriResolver extends UriResolver {
  */
 abstract class ResynthesizerResultProvider extends ResultProvider {
   final InternalAnalysisContext context;
+  final AnalysisSession session;
   final SummaryDataStore _dataStore;
 
   StoreBasedSummaryResynthesizer _resynthesizer;
 
-  ResynthesizerResultProvider(this.context, this._dataStore);
+  ResynthesizerResultProvider(this.context, this.session, this._dataStore);
 
   SummaryResynthesizer get resynthesizer => _resynthesizer;
 
@@ -318,7 +320,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    */
   void createResynthesizer() {
     _resynthesizer = new StoreBasedSummaryResynthesizer(
-        context, context.sourceFactory, true, _dataStore);
+        context, session, context.sourceFactory, true, _dataStore);
   }
 
   /**
@@ -335,9 +337,13 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
 class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
   final SummaryDataStore _dataStore;
 
-  StoreBasedSummaryResynthesizer(AnalysisContext context,
-      SourceFactory sourceFactory, bool _, this._dataStore)
-      : super(context, sourceFactory, true);
+  StoreBasedSummaryResynthesizer(
+      AnalysisContext context,
+      AnalysisSession session,
+      SourceFactory sourceFactory,
+      bool _,
+      this._dataStore)
+      : super(context, session, sourceFactory, true);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {

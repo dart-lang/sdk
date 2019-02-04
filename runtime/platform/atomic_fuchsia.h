@@ -65,6 +65,16 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
   return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
 
+template <typename T>
+inline T AtomicOperations::LoadAcquire(T* ptr) {
+  return __atomic_load_n(ptr, __ATOMIC_ACQUIRE);
+}
+
+template <typename T>
+inline void AtomicOperations::StoreRelease(T* ptr, T value) {
+  __atomic_store_n(ptr, value, __ATOMIC_RELEASE);
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_ATOMIC_FUCHSIA_H_

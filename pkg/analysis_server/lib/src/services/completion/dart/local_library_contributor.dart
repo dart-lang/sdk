@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,8 +27,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   final OpType optype;
   CompletionSuggestionKind kind;
   final String prefix;
-  List<String> showNames;
-  List<String> hiddenNames;
 
   /**
    * The set of libraries that have been, or are currently being, visited.
@@ -195,13 +193,13 @@ class LocalLibraryContributor extends DartCompletionContributor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     List<CompilationUnitElement> libraryUnits =
         request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     OpType optype = (request as DartCompletionRequestImpl).opType;

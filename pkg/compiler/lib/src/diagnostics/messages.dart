@@ -14,7 +14,8 @@
 /// location of the existing element.
 library dart2js.messages;
 
-import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
+import 'package:front_end/src/api_unstable/dart2js.dart' show tokenToString;
+
 import 'generated/shared_messages.dart' as shared_messages;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../commandline_options.dart';
@@ -36,6 +37,7 @@ enum MessageKind {
   CYCLIC_COMPILE_TIME_CONSTANTS,
   DIRECTLY_THROWING_NSM,
   EQUAL_MAP_ENTRY_KEY,
+  EQUAL_SET_ENTRY,
   EXTRANEOUS_MODIFIER,
   EXTRANEOUS_MODIFIER_REPLACE,
   FORIN_NOT_ASSIGNABLE,
@@ -86,7 +88,6 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE,
   MISSING_EXPRESSION_IN_THROW,
-  MULTI_INHERITANCE,
   NO_SUCH_SUPER_MEMBER,
   NON_NATIVE_EXTERNAL,
   NOT_A_COMPILE_TIME_CONSTANT,
@@ -111,6 +112,11 @@ enum MessageKind {
   WRONG_ARGUMENT_FOR_JS_FIRST,
   WRONG_ARGUMENT_FOR_JS_SECOND,
   WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
+  // TODO(32557): Remove these when issue 32557 is fixed.
+  SWITCH_CASE_FORBIDDEN,
+  SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+  SWITCH_CASE_TYPES_NOT_EQUAL,
+  SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
 }
 
 /// A message template for an error, warning, hint or info message generated
@@ -127,14 +133,12 @@ class MessageTemplate {
   /// Should describe how to fix the problem. Elided when using --terse option.
   final String howToFix;
 
-  /**
-   *  Examples will be checked by
-   *  tests/compiler/dart2js/message_kind_test.dart.
-   *
-   *  An example is either a String containing the example source code or a Map
-   *  from filenames to source code. In the latter case, the filename for the
-   *  main library code must be 'main.dart'.
-   */
+  ///  Examples will be checked by
+  ///  tests/compiler/dart2js/message_kind_test.dart.
+  ///
+  ///  An example is either a String containing the example source code or a Map
+  ///  from filenames to source code. In the latter case, the filename for the
+  ///  main library code must be 'main.dart'.
   final List examples;
 
   /// Additional options needed for the examples to work.
@@ -167,12 +171,6 @@ class MessageTemplate {
       MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS: const MessageTemplate(
           MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS,
           "Cycle in the compile-time constant computation."),
-
-      MessageKind.MULTI_INHERITANCE: const MessageTemplate(
-          MessageKind.MULTI_INHERITANCE,
-          "Dart2js does not currently support inheritance of the same class "
-          "with different type arguments: Both #{firstType} and #{secondType} "
-          "are supertypes of #{thisType}."),
 
       MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER: const MessageTemplate(
           MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
@@ -436,6 +434,16 @@ main() {
 }"""
           ]),
 
+      MessageKind.EQUAL_SET_ENTRY: const MessageTemplate(
+          MessageKind.EQUAL_SET_ENTRY, "An entry appears twice in the set.",
+          howToFix: "Try removing one of the entries.",
+          examples: const [
+            """
+main() {
+  var m = const {'foo', 'bar', 'foo'};
+}"""
+          ]),
+
       MessageKind.COMPILER_CRASHED: const MessageTemplate(
           MessageKind.COMPILER_CRASHED,
           "The compiler crashed when compiling this element."),
@@ -668,6 +676,20 @@ become a compile-time error in the future."""),
           howToFix:
               "Try removing 'external' keyword or annotating the function "
               "as a js-interop function."),
+
+      // TODO(32557): Remove these when issue 32557 is fixed.
+      MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS: const MessageTemplate(
+          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+          "'case' expression type '#{type}' overrides 'operator =='."),
+      MessageKind.SWITCH_CASE_FORBIDDEN: const MessageTemplate(
+          MessageKind.SWITCH_CASE_FORBIDDEN,
+          "'case' expression may not be of type '#{type}'."),
+      MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL: const MessageTemplate(
+          MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+          "'case' expressions do not all have type '#{type}'."),
+      MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE: const MessageTemplate(
+          MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+          "'case' expression of type '#{type}'."),
     }); // End of TEMPLATES.
 
   String toString() => template;
@@ -728,13 +750,10 @@ class Message {
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
   static String convertToString(value) {
-    if (value is ErrorToken) {
-      // Shouldn't happen.
-      return value.assertionMessage.message;
-    } else if (value is Token) {
-      value = value.lexeme;
-    } else if (value is ConstantExpression) {
+    if (value is ConstantExpression) {
       value = value.toDartText();
+    } else {
+      value = tokenToString(value);
     }
     return '$value';
   }

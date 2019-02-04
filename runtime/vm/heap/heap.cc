@@ -6,7 +6,9 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
+#include "vm/heap/become.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/scavenger.h"
@@ -60,23 +62,70 @@ Heap::~Heap() {
   }
 }
 
+void Heap::MakeTLABIterable(Thread* thread) {
+  uword start = thread->top();
+  uword end = thread->end();
+  ASSERT(end >= start);
+  intptr_t size = end - start;
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  if (size >= kObjectAlignment) {
+    // ForwardingCorpse(forwarding to default null) will work as filler.
+    ForwardingCorpse::AsForwarder(start, size);
+    ASSERT(RawObject::FromAddr(start)->Size() == size);
+  }
+}
+
+void Heap::AbandonRemainingTLAB(Thread* thread) {
+  MakeTLABIterable(thread);
+  thread->set_top(0);
+  thread->set_end(0);
+}
+
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   // Currently, only the Dart thread may allocate in new space.
   isolate()->AssertCurrentThreadIsMutator();
   Thread* thread = Thread::Current();
   uword addr = new_space_.TryAllocateInTLAB(thread, size);
-  if (addr == 0) {
-    // This call to CollectGarbage might end up "reusing" a collection spawned
-    // from a different thread and will be racing to allocate the requested
-    // memory with other threads being released after the collection.
-    CollectGarbage(kNew);
-    addr = new_space_.TryAllocateInTLAB(thread, size);
-    if (addr == 0) {
-      return AllocateOld(size, HeapPage::kData);
+  if (addr != 0) {
+    return addr;
+  }
+
+  intptr_t tlab_size = GetTLABSize();
+  if ((tlab_size > 0) && (size > tlab_size)) {
+    return AllocateOld(size, HeapPage::kData);
+  }
+
+  AbandonRemainingTLAB(thread);
+  if (tlab_size > 0) {
+    uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
+    if (tlab_top != 0) {
+      addr = new_space_.TryAllocateInTLAB(thread, size);
+      if (addr != 0) {  // but "leftover" TLAB could end smaller than tlab_size
+        return addr;
+      }
+      // Abandon "leftover" TLAB as well so we can start from scratch.
+      AbandonRemainingTLAB(thread);
     }
   }
-  return addr;
+
+  ASSERT(!thread->HasActiveTLAB());
+
+  // This call to CollectGarbage might end up "reusing" a collection spawned
+  // from a different thread and will be racing to allocate the requested
+  // memory with other threads being released after the collection.
+  CollectGarbage(kNew);
+
+  uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
+  if (tlab_top != 0) {
+    addr = new_space_.TryAllocateInTLAB(thread, size);
+    // It is possible a GC doesn't clear enough space.
+    // In that case, we must fall through and allocate into old space.
+    if (addr != 0) {
+      return addr;
+    }
+  }
+  return AllocateOld(size, HeapPage::kData);
 }
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
@@ -199,20 +248,30 @@ void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
 }
 
 HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
-    : StackResource(thread),
+    : ThreadStackResource(thread),
       heap_(isolate()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
   {
-    // It's not yet safe to iterate over a paged space while it's concurrently
-    // sweeping, so wait for any such task to complete first.
+    // It's not safe to iterate over old space when concurrent marking or
+    // sweeping is in progress, or another thread is iterating the heap, so wait
+    // for any such task to complete first.
     MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
     // We currently don't support nesting of HeapIterationScopes.
     ASSERT(old_space_->iterating_thread_ != thread);
 #endif
-    while (old_space_->tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread);
+    while ((old_space_->tasks() > 0) ||
+           (old_space_->phase() != PageSpace::kDone)) {
+      if (old_space_->phase() == PageSpace::kAwaitingFinalization) {
+        ml.Exit();
+        heap_->CollectOldSpaceGarbage(thread, Heap::kMarkSweep,
+                                      Heap::kFinalize);
+        ml.Enter();
+      }
+      while (old_space_->tasks() > 0) {
+        ml.WaitWithSafepointCheck(thread);
+      }
     }
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == NULL);
@@ -384,7 +443,8 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
-    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+    VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
+                                                : VMTag::kGCNewSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
     new_space_.Evacuate();
     RecordAfterGC(kScavenge);
@@ -399,7 +459,8 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     {
-      VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+      VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
+                                                  : VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
       new_space_.Scavenge();
       RecordAfterGC(kScavenge);
@@ -407,8 +468,12 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
       EndNewSpaceGC();
     }
-    if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
-      CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
+    if (reason == kNewSpace) {
+      if (old_space_.NeedsGarbageCollection()) {
+        CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
+      } else {
+        CheckStartConcurrentMarking(thread, kPromotion);
+      }
     }
   }
 }
@@ -423,9 +488,10 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
   if (BeginOldSpaceGC(thread)) {
     RecordBeforeGC(type, reason);
-    VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
+    VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
+                                                : VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
-    old_space_.CollectGarbage(type == kMarkCompact);
+    old_space_.CollectGarbage(type == kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
@@ -475,6 +541,49 @@ void Heap::CollectAllGarbage(GCReason reason) {
   EvacuateNewSpace(thread, reason);
   CollectOldSpaceGarbage(
       thread, reason == kLowMemory ? kMarkCompact : kMarkSweep, reason);
+}
+
+void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    if (old_space_.phase() != PageSpace::kDone) {
+      return;  // Busy.
+    }
+  }
+
+  if (old_space_.AlmostNeedsGarbageCollection()) {
+    if (BeginOldSpaceGC(thread)) {
+      TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
+      old_space_.CollectGarbage(kMarkSweep, false /* finish */);
+      EndOldSpaceGC();
+    }
+  }
+}
+
+void Heap::CheckFinishConcurrentMarking(Thread* thread) {
+  bool ready;
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    ready = old_space_.phase() == PageSpace::kAwaitingFinalization;
+  }
+  if (ready) {
+    CollectOldSpaceGarbage(thread, Heap::kMarkSweep, Heap::kFinalize);
+  }
+}
+
+void Heap::WaitForMarkerTasks(Thread* thread) {
+  MonitorLocker ml(old_space_.tasks_lock());
+  while ((old_space_.phase() == PageSpace::kMarking) ||
+         (old_space_.phase() == PageSpace::kAwaitingFinalization)) {
+    while (old_space_.phase() == PageSpace::kMarking) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+    if (old_space_.phase() == PageSpace::kAwaitingFinalization) {
+      ml.Exit();
+      CollectOldSpaceGarbage(thread, Heap::kMarkSweep, Heap::kFinalize);
+      ml.Enter();
+    }
+  }
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
@@ -586,7 +695,7 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   StackZone stack_zone(Thread::Current());
 
   // Change the new space's top_ with the more up-to-date thread's view of top_
-  new_space_.FlushTLS();
+  new_space_.MakeNewSpaceIterable();
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
@@ -656,6 +765,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "promotion";
     case kOldSpace:
       return "old space";
+    case kFinalize:
+      return "finalize";
     case kFull:
       return "full";
     case kExternal:
@@ -777,8 +888,8 @@ void Heap::RecordAfterGC(GCType type) {
          (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
   if (FLAG_support_service && Service::gc_stream.enabled() &&
-      !ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
-    ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
+      !Isolate::IsVMInternalIsolate(isolate())) {
+    ServiceEvent event(isolate(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);
   }
@@ -892,7 +1003,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 }
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
-    : StackResource(Thread::Current()) {
+    : ThreadStackResource(Thread::Current()) {
   Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
   current_growth_controller_state_ = heap->GrowthControlState();
   heap->DisableGrowthControl();
@@ -904,7 +1015,7 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 }
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
-    : StackResource(thread) {
+    : ThreadStackResource(thread) {
   if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(false);
   }
@@ -915,6 +1026,33 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(true);
   }
+}
+
+WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
+    : StackResource(thread), isolate_(isolate) {
+  isolate_->heap()->WriteProtectCode(false);
+}
+
+WritableCodePages::~WritableCodePages() {
+  isolate_->heap()->WriteProtectCode(true);
+}
+
+BumpAllocateScope::BumpAllocateScope(Thread* thread)
+    : ThreadStackResource(thread), no_reload_scope_(thread->isolate(), thread) {
+  ASSERT(!thread->bump_allocate());
+  // If the background compiler thread is not disabled, there will be a cycle
+  // between the symbol table lock and the old space data lock.
+  BackgroundCompiler::Disable(thread->isolate());
+  thread->heap()->WaitForMarkerTasks(thread);
+  thread->heap()->old_space()->AcquireDataLock();
+  thread->set_bump_allocate(true);
+}
+
+BumpAllocateScope::~BumpAllocateScope() {
+  ASSERT(thread()->bump_allocate());
+  thread()->set_bump_allocate(false);
+  thread()->heap()->old_space()->ReleaseDataLock();
+  BackgroundCompiler::Enable(thread()->isolate());
 }
 
 }  // namespace dart

@@ -15,9 +15,10 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
+    var closedWorld = compiler.backendClosedWorldForTesting;
     var outputUnitForConstant =
-        compiler.backend.outputUnitData.outputUnitForConstant;
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
+        closedWorld.outputUnitData.outputUnitForConstant;
+    var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     List<ConstantValue> allConstants = [];
 
     addConstantWithDependendencies(ConstantValue c) {
