@@ -176,6 +176,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
     {
       TIMELINE_DURATION(thread, CompilerVerbose, name());
       repeat = DoBody(state);
+      DEBUG_ASSERT(state->flow_graph->VerifyUseLists());
       thread->CheckForSafepoint();
 #if defined(DEBUG)
       FlowGraphChecker(state->flow_graph).Check();
