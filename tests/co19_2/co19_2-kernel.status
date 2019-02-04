@@ -751,6 +751,9 @@ Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 3
 LibTest/io/Stdin/readByteSync_A02_t01: RuntimeError, Pass
 LibTest/io/WebSocket/pingInterval_A01_t01: RuntimeError, Pass
 
+[ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
+Language/Classes/definition_t23: Crash # Issue 35854
+
 [ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Link/stat_A01_t01: RuntimeError
 LibTest/isolate/Isolate/spawn_A06_t03: Crash, Pass
