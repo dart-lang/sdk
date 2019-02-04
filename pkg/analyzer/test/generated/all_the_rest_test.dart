@@ -46,6 +46,7 @@ main() {
     defineReflectiveTests(ErrorReporterTest);
     defineReflectiveTests(ErrorReporterTest2);
     defineReflectiveTests(ErrorSeverityTest);
+    defineReflectiveTests(ExitDetectorForCodeAsUiTest);
     defineReflectiveTests(ExitDetectorTest);
     defineReflectiveTests(ExitDetectorTest2);
     defineReflectiveTests(FileBasedSourceTest);
@@ -459,6 +460,117 @@ class ErrorSeverityTest extends EngineTestCase {
   test_max_warning_warning() async {
     expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
         same(ErrorSeverity.WARNING));
+  }
+}
+
+/**
+ * Tests for the [ExitDetector] that require that the spread and control flow
+ * experiments be enabled.
+ */
+@reflectiveTest
+class ExitDetectorForCodeAsUiTest extends ParserTestCase {
+  @override
+  void createParser(String content, {int expectedEndOffset}) {
+    super.createParser(content, expectedEndOffset: expectedEndOffset);
+    parser.enableControlFlowCollections = true;
+    parser.enableSpreadCollections = true;
+  }
+
+  test_for_condition() async {
+    _assertTrue("[for (; throw 0;) 0]");
+  }
+
+  test_for_implicitTrue() async {
+    _assertTrue("[for (;;) 0]");
+  }
+
+  test_for_initialization() async {
+    _assertTrue("[for (i = throw 0;;) 0]");
+  }
+
+  test_for_true() async {
+    _assertTrue("[for (; true; ) 0]");
+  }
+
+  test_for_true_if_return() async {
+    _assertTrue("[for (; true; ) if (true) throw '']");
+  }
+
+  test_for_true_noBreak() async {
+    _assertTrue("[for (; true; ) 0]");
+  }
+
+  test_for_updaters() async {
+    _assertTrue("[for (;; i++, throw 0) 1]");
+  }
+
+  test_for_variableDeclaration() async {
+    _assertTrue("[for (int i = throw 0;;) 1]");
+  }
+
+  test_forEach() async {
+    _assertFalse("[for (element in list) 0]");
+  }
+
+  test_forEach_throw() async {
+    _assertTrue("[for (element in throw '') 0]");
+  }
+
+  test_if_false_else_throw() async {
+    _assertTrue("[if (false) 0 else throw '']");
+  }
+
+  test_if_false_noThrow() async {
+    _assertFalse("[if (false) 0]");
+  }
+
+  test_if_false_throw() async {
+    _assertFalse("[if (false) throw '']");
+  }
+
+  test_if_noThrow() async {
+    _assertFalse("[if (c) i++]");
+  }
+
+  test_if_throw() async {
+    _assertFalse("[if (c) throw '']");
+  }
+
+  test_if_true_noThrow() async {
+    _assertFalse("[if (true) 0]");
+  }
+
+  test_if_true_throw() async {
+    _assertTrue("[if (true) throw '']");
+  }
+
+  test_ifElse_bothThrow() async {
+    _assertTrue("[if (c) throw '' else throw '']");
+  }
+
+  test_ifElse_elseThrow() async {
+    _assertFalse("[if (c) 0 else throw '']");
+  }
+
+  test_ifElse_noThrow() async {
+    _assertFalse("[if (c) 0 else 1]");
+  }
+
+  test_ifElse_thenThrow() async {
+    _assertFalse("[if (c) throw '' else 0]");
+  }
+
+  void _assertFalse(String source) {
+    _assertHasReturn(false, source);
+  }
+
+  void _assertHasReturn(bool expectedResult, String source) {
+    Expression expression = parseExpression(source);
+    expect(ExitDetector.exits(expression), expectedResult);
+  }
+
+  void _assertTrue(String source) {
+    _assertHasReturn(true, source);
   }
 }
 

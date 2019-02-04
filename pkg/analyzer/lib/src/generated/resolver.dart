@@ -1504,6 +1504,34 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCollectionIfElement(CollectionIfElement node) {
+    Expression conditionExpression = node.condition;
+    conditionExpression?.accept(this);
+    if (!_isDebugConstant(conditionExpression)) {
+      EvaluationResultImpl result =
+          _getConstantBooleanValue(conditionExpression);
+      if (result != null) {
+        if (result.value.toBoolValue() == true) {
+          // Report error on else block: if(true) {} else {!}
+          CollectionElement elseElement = node.elseElement;
+          if (elseElement != null) {
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
+            node.thenElement?.accept(this);
+            return;
+          }
+        } else {
+          // Report error on if block: if (false) {!} else {}
+          _errorReporter.reportErrorForNode(
+              HintCode.DEAD_CODE, node.thenElement);
+          node.elseElement?.accept(this);
+          return;
+        }
+      }
+    }
+    super.visitCollectionIfElement(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     conditionExpression?.accept(this);
@@ -1602,6 +1630,34 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _popLabels();
     }
+  }
+
+  @override
+  void visitMapIfElement(MapIfElement node) {
+    Expression conditionExpression = node.condition;
+    conditionExpression?.accept(this);
+    if (!_isDebugConstant(conditionExpression)) {
+      EvaluationResultImpl result =
+          _getConstantBooleanValue(conditionExpression);
+      if (result != null) {
+        if (result.value.toBoolValue() == true) {
+          // Report error on else block: if(true) {} else {!}
+          MapElement elseElement = node.elseElement;
+          if (elseElement != null) {
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
+            node.thenElement?.accept(this);
+            return;
+          }
+        } else {
+          // Report error on if block: if (false) {!} else {}
+          _errorReporter.reportErrorForNode(
+              HintCode.DEAD_CODE, node.thenElement);
+          node.elseElement?.accept(this);
+          return;
+        }
+      }
+    }
+    super.visitMapIfElement(node);
   }
 
   @override
@@ -2509,6 +2565,83 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.target) || _visitExpressions(node.cascadeSections);
 
   @override
+  bool visitCollectionForElement(CollectionForElement node) {
+    bool outerBreakValue = _enclosingBlockContainsBreak;
+    _enclosingBlockContainsBreak = false;
+    try {
+      ForLoopParts forLoopParts = node.forLoopParts;
+      if (forLoopParts is ForParts) {
+        if (forLoopParts is ForPartsWithDeclarations) {
+          if (forLoopParts.variables != null &&
+              _visitVariableDeclarations(forLoopParts.variables.variables)) {
+            return true;
+          }
+        } else if (forLoopParts is ForPartsWithExpression) {
+          if (forLoopParts.initialization != null &&
+              _nodeExits(forLoopParts.initialization)) {
+            return true;
+          }
+        }
+        Expression conditionExpression = forLoopParts.condition;
+        if (conditionExpression != null && _nodeExits(conditionExpression)) {
+          return true;
+        }
+        if (_visitExpressions(forLoopParts.updaters)) {
+          return true;
+        }
+        bool blockReturns = _nodeExits(node.body);
+        // TODO(jwren) Do we want to take all constant expressions into account?
+        // If for(; true; ) (or for(;;)), and the body doesn't return or the body
+        // doesn't have a break, then return true.
+        bool implicitOrExplictTrue = conditionExpression == null ||
+            (conditionExpression is BooleanLiteral &&
+                conditionExpression.value);
+        if (implicitOrExplictTrue) {
+          if (blockReturns || !_enclosingBlockContainsBreak) {
+            return true;
+          }
+        }
+        return false;
+      } else if (forLoopParts is ForEachParts) {
+        bool iterableExits = _nodeExits(forLoopParts.iterable);
+        // Discard whether the for-each body exits; since the for-each iterable
+        // may be empty, execution may never enter the body, so it doesn't matter
+        // if it exits or not.  We still must visit the body, to accurately
+        // manage `_enclosingBlockBreaksLabel`.
+        _nodeExits(node.body);
+        return iterableExits;
+      }
+    } finally {
+      _enclosingBlockContainsBreak = outerBreakValue;
+    }
+    return false;
+  }
+
+  @override
+  bool visitCollectionIfElement(CollectionIfElement node) {
+    Expression conditionExpression = node.condition;
+    CollectionElement thenElement = node.thenElement;
+    CollectionElement elseElement = node.elseElement;
+    if (_nodeExits(conditionExpression)) {
+      return true;
+    }
+
+    bool conditionValue = _knownConditionValue(conditionExpression);
+    if (conditionValue == true) {
+      return _nodeExits(thenElement);
+    } else if (conditionValue == false && elseElement != null) {
+      return _nodeExits(elseElement);
+    }
+
+    bool thenExits = _nodeExits(thenElement);
+    bool elseExits = _nodeExits(elseElement);
+    if (thenElement == null || elseElement == null) {
+      return false;
+    }
+    return thenExits && elseExits;
+  }
+
+  @override
   bool visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     Expression thenStatement = node.thenExpression;
@@ -2711,16 +2844,14 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (_nodeExits(conditionExpression)) {
       return true;
     }
-    // TODO(jwren) Do we want to take all constant expressions into account?
-    if (conditionExpression is BooleanLiteral) {
-      if (conditionExpression.value) {
-        // if (true) ...
-        return _nodeExits(thenStatement);
-      } else if (elseStatement != null) {
-        // if (false) ...
-        return _nodeExits(elseStatement);
-      }
+
+    bool conditionValue = _knownConditionValue(conditionExpression);
+    if (conditionValue == true) {
+      return _nodeExits(thenStatement);
+    } else if (conditionValue == false && elseStatement != null) {
+      return _nodeExits(elseStatement);
     }
+
     bool thenExits = _nodeExits(thenStatement);
     bool elseExits = _nodeExits(elseStatement);
     if (thenStatement == null || elseStatement == null) {
@@ -2764,7 +2895,109 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitListLiteral2(ListLiteral2 node) {
+    for (CollectionElement element in node.elements) {
+      if (_nodeExits(element)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool visitLiteral(Literal node) => false;
+
+  @override
+  bool visitMapForElement(MapForElement node) {
+    bool outerBreakValue = _enclosingBlockContainsBreak;
+    _enclosingBlockContainsBreak = false;
+    try {
+      ForLoopParts forLoopParts = node.forLoopParts;
+      if (forLoopParts is ForParts) {
+        if (forLoopParts is ForPartsWithDeclarations) {
+          if (forLoopParts.variables != null &&
+              _visitVariableDeclarations(forLoopParts.variables.variables)) {
+            return true;
+          }
+        } else if (forLoopParts is ForPartsWithExpression) {
+          if (forLoopParts.initialization != null &&
+              _nodeExits(forLoopParts.initialization)) {
+            return true;
+          }
+        }
+        Expression conditionExpression = forLoopParts.condition;
+        if (conditionExpression != null && _nodeExits(conditionExpression)) {
+          return true;
+        }
+        if (_visitExpressions(forLoopParts.updaters)) {
+          return true;
+        }
+        bool blockReturns = _nodeExits(node.body);
+        // TODO(jwren) Do we want to take all constant expressions into account?
+        // If for(; true; ) (or for(;;)), and the body doesn't return or the body
+        // doesn't have a break, then return true.
+        bool implicitOrExplictTrue = conditionExpression == null ||
+            (conditionExpression is BooleanLiteral &&
+                conditionExpression.value);
+        if (implicitOrExplictTrue) {
+          if (blockReturns || !_enclosingBlockContainsBreak) {
+            return true;
+          }
+        }
+        return false;
+      } else if (forLoopParts is ForEachParts) {
+        bool iterableExits = _nodeExits(forLoopParts.iterable);
+        // Discard whether the for-each body exits; since the for-each iterable
+        // may be empty, execution may never enter the body, so it doesn't matter
+        // if it exits or not.  We still must visit the body, to accurately
+        // manage `_enclosingBlockBreaksLabel`.
+        _nodeExits(node.body);
+        return iterableExits;
+      }
+    } finally {
+      _enclosingBlockContainsBreak = outerBreakValue;
+    }
+    return false;
+  }
+
+  @override
+  bool visitMapIfElement(MapIfElement node) {
+    Expression conditionExpression = node.condition;
+    MapElement thenElement = node.thenElement;
+    MapElement elseElement = node.elseElement;
+    if (_nodeExits(conditionExpression)) {
+      return true;
+    }
+
+    bool conditionValue = _knownConditionValue(conditionExpression);
+    if (conditionValue == true) {
+      return _nodeExits(thenElement);
+    } else if (conditionValue == false && elseElement != null) {
+      return _nodeExits(elseElement);
+    }
+
+    bool thenExits = _nodeExits(thenElement);
+    bool elseExits = _nodeExits(elseElement);
+    if (thenElement == null || elseElement == null) {
+      return false;
+    }
+    return thenExits && elseExits;
+  }
+
+  @override
+  bool visitMapLiteral2(MapLiteral2 node) {
+    for (MapElement entry in node.entries) {
+      if (_nodeExits(entry)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool visitMapLiteralEntry(MapLiteralEntry node) {
+    return _nodeExits(node.key) || _nodeExits(node.value);
+  }
 
   @override
   bool visitMethodInvocation(MethodInvocation node) {
@@ -2787,6 +3020,12 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitNamedExpression(NamedExpression node) =>
       node.expression.accept(this);
+
+  @override
+  bool visitNode(AstNode node) {
+    throw new StateError(
+        'Missing a visit method for a node of type ${node.runtimeType}');
+  }
 
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) =>
@@ -2812,6 +3051,21 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitReturnStatement(ReturnStatement node) => true;
+
+  @override
+  bool visitSetLiteral2(SetLiteral2 node) {
+    for (CollectionElement element in node.elements) {
+      if (_nodeExits(element)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool visitSpreadElement(SpreadElement node) {
+    return _nodeExits(node.expression);
+  }
 
   @override
   bool visitSuperExpression(SuperExpression node) => false;
@@ -2944,10 +3198,17 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
 
-  /// Return `true` if the given node exits.
-  ///
-  /// @param node the node being tested
-  /// @return `true` if the given node exits
+  /// If the given [expression] has a known Boolean value, return the known
+  /// value, otherwise return `null`.
+  bool _knownConditionValue(Expression conditionExpression) {
+    // TODO(jwren) Do we want to take all constant expressions into account?
+    if (conditionExpression is BooleanLiteral) {
+      return conditionExpression.value;
+    }
+    return null;
+  }
+
+  /// Return `true` if the given [node] exits.
   bool _nodeExits(AstNode node) {
     if (node == null) {
       return false;
@@ -4603,6 +4864,84 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitCollectionForElement(CollectionForElement node) {
+    ForLoopParts forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      if (forLoopParts is ForPartsWithDeclarations) {
+        forLoopParts.variables?.accept(this);
+      } else if (forLoopParts is ForPartsWithExpression) {
+        forLoopParts.initialization?.accept(this);
+      }
+      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
+      forLoopParts.condition?.accept(this);
+      node.body?.accept(this);
+      forLoopParts.updaters.accept(this);
+    } else if (forLoopParts is ForEachParts) {
+      Expression iterable = forLoopParts.iterable;
+      DeclaredIdentifier loopVariable;
+      DartType valueType;
+      if (forLoopParts is ForEachPartsWithDeclaration) {
+        loopVariable = forLoopParts.loopVariable;
+        valueType = loopVariable?.type?.type ?? UnknownInferredType.instance;
+      } else if (forLoopParts is ForEachPartsWithIdentifier) {
+        SimpleIdentifier identifier = forLoopParts.identifier;
+        identifier?.accept(this);
+        Element element = identifier?.staticElement;
+        if (element is VariableElement) {
+          valueType = element.type;
+        } else if (element is PropertyAccessorElement) {
+          if (element.parameters.isNotEmpty) {
+            valueType = element.parameters[0].type;
+          }
+        }
+      }
+
+      if (valueType != null) {
+        InterfaceType targetType = (node.awaitKeyword == null)
+            ? typeProvider.iterableType
+            : typeProvider.streamType;
+        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+      }
+      //
+      // We visit the iterator before the loop variable because the loop
+      // variable cannot be in scope while visiting the iterator.
+      //
+      iterable?.accept(this);
+      loopVariable?.accept(this);
+      node.body?.accept(this);
+
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    }
+  }
+
+  @override
+  void visitCollectionIfElement(CollectionIfElement node) {
+    Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
+    condition?.accept(this);
+    CollectionElement thenElement = node.thenElement;
+    if (thenElement != null) {
+      _promoteManager.enterScope();
+      try {
+        // Type promotion.
+        _promoteTypes(condition);
+        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
+        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
+            thenElement);
+        // Visit "then".
+        thenElement.accept(this);
+      } finally {
+        _promoteManager.exitScope();
+      }
+    }
+    node.elseElement?.accept(this);
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+  }
+
+  @override
   void visitComment(Comment node) {
     AstNode parent = node.parent;
     if (parent is FunctionDeclaration ||
@@ -5121,6 +5460,90 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.clearType(node);
     }
     super.visitListLiteral2(node);
+  }
+
+  @override
+  void visitMapForElement(MapForElement node) {
+    ForLoopParts forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      if (forLoopParts is ForPartsWithDeclarations) {
+        forLoopParts.variables?.accept(this);
+      } else if (forLoopParts is ForPartsWithExpression) {
+        forLoopParts.initialization?.accept(this);
+      }
+      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
+      forLoopParts.condition?.accept(this);
+      node.body?.accept(this);
+      forLoopParts.updaters.accept(this);
+    } else if (forLoopParts is ForEachParts) {
+      Expression iterable = forLoopParts.iterable;
+      DeclaredIdentifier loopVariable;
+      SimpleIdentifier identifier;
+      if (forLoopParts is ForEachPartsWithDeclaration) {
+        loopVariable = forLoopParts.loopVariable;
+      } else if (forLoopParts is ForEachPartsWithIdentifier) {
+        identifier = forLoopParts.identifier;
+        identifier?.accept(this);
+      }
+
+      DartType valueType;
+      if (loopVariable != null) {
+        TypeAnnotation typeAnnotation = loopVariable.type;
+        valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
+      }
+      if (identifier != null) {
+        Element element = identifier.staticElement;
+        if (element is VariableElement) {
+          valueType = element.type;
+        } else if (element is PropertyAccessorElement) {
+          if (element.parameters.isNotEmpty) {
+            valueType = element.parameters[0].type;
+          }
+        }
+      }
+      if (valueType != null) {
+        InterfaceType targetType = (node.awaitKeyword == null)
+            ? typeProvider.iterableType
+            : typeProvider.streamType;
+        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+      }
+      //
+      // We visit the iterator before the loop variable because the loop variable
+      // cannot be in scope while visiting the iterator.
+      //
+      iterable?.accept(this);
+      loopVariable?.accept(this);
+      node.body?.accept(this);
+
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    }
+  }
+
+  @override
+  void visitMapIfElement(MapIfElement node) {
+    Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
+    condition?.accept(this);
+    MapElement thenElement = node.thenElement;
+    if (thenElement != null) {
+      _promoteManager.enterScope();
+      try {
+        // Type promotion.
+        _promoteTypes(condition);
+        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
+        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
+            thenElement);
+        // Visit "then".
+        thenElement.accept(this);
+      } finally {
+        _promoteManager.exitScope();
+      }
+    }
+    node.elseElement?.accept(this);
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
   }
 
   @override
