@@ -48,6 +48,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl);
 
+  void declaredTypeParameter(TypeParameter node) {}
+
   /**
    * Throw an exception indicating that [LocalDeclarationVisitor] should
    * stop visiting. This is caught in [visit] which then exits normally.
@@ -100,10 +102,15 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     node.declarations.forEach((Declaration declaration) {
       if (declaration is ClassDeclaration) {
         declaredClass(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
       } else if (declaration is EnumDeclaration) {
         declaredEnum(declaration);
       } else if (declaration is FunctionDeclaration) {
         declaredFunction(declaration);
+        _visitTypeParameters(
+          declaration,
+          declaration.functionExpression.typeParameters,
+        );
       } else if (declaration is TopLevelVariableDeclaration) {
         var varList = declaration.variables;
         if (varList != null) {
@@ -113,10 +120,17 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         }
       } else if (declaration is ClassTypeAlias) {
         declaredClassTypeAlias(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
       } else if (declaration is FunctionTypeAlias) {
         declaredFunctionTypeAlias(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
       } else if (declaration is GenericTypeAlias) {
         declaredGenericTypeAlias(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+        _visitTypeParameters(
+          declaration.functionType,
+          declaration.functionType.typeParameters,
+        );
       }
     });
   }
@@ -224,6 +238,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         });
       } else if (member is MethodDeclaration) {
         declaredMethod(member);
+        _visitTypeParameters(member, member.typeParameters);
       }
     }
   }
@@ -271,10 +286,24 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
               String name = id.name;
               if (name != null && name.length > 0) {
                 declaredFunction(declaration);
+                _visitTypeParameters(
+                  declaration,
+                  declaration.functionExpression.typeParameters,
+                );
               }
             }
           }
         }
+      }
+    }
+  }
+
+  void _visitTypeParameters(AstNode node, TypeParameterList typeParameters) {
+    if (typeParameters == null) return;
+
+    if (node.offset < offset && offset < node.end) {
+      for (var typeParameter in typeParameters.typeParameters) {
+        declaredTypeParameter(typeParameter);
       }
     }
   }

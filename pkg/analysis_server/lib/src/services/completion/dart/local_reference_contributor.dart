@@ -317,14 +317,30 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
+  @override
+  void declaredTypeParameter(TypeParameter node) {
+    if (optype.includeTypeNameSuggestions) {
+      _addLocalSuggestion(
+        null,
+        node.name,
+        null,
+        protocol.ElementKind.TYPE_PARAMETER,
+        isDeprecated: isDeprecated(node),
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_TYPE_PARAMETER,
+      );
+    }
+  }
+
   void _addLocalSuggestion(Comment documentationComment, SimpleIdentifier id,
       TypeAnnotation typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
       ClassOrMixinDeclaration classDecl,
+      CompletionSuggestionKind kind,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    CompletionSuggestionKind kind = targetIsFunctionalArgument
+    kind ??= targetIsFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : optype.suggestKind;
     CompletionSuggestion suggestion = createLocalSuggestion(

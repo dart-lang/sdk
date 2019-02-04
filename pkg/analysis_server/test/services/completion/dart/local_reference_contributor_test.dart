@@ -57,6 +57,20 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestTypeParameter(String name,
+      {int relevance: DART_RELEVANCE_TYPE_PARAMETER}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
+    expect(cs.returnType, isNull);
+    Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.TYPE_PARAMETER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
   @override
   DartCompletionContributor createContributor() {
     return new LocalReferenceContributor();
@@ -2299,6 +2313,108 @@ main() {
     assertSuggestEnum('F');
     assertSuggestEnumConst('F.three');
     assertSuggestEnumConst('F.four');
+  }
+
+  test_expression_localVariable() async {
+    addTestSource('''
+void f() {
+  var v = 0;
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestLocalVariable('v', 'int');
+  }
+
+  test_expression_parameter() async {
+    addTestSource('''
+void f(int a) {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestParameter('a', 'int');
+  }
+
+  test_expression_typeParameter_classDeclaration() async {
+    addTestSource('''
+class A<T> {
+  void m() {
+    ^
+  }
+}
+class B<U> {}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('U');
+  }
+
+  test_expression_typeParameter_classTypeAlias() async {
+    addTestSource('''
+class A<U> {}
+class B<T> = A<^>;
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('U');
+  }
+
+  test_expression_typeParameter_functionDeclaration() async {
+    addTestSource('''
+void f<T>() {
+  ^
+}
+void g<U>() {}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('U');
+  }
+
+  test_expression_typeParameter_functionDeclaration_local() async {
+    addTestSource('''
+void f() {
+  void g2<U>() {}
+  void g<T>() {
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('U');
+  }
+
+  test_expression_typeParameter_functionTypeAlias() async {
+    addTestSource('''
+typedef void F<T>(^);
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+  }
+
+  test_expression_typeParameter_genericTypeAlias() async {
+    addTestSource('''
+typedef F<T> = void Function<U>(^);
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertSuggestTypeParameter('U');
+  }
+
+  test_expression_typeParameter_methodDeclaration() async {
+    addTestSource('''
+class A {
+  void m<T>() {
+    ^
+  }
+  void m2<U>() {}
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('U');
   }
 
   test_ExpressionStatement_identifier() async {
@@ -4598,6 +4714,16 @@ class X{}''');
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  test_type_typeParameter_classDeclaration() async {
+    addTestSource('''
+class A<T> {
+  ^ m() {}
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
   }
 
   test_TypeArgumentList() async {
