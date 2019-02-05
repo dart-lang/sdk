@@ -858,14 +858,21 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_convertMapConstructorToMapLiteral() async {
+    bool isMapClass(Element element) =>
+        element is ClassElement &&
+        (element == typeProvider.mapType.element ||
+            (element.name == 'LinkedHashMap' &&
+                element.library.name == 'dart.collection'));
     //
-    // Ensure that this is the default constructor defined on `Map`.
+    // Ensure that this is the default constructor defined on either `Map` or
+    // `LinkedHashMap`.
     //
     InstanceCreationExpression creation = node.thisOrAncestorOfType();
     if (creation == null ||
         node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.mapType.element ||
-        creation.constructorName.name != null) {
+        creation.constructorName.name != null ||
+        creation.argumentList.arguments.isNotEmpty ||
+        !isMapClass(creation.staticType.element)) {
       _coverageMarker();
       return;
     }

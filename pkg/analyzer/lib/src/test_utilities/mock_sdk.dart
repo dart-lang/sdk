@@ -105,7 +105,12 @@ const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
-abstract class LinkedHashMap<K, V> implements Map<K, V> {}
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  factory LinkedHashMap(
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)}) => null;
+}
 abstract class HashSet<E> implements Set<E> {}
 abstract class LinkedHashSet<E> implements Set<E> {}
 ''');

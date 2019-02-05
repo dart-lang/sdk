@@ -28,6 +28,17 @@ Map m = {};
 ''');
   }
 
+  test_default_linkedHashMap() async {
+    await resolveTestUnit('''
+import 'dart:collection';
+var m = LinkedHashMa/*caret*/p();
+''');
+    await assertHasAssist('''
+import 'dart:collection';
+var m = {};
+''');
+  }
+
   test_default_minimal() async {
     await resolveTestUnit('''
 var m = Ma/*caret*/p();
