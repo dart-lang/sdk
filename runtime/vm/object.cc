@@ -3979,7 +3979,8 @@ RawClass* Class::GetPatchClass() const {
   return lib.GetPatchClass(String::Handle(Name()));
 }
 
-void Class::AddDirectImplementor(const Class& implementor) const {
+void Class::AddDirectImplementor(const Class& implementor,
+                                 bool is_mixin) const {
   ASSERT(is_implemented());
   ASSERT(!implementor.IsNull());
   GrowableObjectArray& direct_implementors =
@@ -3990,8 +3991,14 @@ void Class::AddDirectImplementor(const Class& implementor) const {
   }
 #if defined(DEBUG)
   // Verify that the same class is not added twice.
-  for (intptr_t i = 0; i < direct_implementors.Length(); i++) {
-    ASSERT(direct_implementors.At(i) != implementor.raw());
+  // The only exception is mixins: when mixin application is transformed,
+  // mixin is added to the end of interfaces list and may be duplicated:
+  //   class X = A with B implements B;
+  // This is rare and harmless.
+  if (!is_mixin) {
+    for (intptr_t i = 0; i < direct_implementors.Length(); i++) {
+      ASSERT(direct_implementors.At(i) != implementor.raw());
+    }
   }
 #endif
   direct_implementors.Add(implementor, Heap::kOld);

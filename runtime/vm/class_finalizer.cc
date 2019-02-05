@@ -1078,11 +1078,15 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   // classes.
   Zone* zone = thread->zone();
   auto& interface_class = Class::Handle(zone);
+  const intptr_t mixin_index = cls.is_transformed_mixin_application()
+                                   ? interface_types.Length() - 1
+                                   : -1;
   for (intptr_t i = 0; i < interface_types.Length(); ++i) {
     interface_type ^= interface_types.At(i);
     interface_class = interface_type.type_class();
     MarkImplemented(thread->zone(), interface_class);
-    interface_class.AddDirectImplementor(cls);
+    interface_class.AddDirectImplementor(cls,
+                                         /* is_mixin = */ i == mixin_index);
   }
 
   if (FLAG_use_cha_deopt) {

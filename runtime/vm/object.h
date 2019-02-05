@@ -962,7 +962,7 @@ class Class : public Object {
   RawGrowableObjectArray* direct_implementors() const {
     return raw_ptr()->direct_implementors_;
   }
-  void AddDirectImplementor(const Class& subclass) const;
+  void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
   void ClearDirectImplementors() const;
 
   // Returns the list of classes having this class as direct superclass.
