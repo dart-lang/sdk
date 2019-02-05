@@ -14,7 +14,7 @@ import 'bytecode_serialization.dart'
         BufferedWriter,
         BufferedReader,
         BytecodeSizeStatistics,
-        ConstantPoolEntryStatistics,
+        NamedEntryStatistics,
         StringTable;
 import 'object_table.dart' show ObjectHandle, ObjectTable;
 
@@ -175,7 +175,7 @@ type ConstantSymbol extends ConstantPoolEntry {
 }
 
 // Occupies 2 entries in the constant pool.
-type ConstantInterfaceCall extends ConstantPoolEntry {
+type ConstantInterfaceCallV1 extends ConstantPoolEntry {
   Byte tag = 26;
   Byte flags(invocationKindBit0, invocationKindBit1);
              // Where invocationKind is index into InvocationKind.
@@ -183,35 +183,57 @@ type ConstantInterfaceCall extends ConstantPoolEntry {
   ConstantIndex argDesc;
 }
 
+type ConstantObjectRef extends ConstantPoolEntry {
+  Byte tag = 27;
+  PackedObject object;
+}
+
+// Occupies 2 entries in the constant pool.
+type ConstantDirectCall extends ConstantPoolEntry {
+  Byte tag = 28;
+  PackedObject target;
+  PackedObject argDesc;
+}
+
+// Occupies 2 entries in the constant pool.
+type ConstantInterfaceCall extends ConstantPoolEntry {
+  Byte tag = 29;
+  PackedObject target;
+  PackedObject argDesc;
+}
+
 */
 
 enum ConstantTag {
   kInvalid,
-  kNull,
-  kString,
-  kInt,
-  kDouble,
-  kBool,
-  kArgDesc,
+  kNull, // TODO(alexmarkov): obsolete, remove
+  kString, // TODO(alexmarkov): obsolete, remove
+  kInt, // TODO(alexmarkov): obsolete, remove
+  kDouble, // TODO(alexmarkov): obsolete, remove
+  kBool, // TODO(alexmarkov): obsolete, remove
+  kArgDesc, // TODO(alexmarkov): obsolete, remove
   kICData,
-  kStaticICData,
+  kStaticICData, // TODO(alexmarkov): obsolete, remove
   kStaticField,
   kInstanceField,
   kClass,
   kTypeArgumentsField,
-  kTearOff,
+  kTearOff, // TODO(alexmarkov): obsolete, remove
   kType,
-  kTypeArguments,
-  kList,
-  kInstance,
-  kTypeArgumentsForInstanceAllocation,
+  kTypeArguments, // TODO(alexmarkov): obsolete, remove
+  kList, // TODO(alexmarkov): obsolete, remove
+  kInstance, // TODO(alexmarkov): obsolete, remove
+  kTypeArgumentsForInstanceAllocation, // TODO(alexmarkov): obsolete, remove
   kClosureFunction,
   kEndClosureFunctionScope,
   kNativeEntry,
   kSubtypeTestCache,
-  kPartialTearOffInstantiation,
+  kPartialTearOffInstantiation, // TODO(alexmarkov): obsolete, remove
   kEmptyTypeArguments,
-  kSymbol,
+  kSymbol, // TODO(alexmarkov): obsolete, remove
+  kInterfaceCallV1, // TODO(alexmarkov): obsolete, remove
+  kObjectRef,
+  kDirectCall,
   kInterfaceCall,
 }
 
@@ -289,6 +311,12 @@ abstract class ConstantPoolEntry {
         return new ConstantEmptyTypeArguments.read(reader);
       case ConstantTag.kSymbol:
         return new ConstantSymbol.read(reader);
+      case ConstantTag.kInterfaceCallV1:
+        return new ConstantInterfaceCallV1.read(reader);
+      case ConstantTag.kObjectRef:
+        return new ConstantObjectRef.read(reader);
+      case ConstantTag.kDirectCall:
+        return new ConstantDirectCall.read(reader);
       case ConstantTag.kInterfaceCall:
         return new ConstantInterfaceCall.read(reader);
     }
@@ -547,7 +575,7 @@ class ConstantICData extends ConstantPoolEntry {
   String toString() => 'ICData '
       '${isDynamic ? 'dynamic ' : ''}'
       '${_invocationKindToString(invocationKind)}'
-      'target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
+      'target-name $targetName, arg-desc CP#$argDescConstantIndex';
 
   // ConstantICData entries are created per call site and should not be merged,
   // so ConstantICData class uses identity [hashCode] and [operator ==].
@@ -1091,19 +1119,19 @@ class ConstantSymbol extends ConstantPoolEntry {
   bool operator ==(other) => other is ConstantSymbol && this.name == other.name;
 }
 
-class ConstantInterfaceCall extends ConstantPoolEntry {
+class ConstantInterfaceCallV1 extends ConstantPoolEntry {
   final InvocationKind invocationKind;
   final ObjectHandle targetName;
   final int argDescConstantIndex;
 
-  ConstantInterfaceCall(
+  ConstantInterfaceCallV1(
       this.invocationKind, this.targetName, this.argDescConstantIndex);
 
   // Reserve 1 extra slot for arguments descriptor, following target name slot.
   int get numReservedEntries => 1;
 
   @override
-  ConstantTag get tag => ConstantTag.kInterfaceCall;
+  ConstantTag get tag => ConstantTag.kInterfaceCallV1;
 
   @override
   void writeValue(BufferedWriter writer) {
@@ -1112,15 +1140,15 @@ class ConstantInterfaceCall extends ConstantPoolEntry {
     writer.writePackedUInt30(argDescConstantIndex);
   }
 
-  ConstantInterfaceCall.read(BufferedReader reader)
+  ConstantInterfaceCallV1.read(BufferedReader reader)
       : invocationKind = InvocationKind.values[reader.readByte()],
         targetName = reader.readPackedObject(),
         argDescConstantIndex = reader.readPackedUInt30();
 
   @override
-  String toString() => 'InterfaceCall '
+  String toString() => 'InterfaceCallV1 '
       '${_invocationKindToString(invocationKind)}'
-      'target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
+      'target-name $targetName, arg-desc CP#$argDescConstantIndex';
 
   @override
   int get hashCode => _combineHashes(
@@ -1129,10 +1157,107 @@ class ConstantInterfaceCall extends ConstantPoolEntry {
 
   @override
   bool operator ==(other) =>
-      other is ConstantInterfaceCall &&
+      other is ConstantInterfaceCallV1 &&
       this.invocationKind == other.invocationKind &&
       this.targetName == other.targetName &&
       this.argDescConstantIndex == other.argDescConstantIndex;
+}
+
+class ConstantObjectRef extends ConstantPoolEntry {
+  final ObjectHandle object;
+
+  ConstantObjectRef(this.object);
+
+  @override
+  ConstantTag get tag => ConstantTag.kObjectRef;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(object);
+  }
+
+  ConstantObjectRef.read(BufferedReader reader)
+      : object = reader.readPackedObject();
+
+  @override
+  String toString() => 'ObjectRef $object';
+
+  @override
+  int get hashCode => object.hashCode;
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantObjectRef && this.object == other.object;
+}
+
+class ConstantDirectCall extends ConstantPoolEntry {
+  final ObjectHandle target;
+  final ObjectHandle argDesc;
+
+  ConstantDirectCall(this.target, this.argDesc);
+
+  // Reserve 1 extra slot for arguments descriptor, following target slot.
+  int get numReservedEntries => 1;
+
+  @override
+  ConstantTag get tag => ConstantTag.kDirectCall;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(target);
+    writer.writePackedObject(argDesc);
+  }
+
+  ConstantDirectCall.read(BufferedReader reader)
+      : target = reader.readPackedObject(),
+        argDesc = reader.readPackedObject();
+
+  @override
+  String toString() => "DirectCall '$target', $argDesc";
+
+  @override
+  int get hashCode => _combineHashes(target.hashCode, argDesc.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantDirectCall &&
+      this.target == other.target &&
+      this.argDesc == other.argDesc;
+}
+
+class ConstantInterfaceCall extends ConstantPoolEntry {
+  final ObjectHandle target;
+  final ObjectHandle argDesc;
+
+  ConstantInterfaceCall(this.target, this.argDesc);
+
+  // Reserve 1 extra slot for arguments descriptor, following target slot.
+  int get numReservedEntries => 1;
+
+  @override
+  ConstantTag get tag => ConstantTag.kInterfaceCall;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(target);
+    writer.writePackedObject(argDesc);
+  }
+
+  ConstantInterfaceCall.read(BufferedReader reader)
+      : target = reader.readPackedObject(),
+        argDesc = reader.readPackedObject();
+
+  @override
+  String toString() => "InterfaceCall '$target', $argDesc";
+
+  @override
+  int get hashCode => _combineHashes(target.hashCode, argDesc.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantInterfaceCall &&
+      this.target == other.target &&
+      this.argDesc == other.argDesc;
 }
 
 /// Reserved constant pool entry.
@@ -1156,25 +1281,17 @@ class ConstantPool {
 
   ConstantPool(this.stringTable, this.objectTable);
 
-  int addNull() => _add(const ConstantNull());
-
-  int addString(String value) => _add(new ConstantString(_indexString(value)));
-
-  int addInt(int value) => _add(new ConstantInt(value));
-
-  int addDouble(double value) => _add(new ConstantDouble(value));
-
-  int addBool(bool value) => _add(new ConstantBool(value));
+  int addString(String value) => addObjectRef(new StringConstant(value));
 
   int addArgDesc(int numArguments,
           {int numTypeArgs = 0, List<String> argNames = const <String>[]}) =>
-      _add(new ConstantArgDesc(
-          numArguments, numTypeArgs, _indexStrings(argNames)));
+      _add(new ConstantObjectRef(
+          objectTable.getArgDescHandle(numArguments, numTypeArgs, argNames)));
 
   int addArgDescByArguments(Arguments args,
           {bool hasReceiver: false, bool isFactory: false}) =>
-      _add(new ConstantArgDesc.fromArguments(
-          _indexArgNames(args), hasReceiver, isFactory));
+      _add(new ConstantObjectRef(objectTable.getArgDescHandleByArguments(args,
+          hasReceiver: hasReceiver, isFactory: isFactory)));
 
   int addICData(
           InvocationKind invocationKind, Name targetName, int argDescCpIndex,
@@ -1187,30 +1304,29 @@ class ConstantPool {
           argDescCpIndex,
           isDynamic));
 
-  int addStaticICData(
-          InvocationKind invocationKind, Member target, int argDescCpIndex) =>
-      _add(new ConstantStaticICData(
+  int addDirectCall(
+          InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
+      _add(new ConstantDirectCall(
           objectTable.getMemberHandle(target,
               isGetter: invocationKind == InvocationKind.getter,
               isSetter: invocationKind == InvocationKind.setter),
-          argDescCpIndex));
+          argDesc));
 
   int addInterfaceCall(
-          InvocationKind invocationKind, Name targetName, int argDescCpIndex) =>
+          InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
       _add(new ConstantInterfaceCall(
-          invocationKind,
-          objectTable.getSelectorNameHandle(targetName,
+          objectTable.getMemberHandle(target,
               isGetter: invocationKind == InvocationKind.getter,
               isSetter: invocationKind == InvocationKind.setter),
-          argDescCpIndex));
+          argDesc));
 
-  int addInstanceCall(
-          InvocationKind invocationKind, Name targetName, int argDescCpIndex,
-          {bool isDynamic: false}) =>
-      isDynamic
-          ? addICData(invocationKind, targetName, argDescCpIndex,
+  int addInstanceCall(InvocationKind invocationKind, Member target,
+          Name targetName, ObjectHandle argDesc) =>
+      (target == null)
+          ? addICData(
+              invocationKind, targetName, _add(new ConstantObjectRef(argDesc)),
               isDynamic: true)
-          : addInterfaceCall(invocationKind, targetName, argDescCpIndex);
+          : addInterfaceCall(invocationKind, target, argDesc);
 
   int addStaticField(Field field) =>
       _add(new ConstantStaticField(objectTable.getHandle(field)));
@@ -1224,30 +1340,11 @@ class ConstantPool {
   int addTypeArgumentsField(Class node) =>
       _add(new ConstantTypeArgumentsField(objectTable.getHandle(node)));
 
-  int addTearOff(Procedure node) =>
-      _add(new ConstantTearOff(objectTable.getHandle(node)));
-
   int addType(DartType type) =>
       _add(new ConstantType(objectTable.getHandle(type)));
 
   int addTypeArguments(List<DartType> typeArgs) =>
-      _add(new ConstantTypeArguments(objectTable.getHandles(typeArgs)));
-
-  int addList(DartType typeArgument, List<int> entries) =>
-      _add(new ConstantList(objectTable.getHandle(typeArgument), entries));
-
-  int addInstance(
-          Class klass, int typeArgumentsCpIndex, Map<Field, int> fieldValues) =>
-      _add(new ConstantInstance(
-          objectTable.getHandle(klass),
-          typeArgumentsCpIndex,
-          fieldValues.map<ObjectHandle, int>((Field field, int valueCpIndex) =>
-              new MapEntry(objectTable.getHandle(field), valueCpIndex))));
-
-  int addTypeArgumentsForInstanceAllocation(
-          Class classNode, List<DartType> typeArgs) =>
-      _add(new ConstantTypeArgumentsForInstanceAllocation(
-          objectTable.getHandle(classNode), objectTable.getHandles(typeArgs)));
+      _add(new ConstantObjectRef(objectTable.getTypeArgumentsHandle(typeArgs)));
 
   int addClosureFunction(int closureIndex) =>
       _add(new ConstantClosureFunction(closureIndex));
@@ -1260,15 +1357,10 @@ class ConstantPool {
 
   int addSubtypeTestCache() => _add(new ConstantSubtypeTestCache());
 
-  int addPartialTearOffInstantiation(
-          int tearOffCpIndex, int typeArgumentsCpIndex) =>
-      _add(new ConstantPartialTearOffInstantiation(
-          tearOffCpIndex, typeArgumentsCpIndex));
-
   int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
 
-  int addSymbol(Library library, String name) =>
-      _add(new ConstantSymbol(objectTable.getNameHandle(library, name)));
+  int addObjectRef(Node node) =>
+      _add(new ConstantObjectRef(objectTable.getHandle(node)));
 
   int _add(ConstantPoolEntry entry) {
     return _canonicalizationCache.putIfAbsent(entry, () {
@@ -1296,26 +1388,12 @@ class ConstantPool {
     return str;
   }
 
-  List<String> _indexStrings(List<String> strings) {
-    for (var str in strings) {
-      stringTable.put(str);
-    }
-    return strings;
-  }
-
-  Arguments _indexArgNames(Arguments args) {
-    for (var arg in args.named) {
-      stringTable.put(arg.name);
-    }
-    return args;
-  }
-
   void write(BufferedWriter writer) {
     final start = writer.offset;
     if (BytecodeSizeStatistics.constantPoolStats.isEmpty) {
       for (var tag in ConstantTag.values) {
         BytecodeSizeStatistics.constantPoolStats
-            .add(new ConstantPoolEntryStatistics(constantTagToString(tag)));
+            .add(new NamedEntryStatistics(constantTagToString(tag)));
       }
     }
     writer.writePackedUInt30(entries.length);

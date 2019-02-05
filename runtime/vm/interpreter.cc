@@ -1831,6 +1831,34 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(DirectCall, A_D);
+
+    // Check if single stepping.
+    if (thread->isolate()->single_step()) {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
+    }
+
+    // Invoke target function.
+    {
+      const uint16_t argc = rA;
+      const uint16_t kidx = rD;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      *++SP = LOAD_CONSTANT(kidx);
+      RawObject** call_base = SP - argc;
+      RawObject** call_top = SP;
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(InterfaceCall, A_D);
 
     // Check if single stepping.

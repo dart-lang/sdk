@@ -21,10 +21,8 @@ Bytecode {
   PushInt              1
   Push                 r0
   StoreIndexedTOS
-  PushConstant         CP#4
-  IndirectStaticCall   1, CP#3
-  PushConstant         CP#5
-  IndirectStaticCall   1, CP#3
+  DirectCall           1, CP#3
+  DirectCall           1, CP#5
   Drop1
   PushNull
   PushInt              2
@@ -32,16 +30,14 @@ Bytecode {
   StoreLocal           r3
   Push                 r3
   PushInt              0
-  PushConstant         CP#6
+  PushConstant         CP#7
   StoreIndexedTOS
   Push                 r3
   PushInt              1
   Push                 r1
   StoreIndexedTOS
-  PushConstant         CP#7
-  IndirectStaticCall   1, CP#3
-  PushConstant         CP#8
-  IndirectStaticCall   1, CP#3
+  DirectCall           1, CP#3
+  DirectCall           1, CP#5
   Drop1
   PushNull
   PushInt              2
@@ -49,33 +45,28 @@ Bytecode {
   StoreLocal           r3
   Push                 r3
   PushInt              0
-  PushConstant         CP#9
+  PushConstant         CP#8
   StoreIndexedTOS
   Push                 r3
   PushInt              1
   Push                 r2
   StoreIndexedTOS
-  PushConstant         CP#10
-  IndirectStaticCall   1, CP#3
-  PushConstant         CP#11
-  IndirectStaticCall   1, CP#3
+  DirectCall           1, CP#3
+  DirectCall           1, CP#5
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'default_a'
-  [1] = String 'default_b'
-  [2] = String 'x = '
-  [3] = ArgDesc num-args 1, num-type-args 0, names []
-  [4] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#3
-  [5] = StaticICData target 'dart:core::print', arg-desc CP#3
-  [6] = String 'a = '
-  [7] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#3
-  [8] = StaticICData target 'dart:core::print', arg-desc CP#3
-  [9] = String 'b = '
-  [10] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#3
-  [11] = StaticICData target 'dart:core::print', arg-desc CP#3
+  [0] = ObjectRef 'default_a'
+  [1] = ObjectRef 'default_b'
+  [2] = ObjectRef 'x = '
+  [3] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = ObjectRef 'a = '
+  [8] = ObjectRef 'b = '
 }
 ]static method foo1(dynamic x, [dynamic a = "default_a", dynamic b = "default_b"]) → void {
   core::print("x = ${x}");
@@ -88,9 +79,9 @@ Bytecode {
   LoadConstant         r2, CP#0
   LoadConstant         r2, CP#1
   LoadConstant         r3, CP#2
-  LoadConstant         r3, CP#4
+  LoadConstant         r3, CP#3
+  LoadConstant         r4, CP#4
   LoadConstant         r4, CP#5
-  LoadConstant         r4, CP#6
   Frame                1
   CheckStack           0
   PushNull
@@ -99,16 +90,14 @@ Bytecode {
   StoreLocal           r5
   Push                 r5
   PushInt              0
-  PushConstant         CP#7
+  PushConstant         CP#6
   StoreIndexedTOS
   Push                 r5
   PushInt              1
   Push                 r0
   StoreIndexedTOS
-  PushConstant         CP#9
-  IndirectStaticCall   1, CP#8
-  PushConstant         CP#10
-  IndirectStaticCall   1, CP#8
+  DirectCall           1, CP#7
+  DirectCall           1, CP#9
   Drop1
   PushNull
   PushInt              2
@@ -122,10 +111,38 @@ Bytecode {
   PushInt              1
   Push                 r1
   StoreIndexedTOS
+  DirectCall           1, CP#7
+  DirectCall           1, CP#9
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
   PushConstant         CP#12
-  IndirectStaticCall   1, CP#8
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  DirectCall           1, CP#7
+  DirectCall           1, CP#9
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
   PushConstant         CP#13
-  IndirectStaticCall   1, CP#8
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r3
+  StoreIndexedTOS
+  DirectCall           1, CP#7
+  DirectCall           1, CP#9
   Drop1
   PushNull
   PushInt              2
@@ -137,74 +154,30 @@ Bytecode {
   StoreIndexedTOS
   Push                 r5
   PushInt              1
-  Push                 r2
-  StoreIndexedTOS
-  PushConstant         CP#15
-  IndirectStaticCall   1, CP#8
-  PushConstant         CP#16
-  IndirectStaticCall   1, CP#8
-  Drop1
-  PushNull
-  PushInt              2
-  CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
-  PushInt              0
-  PushConstant         CP#17
-  StoreIndexedTOS
-  Push                 r5
-  PushInt              1
-  Push                 r3
-  StoreIndexedTOS
-  PushConstant         CP#18
-  IndirectStaticCall   1, CP#8
-  PushConstant         CP#19
-  IndirectStaticCall   1, CP#8
-  Drop1
-  PushNull
-  PushInt              2
-  CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
-  PushInt              0
-  PushConstant         CP#20
-  StoreIndexedTOS
-  Push                 r5
-  PushInt              1
   Push                 r4
   StoreIndexedTOS
-  PushConstant         CP#21
-  IndirectStaticCall   1, CP#8
-  PushConstant         CP#22
-  IndirectStaticCall   1, CP#8
+  DirectCall           1, CP#7
+  DirectCall           1, CP#9
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'a'
-  [1] = Int 42
-  [2] = String 'b'
-  [3] = String 'default_b'
-  [4] = List type-arg dart:core::String, entries CP# [3]
-  [5] = String 'c'
-  [6] = String 'default_c'
-  [7] = String 'y = '
-  [8] = ArgDesc num-args 1, num-type-args 0, names []
-  [9] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
-  [10] = StaticICData target 'dart:core::print', arg-desc CP#8
-  [11] = String 'z = '
-  [12] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
-  [13] = StaticICData target 'dart:core::print', arg-desc CP#8
-  [14] = String 'a = '
-  [15] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
-  [16] = StaticICData target 'dart:core::print', arg-desc CP#8
-  [17] = String 'b = '
-  [18] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
-  [19] = StaticICData target 'dart:core::print', arg-desc CP#8
-  [20] = String 'c = '
-  [21] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
-  [22] = StaticICData target 'dart:core::print', arg-desc CP#8
+  [0] = ObjectRef 'a'
+  [1] = ObjectRef const 42
+  [2] = ObjectRef 'b'
+  [3] = ObjectRef const <dart:core::String> ['default_b']
+  [4] = ObjectRef 'c'
+  [5] = ObjectRef 'default_c'
+  [6] = ObjectRef 'y = '
+  [7] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [10] = Reserved
+  [11] = ObjectRef 'z = '
+  [12] = ObjectRef 'a = '
+  [13] = ObjectRef 'b = '
+  [14] = ObjectRef 'c = '
 }
 ]static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <core::String>["default_b"]}) → void {
   core::print("y = ${y}");
@@ -226,30 +199,25 @@ Bytecode {
   PushNull
   Push                 r4
   InstantiateType      CP#4
-  PushConstant         CP#6
-  IndirectStaticCall   1, CP#5
+  DirectCall           1, CP#5
   Drop1
   Push                 r1
-  PushConstant         CP#7
-  IndirectStaticCall   1, CP#5
+  DirectCall           1, CP#5
   Drop1
   Push                 r3
-  PushConstant         CP#8
-  IndirectStaticCall   1, CP#5
+  DirectCall           1, CP#5
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'a'
-  [1] = Bool false
-  [2] = String 'b'
-  [3] = Null
+  [0] = ObjectRef 'a'
+  [1] = ObjectRef const false
+  [2] = ObjectRef 'b'
+  [3] = ObjectRef null
   [4] = Type #lib::foo3::TypeParam/0
-  [5] = ArgDesc num-args 1, num-type-args 0, names []
-  [6] = StaticICData target 'dart:core::print', arg-desc CP#5
-  [7] = StaticICData target 'dart:core::print', arg-desc CP#5
-  [8] = StaticICData target 'dart:core::print', arg-desc CP#5
+  [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
 }
 ]static method foo3<P extends core::Object = dynamic, Q extends core::Object = dynamic>(dynamic z, dynamic y, {core::bool a = false, core::Map<self::foo3::P, self::foo3::Q> b = null}) → void {
   core::print(self::foo3::P);
@@ -262,27 +230,25 @@ Bytecode {
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
-  PushConstant         CP#3
-  IndirectStaticCall   2, CP#2
+  DirectCall           2, CP#2
   Drop1
   PushConstant         CP#4
   PushConstant         CP#5
   PushConstant         CP#1
-  PushConstant         CP#7
-  IndirectStaticCall   3, CP#6
+  DirectCall           3, CP#6
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'fixed_x'
-  [1] = String 'concrete_a'
-  [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = StaticICData target '#lib::foo1', arg-desc CP#2
-  [4] = String 'fixed_y'
-  [5] = String 'fixed_z'
-  [6] = ArgDesc num-args 3, num-type-args 0, names [a]
-  [7] = StaticICData target '#lib::foo2', arg-desc CP#6
+  [0] = ObjectRef 'fixed_x'
+  [1] = ObjectRef 'concrete_a'
+  [2] = DirectCall '#lib::foo1', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef 'fixed_y'
+  [5] = ObjectRef 'fixed_z'
+  [6] = DirectCall '#lib::foo2', ArgDesc num-args 3, num-type-args 0, names ['a']
+  [7] = Reserved
 }
 ]static method main() → dynamic {
   self::foo1("fixed_x", "concrete_a");

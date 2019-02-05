@@ -12203,7 +12203,7 @@ void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
 intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
   NoSafepointScope no_safepoint;
   const uint8_t* data = raw_ptr()->data();
-  return Utils::DecodeSLEB128(data, Length(), byte_index);
+  return Utils::DecodeSLEB128<intptr_t>(data, Length(), byte_index);
 }
 
 RawObjectPool* ObjectPool::New(intptr_t len) {

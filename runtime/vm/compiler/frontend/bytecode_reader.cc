@@ -317,11 +317,11 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
   enum ConstantPoolTag {
     kInvalid,
-    kNull,
-    kString,
-    kInt,
-    kDouble,
-    kBool,
+    kNull,    // TODO(alexmarkov): obsolete, remove
+    kString,  // TODO(alexmarkov): obsolete, remove
+    kInt,     // TODO(alexmarkov): obsolete, remove
+    kDouble,  // TODO(alexmarkov): obsolete, remove
+    kBool,    // TODO(alexmarkov): obsolete, remove
     kArgDesc,
     kICData,
     kStaticICData,
@@ -329,19 +329,22 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
     kInstanceField,
     kClass,
     kTypeArgumentsField,
-    kTearOff,
+    kTearOff,  // TODO(alexmarkov): obsolete, remove
     kType,
-    kTypeArguments,
-    kList,
-    kInstance,
-    kTypeArgumentsForInstanceAllocation,
+    kTypeArguments,                       // TODO(alexmarkov): obsolete, remove
+    kList,                                // TODO(alexmarkov): obsolete, remove
+    kInstance,                            // TODO(alexmarkov): obsolete, remove
+    kTypeArgumentsForInstanceAllocation,  // TODO(alexmarkov): obsolete, remove
     kClosureFunction,
     kEndClosureFunctionScope,
     kNativeEntry,
     kSubtypeTestCache,
-    kPartialTearOffInstantiation,
+    kPartialTearOffInstantiation,  // TODO(alexmarkov): obsolete, remove
     kEmptyTypeArguments,
-    kSymbol,
+    kSymbol,           // TODO(alexmarkov): obsolete, remove
+    kInterfaceCallV1,  // TODO(alexmarkov): obsolete, remove
+    kObjectRef,
+    kDirectCall,
     kInterfaceCall,
   };
 
@@ -612,7 +615,7 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         Instance::Cast(obj).SetField(*symbol_name_field, name);
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
-      case ConstantPoolTag::kInterfaceCall: {
+      case ConstantPoolTag::kInterfaceCallV1: {
         helper_->ReadByte();  // TODO(regis): Remove, unneeded.
         name ^= ReadObject();
         ASSERT(name.IsSymbol());
@@ -628,6 +631,37 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         ASSERT(i < obj_count);
         // The second entry is used for arguments descriptor.
         obj = array.raw();
+      } break;
+      case ConstantPoolTag::kObjectRef:
+        obj = ReadObject();
+        break;
+      case ConstantPoolTag::kDirectCall: {
+        // DirectCall constant occupies 2 entries.
+        // The first entry is used for target function.
+        obj = ReadObject();
+        ASSERT(obj.IsFunction());
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, obj);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for arguments descriptor.
+        obj = ReadObject();
+      } break;
+      case ConstantPoolTag::kInterfaceCall: {
+        elem = ReadObject();
+        ASSERT(elem.IsFunction());
+        name = Function::Cast(elem).name();
+        ASSERT(name.IsSymbol());
+        // InterfaceCall constant occupies 2 entries.
+        // The first entry is used for selector name.
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, name);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for arguments descriptor.
+        obj = ReadObject();
       } break;
       default:
         UNREACHABLE();
@@ -901,6 +935,10 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
     kGenericType,
     kFunctionType,
     kName,
+    kTypeArguments,
+    kFinalizedGenericType,
+    kConstObject,
+    kArgDesc,
   };
 
   // Member flags, must be in sync with _MemberHandle constants in
@@ -918,6 +956,11 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
   const int kFlagHasOptionalPositionalParams = kFlagBit0;
   const int kFlagHasOptionalNamedParams = kFlagBit1;
   const int kFlagHasTypeParams = kFlagBit2;
+
+  // ArgDesc flags, must be in sync with _ArgDescHandle constants in
+  // pkg/vm/lib/bytecode/object_table.dart.
+  const int kFlagHasNamedArgs = kFlagBit0;
+  const int kFlagHasTypeArgs = kFlagBit1;
 
   const intptr_t kind = (header >> kKindShift) & kKindMask;
   const intptr_t flags = header & kFlagsMask;
@@ -1061,8 +1104,153 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
         return library.PrivateName(name);
       }
     }
+    case kTypeArguments: {
+      return ReadTypeArguments(Class::Handle(Z));
+    }
+    case kFinalizedGenericType: {
+      const Class& cls = Class::CheckedHandle(Z, ReadObject());
+      const TypeArguments& type_arguments =
+          TypeArguments::CheckedHandle(Z, ReadObject());
+      const Type& type = Type::Handle(
+          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
+      type.SetIsFinalized();
+      return type.Canonicalize();
+    }
+    case kConstObject: {
+      const intptr_t tag = flags / kFlagBit0;
+      return ReadConstObject(tag);
+    }
+    case kArgDesc: {
+      const intptr_t num_arguments = helper_->ReadUInt();
+      const intptr_t num_type_args =
+          ((flags & kFlagHasTypeArgs) != 0) ? helper_->ReadUInt() : 0;
+      if ((flags & kFlagHasNamedArgs) == 0) {
+        return ArgumentsDescriptor::New(num_type_args, num_arguments);
+      } else {
+        const intptr_t num_arg_names = helper_->ReadListLength();
+        const Array& array = Array::Handle(Z, Array::New(num_arg_names));
+        String& name = String::Handle(Z);
+        for (intptr_t i = 0; i < num_arg_names; ++i) {
+          name ^= ReadObject();
+          array.SetAt(i, name);
+        }
+        return ArgumentsDescriptor::New(num_type_args, num_arguments, array);
+      }
+    }
+    default:
+      UNREACHABLE();
   }
 
+  return Object::null();
+}
+
+RawObject* BytecodeMetadataHelper::ReadConstObject(intptr_t tag) {
+  // Must be in sync with enum ConstTag in
+  // pkg/vm/lib/bytecode/object_table.dart.
+  enum ConstTag {
+    kInvalid,
+    kInstance,
+    kInt,
+    kDouble,
+    kList,
+    kTearOff,
+    kBool,
+    kSymbol,
+    kTearOffInstantiation,
+  };
+
+  switch (tag) {
+    case kInvalid:
+      UNREACHABLE();
+      break;
+    case kInstance: {
+      const Type& type = Type::CheckedHandle(Z, ReadObject());
+      const Class& cls = Class::Handle(Z, type.type_class());
+      const Instance& obj = Instance::Handle(Z, Instance::New(cls, Heap::kOld));
+      if (type.arguments() != TypeArguments::null()) {
+        const TypeArguments& type_args =
+            TypeArguments::Handle(Z, type.arguments());
+        obj.SetTypeArguments(type_args);
+      }
+      const intptr_t num_fields = helper_->ReadUInt();
+      Field& field = Field::Handle(Z);
+      Object& value = Object::Handle(Z);
+      for (intptr_t i = 0; i < num_fields; ++i) {
+        field ^= ReadObject();
+        value = ReadObject();
+        obj.SetField(field, value);
+      }
+      return H.Canonicalize(obj);
+    }
+    case kInt: {
+      const int64_t value = helper_->reader_.ReadSLEB128AsInt64();
+      if (Smi::IsValid(value)) {
+        return Smi::New(static_cast<intptr_t>(value));
+      }
+      const Integer& obj = Integer::Handle(Z, Integer::New(value, Heap::kOld));
+      return H.Canonicalize(obj);
+    }
+    case kDouble: {
+      const int64_t bits = helper_->reader_.ReadSLEB128AsInt64();
+      double value = bit_cast<double, int64_t>(bits);
+      const Double& obj = Double::Handle(Z, Double::New(value, Heap::kOld));
+      return H.Canonicalize(obj);
+    }
+    case kList: {
+      const AbstractType& elem_type =
+          AbstractType::CheckedHandle(Z, ReadObject());
+      const intptr_t length = helper_->ReadUInt();
+      const Array& array = Array::Handle(Z, Array::New(length, elem_type));
+      Object& value = Object::Handle(Z);
+      for (intptr_t i = 0; i < length; ++i) {
+        value = ReadObject();
+        array.SetAt(i, value);
+      }
+      array.MakeImmutable();
+      return H.Canonicalize(array);
+    }
+    case kTearOff: {
+      Object& obj = Object::Handle(Z, ReadObject());
+      ASSERT(obj.IsFunction());
+      obj = Function::Cast(obj).ImplicitClosureFunction();
+      ASSERT(obj.IsFunction());
+      obj = Function::Cast(obj).ImplicitStaticClosure();
+      ASSERT(obj.IsInstance());
+      return H.Canonicalize(Instance::Cast(obj));
+    }
+    case kBool: {
+      bool is_true = helper_->ReadByte() != 0;
+      return is_true ? Bool::True().raw() : Bool::False().raw();
+    }
+    case kSymbol: {
+      const String& name = String::CheckedHandle(Z, ReadObject());
+      ASSERT(name.IsSymbol());
+      const Library& library = Library::Handle(Z, Library::InternalLibrary());
+      ASSERT(!library.IsNull());
+      const Class& cls =
+          Class::Handle(Z, library.LookupClass(Symbols::Symbol()));
+      ASSERT(!cls.IsNull());
+      const Field& field = Field::Handle(
+          Z, cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+      ASSERT(!field.IsNull());
+      const Instance& obj = Instance::Handle(Z, Instance::New(cls, Heap::kOld));
+      obj.SetField(field, name);
+      return H.Canonicalize(obj);
+    }
+    case kTearOffInstantiation: {
+      Closure& closure = Closure::CheckedHandle(Z, ReadObject());
+      const TypeArguments& type_args =
+          TypeArguments::CheckedHandle(Z, ReadObject());
+      closure = Closure::New(
+          TypeArguments::Handle(Z, closure.instantiator_type_arguments()),
+          TypeArguments::Handle(Z, closure.function_type_arguments()),
+          type_args, Function::Handle(Z, closure.function()),
+          Context::Handle(Z, closure.context()), Heap::kOld);
+      return H.Canonicalize(closure);
+    }
+    default:
+      UNREACHABLE();
+  }
   return Object::null();
 }
 

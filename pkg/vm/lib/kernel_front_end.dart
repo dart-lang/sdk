@@ -246,6 +246,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
+      useFutureBytecodeFormat: useFutureBytecodeFormat,
     );
   }
 

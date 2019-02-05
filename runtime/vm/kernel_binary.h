@@ -245,7 +245,12 @@ class Reader : public ValueObject {
 
   intptr_t ReadSLEB128() {
     const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128(buffer, size_, &offset_);
+    return Utils::DecodeSLEB128<intptr_t>(buffer, size_, &offset_);
+  }
+
+  int64_t ReadSLEB128AsInt64() {
+    const uint8_t* buffer = this->buffer();
+    return Utils::DecodeSLEB128<int64_t>(buffer, size_, &offset_);
   }
 
   /**

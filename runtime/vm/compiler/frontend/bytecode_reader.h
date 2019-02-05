@@ -41,7 +41,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
   static const int kFlagBit0 = 1 << 5;
   static const int kFlagBit1 = 1 << 6;
   static const int kFlagBit2 = 1 << 7;
-  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2);
+  static const int kFlagBit3 = 1 << 8;
+  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
 
   class FunctionTypeScope : public ValueObject {
    public:
@@ -78,6 +79,7 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   RawObject* ReadObject();
   RawObject* ReadObjectContents(uint32_t header);
+  RawObject* ReadConstObject(intptr_t tag);
   RawString* ReadString(bool is_canonical = true);
   RawTypeArguments* ReadTypeArguments(const Class& instantiator);
 
