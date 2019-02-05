@@ -112,6 +112,15 @@ class SimpleExpressionConverter {
   DISALLOW_COPY_AND_ASSIGN(SimpleExpressionConverter);
 };
 
+RawArray* KernelLoader::MakeFieldsArray() {
+  const intptr_t len = fields_.length();
+  const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
+  for (intptr_t i = 0; i < len; i++) {
+    res.SetAt(i, *fields_[i]);
+  }
+  return res.raw();
+}
+
 RawArray* KernelLoader::MakeFunctionsArray() {
   const intptr_t len = functions_.length();
   const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
@@ -1338,6 +1347,10 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                       intptr_t class_offset,
                                       const ClassIndex& class_index,
                                       ClassHelper* class_helper) {
+  if (klass.is_loaded()) {
+    return;
+  }
+
   TIMELINE_DURATION(Thread::Current(), Isolate, "FinishClassLoading");
 
   fields_.Clear();
@@ -1425,7 +1438,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           TokenPosition::kNoSource, TokenPosition::kNoSource);
       fields_.Add(&deleted_enum_sentinel);
     }
-    klass.AddFields(fields_);
+    klass.SetFields(Array::Handle(Z, MakeFieldsArray()));
   }
 
   class_helper->ReadUntilExcluding(ClassHelper::kConstructors);
@@ -1500,6 +1513,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
   }
 
+  ASSERT(!klass.is_loaded());
+
   // Everything up til the procedures are skipped implicitly, and class_helper
   // is no longer used.
 
@@ -1513,9 +1528,19 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     helper_.SetOffset(next_procedure_offset);
     next_procedure_offset = class_index.ProcedureOffset(i + 1) + correction;
     LoadProcedure(library, klass, true, next_procedure_offset);
+    // LoadProcedure calls Library::GetMetadata which invokes Dart code
+    // which may recursively trigger class finalization and FinishClassLoading.
+    // In such case, return immediately and avoid overwriting already finalized
+    // functions with freshly loaded and not yet finalized.
+    if (klass.is_loaded()) {
+      return;
+    }
   }
 
   klass.SetFunctions(Array::Handle(MakeFunctionsArray()));
+
+  ASSERT(!klass.is_loaded());
+  klass.set_is_loaded(true);
 }
 
 void KernelLoader::FinishLoading(const Class& klass) {

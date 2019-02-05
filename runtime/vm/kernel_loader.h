@@ -277,6 +277,7 @@ class KernelLoader : public ValueObject {
                      bool in_class,
                      intptr_t procedure_end);
 
+  RawArray* MakeFieldsArray();
   RawArray* MakeFunctionsArray();
 
   RawScript* LoadScriptAt(intptr_t index);

@@ -3950,6 +3950,10 @@ void Class::set_is_allocated(bool value) const {
   set_state_bits(IsAllocatedBit::update(value, raw_ptr()->state_bits_));
 }
 
+void Class::set_is_loaded(bool value) const {
+  set_state_bits(IsLoadedBit::update(value, raw_ptr()->state_bits_));
+}
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(

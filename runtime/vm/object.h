@@ -1171,6 +1171,9 @@ class Class : public Object {
   }
   void set_is_allocated(bool value) const;
 
+  bool is_loaded() const { return IsLoadedBit::decode(raw_ptr()->state_bits_); }
+  void set_is_loaded(bool value) const;
+
   uint16_t num_native_fields() const { return raw_ptr()->num_native_fields_; }
   void set_num_native_fields(uint16_t value) const {
     StoreNonPointer(&raw_ptr()->num_native_fields_, value);
@@ -1335,6 +1338,7 @@ class Class : public Object {
     kEnumBit,
     kTransformedMixinApplicationBit,
     kIsAllocatedBit,
+    kIsLoadedBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
@@ -1355,6 +1359,7 @@ class Class : public Object {
   class TransformedMixinApplicationBit
       : public BitField<uint16_t, bool, kTransformedMixinApplicationBit, 1> {};
   class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
+  class IsLoadedBit : public BitField<uint16_t, bool, kIsLoadedBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
