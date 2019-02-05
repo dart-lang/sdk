@@ -43,7 +43,7 @@ import '../kernel/kernel_formal_parameter_builder.dart'
     show KernelFormalParameterBuilder;
 
 import '../kernel/kernel_function_type_alias_builder.dart'
-    show KernelFunctionTypeAliasBuilder;
+    show KernelTypeAliasBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
@@ -241,7 +241,7 @@ class DietListener extends StackListener {
 
     Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
-    if (typedefBuilder is KernelFunctionTypeAliasBuilder &&
+    if (typedefBuilder is KernelTypeAliasBuilder &&
         typedefBuilder.type != null &&
         typedefBuilder.type.formals != null) {
       for (int i = 0; i < typedefBuilder.type.formals.length; ++i) {

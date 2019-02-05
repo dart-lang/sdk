@@ -28,8 +28,7 @@ export 'kernel_field_builder.dart' show KernelFieldBuilder;
 
 export 'kernel_formal_parameter_builder.dart' show KernelFormalParameterBuilder;
 
-export 'kernel_function_type_alias_builder.dart'
-    show KernelFunctionTypeAliasBuilder;
+export 'kernel_function_type_alias_builder.dart' show KernelTypeAliasBuilder;
 
 export 'kernel_function_type_builder.dart' show KernelFunctionTypeBuilder;
 

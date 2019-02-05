@@ -132,7 +132,7 @@ import 'kernel_builder.dart'
         KernelFieldBuilder,
         KernelFormalParameterBuilder,
         KernelFunctionBuilder,
-        KernelFunctionTypeAliasBuilder,
+        KernelTypeAliasBuilder,
         KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelMixinApplicationBuilder,
@@ -830,7 +830,7 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       covariant KernelFunctionTypeBuilder type,
       int charOffset) {
-    KernelFunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
+    KernelTypeAliasBuilder typedef = new KernelTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
     loader.target.metadataCollector
         ?.setDocumentationComment(typedef.target, documentationComment);
@@ -891,7 +891,7 @@ class KernelLibraryBuilder
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is KernelProcedureBuilder) {
       member = declaration.build(this)..isStatic = true;
-    } else if (declaration is KernelFunctionTypeAliasBuilder) {
+    } else if (declaration is KernelTypeAliasBuilder) {
       typedef = declaration.build(this);
     } else if (declaration is KernelEnumBuilder) {
       cls = declaration.build(this, coreLibrary);
@@ -1307,7 +1307,7 @@ class KernelLibraryBuilder
                 member.typeVariables, legacyMode || issues.isNotEmpty);
           }
         });
-      } else if (declaration is KernelFunctionTypeAliasBuilder) {
+      } else if (declaration is KernelTypeAliasBuilder) {
         List<Object> issues = legacyMode
             ? const <Object>[]
             : getNonSimplicityIssuesForDeclaration(declaration,

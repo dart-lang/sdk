@@ -48,7 +48,7 @@ import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_loader.dart' show DillLoader;
 
-import 'dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
+import 'dill_typedef_builder.dart' show DillTypeAliasBuilder;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
@@ -140,7 +140,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       if (alias.typedefType == null) {
         unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
       }
-      addBuilder(typedef.name, new DillFunctionTypeAliasBuilder(typedef, this),
+      addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, this),
           typedef.fileOffset);
     } else {
       unhandled("${alias.runtimeType}", "addTypedef", typedef.fileOffset,

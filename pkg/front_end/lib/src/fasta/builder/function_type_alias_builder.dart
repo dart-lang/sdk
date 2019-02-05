@@ -12,17 +12,17 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
-abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
+abstract class TypeAliasBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   final T type;
 
   final List<TypeVariableBuilder> typeVariables;
 
-  FunctionTypeAliasBuilder(List<MetadataBuilder> metadata, String name,
+  TypeAliasBuilder(List<MetadataBuilder> metadata, String name,
       this.typeVariables, this.type, LibraryBuilder parent, int charOffset)
       : super(metadata, null, name, parent, charOffset);
 
-  String get debugName => "FunctionTypeAliasBuilder";
+  String get debugName => "TypeAliasBuilder";
 
   LibraryBuilder get parent => super.parent;
 

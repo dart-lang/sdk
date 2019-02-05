@@ -30,7 +30,7 @@ export 'field_builder.dart' show FieldBuilder;
 
 export 'formal_parameter_builder.dart' show FormalParameterBuilder;
 
-export 'function_type_alias_builder.dart' show FunctionTypeAliasBuilder;
+export 'function_type_alias_builder.dart' show TypeAliasBuilder;
 
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
