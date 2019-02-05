@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InvalidType,
+        Library,
         TypeParameter,
         Typedef,
         VariableDeclaration;
@@ -37,17 +38,17 @@ import 'kernel_builder.dart'
 final InvalidType cyclicTypeAliasMarker = new InvalidType();
 
 class KernelTypeAliasBuilder
-    extends TypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
+    extends TypeAliasBuilder<KernelTypeBuilder, DartType> {
   final Typedef target;
 
   DartType thisType;
 
   KernelTypeAliasBuilder(
-      List<MetadataBuilder> metadata,
+      List<MetadataBuilder<KernelTypeBuilder>> metadata,
       String name,
-      List<TypeVariableBuilder> typeVariables,
+      List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables,
       KernelFunctionTypeBuilder type,
-      LibraryBuilder parent,
+      LibraryBuilder<KernelTypeBuilder, Library> parent,
       int charOffset,
       [Typedef target])
       : target = target ??
@@ -59,7 +60,10 @@ class KernelTypeAliasBuilder
               ..fileOffset = charOffset),
         super(metadata, name, typeVariables, type, parent, charOffset);
 
-  Typedef build(LibraryBuilder libraryBuilder) {
+  // TODO(ahe): Remove this.
+  KernelFunctionTypeBuilder get type => super.type;
+
+  Typedef build(KernelLibraryBuilder libraryBuilder) {
     target..type ??= buildThisType(libraryBuilder);
 
     if (type != null) {
@@ -90,7 +94,7 @@ class KernelTypeAliasBuilder
     return target;
   }
 
-  DartType buildThisType(LibraryBuilder library) {
+  DartType buildThisType(LibraryBuilder<KernelTypeBuilder, Library> library) {
     if (thisType != null) {
       if (identical(thisType, cyclicTypeAliasMarker)) {
         library.addProblem(templateCyclicTypedef.withArguments(name),
@@ -119,7 +123,8 @@ class KernelTypeAliasBuilder
 
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments) {
+      LibraryBuilder<KernelTypeBuilder, Object> library,
+      List<DartType> arguments) {
     var thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
     FunctionType result = thisType;
@@ -132,7 +137,8 @@ class KernelTypeAliasBuilder
   }
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+      LibraryBuilder<KernelTypeBuilder, Library> library,
+      List<KernelTypeBuilder> arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -174,8 +180,8 @@ class KernelTypeAliasBuilder
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   @override
-  DartType buildType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder<KernelTypeBuilder, Object> library,
+      List<KernelTypeBuilder> arguments) {
     var thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
