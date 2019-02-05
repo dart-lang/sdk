@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_info.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
@@ -31,68 +32,19 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
 
+// TODO(danrubel): Replace these consts with DartFixInfo
 const doubleToInt = 'double-to-int';
 const fixNamedConstructorTypeArgs = 'fix-named-constructor-type-arguments';
 const nonNullable = 'non-nullable';
 const useMixin = 'use-mixin';
-
-const allFixes = <String>[
-  doubleToInt,
-  fixNamedConstructorTypeArgs,
-  // TODO(danrubel) enable this by default when NNBD fix is ready
-  //nonNullable,
-  useMixin,
-];
-
-const requiredFixes = <String>[
-  fixNamedConstructorTypeArgs,
-  useMixin,
-];
-
-List<DartFix> get dartfixInfo {
-  final fixes = <DartFix>[];
-
-  void addFix(String name, String description) {
-    if (!allFixes.contains(name)) {
-      description = 'Experimental: $description\n'
-          'This is not applied unless explicitly included.';
-    }
-    final fix = new DartFix(name, description: description);
-    if (requiredFixes.contains(name)) {
-      fix.isRequired = true;
-    }
-    fixes.add(fix);
-  }
-
-  addFix(
-    doubleToInt,
-    'Find double literals ending in .0 and remove the .0\n'
-        'wherever double context can be inferred.',
-  );
-  addFix(
-    fixNamedConstructorTypeArgs,
-    'Move named constructor type arguments from the name to the type.',
-  );
-  addFix(
-    nonNullable,
-    'Update sources to be non-nullable by default.\n'
-        // TODO(danrubel) remove this when NNBD fix is ready
-        'Requires the experimental non-nullable flag to be enabled.',
-  );
-  addFix(
-    useMixin,
-    'Convert classes used as a mixin to the new mixin syntax.',
-  );
-
-  return fixes;
-}
 
 class EditDartFix {
   final AnalysisServer server;
   final Request request;
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
-  final fixesToApply = new Set<String>();
+  // TODO(danrubel): replace with is a list of DartFixInfo
+  final namesOfFixesToApply = new Set<String>();
 
   List<DartFixSuggestion> suggestions;
   List<DartFixSuggestion> otherSuggestions;
@@ -127,20 +79,34 @@ class EditDartFix {
     final params = new EditDartfixParams.fromRequest(request);
 
     // Determine the fixes to be applied
+    final fixInfo = <DartFixInfo>[];
     if (params.includeRequiredFixes == true) {
-      fixesToApply.addAll(requiredFixes);
+      fixInfo.addAll(allFixes.where((i) => i.isRequired));
     }
     if (params.includedFixes != null) {
-      fixesToApply.addAll(params.includedFixes);
-    }
-    if (fixesToApply.isEmpty) {
-      fixesToApply.addAll(allFixes);
-    }
-    if (params.excludedFixes != null) {
-      for (String fixName in params.excludedFixes) {
-        fixesToApply.remove(fixName);
+      for (String key in params.includedFixes) {
+        var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
+        if (info != null) {
+          fixInfo.add(info);
+        } else {
+          // TODO(danrubel): Report unknown fix to the user
+        }
       }
     }
+    if (fixInfo.isEmpty) {
+      fixInfo.addAll(allFixes.where((i) => i.isDefault));
+    }
+    if (params.excludedFixes != null) {
+      for (String key in params.excludedFixes) {
+        var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
+        if (info != null) {
+          fixInfo.remove(info);
+        } else {
+          // TODO(danrubel): Report unknown fix to the user
+        }
+      }
+    }
+    namesOfFixesToApply.addAll(fixInfo.map((i) => i.setup(this)));
 
     // Validate each included file and directory.
     final resourceProvider = server.resourceProvider;
@@ -166,14 +132,14 @@ class EditDartFix {
     final lintRules = Registry.ruleRegistry;
     final linters = <Linter>[];
     final fixes = <LinterFix>[];
-    if (fixesToApply.contains(useMixin)) {
+    if (namesOfFixesToApply.contains(useMixin)) {
       final preferMixin = lintRules['prefer_mixin'];
       final preferMixinFix = new PreferMixinFix(this);
       preferMixin.reporter = preferMixinFix;
       linters.add(preferMixin);
       fixes.add(preferMixinFix);
     }
-    if (fixesToApply.contains(doubleToInt)) {
+    if (namesOfFixesToApply.contains(doubleToInt)) {
       final preferIntLiterals = lintRules['prefer_int_literals'];
       final preferIntLiteralsFix = new PreferIntLiteralsFix(this);
       preferIntLiterals.reporter = preferIntLiteralsFix;
@@ -181,8 +147,9 @@ class EditDartFix {
       fixes.add(preferIntLiteralsFix);
     }
 
-    final nonNullableFix =
-        fixesToApply.contains(nonNullable) ? new NonNullableFix(this) : null;
+    final nonNullableFix = namesOfFixesToApply.contains(nonNullable)
+        ? new NonNullableFix(this)
+        : null;
 
     // TODO(danrubel): Determine if a lint is configured to run as part of
     // standard analysis and use those results if available instead of
@@ -269,7 +236,7 @@ class EditDartFix {
     };
 
     final fixName = errorCodeToFixName[error.errorCode];
-    if (!fixesToApply.contains(fixName)) {
+    if (!namesOfFixesToApply.contains(fixName)) {
       return false;
     }
 

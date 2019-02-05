@@ -11,8 +11,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/edit/edit_dartfix.dart'
-    show EditDartFix, dartfixInfo;
+import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
+import 'package:analysis_server/src/edit/fix/dartfix_info.dart' show allFixes;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -228,7 +228,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Response getDartfixInfo(Request request) =>
-      new EditGetDartfixInfoResult(dartfixInfo).toResponse(request.id);
+      new EditGetDartfixInfoResult(allFixes.map((i) => i.asDartFix()).toList())
+          .toResponse(request.id);
 
   Future getFixes(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
