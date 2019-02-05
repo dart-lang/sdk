@@ -2885,7 +2885,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     return box_defn->value()->definition();
   }
 
-  if ((representation() == kUnboxedDouble) && value()->BindsToConstant()) {
+  if (representation() == kUnboxedDouble && value()->BindsToConstant()) {
     UnboxedConstantInstr* uc = NULL;
 
     const Object& val = value()->BoundConstant();
@@ -3450,6 +3450,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
+      ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
       return new UnboxInstr(to, value, deopt_id, speculative_mode);
 
     default:

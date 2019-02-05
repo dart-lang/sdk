@@ -625,13 +625,13 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
     return false;
   }
 
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    return false;
+  }
+
   Definition* replacement = NULL;
 
   if (instr->ArgumentCount() == 2) {
-    if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-      return false;
-    }
-
     Value* left_value = instr->PushArgumentAt(0)->value();
     Value* right_value = instr->PushArgumentAt(1)->value();
     CompileType* left_type = left_value->Type();

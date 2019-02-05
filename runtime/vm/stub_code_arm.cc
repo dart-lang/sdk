@@ -124,6 +124,13 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
                                   const RuntimeEntry* target,
                                   intptr_t self_code_stub_offset_from_thread,
                                   bool allow_return) {
+  // If the target CPU does not support VFP the caller should always use the
+  // non-FPU stub.
+  if (save_fpu_registers && !TargetCPUFeatures::vfp_supported()) {
+    __ Breakpoint();
+    return;
+  }
+
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   RegisterSet all_registers;
