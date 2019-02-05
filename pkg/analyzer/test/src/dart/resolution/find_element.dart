@@ -194,6 +194,11 @@ class FindElement {
     fail('Not found: $targetUri');
   }
 
+  ImportFindElement importFind(String targetUri) {
+    var import = this.import(targetUri);
+    return ImportFindElement(import);
+  }
+
   InterfaceType interfaceType(String name) {
     return class_(name).type;
   }
@@ -431,5 +436,47 @@ class FindElement {
 
   ConstructorElement unnamedConstructor(String name) {
     return class_(name).unnamedConstructor;
+  }
+}
+
+/// Helper for searching imported elements.
+class ImportFindElement {
+  final ImportElement import;
+
+  ImportFindElement(this.import);
+
+  CompilationUnitElement get definingUnit {
+    return importedLibrary.definingCompilationUnit;
+  }
+
+  LibraryElement get importedLibrary => import.importedLibrary;
+
+  PrefixElement get prefix => import.prefix;
+
+  ClassElement class_(String name) {
+    for (var class_ in definingUnit.types) {
+      if (class_.name == name) {
+        return class_;
+      }
+    }
+    fail('Not found class: $name');
+  }
+
+  FunctionElement topFunction(String name) {
+    for (var function in definingUnit.functions) {
+      if (function.name == name) {
+        return function;
+      }
+    }
+    fail('Not found top-level function: $name');
+  }
+
+  PropertyAccessorElement topGetter(String name) {
+    for (var accessor in definingUnit.accessors) {
+      if (accessor.name == name && accessor.isGetter) {
+        return accessor;
+      }
+    }
+    fail('Not found top-level getter: $name');
   }
 }

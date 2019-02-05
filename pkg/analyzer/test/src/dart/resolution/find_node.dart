@@ -176,6 +176,10 @@ class FindNode {
     return _node(search, (n) => n is ThrowExpression);
   }
 
+  TopLevelVariableDeclaration topLevelVariableDeclaration(String search) {
+    return _node(search, (n) => n is TopLevelVariableDeclaration);
+  }
+
   TypeAnnotation typeAnnotation(String search) {
     return _node(search, (n) => n is TypeAnnotation);
   }

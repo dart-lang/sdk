@@ -4,15 +4,12 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -22,13 +19,10 @@ import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_membe
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:path/path.dart' as path;
-import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,8 +37,6 @@ main() {
     defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(EnumMemberBuilderTest);
-    defineReflectiveTests(ErrorReporterTest);
-    defineReflectiveTests(ErrorReporterTest2);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(ExitDetectorForCodeAsUiTest);
     defineReflectiveTests(ExitDetectorTest);
@@ -251,168 +243,6 @@ class EnumMemberBuilderTest extends EngineTestCase {
 
   ElementBuilder _makeBuilder(ElementHolder holder) =>
       new ElementBuilder(holder, new CompilationUnitElementImpl());
-}
-
-@reflectiveTest
-class ErrorReporterTest extends EngineTestCase {
-  /**
-   * Return a newly created interface type with the given [typeName] in a
-   * compilation unit with the given [fileName].
-   */
-  InterfaceType createType(String fileName, String typeName) {
-    CompilationUnitElementImpl unit = ElementFactory.compilationUnit(fileName);
-    ClassElementImpl element = ElementFactory.classElement2(typeName);
-    unit.types = <ClassElement>[element];
-    return element.type;
-  }
-
-  test_creation() async {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    TestSource source = new TestSource();
-    expect(new ErrorReporter(listener, source), isNotNull);
-  }
-
-  test_reportErrorForElement_named() async {
-    DartType type = createType("/test1.dart", "A");
-    ClassElement element = type.element;
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(listener, element.source);
-    reporter.reportErrorForElement(
-        StaticWarningCode.CAST_TO_NON_TYPE, element, ['A']);
-    AnalysisError error = listener.errors[0];
-    expect(error.offset, element.nameOffset);
-  }
-
-  test_reportErrorForElement_unnamed() async {
-    ImportElementImpl element =
-        ElementFactory.importFor(ElementFactory.library(null, ''), null);
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(
-        listener,
-        new NonExistingSource(
-            '/test.dart', path.toUri('/test.dart'), UriKind.FILE_URI));
-    reporter.reportErrorForElement(
-        StaticWarningCode.CAST_TO_NON_TYPE, element, ['A']);
-    AnalysisError error = listener.errors[0];
-    expect(error.offset, element.nameOffset);
-  }
-
-  test_reportErrorForSpan() async {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(listener, new TestSource());
-
-    var src = '''
-foo: bar
-zap: baz
-''';
-
-    int offset = src.indexOf('baz');
-    int length = 'baz'.length;
-
-    SourceSpan span = new SourceSpanBase(
-        new SourceLocation(offset), new SourceLocation(offset + length), 'baz');
-
-    reporter.reportErrorForSpan(
-        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
-        span,
-        ['test', 'zip', 'zap']);
-    expect(listener.errors, hasLength(1));
-    expect(listener.errors.first.offset, offset);
-    expect(listener.errors.first.length, length);
-  }
-
-  test_reportTypeErrorForNode_differentNames() async {
-    DartType firstType = createType("/test1.dart", "A");
-    DartType secondType = createType("/test2.dart", "B");
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter =
-        new ErrorReporter(listener, firstType.element.source);
-    reporter.reportTypeErrorForNode(
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstTestFactory.identifier3("x"),
-        [firstType, secondType]);
-    AnalysisError error = listener.errors[0];
-    expect(error.message.contains("("), isFalse);
-  }
-
-  test_reportTypeErrorForNode_sameName() async {
-    String typeName = "A";
-    DartType firstType = createType("/test1.dart", typeName);
-    DartType secondType = createType("/test2.dart", typeName);
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter =
-        new ErrorReporter(listener, firstType.element.source);
-    reporter.reportTypeErrorForNode(
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstTestFactory.identifier3("x"),
-        [firstType, secondType]);
-    AnalysisError error = listener.errors[0];
-    expect(error.message.contains("("), isTrue);
-  }
-}
-
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class ErrorReporterTest2 extends ResolverTestCase {
-  test_reportTypeErrorForNode_sameName_functionType() async {
-    addNamedSource('/a.dart', '''
-class A {}
-''');
-    addNamedSource('/b.dart', '''
-class A {}
-''');
-    CompilationUnit unit = await resolveSource('''
-import 'a.dart' as a;
-import 'b.dart' as b;
-
-a.A Function() fa;
-b.A Function() fb;
-''');
-
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter =
-        new ErrorReporter(listener, unit.declaredElement.source);
-    TopLevelVariableDeclaration fa = unit.declarations[0];
-    TopLevelVariableDeclaration fb = unit.declarations[1];
-    reporter.reportTypeErrorForNode(
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstTestFactory.identifier3('x'),
-        [fa.variables.type.type, fb.variables.type.type]);
-    AnalysisError error = listener.errors[0];
-    expect(error.message.contains('a.dart'), isTrue);
-    expect(error.message.contains('b.dart'), isTrue);
-  }
-
-  test_reportTypeErrorForNode_sameName_nested() async {
-    addNamedSource('/a.dart', '''
-class A {}
-''');
-    addNamedSource('/b.dart', '''
-class A {}
-''');
-    CompilationUnit unit = await resolveSource('''
-import 'a.dart' as a;
-import 'b.dart' as b;
-
-B<a.A> ba;
-B<b.A> bb;
-class B<T> {}
-''');
-
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter =
-        new ErrorReporter(listener, unit.declaredElement.source);
-    TopLevelVariableDeclaration fa = unit.declarations[0];
-    TopLevelVariableDeclaration fb = unit.declarations[1];
-    reporter.reportTypeErrorForNode(
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstTestFactory.identifier3('x'),
-        [fa.variables.type.type, fb.variables.type.type]);
-    AnalysisError error = listener.errors[0];
-    expect(error.message.contains('a.dart'), isTrue);
-    expect(error.message.contains('b.dart'), isTrue);
-  }
 }
 
 @reflectiveTest
