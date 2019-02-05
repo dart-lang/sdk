@@ -30,8 +30,6 @@ export 'field_builder.dart' show FieldBuilder;
 
 export 'formal_parameter_builder.dart' show FormalParameterBuilder;
 
-export 'function_type_alias_builder.dart' show TypeAliasBuilder;
-
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
 export 'invalid_type_builder.dart' show InvalidTypeBuilder;
@@ -53,6 +51,8 @@ export 'named_type_builder.dart' show NamedTypeBuilder;
 export 'prefix_builder.dart' show PrefixBuilder;
 
 export 'procedure_builder.dart' show ProcedureBuilder;
+
+export 'type_alias_builder.dart' show TypeAliasBuilder;
 
 export 'type_builder.dart' show TypeBuilder;
 

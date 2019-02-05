@@ -39,11 +39,8 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
-import '../kernel/kernel_formal_parameter_builder.dart'
-    show KernelFormalParameterBuilder;
-
-import '../kernel/kernel_function_type_alias_builder.dart'
-    show KernelTypeAliasBuilder;
+import '../kernel/kernel_builder.dart'
+    show KernelFormalParameterBuilder, KernelTypeAliasBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 

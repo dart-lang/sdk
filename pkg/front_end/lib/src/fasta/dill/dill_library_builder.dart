@@ -48,7 +48,7 @@ import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_loader.dart' show DillLoader;
 
-import 'dill_typedef_builder.dart' show DillTypeAliasBuilder;
+import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;

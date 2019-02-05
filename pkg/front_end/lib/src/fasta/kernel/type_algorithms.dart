@@ -40,7 +40,7 @@ import 'kernel_builder.dart'
 
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 
-import '../dill/dill_typedef_builder.dart' show DillTypeAliasBuilder;
+import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
 import '../fasta_codes.dart'
     show
