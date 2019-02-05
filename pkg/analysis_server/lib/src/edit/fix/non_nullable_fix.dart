@@ -55,6 +55,8 @@ class NonNullableFix {
           dartFix.locationFor(result, firstOffset, firstLength), fileEdit);
     }
   }
+
+  void applyRemainingFixes() {}
 }
 
 class _NonNullableTypeVisitor extends RecursiveAstVisitor<void> {

@@ -64,12 +64,12 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_dartfix_convertClassToMixin() async {
-    createProject();
     addTestFile('''
 class A {}
 class B extends A {}
 class C with B {}
     ''');
+    createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
@@ -81,10 +81,10 @@ class C with B {}
   }
 
   test_dartfix_convertToIntLiteral() async {
-    createProject();
     addTestFile('''
 const double myDouble = 42.0;
     ''');
+    createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
@@ -94,13 +94,13 @@ const double myDouble = 42;
   }
 
   test_dartfix_moveTypeArgumentToClass() async {
-    createProject();
     addTestFile('''
 class A<T> { A.from(Object obj) { } }
 main() {
   print(new A.from<String>([]));
 }
     ''');
+    createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
@@ -119,8 +119,6 @@ analyzer:
   enable-experiment:
     - non-nullable
 ''');
-
-    createProject();
     addTestFile('''
 main() {
   functionWithNullableParam(new List<String>(1));
@@ -149,6 +147,7 @@ void functionWithNullableParam(String object) {
   list.add(obj);
 }
 ''');
+    createProject();
     EditDartfixResult result = await performFix(includedFixes: [nonNullable]);
     expect(result.suggestions, hasLength(1));
     expect(result.hasErrors, isFalse);

@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -182,9 +181,8 @@ class EditDartFix {
       fixes.add(preferIntLiteralsFix);
     }
 
-    final nonNullableFix = new NonNullableFix(this);
-
-    final lintVisitorsBySession = <AnalysisSession, _LintVisitors>{};
+    final nonNullableFix =
+        fixesToApply.contains(nonNullable) ? new NonNullableFix(this) : null;
 
     // TODO(danrubel): Determine if a lint is configured to run as part of
     // standard analysis and use those results if available instead of
@@ -212,55 +210,35 @@ class EditDartFix {
         continue;
       }
 
-      const maxAttempts = 3;
-      int attempt = 0;
-      while (attempt < maxAttempts) {
-        ResolvedUnitResult result = await server.getResolvedUnit(res.path);
+      ResolvedUnitResult result = await server.getResolvedUnit(res.path);
 
-        // TODO(danrubel): Investigate why InconsistentAnalysisException occurs
-        // and whether this is an appropriate way to handle the situation
-        ++attempt;
-        try {
-          CompilationUnit unit = result?.unit;
-          if (unit != null) {
-            if (!hasErrors) {
-              for (AnalysisError error in result.errors) {
-                if (!(await fixError(result, error))) {
-                  if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
-                    hasErrors = true;
-                  }
-                }
+      CompilationUnit unit = result?.unit;
+      if (unit != null) {
+        if (!hasErrors) {
+          for (AnalysisError error in result.errors) {
+            if (!(await fixError(result, error))) {
+              if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
+                hasErrors = true;
               }
             }
-            Source source = result.unit.declaredElement.source;
-            for (Linter linter in linters) {
-              if (linter != null) {
-                linter.reporter.source = source;
-              }
-            }
-            var lintVisitors = lintVisitorsBySession[result.session] ??=
-                await _setupLintVisitors(result, linters);
-            if (lintVisitors.astVisitor != null) {
-              unit.accept(lintVisitors.astVisitor);
-            }
-            unit.accept(lintVisitors.linterVisitor);
-            for (LinterFix fix in fixes) {
-              await fix.applyLocalFixes(result);
-            }
-            if (isIncluded(source.fullName) &&
-                fixesToApply.contains(nonNullable)) {
-              nonNullableFix.applyLocalFixes(result);
-            }
           }
-          break;
-        } on InconsistentAnalysisException catch (_) {
-          if (attempt == maxAttempts) {
-            // TODO(danrubel): Consider improving the edit.dartfix protocol
-            // to gracefully report inconsistent results for a particular
-            // file rather than aborting the entire operation.
-            rethrow;
+        }
+        Source source = result.unit.declaredElement.source;
+        for (Linter linter in linters) {
+          if (linter != null) {
+            linter.reporter.source = source;
           }
-          // try again
+        }
+        var lintVisitors = await _setupLintVisitors(result, linters);
+        if (lintVisitors.astVisitor != null) {
+          unit.accept(lintVisitors.astVisitor);
+        }
+        unit.accept(lintVisitors.linterVisitor);
+        for (LinterFix fix in fixes) {
+          await fix.applyLocalFixes(result);
+        }
+        if (isIncluded(source.fullName)) {
+          nonNullableFix?.applyLocalFixes(result);
         }
       }
     }
@@ -277,6 +255,7 @@ class EditDartFix {
     for (LinterFix fix in fixes) {
       await fix.applyRemainingFixes();
     }
+    nonNullableFix?.applyRemainingFixes();
 
     return new EditDartfixResult(
             suggestions, otherSuggestions, hasErrors, sourceChange.edits)
