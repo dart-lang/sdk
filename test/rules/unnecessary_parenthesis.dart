@@ -51,3 +51,13 @@ main() async {
 m({p}) => null;
 
 bool Function(dynamic) get fn => (x) => x is bool ? x : false;
+
+class ClassWithFunction {
+  Function f;
+}
+
+class UnnecessaryParenthesis {
+  final value;
+  //https://github.com/dart-lang/linter/issues/1395
+  UnnecessaryParenthesis() : value = (ClassWithFunction()..f = () => 42); // OK
+}
