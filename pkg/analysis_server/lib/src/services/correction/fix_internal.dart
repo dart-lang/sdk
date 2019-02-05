@@ -584,9 +584,6 @@ class FixProcessor {
       if (name == LintNames.non_constant_identifier_names) {
         await _addFix_renameToCamelCase();
       }
-      if (name == LintNames.prefer_collection_literals) {
-        await _addFix_replaceWithLiteral();
-      }
       if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
       }
@@ -3157,30 +3154,6 @@ class FixProcessor {
     } else {
       await _addFix_removeTypeAnnotation();
     }
-  }
-
-  Future<void> _addFix_replaceWithLiteral() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    final InstanceCreationExpression instanceCreation =
-        node.thisOrAncestorOfType<InstanceCreationExpression>();
-    final InterfaceType type = instanceCreation.staticType;
-    final generics = instanceCreation.constructorName.type.typeArguments;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(instanceCreation),
-          (DartEditBuilder builder) {
-        if (generics != null) {
-          builder.write(utils.getNodeText(generics));
-        }
-        if (type.name == 'List') {
-          builder.write('[]');
-        } else {
-          builder.write('{}');
-        }
-      });
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_LITERAL);
   }
 
   Future<void> _addFix_replaceWithTearOff() async {
