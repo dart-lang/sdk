@@ -742,7 +742,6 @@ int f(int i, [int? j]) {
 class MigrationVisitorTestBase extends DriverResolutionTest {
   final _variables = _Variables();
 
-  @override
   Future<CompilationUnit> analyze(String code) async {
     addTestFile(code);
     await resolveTestFile();
