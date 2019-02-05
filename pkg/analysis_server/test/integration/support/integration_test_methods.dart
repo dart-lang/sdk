@@ -1112,11 +1112,6 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * label: String
-   *
-   *   The label from the AvailableSuggestionSet with the `id` for which
-   *   insertion information is requested.
-   *
    * file: FilePath
    *
    *   The path of the file into which this completion is being inserted.
@@ -1124,7 +1119,16 @@ abstract class IntegrationTestMixin {
    * id: int
    *
    *   The identifier of the AvailableSuggestionSet containing the selected
-   *   name.
+   *   label.
+   *
+   * label: String
+   *
+   *   The label from the AvailableSuggestionSet with the `id` for which
+   *   insertion information is requested.
+   *
+   * offset: int
+   *
+   *   The offset in the file where the completion will be inserted.
    *
    * Returns
    *
@@ -1140,9 +1144,10 @@ abstract class IntegrationTestMixin {
    */
   Future<CompletionGetSuggestionDetailsResult>
       sendCompletionGetSuggestionDetails(
-          String label, String file, int id) async {
+          String file, int id, String label, int offset) async {
     var params =
-        new CompletionGetSuggestionDetailsParams(label, file, id).toJson();
+        new CompletionGetSuggestionDetailsParams(file, id, label, offset)
+            .toJson();
     var result = await server.send("completion.getSuggestionDetails", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new CompletionGetSuggestionDetailsResult.fromJson(

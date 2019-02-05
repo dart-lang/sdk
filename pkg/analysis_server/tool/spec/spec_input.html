@@ -1464,13 +1464,6 @@
       the completion suggestion is accepted.
     </p>
     <params>
-      <field name="label">
-        <ref>String</ref>
-        <p>
-          The label from the <tt>AvailableSuggestionSet</tt> with the `id`
-          for which insertion information is requested.
-        </p>
-      </field>
       <field name="file">
         <ref>FilePath</ref>
         <p>
@@ -1481,7 +1474,20 @@
         <ref>int</ref>
         <p>
           The identifier of the <tt>AvailableSuggestionSet</tt> containing
-          the selected name.
+          the selected label.
+        </p>
+      </field>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label from the <tt>AvailableSuggestionSet</tt> with the `id`
+          for which insertion information is requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset in the file where the completion will be inserted.
         </p>
       </field>
     </params>

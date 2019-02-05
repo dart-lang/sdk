@@ -5703,19 +5703,50 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
  * completion.getSuggestionDetails params
  *
  * {
- *   "label": String
  *   "file": FilePath
  *   "id": int
+ *   "label": String
+ *   "offset": int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class CompletionGetSuggestionDetailsParams implements RequestParams {
-  String _label;
-
   String _file;
 
   int _id;
+
+  String _label;
+
+  int _offset;
+
+  /**
+   * The path of the file into which this completion is being inserted.
+   */
+  String get file => _file;
+
+  /**
+   * The path of the file into which this completion is being inserted.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The identifier of the AvailableSuggestionSet containing the selected
+   * label.
+   */
+  int get id => _id;
+
+  /**
+   * The identifier of the AvailableSuggestionSet containing the selected
+   * label.
+   */
+  void set id(int value) {
+    assert(value != null);
+    this._id = value;
+  }
 
   /**
    * The label from the AvailableSuggestionSet with the `id` for which
@@ -5733,35 +5764,24 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   }
 
   /**
-   * The path of the file into which this completion is being inserted.
+   * The offset in the file where the completion will be inserted.
    */
-  String get file => _file;
+  int get offset => _offset;
 
   /**
-   * The path of the file into which this completion is being inserted.
+   * The offset in the file where the completion will be inserted.
    */
-  void set file(String value) {
+  void set offset(int value) {
     assert(value != null);
-    this._file = value;
+    this._offset = value;
   }
 
-  /**
-   * The identifier of the AvailableSuggestionSet containing the selected name.
-   */
-  int get id => _id;
-
-  /**
-   * The identifier of the AvailableSuggestionSet containing the selected name.
-   */
-  void set id(int value) {
-    assert(value != null);
-    this._id = value;
-  }
-
-  CompletionGetSuggestionDetailsParams(String label, String file, int id) {
-    this.label = label;
+  CompletionGetSuggestionDetailsParams(
+      String file, int id, String label, int offset) {
     this.file = file;
     this.id = id;
+    this.label = label;
+    this.offset = offset;
   }
 
   factory CompletionGetSuggestionDetailsParams.fromJson(
@@ -5770,12 +5790,6 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
       json = {};
     }
     if (json is Map) {
-      String label;
-      if (json.containsKey("label")) {
-        label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "label");
-      }
       String file;
       if (json.containsKey("file")) {
         file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
@@ -5788,7 +5802,19 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new CompletionGetSuggestionDetailsParams(label, file, id);
+      String label;
+      if (json.containsKey("label")) {
+        label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "label");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new CompletionGetSuggestionDetailsParams(file, id, label, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.getSuggestionDetails params", json);
@@ -5803,9 +5829,10 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["label"] = label;
     result["file"] = file;
     result["id"] = id;
+    result["label"] = label;
+    result["offset"] = offset;
     return result;
   }
 
@@ -5820,7 +5847,10 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   @override
   bool operator ==(other) {
     if (other is CompletionGetSuggestionDetailsParams) {
-      return label == other.label && file == other.file && id == other.id;
+      return file == other.file &&
+          id == other.id &&
+          label == other.label &&
+          offset == other.offset;
     }
     return false;
   }
@@ -5828,9 +5858,10 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   @override
   int get hashCode {
     int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

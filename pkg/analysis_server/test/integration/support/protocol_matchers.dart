@@ -2140,14 +2140,15 @@ final Matcher isCompletionAvailableSuggestionsParams = new LazyMatcher(() =>
  * completion.getSuggestionDetails params
  *
  * {
- *   "label": String
  *   "file": FilePath
  *   "id": int
+ *   "label": String
+ *   "offset": int
  * }
  */
 final Matcher isCompletionGetSuggestionDetailsParams = new LazyMatcher(() =>
     new MatchesJsonObject("completion.getSuggestionDetails params",
-        {"label": isString, "file": isFilePath, "id": isInt}));
+        {"file": isFilePath, "id": isInt, "label": isString, "offset": isInt}));
 
 /**
  * completion.getSuggestionDetails result

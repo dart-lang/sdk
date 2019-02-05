@@ -55,11 +55,15 @@ class GetSuggestionDetailsTest extends AbstractAnalysisTest {
     addTestFile(r'''
 import 'dart:math';
 
-main() {}
+main() {} // ref
 ''');
 
     var mathSet = await _waitForSetWithUri('dart:math');
-    var result = await _getSuggestionDetails(id: mathSet.id, label: 'sin');
+    var result = await _getSuggestionDetails(
+      id: mathSet.id,
+      label: 'sin',
+      offset: testCode.indexOf('} // ref'),
+    );
 
     expect(result.completion, 'sin');
     _assertEmptyChange(result.change);
@@ -69,11 +73,15 @@ main() {}
     addTestFile(r'''
 import 'dart:math' as math;
 
-main() {}
+main() {} // ref
 ''');
 
     var mathSet = await _waitForSetWithUri('dart:math');
-    var result = await _getSuggestionDetails(id: mathSet.id, label: 'sin');
+    var result = await _getSuggestionDetails(
+      id: mathSet.id,
+      label: 'sin',
+      offset: testCode.indexOf('} // ref'),
+    );
 
     expect(result.completion, 'math.sin');
     _assertEmptyChange(result.change);
@@ -81,17 +89,21 @@ main() {}
 
   test_dart_newImport() async {
     addTestFile(r'''
-main() {}
+main() {} // ref
 ''');
 
     var mathSet = await _waitForSetWithUri('dart:math');
-    var result = await _getSuggestionDetails(id: mathSet.id, label: 'sin');
+    var result = await _getSuggestionDetails(
+      id: mathSet.id,
+      label: 'sin',
+      offset: testCode.indexOf('} // ref'),
+    );
 
     expect(result.completion, 'sin');
     _assertTestFileChange(result.change, r'''
 import 'dart:math';
 
-main() {}
+main() {} // ref
 ''');
   }
 
@@ -114,10 +126,16 @@ main() {}
     String file,
     @required int id,
     @required String label,
+    @required int offset,
   }) async {
     file ??= testFile;
     var response = await waitResponse(
-      CompletionGetSuggestionDetailsParams(label, testFile, id).toRequest('0'),
+      CompletionGetSuggestionDetailsParams(
+        file,
+        id,
+        label,
+        offset,
+      ).toRequest('0'),
     );
     return CompletionGetSuggestionDetailsResult.fromResponse(response);
   }

@@ -398,12 +398,13 @@ public interface AnalysisServer {
    * added. It is an error if the id is no longer valid, for instance if the library has been removed
    * after the completion suggestion is accepted.
    *
+   * @param file The path of the file into which this completion is being inserted.
+   * @param id The identifier of the AvailableSuggestionSet containing the selected label.
    * @param label The label from the AvailableSuggestionSet with the `id` for which insertion
    *         information is requested.
-   * @param file The path of the file into which this completion is being inserted.
-   * @param id The identifier of the AvailableSuggestionSet containing the selected name.
+   * @param offset The offset in the file where the completion will be inserted.
    */
-  public void completion_getSuggestionDetails(String label, String file, int id, GetSuggestionDetailsConsumer consumer);
+  public void completion_getSuggestionDetails(String file, int id, String label, int offset, GetSuggestionDetailsConsumer consumer);
 
   /**
    * {@code completion.getSuggestions}
