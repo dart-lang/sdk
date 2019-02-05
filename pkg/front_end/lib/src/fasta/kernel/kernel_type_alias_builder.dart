@@ -60,13 +60,11 @@ class KernelTypeAliasBuilder
               ..fileOffset = charOffset),
         super(metadata, name, typeVariables, type, parent, charOffset);
 
-  // TODO(ahe): Remove this.
-  KernelFunctionTypeBuilder get type => super.type;
-
   Typedef build(KernelLibraryBuilder libraryBuilder) {
     target..type ??= buildThisType(libraryBuilder);
 
-    if (type != null) {
+    KernelTypeBuilder type = this.type;
+    if (type is KernelFunctionTypeBuilder) {
       List<TypeParameter> typeParameters =
           new List<TypeParameter>(type.typeVariables?.length ?? 0);
       for (int i = 0; i < typeParameters.length; ++i) {
@@ -89,6 +87,8 @@ class KernelTypeAliasBuilder
           }
         }
       }
+    } else if (type != null) {
+      unhandled("${type.fullNameForErrors}", "build", charOffset, fileUri);
     }
 
     return target;
@@ -107,17 +107,25 @@ class KernelTypeAliasBuilder
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = cyclicTypeAliasMarker;
-    FunctionType builtType = type?.build(library, target.thisType);
-    if (builtType != null) {
-      if (typeVariables != null) {
-        for (KernelTypeVariableBuilder tv in typeVariables) {
-          // Follow bound in order to find all cycles
-          tv.bound?.build(library);
+    KernelTypeBuilder type = this.type;
+    if (type is KernelFunctionTypeBuilder) {
+      FunctionType builtType = type?.build(library, target.thisType);
+      if (builtType != null) {
+        if (typeVariables != null) {
+          for (KernelTypeVariableBuilder tv in typeVariables) {
+            // Follow bound in order to find all cycles
+            tv.bound?.build(library);
+          }
         }
+        return thisType = builtType;
+      } else {
+        return thisType = const InvalidType();
       }
-      return thisType = builtType;
-    } else {
+    } else if (type == null) {
       return thisType = const InvalidType();
+    } else {
+      return unhandled(
+          "${type.fullNameForErrors}", "buildThisType", charOffset, fileUri);
     }
   }
 

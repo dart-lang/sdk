@@ -419,7 +419,7 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
 
   @override
   bool isTypedefRelated(TypedefType s, TypeParameterType t, Types types) {
-    return false;
+    return types.isSubtypeOfKernel(s.unalias, t);
   }
 
   @override

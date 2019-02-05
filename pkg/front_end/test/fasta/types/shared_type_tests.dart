@@ -239,8 +239,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('Iterable<T>', 'T', typeParameters: 'T');
     isNotSubtype('() -> void', 'T', typeParameters: 'T');
     isNotSubtype('FutureOr<T>', 'T', typeParameters: 'T');
-    // TODO(ahe): Enable this test.
-    // isSubtype('Id<T>', 'T', typeParameters: 'T');
+    isSubtype('Id<T>', 'T', typeParameters: 'T');
     isNotSubtype('VoidFunction', 'T', typeParameters: 'T extends () -> void');
     isNotSubtype('void', 'T', typeParameters: 'T extends void');
   }

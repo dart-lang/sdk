@@ -35,7 +35,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   KernelFunctionTypeBuilder(
       KernelTypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals)
+      List<FormalParameterBuilder<TypeBuilder>> formals)
       : super(returnType, typeVariables, formals);
 
   FunctionType build(LibraryBuilder library, [TypedefType origin]) {

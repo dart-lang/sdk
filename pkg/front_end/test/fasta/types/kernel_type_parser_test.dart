@@ -21,8 +21,6 @@ import "shared_type_tests.dart" show SubtypeTest;
 
 import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
-// TODO(ahe): Add this declaration to [testSdk]:
-//     typedef Id<T> T;
 const String testSdk = """
 class Object;
 class Comparable<T>;
@@ -39,6 +37,7 @@ typedef Typedef<T> <S>(T) -> S;
 typedef VoidFunction () -> void;
 class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
 typedef TestDefaultTypes () -> DefaultTypes;
+typedef Id<T> T;
 """;
 
 const String expectedSdk = """
@@ -48,6 +47,7 @@ import self as self;
 typedef Typedef<T extends self::Object = dynamic> = <S extends self::Object = dynamic>(T) → S;
 typedef VoidFunction = () → void;
 typedef TestDefaultTypes = () → self::DefaultTypes<dynamic, self::Object, self::List<dynamic>, self::List<self::Object>, self::Comparable<dynamic>, (<BottomType>) → void, () → self::Comparable<dynamic>>;
+typedef Id<T extends self::Object = dynamic> = T;
 class Object {
 }
 class Comparable<T extends self::Object = dynamic> extends self::Object {

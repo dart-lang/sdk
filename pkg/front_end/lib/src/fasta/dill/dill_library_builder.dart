@@ -135,17 +135,12 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void addTypedef(Typedef typedef) {
-    DartType alias = typedef.type;
-    if (alias is FunctionType) {
-      if (alias.typedefType == null) {
-        unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
-      }
-      addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, this),
-          typedef.fileOffset);
-    } else {
-      unhandled("${alias.runtimeType}", "addTypedef", typedef.fileOffset,
-          typedef.fileUri);
+    DartType type = typedef.type;
+    if (type is FunctionType && type.typedefType == null) {
+      unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
     }
+    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, this),
+        typedef.fileOffset);
   }
 
   @override
