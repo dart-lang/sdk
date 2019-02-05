@@ -4,13 +4,19 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/lint/registry.dart';
+
 import 'package:github/server.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 
 import 'crawl.dart';
+import 'parse.dart';
 import 'since.dart';
 
 const bulb = '💡';
@@ -30,7 +36,7 @@ Iterable<LintRule> get registeredLints {
 main() async {
   // Lens on just ruleset comparisons.
   // See: https://github.com/dart-lang/linter/issues/1365.
-  var ruleSetLens = true;
+  var ruleSetLens = false;
 
   var scorecard = await ScoreCard.calculate();
   var totalLintCount = scorecard.lintCount;
@@ -62,14 +68,14 @@ void printAll(ScoreCard scorecard) {
 }
 
 const allHeader = [
-  '| name | linter | dart sdk | fix | pedantic | stagehand | flutter user | flutter repo | status | bug refs |',
-  '| :--- | :--- | :--- | :---: | :---:| :---: | :---: | :---: | :---: | :--- |'
+  '| name | linter | dart sdk | fix | pedantic |  flutter user | flutter repo | status | bug refs |',
+  '| :--- | :--- | :--- | :---: | :---:|  :---: | :---: | :---: | :--- |'
 ];
 
 /// https://github.com/dart-lang/linter/issues/1365
 const justRuleSetsHeader = [
-  '| name | pedantic | stagehand | flutter user |',
-  '| :--- | :---: | :---: | :---: |'
+  '| name | pedantic | flutter user |',
+  '| :--- | :---: | :---: |'
 ];
 
 void printMarkdownTable(ScoreCard scorecard, {bool justRules = false}) {
@@ -83,7 +89,6 @@ void printMarkdownTable(ScoreCard scorecard, {bool justRules = false}) {
       sb.write('${lint.hasFix ? " $bulb" : ""} |');
     }
     sb.write('${lint.ruleSets.contains('pedantic') ? " $checkMark" : ""} |');
-    sb.write('${lint.ruleSets.contains('stagehand') ? " $checkMark" : ""} |');
     sb.write('${lint.ruleSets.contains('flutter') ? " $checkMark" : ""} |');
     if (!justRules) {
       sb.write(
@@ -94,6 +99,21 @@ void printMarkdownTable(ScoreCard scorecard, {bool justRules = false}) {
     }
     print(sb.toString());
   });
+}
+
+class _AssistCollector extends GeneralizingAstVisitor<void> {
+  final List<String> lintNames = <String>[];
+  @override
+  void visitNamedExpression(NamedExpression node) {
+    if (node.name.toString() == 'associatedErrorCodes:') {
+      ListLiteral list = node.expression;
+      for (var element in list.elements) {
+        var name =
+            element.toString().substring(1, element.toString().length - 1);
+        lintNames.add(name);
+      }
+    }
+  }
 }
 
 class ScoreCard {
@@ -126,6 +146,20 @@ class ScoreCard {
     return lintsWithFixes;
   }
 
+  static Future<List<String>> _getLintsWithAssists() async {
+    var client = http.Client();
+    var req = await client.get(
+        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/assist.dart');
+    var parser = new CompilationUnitParser();
+    var cu = parser.parse(contents: req.body, name: 'assist.dart');
+    var assistKindClass = cu.declarations.firstWhere(
+        (m) => m is ClassDeclaration && m.name.name == 'DartAssistKind');
+
+    var collector = new _AssistCollector();
+    assistKindClass.accept(collector);
+    return collector.lintNames;
+  }
+
   static Future<List<Issue>> _getIssues() async {
     var github = createGitHubClient();
     var slug = RepositorySlug('dart-lang', 'linter');
@@ -134,6 +168,7 @@ class ScoreCard {
 
   static Future<ScoreCard> calculate() async {
     var lintsWithFixes = await _getLintsWithFixes();
+    var lintsWithAssists = await _getLintsWithAssists();
     var flutterRuleset = await flutterRules;
     var flutterRepoRuleset = await flutterRepoRules;
     var pedanticRuleset = await pedanticRules;
@@ -155,9 +190,6 @@ class ScoreCard {
       if (pedanticRuleset.contains(lint.name)) {
         ruleSets.add('pedantic');
       }
-      if (stagehandRuleset.contains(lint.name)) {
-        ruleSets.add('stagehand');
-      }
       var bugReferences = <String>[];
       for (var bug in bugs) {
         if (bug.title.contains(lint.name)) {
@@ -167,7 +199,8 @@ class ScoreCard {
 
       scorecard.add(LintScore(
           name: lint.name,
-          hasFix: lintsWithFixes.contains(lint.name),
+          hasFix: lintsWithFixes.contains(lint.name) ||
+              lintsWithAssists.contains(lint.name),
           maturity: lint.maturity.name,
           ruleSets: ruleSets,
           since: sinceInfo[lint.name],
