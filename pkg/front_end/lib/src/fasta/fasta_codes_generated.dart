@@ -5659,6 +5659,41 @@ const Template<
     Message Function(
         DartType _type,
         DartType
+            _type2)> templateInvalidCastLiteralSet = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The set literal type '#type' isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the set literal or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastLiteralSet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastLiteralSet =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastLiteralSet", templateInvalidCastLiteralSet,
+        analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastLiteralSet(DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidCastLiteralSet,
+      message:
+          """The set literal type '${type}' isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
+      tip: """Change the type of the set literal or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
             _type2)> templateInvalidCastLocalFunction = const Template<
         Message Function(DartType _type, DartType _type2)>(
     messageTemplate:

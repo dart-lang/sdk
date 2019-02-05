@@ -2834,6 +2834,11 @@ InvalidCastLiteralMap:
   tip: "Change the type of the map literal or the context in which it is used."
   analyzerCode: INVALID_CAST_LITERAL_MAP
 
+InvalidCastLiteralSet:
+  template: "The set literal type '#type' isn't of expected type '#type2'."
+  tip: "Change the type of the set literal or the context in which it is used."
+  analyzerCode: INVALID_CAST_LITERAL_SET
+
 InvalidCastLocalFunction:
   template: "The local function has type '#type' that isn't of expected type '#type2'."
   tip: "Change the type of the function or the context in which it is used."

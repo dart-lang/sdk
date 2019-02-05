@@ -231,7 +231,6 @@ regress_22976_test/*: CompileTimeError # Issue 31935
 set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/09: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/10: MissingCompileTimeError # Requires constant evaluation
-set_literals/invalid_set_literal_test/23: MissingCompileTimeError # Exact types
 set_literals/invalid_set_literal_test/29: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/30: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/31: MissingCompileTimeError # Requires constant evaluation

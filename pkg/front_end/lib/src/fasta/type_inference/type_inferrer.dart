@@ -35,6 +35,7 @@ import 'package:kernel/ast.dart'
         PropertyGet,
         PropertySet,
         ReturnStatement,
+        SetLiteral,
         Statement,
         StaticGet,
         SuperMethodInvocation,
@@ -83,6 +84,7 @@ import '../fasta_codes.dart'
         templateInvalidCastFunctionExpr,
         templateInvalidCastLiteralList,
         templateInvalidCastLiteralMap,
+        templateInvalidCastLiteralSet,
         templateInvalidCastLocalFunction,
         templateInvalidCastNewExpr,
         templateInvalidCastStaticMethod,
@@ -1859,6 +1861,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     if (expression is MapLiteral) {
       return templateInvalidCastLiteralMap;
+    }
+    if (expression is SetLiteral) {
+      return templateInvalidCastLiteralSet;
     }
     if (expression is FunctionExpression) {
       return templateInvalidCastFunctionExpr;

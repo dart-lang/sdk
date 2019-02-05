@@ -218,6 +218,7 @@ InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
 InvalidCastLiteralList/example: Fail
 InvalidCastLiteralMap/example: Fail
+InvalidCastLiteralSet/example: Fail
 InvalidCastLocalFunction/example: Fail
 InvalidCastNewExpr/example: Fail
 InvalidCastStaticMethod/example: Fail

@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartk ]
+LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError
+LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
+
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: DartkCrash
@@ -26,6 +30,8 @@ LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeE
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: RuntimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05/none: RuntimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06/none: RuntimeError
+LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError
+LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LanguageFeatures/Subtyping/static/generated/left_bottom_global_variable_A02_t01: DartkCrash
 LanguageFeatures/Subtyping/static/generated/left_promoted_variable_global_variable_A02_t01: DartkCrash
 LibTest/collection/DoubleLinkedQueue/removeWhere_A02_t02: RuntimeError
@@ -68,50 +74,6 @@ Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.d
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: Crash
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/05: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/06: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/08: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/semantics_A04_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/semantics_A05_t01: Pass
-LanguageFeatures/Set-literals/semantics_A05_t05/01: MissingCompileTimeError # Exact types
-LanguageFeatures/Set-literals/semantics_A05_t05/02: MissingCompileTimeError # Exact types
-LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError # Exact types
-LanguageFeatures/Set-literals/set_literals_A01_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/set_literals_A02_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/set_literals_A04_t02/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/05: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/11: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/12: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/13: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: Pass # CompileTimeError on $fasta
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
@@ -547,24 +509,16 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t15/01: 
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t17/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t18/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t19/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: CompileTimeError
+LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError
+LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError
 LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_FutureOr_l1_t02/none: CompileTimeError
@@ -608,15 +562,6 @@ LibTest/io/Stdout/writeCharCode_A01_t03: Timeout, Pass
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/04: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/05: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/06: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A04_t01: Pass
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: CompileTimeError
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: CompileTimeError
 LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
 LibTest/io/Link/renameSync_A02_t01: RuntimeError, Pass
@@ -683,51 +628,6 @@ LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash, Pass
 
 [ $arch != simdbc64 && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: RuntimeError
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: Pass
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: RuntimeError
-LanguageFeatures/Set-literals/semantics_A04_t01: Pass
-LanguageFeatures/Set-literals/semantics_A05_t01: RuntimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A01_t01: Pass
-LanguageFeatures/Set-literals/set_literals_A02_t01: Pass
-LanguageFeatures/Set-literals/set_literals_A04_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/11: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/12: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/13: MissingCompileTimeError
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: Pass
 
 [ $compiler != dart2js && $runtime != vm && $fasta ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Issue 34191
@@ -746,6 +646,23 @@ Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError # Issue 34192
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
+
+[ $compiler != dartkp && $fasta ]
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/06: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Stdin/readByteSync_A02_t01: RuntimeError, Pass
@@ -997,51 +914,6 @@ LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t14: RuntimeErr
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t15: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t16: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_typedef_l1_t02: RuntimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: RuntimeError
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: Pass
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: RuntimeError
-LanguageFeatures/Set-literals/semantics_A04_t01: Pass
-LanguageFeatures/Set-literals/semantics_A05_t01: RuntimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A01_t01: Pass
-LanguageFeatures/Set-literals/set_literals_A02_t01: Pass
-LanguageFeatures/Set-literals/set_literals_A04_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/11: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/12: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/13: MissingCompileTimeError
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: Pass
 LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t02: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t07: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t12: RuntimeError
@@ -1329,7 +1201,6 @@ Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
 LibTest/async/Future/asStream_A01_t02: RuntimeError
 LibTest/async/Stream/Stream.fromFutures_A04_t03: RuntimeError
 LibTest/async/Stream/Stream.fromIterable_A03_t02: RuntimeError
