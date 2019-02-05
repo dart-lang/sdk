@@ -77,7 +77,7 @@ class InheritanceManager {
    * @return a mapping between the set of all members inherited from the passed [ClassElement]
    *         superclass hierarchy, and the associated [ExecutableElement]
    */
-  @deprecated
+  @Deprecated('Use InheritanceManager2.getInheritedConcreteMap() instead.')
   MemberMap getMapOfMembersInheritedFromClasses(ClassElement classElt) =>
       new MemberMap.fromMap(
           _computeClassChainLookupMap(classElt, new HashSet<ClassElement>()));
@@ -90,7 +90,7 @@ class InheritanceManager {
    * @return a mapping between the set of all string names of the members inherited from the passed
    *         [ClassElement] interface hierarchy, and the associated [ExecutableElement].
    */
-  @deprecated
+  @Deprecated('Use InheritanceManager2.getInheritedMap() instead.')
   MemberMap getMapOfMembersInheritedFromInterfaces(ClassElement classElt) =>
       new MemberMap.fromMap(
           _computeInterfaceLookupMap(classElt, new HashSet<ClassElement>()));

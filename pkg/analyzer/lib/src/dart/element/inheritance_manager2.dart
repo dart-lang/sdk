@@ -43,10 +43,37 @@ class InheritanceManager2 {
 
   InheritanceManager2(this._typeSystem);
 
-  /// Return the member with the given [name] that the [type] inherits from the
-  /// mixins, superclasses, or interfaces; or `null` if no member is inherited.
+  /// Return the most specific signature of the member with the given [name]
+  /// that the [type] inherits from the mixins, superclasses, or interfaces;
+  /// or `null` if no member is inherited because the member is not declared
+  /// at all, or because there is no the most specific signature.
+  ///
+  /// This is equivalent to `getInheritedMap(type)[name]`.
   FunctionType getInherited(InterfaceType type, Name name) {
-    return getOverridden(type, name)?.last;
+    return getInheritedMap(type)[name];
+  }
+
+  /// Return signatures of all concrete members that the given [type] inherits
+  /// from the superclasses and mixins.
+  Map<Name, FunctionType> getInheritedConcreteMap(InterfaceType type) {
+    var interface = getInterface(type);
+    return interface._superImplemented.last;
+  }
+
+  /// Return the mapping from names to most specific signatures of members
+  /// inherited from the super-interfaces (superclasses, mixins, and
+  /// interfaces).  If there is no most specific signature for a name, the
+  /// corresponding name will not be included.
+  Map<Name, FunctionType> getInheritedMap(InterfaceType type) {
+    var interface = getInterface(type);
+    if (interface._inheritedMap == null) {
+      interface._inheritedMap = {};
+      _findMostSpecificFromNamedCandidates(
+        interface._inheritedMap,
+        interface._overridden,
+      );
+    }
+    return interface._inheritedMap;
   }
 
   /// Return the interface of the given [type].  It might include private
@@ -439,6 +466,10 @@ class Interface {
   /// mixins, and interfaces.  Does not include conflicts with the declared
   /// members of the class.
   final List<Conflict> conflicts;
+
+  /// The map of names to the most specific signatures from the mixins,
+  /// superclasses, or interfaces.
+  Map<Name, FunctionType> _inheritedMap;
 
   Interface._(
     this.map,

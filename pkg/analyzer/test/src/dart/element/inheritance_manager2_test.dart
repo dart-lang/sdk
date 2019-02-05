@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -113,6 +114,586 @@ class X extends A implements I {
       _getInherited('X', 'foo'),
       same(findElement.method('foo', of: 'A')),
     );
+  }
+
+  test_getInheritedConcreteMap_accessor_extends() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedConcreteMap_accessor_implements() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+    _assertInheritedConcreteMap('B', '');
+  }
+
+  test_getInheritedConcreteMap_accessor_with() async {
+    addTestFile('''
+mixin A {
+  int get foo => 0;
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedConcreteMap_implicitExtends() async {
+    addTestFile('''
+class A {}
+''');
+    await resolveTestFile();
+    _assertInheritedConcreteMap('A', '');
+  }
+
+  test_getInheritedConcreteMap_method_extends() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedConcreteMap_method_extends_abstract() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', '');
+  }
+
+  test_getInheritedConcreteMap_method_extends_invalidForImplements() async {
+    addTestFile('''
+abstract class I {
+  void foo(int x, {int y});
+  void bar(String s);
+}
+
+class A {
+  void foo(int x) {}
+}
+
+class C extends A implements I {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('C', r'''
+A.foo: (int) → void
+''');
+  }
+
+  test_getInheritedConcreteMap_method_implements() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', '');
+  }
+
+  test_getInheritedConcreteMap_method_with() async {
+    addTestFile('''
+mixin A {
+  void foo() {}
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedConcreteMap_method_with2() async {
+    addTestFile('''
+mixin A {
+  void foo() {}
+}
+
+mixin B {
+  void bar() {}
+}
+
+class C extends Object with A, B {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('C', r'''
+A.foo: () → void
+B.bar: () → void
+''');
+  }
+
+  test_getInheritedMap_accessor_extends() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_accessor_implements() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_accessor_with() async {
+    addTestFile('''
+mixin A {
+  int get foo => 0;
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_closestSuper() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+}
+
+class X extends B {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('X', r'''
+B.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_field_extends() async {
+    addTestFile('''
+class A {
+  int foo;
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+A.foo=: (int) → void
+''');
+  }
+
+  test_getInheritedMap_field_implements() async {
+    addTestFile('''
+class A {
+  int foo;
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+A.foo=: (int) → void
+''');
+  }
+
+  test_getInheritedMap_field_with() async {
+    addTestFile('''
+mixin A {
+  int foo;
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+A.foo=: (int) → void
+''');
+  }
+
+  test_getInheritedMap_implicitExtendsObject() async {
+    addTestFile('''
+class A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', '');
+  }
+
+  test_getInheritedMap_method_extends() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_method_implements() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_method_with() async {
+    addTestFile('''
+mixin A {
+  void foo() {}
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_preferImplemented() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class I {
+  void foo() {}
+}
+
+class X extends A implements I {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('X', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_union_conflict() async {
+    addTestFile('''
+abstract class I {
+  int foo();
+  void bar();
+}
+
+abstract class J {
+  double foo();
+  void bar();
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+J.bar: () → void
+''');
+  }
+
+  test_getInheritedMap_union_differentNames() async {
+    addTestFile('''
+abstract class I {
+  int foo();
+}
+
+abstract class J {
+  double bar();
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I.foo: () → int
+J.bar: () → double
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_2_getters() async {
+    addTestFile('''
+abstract class I {
+  int get foo;
+}
+
+abstract class J {
+  int get foo;
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+J.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_2_methods() async {
+    addTestFile('''
+abstract class I {
+  void foo();
+}
+
+abstract class J {
+  void foo();
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+J.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_2_setters() async {
+    addTestFile('''
+abstract class I {
+  void set foo(num _);
+}
+
+abstract class J {
+  void set foo(int _);
+}
+
+abstract class A implements I, J {}
+abstract class B implements J, I {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I.foo=: (num) → void
+''');
+
+    _assertInheritedMap('B', r'''
+I.foo=: (num) → void
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_3_getters() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+abstract class I1 {
+  A get foo;
+}
+
+abstract class I2 {
+  B get foo;
+}
+
+abstract class I3 {
+  C get foo;
+}
+
+abstract class D implements I1, I2, I3 {}
+abstract class E implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('D', r'''
+I3.foo: () → C
+''');
+
+    _assertInheritedMap('E', r'''
+I3.foo: () → C
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_3_methods() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+abstract class I1 {
+  void foo(A _);
+}
+
+abstract class I2 {
+  void foo(B _);
+}
+
+abstract class I3 {
+  void foo(C _);
+}
+
+abstract class D implements I1, I2, I3 {}
+abstract class E implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('D', r'''
+I1.foo: (A) → void
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_3_setters() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+abstract class I1 {
+  set foo(A _);
+}
+
+abstract class I2 {
+  set foo(B _);
+}
+
+abstract class I3 {
+  set foo(C _);
+}
+
+abstract class D implements I1, I2, I3 {}
+abstract class E implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('D', r'''
+I1.foo=: (A) → void
+''');
+
+    _assertInheritedMap('E', r'''
+I1.foo=: (A) → void
+''');
+  }
+
+  test_getInheritedMap_union_oneSubtype_2_methods() async {
+    addTestFile('''
+abstract class I1 {
+  int foo();
+}
+
+abstract class I2 {
+  int foo([int _]);
+}
+
+abstract class A implements I1, I2 {}
+abstract class B implements I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I2.foo: ([int]) → int
+''');
+
+    _assertInheritedMap('B', r'''
+I2.foo: ([int]) → int
+''');
+  }
+
+  test_getInheritedMap_union_oneSubtype_3_methods() async {
+    addTestFile('''
+abstract class I1 {
+  int foo();
+}
+
+abstract class I2 {
+  int foo([int _]);
+}
+
+abstract class I3 {
+  int foo([int _, int __]);
+}
+
+abstract class A implements I1, I2, I3 {}
+abstract class B implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I3.foo: ([int, int]) → int
+''');
+
+    _assertInheritedMap('B', r'''
+I3.foo: ([int, int]) → int
+''');
   }
 
   test_getMember() async {
@@ -515,6 +1096,40 @@ class B extends A {
     );
   }
 
+  void _assertInheritedConcreteMap(String className, String expected) {
+    var type = findElement.class_(className).type;
+    var map = manager.getInheritedConcreteMap(type);
+    _assertNameToFunctionTypeMap(map, expected);
+  }
+
+  void _assertInheritedMap(String className, String expected) {
+    var type = findElement.class_(className).type;
+    var map = manager.getInheritedMap(type);
+    _assertNameToFunctionTypeMap(map, expected);
+  }
+
+  void _assertNameToFunctionTypeMap(
+      Map<Name, FunctionType> map, String expected) {
+    var lines = <String>[];
+    for (var name in map.keys) {
+      var type = map[name];
+      var element = type.element;
+
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.name == 'Object') continue;
+
+      lines.add('${enclosingElement.name}.${element.name}: $type');
+    }
+
+    lines.sort();
+    var actual = lines.isNotEmpty ? lines.join('\n') + '\n' : '';
+
+    if (actual != expected) {
+      print(actual);
+    }
+    expect(actual, expected);
+  }
+
   ExecutableElement _getConcrete(String className, String name) {
     var type = findElement.class_(className).type;
     return manager
@@ -524,7 +1139,7 @@ class B extends A {
 
   ExecutableElement _getInherited(String className, String name) {
     var type = findElement.class_(className).type;
-    return manager.getInherited(type, new Name(null, name)).element;
+    return manager.getInherited(type, new Name(null, name))?.element;
   }
 
   ExecutableElement _getSuper(String className, String name) {
