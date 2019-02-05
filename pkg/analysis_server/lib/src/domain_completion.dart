@@ -171,18 +171,20 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    var resolvedUnit = await server.getResolvedUnit(file);
-    var requestedLibraryElement =
-        await resolvedUnit.session.getLibraryByUri(library.uriStr);
-    var requestedElement =
-        requestedLibraryElement.exportNamespace.get(params.label);
+    var analysisDriver = server.getAnalysisDriver(file);
+    var session = analysisDriver.currentSession;
+    var resolvedLibrary = await session.getResolvedLibrary(file);
+    var requestedLibraryElement = await session.getLibraryByUri(library.uriStr);
 
     var completion = params.label;
-    var builder = DartChangeBuilder(resolvedUnit.session);
+    var builder = DartChangeBuilder(session);
     await builder.addFileEdit(file, (builder) {
       var result = builder.importLibraryElement(
-        requestedLibraryElement,
-        requestedElement,
+        targetLibrary: resolvedLibrary,
+        targetPath: file,
+        targetOffset: params.offset,
+        requestedLibrary: requestedLibraryElement,
+        requestedName: params.label,
       );
       if (result.prefix != null) {
         completion = '${result.prefix}.$completion';

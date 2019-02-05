@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:meta/meta.dart';
 
 /**
  * The optional generator for prefix that should be used for new imports.
@@ -354,24 +356,32 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   String importLibrary(Uri uri);
 
   /**
-   * Ensure that the requested [library] is imported into the target library,
-   * and the top-level [element] is accessible.
+   * Ensure that the [requestedLibrary] is imported into the [targetLibrary],
+   * and the top-level [requestedName] is accessible at the [targetOffset] of
+   * the file with the [targetPath].
    *
-   * If there is already an import for the [library], and the [element] is in
-   * the namespace of the import directive, and the name of the element is not
-   * ambiguous in existing import directives, and the name does not conflict
-   * with local declarations, return the import prefix of the existing import
-   * directive.
+   * Parameters [targetPath] and [targetOffset] are used to determine if the
+   * unprefixed reference to the [requestedName] will be shadowed by a local
+   * declaration in the target syntactic scope.
+   *
+   * If there is already an import for the [requestedLibrary], and the
+   * [requestedName] refers to the same element in the namespace of the import
+   * directive, and the name of the element is not ambiguous in existing import
+   * directives, and the name does not conflict with existing declarations and
+   * references, return the import prefix of the existing import directive.
    *
    * If there is no existing import, or there is a conflict, a new import is
    * added, possibly with an import prefix.
    *
    * This method can be used only alone, and only once.
    */
-  ImportLibraryElementResult importLibraryElement(
-    LibraryElement library,
-    Element element,
-  );
+  ImportLibraryElementResult importLibraryElement({
+    @required ResolvedLibraryResult targetLibrary,
+    @required String targetPath,
+    @required int targetOffset,
+    @required LibraryElement requestedLibrary,
+    @required String requestedName,
+  });
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the
