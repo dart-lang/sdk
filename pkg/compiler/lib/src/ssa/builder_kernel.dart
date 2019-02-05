@@ -1867,8 +1867,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildLoop(node));
 
     void finalizerFunction() {
-      _pushDynamicInvocation(node, null, Selectors.cancel, [streamIterator],
-          const <DartType>[], _sourceInformationBuilder.buildGeneric(node));
+      _pushDynamicInvocation(
+          node,
+          null,
+          Selectors.cancel,
+          [streamIterator],
+          const <DartType>[],
+          _sourceInformationBuilder
+              // ignore:deprecated_member_use_from_same_package
+              .buildGeneric(node));
       add(new HAwait(pop(), abstractValueDomain.dynamicType));
     }
 

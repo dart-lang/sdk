@@ -108,7 +108,9 @@ void reportFrontEndMessage(
       reporter.reportWarningMessage(span, kind, {'text': text});
       break;
     case fe.Severity.context:
-      reporter.reportInfo(span, kind, {'text': text});
+      reporter
+          // ignore:deprecated_member_use_from_same_package
+          .reportInfo(span, kind, {'text': text});
       break;
     default:
       throw new UnimplementedError('unhandled severity ${message.severity}');

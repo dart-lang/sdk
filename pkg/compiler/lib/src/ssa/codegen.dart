@@ -899,7 +899,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (info.catchBlock != null) {
       void register(ClassEntity classElement) {
         if (classElement != null) {
-          _registry.registerInstantiatedClass(classElement);
+          _registry
+              // ignore:deprecated_member_use_from_same_package
+              .registerInstantiatedClass(classElement);
         }
       }
 
@@ -1832,7 +1834,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         methodName = 'split';
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
-        _registry.registerInstantiatedClass(_commonElements.listClass);
+        _registry
+            // ignore:deprecated_member_use_from_same_package
+            .registerInstantiatedClass(_commonElements.listClass);
       } else if (_nativeData.isNativeMember(target) &&
           target.isFunction &&
           !node.isInterceptedCall) {
@@ -2256,7 +2260,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // function expressions. We have to register their use here, as otherwise
     // code for them might not be emitted.
     if (node.element.isClosure) {
-      _registry.registerInstantiatedClass(node.element);
+      _registry
+          // ignore:deprecated_member_use_from_same_package
+          .registerInstantiatedClass(node.element);
     }
     node.instantiatedTypes?.forEach(_registry.registerInstantiation);
     if (node.callMethod != null) {
@@ -2632,7 +2638,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
-    _registry.registerInstantiatedClass(_commonElements.listClass);
+    _registry
+        // ignore:deprecated_member_use_from_same_package
+        .registerInstantiatedClass(_commonElements.listClass);
     generateArrayLiteral(node);
   }
 
@@ -3195,7 +3203,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // We expect only flat types for the INSTANCE representation.
         assert(
             (type as InterfaceType).typeArguments.length == arguments.length);
-        _registry.registerInstantiatedClass(_commonElements.listClass);
+        _registry
+            // ignore:deprecated_member_use_from_same_package
+            .registerInstantiatedClass(_commonElements.listClass);
         push(new js.ArrayInitializer(arguments)
             .withSourceInformation(node.sourceInformation));
     }
