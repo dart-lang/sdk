@@ -43,6 +43,12 @@ View(Style style, List children)
       _children = children {
 ```
 
+**DEPRECATED:** In Dart 2, it is a compile-time error if a superinitializer
+appears in an initializer list at any other position than at the end so this
+rule is made redundant by the Dart analyzer's basic checks and is no longer
+necessary.
+ 
+The rule will be removed in a future Linter release.
 ''';
 
 class SuperGoesLast extends LintRule implements NodeLintRule {
@@ -51,6 +57,7 @@ class SuperGoesLast extends LintRule implements NodeLintRule {
             name: 'super_goes_last',
             description: _desc,
             details: _details,
+            maturity: Maturity.deprecated,
             group: Group.style);
 
   @override
