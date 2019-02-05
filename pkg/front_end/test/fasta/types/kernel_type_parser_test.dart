@@ -21,22 +21,24 @@ import "shared_type_tests.dart" show SubtypeTest;
 
 import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
+// TODO(ahe): Add this declaration to [testSdk]:
+//     typedef Id<T> T;
 const String testSdk = """
-  class Object;
-  class Comparable<T>;
-  class num implements Comparable<num>;
-  class int extends num;
-  class double extends num;
-  class Iterable<T>;
-  class List<T> extends Iterable<T>;
-  class Future<T>;
-  class FutureOr<T>;
-  class Null;
-  class Function;
-  typedef Typedef<T> <S>(T) -> S;
-  typedef VoidFunction () -> void;
-  class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
-  typedef TestDefaultTypes () -> DefaultTypes;
+class Object;
+class Comparable<T>;
+class num implements Comparable<num>;
+class int extends num;
+class double extends num;
+class Iterable<T>;
+class List<T> extends Iterable<T>;
+class Future<T>;
+class FutureOr<T>;
+class Null;
+class Function;
+typedef Typedef<T> <S>(T) -> S;
+typedef VoidFunction () -> void;
+class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
+typedef TestDefaultTypes () -> DefaultTypes;
 """;
 
 const String expectedSdk = """

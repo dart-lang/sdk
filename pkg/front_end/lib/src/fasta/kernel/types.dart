@@ -401,8 +401,31 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
     return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
   }
 
-  // TODO(ahe): Remove this method.
-  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  @override
+  bool isDynamicRelated(DynamicType s, TypeParameterType t, Types types) {
+    return false;
+  }
+
+  @override
+  bool isFunctionRelated(FunctionType s, TypeParameterType t, Types types) {
+    return false;
+  }
+
+  @override
+  bool isFutureOrRelated(
+      InterfaceType futureOr, TypeParameterType t, Types types) {
+    return false;
+  }
+
+  @override
+  bool isTypedefRelated(TypedefType s, TypeParameterType t, Types types) {
+    return false;
+  }
+
+  @override
+  bool isVoidRelated(VoidType s, TypeParameterType t, Types types) {
+    return false;
+  }
 }
 
 class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {

@@ -176,7 +176,13 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Null', 'Null');
     isSubtype('bottom', 'bottom');
     isSubtype('Object', 'Object');
+    isSubtype('Object', 'dynamic');
+    isSubtype('Object', 'void');
+    isSubtype('dynamic', 'Object');
     isSubtype('dynamic', 'dynamic');
+    isSubtype('dynamic', 'void');
+    isSubtype('void', 'Object');
+    isSubtype('void', 'dynamic');
     isSubtype('void', 'void');
 
     // Check that the top types are equivalent.
@@ -228,5 +234,14 @@ abstract class SubtypeTest<T, E> {
         'DefaultTypes<void, void, List<void>, List<void>, int, (int) -> void, () -> int>',
         '() -> void');
     isNotSubtype('void', '() -> void');
+
+    isNotSubtype('dynamic', 'T', typeParameters: 'T');
+    isNotSubtype('Iterable<T>', 'T', typeParameters: 'T');
+    isNotSubtype('() -> void', 'T', typeParameters: 'T');
+    isNotSubtype('FutureOr<T>', 'T', typeParameters: 'T');
+    // TODO(ahe): Enable this test.
+    // isSubtype('Id<T>', 'T', typeParameters: 'T');
+    isNotSubtype('VoidFunction', 'T', typeParameters: 'T extends () -> void');
+    isNotSubtype('void', 'T', typeParameters: 'T extends void');
   }
 }

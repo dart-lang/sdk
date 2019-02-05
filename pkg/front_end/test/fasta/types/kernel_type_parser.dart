@@ -180,15 +180,18 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     def.typeParameters.addAll(parameterEnvironment.parameters);
-    FunctionType type;
+    DartType type;
     {
       KernelEnvironment environment = parameterEnvironment.environment;
       type = node.type.accept<Node, KernelEnvironment>(this, environment);
-      type = new FunctionType(type.positionalParameters, type.returnType,
-          namedParameters: type.namedParameters,
-          typeParameters: type.typeParameters,
-          requiredParameterCount: type.requiredParameterCount,
-          typedefType: def.thisType);
+      if (type is FunctionType) {
+        FunctionType f = type;
+        type = new FunctionType(f.positionalParameters, f.returnType,
+            namedParameters: f.namedParameters,
+            typeParameters: f.typeParameters,
+            requiredParameterCount: f.requiredParameterCount,
+            typedefType: def.thisType);
+      }
     }
     return def..type = type;
   }
