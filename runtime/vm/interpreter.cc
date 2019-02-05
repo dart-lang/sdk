@@ -1803,12 +1803,14 @@ SwitchDispatch:
   {
     BYTECODE(IndirectStaticCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     // Invoke target function.
     {
@@ -1833,12 +1835,14 @@ SwitchDispatch:
   {
     BYTECODE(DirectCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     // Invoke target function.
     {
@@ -1861,12 +1865,14 @@ SwitchDispatch:
   {
     BYTECODE(InterfaceCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     {
       const uint16_t argc = rA;
@@ -1890,12 +1896,14 @@ SwitchDispatch:
   {
     BYTECODE(DynamicCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     {
       const uint16_t argc = rA;

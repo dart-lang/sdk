@@ -2259,6 +2259,9 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ ret();
+#else
   // Check single stepping.
   Label stepping, done_stepping;
   __ LoadIsolate(R1);
@@ -2266,7 +2269,6 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
-
   __ ret();
 
   __ Bind(&stepping);
@@ -2274,6 +2276,7 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ LeaveStubFrame();
   __ b(&done_stepping);
+#endif  // defined(PRODUCT)
 }
 
 // Used to check class and type arguments. Arguments passed in registers:

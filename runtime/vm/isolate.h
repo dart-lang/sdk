@@ -376,7 +376,6 @@ class Isolate : public BaseIsolate {
     ASSERT(debugger_ != NULL);
     return debugger_;
   }
-#endif
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -384,7 +383,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
-#if !defined(PRODUCT)
   bool ResumeRequest() const {
     return ResumeRequestBit::decode(isolate_flags_);
   }
