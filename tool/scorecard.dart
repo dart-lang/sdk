@@ -6,8 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 import 'package:github/server.dart';
@@ -34,71 +32,47 @@ Iterable<LintRule> get registeredLints {
 }
 
 main() async {
-  // Lens on just ruleset comparisons.
-  // See: https://github.com/dart-lang/linter/issues/1365.
-  var ruleSetLens = false;
-
   var scorecard = await ScoreCard.calculate();
-  var totalLintCount = scorecard.lintCount;
 
-  if (ruleSetLens) {
-    scorecard.removeWhere((LintScore score) =>
-        score.ruleSets.isEmpty ||
-        (ruleSetLens &&
-            score.ruleSets.length == 1 &&
-            score.ruleSets[0] == 'flutter_repo'));
-  }
+  print(scorecard.asMarkdown([
+    Detail.rule,
+    Detail.linter,
+    Detail.sdk,
+    Detail.fix,
+    Detail.pedantic,
+    Detail.flutterUser,
+    Detail.flutterRepo,
+    Detail.status,
+    Detail.bugs,
+  ]));
 
-  //printAll(scorecard);
-  printMarkdownTable(scorecard, justRules: ruleSetLens);
-
-  var footer = new StringBuffer('\n_$totalLintCount lints');
-  if (ruleSetLens) {
-    var filteredCount = totalLintCount - scorecard.lintCount;
-    footer.write(' ($filteredCount w/o rulesets not shown)');
-  }
+  var footer = new StringBuffer('\n_${scorecard.lintCount} lints');
   footer.writeln('_');
 
   print(footer);
 }
 
-void printAll(ScoreCard scorecard) {
-  print('-- ALL -----------------------------------------');
-  scorecard.forEach(print);
+class Header {
+  final String markdown;
+  const Header(this.markdown);
+  static const Header left = const Header('| :--- ');
+  static const Header center = const Header('| :---: ');
 }
 
-const allHeader = [
-  '| name | linter | dart sdk | fix | pedantic |  flutter user | flutter repo | status | bug refs |',
-  '| :--- | :--- | :--- | :---: | :---:|  :---: | :---: | :---: | :--- |'
-];
+class Detail {
+  final String name;
+  final Header header;
+  const Detail(this.name, {this.header = Header.center});
 
-/// https://github.com/dart-lang/linter/issues/1365
-const justRuleSetsHeader = [
-  '| name | pedantic | flutter user |',
-  '| :--- | :---: | :---: |'
-];
-
-void printMarkdownTable(ScoreCard scorecard, {bool justRules = false}) {
-  print(justRules ? justRuleSetsHeader[0] : allHeader[0]);
-  print(justRules ? justRuleSetsHeader[1] : allHeader[1]);
-  scorecard.forEach((lint) {
-    var sb = StringBuffer('| `${lint.name}` |');
-    if (!justRules) {
-      sb.write(' ${lint.since.sinceLinter} |');
-      sb.write(' ${lint.since.sinceDartSdk} |');
-      sb.write('${lint.hasFix ? " $bulb" : ""} |');
-    }
-    sb.write('${lint.ruleSets.contains('pedantic') ? " $checkMark" : ""} |');
-    sb.write('${lint.ruleSets.contains('flutter') ? " $checkMark" : ""} |');
-    if (!justRules) {
-      sb.write(
-          '${lint.ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
-      sb.write(
-          '${lint.maturity != 'stable' ? ' **${lint.maturity}** ' : ""} |');
-      sb.write(' ${lint.bugReferences.join(", ")} |');
-    }
-    print(sb.toString());
-  });
+  static const Detail rule = const Detail('name', header: Header.left);
+  static const Detail linter = const Detail('linter', header: Header.left);
+  static const Detail sdk = const Detail('dart sdk', header: Header.left);
+  static const Detail fix = const Detail('fix');
+  static const Detail pedantic = const Detail('pedantic');
+  static const Detail flutterUser = const Detail('flutter user');
+  static const Detail flutterRepo = const Detail('flutter repo');
+  static const Detail status = const Detail('status');
+  static const Detail bugs = const Detail('bug refs', header: Header.left);
 }
 
 class _AssistCollector extends GeneralizingAstVisitor<void> {
@@ -127,6 +101,19 @@ class ScoreCard {
 
   void forEach(void f(LintScore element)) {
     scores.forEach(f);
+  }
+
+  String asMarkdown(List<Detail> details) {
+    // Header.
+    var sb = new StringBuffer();
+    details.forEach((detail) => sb.write('| ${detail.name} '));
+    sb.write('|\n');
+    details.forEach((detail) => sb.write(detail.header.markdown));
+    sb.write(' |\n');
+
+    // Body.
+    forEach((lint) => sb.write('${lint.toMarkdown(details)}\n'));
+    return sb.toString();
   }
 
   static Future<List<String>> _getLintsWithFixes() async {
@@ -172,7 +159,6 @@ class ScoreCard {
     var flutterRuleset = await flutterRules;
     var flutterRepoRuleset = await flutterRepoRules;
     var pedanticRuleset = await pedanticRules;
-    var stagehandRuleset = await stagehandRules;
 
     var issues = await _getIssues();
     var bugs = issues.where(_isBug).toList();
@@ -237,5 +223,42 @@ class LintScore {
   String get _ruleSets => ruleSets.isNotEmpty ? ' ${ruleSets.toString()}' : '';
 
   @override
-  String toString() => '$name$_ruleSets${hasFix ? " 💡" : ""}';
+  String toString() => '$name$_ruleSets${hasFix ? " $bulb" : ""}';
+
+  String toMarkdown(List<Detail> details) {
+    var sb = StringBuffer('| ');
+    for (var detail in details) {
+      switch (detail) {
+        case Detail.rule:
+          sb.write(' $name |');
+          break;
+        case Detail.linter:
+          sb.write(' ${since.sinceLinter} |');
+          break;
+        case Detail.sdk:
+          sb.write(' ${since.sinceDartSdk} |');
+          break;
+        case Detail.fix:
+          sb.write('${hasFix ? " $bulb" : ""} |');
+          break;
+        case Detail.pedantic:
+          sb.write('${ruleSets.contains('pedantic') ? " $checkMark" : ""} |');
+          break;
+        case Detail.flutterUser:
+          sb.write('${ruleSets.contains('flutter') ? " $checkMark" : ""} |');
+          break;
+        case Detail.flutterRepo:
+          sb.write(
+              '${ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
+          break;
+        case Detail.status:
+          sb.write('${maturity != 'stable' ? ' **$maturity** ' : ""} |');
+          break;
+        case Detail.bugs:
+          sb.write(' ${bugReferences.join(", ")} |');
+          break;
+      }
+    }
+    return sb.toString();
+  }
 }
