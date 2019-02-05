@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/constraint_gatherer.dart';
 import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
+import 'package:analyzer/src/dart/nullability/transitional_api.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -543,33 +543,22 @@ int f() => 0;
 }
 
 @reflectiveTest
-class MigrationIntegrationTest extends ConstraintsTestBase {
-  @override
-  final Solver constraints = Solver();
+class MigrationIntegrationTest extends DriverResolutionTest {
+  Map<String, List<Modification>> _modifications;
 
-  String _code;
-
-  @override
   Future<CompilationUnit> analyze(String code) async {
-    _code = code;
-    var unit = await super.analyze(code);
-    constraints.applyHeuristics();
-    return unit;
+    addTestFile(code);
+    await resolveTestFile();
+    var migration = NullabilityMigration();
+    migration.prepareInput(result.path, result.unit);
+    migration.processInput(result.unit, typeProvider);
+    _modifications = migration.finish();
   }
 
   /// Checks that the result of the migration matches the given string.
   void checkMigration(String expected) {
-    var modifications = <_Modification>[];
-    for (var variable in _variables._potentialModifications) {
-      modifications.addAll(variable._modifications);
-    }
-    modifications.sort((a, b) => b.location.compareTo(a.location));
-    var migrated = _code;
-    for (var modification in modifications) {
-      migrated = migrated.substring(0, modification.location) +
-          modification.insert +
-          migrated.substring(modification.location);
-    }
+    var migrated = NullabilityMigration.applyModifications(
+        result.content, _modifications[result.path]);
     expect(migrated, expected);
   }
 
@@ -740,7 +729,7 @@ int f(int i, [int? j]) {
 }
 
 class MigrationVisitorTestBase extends DriverResolutionTest {
-  final _variables = _Variables();
+  final _variables = Variables();
 
   Future<CompilationUnit> analyze(String code) async {
     addTestFile(code);
@@ -761,21 +750,6 @@ class MigrationVisitorTestBase extends DriverResolutionTest {
   ConditionalDiscard statementDiscard(String text) {
     return _variables.conditionalDiscard(findNode.statement(text));
   }
-}
-
-/// Type of a [ConstraintVariable] representing the addition of a null check.
-class _CheckExpression extends ConstraintVariable
-    implements _PotentialModification {
-  final Expression _node;
-
-  _CheckExpression(this._node);
-
-  @override
-  Iterable<_Modification> get _modifications =>
-      value ? [_Modification(_node.end, '!')] : [];
-
-  @override
-  toString() => 'checkNotNull($_node@${_node.offset})';
 }
 
 /// Mock representation of a constraint equation that is not connected to a
@@ -811,61 +785,6 @@ class _Clause {
   }
 }
 
-/// Records information about how a conditional expression or statement might
-/// need to be modified.
-class _ConditionalModification extends _PotentialModification {
-  final AstNode node;
-
-  final ConditionalDiscard discard;
-
-  _ConditionalModification(this.node, this.discard);
-
-  @override
-  Iterable<_Modification> get _modifications {
-    if (discard.keepTrue.value && discard.keepFalse.value) return const [];
-    var result = <_Modification>[];
-    var keepNodes = <AstNode>[];
-    var node = this.node;
-    if (node is IfStatement) {
-      if (!discard.pureCondition) {
-        keepNodes.add(node.condition); // TODO(paulberry): test
-      }
-      if (discard.keepTrue.value) {
-        keepNodes.add(node.thenStatement); // TODO(paulberry): test
-      }
-      if (discard.keepFalse.value) {
-        keepNodes.add(node.elseStatement); // TODO(paulberry): test
-      }
-    } else {
-      assert(false); // TODO(paulberry)
-    }
-    // TODO(paulberry): test thoroughly
-    for (int i = 0; i < keepNodes.length; i++) {
-      var keepNode = keepNodes[i];
-      int start = keepNode.offset;
-      int end = keepNode.end;
-      if (keepNode is Block && keepNode.statements.isNotEmpty) {
-        start = keepNode.statements[0].offset;
-        end = keepNode.statements.last.end;
-      }
-      if (i == 0 && start != node.offset) {
-        result.add(_Modification(node.offset, '/* '));
-      }
-      if (i != 0 || start != node.offset) {
-        result.add(_Modification(start, '*/ '));
-      }
-      if (i != keepNodes.length - 1 || end != node.end) {
-        result.add(_Modification(
-            end, keepNode is Expression && node is Statement ? '; /*' : ' /*'));
-      }
-      if (i == keepNodes.length - 1 && end != node.end) {
-        result.add(_Modification(node.end, ' */'));
-      }
-    }
-    return result;
-  }
-}
-
 /// Mock representation of a constraint solver that does not actually do any
 /// solving.  We use this to confirm that analysis produced the correct
 /// constraint equations.
@@ -884,136 +803,4 @@ class _MockConstraints implements Constraints {
   @override
   void record(Iterable<ConstraintVariable> conditions,
       ConstraintVariable consequence) {}
-}
-
-/// Representation of a single location in the code that needs to be modified
-/// by the migration tool.
-class _Modification {
-  final int location;
-
-  final String insert;
-
-  _Modification(this.location, this.insert);
-}
-
-/// Type of a [ConstraintVariable] representing the fact that a subexpression's
-/// type is nullable.
-class _NullableExpression extends ConstraintVariable {
-  final Expression _node;
-
-  _NullableExpression(this._node);
-
-  @override
-  toString() => 'nullable($_node@${_node.offset})';
-}
-
-/// Type of a [ConstraintVariable] representing the addition of `?` to a type.
-class _NullableTypeAnnotation extends ConstraintVariable
-    implements _PotentialModification {
-  final TypeAnnotation _node;
-
-  _NullableTypeAnnotation(this._node);
-
-  @override
-  Iterable<_Modification> get _modifications =>
-      value ? [_Modification(_node.end, '?')] : [];
-
-  @override
-  toString() => 'nullable($_node@${_node.offset})';
-}
-
-/// Interface used by data structures representing potential modifications to
-/// the code being migrated.
-abstract class _PotentialModification {
-  /// Gets the individual migrations that need to be done, considering the
-  /// solution to the constraint equations.
-  Iterable<_Modification> get _modifications;
-}
-
-/// Mock representation of constraint variables.
-class _Variables implements VariableRecorder, VariableRepository {
-  final _decoratedElementTypes = <Element, DecoratedType>{};
-
-  final _decoratedExpressionTypes = <Expression, DecoratedType>{};
-
-  final _decoratedTypeAnnotations = <TypeAnnotation, DecoratedType>{};
-
-  final _expressionChecks = <Expression, ExpressionChecks>{};
-
-  final _potentialModifications = <_PotentialModification>[];
-
-  final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
-
-  /// Gets the [ExpressionChecks] associated with the given [expression].
-  ExpressionChecks checkExpression(Expression expression) =>
-      _expressionChecks[_normalizeExpression(expression)];
-
-  @override
-  ConstraintVariable checkNotNullForExpression(Expression expression) {
-    var variable = _CheckExpression(expression);
-    _potentialModifications.add(variable);
-    return variable;
-  }
-
-  /// Gets the [conditionalDiscard] associated with the given [expression].
-  ConditionalDiscard conditionalDiscard(AstNode node) =>
-      _conditionalDiscard[node];
-
-  @override
-  DecoratedType decoratedElementType(Element element, {bool create: false}) =>
-      _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element)
-          : throw StateError('No element found');
-
-  /// Gets the [DecoratedType] associated with the given [expression].
-  DecoratedType decoratedExpressionType(Expression expression) =>
-      _decoratedExpressionTypes[_normalizeExpression(expression)];
-
-  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
-  DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
-      _decoratedTypeAnnotations[typeAnnotation];
-
-  @override
-  ConstraintVariable nullableForExpression(Expression expression) =>
-      _NullableExpression(expression);
-
-  @override
-  ConstraintVariable nullableForTypeAnnotation(TypeAnnotation node) {
-    var variable = _NullableTypeAnnotation(node);
-    _potentialModifications.add(variable);
-    return variable;
-  }
-
-  @override
-  void recordConditionalDiscard(
-      AstNode node, ConditionalDiscard conditionalDiscard) {
-    _conditionalDiscard[node] = conditionalDiscard;
-    _potentialModifications
-        .add(_ConditionalModification(node, conditionalDiscard));
-  }
-
-  void recordDecoratedElementType(Element element, DecoratedType type) {
-    _decoratedElementTypes[element] = type;
-  }
-
-  void recordDecoratedExpressionType(Expression node, DecoratedType type) {
-    _decoratedExpressionTypes[_normalizeExpression(node)] = type;
-  }
-
-  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type) {
-    _decoratedTypeAnnotations[node] = type;
-  }
-
-  @override
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
-    _expressionChecks[_normalizeExpression(expression)] = checks;
-  }
-
-  /// Unwraps any parentheses surrounding [expression].
-  Expression _normalizeExpression(Expression expression) {
-    while (expression is ParenthesizedExpression) {
-      expression = (expression as ParenthesizedExpression).expression;
-    }
-    return expression;
-  }
 }
