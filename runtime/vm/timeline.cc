@@ -209,35 +209,10 @@ void Timeline::Init() {
   stream_##name##_.Init(#name, HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
-
-  if (Timeline::stream_Embedder_.enabled() &&
-      (Timeline::get_start_recording_cb() != NULL)) {
-    Timeline::get_start_recording_cb()();
-  }
-}
-
-void Timeline::StreamStateChange(const char* stream_name,
-                                 bool prev,
-                                 bool curr) {
-  if (prev == curr) {
-    return;
-  }
-  if (strcmp(stream_name, "Embedder") == 0) {
-    if (curr && (Timeline::get_start_recording_cb() != NULL)) {
-      Timeline::get_start_recording_cb()();
-    } else if (!curr && (Timeline::get_stop_recording_cb() != NULL)) {
-      Timeline::get_stop_recording_cb()();
-    }
-  }
 }
 
 void Timeline::Cleanup() {
   ASSERT(recorder_ != NULL);
-
-  if (Timeline::stream_Embedder_.enabled() &&
-      (Timeline::get_stop_recording_cb() != NULL)) {
-    Timeline::get_stop_recording_cb()();
-  }
 
 #ifndef PRODUCT
   if (FLAG_timeline_dir != NULL) {
@@ -401,8 +376,6 @@ void TimelineEventArguments::Free() {
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
-Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
-Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
 
 #define TIMELINE_STREAM_DEFINE(name, enabled_by_default)                       \
   TimelineStream Timeline::stream_##name##_;
