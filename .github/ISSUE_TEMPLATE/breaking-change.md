@@ -14,5 +14,5 @@ about: Template for breaking change requests
 *Impact*
 <TODO: summarize the expected impact of this change.
 
-*Mitigation*
-<TODO: Provide clear steps for mitigating the change.>
+*Migration*
+<TODO: provide clear steps for migrating existing code past the change.>
