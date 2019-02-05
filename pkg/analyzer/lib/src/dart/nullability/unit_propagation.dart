@@ -37,13 +37,20 @@ class ConstraintVariable {
 
   /// Creates a [ConstraintVariable] representing a disjunction ("or") of
   /// several other variables.
-  factory ConstraintVariable.or(ConstraintVariable a, ConstraintVariable b) {
+  ///
+  /// Additional constraints will be recorded in [constraints] to ensure that
+  /// the solution will be consistent.
+  factory ConstraintVariable.or(
+      Constraints constraints, ConstraintVariable a, ConstraintVariable b) {
     if (a == null) return b;
     if (b == null) return a;
     var parts = a.disjunctionParts.toList();
     parts.addAll(b.disjunctionParts);
     assert(parts.length > 1);
-    return ConstraintVariable._(parts);
+    var result = ConstraintVariable._(parts);
+    constraints.record([a], result);
+    constraints.record([b], result);
+    return result;
   }
 
   ConstraintVariable._(this._disjunctionParts);

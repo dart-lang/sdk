@@ -90,10 +90,11 @@ class DecoratedType {
   /// [undecoratedResult] is the result of the substitution, as determined by
   /// the normal type system.
   DecoratedType substitute(
+      Constraints constraints,
       Map<TypeParameterElement, DecoratedType> substitution,
       DartType undecoratedResult) {
     if (substitution.isEmpty) return this;
-    return _substitute(substitution, undecoratedResult);
+    return _substitute(constraints, substitution, undecoratedResult);
   }
 
   @override
@@ -124,6 +125,7 @@ class DecoratedType {
 
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
+      Constraints constraints,
       Map<TypeParameterElement, DecoratedType> substitution,
       DartType undecoratedResult) {
     var type = this.type;
@@ -138,21 +140,21 @@ class DecoratedType {
             : undecoratedResult
                 .optionalParameterTypes[i - numRequiredParameters];
         newPositionalParameters.add(positionalParameters[i]
-            ._substitute(substitution, undecoratedParameterType));
+            ._substitute(constraints, substitution, undecoratedParameterType));
       }
       // TODO(paulberry): what do we do for nullAsserts here?
       var nullAsserts = null;
       return DecoratedType(undecoratedResult, nullable,
           nullAsserts: nullAsserts,
           returnType: returnType._substitute(
-              substitution, undecoratedResult.returnType),
+              constraints, substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
       // TODO(paulberry): what do we do for nullAsserts here?
       var nullAsserts = null;
-      return DecoratedType(
-          undecoratedResult, ConstraintVariable.or(inner?.nullable, nullable),
+      return DecoratedType(undecoratedResult,
+          ConstraintVariable.or(constraints, inner?.nullable, nullable),
           nullAsserts: nullAsserts);
     } else if (type is VoidType) {
       return this;

@@ -159,8 +159,7 @@ int f(bool b, int i, int j) {
 
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
-    var nullable_i_or_nullable_j =
-        ConstraintVariable.or(nullable_i, nullable_j);
+    var nullable_i_or_nullable_j = _mockOr(nullable_i, nullable_j);
     var nullable_conditional = decoratedExpressionType('(b ?').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
     assertConstraint([nullable_i], nullable_conditional);
@@ -357,8 +356,7 @@ void g(C<int> c, int i) {
     var nullable_c_t =
         decoratedTypeAnnotation('C<int>').typeArguments[0].nullable;
     var nullable_t = decoratedTypeAnnotation('T t').nullable;
-    var nullable_c_t_or_nullable_t =
-        ConstraintVariable.or(nullable_c_t, nullable_t);
+    var nullable_c_t_or_nullable_t = _mockOr(nullable_c_t, nullable_t);
     assertConstraint([nullable_i], nullable_c_t_or_nullable_t);
   }
 
@@ -440,6 +438,13 @@ Type f() {
 ''');
     assertNoConstraints(decoratedTypeAnnotation('Type').nullable);
   }
+
+  /// Creates a variable representing the disjunction of [a] and [b] solely for
+  /// the purpose of inspecting constraint equations in unit tests.  No
+  /// additional constraints will be recorded in [_constraints] as a consequence
+  /// of creating this variable.
+  ConstraintVariable _mockOr(ConstraintVariable a, ConstraintVariable b) =>
+      ConstraintVariable.or(_MockConstraints(), a, b);
 }
 
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
@@ -873,6 +878,13 @@ class _Constraints extends Constraints {
       Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
     _clauses.add(_Clause(conditions.toSet(), consequence));
   }
+}
+
+/// Mock implementation of [Constraints] that doesn't record any constraints.
+class _MockConstraints implements Constraints {
+  @override
+  void record(Iterable<ConstraintVariable> conditions,
+      ConstraintVariable consequence) {}
 }
 
 /// Representation of a single location in the code that needs to be modified

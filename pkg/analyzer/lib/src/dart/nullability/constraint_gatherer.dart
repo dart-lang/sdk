@@ -99,7 +99,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } else {
         throw element.runtimeType; // TODO(paulberry)
       }
-      return decoratedBaseType.substitute(substitution, elementType);
+      return decoratedBaseType.substitute(
+          _constraints, substitution, elementType);
     } else {
       return decoratedBaseType;
     }
@@ -404,7 +405,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     var result = _variables.nullableForExpression(node);
     _recordConstraint(a, result);
     _recordConstraint(b, result);
-    _recordConstraint(result, ConstraintVariable.or(a, b));
+    _recordConstraint(result, ConstraintVariable.or(_constraints, a, b));
     return result;
   }
 
