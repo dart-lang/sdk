@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
-import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 /// Compute which suggestion sets should be included into completion inside
 /// the given [resolvedUnit] of a file.  Depending on the file path, it might
@@ -24,16 +23,35 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
   var librariesObject = context.getLibraries(resolvedUnit.path);
   var includedSetList = <protocol.IncludedSuggestionSet>[];
 
-  for (var library in librariesObject.context) {
-    includedSetList.add(_protocolIncludedSuggestionSet(library));
+  var importedUriSet = resolvedUnit.libraryElement.importedLibraries
+      .map((importedLibrary) => importedLibrary.source.uri)
+      .toSet();
+
+  void includeLibrary(
+    Library library,
+    int importedRelevance,
+    int otherwiseRelevance,
+  ) {
+    includedSetList.add(
+      protocol.IncludedSuggestionSet(
+        library.id,
+        importedUriSet.contains(library.uri)
+            ? importedRelevance
+            : otherwiseRelevance,
+      ),
+    );
   }
 
-  for (var library in librariesObject.sdk) {
-    includedSetList.add(_protocolIncludedSuggestionSet(library));
+  for (var library in librariesObject.context) {
+    includeLibrary(library, 5, 2);
   }
 
   for (var library in librariesObject.dependencies) {
-    includedSetList.add(_protocolIncludedSuggestionSet(library));
+    includeLibrary(library, 4, 1);
+  }
+
+  for (var library in librariesObject.sdk) {
+    includeLibrary(library, 3, 0);
   }
 
   return includedSetList;
@@ -119,11 +137,6 @@ protocol.ElementKind _protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
   }
   return protocol.ElementKind.UNKNOWN;
-}
-
-protocol.IncludedSuggestionSet _protocolIncludedSuggestionSet(Library library) {
-  // TODO(scheglov) Use different relevance for different sets.
-  return protocol.IncludedSuggestionSet(library.id, DART_RELEVANCE_DEFAULT);
 }
 
 class CompletionLibrariesWorker implements SchedulerWorker {
