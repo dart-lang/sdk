@@ -3,18 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../ast/parse_base.dart';
 import '../resolution/driver_resolution.dart';
 import '../resolution/find_node.dart';
 
@@ -29,7 +24,7 @@ main() {
 /// Tests for the [ExitDetector] that require that the control flow and spread
 /// experiments be enabled.
 @reflectiveTest
-class ExitDetectorForCodeAsUiTest extends _ParseTest {
+class ExitDetectorForCodeAsUiTest extends ParseBase {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [
@@ -156,7 +151,7 @@ void f() { // ref
 ///
 /// See [ExitDetectorResolvedStatementTest] for tests that require the AST to be resolved.
 @reflectiveTest
-class ExitDetectorParsedStatementTest extends _ParseTest {
+class ExitDetectorParsedStatementTest extends ParseBase {
   test_asExpression() async {
     _assertFalse('a as Object;');
   }
@@ -1119,50 +1114,5 @@ void f() sync* {
   /// [code] does not exit.
   Future<void> _assertNthStatementExits(String code, int n) async {
     await _assertHasReturn(code, n, true);
-  }
-}
-
-class _ParseResult {
-  final String path;
-  final String content;
-  final CompilationUnit unit;
-  final List<AnalysisError> errors;
-
-  _ParseResult(this.path, this.content, this.unit, this.errors);
-}
-
-class _ParseTest with ResourceProviderMixin {
-  /// Override this to change the analysis options for a given set of tests.
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
-
-  _ParseResult parseUnit(String path) {
-    var file = getFile(path);
-    var source = file.createSource();
-    var content = file.readAsStringSync();
-
-    var analysisOptions = this.analysisOptions;
-    var experimentStatus = analysisOptions.experimentStatus;
-
-    var errorListener = RecordingErrorListener();
-
-    var reader = CharSequenceReader(content);
-    var scanner = Scanner(source, reader, errorListener);
-
-    scanner.enableGtGtGt = experimentStatus.constant_update_2018;
-    var token = scanner.tokenize();
-
-    var useFasta = analysisOptions.useFastaParser;
-    var parser = Parser(source, errorListener, useFasta: useFasta);
-    parser.enableOptionalNewAndConst = true;
-    parser.enableSetLiterals = experimentStatus.set_literals;
-    parser.enableNonNullable = experimentStatus.non_nullable;
-    parser.enableSpreadCollections = experimentStatus.spread_collections;
-    parser.enableControlFlowCollections =
-        experimentStatus.control_flow_collections;
-
-    var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = LineInfo(scanner.lineStarts);
-
-    return _ParseResult(path, content, unit, errorListener.errors);
   }
 }

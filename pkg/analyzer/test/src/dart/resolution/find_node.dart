@@ -64,6 +64,10 @@ class FindNode {
     return _node(search, (n) => n is Expression);
   }
 
+  ExpressionStatement expressionStatement(String search) {
+    return _node(search, (n) => n is ExpressionStatement);
+  }
+
   FieldFormalParameter fieldFormalParameter(String search) {
     return _node(search, (n) => n is FieldFormalParameter);
   }

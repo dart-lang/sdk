@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -31,7 +32,7 @@ final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
-  TestAnalysisResult result;
+  ResolvedUnitResult result;
   FindNode findNode;
   FindElement findElement;
 
@@ -409,7 +410,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  Future<TestAnalysisResult> resolveFile(String path);
+  Future<ResolvedUnitResult> resolveFile(String path);
 
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
@@ -430,13 +431,4 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(arrowIndex, isNonNegative);
     return invokeType.substring(arrowIndex + 1).trim();
   }
-}
-
-class TestAnalysisResult {
-  final String path;
-  final String content;
-  final CompilationUnit unit;
-  final List<AnalysisError> errors;
-
-  TestAnalysisResult(this.path, this.content, this.unit, this.errors);
 }
