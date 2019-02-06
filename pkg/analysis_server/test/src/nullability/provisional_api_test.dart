@@ -220,7 +220,11 @@ int? f() => null;
     migration.prepareInput(resolvedUnitResult);
     migration.processInput(resolvedUnitResult);
     var result = migration.finish();
-    expect(result, hasLength(1));
-    expect(SourceEdit.applySequence(content, result[0].edits), expected);
+    var sourceEdits = <SourceEdit>[];
+    for (var fix in result) {
+      sourceEdits.addAll(fix.sourceEdits);
+    }
+    sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
+    expect(SourceEdit.applySequence(content, sourceEdits), expected);
   }
 }

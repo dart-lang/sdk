@@ -40,11 +40,15 @@ class NonNullableFix extends FixCodeTask {
       migration.processInput(cache.removeLast());
     }
 
-    List<SourceFileEdit> edits = migration.finish();
-    for (SourceFileEdit edit in edits) {
+    var fixes = migration.finish();
+    for (var fix in fixes) {
+      // TODO(paulberry, danrubel): it seems silly to wrap this in a
+      // SourceFileEdit here, since listener.addSourceFileEdit just unwraps it
+      // again.
+      var edit = SourceFileEdit(fix.source.fullName, -1);
       // TODO(danrubel): integrate NullabilityMigration to provide
       // better user feedback on what changes are being made.
-      Location location = null;
+      Location location = fix.location;
       listener.addSourceFileEdit(
           'Update non-nullable type references', location, edit);
     }

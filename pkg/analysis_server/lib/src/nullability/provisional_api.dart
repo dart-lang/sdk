@@ -6,6 +6,25 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/nullability/transitional_api.dart'
     as analyzer;
+import 'package:analyzer/src/generated/source.dart';
+
+/// Kinds of fixes that might be performed by nullability migration.
+enum NullabilityFixKind {
+  /// An expression's value needs to be null-checked.
+  checkExpression,
+
+  /// An explicit type mentioned in the source program needs to be made
+  /// nullable.
+  makeTypeNullable,
+
+  /// An if-test or conditional expression needs to have its "then" branch
+  /// discarded.
+  discardThen,
+
+  /// An if-test or conditional expression needs to have its "else" branch
+  /// discarded.
+  discardElse,
+}
 
 /// Provisional API for DartFix to perform nullability migration.
 ///
@@ -18,24 +37,83 @@ import 'package:analyzer/src/dart/nullability/transitional_api.dart'
 class NullabilityMigration {
   final _analyzerMigration = analyzer.NullabilityMigration();
 
-  List<SourceFileEdit> finish() {
-    var results = <SourceFileEdit>[];
-    _analyzerMigration.finish().forEach((path, modifications) {
-      var sourceFileEdit = SourceFileEdit(path, -1);
-      for (var modification in modifications) {
-        sourceFileEdit
-            .add(SourceEdit(modification.location, 0, modification.insert));
+  List<SingleNullabilityFix> finish() {
+    var results = <SingleNullabilityFix>[];
+    _analyzerMigration.finish().forEach((path, potentialModifications) {
+      for (var pm in potentialModifications) {
+        results.add(_SingleNullabilityFix(path, pm));
       }
-      results.add(sourceFileEdit);
     });
     return results;
   }
 
   void prepareInput(ResolvedUnitResult result) {
-    _analyzerMigration.prepareInput(result.path, result.unit);
+    _analyzerMigration.prepareInput(result.unit);
   }
 
   void processInput(ResolvedUnitResult result) {
     _analyzerMigration.processInput(result.unit, result.typeProvider);
   }
+}
+
+/// Representation of a single conceptual change made by the nullability
+/// migration algorithm.  This change might require multiple source edits to
+/// achieve.
+abstract class SingleNullabilityFix {
+  /// What kind of fix this is.
+  NullabilityFixKind get kind;
+
+  /// Location of the change, for reporting to the user.
+  Location get location;
+
+  /// File to change.
+  Source get source;
+
+  /// Individual source edits to achieve the change.  May be returned in any
+  /// order.
+  Iterable<SourceEdit> get sourceEdits;
+}
+
+/// Implementation of [SingleNullabilityFix] used internally by
+/// [NullabilityMigration].
+class _SingleNullabilityFix extends SingleNullabilityFix {
+  @override
+  final List<SourceEdit> sourceEdits;
+
+  @override
+  final Source source;
+
+  @override
+  final NullabilityFixKind kind;
+
+  factory _SingleNullabilityFix(
+      Source source, analyzer.PotentialModification potentialModification) {
+    // TODO(paulberry): once everything is migrated into the analysis server,
+    // the migration engine can just create SingleNullabilityFix objects
+    // directly and set their kind appropriately; we won't need to translate the
+    // kinds using a bunch of `is` checks.
+    NullabilityFixKind kind;
+    if (potentialModification is analyzer.CheckExpression) {
+      kind = NullabilityFixKind.checkExpression;
+    } else if (potentialModification is analyzer.NullableTypeAnnotation) {
+      kind = NullabilityFixKind.makeTypeNullable;
+    } else if (potentialModification is analyzer.ConditionalModification) {
+      kind = potentialModification.discard.keepFalse.value
+          ? NullabilityFixKind.discardThen
+          : NullabilityFixKind.discardElse;
+    } else {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
+    return _SingleNullabilityFix._(
+        potentialModification.modifications
+            .map((m) => SourceEdit(m.location, 0, m.insert))
+            .toList(),
+        source,
+        kind);
+  }
+
+  _SingleNullabilityFix._(this.sourceEdits, this.source, this.kind);
+
+  /// TODO(paulberry): do something better
+  Location get location => null;
 }
