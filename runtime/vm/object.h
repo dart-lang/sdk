@@ -3354,11 +3354,9 @@ class Field : public Object {
 
   DART_WARN_UNUSED_RESULT RawError* EvaluateInitializer() const;
 
-  RawFunction* PrecompiledInitializer() const {
-    return raw_ptr()->initializer_.precompiled_;
-  }
-  void SetPrecompiledInitializer(const Function& initializer) const;
-  bool HasPrecompiledInitializer() const;
+  RawFunction* Initializer() const { return raw_ptr()->initializer_; }
+  void SetInitializer(const Function& initializer) const;
+  bool HasInitializer() const;
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
@@ -9149,8 +9147,9 @@ void Field::SetStaticValue(const Instance& value,
   ASSERT(is_static());  // Valid only for static dart fields.
   StorePointer(&raw_ptr()->value_.static_value_, value.raw());
   if (save_initial_value) {
-    ASSERT(!HasPrecompiledInitializer());
-    StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
+#endif
   }
 }
 

@@ -876,16 +876,16 @@ class FieldSerializationCluster : public SerializationCluster {
         s->Push(field->ptr()->value_.static_value_);
       } else {
         // Otherwise, for static fields we write out the initial static value.
-        s->Push(field->ptr()->initializer_.saved_value_);
+        s->Push(field->ptr()->saved_initial_value_);
       }
     } else {
       s->Push(field->ptr()->value_.offset_);
     }
-    // Write out the initializer function or saved initial value.
-    if (kind == Snapshot::kFullAOT) {
-      s->Push(field->ptr()->initializer_.precompiled_);
-    } else {
-      s->Push(field->ptr()->initializer_.saved_value_);
+    // Write out the initializer function
+    s->Push(field->ptr()->initializer_);
+    if (kind != Snapshot::kFullAOT) {
+      // Write out the saved initial value
+      s->Push(field->ptr()->saved_initial_value_);
     }
     if (kind != Snapshot::kFullAOT) {
       // Write out the guarded list length.
@@ -927,16 +927,15 @@ class FieldSerializationCluster : public SerializationCluster {
           WriteField(field, value_.static_value_);
         } else {
           // Otherwise, for static fields we write out the initial static value.
-          WriteField(field, initializer_.saved_value_);
+          WriteField(field, saved_initial_value_);
         }
       } else {
         WriteField(field, value_.offset_);
       }
       // Write out the initializer function or saved initial value.
-      if (kind == Snapshot::kFullAOT) {
-        WriteField(field, initializer_.precompiled_);
-      } else {
-        WriteField(field, initializer_.saved_value_);
+      WriteField(field, initializer_);
+      if (kind != Snapshot::kFullAOT) {
+        WriteField(field, saved_initial_value_);
       }
       if (kind != Snapshot::kFullAOT) {
         // Write out the guarded list length.

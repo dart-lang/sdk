@@ -81,8 +81,8 @@ class ClassFunctionVisitor : public ClassVisitor {
     fields_ = cls.fields();
     for (intptr_t j = 0; j < fields_.Length(); j++) {
       field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasPrecompiledInitializer()) {
-        function_ ^= field_.PrecompiledInitializer();
+      if (field_.is_static() && field_.HasInitializer()) {
+        function_ ^= field_.Initializer();
         visitor_->Visit(function_);
       }
     }
@@ -885,7 +885,7 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
   ProgramVisitor::VisitFunctions(&visitor);
 #endif  // defined(DART_PRECOMPILER)
 }
-#endif // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ProgramVisitor::Dedup() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -912,7 +912,7 @@ void ProgramVisitor::Dedup() {
     DedupInstructions();
   }
 #endif
-#endif // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 }  // namespace dart

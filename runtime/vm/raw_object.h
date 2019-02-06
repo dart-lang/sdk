@@ -1013,15 +1013,13 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
   } value_;
-  union {
-    // When precompiling we need to save the static initializer function here
-    // so that code for it can be generated.
-    RawFunction* precompiled_;  // Static initializer function - precompiling.
-    // When generating script snapshots after running the application it is
-    // necessary to save the initial value of static fields so that we can
-    // restore the value back to the original initial value.
-    RawInstance* saved_value_;  // Saved initial value - static fields.
-  } initializer_;
+  RawFunction* initializer_;  // Static initializer function.
+  // When generating APPJIT snapshots after running the application it is
+  // necessary to save the initial value of static fields so that we can
+  // restore the value back to the original initial value.
+  NOT_IN_PRECOMPILED(
+      RawInstance*
+          saved_initial_value_);  // Saved initial value - static fields.
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
