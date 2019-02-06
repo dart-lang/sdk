@@ -32,6 +32,10 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
+  Block block(String search) {
+    return _node(search, (n) => n is Block);
+  }
+
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
   }

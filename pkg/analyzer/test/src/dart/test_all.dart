@@ -10,6 +10,7 @@ import 'constant/test_all.dart' as constant;
 import 'element/test_all.dart' as element;
 import 'nullability/test_all.dart' as nullability;
 import 'resolution/test_all.dart' as resolution;
+import 'resolver/test_all.dart' as resolver;
 import 'sdk/test_all.dart' as sdk;
 
 /// Utility for manually running all tests.
@@ -21,6 +22,7 @@ main() {
     element.main();
     nullability.main();
     resolution.main();
+    resolver.main();
     sdk.main();
   }, name: 'dart');
 }
