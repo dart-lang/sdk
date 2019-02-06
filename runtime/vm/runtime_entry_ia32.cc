@@ -27,17 +27,19 @@ uword RuntimeEntry::GetEntryPoint() const {
 //   EDX : number of arguments to the call as Smi.
 // For leaf calls the caller is responsible to setup the arguments
 // and look for return values based on the C calling convention.
-void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
-  if (is_leaf()) {
-    ASSERT(argument_count == this->argument_count());
-    __ movl(EAX, Immediate(GetEntryPoint()));
+void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
+                                Assembler* assembler,
+                                intptr_t argument_count) {
+  if (runtime_entry->is_leaf()) {
+    ASSERT(argument_count == runtime_entry->argument_count());
+    __ movl(EAX, Immediate(runtime_entry->GetEntryPoint()));
     __ movl(Assembler::VMTagAddress(), EAX);
     __ call(EAX);
     __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ movl(ECX, Immediate(GetEntryPoint()));
+    __ movl(ECX, Immediate(runtime_entry->GetEntryPoint()));
     __ movl(EDX, Immediate(argument_count));
     __ CallToRuntime();
   }

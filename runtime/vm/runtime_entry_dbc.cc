@@ -17,9 +17,13 @@ uword RuntimeEntry::GetEntryPoint() const {
   return reinterpret_cast<uword>(function());
 }
 
-void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
+                                Assembler* assembler,
+                                intptr_t argument_count) {
   UNIMPLEMENTED();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

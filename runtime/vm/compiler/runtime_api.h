@@ -33,6 +33,7 @@ class Code;
 class Function;
 class LocalVariable;
 class Object;
+class RuntimeEntry;
 class String;
 class Zone;
 namespace compiler {
@@ -123,11 +124,47 @@ bool HasIntegerValue(const dart::Object& obj, int64_t* value);
 // generated code.
 int32_t CreateJitCookie();
 
+typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
+                                         compiler::Assembler*,
+                                         intptr_t);
+
 class RuntimeEntry : public ValueObject {
  public:
   virtual ~RuntimeEntry() {}
-  virtual void Call(compiler::Assembler* assembler,
-                    intptr_t argument_count) const = 0;
+
+  void Call(compiler::Assembler* assembler, intptr_t argument_count) const {
+    ASSERT(call_ != NULL);
+    ASSERT(runtime_entry_ != NULL);
+
+    // We call a manually set function pointer which points to the
+    // implementation of call for the subclass. We do this instead of just
+    // defining Call in this class as a pure virtual method and providing an
+    // implementation in the subclass as RuntimeEntry objects are declared as
+    // globals which causes problems on Windows.
+    //
+    // When exit() is called on Windows, global objects start to be destroyed.
+    // As part of an object's destruction, the vtable is reset to that of the
+    // base class. Since some threads may still be running and accessing these
+    // now destroyed globals, an invocation to dart::RuntimeEntry::Call would
+    // instead invoke dart::compiler::RuntimeEntry::Call. If
+    // dart::compiler::RuntimeEntry::Call were a pure virtual method, _purecall
+    // would be invoked to handle the invalid call and attempt to call exit(),
+    // causing the process to hang on a lock.
+    //
+    // By removing the need to rely on a potentially invalid vtable at exit,
+    // we should be able to avoid hanging or crashing the process at shutdown,
+    // even as global objects start to be destroyed. See issue #35855.
+    call_(runtime_entry_, assembler, argument_count);
+  }
+
+ protected:
+  RuntimeEntry(const dart::RuntimeEntry* runtime_entry,
+               RuntimeEntryCallInternal call)
+      : runtime_entry_(runtime_entry), call_(call) {}
+
+ private:
+  const dart::RuntimeEntry* runtime_entry_;
+  RuntimeEntryCallInternal call_;
 };
 
 // Allocate a string object with the given content in the runtime heap.
