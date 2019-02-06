@@ -164,32 +164,21 @@ mixin_method_override_test/G5: Skip # Issue 34354
 private_method_tearoff_test: RuntimeError
 
 [ $compiler == dartkp ]
-control_flow_collections/experimental_flag_test/none: RuntimeError
-control_flow_collections/for_const_test/none: RuntimeError
 control_flow_collections/for_inference_test: CompileTimeError
 control_flow_collections/for_test: CompileTimeError
 control_flow_collections/for_variable_test: CompileTimeError
-control_flow_collections/if_const_error_test/none: RuntimeError
 control_flow_collections/if_const_test: CompileTimeError
 control_flow_collections/if_inference_test: CompileTimeError
 control_flow_collections/if_test: CompileTimeError
-control_flow_collections/map_set_ambiguity_error_test/none: RuntimeError
 control_flow_collections/map_set_ambiguity_test: CompileTimeError
-control_flow_collections/syntax_error_test/none: RuntimeError
 control_flow_collections/syntax_test: CompileTimeError
-control_flow_collections/type_error_test/none: RuntimeError
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-spread_collections/const_error_test/none: RuntimeError
 spread_collections/const_test: CompileTimeError
-spread_collections/experimental_flag_test/none: RuntimeError
 spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_error_test/none: RuntimeError
 spread_collections/map_set_ambiguity_test: CompileTimeError
 spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_error_test/none: RuntimeError
 spread_collections/syntax_test: CompileTimeError
-spread_collections/type_error_test/none: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
