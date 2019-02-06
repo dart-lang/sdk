@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart';
+import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
+import 'package:analyzer/error/error.dart';
 
 /// Fixes use this API to register tasks. See [DartFixInfo.setup].
 abstract class DartFixRegistrar {
-  // TODO(danrubel): Add registration
+  /// Register the specified task to fix the given error condition.
+  void registerErrorTask(ErrorCode errorCode, FixErrorTask task);
 }

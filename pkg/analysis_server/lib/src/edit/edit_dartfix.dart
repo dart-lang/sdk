@@ -2,19 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
+import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,7 +19,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -34,12 +30,13 @@ import 'package:source_span/src/span.dart';
 
 // TODO(danrubel): Replace these consts with DartFixInfo
 const doubleToInt = 'double-to-int';
-const fixNamedConstructorTypeArgs = 'fix-named-constructor-type-arguments';
 const nonNullable = 'non-nullable';
 const useMixin = 'use-mixin';
 
-class EditDartFix implements DartFixRegistrar {
+class EditDartFix with FixErrorProcessor implements DartFixRegistrar {
+  @override
   final AnalysisServer server;
+
   final Request request;
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
@@ -164,14 +161,8 @@ class EditDartFix implements DartFixRegistrar {
 
       CompilationUnit unit = result?.unit;
       if (unit != null) {
-        if (!hasErrors) {
-          for (AnalysisError error in result.errors) {
-            if (!(await fixError(result, error))) {
-              if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
-                hasErrors = true;
-              }
-            }
-          }
+        if (await processErrors(result)) {
+          hasErrors = true;
         }
         Source source = result.unit.declaredElement.source;
         for (Linter linter in linters) {
@@ -213,32 +204,6 @@ class EditDartFix implements DartFixRegistrar {
       hasErrors,
       listener.sourceChange.edits,
     ).toResponse(request.id);
-  }
-
-  Future<bool> fixError(ResolvedUnitResult result, AnalysisError error) async {
-    const errorCodeToFixName = <ErrorCode, String>{
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
-          fixNamedConstructorTypeArgs,
-    };
-
-    final fixName = errorCodeToFixName[error.errorCode];
-    if (!namesOfFixesToApply.contains(fixName)) {
-      return false;
-    }
-
-    final workspace = DartChangeWorkspace(server.currentSessions);
-    final dartContext = new DartFixContextImpl(workspace, result, error);
-    final processor = new FixProcessor(dartContext);
-    Fix fix = await processor.computeFix();
-    final location = listener.locationFor(result, error.offset, error.length);
-    if (fix != null) {
-      listener.addSourceChange(fix.change.message, location, fix.change);
-    } else {
-      // TODO(danrubel): Determine why the fix could not be applied
-      // and report that in the description.
-      listener.addRecommendation('Could not fix "${error.message}"', location);
-    }
-    return true;
   }
 
   /// Return `true` if the path in within the set of `included` files

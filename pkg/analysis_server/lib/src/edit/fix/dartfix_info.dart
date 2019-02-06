@@ -6,15 +6,16 @@ import 'package:analysis_server/protocol/protocol_generated.dart' show DartFix;
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
+import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 
 const allFixes = <DartFixInfo>[
   //
   // Required fixes
   //
   const DartFixInfo(
-    fixNamedConstructorTypeArgs,
+    'fix-named-constructor-type-arguments',
     'Move named constructor type arguments from the name to the type.',
-    DartFixInfo.fixNamedConstructorTypeArgsSetup,
+    FixErrorTask.fixNamedConstructorTypeArgs,
     isRequired: true,
   ),
   const DartFixInfo(
@@ -53,9 +54,6 @@ class DartFixInfo {
   static String doubleToIntSetup(
           DartFixRegistrar reg, DartFixListener listener) =>
       doubleToInt;
-  static String fixNamedConstructorTypeArgsSetup(
-          DartFixRegistrar reg, DartFixListener listener) =>
-      fixNamedConstructorTypeArgs;
   static String nonNullableSetup(
           DartFixRegistrar reg, DartFixListener listener) =>
       nonNullable;
@@ -66,6 +64,7 @@ class DartFixInfo {
   final String description;
   final bool isDefault;
   final bool isRequired;
+  // TODO(danrubel): make the return value void
   final String Function(DartFixRegistrar dartfix, DartFixListener listener)
       setup;
 
