@@ -434,6 +434,11 @@ control_flow_collections/map_set_ambiguity_test: CompileTimeError
 control_flow_collections/syntax_error_test/09: Pass
 control_flow_collections/syntax_error_test/10: Pass
 control_flow_collections/syntax_test: CompileTimeError
+spread_collections/const_test: CompileTimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_test: CompileTimeError
 
 [ $compiler == dartkb && $runtime == vm && $strong ]
 async_star_test/03: Pass, RuntimeError # Please triage
