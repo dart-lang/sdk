@@ -15,7 +15,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 class PreferIntLiteralsFix extends FixLintTask {
-  static task(DartFixRegistrar registrar, DartFixListener listener) {
+  static void task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_int_literals'],
       new PreferIntLiteralsFix(listener),

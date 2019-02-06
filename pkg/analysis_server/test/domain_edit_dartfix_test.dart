@@ -37,10 +37,14 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   void expectSuggestion(DartFixSuggestion suggestion, String partialText,
-      int offset, int length) {
+      [int offset, int length]) {
     expect(suggestion.description, contains(partialText));
-    expect(suggestion.location.offset, offset);
-    expect(suggestion.location.length, length);
+    if (offset == null) {
+      expect(suggestion.location, isNull);
+    } else {
+      expect(suggestion.location.offset, offset);
+      expect(suggestion.location.length, length);
+    }
   }
 
   Future<EditDartfixResult> performFix({List<String> includedFixes}) async {
@@ -120,31 +124,10 @@ analyzer:
     - non-nullable
 ''');
     addTestFile('''
-main() {
-  functionWithNullableParam(new List<String>(1));
-  functionWithNullableParam(null);
-}
-
-class C1 {}
-class C2 {}
-class C extends C1 with M1 implements C2 {}
-
-mixin M1 {}
-mixin M on M1 implements C1 {}
-
-Object obj;
-
-void functionWithNullableParam(String object) {
-  if (object == null) {
-    print('object is null');
-  } else {
-    print('object is not-null');
-  }
-  String str = null;
-  List<Object> list = null;
-  list = <Object>[];
-  list.add(str);
-  list.add(obj);
+int f(int i) => 0;
+int g(int i) => f(i);
+void test() {
+  g(null);
 }
 ''');
     createProject();
@@ -152,33 +135,12 @@ void functionWithNullableParam(String object) {
         await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions, hasLength(1));
     expect(result.hasErrors, isFalse);
-    expectSuggestion(result.suggestions[0], 'non-nullable', 46, 6);
+    expectSuggestion(result.suggestions[0], 'non-nullable');
     expectEdits(result.edits, '''
-main() {
-  functionWithNullableParam(new List<String?>(1));
-  functionWithNullableParam(null);
-}
-
-class C1 {}
-class C2 {}
-class C extends C1 with M1 implements C2 {}
-
-mixin M1 {}
-mixin M on M1 implements C1 {}
-
-Object? obj;
-
-void functionWithNullableParam(String? object) {
-  if (object == null) {
-    print('object is null');
-  } else {
-    print('object is not-null');
-  }
-  String? str = null;
-  List<Object?>? list = null;
-  list = <Object?>[];
-  list.add(str);
-  list.add(obj);
+int f(int? i) => 0;
+int g(int? i) => f(i);
+void test() {
+  g(null);
 }
 ''');
   }

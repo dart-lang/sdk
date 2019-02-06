@@ -5,11 +5,8 @@
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
+import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// [NonNullableFix] visits each named type in a resolved compilation unit
@@ -22,20 +19,35 @@ class NonNullableFix extends FixCodeTask {
 
   final DartFixListener listener;
 
-  /// The current source being "fixed"
-  Source source;
+  // TODO(danrubel): Remove this caching and add a 2nd processing pass
+  // for nullability migration. This cache works around a current limitation
+  // in the migration engine which expects the same AST objects
+  // in the 2nd pass as the 1st pass.
+  List<ResolvedUnitResult> cache = <ResolvedUnitResult>[];
 
-  /// The source file change or `null` if none
-  SourceFileEdit fileEdit;
-
-  int firstOffset;
-  int firstLength;
+  // TODO(danrubel): consider integrating NullabilityMigration into this class
+  final NullabilityMigration migration = new NullabilityMigration();
 
   NonNullableFix(this.listener);
 
-  void addEdit(int offset, int length, String replacementText) {
-    fileEdit ??= new SourceFileEdit(source.fullName, 0);
-    fileEdit.edits.add(new SourceEdit(offset, length, replacementText));
+  @override
+  Future<void> finish() async {
+    // TODO(danrubel): Remove this caching and add a 2nd processing pass
+    // for nullability migration. This cache works around a current limitation
+    // in the migration engine which expects the same AST objects
+    // in the 2nd pass as the 1st pass.
+    while (cache.isNotEmpty) {
+      migration.processInput(cache.removeLast());
+    }
+
+    List<SourceFileEdit> edits = migration.finish();
+    for (SourceFileEdit edit in edits) {
+      // TODO(danrubel): integrate NullabilityMigration to provide
+      // better user feedback on what changes are being made.
+      Location location = null;
+      listener.addSourceFileEdit(
+          'Update non-nullable type references', location, edit);
+    }
   }
 
   /// Update the source to be non-nullable by
@@ -43,84 +55,12 @@ class NonNullableFix extends FixCodeTask {
   /// 2) removing trailing '?' from type references of non-nullable variables.
   @override
   Future<void> processUnit(ResolvedUnitResult result) async {
-    final context = result.session.analysisContext;
-    AnalysisOptionsImpl options = context.analysisOptions;
-    if (!options.experimentStatus.non_nullable) {
-      return;
-    }
+    migration.prepareInput(result);
 
-    final unit = result.unit;
-    source = unit.declaredElement.source;
-
-    // find and fix types
-    unit.accept(new _NonNullableTypeVisitor(this));
-
-    // add source changes to the collection of fixes
-    source = null;
-    if (fileEdit != null) {
-      listener.addSourceFileEdit('Update non-nullable type references',
-          listener.locationFor(result, firstOffset, firstLength), fileEdit);
-    }
-  }
-}
-
-class _NonNullableTypeVisitor extends RecursiveAstVisitor<void> {
-  final NonNullableFix fix;
-
-  _NonNullableTypeVisitor(this.fix);
-
-  @override
-  void visitConstructorName(ConstructorName node) {
-    // skip the type name associated with the constructor
-    node.type?.typeArguments?.accept(this);
-  }
-
-  @override
-  void visitExtendsClause(ExtendsClause node) {
-    // skip the type name associated with the extends clause
-    node.superclass?.typeArguments?.accept(this);
-  }
-
-  @override
-  void visitImplementsClause(ImplementsClause node) {
-    // skip the type names in the implements clause
-    for (TypeName typeName in node.interfaces) {
-      typeName.typeArguments?.accept(this);
-    }
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    // skip the type name in the clause
-    for (TypeName typeName in node.superclassConstraints) {
-      typeName.typeArguments?.accept(this);
-    }
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    // TODO(danrubel): Replace this braindead implementation
-    // with something that determines whether or not the type should be nullable
-    // and adds or removes the trailing `?` to match.
-    if (node.question == null) {
-      final identifier = node.name;
-      if (identifier is SimpleIdentifier) {
-        if (identifier.name == 'void') {
-          return;
-        }
-      }
-      fix.addEdit(node.end, 0, '?');
-      fix.firstOffset ??= node.offset;
-      fix.firstLength ??= node.length;
-    }
-    super.visitTypeName(node);
-  }
-
-  @override
-  void visitWithClause(WithClause node) {
-    // skip the type names associated with this clause
-    for (TypeName typeName in node.mixinTypes) {
-      typeName.typeArguments?.accept(this);
-    }
+    // TODO(danrubel): Remove this caching and add a 2nd processing pass
+    // for nullability migration. This cache works around a current limitation
+    // in the migration engine which expects the same AST objects
+    // in the 2nd pass as the 1st pass.
+    cache.add(result);
   }
 }

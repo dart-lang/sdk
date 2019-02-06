@@ -8,11 +8,19 @@ import 'package:analyzer/dart/analysis/results.dart';
 /// A general task for performing a fix.
 abstract class FixCodeTask {
   Future<void> processUnit(ResolvedUnitResult result);
+
+  Future<void> finish();
 }
 
 /// A processor used by [EditDartFix] to manage [FixCodeTask]s.
 mixin FixCodeProcessor {
   final codeTasks = <FixCodeTask>[];
+
+  Future<void> finishCodeTasks() async {
+    for (FixCodeTask task in codeTasks) {
+      await task.finish();
+    }
+  }
 
   Future<void> processCodeTasks(ResolvedUnitResult result) async {
     for (FixCodeTask task in codeTasks) {

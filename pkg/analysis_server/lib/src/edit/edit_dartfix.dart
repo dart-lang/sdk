@@ -117,6 +117,7 @@ class EditDartFix
       await processCodeTasks(result);
     }
     await finishLints();
+    await finishCodeTasks();
 
     return new EditDartfixResult(
       listener.suggestions,
