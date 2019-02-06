@@ -3,16 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
+import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/registry.dart';
 
-class PreferIntLiteralsFix extends LinterFix {
+class PreferIntLiteralsFix extends FixLintTask {
+  static String doubleToIntSetup(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_int_literals'],
+      new PreferIntLiteralsFix(listener),
+    );
+    return null;
+  }
+
   final literalsToConvert = <DoubleLiteral>[];
 
   PreferIntLiteralsFix(DartFixListener listener) : super(listener);

@@ -7,6 +7,8 @@ import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
+import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
+import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 
 const allFixes = <DartFixInfo>[
   //
@@ -19,19 +21,19 @@ const allFixes = <DartFixInfo>[
     isRequired: true,
   ),
   const DartFixInfo(
-    useMixin,
+    'use-mixin',
     'Convert classes used as a mixin to the new mixin syntax.',
-    DartFixInfo.useMixinSetup,
+    PreferMixinFix.useMixinSetup,
     isRequired: true,
   ),
   //
   // Suggested fixes
   //
   const DartFixInfo(
-    doubleToInt,
+    'double-to-int',
     'Find double literals ending in .0 and remove the .0\n'
         'wherever double context can be inferred.',
-    DartFixInfo.doubleToIntSetup,
+    PreferIntLiteralsFix.doubleToIntSetup,
   ),
   //
   // Expermimental fixes
@@ -51,14 +53,9 @@ const allFixes = <DartFixInfo>[
 /// [DartFixInfo] represents a fix that can be applied by [EditDartFix].
 class DartFixInfo {
   // TODO(danrubel): replace these setup method with ones that register tasks
-  static String doubleToIntSetup(
-          DartFixRegistrar reg, DartFixListener listener) =>
-      doubleToInt;
   static String nonNullableSetup(
           DartFixRegistrar reg, DartFixListener listener) =>
       nonNullable;
-  static String useMixinSetup(DartFixRegistrar reg, DartFixListener listener) =>
-      useMixin;
 
   final String key;
   final String description;
