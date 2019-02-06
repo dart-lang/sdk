@@ -2656,6 +2656,7 @@ class AvailableFileBuilder extends Object
   List<AvailableDeclarationBuilder> _declarations;
   List<AvailableFileExportBuilder> _exports;
   bool _isLibrary;
+  bool _isLibraryDeprecated;
   List<String> _parts;
 
   @override
@@ -2685,6 +2686,14 @@ class AvailableFileBuilder extends Object
   }
 
   @override
+  bool get isLibraryDeprecated => _isLibraryDeprecated ??= false;
+
+  /// Is `true` if this file is a library, and it is deprecated.
+  void set isLibraryDeprecated(bool value) {
+    this._isLibraryDeprecated = value;
+  }
+
+  @override
   List<String> get parts => _parts ??= <String>[];
 
   /// URIs of `part` directives.
@@ -2696,10 +2705,12 @@ class AvailableFileBuilder extends Object
       {List<AvailableDeclarationBuilder> declarations,
       List<AvailableFileExportBuilder> exports,
       bool isLibrary,
+      bool isLibraryDeprecated,
       List<String> parts})
       : _declarations = declarations,
         _exports = exports,
         _isLibrary = isLibrary,
+        _isLibraryDeprecated = isLibraryDeprecated,
         _parts = parts;
 
   /**
@@ -2714,7 +2725,14 @@ class AvailableFileBuilder extends Object
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addBool(this._isLibrary == true);
+    if (this._declarations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._declarations.length);
+      for (var x in this._declarations) {
+        x?.collectApiSignature(signature);
+      }
+    }
     if (this._exports == null) {
       signature.addInt(0);
     } else {
@@ -2723,20 +2741,14 @@ class AvailableFileBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._isLibrary == true);
+    signature.addBool(this._isLibraryDeprecated == true);
     if (this._parts == null) {
       signature.addInt(0);
     } else {
       signature.addInt(this._parts.length);
       for (var x in this._parts) {
         signature.addString(x);
-      }
-    }
-    if (this._declarations == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._declarations.length);
-      for (var x in this._declarations) {
-        x?.collectApiSignature(signature);
       }
     }
   }
@@ -2764,16 +2776,19 @@ class AvailableFileBuilder extends Object
     }
     fbBuilder.startTable();
     if (offset_declarations != null) {
-      fbBuilder.addOffset(3, offset_declarations);
+      fbBuilder.addOffset(0, offset_declarations);
     }
     if (offset_exports != null) {
       fbBuilder.addOffset(1, offset_exports);
     }
     if (_isLibrary == true) {
-      fbBuilder.addBool(0, true);
+      fbBuilder.addBool(2, true);
+    }
+    if (_isLibraryDeprecated == true) {
+      fbBuilder.addBool(3, true);
     }
     if (offset_parts != null) {
-      fbBuilder.addOffset(2, offset_parts);
+      fbBuilder.addOffset(4, offset_parts);
     }
     return fbBuilder.endTable();
   }
@@ -2803,13 +2818,14 @@ class _AvailableFileImpl extends Object
   List<idl.AvailableDeclaration> _declarations;
   List<idl.AvailableFileExport> _exports;
   bool _isLibrary;
+  bool _isLibraryDeprecated;
   List<String> _parts;
 
   @override
   List<idl.AvailableDeclaration> get declarations {
     _declarations ??= const fb.ListReader<idl.AvailableDeclaration>(
             const _AvailableDeclarationReader())
-        .vTableGet(_bc, _bcOffset, 3, const <idl.AvailableDeclaration>[]);
+        .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
     return _declarations;
   }
 
@@ -2823,14 +2839,21 @@ class _AvailableFileImpl extends Object
 
   @override
   bool get isLibrary {
-    _isLibrary ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 0, false);
+    _isLibrary ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
     return _isLibrary;
+  }
+
+  @override
+  bool get isLibraryDeprecated {
+    _isLibraryDeprecated ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _isLibraryDeprecated;
   }
 
   @override
   List<String> get parts {
     _parts ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _parts;
   }
 }
@@ -2845,6 +2868,8 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
     if (exports.isNotEmpty)
       _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (isLibrary != false) _result["isLibrary"] = isLibrary;
+    if (isLibraryDeprecated != false)
+      _result["isLibraryDeprecated"] = isLibraryDeprecated;
     if (parts.isNotEmpty) _result["parts"] = parts;
     return _result;
   }
@@ -2854,6 +2879,7 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
         "declarations": declarations,
         "exports": exports,
         "isLibrary": isLibrary,
+        "isLibraryDeprecated": isLibraryDeprecated,
         "parts": parts,
       };
 

@@ -4,16 +4,13 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../analysis_abstract.dart';
+import 'available_suggestions_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,35 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class GetSuggestionDetailsTest extends AbstractAnalysisTest {
-  final Map<int, AvailableSuggestionSet> idToSetMap = {};
-  final Map<String, AvailableSuggestionSet> uriToSetMap = {};
-
-  @override
-  void processNotification(Notification notification) {
-    if (notification.event == COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS) {
-      var params = CompletionAvailableSuggestionsParams.fromNotification(
-        notification,
-      );
-      for (var set in params.changedLibraries) {
-        idToSetMap[set.id] = set;
-        uriToSetMap[set.uri] = set;
-      }
-      for (var id in params.removedLibraries) {
-        var set = idToSetMap.remove(id);
-        uriToSetMap.remove(set?.uri);
-      }
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    createProject();
-    handler = new CompletionDomainHandler(server);
-    _setCompletionSubscriptions([CompletionService.AVAILABLE_SUGGESTION_SETS]);
-  }
-
+class GetSuggestionDetailsTest extends AvailableSuggestionsBase {
   test_dart_existingImport() async {
     addTestFile(r'''
 import 'dart:math';
@@ -58,7 +27,7 @@ import 'dart:math';
 main() {} // ref
 ''');
 
-    var mathSet = await _waitForSetWithUri('dart:math');
+    var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
       id: mathSet.id,
       label: 'sin',
@@ -76,7 +45,7 @@ import 'dart:math' as math;
 main() {} // ref
 ''');
 
-    var mathSet = await _waitForSetWithUri('dart:math');
+    var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
       id: mathSet.id,
       label: 'sin',
@@ -92,7 +61,7 @@ main() {} // ref
 main() {} // ref
 ''');
 
-    var mathSet = await _waitForSetWithUri('dart:math');
+    var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
       id: mathSet.id,
       label: 'sin',
@@ -138,20 +107,5 @@ main() {} // ref
       ).toRequest('0'),
     );
     return CompletionGetSuggestionDetailsResult.fromResponse(response);
-  }
-
-  void _setCompletionSubscriptions(List<CompletionService> subscriptions) {
-    handleSuccessfulRequest(
-      CompletionSetSubscriptionsParams(subscriptions).toRequest('0'),
-    );
-  }
-
-  Future<AvailableSuggestionSet> _waitForSetWithUri(String uri) async {
-    AvailableSuggestionSet result;
-    await Future.doWhile(() async {
-      result = uriToSetMap[uri];
-      return result == null;
-    });
-    return result;
   }
 }

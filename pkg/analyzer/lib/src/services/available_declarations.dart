@@ -475,6 +475,7 @@ class DeclarationsTracker {
         file.id,
         file.path,
         file.uri,
+        file.isLibraryDeprecated,
         file.exportedDeclarations,
       );
       _idToLibrary[file.id] = library;
@@ -587,6 +588,7 @@ class DeclarationsTracker {
           library.id,
           library.path,
           library.uri,
+          library.isLibraryDeprecated,
           library.exportedDeclarations,
         ));
       } else {
@@ -618,10 +620,15 @@ class Library {
   /// The URI of the library.
   final Uri uri;
 
+  /// Is `true` if the library has `@deprecated` annotation, so it probably
+  /// deprecated.  But we don't actually resolve the annotation, so it might be
+  /// a false positive.
+  final bool isDeprecated;
+
   /// All public declaration that the library declares or (re)exports.
   final List<Declaration> declarations;
 
-  Library._(this.id, this.path, this.uri, this.declarations);
+  Library._(this.id, this.path, this.uri, this.isDeprecated, this.declarations);
 
   String get uriStr => '$uri';
 
@@ -801,7 +808,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 3;
+  static const int DATA_VERSION = 4;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -814,6 +821,7 @@ class _File {
 
   bool exists = false;
   bool isLibrary = false;
+  bool isLibraryDeprecated = false;
   List<_Export> exports = [];
   List<_Part> parts = [];
 
@@ -923,9 +931,7 @@ class _File {
     exportedDeclarations = null;
 
     for (var astDirective in unit.directives) {
-      if (astDirective is PartOfDirective) {
-        isLibrary = false;
-      } else if (astDirective is ExportDirective) {
+      if (astDirective is ExportDirective) {
         var uri = _uriFromAst(astDirective.uri);
         if (uri == null) continue;
 
@@ -945,11 +951,15 @@ class _File {
         }
 
         exports.add(_Export(uri, combinators));
+      } else if (astDirective is LibraryDirective) {
+        isLibraryDeprecated = _hasDeprecatedAnnotation(astDirective);
       } else if (astDirective is PartDirective) {
         var uri = _uriFromAst(astDirective.uri);
         if (uri == null) continue;
 
         parts.add(_Part(uri));
+      } else if (astDirective is PartOfDirective) {
+        isLibrary = false;
       }
     }
 
@@ -1126,6 +1136,7 @@ class _File {
   void _putFileDeclarationsToByteStore(String contentKey) {
     var builder = idl.AvailableFileBuilder(
       isLibrary: isLibrary,
+      isLibraryDeprecated: isLibraryDeprecated,
       exports: exports.map((e) {
         return idl.AvailableFileExportBuilder(
           uri: e.uri.toString(),
@@ -1148,6 +1159,7 @@ class _File {
     var idlFile = idl.AvailableFile.fromBuffer(bytes);
 
     isLibrary = idlFile.isLibrary;
+    isLibraryDeprecated = idlFile.isLibraryDeprecated;
 
     exports = idlFile.exports.map((e) {
       return _Export(
@@ -1217,8 +1229,10 @@ class _File {
   static bool _hasDeprecatedAnnotation(AnnotatedNode node) {
     for (var annotation in node.metadata) {
       var name = annotation.name;
-      if (name is SimpleIdentifier && name.name == 'deprecated') {
-        return true;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'deprecated' || name.name == 'Deprecated') {
+          return true;
+        }
       }
     }
     return false;

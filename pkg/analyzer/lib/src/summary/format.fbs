@@ -911,16 +911,19 @@ table AvailableDeclaration {
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
   /// Declarations of the file.
-  declarations:[AvailableDeclaration] (id: 3);
+  declarations:[AvailableDeclaration] (id: 0);
 
   /// Exports directives of the file.
   exports:[AvailableFileExport] (id: 1);
 
   /// Is `true` if this file is a library.
-  isLibrary:bool (id: 0);
+  isLibrary:bool (id: 2);
+
+  /// Is `true` if this file is a library, and it is deprecated.
+  isLibraryDeprecated:bool (id: 3);
 
   /// URIs of `part` directives.
-  parts:[string] (id: 2);
+  parts:[string] (id: 4);
 }
 
 /// Information about an export directive.

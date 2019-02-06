@@ -1605,6 +1605,25 @@ var myVariable1, myVariable2;
     ]);
   }
 
+  test_library_isDeprecated() async {
+    newFile('/home/test/lib/a.dart', content: '');
+    newFile('/home/test/lib/b.dart', content: r'''
+@deprecated
+library my.lib;
+''');
+    newFile('/home/test/lib/c.dart', content: r'''
+@Deprecated('description')
+library my.lib;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    expect(uriToLibrary['package:test/a.dart'].isDeprecated, isFalse);
+    expect(uriToLibrary['package:test/b.dart'].isDeprecated, isTrue);
+    expect(uriToLibrary['package:test/c.dart'].isDeprecated, isTrue);
+  }
+
   test_parts() async {
     newFile('/home/test/lib/a.dart', content: r'''
 part of 'test.dart';

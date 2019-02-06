@@ -363,7 +363,7 @@ abstract class AvailableFile extends base.SummaryClass {
       generated.readAvailableFile(buffer);
 
   /// Declarations of the file.
-  @Id(3)
+  @Id(0)
   List<AvailableDeclaration> get declarations;
 
   /// Exports directives of the file.
@@ -371,11 +371,15 @@ abstract class AvailableFile extends base.SummaryClass {
   List<AvailableFileExport> get exports;
 
   /// Is `true` if this file is a library.
-  @Id(0)
+  @Id(2)
   bool get isLibrary;
 
+  /// Is `true` if this file is a library, and it is deprecated.
+  @Id(3)
+  bool get isLibraryDeprecated;
+
   /// URIs of `part` directives.
-  @Id(2)
+  @Id(4)
   List<String> get parts;
 }
 

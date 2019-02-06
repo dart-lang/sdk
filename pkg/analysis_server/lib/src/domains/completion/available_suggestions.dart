@@ -30,28 +30,33 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
   void includeLibrary(
     Library library,
     int importedRelevance,
+    int deprecatedRelevance,
     int otherwiseRelevance,
   ) {
+    int relevance;
+    if (importedUriSet.contains(library.uri)) {
+      relevance = importedRelevance;
+    } else if (library.isDeprecated) {
+      relevance = deprecatedRelevance;
+    } else {
+      relevance = otherwiseRelevance;
+    }
+
     includedSetList.add(
-      protocol.IncludedSuggestionSet(
-        library.id,
-        importedUriSet.contains(library.uri)
-            ? importedRelevance
-            : otherwiseRelevance,
-      ),
+      protocol.IncludedSuggestionSet(library.id, relevance),
     );
   }
 
   for (var library in librariesObject.context) {
-    includeLibrary(library, 5, 2);
+    includeLibrary(library, 8, 2, 5);
   }
 
   for (var library in librariesObject.dependencies) {
-    includeLibrary(library, 4, 1);
+    includeLibrary(library, 7, 1, 4);
   }
 
   for (var library in librariesObject.sdk) {
-    includeLibrary(library, 3, 0);
+    includeLibrary(library, 6, 0, 3);
   }
 
   return includedSetList;
