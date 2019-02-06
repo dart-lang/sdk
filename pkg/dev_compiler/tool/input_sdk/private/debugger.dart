@@ -679,7 +679,11 @@ class MapFormatter implements Formatter {
 
   String preview(object) {
     Map map = object;
-    return '${getObjectTypeName(map)} length ${map.length}';
+    try {
+      return '${getObjectTypeName(map)} length ${map.length}';
+    } catch (e) {
+      return safePreview(object, JsonMLConfig.none);
+    }
   }
 
   List<NameValuePair> children(object) {
