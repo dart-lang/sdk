@@ -143,9 +143,9 @@ class InheritanceManager2 {
 
           implemented = <Name, FunctionType>{}
             ..addAll(implemented)
-            ..addAll(interfaceObj.implementedForMixing);
+            ..addAll(interfaceObj._implementedForMixing);
           superImplemented.add(implemented);
-          implementedForMixing.addAll(interfaceObj.implementedForMixing);
+          implementedForMixing.addAll(interfaceObj._implementedForMixing);
         }
       }
     } finally {
@@ -179,12 +179,12 @@ class InheritanceManager2 {
     var noSuchMethodForwarders = Set<Name>();
     if (classElement.isAbstract) {
       if (superInterface != null) {
-        noSuchMethodForwarders = superInterface.noSuchMethodForwarders;
+        noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
       }
     } else {
       var noSuchMethod = implemented[_noSuchMethodName]?.element;
       if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
-        var superForwarders = superInterface?.noSuchMethodForwarders;
+        var superForwarders = superInterface?._noSuchMethodForwarders;
         for (var name in map.keys) {
           if (!implemented.containsKey(name) ||
               superForwarders != null && superForwarders.contains(name)) {
@@ -446,11 +446,11 @@ class Interface {
   final Map<Name, FunctionType> implemented;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
-  final Set<Name> noSuchMethodForwarders;
+  final Set<Name> _noSuchMethodForwarders;
 
   /// The map of names to their concrete implementations that can be mixed
   /// when this type is used as a mixin.
-  final Map<Name, FunctionType> implementedForMixing;
+  final Map<Name, FunctionType> _implementedForMixing;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
@@ -475,8 +475,8 @@ class Interface {
     this.map,
     this.declared,
     this.implemented,
-    this.noSuchMethodForwarders,
-    this.implementedForMixing,
+    this._noSuchMethodForwarders,
+    this._implementedForMixing,
     this._overridden,
     this._superImplemented,
     this.conflicts,

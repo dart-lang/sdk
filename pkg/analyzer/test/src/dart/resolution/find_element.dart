@@ -26,6 +26,20 @@ class FindElement {
     fail('Not found: $name');
   }
 
+  ClassElement classOrMixin(String name) {
+    for (var class_ in unitElement.types) {
+      if (class_.name == name) {
+        return class_;
+      }
+    }
+    for (var mixin in unitElement.mixins) {
+      if (mixin.name == name) {
+        return mixin;
+      }
+    }
+    fail('Not found: $name');
+  }
+
   ConstructorElement constructor(String name, {String of}) {
     assert(name != '');
     ConstructorElement result;

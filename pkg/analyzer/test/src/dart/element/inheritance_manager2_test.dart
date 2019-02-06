@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,9 +44,10 @@ class X extends B {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'B')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: () → void',
     );
   }
 
@@ -66,9 +67,10 @@ class X implements I, J {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'J')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'J.foo: () → void',
     );
   }
 
@@ -88,9 +90,10 @@ class X extends A with M {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'M')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'M.foo: () → void',
     );
   }
 
@@ -110,9 +113,10 @@ class X extends A implements I {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -710,11 +714,11 @@ abstract class C implements I1, I2 {}
 ''');
     await resolveTestFile();
 
-    var memberType = manager.getMember(
-      findElement.class_('C').type,
-      new Name(null, 'f'),
+    _assertGetMember(
+      className: 'C',
+      name: 'f',
+      expected: 'I2.f: (Object) → void',
     );
-    assertElementTypeString(memberType, '(Object) → void');
   }
 
   test_getMember_concrete() async {
@@ -725,9 +729,11 @@ class A {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('A', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'A',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -739,7 +745,11 @@ abstract class A {
 ''');
     await resolveTestFile();
 
-    expect(_getConcrete('A', 'foo'), isNull);
+    _assertGetMember(
+      className: 'A',
+      name: 'foo',
+      concrete: true,
+    );
   }
 
   test_getMember_concrete_fromMixedClass() async {
@@ -752,9 +762,11 @@ class X with A {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -770,9 +782,11 @@ class X with B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -788,9 +802,11 @@ class X extends A with B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'toString'),
-      same(findElement.method('toString', of: 'A')),
+    _assertGetMember(
+      className: 'X',
+      name: 'toString',
+      concrete: true,
+      expected: 'A.toString: () → String',
     );
   }
 
@@ -804,9 +820,11 @@ class X with M {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'foo'),
-      same(findElement.method('foo', of: 'M')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      concrete: true,
+      expected: 'M.foo: () → void',
     );
   }
 
@@ -822,14 +840,18 @@ abstract class C extends B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
 
-    expect(
-      _getConcrete('C', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -839,7 +861,11 @@ abstract class A {}
 ''');
     await resolveTestFile();
 
-    expect(_getConcrete('A', 'foo'), isNull);
+    _assertGetMember(
+      className: 'A',
+      name: 'foo',
+      concrete: true,
+    );
   }
 
   test_getMember_concrete_noSuchMethod() async {
@@ -856,14 +882,18 @@ abstract class C extends B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
 
-    expect(
-      _getConcrete('C', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -881,7 +911,11 @@ abstract class B extends Object with A {}
 
     // noSuchMethod forwarders are not mixed-in.
     // https://github.com/dart-lang/sdk/issues/33553#issuecomment-424638320
-    expect(_getConcrete('B', 'foo'), isNull);
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+    );
   }
 
   test_getMember_concrete_noSuchMethod_moreSpecificSignature() async {
@@ -895,14 +929,16 @@ class B implements A {
 }
 
 class C extends B {
-  void foo([a]);
+  void foo([int a]);
 }
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('C', 'foo'),
-      same(findElement.method('foo', of: 'C')),
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'C.foo: ([int]) → void',
     );
   }
 
@@ -928,11 +964,11 @@ class X extends A with M1, M2 implements I {}
 ''');
     await resolveTestFile();
 
-    var member = manager.getMember(
-      findElement.class_('X').type,
-      new Name(null, 'foo'),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'M2.foo: () → void',
     );
-    expect(member.element, findElement.method('foo', of: 'M2'));
   }
 
   test_getMember_preferLatest_superclass() async {
@@ -953,11 +989,11 @@ class X extends B implements I {}
 ''');
     await resolveTestFile();
 
-    var member = manager.getMember(
-      findElement.class_('X').type,
-      new Name(null, 'foo'),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: () → void',
     );
-    expect(member.element, findElement.method('foo', of: 'B'));
   }
 
   test_getMember_preferLatest_this() async {
@@ -976,11 +1012,11 @@ class X extends A implements I {
 ''');
     await resolveTestFile();
 
-    var member = manager.getMember(
-      findElement.class_('X').type,
-      new Name(null, 'foo'),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: () → void',
     );
-    expect(member.element, findElement.method('foo', of: 'X'));
   }
 
   test_getMember_super_abstract() async {
@@ -995,7 +1031,11 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    expect(_getSuper('B', 'foo'), isNull);
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+    );
   }
 
   test_getMember_super_forMixin_interface() async {
@@ -1008,9 +1048,10 @@ mixin M implements A {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuperForElement(findElement.mixin('M'), 'foo'),
-      isNull,
+    _assertGetMember(
+      className: 'M',
+      name: 'foo',
+      forSuper: true,
     );
   }
 
@@ -1024,9 +1065,11 @@ mixin M on A {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuperForElement(findElement.mixin('M'), 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'M',
+      name: 'foo',
+      forSuper: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -1042,9 +1085,11 @@ class X extends Object with M {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuper('X', 'foo'),
-      same(findElement.method('foo', of: 'M')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      forSuper: true,
+      expected: 'M.foo: () → void',
     );
   }
 
@@ -1060,9 +1105,11 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuper('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -1074,7 +1121,11 @@ class B extends A {}
 ''');
     await resolveTestFile();
 
-    expect(_getSuper('B', 'foo'), isNull);
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+    );
   }
 
   test_getMember_super_noSuchMember() async {
@@ -1090,10 +1141,46 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuper('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+      expected: 'A.foo: () → void',
     );
+  }
+
+  void _assertGetInherited({
+    @required String className,
+    @required String name,
+    String expected,
+  }) {
+    var interfaceType = findElement.classOrMixin(className).type;
+
+    var memberType = manager.getInherited(
+      interfaceType,
+      new Name(null, name),
+    );
+
+    _assertMemberType(memberType, expected);
+  }
+
+  void _assertGetMember({
+    @required String className,
+    @required String name,
+    String expected,
+    bool concrete = false,
+    bool forSuper = false,
+  }) {
+    var interfaceType = findElement.classOrMixin(className).type;
+
+    var memberType = manager.getMember(
+      interfaceType,
+      new Name(null, name),
+      concrete: concrete,
+      forSuper: forSuper,
+    );
+
+    _assertMemberType(memberType, expected);
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {
@@ -1106,6 +1193,17 @@ class B extends A {
     var type = findElement.class_(className).type;
     var map = manager.getInheritedMap(type);
     _assertNameToFunctionTypeMap(map, expected);
+  }
+
+  void _assertMemberType(FunctionType type, String expected) {
+    if (expected != null) {
+      var element = type.element;
+      var enclosingElement = element.enclosingElement;
+      var actual = '${enclosingElement.name}.${element.name}: $type';
+      expect(actual, expected);
+    } else {
+      expect(type, isNull);
+    }
   }
 
   void _assertNameToFunctionTypeMap(
@@ -1128,29 +1226,5 @@ class B extends A {
       print(actual);
     }
     expect(actual, expected);
-  }
-
-  ExecutableElement _getConcrete(String className, String name) {
-    var type = findElement.class_(className).type;
-    return manager
-        .getMember(type, new Name(null, name), concrete: true)
-        ?.element;
-  }
-
-  ExecutableElement _getInherited(String className, String name) {
-    var type = findElement.class_(className).type;
-    return manager.getInherited(type, new Name(null, name))?.element;
-  }
-
-  ExecutableElement _getSuper(String className, String name) {
-    var element = findElement.class_(className);
-    return _getSuperForElement(element, name);
-  }
-
-  ExecutableElement _getSuperForElement(ClassElement element, String name) {
-    var type = element.type;
-    return manager
-        .getMember(type, new Name(null, name), forSuper: true)
-        ?.element;
   }
 }
