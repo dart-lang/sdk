@@ -44,7 +44,7 @@ int? f() => null;
     newFile(sourcePath, content: content);
     var resolvedUnitResult = await session.getResolvedUnit(sourcePath);
     var migration = NullabilityMigration();
-    migration.prepareInput(resolvedUnitResult, -1);
+    migration.prepareInput(resolvedUnitResult);
     migration.processInput(resolvedUnitResult);
     var result = migration.finish();
     expect(result, hasLength(1));

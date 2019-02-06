@@ -18,12 +18,10 @@ import 'package:analyzer/src/dart/nullability/transitional_api.dart'
 class NullabilityMigration {
   final _analyzerMigration = analyzer.NullabilityMigration();
 
-  final _fileStamp = <String, int>{};
-
   List<SourceFileEdit> finish() {
     var results = <SourceFileEdit>[];
     _analyzerMigration.finish().forEach((path, modifications) {
-      var sourceFileEdit = SourceFileEdit(path, _fileStamp[path]);
+      var sourceFileEdit = SourceFileEdit(path, -1);
       for (var modification in modifications) {
         sourceFileEdit
             .add(SourceEdit(modification.location, 0, modification.insert));
@@ -33,9 +31,8 @@ class NullabilityMigration {
     return results;
   }
 
-  void prepareInput(ResolvedUnitResult result, int fileStamp) {
+  void prepareInput(ResolvedUnitResult result) {
     _analyzerMigration.prepareInput(result.path, result.unit);
-    _fileStamp[result.path] = fileStamp;
   }
 
   void processInput(ResolvedUnitResult result) {
