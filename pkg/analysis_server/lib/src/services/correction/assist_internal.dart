@@ -2128,9 +2128,7 @@ class AssistProcessor {
                 builder.writeln();
               }
               builder.writeln('  @override');
-              builder.writeln('  $stateName createState() {');
-              builder.writeln('    return $stateName();');
-              builder.writeln('  }');
+              builder.writeln('  $stateName createState() => $stateName();');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
               }

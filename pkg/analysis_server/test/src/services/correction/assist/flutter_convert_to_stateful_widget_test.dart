@@ -36,9 +36,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() {
-    return _MyWidgetState();
-  }
+  _MyWidgetState createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -103,9 +101,7 @@ class MyWidget extends StatefulWidget {
   }
 
   @override
-  _MyWidgetState createState() {
-    return _MyWidgetState();
-  }
+  _MyWidgetState createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -165,9 +161,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() {
-    return _MyWidgetState();
-  }
+  _MyWidgetState createState() => _MyWidgetState();
 
   static String get staticGetter1 => '';
 
@@ -246,9 +240,7 @@ class MyWidget extends StatefulWidget {
   MyWidget(this.instanceField1);
 
   @override
-  _MyWidgetState createState() {
-    return _MyWidgetState();
-  }
+  _MyWidgetState createState() => _MyWidgetState();
 
   static void staticMethod1() {
     print('static 1');
@@ -349,9 +341,7 @@ class MyWidget extends StatefulWidget {
   const MyWidget(this.aaa, this.bbb);
 
   @override
-  _MyWidgetState createState() {
-    return _MyWidgetState();
-  }
+  _MyWidgetState createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -387,9 +377,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() {
-    return _MyWidgetState();
-  }
+  _MyWidgetState createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
