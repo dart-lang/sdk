@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
+import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -13,7 +15,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
-class NonNullableFix {
+class NonNullableFix extends FixCodeTask {
+  static void task(DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerCodeTask(new NonNullableFix(listener));
+  }
+
   final DartFixListener listener;
 
   /// The current source being "fixed"
@@ -35,7 +41,8 @@ class NonNullableFix {
   /// Update the source to be non-nullable by
   /// 1) adding trailing '?' to type references of nullable variables, and
   /// 2) removing trailing '?' from type references of non-nullable variables.
-  void applyLocalFixes(ResolvedUnitResult result) {
+  @override
+  Future<void> processUnit(ResolvedUnitResult result) async {
     final context = result.session.analysisContext;
     AnalysisOptionsImpl options = context.analysisOptions;
     if (!options.experimentStatus.non_nullable) {
@@ -55,8 +62,6 @@ class NonNullableFix {
           listener.locationFor(result, firstOffset, firstLength), fileEdit);
     }
   }
-
-  void applyRemainingFixes() {}
 }
 
 class _NonNullableTypeVisitor extends RecursiveAstVisitor<void> {

@@ -16,13 +16,11 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 class PreferMixinFix extends FixLintTask {
-  static String useMixinSetup(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_mixin'],
       new PreferMixinFix(listener),
     );
-    return null;
   }
 
   final classesToConvert = new Set<Element>();

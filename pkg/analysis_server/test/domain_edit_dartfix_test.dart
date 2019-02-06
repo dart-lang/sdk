@@ -148,7 +148,8 @@ void functionWithNullableParam(String object) {
 }
 ''');
     createProject();
-    EditDartfixResult result = await performFix(includedFixes: [nonNullable]);
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions, hasLength(1));
     expect(result.hasErrors, isFalse);
     expectSuggestion(result.suggestions[0], 'non-nullable', 46, 6);

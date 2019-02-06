@@ -15,13 +15,11 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 class PreferIntLiteralsFix extends FixLintTask {
-  static String doubleToIntSetup(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_int_literals'],
       new PreferIntLiteralsFix(listener),
     );
-    return null;
   }
 
   final literalsToConvert = <DoubleLiteral>[];

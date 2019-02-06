@@ -8,26 +8,20 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
+import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/services/lint.dart';
-
-// TODO(danrubel): Replace these consts with DartFixInfo
-const nonNullable = 'non-nullable';
 
 class EditDartFix
-    with FixErrorProcessor, FixLintProcessor
+    with FixCodeProcessor, FixErrorProcessor, FixLintProcessor
     implements DartFixRegistrar {
   final AnalysisServer server;
 
   final Request request;
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
-  // TODO(danrubel): replace with is a list of DartFixInfo
-  final namesOfFixesToApply = new Set<String>();
 
   DartFixListener listener;
 
@@ -67,11 +61,7 @@ class EditDartFix
       }
     }
     for (DartFixInfo info in fixInfo) {
-      String key = info.setup(this, listener);
-      if (key != null) {
-        // TODO(danrubel) replace returned strings with task registration.
-        namesOfFixesToApply.add(key);
-      }
+      info.setup(this, listener);
     }
 
     // Validate each included file and directory.
@@ -94,15 +84,7 @@ class EditDartFix
       }
     }
 
-    final nonNullableFix = namesOfFixesToApply.contains(nonNullable)
-        ? new NonNullableFix(listener)
-        : null;
-
-    // TODO(danrubel): Determine if a lint is configured to run as part of
-    // standard analysis and use those results if available instead of
-    // running the lint again.
-
-    // Analyze each source file.
+    // Process each source file.
     final resources = <Resource>[];
     for (String rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
@@ -132,23 +114,9 @@ class EditDartFix
         hasErrors = true;
       }
       await processLints(result);
-
-      nonNullableFix?.applyLocalFixes(result);
+      await processCodeTasks(result);
     }
-
-    // Cleanup
-    for (Linter linter in linters) {
-      if (linter != null) {
-        linter.reporter.source = null;
-        linter.reporter = null;
-      }
-    }
-
-    // Apply distributed fixes
-    for (FixLintTask fix in fixes) {
-      await fix.applyRemainingFixes();
-    }
-    nonNullableFix?.applyRemainingFixes();
+    await finishLints();
 
     return new EditDartfixResult(
       listener.suggestions,

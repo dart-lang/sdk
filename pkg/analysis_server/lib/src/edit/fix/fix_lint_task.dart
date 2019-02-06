@@ -86,15 +86,23 @@ abstract class FixLintTask implements ErrorReporter {
 /// A processor used by [EditDartFix] to manage [FixLintTask]s.
 mixin FixLintProcessor {
   final linters = <Linter>[];
-  final fixes = <FixLintTask>[];
+  final lintTasks = <FixLintTask>[];
 
-  void registerLintTask(LintRule lint, FixLintTask task) {
-    linters.add(lint);
-    fixes.add(task);
-    lint.reporter = task;
+  Future<void> finishLints() async {
+    for (Linter linter in linters) {
+      linter.reporter = null;
+    }
+    for (FixLintTask fix in lintTasks) {
+      fix.source = null;
+      await fix.applyRemainingFixes();
+    }
   }
 
   Future<void> processLints(ResolvedUnitResult result) async {
+    // TODO(danrubel): Determine if a lint is configured to run as part of
+    // standard analysis and use those results if available instead of
+    // running the lint again.
+
     Source source = result.unit.declaredElement.source;
     for (Linter linter in linters) {
       if (linter != null) {
@@ -144,8 +152,14 @@ mixin FixLintProcessor {
     unit.accept(new LinterVisitor(
         registry, ExceptionHandlingDelegatingAstVisitor.logException));
 
-    for (FixLintTask fix in fixes) {
+    for (FixLintTask fix in lintTasks) {
       await fix.applyLocalFixes(result);
     }
+  }
+
+  void registerLintTask(LintRule lint, FixLintTask task) {
+    linters.add(lint);
+    lintTasks.add(task);
+    lint.reporter = task;
   }
 }

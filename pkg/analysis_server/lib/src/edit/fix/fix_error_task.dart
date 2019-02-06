@@ -15,12 +15,11 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// A task for fixing a particular error
 class FixErrorTask {
-  static String fixNamedConstructorTypeArgs(
+  static void fixNamedConstructorTypeArgs(
       DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerErrorTask(
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         new FixErrorTask(listener));
-    return null;
   }
 
   final DartFixListener listener;
@@ -46,12 +45,12 @@ class FixErrorTask {
 /// A processor used by [EditDartFix] to manage [FixErrorTask]s.
 mixin FixErrorProcessor {
   /// A mapping from [ErrorCode] to the fix that should be applied.
-  final fixErrorTasks = <ErrorCode, FixErrorTask>{};
+  final errorTaskMap = <ErrorCode, FixErrorTask>{};
 
   Future<bool> processErrors(ResolvedUnitResult result) async {
     bool foundError = false;
     for (AnalysisError error in result.errors) {
-      final task = fixErrorTasks[error.errorCode];
+      final task = errorTaskMap[error.errorCode];
       if (task != null) {
         await task.fixError(result, error);
       } else if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
@@ -66,6 +65,6 @@ mixin FixErrorProcessor {
   }
 
   void registerErrorTask(ErrorCode errorCode, FixErrorTask task) {
-    fixErrorTasks[errorCode] = task;
+    errorTaskMap[errorCode] = task;
   }
 }
