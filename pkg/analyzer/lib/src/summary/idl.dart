@@ -291,49 +291,55 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(1)
   String get docSummary;
 
+  @Id(2)
+  int get fieldMask;
+
   /// The identifier of the declaration, a simple name like `MyClass`, or
   /// a qualified name of a static member like `MyEnum.value`.
-  @Id(2)
+  @Id(3)
   String get identifier;
 
-  @Id(3)
+  @Id(4)
   bool get isAbstract;
 
-  @Id(4)
+  @Id(5)
   bool get isConst;
 
-  @Id(5)
+  @Id(6)
   bool get isDeprecated;
 
-  @Id(6)
+  @Id(7)
   bool get isFinal;
 
   /// The kind of the declaration.
-  @Id(7)
+  @Id(8)
   AvailableDeclarationKind get kind;
 
-  @Id(8)
+  @Id(9)
   int get locationOffset;
 
-  @Id(9)
+  @Id(10)
   int get locationStartColumn;
 
-  @Id(10)
+  @Id(11)
   int get locationStartLine;
 
-  @Id(11)
+  @Id(12)
   List<String> get parameterNames;
 
-  @Id(12)
-  List<String> get parameterTypes;
-
   @Id(13)
-  int get requiredParameterCount;
+  String get parameters;
 
   @Id(14)
-  String get returnType;
+  List<String> get parameterTypes;
 
   @Id(15)
+  int get requiredParameterCount;
+
+  @Id(16)
+  String get returnType;
+
+  @Id(17)
   String get typeParameters;
 }
 
@@ -344,7 +350,9 @@ enum AvailableDeclarationKind {
   ENUM,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
+  GETTER,
   MIXIN,
+  SETTER,
   VARIABLE
 }
 

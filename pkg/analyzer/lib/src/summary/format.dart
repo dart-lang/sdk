@@ -2116,6 +2116,7 @@ class AvailableDeclarationBuilder extends Object
     implements idl.AvailableDeclaration {
   String _docComplete;
   String _docSummary;
+  int _fieldMask;
   String _identifier;
   bool _isAbstract;
   bool _isConst;
@@ -2126,6 +2127,7 @@ class AvailableDeclarationBuilder extends Object
   int _locationStartColumn;
   int _locationStartLine;
   List<String> _parameterNames;
+  String _parameters;
   List<String> _parameterTypes;
   int _requiredParameterCount;
   String _returnType;
@@ -2143,6 +2145,14 @@ class AvailableDeclarationBuilder extends Object
 
   void set docSummary(String value) {
     this._docSummary = value;
+  }
+
+  @override
+  int get fieldMask => _fieldMask ??= 0;
+
+  void set fieldMask(int value) {
+    assert(value == null || value >= 0);
+    this._fieldMask = value;
   }
 
   @override
@@ -2223,6 +2233,13 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
+  String get parameters => _parameters ??= '';
+
+  void set parameters(String value) {
+    this._parameters = value;
+  }
+
+  @override
   List<String> get parameterTypes => _parameterTypes ??= <String>[];
 
   void set parameterTypes(List<String> value) {
@@ -2254,6 +2271,7 @@ class AvailableDeclarationBuilder extends Object
   AvailableDeclarationBuilder(
       {String docComplete,
       String docSummary,
+      int fieldMask,
       String identifier,
       bool isAbstract,
       bool isConst,
@@ -2264,12 +2282,14 @@ class AvailableDeclarationBuilder extends Object
       int locationStartColumn,
       int locationStartLine,
       List<String> parameterNames,
+      String parameters,
       List<String> parameterTypes,
       int requiredParameterCount,
       String returnType,
       String typeParameters})
       : _docComplete = docComplete,
         _docSummary = docSummary,
+        _fieldMask = fieldMask,
         _identifier = identifier,
         _isAbstract = isAbstract,
         _isConst = isConst,
@@ -2280,6 +2300,7 @@ class AvailableDeclarationBuilder extends Object
         _locationStartColumn = locationStartColumn,
         _locationStartLine = locationStartLine,
         _parameterNames = parameterNames,
+        _parameters = parameters,
         _parameterTypes = parameterTypes,
         _requiredParameterCount = requiredParameterCount,
         _returnType = returnType,
@@ -2296,6 +2317,7 @@ class AvailableDeclarationBuilder extends Object
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._docComplete ?? '');
     signature.addString(this._docSummary ?? '');
+    signature.addInt(this._fieldMask ?? 0);
     signature.addString(this._identifier ?? '');
     signature.addBool(this._isAbstract == true);
     signature.addBool(this._isConst == true);
@@ -2313,6 +2335,7 @@ class AvailableDeclarationBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addString(this._parameters ?? '');
     if (this._parameterTypes == null) {
       signature.addInt(0);
     } else {
@@ -2331,6 +2354,7 @@ class AvailableDeclarationBuilder extends Object
     fb.Offset offset_docSummary;
     fb.Offset offset_identifier;
     fb.Offset offset_parameterNames;
+    fb.Offset offset_parameters;
     fb.Offset offset_parameterTypes;
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
@@ -2346,6 +2370,9 @@ class AvailableDeclarationBuilder extends Object
     if (!(_parameterNames == null || _parameterNames.isEmpty)) {
       offset_parameterNames = fbBuilder.writeList(
           _parameterNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_parameters != null) {
+      offset_parameters = fbBuilder.writeString(_parameters);
     }
     if (!(_parameterTypes == null || _parameterTypes.isEmpty)) {
       offset_parameterTypes = fbBuilder.writeList(
@@ -2364,47 +2391,53 @@ class AvailableDeclarationBuilder extends Object
     if (offset_docSummary != null) {
       fbBuilder.addOffset(1, offset_docSummary);
     }
+    if (_fieldMask != null && _fieldMask != 0) {
+      fbBuilder.addUint32(2, _fieldMask);
+    }
     if (offset_identifier != null) {
-      fbBuilder.addOffset(2, offset_identifier);
+      fbBuilder.addOffset(3, offset_identifier);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(3, true);
-    }
-    if (_isConst == true) {
       fbBuilder.addBool(4, true);
     }
-    if (_isDeprecated == true) {
+    if (_isConst == true) {
       fbBuilder.addBool(5, true);
     }
-    if (_isFinal == true) {
+    if (_isDeprecated == true) {
       fbBuilder.addBool(6, true);
     }
+    if (_isFinal == true) {
+      fbBuilder.addBool(7, true);
+    }
     if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(7, _kind.index);
+      fbBuilder.addUint8(8, _kind.index);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(8, _locationOffset);
+      fbBuilder.addUint32(9, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(9, _locationStartColumn);
+      fbBuilder.addUint32(10, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(10, _locationStartLine);
+      fbBuilder.addUint32(11, _locationStartLine);
     }
     if (offset_parameterNames != null) {
-      fbBuilder.addOffset(11, offset_parameterNames);
+      fbBuilder.addOffset(12, offset_parameterNames);
+    }
+    if (offset_parameters != null) {
+      fbBuilder.addOffset(13, offset_parameters);
     }
     if (offset_parameterTypes != null) {
-      fbBuilder.addOffset(12, offset_parameterTypes);
+      fbBuilder.addOffset(14, offset_parameterTypes);
     }
     if (_requiredParameterCount != null && _requiredParameterCount != 0) {
-      fbBuilder.addUint32(13, _requiredParameterCount);
+      fbBuilder.addUint32(15, _requiredParameterCount);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(14, offset_returnType);
+      fbBuilder.addOffset(16, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(15, offset_typeParameters);
+      fbBuilder.addOffset(17, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -2429,6 +2462,7 @@ class _AvailableDeclarationImpl extends Object
 
   String _docComplete;
   String _docSummary;
+  int _fieldMask;
   String _identifier;
   bool _isAbstract;
   bool _isConst;
@@ -2439,6 +2473,7 @@ class _AvailableDeclarationImpl extends Object
   int _locationStartColumn;
   int _locationStartLine;
   List<String> _parameterNames;
+  String _parameters;
   List<String> _parameterTypes;
   int _requiredParameterCount;
   String _returnType;
@@ -2457,93 +2492,105 @@ class _AvailableDeclarationImpl extends Object
   }
 
   @override
+  int get fieldMask {
+    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    return _fieldMask;
+  }
+
+  @override
   String get identifier {
-    _identifier ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    _identifier ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _identifier;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _isConst;
   }
 
   @override
   bool get isDeprecated {
-    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isDeprecated;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
     return _isFinal;
   }
 
   @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 7, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 8, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
   int get locationOffset {
-    _locationOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+    _locationOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
     return _locationStartLine;
   }
 
   @override
   List<String> get parameterNames {
     _parameterNames ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 11, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 12, const <String>[]);
     return _parameterNames;
+  }
+
+  @override
+  String get parameters {
+    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
+    return _parameters;
   }
 
   @override
   List<String> get parameterTypes {
     _parameterTypes ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 12, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 14, const <String>[]);
     return _parameterTypes;
   }
 
   @override
   int get requiredParameterCount {
     _requiredParameterCount ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _requiredParameterCount;
   }
 
   @override
   String get returnType {
-    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
+    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
     return _returnType;
   }
 
   @override
   String get typeParameters {
     _typeParameters ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 15, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 17, '');
     return _typeParameters;
   }
 }
@@ -2554,6 +2601,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     Map<String, Object> _result = <String, Object>{};
     if (docComplete != '') _result["docComplete"] = docComplete;
     if (docSummary != '') _result["docSummary"] = docSummary;
+    if (fieldMask != 0) _result["fieldMask"] = fieldMask;
     if (identifier != '') _result["identifier"] = identifier;
     if (isAbstract != false) _result["isAbstract"] = isAbstract;
     if (isConst != false) _result["isConst"] = isConst;
@@ -2567,6 +2615,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     if (locationStartLine != 0)
       _result["locationStartLine"] = locationStartLine;
     if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
+    if (parameters != '') _result["parameters"] = parameters;
     if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
     if (requiredParameterCount != 0)
       _result["requiredParameterCount"] = requiredParameterCount;
@@ -2579,6 +2628,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   Map<String, Object> toMap() => {
         "docComplete": docComplete,
         "docSummary": docSummary,
+        "fieldMask": fieldMask,
         "identifier": identifier,
         "isAbstract": isAbstract,
         "isConst": isConst,
@@ -2589,6 +2639,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
         "locationStartColumn": locationStartColumn,
         "locationStartLine": locationStartLine,
         "parameterNames": parameterNames,
+        "parameters": parameters,
         "parameterTypes": parameterTypes,
         "requiredParameterCount": requiredParameterCount,
         "returnType": returnType,

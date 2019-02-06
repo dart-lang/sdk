@@ -18,7 +18,11 @@ enum AvailableDeclarationKind : byte {
 
   FUNCTION_TYPE_ALIAS,
 
+  GETTER,
+
   MIXIN,
+
+  SETTER,
 
   VARIABLE
 }
@@ -868,36 +872,40 @@ table AvailableDeclaration {
 
   docSummary:string (id: 1);
 
+  fieldMask:uint (id: 2);
+
   /// The identifier of the declaration, a simple name like `MyClass`, or
   /// a qualified name of a static member like `MyEnum.value`.
-  identifier:string (id: 2);
+  identifier:string (id: 3);
 
-  isAbstract:bool (id: 3);
+  isAbstract:bool (id: 4);
 
-  isConst:bool (id: 4);
+  isConst:bool (id: 5);
 
-  isDeprecated:bool (id: 5);
+  isDeprecated:bool (id: 6);
 
-  isFinal:bool (id: 6);
+  isFinal:bool (id: 7);
 
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 7);
+  kind:AvailableDeclarationKind (id: 8);
 
-  locationOffset:uint (id: 8);
+  locationOffset:uint (id: 9);
 
-  locationStartColumn:uint (id: 9);
+  locationStartColumn:uint (id: 10);
 
-  locationStartLine:uint (id: 10);
+  locationStartLine:uint (id: 11);
 
-  parameterNames:[string] (id: 11);
+  parameterNames:[string] (id: 12);
 
-  parameterTypes:[string] (id: 12);
+  parameters:string (id: 13);
 
-  requiredParameterCount:uint (id: 13);
+  parameterTypes:[string] (id: 14);
 
-  returnType:string (id: 14);
+  requiredParameterCount:uint (id: 15);
 
-  typeParameters:string (id: 15);
+  returnType:string (id: 16);
+
+  typeParameters:string (id: 17);
 }
 
 /// Information about an available, even if not yet imported file.

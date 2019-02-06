@@ -40,6 +40,7 @@ class Declaration {
   final String locationPath;
   final int locationStartColumn;
   final int locationStartLine;
+  final String parameters;
   final List<String> parameterNames;
   final List<String> parameterTypes;
   final int requiredParameterCount;
@@ -59,6 +60,7 @@ class Declaration {
     @required this.locationPath,
     @required this.locationStartColumn,
     @required this.locationStartLine,
+    @required this.parameters,
     @required this.parameterNames,
     @required this.parameterTypes,
     @required this.requiredParameterCount,
@@ -79,7 +81,9 @@ enum DeclarationKind {
   ENUM,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
+  GETTER,
   MIXIN,
+  SETTER,
   VARIABLE
 }
 
@@ -640,6 +644,131 @@ class LibraryChange {
   LibraryChange._(this.changed, this.removed);
 }
 
+class _DeclarationStorage {
+  static const fieldDocMask = 1 << 0;
+  static const fieldParametersMask = 1 << 1;
+  static const fieldReturnTypeMask = 1 << 2;
+  static const fieldTypeParametersMask = 1 << 3;
+
+  static Declaration fromIdl(String path, idl.AvailableDeclaration d) {
+    var fieldMask = d.fieldMask;
+    var hasDoc = fieldMask & fieldDocMask != 0;
+    var hasParameters = fieldMask & fieldParametersMask != 0;
+    var hasReturnType = fieldMask & fieldReturnTypeMask != 0;
+    var hasTypeParameters = fieldMask & fieldTypeParametersMask != 0;
+
+    var kind = kindFromIdl(d.kind);
+    return Declaration(
+      docComplete: hasDoc ? d.docComplete : null,
+      docSummary: hasDoc ? d.docSummary : null,
+      identifier: d.identifier,
+      isAbstract: d.isAbstract,
+      isConst: d.isConst,
+      isDeprecated: d.isDeprecated,
+      isFinal: d.isFinal,
+      kind: kind,
+      locationOffset: d.locationOffset,
+      locationPath: path,
+      locationStartColumn: d.locationStartColumn,
+      locationStartLine: d.locationStartLine,
+      parameters: hasParameters ? d.parameters : null,
+      parameterNames: hasParameters ? d.parameterNames : null,
+      parameterTypes: hasParameters ? d.parameterTypes : null,
+      requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
+      returnType: hasReturnType ? d.returnType : null,
+      typeParameters: hasTypeParameters ? d.typeParameters : null,
+    );
+  }
+
+  static DeclarationKind kindFromIdl(idl.AvailableDeclarationKind kind) {
+    switch (kind) {
+      case idl.AvailableDeclarationKind.CLASS:
+        return DeclarationKind.CLASS;
+      case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
+        return DeclarationKind.CLASS_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.ENUM:
+        return DeclarationKind.ENUM;
+      case idl.AvailableDeclarationKind.FUNCTION:
+        return DeclarationKind.FUNCTION;
+      case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
+        return DeclarationKind.FUNCTION_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.GETTER:
+        return DeclarationKind.GETTER;
+      case idl.AvailableDeclarationKind.MIXIN:
+        return DeclarationKind.MIXIN;
+      case idl.AvailableDeclarationKind.SETTER:
+        return DeclarationKind.SETTER;
+      case idl.AvailableDeclarationKind.VARIABLE:
+        return DeclarationKind.VARIABLE;
+      default:
+        throw StateError('Unknown kind: $kind');
+    }
+  }
+
+  static idl.AvailableDeclarationKind kindToIdl(DeclarationKind kind) {
+    switch (kind) {
+      case DeclarationKind.CLASS:
+        return idl.AvailableDeclarationKind.CLASS;
+      case DeclarationKind.CLASS_TYPE_ALIAS:
+        return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
+      case DeclarationKind.ENUM:
+        return idl.AvailableDeclarationKind.ENUM;
+      case DeclarationKind.FUNCTION:
+        return idl.AvailableDeclarationKind.FUNCTION;
+      case DeclarationKind.FUNCTION_TYPE_ALIAS:
+        return idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS;
+      case DeclarationKind.GETTER:
+        return idl.AvailableDeclarationKind.GETTER;
+      case DeclarationKind.MIXIN:
+        return idl.AvailableDeclarationKind.MIXIN;
+      case DeclarationKind.SETTER:
+        return idl.AvailableDeclarationKind.SETTER;
+      case DeclarationKind.VARIABLE:
+        return idl.AvailableDeclarationKind.VARIABLE;
+      default:
+        throw StateError('Unknown kind: $kind');
+    }
+  }
+
+  static idl.AvailableDeclarationBuilder toIdl(Declaration d) {
+    var fieldMask = 0;
+    if (d.docComplete != null) {
+      fieldMask |= fieldDocMask;
+    }
+    if (d.parameters != null) {
+      fieldMask |= fieldParametersMask;
+    }
+    if (d.returnType != null) {
+      fieldMask |= fieldReturnTypeMask;
+    }
+    if (d.typeParameters != null) {
+      fieldMask |= fieldTypeParametersMask;
+    }
+
+    var idlKind = kindToIdl(d.kind);
+    return idl.AvailableDeclarationBuilder(
+      docComplete: d.docComplete,
+      docSummary: d.docSummary,
+      fieldMask: fieldMask,
+      identifier: d.identifier,
+      isAbstract: d.isAbstract,
+      isConst: d.isConst,
+      isDeprecated: d.isDeprecated,
+      isFinal: d.isFinal,
+      kind: idlKind,
+      locationOffset: d.locationOffset,
+      locationStartColumn: d.locationStartColumn,
+      locationStartLine: d.locationStartLine,
+      parameters: d.parameters,
+      parameterNames: d.parameterNames,
+      parameterTypes: d.parameterTypes,
+      requiredParameterCount: d.requiredParameterCount,
+      returnType: d.returnType,
+      typeParameters: d.typeParameters,
+    );
+  }
+}
+
 class _Export {
   final Uri uri;
   final List<_ExportCombinator> combinators;
@@ -672,7 +801,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 2;
+  static const int DATA_VERSION = 3;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -835,6 +964,7 @@ class _File {
       bool isFinal = false,
       @required DeclarationKind kind,
       @required Identifier name,
+      String parameters,
       List<String> parameterNames,
       List<String> parameterTypes,
       int requiredParameterCount,
@@ -857,6 +987,7 @@ class _File {
           locationPath: path,
           locationStartColumn: lineLocation.columnNumber,
           locationStartLine: lineLocation.lineNumber,
+          parameters: parameters,
           parameterNames: parameterNames,
           parameterTypes: parameterTypes,
           requiredParameterCount: requiredParameterCount,
@@ -905,18 +1036,44 @@ class _File {
       } else if (node is FunctionDeclaration) {
         var functionExpression = node.functionExpression;
         var parameters = functionExpression.parameters;
-        addDeclaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
-          isDeprecated: isDeprecated,
-          kind: DeclarationKind.FUNCTION,
-          name: node.name,
-          parameterNames: _getFormalParameterNames(parameters),
-          parameterTypes: _getFormalParameterTypes(parameters),
-          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
-          returnType: _getTypeAnnotationString(node.returnType),
-          typeParameters: functionExpression.typeParameters?.toSource(),
-        );
+        if (node.isGetter) {
+          addDeclaration(
+            docComplete: docComplete,
+            docSummary: docSummary,
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.GETTER,
+            name: node.name,
+            returnType: _getTypeAnnotationString(node.returnType),
+          );
+        } else if (node.isSetter) {
+          addDeclaration(
+            docComplete: docComplete,
+            docSummary: docSummary,
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.SETTER,
+            name: node.name,
+            parameters: parameters.toSource(),
+            parameterNames: _getFormalParameterNames(parameters),
+            parameterTypes: _getFormalParameterTypes(parameters),
+            requiredParameterCount:
+                _getFormalParameterRequiredCount(parameters),
+          );
+        } else {
+          addDeclaration(
+            docComplete: docComplete,
+            docSummary: docSummary,
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.FUNCTION,
+            name: node.name,
+            parameters: parameters.toSource(),
+            parameterNames: _getFormalParameterNames(parameters),
+            parameterTypes: _getFormalParameterTypes(parameters),
+            requiredParameterCount:
+                _getFormalParameterRequiredCount(parameters),
+            returnType: _getTypeAnnotationString(node.returnType),
+            typeParameters: functionExpression.typeParameters?.toSource(),
+          );
+        }
       } else if (node is GenericTypeAlias) {
         var functionType = node.functionType;
         var parameters = functionType.parameters;
@@ -926,6 +1083,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
           name: node.name,
+          parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
           requiredParameterCount: _getFormalParameterRequiredCount(parameters),
@@ -979,25 +1137,7 @@ class _File {
       }).toList(),
       parts: parts.map((p) => p.uri.toString()).toList(),
       declarations: fileDeclarations.map((d) {
-        var idlKind = _kindToIdl(d.kind);
-        return idl.AvailableDeclarationBuilder(
-          docComplete: d.docComplete,
-          docSummary: d.docSummary,
-          identifier: d.identifier,
-          isAbstract: d.isAbstract,
-          isConst: d.isConst,
-          isDeprecated: d.isDeprecated,
-          isFinal: d.isFinal,
-          kind: idlKind,
-          locationOffset: d.locationOffset,
-          locationStartColumn: d.locationStartColumn,
-          locationStartLine: d.locationStartLine,
-          parameterNames: d.parameterNames,
-          parameterTypes: d.parameterTypes,
-          requiredParameterCount: d.requiredParameterCount,
-          returnType: d.returnType,
-          typeParameters: d.typeParameters,
-        );
+        return _DeclarationStorage.toIdl(d);
       }).toList(),
     );
     var bytes = builder.toBuffer();
@@ -1024,26 +1164,7 @@ class _File {
     }).toList();
 
     fileDeclarations = idlFile.declarations.map((e) {
-      var kind = _kindFromIdl(e.kind);
-      return Declaration(
-        docComplete: e.docComplete,
-        docSummary: e.docSummary,
-        identifier: e.identifier,
-        isAbstract: e.isAbstract,
-        isConst: e.isConst,
-        isDeprecated: e.isDeprecated,
-        isFinal: e.isFinal,
-        kind: kind,
-        locationOffset: e.locationOffset,
-        locationPath: path,
-        locationStartColumn: e.locationStartColumn,
-        locationStartLine: e.locationStartLine,
-        parameterNames: e.parameterNames,
-        parameterTypes: e.parameterTypes,
-        requiredParameterCount: e.requiredParameterCount,
-        returnType: e.returnType,
-        typeParameters: e.typeParameters,
-      );
+      return _DeclarationStorage.fromIdl(path, e);
     }).toList();
   }
 
@@ -1101,48 +1222,6 @@ class _File {
       }
     }
     return false;
-  }
-
-  static DeclarationKind _kindFromIdl(idl.AvailableDeclarationKind kind) {
-    switch (kind) {
-      case idl.AvailableDeclarationKind.CLASS:
-        return DeclarationKind.CLASS;
-      case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
-        return DeclarationKind.CLASS_TYPE_ALIAS;
-      case idl.AvailableDeclarationKind.ENUM:
-        return DeclarationKind.ENUM;
-      case idl.AvailableDeclarationKind.FUNCTION:
-        return DeclarationKind.FUNCTION;
-      case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
-        return DeclarationKind.FUNCTION_TYPE_ALIAS;
-      case idl.AvailableDeclarationKind.MIXIN:
-        return DeclarationKind.MIXIN;
-      case idl.AvailableDeclarationKind.VARIABLE:
-        return DeclarationKind.VARIABLE;
-      default:
-        throw StateError('Unknown kind: $kind');
-    }
-  }
-
-  static idl.AvailableDeclarationKind _kindToIdl(DeclarationKind kind) {
-    switch (kind) {
-      case DeclarationKind.CLASS:
-        return idl.AvailableDeclarationKind.CLASS;
-      case DeclarationKind.CLASS_TYPE_ALIAS:
-        return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
-      case DeclarationKind.ENUM:
-        return idl.AvailableDeclarationKind.ENUM;
-      case DeclarationKind.FUNCTION:
-        return idl.AvailableDeclarationKind.FUNCTION;
-      case DeclarationKind.FUNCTION_TYPE_ALIAS:
-        return idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS;
-      case DeclarationKind.MIXIN:
-        return idl.AvailableDeclarationKind.MIXIN;
-      case DeclarationKind.VARIABLE:
-        return idl.AvailableDeclarationKind.VARIABLE;
-      default:
-        throw StateError('Unknown kind: $kind');
-    }
   }
 
   static CompilationUnit _parse(String content) {

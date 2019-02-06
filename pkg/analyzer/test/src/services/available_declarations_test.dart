@@ -616,11 +616,13 @@ void e<T extends num, U>() {}
     var library = _getLibrary('package:test/test.dart');
     _assertDeclaration(library, 'a', DeclarationKind.FUNCTION,
         parameterNames: [],
+        parameters: '()',
         parameterTypes: [],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'b', DeclarationKind.FUNCTION,
         isDeprecated: true,
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
@@ -628,16 +630,19 @@ void e<T extends num, U>() {}
     _assertDeclaration(library, 'c', DeclarationKind.FUNCTION,
         docSummary: 'aaa',
         docComplete: 'aaa\n\nbbb bbb',
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'd', DeclarationKind.FUNCTION,
+        parameters: '(Map<String, int> p1, int p2, {double p3})',
         parameterNames: ['p1', 'p2', 'p3'],
         parameterTypes: ['Map<String, int>', 'int', 'double'],
         requiredParameterCount: 2,
         returnType: 'List<String>');
     _assertDeclaration(library, 'e', DeclarationKind.FUNCTION,
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
@@ -669,12 +674,14 @@ typedef F = void Function<T extends num, U>();
 
     var library = _getLibrary('package:test/test.dart');
     _assertDeclaration(library, 'A', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'B', DeclarationKind.FUNCTION_TYPE_ALIAS,
         isDeprecated: true,
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
@@ -682,26 +689,65 @@ typedef F = void Function<T extends num, U>();
     _assertDeclaration(library, 'C', DeclarationKind.FUNCTION_TYPE_ALIAS,
         docSummary: 'aaa',
         docComplete: 'aaa\n\nbbb bbb',
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'D', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameters: '(int p1, [double p2, String p3])',
         parameterNames: ['p1', 'p2', 'p3'],
         parameterTypes: ['int', 'double', 'String'],
         requiredParameterCount: 1,
         returnType: 'int');
     _assertDeclaration(library, 'E', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameters: '(int, double, {String })', // TODO(scheglov) fix
         parameterNames: ['', '', ''],
         parameterTypes: ['int', 'double', 'String'],
         requiredParameterCount: 2,
         returnType: 'void');
     _assertDeclaration(library, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        parameters: '()',
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
         returnType: 'void',
         typeParameters: '<T extends num, U>');
+  }
+
+  test_declaration_GETTER() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+int get a => 0;
+
+@deprecated
+int get b => 0;
+
+/// aaa
+///
+/// bbb bbb
+int get c => 0;
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'a', DeclarationKind.GETTER, returnType: 'int');
+    _assertDeclaration(
+      library,
+      'b',
+      DeclarationKind.GETTER,
+      isDeprecated: true,
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      library,
+      'c',
+      DeclarationKind.GETTER,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      returnType: 'int',
+    );
   }
 
   test_declaration_location() async {
@@ -759,6 +805,55 @@ mixin C {}
     _assertDeclaration(library, 'B', DeclarationKind.MIXIN, isDeprecated: true);
     _assertDeclaration(library, 'C', DeclarationKind.MIXIN,
         docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb\nccc ccc');
+  }
+
+  test_declaration_SETTER() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+set a(int value) {}
+
+@deprecated
+set b(int value) {}
+
+/// aaa
+///
+/// bbb bbb
+set c(int value) {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      library,
+      'a',
+      DeclarationKind.SETTER,
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
+    _assertDeclaration(
+      library,
+      'b',
+      DeclarationKind.SETTER,
+      isDeprecated: true,
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
+    _assertDeclaration(
+      library,
+      'c',
+      DeclarationKind.SETTER,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
   }
 
   test_declaration_VARIABLE() async {
@@ -1597,6 +1692,7 @@ class C {}
     String locationPath,
     int locationStartColumn,
     int locationStartLine,
+    String parameters,
     List<String> parameterNames,
     List<String> parameterTypes,
     int requiredParameterCount,
@@ -1612,6 +1708,7 @@ class C {}
     expect(declaration.isDeprecated, isDeprecated);
     expect(declaration.isFinal, isFinal);
     expect(declaration.kind, kind);
+    expect(declaration.parameters, parameters);
     expect(declaration.parameterNames, parameterNames);
     expect(declaration.parameterTypes, parameterTypes);
     expect(declaration.requiredParameterCount, requiredParameterCount);

@@ -89,8 +89,6 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
 }
 
 protocol.Element _protocolElement(Declaration declaration) {
-  // TODO(scheglov) There is a bug in Declaration.
-  // When we restore from FlatBuffers, we get empty string for null(s).
   return protocol.Element(
     _protocolElementKind(declaration.kind),
     declaration.identifier,
@@ -102,7 +100,7 @@ protocol.Element _protocolElement(Declaration declaration) {
       declaration.locationStartLine,
       declaration.locationStartColumn,
     ),
-    parameters: '', // TODO(scheglov)
+    parameters: declaration.parameters,
     returnType: declaration.returnType,
     typeParameters: declaration.typeParameters,
   );
@@ -129,10 +127,12 @@ protocol.ElementKind _protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.FUNCTION;
     case DeclarationKind.FUNCTION_TYPE_ALIAS:
       return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    case DeclarationKind.GETTER:
+      return protocol.ElementKind.GETTER;
     case DeclarationKind.MIXIN:
       return protocol.ElementKind.MIXIN;
-    case DeclarationKind.CLASS:
-      return protocol.ElementKind.CLASS;
+    case DeclarationKind.SETTER:
+      return protocol.ElementKind.SETTER;
     case DeclarationKind.VARIABLE:
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
   }
