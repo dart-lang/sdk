@@ -5,6 +5,38 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
+/// Sets of variables that are potentially assigned in a node.
+class AssignedVariables {
+  static final emptySet = Set<VariableElement>();
+
+  /// Mapping from a loop [AstNode] to the set of variables that are
+  /// potentially assigned in this loop.
+  final Map<AstNode, Set<VariableElement>> _map = {};
+
+  /// The stack of nested loops.
+  final List<Set<VariableElement>> _stack = [];
+
+  /// Return the set of variables that are potentially assigned in the [loop].
+  Set<VariableElement> operator [](AstNode loop) {
+    return _map[loop] ?? emptySet;
+  }
+
+  void beginLoop() {
+    var set = Set<VariableElement>.identity();
+    _stack.add(set);
+  }
+
+  void endLoop(AstNode loop) {
+    _map[loop] = _stack.removeLast();
+  }
+
+  void write(VariableElement variable) {
+    for (var i = 0; i < _stack.length; ++i) {
+      _stack[i].add(variable);
+    }
+  }
+}
+
 class FlowAnalysis<T> {
   /// The output list of variables that were read before they were written.
   /// TODO(scheglov) use _ElementSet?
@@ -77,15 +109,15 @@ class FlowAnalysis<T> {
       var trueThen = _stack.removeLast();
       var falseThen = _stack.removeLast();
 
-      var trueResult = trueThen.combine(typeOperations, trueElse);
-      var falseResult = falseThen.combine(typeOperations, falseElse);
+      var trueResult = trueThen.join(typeOperations, trueElse);
+      var falseResult = falseThen.join(typeOperations, falseElse);
 
       _condition = node;
       _conditionTrue = trueResult;
       _conditionFalse = falseResult;
     }
 
-    _current = afterThen.combine(typeOperations, afterElse);
+    _current = afterThen.join(typeOperations, afterElse);
   }
 
   void conditional_thenBegin(ConditionalExpression node) {
@@ -109,7 +141,7 @@ class FlowAnalysis<T> {
     // Tail of the stack: break, continue
 
     var continueState = _stack.removeLast();
-    _current = _current.combine(typeOperations, continueState);
+    _current = _current.join(typeOperations, continueState);
   }
 
   void doStatement_end(DoStatement node) {
@@ -120,7 +152,7 @@ class FlowAnalysis<T> {
     var falseCondition = _stack.removeLast();
     var breakState = _stack.removeLast();
 
-    _current = falseCondition.combine(typeOperations, breakState);
+    _current = falseCondition.join(typeOperations, breakState);
   }
 
   void falseLiteral(BooleanLiteral expression) {
@@ -136,7 +168,7 @@ class FlowAnalysis<T> {
 
   void forEachStatement_end() {
     var afterIterable = _stack.removeLast();
-    _current = _current.combine(typeOperations, afterIterable);
+    _current = _current.join(typeOperations, afterIterable);
   }
 
   void forStatement_bodyBegin(Statement node, Expression condition) {
@@ -161,7 +193,7 @@ class FlowAnalysis<T> {
     var breakState = _stack.removeLast();
     var falseCondition = _stack.removeLast();
 
-    _current = falseCondition.combine(typeOperations, breakState);
+    _current = falseCondition.join(typeOperations, breakState);
   }
 
   void forStatement_updaterBegin() {
@@ -169,7 +201,7 @@ class FlowAnalysis<T> {
     var afterBody = _current;
     var continueState = _stack.removeLast();
 
-    _current = afterBody.combine(typeOperations, continueState);
+    _current = afterBody.join(typeOperations, continueState);
   }
 
   void functionExpression_begin() {
@@ -195,9 +227,9 @@ class FlowAnalysis<T> {
   void handleBreak(AstNode target) {
     var breakIndex = _statementToStackIndex[target];
     if (breakIndex != null) {
-      _stack[breakIndex] = _stack[breakIndex].combine(typeOperations, _current);
+      _stack[breakIndex] = _stack[breakIndex].join(typeOperations, _current);
     }
-    _current = _State.identity;
+    _current = _current.exit();
   }
 
   void handleContinue(AstNode target) {
@@ -205,20 +237,20 @@ class FlowAnalysis<T> {
     if (breakIndex != null) {
       var continueIndex = breakIndex + 1;
       _stack[continueIndex] =
-          _stack[continueIndex].combine(typeOperations, _current);
+          _stack[continueIndex].join(typeOperations, _current);
     }
-    _current = _State.identity;
+    _current = _current.exit();
   }
 
   /// Register the fact that the current state definitely exists, e.g. returns
   /// from the body, throws an exception, etc.
   void handleExit() {
-    _current = _State.identity;
+    _current = _current.exit();
   }
 
   void ifNullExpression_end() {
     var afterLeft = _stack.removeLast();
-    _current = _current.combine(typeOperations, afterLeft);
+    _current = _current.join(typeOperations, afterLeft);
   }
 
   void ifNullExpression_rightBegin() {
@@ -242,7 +274,7 @@ class FlowAnalysis<T> {
       afterThen = _current; // no `else`, so `then` is still current
       afterElse = _stack.removeLast(); // `falseCond` is still on the stack
     }
-    _current = afterThen.combine(typeOperations, afterElse);
+    _current = afterThen.join(typeOperations, afterElse);
   }
 
   void ifStatement_thenBegin(IfStatement ifStatement) {
@@ -280,8 +312,8 @@ class FlowAnalysis<T> {
     var falseLeft = _stack.removeLast();
 
     var trueResult = trueRight;
-    var falseResult = falseLeft.combine(typeOperations, falseRight);
-    var afterResult = trueResult.combine(typeOperations, falseResult);
+    var falseResult = falseLeft.join(typeOperations, falseRight);
+    var afterResult = trueResult.join(typeOperations, falseResult);
 
     _condition = andExpression;
     _conditionTrue = trueResult;
@@ -318,9 +350,9 @@ class FlowAnalysis<T> {
     var trueLeft = _stack.removeLast();
     _stack.removeLast(); // falseLeft is not used
 
-    var trueResult = trueLeft.combine(typeOperations, trueRight);
+    var trueResult = trueLeft.join(typeOperations, trueRight);
     var falseResult = falseRight;
-    var afterResult = trueResult.combine(typeOperations, falseResult);
+    var afterResult = trueResult.join(typeOperations, falseResult);
 
     _condition = orExpression;
     _conditionTrue = trueResult;
@@ -374,7 +406,7 @@ class FlowAnalysis<T> {
     if (hasDefault) {
       _current = breakState;
     } else {
-      _current = breakState.combine(typeOperations, afterExpression);
+      _current = breakState.join(typeOperations, afterExpression);
     }
   }
 
@@ -391,45 +423,52 @@ class FlowAnalysis<T> {
     _conditionFalse = _State.identity;
   }
 
-  void tryStatement_bodyBegin() {
+  void tryCatchStatement_bodyBegin() {
     _stack.add(_current);
     // Tail of the stack: beforeBody
   }
 
-  void tryStatement_bodyEnd(Set<VariableElement> notPromoted) {
+  void tryCatchStatement_bodyEnd(Set<VariableElement> assignedInBody) {
     var beforeBody = _stack.removeLast();
-    var beforeCatch = beforeBody.removePromotedAll(notPromoted);
+    var beforeCatch = beforeBody.removePromotedAll(assignedInBody);
     _stack.add(beforeCatch);
     _stack.add(_current); // afterBodyAndCatches
     // Tail of the stack: beforeCatch, afterBodyAndCatches
   }
 
-  void tryStatement_catchBegin() {
+  void tryCatchStatement_catchBegin() {
     var beforeCatch = _stack[_stack.length - 2];
     _current = beforeCatch;
   }
 
-  void tryStatement_catchEnd() {
+  void tryCatchStatement_catchEnd() {
     var afterBodyAndCatches = _stack.last;
-    _stack.last = afterBodyAndCatches.combine(typeOperations, _current);
+    _stack.last = afterBodyAndCatches.join(typeOperations, _current);
   }
 
-  void tryStatement_end() {
+  void tryCatchStatement_end() {
     var afterBodyAndCatches = _stack.removeLast();
-    _current = _current.setReachable(afterBodyAndCatches.reachable);
+    _stack.removeLast(); // beforeCatch
+    _current = afterBodyAndCatches;
   }
 
-  void tryStatement_finallyBegin() {
-    // TODO(scheglov) This code is incomplete, so has bug.
-    // `finally` might be executed:
-    // (1) on exception in the body or a catch;
-    // (2) on normal completion of the body or a catch;
-    // The code below only works for (1).
-    var afterBodyAndCatches = _stack.removeLast();
-    var beforeCatch = _stack.removeLast();
+  void tryFinallyStatement_bodyBegin() {
+    _stack.add(_current); // beforeTry
+  }
 
-    _current = afterBodyAndCatches.setReachable(beforeCatch.reachable);
-    _stack.add(afterBodyAndCatches); // for 'reachable'
+  void tryFinallyStatement_end(Set<VariableElement> assignedInFinally) {
+    var afterBody = _stack.removeLast();
+    _current = _current.restrict(typeOperations, afterBody, assignedInFinally);
+  }
+
+  void tryFinallyStatement_finallyBegin(Set<VariableElement> assignedInBody) {
+    var beforeTry = _stack.removeLast();
+    var afterBody = _current;
+    _stack.add(afterBody);
+    _current = afterBody.join(
+      typeOperations,
+      beforeTry.removePromotedAll(assignedInBody),
+    );
   }
 
   void verifyStackEmpty() {
@@ -458,7 +497,7 @@ class FlowAnalysis<T> {
     var breakState = _stack.removeLast();
     var falseCondition = _stack.removeLast();
 
-    _current = falseCondition.combine(typeOperations, breakState);
+    _current = falseCondition.join(typeOperations, breakState);
   }
 
   /// Register write of the given [variable] in the current state.
@@ -476,38 +515,6 @@ class FlowAnalysis<T> {
     } else {
       _stack.add(_current);
       _stack.add(_current);
-    }
-  }
-}
-
-/// Sets of variables that are potentially assigned in loops.
-class LoopAssignedVariables {
-  static final emptySet = Set<VariableElement>();
-
-  /// Mapping from a loop [AstNode] to the set of variables that are
-  /// potentially assigned in this loop.
-  final Map<AstNode, Set<VariableElement>> _map = {};
-
-  /// The stack of nested loops.
-  final List<Set<VariableElement>> _stack = [];
-
-  /// Return the set of variables that are potentially assigned in the [loop].
-  Set<VariableElement> operator [](AstNode loop) {
-    return _map[loop] ?? emptySet;
-  }
-
-  void beginLoop() {
-    var set = Set<VariableElement>.identity();
-    _stack.add(set);
-  }
-
-  void endLoop(AstNode loop) {
-    _map[loop] = _stack.removeLast();
-  }
-
-  void write(VariableElement variable) {
-    for (var i = 0; i < _stack.length; ++i) {
-      _stack[i].add(variable);
     }
   }
 }
@@ -555,6 +562,17 @@ class _ElementSet {
     return false;
   }
 
+  _ElementSet intersect(_ElementSet other) {
+    if (identical(other, empty)) return empty;
+
+    // TODO(scheglov) optimize
+    var newElements =
+        elements.toSet().intersection(other.elements.toSet()).toList();
+
+    if (newElements.isEmpty) return empty;
+    return _ElementSet._(newElements);
+  }
+
   _ElementSet remove(LocalVariableElement removedElement) {
     if (!contains(removedElement)) {
       return this;
@@ -578,7 +596,7 @@ class _ElementSet {
   }
 
   _ElementSet union(_ElementSet other) {
-    if (other == null || other.elements.isEmpty) {
+    if (other.elements.isEmpty) {
       return this;
     }
 
@@ -608,30 +626,22 @@ class _State<T> {
     return _State(reachable, newNotAssigned, promoted);
   }
 
-  _State combine(TypeOperations typeOperations, _State other) {
+  _State exit() {
+    return _State(false, notAssigned, promoted);
+  }
+
+  _State join(TypeOperations typeOperations, _State other) {
     if (identical(this, identity)) return other;
     if (identical(other, identity)) return this;
 
+    if (reachable && !other.reachable) return this;
+    if (!reachable && other.reachable) return other;
+
     var newReachable = reachable || other.reachable;
     var newNotAssigned = notAssigned.union(other.notAssigned);
-    var newPromoted = _combinePromoted(
-      typeOperations,
-      promoted,
-      other.promoted,
-    );
+    var newPromoted = _joinPromoted(typeOperations, promoted, other.promoted);
 
-    if (reachable == newReachable &&
-        identical(notAssigned, newNotAssigned) &&
-        identical(promoted, newPromoted)) {
-      return this;
-    }
-    if (other.reachable == newReachable &&
-        identical(other.notAssigned, newNotAssigned) &&
-        identical(other.promoted, newPromoted)) {
-      return other;
-    }
-
-    return _State(newReachable, newNotAssigned, newPromoted);
+    return _identicalOrNew(other, newReachable, newNotAssigned, newPromoted);
   }
 
   _State promote(
@@ -660,6 +670,31 @@ class _State<T> {
     return _State(reachable, notAssigned, newPromoted);
   }
 
+  _State restrict(
+    TypeOperations typeOperations,
+    _State<T> other,
+    Set<VariableElement> unsafe,
+  ) {
+    var newReachable = reachable && other.reachable;
+    var newNotAssigned = notAssigned.intersect(other.notAssigned);
+
+    var newPromoted = <VariableElement, T>{};
+    for (var variable in promoted.keys) {
+      var thisType = promoted[variable];
+      if (!unsafe.contains(variable)) {
+        var otherType = other.promoted[variable];
+        if (otherType != null &&
+            typeOperations.isSubtypeOf(otherType, thisType)) {
+          newPromoted[variable] = otherType;
+          continue;
+        }
+      }
+      newPromoted[variable] = thisType;
+    }
+
+    return _identicalOrNew(other, newReachable, newNotAssigned, newPromoted);
+  }
+
   _State setReachable(bool reachable) {
     if (this.reachable == reachable) return this;
 
@@ -680,7 +715,23 @@ class _State<T> {
     return _State(reachable, newNotAssigned, newPromoted);
   }
 
-  Map<VariableElement, T> _combinePromoted(TypeOperations typeOperations,
+  _State _identicalOrNew(_State other, bool newReachable,
+      _ElementSet newNotAssigned, Map<VariableElement, T> newPromoted) {
+    if (this.reachable == newReachable &&
+        identical(this, newNotAssigned) &&
+        identical(other, newPromoted)) {
+      return this;
+    }
+    if (other.reachable == newReachable &&
+        identical(other.notAssigned, newNotAssigned) &&
+        identical(other.promoted, newPromoted)) {
+      return other;
+    }
+
+    return _State(newReachable, newNotAssigned, newPromoted);
+  }
+
+  Map<VariableElement, T> _joinPromoted(TypeOperations typeOperations,
       Map<VariableElement, T> a, Map<VariableElement, T> b) {
     if (identical(a, b)) return a;
     if (a.isEmpty || b.isEmpty) return const {};

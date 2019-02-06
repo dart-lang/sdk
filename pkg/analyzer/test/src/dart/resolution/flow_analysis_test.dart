@@ -1080,7 +1080,6 @@ void f() {
     assertReadBeforeWritten();
   }
 
-  @failingTest
   test_tryCatchFinally_useInFinally() async {
     await trackCode(r'''
 f() {
@@ -1308,8 +1307,8 @@ void f() {
 
     var unit = result.unit;
 
-    var loopAssignedVariables = LoopAssignedVariables();
-    unit.accept(_LoopAssignedVariablesVisitor(loopAssignedVariables));
+    var loopAssignedVariables = AssignedVariables();
+    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
@@ -1753,8 +1752,8 @@ void f() { // f
 
     var unit = result.unit;
 
-    var loopAssignedVariables = LoopAssignedVariables();
-    unit.accept(_LoopAssignedVariablesVisitor(loopAssignedVariables));
+    var loopAssignedVariables = AssignedVariables();
+    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
@@ -2584,8 +2583,8 @@ void f(bool b, Object x) {
 
     var unit = result.unit;
 
-    var loopAssignedVariables = LoopAssignedVariables();
-    unit.accept(_LoopAssignedVariablesVisitor(loopAssignedVariables));
+    var loopAssignedVariables = AssignedVariables();
+    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
@@ -2599,13 +2598,99 @@ void f(bool b, Object x) {
   }
 }
 
+class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
+  final AssignedVariables assignedVariables;
+
+  _AssignedVariablesVisitor(this.assignedVariables);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    var left = node.leftHandSide;
+
+    super.visitAssignmentExpression(node);
+
+    if (left is SimpleIdentifier) {
+      var element = left.staticElement;
+      if (element is VariableElement) {
+        assignedVariables.write(element);
+      }
+    }
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    assignedVariables.beginLoop();
+    super.visitDoStatement(node);
+    assignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    var iterable = node.iterable;
+    var body = node.body;
+
+    iterable.accept(this);
+
+    assignedVariables.beginLoop();
+    body.accept(this);
+    assignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    node.initialization?.accept(this);
+    node.variables?.accept(this);
+
+    assignedVariables.beginLoop();
+    node.condition?.accept(this);
+    node.body.accept(this);
+    node.updaters?.accept(this);
+    assignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    var expression = node.expression;
+    var members = node.members;
+
+    expression.accept(this);
+
+    assignedVariables.beginLoop();
+    members.accept(this);
+    assignedVariables.endLoop(node);
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    assignedVariables.beginLoop();
+    node.body.accept(this);
+    assignedVariables.endLoop(node.body);
+
+    node.catchClauses.accept(this);
+
+    var finallyBlock = node.finallyBlock;
+    if (finallyBlock != null) {
+      assignedVariables.beginLoop();
+      finallyBlock.accept(this);
+      assignedVariables.endLoop(finallyBlock);
+    }
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    assignedVariables.beginLoop();
+    super.visitWhileStatement(node);
+    assignedVariables.endLoop(node);
+  }
+}
+
 /// [AstVisitor] that drives the [flow] in the way we expect the resolver
 /// will do in production.
 class _AstVisitor extends GeneralizingAstVisitor<void> {
   static final trueLiteral = astFactory.booleanLiteral(null, true);
 
   final TypeOperations typeOperations;
-  final LoopAssignedVariables loopAssignedVariables;
+  final AssignedVariables assignedVariables;
   final Map<AstNode, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
   final List<AstNode> unreachableNodes;
@@ -2615,7 +2700,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
 
   _AstVisitor(
       TypeSystem typeSystem,
-      this.loopAssignedVariables,
+      this.assignedVariables,
       this.promotedTypes,
       this.readBeforeWritten,
       this.unreachableNodes,
@@ -2755,7 +2840,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     var body = node.body;
     var condition = node.condition;
 
-    flow.doStatement_bodyBegin(node, loopAssignedVariables[node]);
+    flow.doStatement_bodyBegin(node, assignedVariables[node]);
     body.accept(this);
 
     flow.doStatement_conditionBegin();
@@ -2772,7 +2857,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     var body = node.body;
 
     iterable.accept(this);
-    flow.forEachStatement_bodyBegin(loopAssignedVariables[node]);
+    flow.forEachStatement_bodyBegin(assignedVariables[node]);
 
     body.accept(this);
 
@@ -2788,7 +2873,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     node.initialization?.accept(this);
     node.variables?.accept(this);
 
-    flow.forStatement_conditionBegin(loopAssignedVariables[node]);
+    flow.forStatement_conditionBegin(assignedVariables[node]);
     if (condition != null) {
       condition.accept(this);
     } else {
@@ -2810,7 +2895,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     if (parts is ForEachParts) {
       parts.iterable?.accept(this);
 
-      flow.forEachStatement_bodyBegin(loopAssignedVariables[node]);
+      flow.forEachStatement_bodyBegin(assignedVariables[node]);
 
       node.body.accept(this);
 
@@ -2833,7 +2918,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     initialization?.accept(this);
     variables?.accept(this);
 
-    flow.forStatement_conditionBegin(loopAssignedVariables[node]);
+    flow.forStatement_conditionBegin(assignedVariables[node]);
     if (condition != null) {
       condition.accept(this);
     } else {
@@ -2949,7 +3034,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     node.expression.accept(this);
     flow.switchStatement_expressionEnd(node);
 
-    var assignedInCases = loopAssignedVariables[node];
+    var assignedInCases = assignedVariables[node];
 
     var members = node.members;
     var membersLength = members.length;
@@ -2958,9 +3043,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
       var member = members[i];
 
       flow.switchStatement_beginCase(
-        member.labels.isNotEmpty
-            ? assignedInCases
-            : LoopAssignedVariables.emptySet,
+        member.labels.isNotEmpty ? assignedInCases : AssignedVariables.emptySet,
       );
       member.accept(this);
 
@@ -2986,23 +3069,31 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
 
     var body = node.body;
     var catchClauses = node.catchClauses;
+    var finallyBlock = node.finallyBlock;
 
-    flow.tryStatement_bodyBegin();
+    if (finallyBlock != null) {
+      flow.tryFinallyStatement_bodyBegin();
+    }
+
+    flow.tryCatchStatement_bodyBegin();
     body.accept(this);
-    flow.tryStatement_bodyEnd(loopAssignedVariables[node.body]);
+    flow.tryCatchStatement_bodyEnd(assignedVariables[body]);
 
     var catchLength = catchClauses.length;
     for (var i = 0; i < catchLength; ++i) {
       var catchClause = catchClauses[i];
-      flow.tryStatement_catchBegin();
+      flow.tryCatchStatement_catchBegin();
       catchClause.accept(this);
-      flow.tryStatement_catchEnd();
+      flow.tryCatchStatement_catchEnd();
     }
 
-    flow.tryStatement_finallyBegin();
-    node.finallyBlock?.accept(this);
+    flow.tryCatchStatement_end();
 
-    flow.tryStatement_end();
+    if (finallyBlock != null) {
+      flow.tryFinallyStatement_finallyBegin(assignedVariables[body]);
+      finallyBlock.accept(this);
+      flow.tryFinallyStatement_end(assignedVariables[finallyBlock]);
+    }
   }
 
   @override
@@ -3024,7 +3115,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     var condition = node.condition;
     var body = node.body;
 
-    flow.whileStatement_conditionBegin(loopAssignedVariables[node]);
+    flow.whileStatement_conditionBegin(assignedVariables[node]);
     condition.accept(this);
 
     flow.whileStatement_bodyBegin(node);
@@ -3087,116 +3178,6 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
 
   static bool _isTrueLiteral(AstNode node) {
     return node is BooleanLiteral && node.value;
-  }
-}
-
-class _LoopAssignedVariablesVisitor extends RecursiveAstVisitor<void> {
-  final LoopAssignedVariables loopAssignedVariables;
-
-  _LoopAssignedVariablesVisitor(this.loopAssignedVariables);
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var left = node.leftHandSide;
-
-    super.visitAssignmentExpression(node);
-
-    if (left is SimpleIdentifier) {
-      var element = left.staticElement;
-      if (element is VariableElement) {
-        loopAssignedVariables.write(element);
-      }
-    }
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    loopAssignedVariables.beginLoop();
-    super.visitDoStatement(node);
-    loopAssignedVariables.endLoop(node);
-  }
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    var iterable = node.iterable;
-    var body = node.body;
-
-    iterable.accept(this);
-
-    loopAssignedVariables.beginLoop();
-    body.accept(this);
-    loopAssignedVariables.endLoop(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    node.initialization?.accept(this);
-    node.variables?.accept(this);
-
-    loopAssignedVariables.beginLoop();
-    node.condition?.accept(this);
-    node.body.accept(this);
-    node.updaters?.accept(this);
-    loopAssignedVariables.endLoop(node);
-  }
-
-  @override
-  void visitForStatement2(ForStatement2 node) {
-    ForLoopParts parts = node.forLoopParts;
-    Expression initialization;
-    VariableDeclarationList variables;
-    Expression iterable;
-    Expression condition;
-    NodeList<Expression> updaters;
-    if (parts is ForPartsWithDeclarations) {
-      variables = parts.variables;
-      condition = parts.condition;
-      updaters = parts.updaters;
-    } else if (parts is ForPartsWithExpression) {
-      initialization = parts.initialization;
-      condition = parts.condition;
-      updaters = parts.updaters;
-    } else if (parts is ForEachParts) {
-      iterable = parts.iterable;
-    }
-    initialization?.accept(this);
-    variables?.accept(this);
-    iterable?.accept(this);
-
-    loopAssignedVariables.beginLoop();
-    condition?.accept(this);
-    node.body.accept(this);
-    updaters?.accept(this);
-    loopAssignedVariables.endLoop(node);
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    var expression = node.expression;
-    var members = node.members;
-
-    expression.accept(this);
-
-    loopAssignedVariables.beginLoop();
-    members.accept(this);
-    loopAssignedVariables.endLoop(node);
-  }
-
-  @override
-  void visitTryStatement(TryStatement node) {
-    loopAssignedVariables.beginLoop();
-    node.body.accept(this);
-    loopAssignedVariables.endLoop(node.body);
-
-    node.catchClauses.accept(this);
-    node.finallyBlock?.accept(this);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    loopAssignedVariables.beginLoop();
-    super.visitWhileStatement(node);
-    loopAssignedVariables.endLoop(node);
   }
 }
 
