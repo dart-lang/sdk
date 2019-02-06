@@ -1482,8 +1482,12 @@ class CallSiteInliner : public ValueObject {
           call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
 
-      // Calls outside loops are subject to stricter heuristics under AOT.
+      // Under AOT, calls outside loops may pass our regular heuristics due
+      // to a relatively high ratio. So, unless we are optimizing solely for
+      // speed, such call sites are subject to subsequent stricter heuristic
+      // to limit code size increase.
       bool stricter_heuristic = FLAG_precompiled_mode &&
+                                FLAG_optimization_level <= 2 &&
                                 !inliner_->AlwaysInline(target) &&
                                 call_info[call_idx].nesting_depth == 0;
       if (TryInlining(call->function(), call->argument_names(), &call_data,
