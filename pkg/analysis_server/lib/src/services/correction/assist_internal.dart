@@ -446,13 +446,36 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+
+    bool isEmptyListLiteral(Expression expression) =>
+        expression is ListLiteral2 && expression.elements.isEmpty;
+
     ListLiteral2 list = target;
     Expression argument = invocation.argumentList.arguments[0];
-    String argumentText = utils.getNodeText(argument);
-    // [ ... ]..addAll( ... )
+    String elementText;
+    if (argument is BinaryExpression &&
+        argument.operator.type == TokenType.QUESTION_QUESTION) {
+      Expression right = argument.rightOperand;
+      if (isEmptyListLiteral(right)) {
+        // ..addAll(things ?? const [])
+        // ..addAll(things ?? [])
+        elementText = '...?${utils.getNodeText(argument.leftOperand)}';
+      }
+    } else if (experimentStatus.control_flow_collections &&
+        argument is ConditionalExpression) {
+      Expression elseExpression = argument.elseExpression;
+      if (isEmptyListLiteral(elseExpression)) {
+        // ..addAll(condition ? things : const [])
+        // ..addAll(condition ? things : [])
+        String conditionText = utils.getNodeText(argument.condition);
+        String thenText = utils.getNodeText(argument.thenExpression);
+        elementText = 'if ($conditionText) ...$thenText';
+      }
+    }
+    elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(list.elements.last.end, ', ...$argumentText');
+      builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
       builder.addDeletion(range.node(invocation));
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
