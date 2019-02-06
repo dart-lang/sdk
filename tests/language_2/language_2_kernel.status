@@ -1,8 +1,6 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-# Sections in this file should contain "$compiler == dartk" or
-# "$compiler == dartkp".
 
 enum_initialization_near_stack_overflow_test: Pass, CompileTimeError, OK
 
@@ -39,6 +37,16 @@ const_map4_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
+control_flow_collections/for_inference_test: DartkCrash
+control_flow_collections/for_test: DartkCrash
+control_flow_collections/for_variable_test: DartkCrash
+control_flow_collections/if_const_test: DartkCrash
+control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_test: DartkCrash
+control_flow_collections/map_set_ambiguity_test: CompileTimeError
+control_flow_collections/syntax_error_test/09: DartkCrash
+control_flow_collections/syntax_error_test/10: DartkCrash
+control_flow_collections/syntax_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
 ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
@@ -125,6 +133,11 @@ regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
+spread_collections/const_test: CompileTimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_test: CompileTimeError
 string_interpolation_and_buffer_test: RuntimeError
 super_bound_closure_test/none: CompileTimeError
 super_test: RuntimeError
@@ -151,8 +164,32 @@ mixin_method_override_test/G5: Skip # Issue 34354
 private_method_tearoff_test: RuntimeError
 
 [ $compiler == dartkp ]
+control_flow_collections/experimental_flag_test/none: RuntimeError
+control_flow_collections/for_const_test/none: RuntimeError
+control_flow_collections/for_inference_test: CompileTimeError
+control_flow_collections/for_test: CompileTimeError
+control_flow_collections/for_variable_test: CompileTimeError
+control_flow_collections/if_const_error_test/none: RuntimeError
+control_flow_collections/if_const_test: CompileTimeError
+control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_test: CompileTimeError
+control_flow_collections/map_set_ambiguity_error_test/none: RuntimeError
+control_flow_collections/map_set_ambiguity_test: CompileTimeError
+control_flow_collections/syntax_error_test/none: RuntimeError
+control_flow_collections/syntax_test: CompileTimeError
+control_flow_collections/type_error_test/none: RuntimeError
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
+spread_collections/const_error_test/none: RuntimeError
+spread_collections/const_test: CompileTimeError
+spread_collections/experimental_flag_test/none: RuntimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_error_test/none: RuntimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_error_test/none: RuntimeError
+spread_collections/syntax_test: CompileTimeError
+spread_collections/type_error_test/none: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
@@ -172,6 +209,16 @@ const_cast1_test/02: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 constructor5_test: CompileTimeError # Verification error
 constructor6_test: CompileTimeError # Verification error
+control_flow_collections/for_inference_test: Crash
+control_flow_collections/for_test: Crash
+control_flow_collections/for_variable_test: Crash
+control_flow_collections/if_const_test: Crash
+control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_test: Crash
+control_flow_collections/map_set_ambiguity_test: CompileTimeError
+control_flow_collections/syntax_error_test/09: Crash
+control_flow_collections/syntax_error_test/10: Crash
+control_flow_collections/syntax_test: CompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e11: MissingCompileTimeError
@@ -193,6 +240,11 @@ implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
+spread_collections/const_test: CompileTimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_test: CompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
@@ -206,7 +258,6 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
-control_flow_collections/*: Skip # Not implemented yet. TODO: Triage more precisely.
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -237,7 +288,6 @@ set_literals/invalid_set_literal_test/31: MissingCompileTimeError # Requires con
 set_literals/invalid_set_literal_test/32: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/33: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/34: MissingCompileTimeError # Requires constant evaluation
-spread_collections/*: Skip # Spread isn't implemented yet. TODO: Triage more precisely.
 syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/30: MissingCompileTimeError # Issue 29763 - low priority
@@ -250,6 +300,38 @@ type_constants_test/04: MissingCompileTimeError # Issue 32557
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
+
+[ $arch == simdbc64 && $compiler == dartk ]
+control_flow_collections/for_inference_test: CompileTimeError
+control_flow_collections/for_test: CompileTimeError
+control_flow_collections/for_variable_test: CompileTimeError
+control_flow_collections/if_const_test: CompileTimeError
+control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_test: CompileTimeError
+control_flow_collections/map_set_ambiguity_test: CompileTimeError
+control_flow_collections/syntax_test: CompileTimeError
+spread_collections/const_test: CompileTimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_test: CompileTimeError
+
+[ $arch != simdbc64 && $compiler == dartk ]
+control_flow_collections/for_inference_test: DartkCrash
+control_flow_collections/for_test: DartkCrash
+control_flow_collections/for_variable_test: DartkCrash
+control_flow_collections/if_const_test: DartkCrash
+control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_test: DartkCrash
+control_flow_collections/map_set_ambiguity_test: CompileTimeError
+control_flow_collections/syntax_error_test/09: DartkCrash
+control_flow_collections/syntax_error_test/10: DartkCrash
+control_flow_collections/syntax_test: CompileTimeError
+spread_collections/const_test: CompileTimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_test: CompileTimeError
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic_function_dcall_test/01: SkipByDesign # Prints type names
@@ -347,8 +429,21 @@ async_star_test/04: Pass, RuntimeError # Please triage
 compile_time_constant_o_test/01: Pass
 compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
+control_flow_collections/for_inference_test: CompileTimeError
+control_flow_collections/for_test: CompileTimeError
+control_flow_collections/for_variable_test: CompileTimeError
+control_flow_collections/if_const_test: CompileTimeError
+control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_test: CompileTimeError
+control_flow_collections/map_set_ambiguity_test: CompileTimeError
+control_flow_collections/syntax_test: CompileTimeError
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
+spread_collections/const_test: CompileTimeError
+spread_collections/inference_test: CompileTimeError
+spread_collections/map_set_ambiguity_test: CompileTimeError
+spread_collections/spread_test: CompileTimeError
+spread_collections/syntax_test: CompileTimeError
 vm/bool_check_stack_traces_test/02: Pass
 vm/causal_async_exception_stack2_test: RuntimeError # Please triage
 vm/causal_async_exception_stack_test: RuntimeError # Please triage

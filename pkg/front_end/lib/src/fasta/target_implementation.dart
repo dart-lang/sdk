@@ -48,14 +48,20 @@ abstract class TargetImplementation extends Target {
   Declaration cachedNativeAnnotation;
   Declaration cachedNativeExtensionAnnotation;
 
-  bool enableSetLiterals;
   bool enableConstantUpdate2018;
+  bool enableControlFlowCollections;
+  bool enableSetLiterals;
+  bool enableSpreadCollections;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : enableSetLiterals = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.setLiterals),
-        enableConstantUpdate2018 = CompilerContext.current.options
+      : enableConstantUpdate2018 = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.constantUpdate2018),
+        enableControlFlowCollections = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.controlFlowCollections),
+        enableSetLiterals = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.setLiterals),
+        enableSpreadCollections = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.spreadCollections),
         super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
