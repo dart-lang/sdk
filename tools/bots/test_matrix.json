@@ -768,24 +768,6 @@
           "arguments": ["dart2js_bot", "dartdevc_test"]
         },
         {
-          "name": "ddc co19_2 tests",
-          "arguments": [
-            "-ndartdevc-checked-${system}-release-chrome",
-            "co19_2"
-          ],
-          "shards": 6,
-          "fileset": "dart2js"
-        },
-        {
-          "name": "ddk co19_2 tests",
-          "arguments": [
-            "-ndartdevk-checked-${system}-release-chrome",
-            "co19_2"
-          ],
-          "shards": 6,
-          "fileset": "dart2js"
-        },
-        {
           "name": "ddc tests",
           "arguments": [
             "-ndartdevc-checked-${system}-release-chrome",
