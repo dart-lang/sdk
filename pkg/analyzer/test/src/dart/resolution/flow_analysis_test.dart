@@ -2604,7 +2604,7 @@ void f(bool b, Object x) {
 class _AstVisitor extends GeneralizingAstVisitor<void> {
   static final trueLiteral = astFactory.booleanLiteral(null, true);
 
-  final TypeSystem typeSystem;
+  final TypeOperations typeOperations;
   final LoopAssignedVariables loopAssignedVariables;
   final Map<AstNode, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
@@ -2614,12 +2614,13 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   FlowAnalysis flow;
 
   _AstVisitor(
-      this.typeSystem,
+      TypeSystem typeSystem,
       this.loopAssignedVariables,
       this.promotedTypes,
       this.readBeforeWritten,
       this.unreachableNodes,
-      this.functionBodiesThatDontComplete);
+      this.functionBodiesThatDontComplete)
+      : typeOperations = _TypeSystemTypeOperations(typeSystem);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -2686,7 +2687,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     var isFlowOwner = flow == null;
-    flow ??= FlowAnalysis(typeSystem, node);
+    flow ??= FlowAnalysis(typeOperations, node);
 
     super.visitBlockFunctionBody(node);
 
@@ -3196,5 +3197,21 @@ class _LoopAssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     loopAssignedVariables.beginLoop();
     super.visitWhileStatement(node);
     loopAssignedVariables.endLoop(node);
+  }
+}
+
+class _TypeSystemTypeOperations implements TypeOperations<DartType> {
+  final TypeSystem typeSystem;
+
+  _TypeSystemTypeOperations(this.typeSystem);
+
+  @override
+  DartType elementType(VariableElement element) {
+    return element.type;
+  }
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return typeSystem.isSubtypeOf(leftType, rightType);
   }
 }

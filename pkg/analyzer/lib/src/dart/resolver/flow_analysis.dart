@@ -4,16 +4,14 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 
-class FlowAnalysis {
+class FlowAnalysis<T> {
   /// The output list of variables that were read before they were written.
   /// TODO(scheglov) use _ElementSet?
   final List<LocalVariableElement> readBeforeWritten = [];
 
-  /// The [TypeSystem] of the enclosing library, used to check subtyping.
-  final TypeSystem typeSystem;
+  /// The [TypeOperations], used to access types, and check subtyping.
+  final TypeOperations typeOperations;
 
   /// The enclosing [FunctionBody], used to check for potential mutations.
   final FunctionBody functionBody;
@@ -38,7 +36,7 @@ class FlowAnalysis {
   /// The state when [_condition] evaluates to `false`.
   _State _conditionFalse;
 
-  FlowAnalysis(this.typeSystem, this.functionBody) {
+  FlowAnalysis(this.typeOperations, this.functionBody) {
     _current = _State(true, _ElementSet.empty, const {});
   }
 
@@ -79,15 +77,15 @@ class FlowAnalysis {
       var trueThen = _stack.removeLast();
       var falseThen = _stack.removeLast();
 
-      var trueResult = trueThen.combine(typeSystem, trueElse);
-      var falseResult = falseThen.combine(typeSystem, falseElse);
+      var trueResult = trueThen.combine(typeOperations, trueElse);
+      var falseResult = falseThen.combine(typeOperations, falseElse);
 
       _condition = node;
       _conditionTrue = trueResult;
       _conditionFalse = falseResult;
     }
 
-    _current = afterThen.combine(typeSystem, afterElse);
+    _current = afterThen.combine(typeOperations, afterElse);
   }
 
   void conditional_thenBegin(ConditionalExpression node) {
@@ -111,7 +109,7 @@ class FlowAnalysis {
     // Tail of the stack: break, continue
 
     var continueState = _stack.removeLast();
-    _current = _current.combine(typeSystem, continueState);
+    _current = _current.combine(typeOperations, continueState);
   }
 
   void doStatement_end(DoStatement node) {
@@ -122,7 +120,7 @@ class FlowAnalysis {
     var falseCondition = _stack.removeLast();
     var breakState = _stack.removeLast();
 
-    _current = falseCondition.combine(typeSystem, breakState);
+    _current = falseCondition.combine(typeOperations, breakState);
   }
 
   void falseLiteral(BooleanLiteral expression) {
@@ -138,7 +136,7 @@ class FlowAnalysis {
 
   void forEachStatement_end() {
     var afterIterable = _stack.removeLast();
-    _current = _current.combine(typeSystem, afterIterable);
+    _current = _current.combine(typeOperations, afterIterable);
   }
 
   void forStatement_bodyBegin(Statement node, Expression condition) {
@@ -163,7 +161,7 @@ class FlowAnalysis {
     var breakState = _stack.removeLast();
     var falseCondition = _stack.removeLast();
 
-    _current = falseCondition.combine(typeSystem, breakState);
+    _current = falseCondition.combine(typeOperations, breakState);
   }
 
   void forStatement_updaterBegin() {
@@ -171,7 +169,7 @@ class FlowAnalysis {
     var afterBody = _current;
     var continueState = _stack.removeLast();
 
-    _current = afterBody.combine(typeSystem, continueState);
+    _current = afterBody.combine(typeOperations, continueState);
   }
 
   void functionExpression_begin() {
@@ -197,7 +195,7 @@ class FlowAnalysis {
   void handleBreak(AstNode target) {
     var breakIndex = _statementToStackIndex[target];
     if (breakIndex != null) {
-      _stack[breakIndex] = _stack[breakIndex].combine(typeSystem, _current);
+      _stack[breakIndex] = _stack[breakIndex].combine(typeOperations, _current);
     }
     _current = _State.identity;
   }
@@ -207,7 +205,7 @@ class FlowAnalysis {
     if (breakIndex != null) {
       var continueIndex = breakIndex + 1;
       _stack[continueIndex] =
-          _stack[continueIndex].combine(typeSystem, _current);
+          _stack[continueIndex].combine(typeOperations, _current);
     }
     _current = _State.identity;
   }
@@ -220,7 +218,7 @@ class FlowAnalysis {
 
   void ifNullExpression_end() {
     var afterLeft = _stack.removeLast();
-    _current = _current.combine(typeSystem, afterLeft);
+    _current = _current.combine(typeOperations, afterLeft);
   }
 
   void ifNullExpression_rightBegin() {
@@ -244,7 +242,7 @@ class FlowAnalysis {
       afterThen = _current; // no `else`, so `then` is still current
       afterElse = _stack.removeLast(); // `falseCond` is still on the stack
     }
-    _current = afterThen.combine(typeSystem, afterElse);
+    _current = afterThen.combine(typeOperations, afterElse);
   }
 
   void ifStatement_thenBegin(IfStatement ifStatement) {
@@ -256,18 +254,18 @@ class FlowAnalysis {
   }
 
   void isExpression_end(
-      IsExpression isExpression, VariableElement variable, DartType type) {
+      IsExpression isExpression, VariableElement variable, T type) {
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
 
     _condition = isExpression;
     if (isExpression.notOperator == null) {
-      _conditionTrue = _current.promote(typeSystem, variable, type);
+      _conditionTrue = _current.promote(typeOperations, variable, type);
       _conditionFalse = _current;
     } else {
       _conditionTrue = _current;
-      _conditionFalse = _current.promote(typeSystem, variable, type);
+      _conditionFalse = _current.promote(typeOperations, variable, type);
     }
   }
 
@@ -282,8 +280,8 @@ class FlowAnalysis {
     var falseLeft = _stack.removeLast();
 
     var trueResult = trueRight;
-    var falseResult = falseLeft.combine(typeSystem, falseRight);
-    var afterResult = trueResult.combine(typeSystem, falseResult);
+    var falseResult = falseLeft.combine(typeOperations, falseRight);
+    var afterResult = trueResult.combine(typeOperations, falseResult);
 
     _condition = andExpression;
     _conditionTrue = trueResult;
@@ -320,9 +318,9 @@ class FlowAnalysis {
     var trueLeft = _stack.removeLast();
     _stack.removeLast(); // falseLeft is not used
 
-    var trueResult = trueLeft.combine(typeSystem, trueRight);
+    var trueResult = trueLeft.combine(typeOperations, trueRight);
     var falseResult = falseRight;
-    var afterResult = trueResult.combine(typeSystem, falseResult);
+    var afterResult = trueResult.combine(typeOperations, falseResult);
 
     _condition = orExpression;
     _conditionTrue = trueResult;
@@ -341,7 +339,7 @@ class FlowAnalysis {
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
-  DartType promotedType(VariableElement variable) {
+  T promotedType(VariableElement variable) {
     return _current.promoted[variable];
   }
 
@@ -376,7 +374,7 @@ class FlowAnalysis {
     if (hasDefault) {
       _current = breakState;
     } else {
-      _current = breakState.combine(typeSystem, afterExpression);
+      _current = breakState.combine(typeOperations, afterExpression);
     }
   }
 
@@ -413,7 +411,7 @@ class FlowAnalysis {
 
   void tryStatement_catchEnd() {
     var afterBodyAndCatches = _stack.last;
-    _stack.last = afterBodyAndCatches.combine(typeSystem, _current);
+    _stack.last = afterBodyAndCatches.combine(typeOperations, _current);
   }
 
   void tryStatement_end() {
@@ -460,7 +458,7 @@ class FlowAnalysis {
     var breakState = _stack.removeLast();
     var falseCondition = _stack.removeLast();
 
-    _current = falseCondition.combine(typeSystem, breakState);
+    _current = falseCondition.combine(typeOperations, breakState);
   }
 
   /// Register write of the given [variable] in the current state.
@@ -512,6 +510,15 @@ class LoopAssignedVariables {
       _stack[i].add(variable);
     }
   }
+}
+
+/// Operations on types, abstracted from concrete type interfaces.
+abstract class TypeOperations<T> {
+  /// Return the static type of with the given [element].
+  T elementType(VariableElement element);
+
+  /// Return `true` if the [leftType] is a subtype of the [rightType].
+  bool isSubtypeOf(T leftType, T rightType);
 }
 
 /// List based immutable set of elements.
@@ -585,12 +592,12 @@ class _ElementSet {
   }
 }
 
-class _State {
+class _State<T> {
   static final identity = _State(false, _ElementSet.empty, const {});
 
   final bool reachable;
   final _ElementSet notAssigned;
-  final Map<VariableElement, DartType> promoted;
+  final Map<VariableElement, T> promoted;
 
   _State(this.reachable, this.notAssigned, this.promoted);
 
@@ -601,13 +608,17 @@ class _State {
     return _State(reachable, newNotAssigned, promoted);
   }
 
-  _State combine(TypeSystem typeSystem, _State other) {
+  _State combine(TypeOperations typeOperations, _State other) {
     if (identical(this, identity)) return other;
     if (identical(other, identity)) return this;
 
     var newReachable = reachable || other.reachable;
     var newNotAssigned = notAssigned.union(other.notAssigned);
-    var newPromoted = _combinePromoted(typeSystem, promoted, other.promoted);
+    var newPromoted = _combinePromoted(
+      typeOperations,
+      promoted,
+      other.promoted,
+    );
 
     if (reachable == newReachable &&
         identical(notAssigned, newNotAssigned) &&
@@ -624,12 +635,16 @@ class _State {
   }
 
   _State promote(
-      TypeSystem typeSystem, VariableElement variable, DartType type) {
+    TypeOperations typeOperations,
+    VariableElement variable,
+    T type,
+  ) {
     var previousType = promoted[variable];
-    previousType ??= variable.type;
+    previousType ??= typeOperations.elementType(variable);
 
-    if (typeSystem.isSubtypeOf(type, previousType) && type != previousType) {
-      var newPromoted = <VariableElement, DartType>{}..addAll(promoted);
+    if (typeOperations.isSubtypeOf(type, previousType) &&
+        type != previousType) {
+      var newPromoted = <VariableElement, T>{}..addAll(promoted);
       newPromoted[variable] = type;
       return _State(reachable, notAssigned, newPromoted);
     }
@@ -665,22 +680,22 @@ class _State {
     return _State(reachable, newNotAssigned, newPromoted);
   }
 
-  static Map<VariableElement, DartType> _combinePromoted(TypeSystem typeSystem,
-      Map<VariableElement, DartType> a, Map<VariableElement, DartType> b) {
+  Map<VariableElement, T> _combinePromoted(TypeOperations typeOperations,
+      Map<VariableElement, T> a, Map<VariableElement, T> b) {
     if (identical(a, b)) return a;
     if (a.isEmpty || b.isEmpty) return const {};
 
-    var result = <VariableElement, DartType>{};
+    var result = <VariableElement, T>{};
     var alwaysA = true;
     var alwaysB = true;
     for (var element in a.keys) {
       var aType = a[element];
       var bType = b[element];
       if (aType != null && bType != null) {
-        if (typeSystem.isSubtypeOf(aType, bType)) {
+        if (typeOperations.isSubtypeOf(aType, bType)) {
           result[element] = bType;
           alwaysA = false;
-        } else if (typeSystem.isSubtypeOf(bType, aType)) {
+        } else if (typeOperations.isSubtypeOf(bType, aType)) {
           result[element] = aType;
           alwaysB = false;
         } else {
@@ -699,11 +714,11 @@ class _State {
     return result;
   }
 
-  static Map<VariableElement, DartType> _removePromoted(
-      Map<VariableElement, DartType> map, VariableElement variable) {
+  Map<VariableElement, T> _removePromoted(
+      Map<VariableElement, T> map, VariableElement variable) {
     if (map.isEmpty) return const {};
 
-    var result = <VariableElement, DartType>{};
+    var result = <VariableElement, T>{};
     for (var key in map.keys) {
       if (!identical(key, variable)) {
         result[key] = map[key];
@@ -714,11 +729,11 @@ class _State {
     return result;
   }
 
-  static Map<VariableElement, DartType> _removePromotedAll(
-      Map<VariableElement, DartType> map, Set<VariableElement> variables) {
+  Map<VariableElement, T> _removePromotedAll(
+      Map<VariableElement, T> map, Set<VariableElement> variables) {
     if (map.isEmpty) return const {};
 
-    var result = <VariableElement, DartType>{};
+    var result = <VariableElement, T>{};
     for (var key in map.keys) {
       if (!variables.contains(key)) {
         result[key] = map[key];
