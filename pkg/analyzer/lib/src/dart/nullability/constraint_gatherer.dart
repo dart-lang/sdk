@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
 /// Visitor that gathers nullability migration constraints from code to be
@@ -30,6 +31,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   /// Constraints gathered by the visitor are stored here.
   final Constraints _constraints;
+
+  /// The file being analyzed.
+  final Source _source;
 
   /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _notNullType;
@@ -59,11 +63,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// code that can be proven unreachable by the migration tool.
   final _guards = <ConstraintVariable>[];
 
-  ConstraintGatherer(
-      TypeProvider typeProvider, this._variables, this._constraints)
+  ConstraintGatherer(TypeProvider typeProvider, this._variables,
+      this._constraints, this._source)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
         _nonNullableBoolType = DecoratedType(typeProvider.boolType, null),
-        _nonNullableTypeType = DecoratedType(typeProvider.typeType, null) {}
+        _nonNullableTypeType = DecoratedType(typeProvider.typeType, null);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -211,6 +215,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       trueGuard = _conditionInfo.trueGuard;
       falseGuard = _conditionInfo.falseGuard;
       _variables.recordConditionalDiscard(
+          _source,
           node,
           ConditionalDiscard(trueGuard ?? ConstraintVariable.always,
               falseGuard ?? ConstraintVariable.always, _conditionInfo.isPure));
@@ -329,7 +334,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         _recordConstraint(sourceType.nullable, destinationType.nullable);
       } else {
         assert(expression != null); // TODO(paulberry)
-        var checkNotNull = _variables.checkNotNullForExpression(expression);
+        var checkNotNull =
+            _variables.checkNotNullForExpression(_source, expression);
         _recordConstraint(sourceType.nullable, checkNotNull);
         _variables.recordExpressionChecks(
             expression, ExpressionChecks(checkNotNull));

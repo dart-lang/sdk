@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
 import 'package:analyzer/src/dart/nullability/transitional_api.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -454,7 +455,8 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   @override
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(typeProvider, _variables, constraints));
+    unit.accept(ConstraintGatherer(typeProvider, _variables, constraints,
+        result.unit.declaredElement.source));
     return unit;
   }
 }
@@ -542,13 +544,14 @@ int f() => 0;
 }
 
 class MigrationVisitorTestBase extends DriverResolutionTest {
-  final _variables = Variables();
+  final _variables = _Variables();
 
   Future<CompilationUnit> analyze(String code) async {
     addTestFile(code);
     await resolveTestFile();
     var unit = result.unit;
-    unit.accept(ConstraintVariableGatherer(_variables));
+    unit.accept(ConstraintVariableGatherer(
+        _variables, result.unit.declaredElement.source));
     return unit;
   }
 
@@ -616,4 +619,62 @@ class _MockConstraints implements Constraints {
   @override
   void record(Iterable<ConstraintVariable> conditions,
       ConstraintVariable consequence) {}
+}
+
+/// Mock representation of constraint variables.
+class _Variables extends Variables {
+  final _decoratedExpressionTypes = <Expression, DecoratedType>{};
+
+  final _decoratedTypeAnnotations = <TypeAnnotation, DecoratedType>{};
+
+  final _expressionChecks = <Expression, ExpressionChecks>{};
+
+  final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
+
+  /// Gets the [ExpressionChecks] associated with the given [expression].
+  ExpressionChecks checkExpression(Expression expression) =>
+      _expressionChecks[_normalizeExpression(expression)];
+
+  /// Gets the [conditionalDiscard] associated with the given [expression].
+  ConditionalDiscard conditionalDiscard(AstNode node) =>
+      _conditionalDiscard[node];
+
+  /// Gets the [DecoratedType] associated with the given [expression].
+  DecoratedType decoratedExpressionType(Expression expression) =>
+      _decoratedExpressionTypes[_normalizeExpression(expression)];
+
+  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
+  DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
+      _decoratedTypeAnnotations[typeAnnotation];
+
+  @override
+  void recordConditionalDiscard(
+      Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
+    _conditionalDiscard[node] = conditionalDiscard;
+    super.recordConditionalDiscard(source, node, conditionalDiscard);
+  }
+
+  void recordDecoratedExpressionType(Expression node, DecoratedType type) {
+    super.recordDecoratedExpressionType(node, type);
+    _decoratedExpressionTypes[_normalizeExpression(node)] = type;
+  }
+
+  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type) {
+    super.recordDecoratedTypeAnnotation(node, type);
+    _decoratedTypeAnnotations[node] = type;
+  }
+
+  @override
+  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
+    super.recordExpressionChecks(expression, checks);
+    _expressionChecks[_normalizeExpression(expression)] = checks;
+  }
+
+  /// Unwraps any parentheses surrounding [expression].
+  Expression _normalizeExpression(Expression expression) {
+    while (expression is ParenthesizedExpression) {
+      expression = (expression as ParenthesizedExpression).expression;
+    }
+    return expression;
+  }
 }

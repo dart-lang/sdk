@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /// Visitor that gathers constraint variables for nullability migration from
 /// code to be migrated.
@@ -23,6 +24,9 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
   final VariableRecorder _variables;
 
+  /// The file being analyzed.
+  final Source _source;
+
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType] of the corresponding function or method type.
   ///
@@ -31,7 +35,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// parameters?
   DecoratedType _currentFunctionType;
 
-  ConstraintVariableGatherer(this._variables);
+  ConstraintVariableGatherer(this._variables, this._source);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
@@ -104,7 +108,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
       }
     }
     var nullable = node.question == null
-        ? _variables.nullableForTypeAnnotation(node)
+        ? _variables.nullableForTypeAnnotation(_source, node)
         : ConstraintVariable.always;
     // TODO(paulberry): decide whether to assign a variable for nullAsserts
     var nullAsserts = null;
@@ -142,7 +146,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 abstract class VariableRecorder {
   /// Creates a constraint variable to represent whether the given [node] should
   /// be made nullable (by adding a `?` after it).
-  ConstraintVariable nullableForTypeAnnotation(TypeAnnotation node);
+  ConstraintVariable nullableForTypeAnnotation(
+      Source source, TypeAnnotation node);
 
   /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
@@ -161,7 +166,8 @@ abstract class VariableRecorder {
 abstract class VariableRepository {
   /// Creates a constraint variable to represent whether the given [expression]
   /// should be null-checked.
-  ConstraintVariable checkNotNullForExpression(Expression expression);
+  ConstraintVariable checkNotNullForExpression(
+      Source source, Expression expression);
 
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
@@ -177,7 +183,7 @@ abstract class VariableRepository {
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
-      AstNode node, ConditionalDiscard conditionalDiscard);
+      Source source, AstNode node, ConditionalDiscard conditionalDiscard);
 
   /// Associates decorated type information with the given [element].
   ///

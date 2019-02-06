@@ -12,11 +12,41 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ProvisionalApiTest);
+    defineReflectiveTests(ProvisionalApiTestWithReset);
   });
 }
 
+/// Tests of the provisional API.
 @reflectiveTest
-class ProvisionalApiTest extends AbstractContextTest {
+class ProvisionalApiTest extends ProvisionalApiTestBase
+    with ProvisionalApiTestCases {}
+
+/// Base class for provisional API tests.
+abstract class ProvisionalApiTestBase extends AbstractContextTest {
+  /// Hook invoked after calling `prepareInput` on each input.
+  void _afterPrepare() {}
+
+  /// Verifies that migraiton of the single file with the given [content]
+  /// produces the [expected] output.
+  Future<void> _checkSingleFileChanges(String content, String expected) async {
+    var sourcePath = convertPath('/home/test/lib/test.dart');
+    newFile(sourcePath, content: content);
+    var migration = NullabilityMigration();
+    migration.prepareInput(await session.getResolvedUnit(sourcePath));
+    _afterPrepare();
+    migration.processInput(await session.getResolvedUnit(sourcePath));
+    var result = migration.finish();
+    var sourceEdits = <SourceEdit>[];
+    for (var fix in result) {
+      sourceEdits.addAll(fix.sourceEdits);
+    }
+    sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
+    expect(SourceEdit.applySequence(content, sourceEdits), expected);
+  }
+}
+
+/// Mixin containing test cases for the provisional API.
+mixin ProvisionalApiTestCases on ProvisionalApiTestBase {
   test_data_flow_generic_inward() async {
     var content = '''
 class C<T> {
@@ -211,20 +241,16 @@ int? f() => null;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
+}
 
-  Future<void> _checkSingleFileChanges(String content, String expected) async {
-    var sourcePath = convertPath('/home/test/lib/test.dart');
-    newFile(sourcePath, content: content);
-    var resolvedUnitResult = await session.getResolvedUnit(sourcePath);
-    var migration = NullabilityMigration();
-    migration.prepareInput(resolvedUnitResult);
-    migration.processInput(resolvedUnitResult);
-    var result = migration.finish();
-    var sourceEdits = <SourceEdit>[];
-    for (var fix in result) {
-      sourceEdits.addAll(fix.sourceEdits);
-    }
-    sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
-    expect(SourceEdit.applySequence(content, sourceEdits), expected);
+/// Tests of the provisional API, where the driver is reset between calls to
+/// `prepareInput` and `processInput`, ensuring that the migration algorithm
+/// sees different AST and element objects during different phases.
+@reflectiveTest
+class ProvisionalApiTestWithReset extends ProvisionalApiTestBase
+    with ProvisionalApiTestCases {
+  @override
+  void _afterPrepare() {
+    driver.resetUriResolution();
   }
 }
