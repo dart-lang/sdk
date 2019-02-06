@@ -190,10 +190,10 @@ analyzer:
     - lib/**
 ''');
 
-    createProject();
     addTestFile('''
 const double myDouble = 42.0;
     ''');
+    createProject();
 
     // Assert no suggestions now that source has been excluded
     final result = await performFix();
@@ -202,7 +202,6 @@ const double myDouble = 42.0;
   }
 
   test_dartfix_partFile() async {
-    createProject();
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
 part 'fileToBeFixed.dart';
@@ -211,6 +210,7 @@ part 'fileToBeFixed.dart';
 part of lib2;
 const double myDouble = 42.0;
     ''');
+    createProject();
 
     // Assert dartfix suggestions
     EditDartfixResult result = await performFix();
@@ -223,11 +223,11 @@ const double myDouble = 42;
   }
 
   test_dartfix_partFile_loose() async {
-    createProject();
     addTestFile('''
 part of lib2;
 const double myDouble = 42.0;
     ''');
+    createProject();
 
     // Assert dartfix suggestions
     EditDartfixResult result = await performFix();

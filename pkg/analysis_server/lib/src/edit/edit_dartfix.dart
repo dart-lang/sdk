@@ -7,6 +7,8 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
@@ -26,8 +28,6 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show Location, SourceChange, SourceEdit, SourceFileEdit;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
@@ -38,7 +38,7 @@ const fixNamedConstructorTypeArgs = 'fix-named-constructor-type-arguments';
 const nonNullable = 'non-nullable';
 const useMixin = 'use-mixin';
 
-class EditDartFix {
+class EditDartFix implements DartFixRegistrar {
   final AnalysisServer server;
   final Request request;
   final fixFolders = <Folder>[];
@@ -46,33 +46,10 @@ class EditDartFix {
   // TODO(danrubel): replace with is a list of DartFixInfo
   final namesOfFixesToApply = new Set<String>();
 
-  List<DartFixSuggestion> suggestions;
-  List<DartFixSuggestion> otherSuggestions;
-  SourceChange sourceChange;
+  DartFixListener listener;
 
-  EditDartFix(this.server, this.request);
-
-  void addSourceChange(
-      String description, Location location, SourceChange change) {
-    suggestions.add(new DartFixSuggestion(description, location: location));
-    for (SourceFileEdit fileEdit in change.edits) {
-      for (SourceEdit sourceEdit in fileEdit.edits) {
-        sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
-      }
-    }
-  }
-
-  void addSourceFileEdit(
-      String description, Location location, SourceFileEdit fileEdit) {
-    suggestions.add(new DartFixSuggestion(description, location: location));
-    for (SourceEdit sourceEdit in fileEdit.edits) {
-      sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
-    }
-  }
-
-  void addRecommendation(String description, [Location location]) {
-    otherSuggestions
-        .add(new DartFixSuggestion(description, location: location));
+  EditDartFix(this.server, this.request) {
+    listener = new DartFixListener(server);
   }
 
   Future<Response> compute() async {
@@ -106,7 +83,13 @@ class EditDartFix {
         }
       }
     }
-    namesOfFixesToApply.addAll(fixInfo.map((i) => i.setup(this)));
+    for (DartFixInfo info in fixInfo) {
+      String key = info.setup(this, listener);
+      if (key != null) {
+        // TODO(danrubel) replace returned strings with task registration.
+        namesOfFixesToApply.add(key);
+      }
+    }
 
     // Validate each included file and directory.
     final resourceProvider = server.resourceProvider;
@@ -134,21 +117,21 @@ class EditDartFix {
     final fixes = <LinterFix>[];
     if (namesOfFixesToApply.contains(useMixin)) {
       final preferMixin = lintRules['prefer_mixin'];
-      final preferMixinFix = new PreferMixinFix(this);
+      final preferMixinFix = new PreferMixinFix(listener);
       preferMixin.reporter = preferMixinFix;
       linters.add(preferMixin);
       fixes.add(preferMixinFix);
     }
     if (namesOfFixesToApply.contains(doubleToInt)) {
       final preferIntLiterals = lintRules['prefer_int_literals'];
-      final preferIntLiteralsFix = new PreferIntLiteralsFix(this);
+      final preferIntLiteralsFix = new PreferIntLiteralsFix(listener);
       preferIntLiterals.reporter = preferIntLiteralsFix;
       linters.add(preferIntLiterals);
       fixes.add(preferIntLiteralsFix);
     }
 
     final nonNullableFix = namesOfFixesToApply.contains(nonNullable)
-        ? new NonNullableFix(this)
+        ? new NonNullableFix(listener)
         : null;
 
     // TODO(danrubel): Determine if a lint is configured to run as part of
@@ -160,9 +143,6 @@ class EditDartFix {
     for (String rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
-    suggestions = <DartFixSuggestion>[];
-    otherSuggestions = <DartFixSuggestion>[];
-    sourceChange = new SourceChange('dartfix');
     bool hasErrors = false;
     while (resources.isNotEmpty) {
       Resource res = resources.removeLast();
@@ -174,6 +154,9 @@ class EditDartFix {
             resources.add(child);
           }
         }
+        continue;
+      }
+      if (!isIncluded(res.path)) {
         continue;
       }
 
@@ -225,8 +208,11 @@ class EditDartFix {
     nonNullableFix?.applyRemainingFixes();
 
     return new EditDartfixResult(
-            suggestions, otherSuggestions, hasErrors, sourceChange.edits)
-        .toResponse(request.id);
+      listener.suggestions,
+      listener.otherSuggestions,
+      hasErrors,
+      listener.sourceChange.edits,
+    ).toResponse(request.id);
   }
 
   Future<bool> fixError(ResolvedUnitResult result, AnalysisError error) async {
@@ -244,13 +230,13 @@ class EditDartFix {
     final dartContext = new DartFixContextImpl(workspace, result, error);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
-    final location = locationFor(result, error.offset, error.length);
+    final location = listener.locationFor(result, error.offset, error.length);
     if (fix != null) {
-      addSourceChange(fix.change.message, location, fix.change);
+      listener.addSourceChange(fix.change.message, location, fix.change);
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.
-      addRecommendation('Could not fix "${error.message}"', location);
+      listener.addRecommendation('Could not fix "${error.message}"', location);
     }
     return true;
   }
@@ -271,13 +257,6 @@ class EditDartFix {
       }
     }
     return false;
-  }
-
-  Location locationFor(ResolvedUnitResult result, int offset, int length) {
-    final locInfo = result.unit.lineInfo.getLocation(offset);
-    final location = new Location(
-        result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
-    return location;
   }
 
   Future<_LintVisitors> _setupLintVisitors(
@@ -324,12 +303,12 @@ class EditDartFix {
 }
 
 abstract class LinterFix implements ErrorReporter {
-  final EditDartFix dartFix;
+  final DartFixListener listener;
 
   @override
   Source source;
 
-  LinterFix(this.dartFix);
+  LinterFix(this.listener);
 
   /// Apply fixes for the current compilation unit.
   Future<void> applyLocalFixes(ResolvedUnitResult result);

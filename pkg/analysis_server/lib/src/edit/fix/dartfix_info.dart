@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart' show DartFix;
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 
 const allFixes = <DartFixInfo>[
   //
@@ -12,11 +14,13 @@ const allFixes = <DartFixInfo>[
   const DartFixInfo(
     fixNamedConstructorTypeArgs,
     'Move named constructor type arguments from the name to the type.',
+    DartFixInfo.fixNamedConstructorTypeArgsSetup,
     isRequired: true,
   ),
   const DartFixInfo(
     useMixin,
     'Convert classes used as a mixin to the new mixin syntax.',
+    DartFixInfo.useMixinSetup,
     isRequired: true,
   ),
   //
@@ -26,6 +30,7 @@ const allFixes = <DartFixInfo>[
     doubleToInt,
     'Find double literals ending in .0 and remove the .0\n'
         'wherever double context can be inferred.',
+    DartFixInfo.doubleToIntSetup,
   ),
   //
   // Expermimental fixes
@@ -37,24 +42,35 @@ const allFixes = <DartFixInfo>[
     'Experimental: Update sources to be non-nullable by default.\n'
         'Requires the experimental non-nullable flag to be enabled.\n'
         'This is not applied unless explicitly included.',
+    DartFixInfo.nonNullableSetup,
     isDefault: false,
   ),
 ];
 
 /// [DartFixInfo] represents a fix that can be applied by [EditDartFix].
 class DartFixInfo {
+  // TODO(danrubel): replace these setup method with ones that register tasks
+  static String doubleToIntSetup(
+          DartFixRegistrar reg, DartFixListener listener) =>
+      doubleToInt;
+  static String fixNamedConstructorTypeArgsSetup(
+          DartFixRegistrar reg, DartFixListener listener) =>
+      fixNamedConstructorTypeArgs;
+  static String nonNullableSetup(
+          DartFixRegistrar reg, DartFixListener listener) =>
+      nonNullable;
+  static String useMixinSetup(DartFixRegistrar reg, DartFixListener listener) =>
+      useMixin;
+
   final String key;
   final String description;
   final bool isDefault;
   final bool isRequired;
+  final String Function(DartFixRegistrar dartfix, DartFixListener listener)
+      setup;
 
-  const DartFixInfo(this.key, this.description,
+  const DartFixInfo(this.key, this.description, this.setup,
       {this.isDefault = true, this.isRequired = false});
-
-  String setup(EditDartFix dartfix) {
-    // TODO(danrubel): return DartFixTask rather than String
-    return key;
-  }
 
   DartFix asDartFix() =>
       new DartFix(key, description: description, isRequired: isRequired);

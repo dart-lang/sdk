@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/edit_dartfix.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
-  final EditDartFix dartFix;
+  final DartFixListener listener;
 
   /// The current source being "fixed"
   Source source;
@@ -25,7 +25,7 @@ class NonNullableFix {
   int firstOffset;
   int firstLength;
 
-  NonNullableFix(this.dartFix);
+  NonNullableFix(this.listener);
 
   void addEdit(int offset, int length, String replacementText) {
     fileEdit ??= new SourceFileEdit(source.fullName, 0);
@@ -51,8 +51,8 @@ class NonNullableFix {
     // add source changes to the collection of fixes
     source = null;
     if (fileEdit != null) {
-      dartFix.addSourceFileEdit('Update non-nullable type references',
-          dartFix.locationFor(result, firstOffset, firstLength), fileEdit);
+      listener.addSourceFileEdit('Update non-nullable type references',
+          listener.locationFor(result, firstOffset, firstLength), fileEdit);
     }
   }
 

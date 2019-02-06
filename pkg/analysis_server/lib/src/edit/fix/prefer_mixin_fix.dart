@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -15,7 +16,7 @@ import 'package:analyzer/error/error.dart';
 class PreferMixinFix extends LinterFix {
   final classesToConvert = new Set<Element>();
 
-  PreferMixinFix(EditDartFix dartFix) : super(dartFix);
+  PreferMixinFix(DartFixListener listener) : super(listener);
 
   @override
   Future<void> applyLocalFixes(ResolvedUnitResult result) {
@@ -32,14 +33,14 @@ class PreferMixinFix extends LinterFix {
 
   Future<void> convertClassToMixin(Element elem) async {
     ResolvedUnitResult result =
-        await dartFix.server.getResolvedUnit(elem.source?.fullName);
+        await listener.server.getResolvedUnit(elem.source?.fullName);
 
     for (CompilationUnitMember declaration in result.unit.declarations) {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {
         AssistProcessor processor = new AssistProcessor(
           new DartAssistContextImpl(
-              DartChangeWorkspace(dartFix.server.currentSessions),
+              DartChangeWorkspace(listener.server.currentSessions),
               result,
               declaration.name.offset,
               0),
@@ -47,16 +48,16 @@ class PreferMixinFix extends LinterFix {
         List<Assist> assists = await processor
             .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
         final location =
-            dartFix.locationFor(result, elem.nameOffset, elem.nameLength);
+            listener.locationFor(result, elem.nameOffset, elem.nameLength);
         if (assists.isNotEmpty) {
           for (Assist assist in assists) {
-            dartFix.addSourceChange('Convert ${elem.displayName} to a mixin',
+            listener.addSourceChange('Convert ${elem.displayName} to a mixin',
                 location, assist.change);
           }
         } else {
           // TODO(danrubel): If assists is empty, then determine why
           // assist could not be performed and report that in the description.
-          dartFix.addRecommendation(
+          listener.addRecommendation(
               'Could not convert ${elem.displayName} to a mixin'
               ' because the class contains a constructor',
               location);
@@ -70,8 +71,7 @@ class PreferMixinFix extends LinterFix {
       [List<Object> arguments]) {
     TypeName type = node;
     Element element = type.name.staticElement;
-    String filePath = element.source?.fullName;
-    if (filePath != null && dartFix.isIncluded(filePath)) {
+    if (element.source?.fullName != null) {
       classesToConvert.add(element);
     }
   }
