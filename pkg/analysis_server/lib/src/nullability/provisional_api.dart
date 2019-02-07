@@ -7,23 +7,37 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/nullability/transitional_api.dart'
     as analyzer;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 
 /// Kinds of fixes that might be performed by nullability migration.
-enum NullabilityFixKind {
+class NullabilityFixKind {
   /// An expression's value needs to be null-checked.
-  checkExpression,
+  static const checkExpression = const NullabilityFixKind._(
+    appliedMessage: 'Added a null check to an expression',
+  );
 
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
-  makeTypeNullable,
+  static const makeTypeNullable = const NullabilityFixKind._(
+    appliedMessage: 'Changed a type to be nullable',
+  );
 
   /// An if-test or conditional expression needs to have its "then" branch
   /// discarded.
-  discardThen,
+  static const discardThen = const NullabilityFixKind._(
+    appliedMessage: 'Discarded an unreachable conditional then branch',
+  );
 
   /// An if-test or conditional expression needs to have its "else" branch
   /// discarded.
-  discardElse,
+  static const discardElse = const NullabilityFixKind._(
+    appliedMessage: 'Discarded an unreachable conditional else branch',
+  );
+
+  /// A message used by dartfix to indicate a fix has been applied.
+  final String appliedMessage;
+
+  const NullabilityFixKind._({@required this.appliedMessage});
 }
 
 /// Provisional API for DartFix to perform nullability migration.

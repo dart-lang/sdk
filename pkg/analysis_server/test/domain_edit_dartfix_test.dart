@@ -135,9 +135,6 @@ void test() {
         await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
-    for (DartFixSuggestion suggestion in result.suggestions) {
-      expectSuggestion(suggestion, 'non-nullable');
-    }
     expectEdits(result.edits, '''
 int f(int? i) => 0;
 int g(int? i) => f(i);

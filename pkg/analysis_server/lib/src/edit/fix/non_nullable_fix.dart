@@ -48,7 +48,7 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   @override
   void addFix(SingleNullabilityFix fix) {
     // TODO(danrubel): Update the description based upon the [fix.kind]
-    listener.addSourceEdits('Update non-nullable type references', fix.location,
-        fix.source, fix.sourceEdits);
+    listener.addSourceEdits(
+        fix.kind.appliedMessage, fix.location, fix.source, fix.sourceEdits);
   }
 }
