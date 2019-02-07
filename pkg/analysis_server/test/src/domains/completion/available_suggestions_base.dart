@@ -48,7 +48,9 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    projectPath = convertPath('/home');
+    // TODO(scheglov) restore after fixing the issue in analyzer
+//    projectPath = convertPath('/home');
+    projectPath = convertPath('/home/test');
     testFile = convertPath('/home/test/lib/test.dart');
 
     newFile('/home/test/pubspec.yaml', content: '');
