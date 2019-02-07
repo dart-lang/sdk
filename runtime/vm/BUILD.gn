@@ -63,7 +63,7 @@ library_for_all_configs("libdart_vm") {
       # TODO(US-399): Remove time_service specific code when it is no longer
       # necessary.
       "//garnet/public/lib/component/cpp",
-      "//garnet/public/fidl/fuchsia.timezone",
+      "//sdk/fidl/fuchsia.timezone",
 
       # TODO(zra): When the platform-specific timeline code is moved out to
       # the embedder, this can go away.
