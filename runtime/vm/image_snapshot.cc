@@ -239,7 +239,7 @@ void ImageWriter::DumpInstructionsSizes() {
       js.PrintPropertyStr("c", name);
     }
     js.PrintProperty("n", data.code_->QualifiedName());
-    js.PrintProperty("s", data.insns_->Size());
+    js.PrintProperty("s", data.insns_->raw()->Size());
     js.CloseObject();
   }
   js.CloseArray();

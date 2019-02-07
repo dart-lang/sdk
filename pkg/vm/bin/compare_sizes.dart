@@ -30,6 +30,8 @@ the colunm widths.
   final oldSizes = loadSymbolSizes(args[0]);
   final newSizes = loadSymbolSizes(args[1]);
 
+  var totalOld = 0;
+  var totalNew = 0;
   var totalDiff = 0;
   final diffBySymbol = <String, int>{};
 
@@ -37,8 +39,12 @@ the colunm widths.
   // in size. If symbol is not present in the compilation assume its size to be
   // zero.
   for (var key in Set<String>()..addAll(newSizes.keys)..addAll(oldSizes.keys)) {
-    final diff = (newSizes[key] ?? 0) - (oldSizes[key] ?? 0);
+    final oldSize = oldSizes[key] ?? 0;
+    final newSize = newSizes[key] ?? 0;
+    final diff = newSize - oldSize;
     if (diff != 0) diffBySymbol[key] = diff;
+    totalOld += oldSize;
+    totalNew += newSize;
     totalDiff += diff;
   }
 
@@ -75,9 +81,11 @@ the colunm widths.
   }
   table.addSeparator();
 
-  print('Comparing ${args[0]} (old) to ${args[1]} (new)');
   table.render();
-  print('Total change ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
+  print('Comparing ${args[0]} (old) to ${args[1]} (new)');
+  print('Old   : ${totalOld} bytes.');
+  print('New   : ${totalNew} bytes.');
+  print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
 }
 
 /// A combination of characters that is unlikely to occur in the symbol name.
@@ -90,12 +98,24 @@ const String librarySeparator = ',';
 /// by concatenating them with [librarySeparator].
 Map<String, int> loadSymbolSizes(String name) {
   final symbols = jsonDecode(File(name).readAsStringSync());
-  return Map<String, int>.fromIterable(symbols,
-      key: (e) =>
-          (e['l'] ?? '') +
-          librarySeparator +
-          e['n'].replaceAll('[Optimized] ', ''),
-      value: (e) => e['s']);
+  final result = new Map<String, int>();
+  final regexp = new RegExp(r"0x[a-fA-F0-9]+");
+  for (int i = 0, n = symbols.length; i < n; i++) {
+    final e = symbols[i];
+    // Obtain a key by combining library and method name. Strip anything
+    // after the library separator to make sure we can easily decode later.
+    // For method names, also remove non-deterministic parts to avoid
+    // reporting non-existing differences against the same layout.
+    String lib = ((e['l'] ?? '').split(librarySeparator))[0];
+    String name = (e['n'].split(librarySeparator))[0]
+        .replaceAll('[Optimized] ', '')
+        .replaceAll(regexp, '');
+    String key = lib + librarySeparator + name;
+    int val = e['s'];
+    result[key] =
+        (result[key] ?? 0) + val; // add (key,val), accumulate if exists
+  }
+  return result;
 }
 
 /// A row in the [AsciiTable].
