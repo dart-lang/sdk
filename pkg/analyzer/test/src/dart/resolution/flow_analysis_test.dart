@@ -2689,14 +2689,14 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 class _AstVisitor extends GeneralizingAstVisitor<void> {
   static final trueLiteral = astFactory.booleanLiteral(null, true);
 
-  final TypeOperations typeOperations;
+  final TypeOperations<DartType> typeOperations;
   final AssignedVariables assignedVariables;
   final Map<AstNode, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
   final List<AstNode> unreachableNodes;
   final List<FunctionBody> functionBodiesThatDontComplete;
 
-  FlowAnalysis flow;
+  FlowAnalysis<DartType> flow;
 
   _AstVisitor(
       TypeSystem typeSystem,
@@ -2772,7 +2772,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     var isFlowOwner = flow == null;
-    flow ??= FlowAnalysis(typeOperations, node);
+    flow ??= FlowAnalysis<DartType>(typeOperations, node);
 
     super.visitBlockFunctionBody(node);
 
