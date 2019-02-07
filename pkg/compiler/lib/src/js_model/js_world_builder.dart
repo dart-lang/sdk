@@ -123,7 +123,7 @@ class JsClosedWorldBuilder {
         map.toBackendClassSet(closedWorld.liveNativeClasses);
 
     Set<MemberEntity> processedMembers =
-        map.toBackendMemberSet(closedWorld.processedMembers);
+        map.toBackendMemberSet(closedWorld.liveMemberUsage.keys);
 
     RuntimeTypesNeed rtiNeed;
 

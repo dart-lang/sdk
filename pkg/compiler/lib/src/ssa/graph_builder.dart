@@ -153,7 +153,7 @@ abstract class GraphBuilder {
   /// [isAborted].
   bool isReachable = true;
 
-  HParameterValue lastAddedParameter;
+  HLocalValue lastAddedParameter;
 
   Map<Local, HInstruction> parameters = <Local, HInstruction>{};
 
@@ -207,8 +207,11 @@ abstract class GraphBuilder {
     current.add(instruction);
   }
 
-  HParameterValue addParameter(Entity parameter, AbstractValue type) {
-    HParameterValue result = new HParameterValue(parameter, type);
+  HLocalValue addParameter(Entity parameter, AbstractValue type,
+      {bool isElided: false}) {
+    HLocalValue result = isElided
+        ? new HLocalValue(parameter, type)
+        : new HParameterValue(parameter, type);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);
     } else {

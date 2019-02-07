@@ -694,7 +694,12 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   @override
   void forEachParameterAsLocal(
       FunctionEntity function, void f(Local parameter)) {
-    forEachOrderedParameter(_globalLocalsMap, _elementMap, function, f);
+    forEachOrderedParameterAsLocal(_globalLocalsMap, _elementMap, function,
+        (Local parameter, {bool isElided}) {
+      if (!isElided) {
+        f(parameter);
+      }
+    });
   }
 
   @override

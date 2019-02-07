@@ -813,7 +813,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   bool methodNeedsTypeArguments(FunctionEntity function) {
-    if (function.parameterStructure.typeParameters == 0) return false;
     return methodsNeedingTypeArguments.contains(function);
   }
 

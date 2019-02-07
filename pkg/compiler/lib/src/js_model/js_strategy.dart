@@ -64,7 +64,7 @@ class JsBackendStrategy implements BackendStrategy {
         _compiler.reporter,
         _compiler.environment,
         strategy.elementMap,
-        closedWorld.processedMembers);
+        closedWorld.liveMemberUsage);
     GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
     ClosureDataBuilder closureDataBuilder = new ClosureDataBuilder(
         _elementMap, _globalLocalsMap, _compiler.options);

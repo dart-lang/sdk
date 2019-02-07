@@ -74,17 +74,17 @@ class ProgramLookup {
 
   Method getMethod(FunctionEntity function) {
     if (function.enclosingClass != null) {
-      return getClassData(function.enclosingClass).getMethod(function);
+      return getClassData(function.enclosingClass)?.getMethod(function);
     } else {
-      return getLibraryData(function.library).getMethod(function);
+      return getLibraryData(function.library)?.getMethod(function);
     }
   }
 
   Field getField(FieldEntity field) {
     if (field.enclosingClass != null) {
-      return getClassData(field.enclosingClass).getField(field);
+      return getClassData(field.enclosingClass)?.getField(field);
     } else {
-      return getLibraryData(field.library).getField(field);
+      return getLibraryData(field.library)?.getField(field);
     }
   }
 }
@@ -137,6 +137,9 @@ class LibraryData {
   Field getField(FieldEntity field) {
     return _fieldMap[field];
   }
+
+  String toString() => 'LibraryData(library=$library,_classMap=$_classMap,'
+      '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
 
 class ClassData {
@@ -173,6 +176,9 @@ class ClassData {
   StubMethod getCheckedSetter(FieldEntity field) {
     return _checkedSetterMap[field];
   }
+
+  String toString() => 'ClassData(cls=$cls,'
+      '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
 
 void forEachNode(js.Node root,

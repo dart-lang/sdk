@@ -1272,8 +1272,11 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
-    forEachOrderedParameter(
-        _closedWorld.globalLocalsMap, _closedWorld.elementMap, function, f);
+    forEachOrderedParameterAsLocal(
+        _closedWorld.globalLocalsMap, _closedWorld.elementMap, function,
+        (Local parameter, {bool isElided}) {
+      f(parameter);
+    });
   }
 
   @override

@@ -352,7 +352,7 @@ class A16 {
   // TODO(johnniwinther): Investigate why these include `null`. The ast version
   // didn't.
 
-  /*element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
+  /*element: A16.f16:Union([exact=JSUInt31], [null|exact=JSString])*/
   var f16;
 
   /*element: A16.:[exact=A16]*/

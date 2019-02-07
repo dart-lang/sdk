@@ -545,8 +545,9 @@ class ParameterStubMethod extends StubMethod {
   /// If a stub's member can not be torn off, the [callName] is `null`.
   js.Name callName;
 
-  ParameterStubMethod(js.Name name, this.callName, js.Expression code)
-      : super(name, code);
+  ParameterStubMethod(js.Name name, this.callName, js.Expression code,
+      {MemberEntity element})
+      : super(name, code, element: element);
 
   String toString() {
     return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'

@@ -12,7 +12,6 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
-import '../ir/util.dart';
 import '../serialization/serialization.dart';
 
 import 'element_map.dart';
@@ -617,56 +616,14 @@ class LocalData {
 
 /// Calls [f] for each parameter in [function] in the canonical order:
 /// Positional parameters by index, then named parameters lexicographically.
-void forEachOrderedParameter(
+void forEachOrderedParameterAsLocal(
     GlobalLocalsMap globalLocalsMap,
     JsToElementMap elementMap,
     FunctionEntity function,
-    void f(Local parameter)) {
+    void f(Local parameter, {bool isElided})) {
   KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
-
-  void processFunctionNode(ir.FunctionNode node) {
-    for (ir.VariableDeclaration variable in node.positionalParameters) {
-      f(localsMap.getLocalVariable(variable));
-    }
-    List<ir.VariableDeclaration> namedParameters =
-        new List<ir.VariableDeclaration>.from(node.namedParameters);
-    namedParameters.sort(namedOrdering);
-    for (ir.VariableDeclaration variable in namedParameters) {
-      f(localsMap.getLocalVariable(variable));
-    }
-  }
-
-  MemberDefinition definition = elementMap.getMemberDefinition(function);
-  switch (definition.kind) {
-    case MemberKind.regular:
-      ir.Node node = definition.node;
-      if (node is ir.Procedure) {
-        processFunctionNode(node.function);
-        return;
-      }
-      break;
-    case MemberKind.constructor:
-    case MemberKind.constructorBody:
-      ir.Node node = definition.node;
-      if (node is ir.Procedure) {
-        processFunctionNode(node.function);
-        return;
-      } else if (node is ir.Constructor) {
-        processFunctionNode(node.function);
-        return;
-      }
-      break;
-    case MemberKind.closureCall:
-      ir.Node node = definition.node;
-      if (node is ir.FunctionDeclaration) {
-        processFunctionNode(node.function);
-        return;
-      } else if (node is ir.FunctionExpression) {
-        processFunctionNode(node.function);
-        return;
-      }
-      break;
-    default:
-  }
-  failedAt(function, "Unexpected function definition $definition.");
+  forEachOrderedParameter(elementMap, function,
+      (ir.VariableDeclaration variable, {bool isElided}) {
+    f(localsMap.getLocalVariable(variable), isElided: isElided);
+  });
 }

@@ -15,8 +15,8 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/util/features.dart';
-import 'package:kernel/ast.dart' as ir;
 import 'package:js_ast/js_ast.dart' as js;
+import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../helpers/program_lookup.dart';
@@ -138,7 +138,8 @@ class ModelIrComputer extends IrDataExtractor<Features> {
                       node.arguments.map(js.nodeToString).join(',');
                   features.addElement(tag, '${prefix}${name}(${arguments})');
                 } else {
-                  features.addElement(tag, '${name}(${node.arguments.length})');
+                  features.addElement(
+                      tag, '${prefix}${name}(${node.arguments.length})');
                 }
               }
             }

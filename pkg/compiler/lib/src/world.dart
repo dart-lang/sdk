@@ -31,6 +31,7 @@ import 'js_backend/runtime_types.dart' show RuntimeTypesNeed;
 import 'js_model/locals.dart';
 import 'js_emitter/sorter.dart';
 import 'universe/class_hierarchy.dart';
+import 'universe/member_usage.dart';
 import 'universe/selector.dart' show Selector;
 
 /// Common superinterface for [OpenWorld] and [JClosedWorld].
@@ -249,7 +250,7 @@ abstract class KClosedWorld {
   Iterable<MemberEntity> get assignedInstanceMembers;
 
   Iterable<ClassEntity> get liveNativeClasses;
-  Iterable<MemberEntity> get processedMembers;
+  Map<MemberEntity, MemberUsage> get liveMemberUsage;
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
 

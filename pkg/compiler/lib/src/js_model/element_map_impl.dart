@@ -50,6 +50,7 @@ import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../universe/call_structure.dart';
+import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 
 import 'closure.dart';
@@ -144,8 +145,11 @@ class JsKernelToElementMap
 
   Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
 
-  JsKernelToElementMap(this.reporter, Environment environment,
-      KernelToElementMapImpl _elementMap, Iterable<MemberEntity> liveMembers)
+  JsKernelToElementMap(
+      this.reporter,
+      Environment environment,
+      KernelToElementMapImpl _elementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment);
@@ -161,7 +165,7 @@ class JsKernelToElementMap
       KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
       KLibraryData data = _elementMap.libraries.getData(oldLibrary);
       IndexedLibrary newLibrary = convertLibrary(oldLibrary);
-      JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMembers);
+      JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMemberUsage);
       libraryMap[oldEnv.library] =
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
               newLibrary, data.convert(), newEnv);
@@ -178,7 +182,7 @@ class JsKernelToElementMap
       IndexedLibrary oldLibrary = oldClass.library;
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
       IndexedClass newClass = convertClass(newLibrary, oldClass);
-      JClassEnv newEnv = env.convert(_elementMap, liveMembers);
+      JClassEnv newEnv = env.convert(_elementMap, liveMemberUsage);
       classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
       assert(newClass.classIndex == oldClass.classIndex);
       libraries.getEnv(newClass.library).registerClass(newClass.name, newEnv);
@@ -206,7 +210,8 @@ class JsKernelToElementMap
         memberIndex < _elementMap.members.length;
         memberIndex++) {
       IndexedMember oldMember = _elementMap.members.getEntity(memberIndex);
-      if (!liveMembers.contains(oldMember)) {
+      MemberUsage memberUsage = liveMemberUsage[oldMember];
+      if (memberUsage == null) {
         members.skipIndex(oldMember.memberIndex);
         continue;
       }
@@ -216,9 +221,14 @@ class JsKernelToElementMap
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
       ClassEntity newClass =
           oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
-      IndexedMember newMember = convertMember(newLibrary, newClass, oldMember);
+      IndexedMember newMember =
+          convertMember(newLibrary, newClass, oldMember, memberUsage);
       members.register(newMember, data.convert());
-      assert(newMember.memberIndex == oldMember.memberIndex);
+      assert(
+          newMember.memberIndex == oldMember.memberIndex,
+          "Member index mismatch: "
+          "Old member $oldMember has index ${oldMember.memberIndex} "
+          "whereas new member $newMember has index ${newMember.memberIndex}");
       if (newMember.isField) {
         fieldMap[data.node] = newMember;
       } else if (newMember.isConstructor) {
@@ -1120,20 +1130,6 @@ class JsKernelToElementMap
         argumentCount, namedArguments, arguments.types.length);
   }
 
-  ParameterStructure getParameterStructure(ir.FunctionNode node,
-      // TODO(johnniwinther): Remove this when type arguments are passed to
-      // constructors like calling a generic method.
-      {bool includeTypeParameters: true}) {
-    // TODO(johnniwinther): Cache the computed function type.
-    int requiredParameters = node.requiredParameterCount;
-    int positionalParameters = node.positionalParameters.length;
-    int typeParameters = node.typeParameters.length;
-    List<String> namedParameters =
-        node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(requiredParameters, positionalParameters,
-        namedParameters, includeTypeParameters ? typeParameters : 0);
-  }
-
   Selector getSelector(ir.Expression node) {
     // TODO(efortuna): This is screaming for a common interface between
     // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
@@ -1480,8 +1476,9 @@ class JsKernelToElementMap
         isFromEnvironmentConstructor: isFromEnvironmentConstructor);
   }
 
-  JConstructorBody createConstructorBody(ConstructorEntity constructor) {
-    return new JConstructorBody(constructor);
+  JConstructorBody createConstructorBody(
+      ConstructorEntity constructor, ParameterStructure parameterStructure) {
+    return new JConstructorBody(constructor, parameterStructure);
   }
 
   JGeneratorBody createGeneratorBody(
@@ -1536,8 +1533,8 @@ class JsKernelToElementMap
     return createTypedef(library, typedef.name);
   }
 
-  MemberEntity convertMember(
-      LibraryEntity library, ClassEntity cls, IndexedMember member) {
+  MemberEntity convertMember(LibraryEntity library, ClassEntity cls,
+      IndexedMember member, MemberUsage memberUsage) {
     Name memberName = new Name(member.memberName.text, library,
         isSetter: member.memberName.isSetter);
     if (member.isField) {
@@ -1551,14 +1548,14 @@ class JsKernelToElementMap
       if (constructor.isFactoryConstructor) {
         // TODO(redemption): This should be a JFunction.
         return createFactoryConstructor(
-            cls, memberName, constructor.parameterStructure,
+            cls, memberName, memberUsage.invokedParameters,
             isExternal: constructor.isExternal,
             isConst: constructor.isConst,
             isFromEnvironmentConstructor:
                 constructor.isFromEnvironmentConstructor);
       } else {
         return createGenerativeConstructor(
-            cls, memberName, constructor.parameterStructure,
+            cls, memberName, memberUsage.invokedParameters,
             isExternal: constructor.isExternal, isConst: constructor.isConst);
       }
     } else if (member.isGetter) {
@@ -1575,8 +1572,8 @@ class JsKernelToElementMap
           isAbstract: setter.isAbstract);
     } else {
       IndexedFunction function = member;
-      return createMethod(library, cls, memberName, function.parameterStructure,
-          function.asyncMarker,
+      return createMethod(library, cls, memberName,
+          memberUsage.invokedParameters, function.asyncMarker,
           isStatic: function.isStatic,
           isExternal: function.isExternal,
           isAbstract: function.isAbstract);
@@ -1696,7 +1693,14 @@ class JsKernelToElementMap
       ir.Constructor node, covariant IndexedConstructor constructor) {
     JConstructorDataImpl data = members.getData(constructor);
     if (data.constructorBody == null) {
-      JConstructorBody constructorBody = createConstructorBody(constructor);
+      /// The constructor calls the constructor body with all parameters.
+      // TODO(johnniwinther): Remove parameters that are not used in the
+      //  constructor body.
+      ParameterStructure parameterStructure =
+          _getParameterStructureFromFunctionNode(node.function);
+
+      JConstructorBody constructorBody =
+          createConstructorBody(constructor, parameterStructure);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
           new ConstructorBodyDataImpl(
@@ -1748,7 +1752,8 @@ class JsKernelToElementMap
       void f(DartType type, String name, ConstantValue defaultValue),
       {bool isNative: false}) {
     FunctionData data = members.getData(function);
-    data.forEachParameter(this, f, isNative: isNative);
+    data.forEachParameter(this, function.parameterStructure, f,
+        isNative: isNative);
   }
 
   void forEachConstructorBody(
@@ -1820,6 +1825,17 @@ class JsKernelToElementMap
           Local local, Map<Local, JRecordField> recordFieldsVisibleInScope) =>
       recordFieldsVisibleInScope.containsKey(local);
 
+  ParameterStructure _getParameterStructureFromFunctionNode(
+      ir.FunctionNode node) {
+    int requiredParameters = node.requiredParameterCount;
+    int positionalParameters = node.positionalParameters.length;
+    int typeParameters = node.typeParameters.length;
+    List<String> namedParameters =
+        node.namedParameters.map((p) => p.name).toList()..sort();
+    return new ParameterStructure(requiredParameters, positionalParameters,
+        namedParameters, typeParameters);
+  }
+
   KernelClosureClassInfo constructClosureClass(
       MemberEntity member,
       ir.FunctionNode node,
@@ -1863,8 +1879,8 @@ class JsKernelToElementMap
       closureEntity = new AnonymousClosureLocal(classEntity);
     }
 
-    IndexedFunction callMethod = new JClosureCallMethod(
-        classEntity, getParameterStructure(node), getAsyncMarker(node));
+    IndexedFunction callMethod = new JClosureCallMethod(classEntity,
+        _getParameterStructureFromFunctionNode(node), getAsyncMarker(node));
     _nestedClosureMap
         .putIfAbsent(member, () => <IndexedFunction>[])
         .add(callMethod);

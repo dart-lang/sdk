@@ -1031,7 +1031,7 @@ abstract class ClosureMemberData implements JMemberData {
 }
 
 class ClosureFunctionData extends ClosureMemberData
-    with FunctionDataMixin, FunctionNodeMixin
+    with FunctionDataTypeVariablesMixin, FunctionDataForEachParameterMixin
     implements FunctionData {
   /// Tag used for identifying serialized [ClosureFunctionData] objects in a
   /// debugging data stream.

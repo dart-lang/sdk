@@ -536,21 +536,18 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   final JConstructor constructor;
 
-  JConstructorBody(this.constructor)
-      : super(
-            constructor.library,
-            constructor.enclosingClass,
-            constructor.memberName,
-            constructor.parameterStructure,
-            AsyncMarker.SYNC,
-            isStatic: false,
-            isExternal: false);
+  JConstructorBody(this.constructor, ParameterStructure parameterStructure)
+      : super(constructor.library, constructor.enclosingClass,
+            constructor.memberName, parameterStructure, AsyncMarker.SYNC,
+            isStatic: false, isExternal: false);
 
   factory JConstructorBody.readFromDataSource(DataSource source) {
     source.begin(tag);
     JConstructor constructor = source.readMember();
+    ParameterStructure parameterStructure =
+        new ParameterStructure.readFromDataSource(source);
     source.end(tag);
-    return new JConstructorBody(constructor);
+    return new JConstructorBody(constructor, parameterStructure);
   }
 
   @override
@@ -558,6 +555,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
     sink.writeEnum(JMemberKind.constructorBody);
     sink.begin(tag);
     sink.writeMember(constructor);
+    parameterStructure.writeToDataSink(sink);
     sink.end(tag);
   }
 
