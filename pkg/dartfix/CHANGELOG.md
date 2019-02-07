@@ -1,3 +1,7 @@
+# 0.1.5
+* add command line options for selecting/excluding fixes to apply
+* add experimental NNBD migration support
+
 # 0.1.4
  * update protocol version constraints
 
