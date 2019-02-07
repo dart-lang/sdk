@@ -856,14 +856,20 @@ copy("copy_license") {
   ]
 }
 
-# This rule copies the dartdoc_options.yaml file.
-copy("copy_dartdoc_options") {
+# This rule generates a custom dartdoc_options.yaml file.
+action("write_dartdoc_options") {
   visibility = [ ":create_common_sdk" ]
-  sources = [
-    "../dartdoc_options.yaml",
+  inputs = [
+    "../.git/logs/HEAD",
   ]
+  output = "$root_out_dir/dart-sdk/dartdoc_options.yaml"
   outputs = [
-    "$root_out_dir/dart-sdk/dartdoc_options.yaml",
+    output,
+  ]
+  script = "../tools/write_dartdoc_options_file.py"
+  args = [
+    "--output",
+    rebase_path(output),
   ]
 }
 
@@ -886,13 +892,13 @@ group("create_common_sdk") {
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
-    ":copy_dartdoc_options",
     ":copy_headers",
     ":copy_libraries_dart",
     ":copy_license",
     ":copy_libraries_specification",
     ":copy_readme",
     ":copy_vm_dill_files",
+    ":write_dartdoc_options",
     ":write_revision_file",
     ":write_version_file",
   ]
