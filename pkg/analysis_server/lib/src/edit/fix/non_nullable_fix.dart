@@ -7,7 +7,6 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
@@ -19,19 +18,15 @@ class NonNullableFix extends FixCodeTask2 {
 
   final DartFixListener listener;
 
-  // TODO(danrubel): consider integrating NullabilityMigration into this class
-  final NullabilityMigration migration = new NullabilityMigration();
+  final NullabilityMigration migration;
 
-  NonNullableFix(this.listener);
+  NonNullableFix(this.listener)
+      : migration =
+            new NullabilityMigration(new NullabilityMigrationAdapter(listener));
 
   @override
   Future<void> finish() async {
-    var fixes = migration.finish();
-    for (var fix in fixes) {
-      // TODO(danrubel): Update the description based upon the [fix.kind]
-      listener.addSourceEdits('Update non-nullable type references',
-          fix.location, fix.source, fix.sourceEdits);
-    }
+    migration.finish();
   }
 
   @override
@@ -42,5 +37,18 @@ class NonNullableFix extends FixCodeTask2 {
   @override
   Future<void> processUnit2(ResolvedUnitResult result) async {
     migration.processInput(result);
+  }
+}
+
+class NullabilityMigrationAdapter implements NullabilityMigrationListener {
+  final DartFixListener listener;
+
+  NullabilityMigrationAdapter(this.listener);
+
+  @override
+  void addFix(SingleNullabilityFix fix) {
+    // TODO(danrubel): Update the description based upon the [fix.kind]
+    listener.addSourceEdits('Update non-nullable type references', fix.location,
+        fix.source, fix.sourceEdits);
   }
 }

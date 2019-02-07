@@ -33,7 +33,8 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var migration = NullabilityMigration();
+    var listener = new TestMigrationListener();
+    var migration = NullabilityMigration(listener);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -41,9 +42,9 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       migration.processInput(await session.getResolvedUnit(path));
     }
-    var result = migration.finish();
+    migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var fix in result) {
+    for (var fix in listener.fixes) {
       var path = fix.source.fullName;
       expect(expectedOutput.keys, contains(path));
       (sourceEdits[path] ??= []).addAll(fix.sourceEdits);
@@ -61,6 +62,15 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
   Future<void> _checkSingleFileChanges(String content, String expected) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     _checkMultipleFileChanges({sourcePath: content}, {sourcePath: expected});
+  }
+}
+
+class TestMigrationListener implements NullabilityMigrationListener {
+  final fixes = <SingleNullabilityFix>[];
+
+  @override
+  void addFix(SingleNullabilityFix fix) {
+    fixes.add(fix);
   }
 }
 

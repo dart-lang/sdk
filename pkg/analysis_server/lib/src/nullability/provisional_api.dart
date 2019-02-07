@@ -36,12 +36,14 @@ enum NullabilityFixKind {
 /// what file/folder it belongs in.
 class NullabilityMigration {
   final _analyzerMigration = analyzer.NullabilityMigration();
+  final NullabilityMigrationListener listener;
 
-  List<SingleNullabilityFix> finish() {
-    return _analyzerMigration
-        .finish()
-        .map((pm) => _SingleNullabilityFix(pm))
-        .toList();
+  NullabilityMigration(this.listener);
+
+  void finish() {
+    _analyzerMigration.finish().forEach((pm) {
+      listener.addFix(_SingleNullabilityFix(pm));
+    });
   }
 
   void prepareInput(ResolvedUnitResult result) {
@@ -51,6 +53,13 @@ class NullabilityMigration {
   void processInput(ResolvedUnitResult result) {
     _analyzerMigration.processInput(result.unit, result.typeProvider);
   }
+}
+
+/// [NullabilityMigrationListener] is used by [NullabilityMigration]
+/// to communicate source changes or "fixes" to the client.
+abstract class NullabilityMigrationListener {
+  /// [addFix] is called once for each source change.
+  void addFix(SingleNullabilityFix fix);
 }
 
 /// Representation of a single conceptual change made by the nullability
