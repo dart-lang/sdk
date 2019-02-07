@@ -330,6 +330,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       }
       s = substitution.substituteType(s.withoutTypeParameters);
     }
+    // TODO(ahe): This needs to be updated to deal with optional arguments, in
+    // particular when the length aren't the same.
     if (!types.isSubtypeOfKernel(s.returnType, t.returnType)) {
       return false;
     } else if (!types.areSubtypesOfKernel(

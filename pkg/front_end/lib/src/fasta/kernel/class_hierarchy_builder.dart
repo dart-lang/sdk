@@ -5,17 +5,30 @@
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, Library, Member, Name, Procedure, ProcedureKind;
+    show
+        Class,
+        DartType,
+        InterfaceType,
+        TypeParameter,
+        Library,
+        Member,
+        Name,
+        Procedure,
+        ProcedureKind,
+        Supertype;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
         LocatedMessage,
+        Message,
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
         messageInheritedMembersConflict,
@@ -31,6 +44,17 @@ import '../messages.dart'
 import '../names.dart' show noSuchMethodName;
 
 import '../scope.dart' show Scope;
+
+import '../type_inference/standard_bounds.dart' show StandardBounds;
+
+import '../type_inference/type_constraint_gatherer.dart'
+    show TypeConstraintGatherer;
+
+import '../type_inference/type_inferrer.dart' show MixinInferrer;
+
+import '../type_inference/type_schema.dart' show UnknownType;
+
+import '../type_inference/type_schema_environment.dart' show TypeConstraint;
 
 import 'kernel_builder.dart'
     show
@@ -94,9 +118,12 @@ class ClassHierarchyBuilder {
 
   final Class nullKernelClass;
 
+  // TODO(ahe): Remove this.
+  final CoreTypes coreTypes;
+
   Types types;
 
-  ClassHierarchyBuilder(this.objectClass, this.loader, CoreTypes coreTypes)
+  ClassHierarchyBuilder(this.objectClass, this.loader, this.coreTypes)
       : objectKernelClass = objectClass.target,
         futureKernelClass = coreTypes.futureClass,
         futureOrKernelClass = coreTypes.futureOrClass,
@@ -335,6 +362,7 @@ class ClassHierarchyNodeBuilder {
     Scope scope = cls.scope;
     if (cls.isMixinApplication) {
       Declaration mixin = cls.mixedInType.declaration;
+      inferMixinApplication();
       while (mixin.isNamedMixinApplication) {
         KernelClassBuilder named = mixin;
         mixin = named.mixedInType.declaration;
@@ -734,6 +762,23 @@ class ClassHierarchyNodeBuilder {
     if (bList.isEmpty && storeIndex == aList.length) return aList;
     return result..length = storeIndex;
   }
+
+  void inferMixinApplication() {
+    if (!hierarchy.loader.target.backendTarget.legacyMode) return;
+    Class kernelClass = cls.target;
+    Supertype mixedInType = kernelClass.mixedInType;
+    if (mixedInType == null) return;
+    List<DartType> typeArguments = mixedInType.typeArguments;
+    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
+    // TODO(ahe): We need to copy the inferred Kernel type arguments to the
+    // ClassBuilder.
+    new BuilderMixinInferrer(
+            cls,
+            hierarchy.coreTypes,
+            new TypeBuilderConstraintGatherer(
+                hierarchy, mixedInType.classNode.typeParameters))
+        .infer(kernelClass);
+  }
 }
 
 class ClassHierarchyNode {
@@ -882,4 +927,97 @@ List<LocatedMessage> inheritedConflictContextKernel(
     messageInheritedMembersConflictCause2.withLocation(
         second.fileUri, second.fileOffset, length),
   ];
+}
+
+class BuilderMixinInferrer extends MixinInferrer {
+  final KernelClassBuilder cls;
+
+  BuilderMixinInferrer(
+      this.cls, CoreTypes coreTypes, TypeBuilderConstraintGatherer gatherer)
+      : super(coreTypes, gatherer);
+
+  Supertype asInstantiationOf(Supertype type, Class superclass) {
+    InterfaceType interfaceType =
+        gatherer.getTypeAsInstanceOf(type.asInterfaceType, superclass);
+    if (interfaceType == null) return null;
+    return new Supertype(interfaceType.classNode, interfaceType.typeArguments);
+  }
+
+  void reportProblem(Message message, Class kernelClass) {
+    int length = cls.isMixinApplication ? 1 : cls.fullNameForErrors.length;
+    cls.addProblem(message, cls.charOffset, length);
+  }
+}
+
+class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
+    with StandardBounds {
+  final ClassHierarchyBuilder hierarchy;
+
+  TypeBuilderConstraintGatherer(
+      this.hierarchy, Iterable<TypeParameter> typeParameters)
+      : super.subclassing(typeParameters);
+
+  @override
+  Class get objectClass => hierarchy.objectKernelClass;
+
+  @override
+  Class get functionClass => hierarchy.functionKernelClass;
+
+  @override
+  Class get futureOrClass => hierarchy.futureOrKernelClass;
+
+  @override
+  Class get nullClass => hierarchy.nullKernelClass;
+
+  @override
+  InterfaceType get nullType => nullClass.rawType;
+
+  @override
+  InterfaceType get objectType => objectClass.rawType;
+
+  @override
+  InterfaceType get rawFunctionType => functionClass.rawType;
+
+  @override
+  void addLowerBound(TypeConstraint constraint, DartType lower) {
+    constraint.lower = getStandardUpperBound(constraint.lower, lower);
+  }
+
+  @override
+  void addUpperBound(TypeConstraint constraint, DartType upper) {
+    constraint.upper = getStandardLowerBound(constraint.upper, upper);
+  }
+
+  @override
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+    return null;
+  }
+
+  @override
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+    if (type.classNode == superclass) return type;
+    KernelNamedTypeBuilder supertype =
+        hierarchy.asSupertypeOf(type.classNode, superclass);
+    if (supertype == null) return null;
+    if (supertype.arguments == null) return superclass.rawType;
+    return Substitution.fromInterfaceType(type)
+        .substituteType(supertype.build(null));
+  }
+
+  @override
+  InterfaceType futureType(DartType type) {
+    return new InterfaceType(hierarchy.futureKernelClass, <DartType>[type]);
+  }
+
+  @override
+  bool isSubtypeOf(DartType subtype, DartType supertype) {
+    return hierarchy.types.isSubtypeOfKernel(subtype, supertype);
+  }
+
+  @override
+  InterfaceType getLegacyLeastUpperBound(
+      InterfaceType type1, InterfaceType type2) {
+    // TODO(ahe): Compute the actual LUB.
+    return type1;
+  }
 }

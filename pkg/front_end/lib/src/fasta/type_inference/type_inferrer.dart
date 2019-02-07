@@ -1918,22 +1918,17 @@ class KernelHierarchyMixinInferrerCallback implements kernel.MixinInferrer {
 
   @override
   void infer(ClassHierarchy hierarchy, Class classNode) {
+    if (legacyMode) return;
     Supertype mixedInType = classNode.mixedInType;
     List<DartType> typeArguments = mixedInType.typeArguments;
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
-    if (legacyMode) {
-      for (int i = 0; i < typeArguments.length; ++i) {
-        typeArguments[i] = const DynamicType();
-      }
-    } else {
-      new KernelHierarchyMixinInferrer(
-              hierarchy,
-              loader,
-              new TypeConstraintGatherer(
-                  new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
-                  mixedInType.classNode.typeParameters))
-          .infer(classNode);
-    }
+    new KernelHierarchyMixinInferrer(
+            hierarchy,
+            loader,
+            new TypeConstraintGatherer(
+                new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
+                mixedInType.classNode.typeParameters))
+        .infer(classNode);
   }
 }
 
