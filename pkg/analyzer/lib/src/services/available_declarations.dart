@@ -515,6 +515,27 @@ class DeclarationsTracker {
     }
   }
 
+  DeclarationsContext _findContextOfPath(String path) {
+    // Prefer the context in which the path is analyzed.
+    for (var context in _contexts.values) {
+      if (context._analysisContext.contextRoot.isAnalyzed(path)) {
+        return context;
+      }
+    }
+
+    // The path must have the URI with one of the supported URI schemes.
+    for (var context in _contexts.values) {
+      var uri = context._restoreUri(path);
+      if (uri != null) {
+        if (uri.isScheme('dart') || uri.isScheme('package')) {
+          return context;
+        }
+      }
+    }
+
+    return null;
+  }
+
   _File _getFileByPath(DeclarationsContext context, String path) {
     var file = _pathToFile[path];
     if (file == null) {
@@ -555,14 +576,7 @@ class DeclarationsTracker {
   }
 
   void _performChangeFile(String path) {
-    DeclarationsContext containingContext;
-    for (var context in _contexts.values) {
-      var uri = context._restoreUri(path);
-      if (uri != null) {
-        containingContext = context;
-        break;
-      }
-    }
+    var containingContext = _findContextOfPath(path);
     if (containingContext == null) return;
 
     var file = _getFileByPath(containingContext, path);

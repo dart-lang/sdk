@@ -224,6 +224,112 @@ class B {}
     ]);
   }
 
+  test_changeFile_chooseContext_inAnalysisRoot() async {
+    var homePath = convertPath('/home');
+    var testPath = convertPath('/home/test');
+    var filePath = convertPath('/home/test/lib/test.dart');
+
+    var homeContext = analysisContextCollection.contextFor(homePath);
+    var testContext = analysisContextCollection.contextFor(testPath);
+
+    tracker.addContext(homeContext);
+    tracker.addContext(testContext);
+    await _doAllTrackerWork();
+
+    newFile(filePath, content: 'class A {}');
+    uriToLibrary.clear();
+    tracker.changeFile(filePath);
+    await _doAllTrackerWork();
+
+    _assertDeclaration(
+      _getLibrary('package:test/test.dart'),
+      'A',
+      DeclarationKind.CLASS,
+    );
+
+    newFile(filePath, content: 'class B {}');
+    uriToLibrary.clear();
+    tracker.changeFile(filePath);
+    await _doAllTrackerWork();
+
+    _assertDeclaration(
+      _getLibrary('package:test/test.dart'),
+      'B',
+      DeclarationKind.CLASS,
+    );
+  }
+
+  test_changeFile_chooseContext_inPackage() async {
+    var homePath = convertPath('/home');
+    var testPath = convertPath('/home/test');
+    var filePath = convertPath('/packages/aaa/lib/a.dart');
+
+    newFile('/home/test/pubspec.yaml', content: r'''
+name: test
+dependencies:
+  aaa: any
+''');
+    addTestPackageDependency('aaa', '/packages/aaa');
+
+    var homeContext = analysisContextCollection.contextFor(homePath);
+    var testContext = analysisContextCollection.contextFor(testPath);
+
+    tracker.addContext(homeContext);
+    tracker.addContext(testContext);
+    await _doAllTrackerWork();
+
+    newFile(filePath, content: 'class A {}');
+    uriToLibrary.clear();
+    tracker.changeFile(filePath);
+    await _doAllTrackerWork();
+
+    _assertDeclaration(
+      _getLibrary('package:aaa/a.dart'),
+      'A',
+      DeclarationKind.CLASS,
+    );
+
+    newFile(filePath, content: 'class B {}');
+    uriToLibrary.clear();
+    tracker.changeFile(filePath);
+    await _doAllTrackerWork();
+
+    _assertDeclaration(
+      _getLibrary('package:aaa/a.dart'),
+      'B',
+      DeclarationKind.CLASS,
+    );
+  }
+
+  test_changeFile_chooseContext_inSdk() async {
+    var filePath = convertPath('/sdk/lib/math/math.dart');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    newFile(filePath, content: 'class A {}');
+    uriToLibrary.clear();
+    tracker.changeFile(filePath);
+    await _doAllTrackerWork();
+
+    _assertDeclaration(
+      _getLibrary('dart:math'),
+      'A',
+      DeclarationKind.CLASS,
+    );
+
+    newFile(filePath, content: 'class B {}');
+    uriToLibrary.clear();
+    tracker.changeFile(filePath);
+    await _doAllTrackerWork();
+
+    _assertDeclaration(
+      _getLibrary('dart:math'),
+      'B',
+      DeclarationKind.CLASS,
+    );
+  }
+
   test_changeFile_deleted_exported() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
