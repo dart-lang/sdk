@@ -295,6 +295,15 @@ class AnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.notify(null);
   }
 
+  /// Notify the declarations tracker that the file with the given [path] was
+  /// changed - added, updated, or removed.  Schedule processing of the file.
+  void notifyDeclarationsTracker(String path) {
+    if (declarationsTracker != null) {
+      declarationsTracker.changeFile(path);
+      analysisDriverScheduler.notify(null);
+    }
+  }
+
   void disposeDeclarationsTracker() {
     declarationsTracker = null;
     analysisDriverScheduler.outOfBandWorker = null;
@@ -649,8 +658,11 @@ class AnalysisServer extends AbstractAnalysisServer {
       }
 
       if (newContents != null) {
-        resourceProvider.setOverlay(file,
-            content: newContents, modificationStamp: 0);
+        resourceProvider.setOverlay(
+          file,
+          content: newContents,
+          modificationStamp: overlayModificationStamp++,
+        );
       } else {
         resourceProvider.removeOverlay(file);
       }
@@ -662,6 +674,8 @@ class AnalysisServer extends AbstractAnalysisServer {
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
       contextManager.getDriverFor(file)?.addFile(file);
+
+      notifyDeclarationsTracker(file);
 
       // TODO(scheglov) implement other cases
     });
@@ -948,6 +962,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 

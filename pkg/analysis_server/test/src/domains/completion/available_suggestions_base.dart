@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../analysis_abstract.dart';
@@ -35,6 +36,15 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     }
   }
 
+  /// Remove the set with the given [uri].
+  /// The set must be already received.
+  void removeSet(String uri) {
+    var set = uriToSetMap.remove(uri);
+    expect(set, isNotNull);
+
+    idToSetMap.remove(set.id);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -52,13 +62,23 @@ test:${toUri('/home/test/lib')}
   }
 
   Future<AvailableSuggestionSet> waitForSetWithUri(String uri) async {
-    AvailableSuggestionSet result;
-    await Future.doWhile(() async {
+    while (true) {
+      var result = uriToSetMap[uri];
+      if (result != null) {
+        return result;
+      }
       await Future.delayed(const Duration(milliseconds: 1));
-      result = uriToSetMap[uri];
-      return result == null;
-    });
-    return result;
+    }
+  }
+
+  Future<void> waitForSetWithUriRemoved(String uri) async {
+    while (true) {
+      var result = uriToSetMap[uri];
+      if (result == null) {
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 1));
+    }
   }
 
   void _setCompletionSubscriptions(List<CompletionService> subscriptions) {

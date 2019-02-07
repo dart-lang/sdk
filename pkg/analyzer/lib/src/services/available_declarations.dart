@@ -425,6 +425,8 @@ class DeclarationsTracker {
   /// be invoked to send updates to [changes] that reflect changes to the
   /// library of the file, and other libraries that export it.
   void changeFile(String path) {
+    if (!path.endsWith('.dart')) return;
+
     _changedPaths.add(path);
   }
 

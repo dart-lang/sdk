@@ -76,6 +76,9 @@ abstract class AbstractAnalysisServer {
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
 
+  /// The next modification stamp for a changed file in the [resourceProvider].
+  int overlayModificationStamp = 0;
+
   /// A list of the globs used to determine which files should be analyzed. The
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
   List<Glob> _analyzedFilesGlobs = null;

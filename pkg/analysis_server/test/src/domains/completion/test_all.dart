@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'available_suggestion_sets_test.dart' as available_suggestion_sets;
 import 'get_suggestion_details_test.dart' as get_suggestion_details;
 
 main() {
   defineReflectiveSuite(() {
+    available_suggestion_sets.main();
     get_suggestion_details.main();
   });
 }
