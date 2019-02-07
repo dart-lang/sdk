@@ -667,6 +667,7 @@ invalid_type: TypeCheckError
 invocations: TextSerializationFailure # Was: RuntimeError
 issue34515: TextSerializationFailure
 issue34899: TypeCheckError
+issue35875: TextSerializationFailure
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass
