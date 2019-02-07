@@ -12,6 +12,7 @@ import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 class EditDartFix
@@ -86,20 +87,43 @@ class EditDartFix
 
     // Process each source file.
     bool hasErrors = false;
-    await processResources((ResolvedUnitResult result) async {
-      if (await processErrors(result)) {
-        hasErrors = true;
-      }
-      await processLints(result);
-      await processCodeTasks(result);
-    });
-    if (needsSecondPass) {
+    String changedPath;
+    server.contextManager.driverMap.values
+        .forEach((d) => d.onCurrentSessionAboutToBeDiscarded = (String path) {
+              // Remember the resource that changed during analysis
+              changedPath = path;
+            });
+
+    try {
       await processResources((ResolvedUnitResult result) async {
-        await processCodeTasks2(result);
+        if (await processErrors(result)) {
+          hasErrors = true;
+        }
+        await processLints(result);
+        await processCodeTasks(result);
       });
+      if (needsSecondPass) {
+        await processResources((ResolvedUnitResult result) async {
+          await processCodeTasks2(result);
+        });
+      }
+      await finishLints();
+      await finishCodeTasks();
+    } on InconsistentAnalysisException catch (_) {
+      // If a resource changed, report the problem without suggesting fixes
+      var changedMessage = changedPath != null
+          ? 'resource changed during analysis: $changedPath'
+          : 'multiple resources changed during analysis.';
+      return new EditDartfixResult(
+        [new DartFixSuggestion('Analysis canceled because $changedMessage')],
+        listener.otherSuggestions,
+        hasErrors,
+        listener.sourceChange.edits,
+      ).toResponse(request.id);
+    } finally {
+      server.contextManager.driverMap.values
+          .forEach((d) => d.onCurrentSessionAboutToBeDiscarded = null);
     }
-    await finishLints();
-    await finishCodeTasks();
 
     return new EditDartfixResult(
       listener.suggestions,
