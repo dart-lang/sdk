@@ -400,6 +400,9 @@ const_native_factory_test: MissingCompileTimeError # Issue 29763
 [ $compiler != dart2js && $fasta ]
 type_constants_test/01: MissingCompileTimeError # Issue 32557
 
+[ $compiler == dartk && $mode == debug && ($hot_reload || $hot_reload_rollback) ]
+inference_enum_list_test: Skip # Issue 35885
+
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.

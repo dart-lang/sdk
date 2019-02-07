@@ -67,9 +67,6 @@ io/test_extension_fail_test: Fail # Memory leak (issue 34724)
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
-[ $compiler == dartk && $mode == debug && ($hot_reload || $hot_reload_rollback) ]
-language_2/inference_enum_list_test: Skip # Issue 35885
-
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
 io/code_collection_test: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
