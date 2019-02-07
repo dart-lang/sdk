@@ -133,18 +133,18 @@ void test() {
     createProject();
     EditDartfixResult result =
         await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions, hasLength(2));
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
-    expectSuggestion(result.suggestions[0], 'non-nullable');
-    expectSuggestion(result.suggestions[1], 'non-nullable');
-    // TODO(danrubel): fix this.
-/*    expectEdits(result.edits, '''
+    for (DartFixSuggestion suggestion in result.suggestions) {
+      expectSuggestion(suggestion, 'non-nullable');
+    }
+    expectEdits(result.edits, '''
 int f(int? i) => 0;
 int g(int? i) => f(i);
 void test() {
   g(null);
 }
-'''); */
+''');
   }
 
   test_dartfix_excludedSource() async {

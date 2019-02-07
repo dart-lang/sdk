@@ -85,36 +85,18 @@ class EditDartFix
     }
 
     // Process each source file.
-    final resources = <Resource>[];
-    for (String rootPath in contextManager.includedPaths) {
-      resources.add(resourceProvider.getResource(rootPath));
-    }
     bool hasErrors = false;
-    while (resources.isNotEmpty) {
-      Resource res = resources.removeLast();
-      if (res is Folder) {
-        for (Resource child in res.getChildren()) {
-          if (!child.shortName.startsWith('.') &&
-              contextManager.isInAnalysisRoot(child.path) &&
-              !contextManager.isIgnored(child.path)) {
-            resources.add(child);
-          }
-        }
-        continue;
-      }
-      if (!isIncluded(res.path)) {
-        continue;
-      }
-      ResolvedUnitResult result = await server.getResolvedUnit(res.path);
-      if (result == null || result.unit == null) {
-        continue;
-      }
-
+    await processResources((ResolvedUnitResult result) async {
       if (await processErrors(result)) {
         hasErrors = true;
       }
       await processLints(result);
       await processCodeTasks(result);
+    });
+    if (needsSecondPass) {
+      await processResources((ResolvedUnitResult result) async {
+        await processCodeTasks2(result);
+      });
     }
     await finishLints();
     await finishCodeTasks();
@@ -143,5 +125,37 @@ class EditDartFix
       }
     }
     return false;
+  }
+
+  /// Call the supplied [process] function to process each compilation unit.
+  Future processResources(
+      Future<void> Function(ResolvedUnitResult result) process) async {
+    final contextManager = server.contextManager;
+    final resourceProvider = server.resourceProvider;
+    final resources = <Resource>[];
+    for (String rootPath in contextManager.includedPaths) {
+      resources.add(resourceProvider.getResource(rootPath));
+    }
+    while (resources.isNotEmpty) {
+      Resource res = resources.removeLast();
+      if (res is Folder) {
+        for (Resource child in res.getChildren()) {
+          if (!child.shortName.startsWith('.') &&
+              contextManager.isInAnalysisRoot(child.path) &&
+              !contextManager.isIgnored(child.path)) {
+            resources.add(child);
+          }
+        }
+        continue;
+      }
+      if (!isIncluded(res.path)) {
+        continue;
+      }
+      ResolvedUnitResult result = await server.getResolvedUnit(res.path);
+      if (result == null || result.unit == null) {
+        continue;
+      }
+      await process(result);
+    }
   }
 }

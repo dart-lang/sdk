@@ -12,18 +12,12 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
-class NonNullableFix extends FixCodeTask {
+class NonNullableFix extends FixCodeTask2 {
   static void task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerCodeTask(new NonNullableFix(listener));
   }
 
   final DartFixListener listener;
-
-  // TODO(danrubel): Remove this caching and add a 2nd processing pass
-  // for nullability migration. This cache works around a current limitation
-  // in the migration engine which expects the same AST objects
-  // in the 2nd pass as the 1st pass.
-  List<ResolvedUnitResult> cache = <ResolvedUnitResult>[];
 
   // TODO(danrubel): consider integrating NullabilityMigration into this class
   final NullabilityMigration migration = new NullabilityMigration();
@@ -32,39 +26,21 @@ class NonNullableFix extends FixCodeTask {
 
   @override
   Future<void> finish() async {
-    // TODO(danrubel): Remove this caching and add a 2nd processing pass
-    // for nullability migration. This cache works around a current limitation
-    // in the migration engine which expects the same AST objects
-    // in the 2nd pass as the 1st pass.
-    while (cache.isNotEmpty) {
-      migration.processInput(cache.removeLast());
-    }
-
     var fixes = migration.finish();
     for (var fix in fixes) {
-      // TODO(paulberry, danrubel): it seems silly to wrap this in a
-      // SourceFileEdit here, since listener.addSourceFileEdit just unwraps it
-      // again.
-      var edit = SourceFileEdit(fix.source.fullName, -1);
-      // TODO(danrubel): integrate NullabilityMigration to provide
-      // better user feedback on what changes are being made.
-      Location location = fix.location;
-      listener.addSourceFileEdit(
-          'Update non-nullable type references', location, edit);
+      // TODO(danrubel): Update the description based upon the [fix.kind]
+      listener.addSourceEdits('Update non-nullable type references',
+          fix.location, fix.source, fix.sourceEdits);
     }
   }
 
-  /// Update the source to be non-nullable by
-  /// 1) adding trailing '?' to type references of nullable variables, and
-  /// 2) removing trailing '?' from type references of non-nullable variables.
   @override
   Future<void> processUnit(ResolvedUnitResult result) async {
     migration.prepareInput(result);
+  }
 
-    // TODO(danrubel): Remove this caching and add a 2nd processing pass
-    // for nullability migration. This cache works around a current limitation
-    // in the migration engine which expects the same AST objects
-    // in the 2nd pass as the 1st pass.
-    cache.add(result);
+  @override
+  Future<void> processUnit2(ResolvedUnitResult result) async {
+    migration.processInput(result);
   }
 }

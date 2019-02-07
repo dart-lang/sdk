@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceChange, SourceEdit, SourceFileEdit;
 
@@ -26,6 +27,15 @@ class DartFixListener {
       for (SourceEdit sourceEdit in fileEdit.edits) {
         sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
       }
+    }
+  }
+
+  /// Record edits for a single source to be sent to the client.
+  void addSourceEdits(String description, Location location, Source source,
+      Iterable<SourceEdit> edits) {
+    suggestions.add(new DartFixSuggestion(description, location: location));
+    for (SourceEdit edit in edits) {
+      sourceChange.addEdit(source.fullName, -1, edit);
     }
   }
 
