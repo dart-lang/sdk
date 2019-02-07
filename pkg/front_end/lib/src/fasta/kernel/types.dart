@@ -190,17 +190,6 @@ class Types {
     return true;
   }
 
-  bool areNamedSubtypesOfKernel(List<NamedType> s, List<NamedType> t) {
-    if (s.length != t.length) {
-      throw "Numbers of named arguments don't match.";
-    }
-    for (int i = 0; i < s.length; i++) {
-      if (s[i].name != t[i].name) return false;
-      if (!isSubtypeOfKernel(s[i].type, t[i].type)) return false;
-    }
-    return true;
-  }
-
   bool isSameTypeKernel(DartType s, DartType t) {
     return isSubtypeOfKernel(s, t) && isSubtypeOfKernel(t, s);
   }
@@ -330,16 +319,45 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       }
       s = substitution.substituteType(s.withoutTypeParameters);
     }
-    // TODO(ahe): This needs to be updated to deal with optional arguments, in
-    // particular when the length aren't the same.
-    if (!types.isSubtypeOfKernel(s.returnType, t.returnType)) {
+    if (!types.isSubtypeOfKernel(s.returnType, t.returnType)) return false;
+    List<DartType> sPositional = s.positionalParameters;
+    List<DartType> tPositional = t.positionalParameters;
+    if (s.requiredParameterCount > t.requiredParameterCount) {
+      // Rule 15, n1 <= n2.
       return false;
-    } else if (!types.areSubtypesOfKernel(
-        t.positionalParameters, s.positionalParameters)) {
+    }
+    if (sPositional.length < tPositional.length) {
+      // Rule 15, n1 + k1 >= n2 + k2.
       return false;
-    } else if (!types.areNamedSubtypesOfKernel(
-        t.namedParameters, s.namedParameters)) {
-      return false;
+    }
+    for (int i = 0; i < tPositional.length; i++) {
+      if (!types.isSubtypeOfKernel(tPositional[i], sPositional[i])) {
+        // Rule 15, Tj <: Sj.
+        return false;
+      }
+    }
+    List<NamedType> sNamed = s.namedParameters;
+    List<NamedType> tNamed = t.namedParameters;
+    if (sNamed.isNotEmpty || tNamed.isNotEmpty) {
+      // Rule 16, the number of positional parameters must be the same.
+      if (sPositional.length != tPositional.length) return false;
+      if (s.requiredParameterCount != t.requiredParameterCount) return false;
+
+      // Rule 16, the parameter names of [t] must be a subset of those of
+      // [s]. Also, for the intersection, the type of the parameter of [t] must
+      // be a subtype of the type of the parameter of [s].
+      int sCount = 0;
+      for (int tCount = 0; tCount < tNamed.length; tCount++) {
+        String name = tNamed[tCount].name;
+        for (; sCount < sNamed.length; sCount++) {
+          if (sNamed[sCount].name == name) break;
+        }
+        if (sCount == sNamed.length) return false;
+        if (!types.isSubtypeOfKernel(
+            tNamed[tCount].type, sNamed[sCount].type)) {
+          return false;
+        }
+      }
     }
     return true;
   }

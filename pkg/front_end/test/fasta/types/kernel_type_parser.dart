@@ -223,6 +223,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         }
       }
     }
+    namedParameters.sort();
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
         requiredParameterCount: node.arguments.required.length,

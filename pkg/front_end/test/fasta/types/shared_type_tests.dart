@@ -282,5 +282,90 @@ abstract class SubtypeTest<T, E> {
 
     isSubtype('void', 'Id<void>');
     isNotSubtype('void', 'Id<Null>');
+
+    // The following function type tests are derived from
+    // ../../../../../tests/compiler/dart2js/model/subtype_test.dart.
+    isSubtype("() -> int", 'Function');
+    isNotSubtype('Function', "() -> int");
+
+    isSubtype("() -> dynamic", "() -> dynamic");
+    isSubtype("() -> dynamic", "() -> void");
+    isSubtype(
+      "() -> void",
+      "() -> dynamic",
+      // expectMoreSpecific: false,
+    );
+
+    isSubtype("() -> int", "() -> void");
+    isNotSubtype("() -> void", "() -> int");
+    isSubtype("() -> void", "() -> void");
+    isSubtype("() -> int", "() -> int");
+    isSubtype("() -> int", "() -> Object");
+    isNotSubtype("() -> int", "() -> double");
+    isNotSubtype("() -> int", "(int) -> void");
+    isNotSubtype("() -> void", "(int) -> int");
+    isNotSubtype("() -> void", "(int) -> void");
+    isSubtype("(int) -> int", "(int) -> int");
+    isSubtype(
+      "(Object) -> int",
+      "(int) -> Object",
+      // expectMoreSpecific: false,
+    );
+    isNotSubtype("(int) -> int", "(double) -> int");
+    isNotSubtype("() -> int", "(int) -> int");
+    isNotSubtype("(int) -> int", "(int, int) -> int");
+    isNotSubtype("(int, int) -> int", "(int) -> int");
+    isNotSubtype("(() -> void) -> void", "((int) -> void) -> void");
+    isNotSubtype("((int) -> void) -> void", "(() -> void) -> void");
+
+    // Optional positional parameters.
+    isSubtype("([int]) -> void", "() -> void");
+    isSubtype("([int]) -> void", "(int) -> void");
+    isNotSubtype("(int) -> void", "([int]) -> void");
+    isSubtype("([int]) -> void", "([int]) -> void");
+    isSubtype(
+      "([Object]) -> void",
+      "([int]) -> void",
+      // expectMoreSpecific: false,
+    );
+    isNotSubtype("([int]) -> void", "([Object]) -> void");
+    isSubtype("(int, [int]) -> void", "(int) -> void");
+    isSubtype("(int, [int]) -> void", "(int, [int]) -> void");
+    isNotSubtype("(int) -> void", "([int]) -> void");
+    isSubtype("([int, int]) -> void", "(int) -> void");
+    isSubtype("([int, int]) -> void", "(int, [int]) -> void");
+    isNotSubtype("([int, int]) -> void", "(int, [int, int]) -> void");
+    isSubtype("([int, int, int]) -> void", "(int, [int, int]) -> void");
+    isNotSubtype("([int]) -> void", "(double) -> void");
+    isNotSubtype("([int]) -> void", "([int, int]) -> void");
+    isSubtype("([int, int]) -> void", "([int]) -> void");
+    isSubtype(
+      "([Object, int]) -> void",
+      "([int]) -> void",
+      // expectMoreSpecific: false,
+    );
+
+    // Optional named parameters.
+    isSubtype("({int a}) -> void", "() -> void");
+    isNotSubtype("({int a}) -> void", "(int) -> void");
+    isNotSubtype("(int) -> void", "({int a}) -> void");
+    isSubtype("({int a}) -> void", "({int a}) -> void");
+    isNotSubtype("({int a}) -> void", "({int b}) -> void");
+    isSubtype(
+      "({Object a}) -> void",
+      "({int a}) -> void",
+      // expectMoreSpecific: false,
+    );
+    isNotSubtype("({int a}) -> void", "({Object a}) -> void");
+    isSubtype("(int, {int a}) -> void", "(int, {int a}) -> void");
+    isNotSubtype("({int a}) -> void", "({double a}) -> void");
+    isNotSubtype("({int a}) -> void", "({int a, int b}) -> void");
+    isSubtype("({int a, int b}) -> void", "({int a}) -> void");
+    isSubtype("({int a, int b, int c}) -> void", "({int a, int c}) -> void");
+    isSubtype("({int c, int b, int a}) -> void", "({int a, int c}) -> void");
+    isSubtype("({int a, int b, int c}) -> void", "({int b, int c}) -> void");
+    isSubtype("({int c, int b, int a}) -> void", "({int b, int c}) -> void");
+    isSubtype("({int a, int b, int c}) -> void", "({int c}) -> void");
+    isSubtype("({int c, int b, int a}) -> void", "({int c}) -> void");
   }
 }

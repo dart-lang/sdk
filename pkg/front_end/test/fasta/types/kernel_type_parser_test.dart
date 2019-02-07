@@ -38,6 +38,7 @@ typedef VoidFunction () -> void;
 class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
 typedef TestDefaultTypes () -> DefaultTypes;
 typedef Id<T> T;
+typedef TestSorting ({int c, int b, int a}) -> void;
 """;
 
 const String expectedSdk = """
@@ -48,6 +49,7 @@ typedef Typedef<T extends self::Object = dynamic> = <S extends self::Object = dy
 typedef VoidFunction = () → void;
 typedef TestDefaultTypes = () → self::DefaultTypes<dynamic, self::Object, self::List<dynamic>, self::List<self::Object>, self::Comparable<dynamic>, (<BottomType>) → void, () → self::Comparable<dynamic>>;
 typedef Id<T extends self::Object = dynamic> = T;
+typedef TestSorting = ({a: self::int, b: self::int, c: self::int}) → void;
 class Object {
 }
 class Comparable<T extends self::Object = dynamic> extends self::Object {
