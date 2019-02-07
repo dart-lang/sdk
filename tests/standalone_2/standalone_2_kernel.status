@@ -151,8 +151,6 @@ io/web_socket_ping_test: Crash, Pass
 
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout
-io/platform_resolved_executable_test/03: Pass, RuntimeError
-io/platform_resolved_executable_test/04: Pass, RuntimeError
 io/secure_builtin_roots_test: Pass, Timeout
 io/socket_finalizer_test: Pass, Timeout
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
