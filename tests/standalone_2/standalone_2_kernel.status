@@ -34,6 +34,10 @@ io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 
+[ $compiler == dartkb ]
+io/platform_resolved_executable_test/03: RuntimeError
+io/platform_resolved_executable_test/04: RuntimeError
+
 [ $compiler == dartkp ]
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
 
