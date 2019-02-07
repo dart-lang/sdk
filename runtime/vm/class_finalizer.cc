@@ -1101,11 +1101,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
       interface_class.DisableCHAImplementorUsers();
     }
   }
-
-  // A top level class is loaded eagerly so just finalize it.
-  if (cls.IsTopLevel()) {
-    FinalizeClass(cls);
-  }
 }
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
@@ -1132,8 +1127,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
-  // Top level classes are always fully loaded.
-  if (!cls.IsTopLevel() && cls.kernel_offset() > 0) {
+  ASSERT(cls.IsTopLevel() || (cls.kernel_offset() > 0));
+  if (!cls.is_loaded()) {
     kernel::KernelLoader::FinishLoading(cls);
     if (cls.is_finalized()) {
       return;
@@ -1181,10 +1176,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 
 RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  // If class is a top level class it is already loaded.
-  if (cls.IsTopLevel()) {
-    return Error::null();
-  }
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ClassFinalizer::FinalizeClass(cls);

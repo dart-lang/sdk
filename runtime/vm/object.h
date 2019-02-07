@@ -3689,12 +3689,9 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  void ReplaceObject(const Object& obj, const String& name) const;
   RawObject* LookupReExport(const String& name,
                             ZoneGrowableArray<intptr_t>* visited = NULL) const;
   RawObject* LookupObjectAllowPrivate(const String& name) const;
-  RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
-  RawObject* LookupLocalObject(const String& name) const;
   RawObject* LookupLocalOrReExportObject(const String& name) const;
   RawObject* LookupImportedObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
@@ -3897,6 +3894,9 @@ class Library : public Object {
   // for a top level getter 'name' that returns a closure.
   RawObject* GetFunctionClosure(const String& name) const;
 
+  // Ensures that all top-level functions and variables (fields) are loaded.
+  void EnsureTopLevelClassIsFinalized() const;
+
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
@@ -3935,6 +3935,8 @@ class Library : public Object {
   void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url, bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t* index) const;
+  RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
+  RawObject* LookupLocalObject(const String& name) const;
 
   void AllocatePrivateKey() const;
 

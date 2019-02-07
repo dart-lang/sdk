@@ -9882,6 +9882,7 @@ RawObject* Library::ResolveName(const String& name) const {
   if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
     return obj.raw();
   }
+  EnsureTopLevelClassIsFinalized();
   obj = LookupLocalObject(name);
   if (!obj.IsNull()) {
     // Names that are in this library's dictionary and are unmangled
@@ -10169,18 +10170,6 @@ RawObject* Library::LookupEntry(const String& name, intptr_t* index) const {
   return Object::null();
 }
 
-void Library::ReplaceObject(const Object& obj, const String& name) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  ASSERT(obj.IsClass() || obj.IsFunction() || obj.IsField());
-  ASSERT(LookupLocalObject(name) != Object::null());
-
-  intptr_t index;
-  LookupEntry(name, &index);
-  // The value is guaranteed to be found.
-  const Array& dict = Array::Handle(dictionary());
-  dict.SetAt(index, obj);
-}
-
 void Library::AddClass(const Class& cls) const {
   ASSERT(!Compiler::IsBackgroundCompilation());
   const String& class_name = String::Handle(cls.Name());
@@ -10307,6 +10296,22 @@ RawScript* Library::LookupScript(const String& url,
   return Script::null();
 }
 
+void Library::EnsureTopLevelClassIsFinalized() const {
+  if (toplevel_class() == Object::null()) {
+    return;
+  }
+  Thread* thread = Thread::Current();
+  const Class& cls = Class::Handle(thread->zone(), toplevel_class());
+  if (cls.is_finalized()) {
+    return;
+  }
+  const Error& error =
+      Error::Handle(thread->zone(), cls.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+}
+
 RawObject* Library::LookupLocalObject(const String& name) const {
   intptr_t index;
   return LookupEntry(name, &index);
@@ -10314,6 +10319,7 @@ RawObject* Library::LookupLocalObject(const String& name) const {
 
 RawObject* Library::LookupLocalOrReExportObject(const String& name) const {
   intptr_t index;
+  EnsureTopLevelClassIsFinalized();
   const Object& result = Object::Handle(LookupEntry(name, &index));
   if (!result.IsNull() && !result.IsLibraryPrefix()) {
     return result.raw();
@@ -10322,6 +10328,7 @@ RawObject* Library::LookupLocalOrReExportObject(const String& name) const {
 }
 
 RawField* Library::LookupFieldAllowPrivate(const String& name) const {
+  EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsField()) {
     return Field::Cast(obj).raw();
@@ -10330,6 +10337,7 @@ RawField* Library::LookupFieldAllowPrivate(const String& name) const {
 }
 
 RawField* Library::LookupLocalField(const String& name) const {
+  EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (obj.IsField()) {
     return Field::Cast(obj).raw();
@@ -10338,6 +10346,7 @@ RawField* Library::LookupLocalField(const String& name) const {
 }
 
 RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
+  EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
@@ -10346,6 +10355,7 @@ RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
 }
 
 RawFunction* Library::LookupLocalFunction(const String& name) const {
+  EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
@@ -10443,7 +10453,10 @@ RawObject* Library::LookupImportedObject(const String& name) const {
 }
 
 RawClass* Library::LookupClass(const String& name) const {
-  Object& obj = Object::Handle(ResolveName(name));
+  Object& obj = Object::Handle(LookupLocalObject(name));
+  if (obj.IsNull() && !ShouldBePrivate(name)) {
+    obj = LookupImportedObject(name);
+  }
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -11707,6 +11720,8 @@ RawObject* Namespace::Lookup(const String& name,
       }
     }
   }
+
+  lib.EnsureTopLevelClassIsFinalized();
 
   intptr_t ignore = 0;
   // Lookup the name in the library's symbols.

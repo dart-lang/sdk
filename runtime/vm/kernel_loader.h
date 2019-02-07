@@ -178,6 +178,10 @@ class KernelLoader : public ValueObject {
 
   RawLibrary* LoadLibrary(intptr_t index);
 
+  void FinishTopLevelClassLoading(const Class& toplevel_class,
+                                  const Library& library,
+                                  const LibraryIndex& library_index);
+
   static void FinishLoading(const Class& klass);
 
   void ReadObfuscationProhibitions();
@@ -321,9 +325,9 @@ class KernelLoader : public ValueObject {
 
   void EnsurePragmaClassIsLookedUp() {
     if (pragma_class_.IsNull()) {
-      const Library& internal_lib =
-          Library::Handle(zone_, dart::Library::InternalLibrary());
-      pragma_class_ = internal_lib.LookupClass(Symbols::Pragma());
+      const Library& core_lib =
+          Library::Handle(zone_, dart::Library::CoreLibrary());
+      pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
       ASSERT(!pragma_class_.IsNull());
     }
   }
