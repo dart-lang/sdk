@@ -16,6 +16,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:meta/meta.dart';
 
+export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
+
 /**
  * A function used to handle exceptions that are thrown by delegates while using
  * an [ExceptionHandlingDelegatingAstVisitor].
