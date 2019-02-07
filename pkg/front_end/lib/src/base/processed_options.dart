@@ -177,10 +177,14 @@ class ProcessedOptions {
   /// The Uri where output is generated, may be null.
   final Uri output;
 
+  final Map<String, String> environmentDefines;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
       : this._raw = options ?? new CompilerOptions(),
         this.inputs = inputs ?? <Uri>[],
+        // TODO(askesc): Copy the map when kernel_service supports that.
+        this.environmentDefines = options?.environmentDefines,
         // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);

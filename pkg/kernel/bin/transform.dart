@@ -14,7 +14,7 @@ import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/constants.dart' as constants
-    show EnvironmentMap, SimpleErrorReporter, transformComponent;
+    show SimpleErrorReporter, transformComponent;
 
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
@@ -37,6 +37,7 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
+  ..addMultiOption('define', abbr: 'D', splitCommas: false)
   ..addMultiOption('embedder-entry-points-manifest',
       help: 'A path to a file describing entrypoints '
           '(lines of the form `<library>,<class>,<member>`).')
@@ -69,6 +70,21 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var format = options['format'];
   var verbose = options['verbose'];
 
+  Map<String, String> defines = <String, String>{};
+  for (String define in options['define']) {
+    int index = define.indexOf('=');
+    String name;
+    String expression;
+    if (index != -1) {
+      name = define.substring(0, index);
+      expression = define.substring(index + 1);
+    } else {
+      name = define;
+      expression = define;
+    }
+    defines[name] = expression;
+  }
+
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
   }
@@ -94,9 +110,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       component = coq.transformComponent(coreTypes, component);
       break;
     case 'constants':
-      // We use the -D defines supplied to this VM instead of explicitly using a
-      // constructed map of constants.
-      final Map<String, String> defines = new constants.EnvironmentMap();
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
           component, backend, defines, const constants.SimpleErrorReporter());

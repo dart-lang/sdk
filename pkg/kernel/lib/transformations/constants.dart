@@ -18,7 +18,6 @@
 /// language.  Issue(http://dartbug.com/31799)
 library kernel.transformations.constants;
 
-import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:io' as io;
 
 import '../ast.dart';
@@ -1477,21 +1476,6 @@ class EvaluationEnvironment {
 abstract class ConstantsBackend {
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);
-}
-
-// Environment map which looks up environment defines in the VM environment
-// at runtime.
-class EnvironmentMap extends UnmodifiableMapBase<String, String> {
-  @override
-  String operator [](Object key) {
-    // The fromEnvironment constructor is specified to throw when called using
-    // new. However, the VM implementation actually looks up the given name in
-    // the environment.
-    return new String.fromEnvironment(key);
-  }
-
-  @override
-  get keys => throw "Environment map iteration not supported";
 }
 
 // Used as control-flow to abort the current evaluation.

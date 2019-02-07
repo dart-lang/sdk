@@ -127,6 +127,12 @@ class CompilerOptions {
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
+  /// Environment map used when evaluating `bool.fromEnvironment`,
+  /// `int.fromEnvironment` and `String.fromEnvironment` during constant
+  /// evaluation. If the map is `null`, all environment constants will be left
+  /// unevaluated and can be evaluated by a constant evaluator later.
+  Map<String, String> environmentDefines = null;
+
   /// The target platform that will consume the compiled code.
   ///
   /// Used to provide platform-specific details to the compiler like:
