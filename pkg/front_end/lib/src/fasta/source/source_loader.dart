@@ -107,7 +107,7 @@ import '../severity.dart' show Severity;
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
 import '../type_inference/type_inferrer.dart'
-    show LegacyModeMixinInferrer, StrongModeMixinInferrer;
+    show KernelHierarchyMixinInferrerCallback;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -796,14 +796,12 @@ class SourceLoader<L> extends Loader<L> {
     if (hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(),
           onAmbiguousSupertypes: onAmbiguousSupertypes,
-          mixinInferrer: target.legacyMode
-              ? new LegacyModeMixinInferrer()
-              : new StrongModeMixinInferrer(this));
+          mixinInferrer: new KernelHierarchyMixinInferrerCallback(
+              this, target.legacyMode));
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
-      hierarchy.mixinInferrer = target.legacyMode
-          ? new LegacyModeMixinInferrer()
-          : new StrongModeMixinInferrer(this);
+      hierarchy.mixinInferrer =
+          new KernelHierarchyMixinInferrerCallback(this, target.legacyMode);
       Component component = computeFullComponent();
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);
