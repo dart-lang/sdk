@@ -26,22 +26,41 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
   /// Hook invoked after calling `prepareInput` on each input.
   void _afterPrepare() {}
 
+  /// Verifies that migration of the files in [input] produces the output in
+  /// [expectedOutput].
+  Future<void> _checkMultipleFileChanges(
+      Map<String, String> input, Map<String, String> expectedOutput) async {
+    for (var path in input.keys) {
+      newFile(path, content: input[path]);
+    }
+    var migration = NullabilityMigration();
+    for (var path in input.keys) {
+      migration.prepareInput(await session.getResolvedUnit(path));
+    }
+    _afterPrepare();
+    for (var path in input.keys) {
+      migration.processInput(await session.getResolvedUnit(path));
+    }
+    var result = migration.finish();
+    var sourceEdits = <String, List<SourceEdit>>{};
+    for (var fix in result) {
+      var path = fix.source.fullName;
+      expect(expectedOutput.keys, contains(path));
+      (sourceEdits[path] ??= []).addAll(fix.sourceEdits);
+    }
+    for (var path in expectedOutput.keys) {
+      var sourceEditsForPath = sourceEdits[path];
+      sourceEditsForPath.sort((a, b) => b.offset.compareTo(a.offset));
+      expect(SourceEdit.applySequence(input[path], sourceEditsForPath),
+          expectedOutput[path]);
+    }
+  }
+
   /// Verifies that migraiton of the single file with the given [content]
   /// produces the [expected] output.
   Future<void> _checkSingleFileChanges(String content, String expected) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
-    newFile(sourcePath, content: content);
-    var migration = NullabilityMigration();
-    migration.prepareInput(await session.getResolvedUnit(sourcePath));
-    _afterPrepare();
-    migration.processInput(await session.getResolvedUnit(sourcePath));
-    var result = migration.finish();
-    var sourceEdits = <SourceEdit>[];
-    for (var fix in result) {
-      sourceEdits.addAll(fix.sourceEdits);
-    }
-    sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
-    expect(SourceEdit.applySequence(content, sourceEdits), expected);
+    _checkMultipleFileChanges({sourcePath: content}, {sourcePath: expected});
   }
 }
 
@@ -240,6 +259,32 @@ int f() => null;
 int? f() => null;
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  test_two_files() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/file1.dart');
+    var file1 = '''
+import 'file2.dart';
+int f() => null;
+int h() => g();
+''';
+    var expected1 = '''
+import 'file2.dart';
+int? f() => null;
+int? h() => g();
+''';
+    var path2 = convertPath('$root/file2.dart');
+    var file2 = '''
+import 'file1.dart';
+int g() => f();
+''';
+    var expected2 = '''
+import 'file1.dart';
+int? g() => f();
+''';
+    _checkMultipleFileChanges(
+        {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
   }
 }
 

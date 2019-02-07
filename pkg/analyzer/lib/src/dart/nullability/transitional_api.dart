@@ -147,24 +147,19 @@ class NullabilityMigration {
 
   final _constraints = Solver();
 
-  Source _source;
-
   List<PotentialModification> finish() {
     _constraints.applyHeuristics();
     return _variables.getPotentialModifications();
   }
 
   void prepareInput(CompilationUnit unit) {
-    // TODO(paulberry): allow processing of multiple files
-    assert(_source == null);
-    var source = unit.declaredElement.source;
-    _source = source;
-    unit.accept(ConstraintVariableGatherer(_variables, source));
+    unit.accept(
+        ConstraintVariableGatherer(_variables, unit.declaredElement.source));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(
-        ConstraintGatherer(typeProvider, _variables, _constraints, _source));
+    unit.accept(ConstraintGatherer(
+        typeProvider, _variables, _constraints, unit.declaredElement.source));
   }
 
   static String applyModifications(
