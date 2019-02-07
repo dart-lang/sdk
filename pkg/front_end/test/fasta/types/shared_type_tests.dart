@@ -242,5 +242,45 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Id<T>', 'T', typeParameters: 'T');
     isNotSubtype('VoidFunction', 'T', typeParameters: 'T extends () -> void');
     isNotSubtype('void', 'T', typeParameters: 'T extends void');
+
+    isSubtype('dynamic', 'Id<dynamic>');
+    isNotSubtype('dynamic', 'Id<int>');
+    isSubtype('() -> void', 'Id<() -> void>');
+    isNotSubtype('() -> void', 'Id<() -> int>');
+    isNotSubtype('FutureOr<() -> void>', 'Id<() -> void>');
+    isSubtype('FutureOr<() -> void>', 'Id<FutureOr<() -> void>>');
+    isSubtype('int', 'Id<int>');
+    isSubtype('T & () -> void', 'Id<() -> void>', typeParameters: 'T');
+    isSubtype('T & () -> void', 'Id<() -> dynamic>', typeParameters: 'T');
+    isSubtype('T & () -> void', 'Id<() -> Object>', typeParameters: 'T');
+
+    isSubtype('T & (void) -> void', 'Id<(void) -> void>', typeParameters: 'T');
+    isSubtype('T & (void) -> void', 'Id<(dynamic) -> dynamic>',
+        typeParameters: 'T');
+    isSubtype('T & (void) -> void', 'Id<(Object) -> Object>',
+        typeParameters: 'T');
+
+    isSubtype('T & (void) -> void', 'Id<(void) -> void>', typeParameters: 'T');
+    isSubtype('T & (void) -> void', 'Id<(Iterable<int>) -> dynamic>',
+        typeParameters: 'T');
+    isSubtype('T & (void) -> void', 'Id<(int) -> Object>', typeParameters: 'T');
+
+    isNotSubtype('T & (void) -> void', 'Id<(int) -> int>', typeParameters: 'T');
+
+    isSubtype('T', 'Id<T>', typeParameters: 'T');
+    isSubtype('T', 'Id<Object>', typeParameters: 'T');
+    isNotSubtype('T', 'Id<Comparable<int>>', typeParameters: 'T');
+    isSubtype('T', 'Id<Comparable<int>>',
+        typeParameters: 'T extends Comparable<int>');
+
+    isSubtype('Id<int>', 'Id<int>');
+    isSubtype('Id<int>', 'Id<Object>');
+    isNotSubtype('Id<Object>', 'Id<int>');
+    isSubtype('Id<() -> int>', 'Id<() -> int>');
+    isSubtype('Id<() -> int>', 'Id<() -> Object>');
+    isNotSubtype('Id<() -> Object>', 'Id<() -> int>');
+
+    isSubtype('void', 'Id<void>');
+    isNotSubtype('void', 'Id<Null>');
   }
 }

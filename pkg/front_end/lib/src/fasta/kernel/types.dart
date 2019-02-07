@@ -182,7 +182,7 @@ class Types {
   /// Returns true if all types in [s] and [t] pairwise are subtypes.
   bool areSubtypesOfKernel(List<DartType> s, List<DartType> t) {
     if (s.length != t.length) {
-      throw "Numbers of type arguments don't match.";
+      throw "Numbers of type arguments don't match $s $t.";
     }
     for (int i = 0; i < s.length; i++) {
       if (!isSubtypeOfKernel(s[i], t[i])) return false;
@@ -433,11 +433,44 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
 
   @override
   bool isInterfaceRelated(InterfaceType s, TypedefType t, Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+    return types.isSubtypeOfKernel(s, t.unalias);
   }
 
-  // TODO(ahe): Remove this method.
-  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  @override
+  bool isDynamicRelated(DynamicType s, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(s, t.unalias);
+  }
+
+  @override
+  bool isFunctionRelated(FunctionType s, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(s, t.unalias);
+  }
+
+  @override
+  bool isFutureOrRelated(InterfaceType futureOr, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(futureOr, t.unalias);
+  }
+
+  @override
+  bool isIntersectionRelated(
+      TypeParameterType intersection, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(intersection, t.unalias);
+  }
+
+  @override
+  bool isTypeParameterRelated(TypeParameterType s, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(s, t.unalias);
+  }
+
+  @override
+  bool isTypedefRelated(TypedefType s, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(s.unalias, t.unalias);
+  }
+
+  @override
+  bool isVoidRelated(VoidType s, TypedefType t, Types types) {
+    return types.isSubtypeOfKernel(s, t.unalias);
+  }
 }
 
 class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
