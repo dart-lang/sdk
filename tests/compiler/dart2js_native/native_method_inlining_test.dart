@@ -20,7 +20,9 @@ class A {
 }
 
 class B {
+  @pragma('dart2js:noElision')
   static var g;
+
   @NoInline()
   method1(a) {
     g = '(Method1Tag)'; // Tag to identify compiled JavaScript method.

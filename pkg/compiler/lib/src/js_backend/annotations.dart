@@ -38,6 +38,7 @@ enum PragmaAnnotation {
   noInline,
   tryInline,
   disableFinal,
+  noElision,
   noThrows,
   noSideEffects,
   trustTypeAnnotations,
@@ -54,18 +55,13 @@ Set<PragmaAnnotation> processMemberAnnotations(
   bool hasNoInline = false;
   bool hasTryInline = false;
   bool disableFinal = false;
+  bool noElision = false;
 
   if (_assumeDynamic(elementEnvironment, commonElements, element)) {
     values.add(PragmaAnnotation.assumeDynamic);
     annotationsDataBuilder.registerAssumeDynamic(element);
   }
 
-  // TODO(sra): Check for inappropriate annotations on fields.
-  if (element.isField) {
-    return values;
-  }
-
-  FunctionEntity method = element;
   LibraryEntity library = element.library;
   bool platformAnnotationsAllowed = library.canonicalUri.scheme == 'dart' ||
       maybeEnableNative(library.canonicalUri);
@@ -74,7 +70,7 @@ Set<PragmaAnnotation> processMemberAnnotations(
   bool hasNoSideEffects = false;
 
   for (ConstantValue constantValue
-      in elementEnvironment.getMemberMetadata(method)) {
+      in elementEnvironment.getMemberMetadata(element)) {
     if (!constantValue.isConstructedObject) continue;
     ConstructedConstantValue value = constantValue;
     ClassEntity cls = value.type.element;
@@ -83,37 +79,69 @@ Set<PragmaAnnotation> processMemberAnnotations(
     if (platformAnnotationsAllowed) {
       if (cls == commonElements.forceInlineClass) {
         hasTryInline = true;
+        if (element is! FunctionEntity) {
+          reporter.internalError(element,
+              "@TryInline() is only allowed in methods and constructors.");
+        }
       } else if (cls == commonElements.noInlineClass) {
         hasNoInline = true;
+        if (element is! FunctionEntity) {
+          reporter.internalError(element,
+              "@NoInline() is only allowed in methods and constructors.");
+        }
       } else if (cls == commonElements.noThrowsClass) {
         hasNoThrows = true;
         bool isValid = true;
-        if (method.isTopLevel) {
-          isValid = true;
-        } else if (method.isStatic) {
-          isValid = true;
-        } else if (method is ConstructorEntity && method.isFactoryConstructor) {
-          isValid = true;
+        if (element is FunctionEntity) {
+          if (element.isTopLevel) {
+            isValid = true;
+          } else if (element.isStatic) {
+            isValid = true;
+          } else if (element is ConstructorEntity &&
+              element.isFactoryConstructor) {
+            isValid = true;
+          }
+        } else {
+          isValid = false;
         }
         if (!isValid) {
           reporter.internalError(
-              method,
+              element,
               "@NoThrows() is currently limited to top-level"
               " or static functions and factory constructors.");
         }
-        annotationsDataBuilder.registerCannotThrow(method);
+        if (element is FunctionEntity) {
+          annotationsDataBuilder.registerCannotThrow(element);
+        }
       } else if (cls == commonElements.noSideEffectsClass) {
         hasNoSideEffects = true;
-        annotationsDataBuilder.registerSideEffectsFree(method);
+        if (element is FunctionEntity) {
+          annotationsDataBuilder.registerSideEffectsFree(element);
+        } else {
+          reporter.internalError(element,
+              "@NoSideEffects() is only allowed in methods and constructors.");
+        }
       }
     }
 
     if (cls == commonElements.expectNoInlineClass) {
       hasNoInline = true;
+      if (element is! FunctionEntity) {
+        reporter.internalError(element,
+            "@NoInline() is only allowed in methods and constructors.");
+      }
     } else if (cls == commonElements.metaNoInlineClass) {
       hasNoInline = true;
+      if (element is! FunctionEntity) {
+        reporter.internalError(
+            element, "@noInline is only allowed in methods and constructors.");
+      }
     } else if (cls == commonElements.metaTryInlineClass) {
       hasTryInline = true;
+      if (element is! FunctionEntity) {
+        reporter.internalError(
+            element, "@tryInline is only allowed in methods and constructors.");
+      }
     } else if (cls == commonElements.pragmaClass) {
       // Recognize:
       //
@@ -133,11 +161,23 @@ Set<PragmaAnnotation> processMemberAnnotations(
           reporter.reportErrorMessage(element, MessageKind.GENERIC,
               {'text': "@pragma('$name') annotation does not take options"});
         }
+        if (element is! FunctionEntity) {
+          reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+            'text': "@pragma('$name') annotation is only supported "
+                "for methods and constructors."
+          });
+        }
         hasNoInline = true;
       } else if (name == 'dart2js:tryInline') {
         if (!optionsValue.isNull) {
           reporter.reportErrorMessage(element, MessageKind.GENERIC,
               {'text': "@pragma('$name') annotation does not take options"});
+        }
+        if (element is! FunctionEntity) {
+          reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+            'text': "@pragma('$name') annotation is only supported "
+                "for methods and constructors."
+          });
         }
         hasTryInline = true;
       } else if (!platformAnnotationsAllowed) {
@@ -150,7 +190,28 @@ Set<PragmaAnnotation> processMemberAnnotations(
             reporter.reportErrorMessage(element, MessageKind.GENERIC,
                 {'text': "@pragma('$name') annotation does not take options"});
           }
+          if (element is! FunctionEntity) {
+            reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+              'text': "@pragma('$name') annotation is only supported "
+                  "for methods and constructors."
+            });
+          }
           disableFinal = true;
+        } else if (name == 'dart2js:noElision') {
+          if (!optionsValue.isNull) {
+            reporter.reportErrorMessage(element, MessageKind.GENERIC,
+                {'text': "@pragma('$name') annotation does not take options"});
+          }
+          if (element is! FieldEntity) {
+            reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+              'text': "@pragma('$name') annotation is only supported "
+                  "for fields."
+            });
+          }
+          noElision = true;
+        } else {
+          reporter.reportErrorMessage(element, MessageKind.GENERIC,
+              {'text': "Unknown dart2js pragma @pragma('$name')"});
         }
       }
     }
@@ -163,23 +224,35 @@ Set<PragmaAnnotation> processMemberAnnotations(
   }
   if (hasNoInline) {
     values.add(PragmaAnnotation.noInline);
-    annotationsDataBuilder.markAsNonInlinable(method);
+    if (element is FunctionEntity) {
+      annotationsDataBuilder.markAsNonInlinable(element);
+    }
   }
   if (hasTryInline) {
     values.add(PragmaAnnotation.tryInline);
-    annotationsDataBuilder.markAsTryInline(method);
+    if (element is FunctionEntity) {
+      annotationsDataBuilder.markAsTryInline(element);
+    }
   }
   if (disableFinal) {
     values.add(PragmaAnnotation.disableFinal);
-    annotationsDataBuilder.markAsDisableFinal(method);
+    if (element is FunctionEntity) {
+      annotationsDataBuilder.markAsDisableFinal(element);
+    }
+  }
+  if (noElision) {
+    values.add(PragmaAnnotation.noElision);
+    if (element is FieldEntity) {
+      annotationsDataBuilder.markAsNoElision(element);
+    }
   }
   if (hasNoThrows && !hasNoInline) {
     reporter.internalError(
-        method, "@NoThrows() should always be combined with @noInline.");
+        element, "@NoThrows() should always be combined with @noInline.");
   }
   if (hasNoSideEffects && !hasNoInline) {
     reporter.internalError(
-        method, "@NoSideEffects() should always be combined with @noInline.");
+        element, "@NoSideEffects() should always be combined with @noInline.");
   }
   return values;
 }
@@ -200,8 +273,11 @@ abstract class AnnotationsData {
   /// `@pragma('dart2js:tryInline')` annotation.
   Iterable<FunctionEntity> get tryInlineFunctions;
 
-  /// Functions with a `@pragma('dart2js:disable-final')` annotation.
+  /// Functions with a `@pragma('dart2js:disableFinal')` annotation.
   Iterable<FunctionEntity> get disableFinalFunctions;
+
+  /// Fields with a `@pragma('dart2js:noElision')` annotation.
+  Iterable<FieldEntity> get noElisionFields;
 
   /// Functions with a `@NoThrows()` annotation.
   Iterable<FunctionEntity> get cannotThrowFunctions;
@@ -221,6 +297,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   final Iterable<FunctionEntity> nonInlinableFunctions;
   final Iterable<FunctionEntity> tryInlineFunctions;
   final Iterable<FunctionEntity> disableFinalFunctions;
+  final Iterable<FieldEntity> noElisionFields;
   final Iterable<FunctionEntity> cannotThrowFunctions;
   final Iterable<FunctionEntity> sideEffectFreeFunctions;
   final Iterable<MemberEntity> assumeDynamicMembers;
@@ -229,6 +306,7 @@ class AnnotationsDataImpl implements AnnotationsData {
       this.nonInlinableFunctions,
       this.tryInlineFunctions,
       this.disableFinalFunctions,
+      this.noElisionFields,
       this.cannotThrowFunctions,
       this.sideEffectFreeFunctions,
       this.assumeDynamicMembers);
@@ -244,6 +322,9 @@ class AnnotationsDataImpl implements AnnotationsData {
     Iterable<FunctionEntity> disableFinalFunctions =
         source.readMembers<FunctionEntity>(emptyAsNull: true) ??
             const <FunctionEntity>[];
+    Iterable<FieldEntity> noElisionFields =
+        source.readMembers<FieldEntity>(emptyAsNull: true) ??
+            const <FieldEntity>[];
     Iterable<FunctionEntity> cannotThrowFunctions =
         source.readMembers<FunctionEntity>(emptyAsNull: true) ??
             const <FunctionEntity>[];
@@ -258,6 +339,7 @@ class AnnotationsDataImpl implements AnnotationsData {
         nonInlinableFunctions,
         tryInlineFunctions,
         disableFinalFunctions,
+        noElisionFields,
         cannotThrowFunctions,
         sideEffectFreeFunctions,
         assumeDynamicMembers);
@@ -268,6 +350,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     sink.writeMembers(nonInlinableFunctions);
     sink.writeMembers(tryInlineFunctions);
     sink.writeMembers(disableFinalFunctions);
+    sink.writeMembers(noElisionFields);
     sink.writeMembers(cannotThrowFunctions);
     sink.writeMembers(sideEffectFreeFunctions);
     sink.writeMembers(assumeDynamicMembers);
@@ -279,6 +362,7 @@ class AnnotationsDataBuilder implements AnnotationsData {
   List<FunctionEntity> _nonInlinableFunctions;
   List<FunctionEntity> _tryInlinableFunctions;
   List<FunctionEntity> _disableFinalFunctions;
+  List<FieldEntity> _noElisionFields;
   List<FunctionEntity> _cannotThrowFunctions;
   List<FunctionEntity> _sideEffectFreeFunctions;
   List<MemberEntity> _trustTypeAnnotationsMembers;
@@ -297,6 +381,11 @@ class AnnotationsDataBuilder implements AnnotationsData {
   void markAsDisableFinal(FunctionEntity function) {
     _disableFinalFunctions ??= <FunctionEntity>[];
     _disableFinalFunctions.add(function);
+  }
+
+  void markAsNoElision(FieldEntity field) {
+    _noElisionFields ??= <FieldEntity>[];
+    _noElisionFields.add(field);
   }
 
   void registerCannotThrow(FunctionEntity function) {
@@ -320,6 +409,8 @@ class AnnotationsDataBuilder implements AnnotationsData {
       _tryInlinableFunctions ?? const <FunctionEntity>[];
   Iterable<FunctionEntity> get disableFinalFunctions =>
       _disableFinalFunctions ?? const <FunctionEntity>[];
+  Iterable<FieldEntity> get noElisionFields =>
+      _noElisionFields ?? const <FieldEntity>[];
   Iterable<FunctionEntity> get cannotThrowFunctions =>
       _cannotThrowFunctions ?? const <FunctionEntity>[];
   Iterable<FunctionEntity> get sideEffectFreeFunctions =>

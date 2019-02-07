@@ -13,7 +13,7 @@ main() {
 }
 
 class Class1a {
-  /*element: Class1a.field1:*/
+  /*element: Class1a.field1:emitted*/
   int field1;
 }
 
@@ -24,7 +24,7 @@ method1(dynamic c) {
 }
 
 class Class2a<T> {
-  /*element: Class2a.field2:*/
+  /*element: Class2a.field2:emitted*/
   T field2;
 }
 
@@ -35,12 +35,12 @@ method2(dynamic c) {
 }
 
 class Class3a {
-  /*element: Class3a.field3:get=simple*/
+  /*element: Class3a.field3:emitted,get=simple*/
   int field3;
 }
 
 class Class3b {
-  /*element: Class3b.field3:get=simple*/
+  /*element: Class3b.field3:emitted,get=simple*/
   int field3;
 }
 
@@ -51,12 +51,12 @@ method3(dynamic c) {
 }
 
 class Class4a {
-  /*element: Class4a.field4:get=simple*/
+  /*element: Class4a.field4:emitted,get=simple*/
   int field4;
 }
 
 class Class4b implements Class4a {
-  /*element: Class4b.field4:get=simple*/
+  /*element: Class4b.field4:emitted,get=simple*/
   int field4;
 }
 

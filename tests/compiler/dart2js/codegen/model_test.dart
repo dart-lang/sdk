@@ -59,6 +59,10 @@ class Tags {
   static const String parameterCount = 'params';
   static const String call = 'calls';
   static const String parameterStub = 'stubs';
+  static const String isEmitted = 'emitted';
+  static const String isElided = 'elided';
+  static const String assignment = 'assign';
+  static const String isLazy = 'lazy';
 }
 
 /// AST visitor for computing inference data for a member.
@@ -85,6 +89,11 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         if (field.needsCheckedSetter) {
           features.add(Tags.needsCheckedSetter);
         }
+        if (field.isElided) {
+          features.add(Tags.isElided);
+        } else {
+          features.add(Tags.isEmitted);
+        }
         void registerFlags(String tag, int flags) {
           switch (flags) {
             case 0:
@@ -104,6 +113,15 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         registerFlags(Tags.getterFlags, field.getterFlags);
         registerFlags(Tags.setterFlags, field.setterFlags);
 
+        return features;
+      }
+      StaticField staticField = _programLookup.getStaticField(member);
+      if (staticField != null) {
+        Features features = new Features();
+        features.add(Tags.isEmitted);
+        if (staticField.isLazy) {
+          features.add(Tags.isLazy);
+        }
         return features;
       }
     } else if (member is FunctionEntity) {
@@ -152,6 +170,21 @@ class ModelIrComputer extends IrDataExtractor<Features> {
             registerCalls(Tags.parameterStub, stub.code, '${stub.name.key}:');
           }
         }
+        forEachNode(code, onAssignment: (js.Assignment node) {
+          js.Expression leftHandSide = node.leftHandSide;
+          if (leftHandSide is js.PropertyAccess) {
+            js.Node selector = leftHandSide.selector;
+            String name;
+            if (selector is js.Name) {
+              name = selector.key;
+            } else if (selector is js.LiteralString) {
+              name = selector.value.substring(1, selector.value.length - 1);
+            }
+            if (name != null) {
+              features.addElement(Tags.assignment, '${name}');
+            }
+          }
+        });
         return features;
       }
     }

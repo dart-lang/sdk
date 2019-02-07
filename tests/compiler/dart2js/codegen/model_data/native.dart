@@ -11,6 +11,11 @@ class Class {
     throw new UnsupportedError("Not supported");
   }
 
+  @pragma('dart2js:noElision')
+  int field1;
+
+  int field2;
+
   /*element: Class.method1:
    calls=[method1(a,b,c)],
    params=4,
@@ -84,6 +89,7 @@ main() {
 }
 
 /*element: test:
+ assign=[field1,field2],
  calls=[
   method1$1(2),
   method1$2(3),
@@ -106,6 +112,8 @@ main() {
 */
 @pragma('dart2js:noInline')
 test(Class o) {
+  o.field1 = 42;
+  o.field2 = 42;
   o.method1(0);
   o.method1(0, 1);
   o.method1(0, 1, 2);

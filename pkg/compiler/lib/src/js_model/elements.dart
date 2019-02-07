@@ -49,6 +49,18 @@ abstract class JsToFrontendMap {
     }).toSet();
   }
 
+  Set<FieldEntity> toBackendFieldSet(Iterable<FieldEntity> set) {
+    Set<FieldEntity> newSet = new Set<FieldEntity>();
+    for (FieldEntity element in set) {
+      FieldEntity backendField = toBackendMember(element);
+      if (backendField != null) {
+        // Members that are not live don't have a corresponding backend member.
+        newSet.add(backendField);
+      }
+    }
+    return newSet;
+  }
+
   Set<FunctionEntity> toBackendFunctionSet(Iterable<FunctionEntity> set) {
     Set<FunctionEntity> newSet = new Set<FunctionEntity>();
     for (FunctionEntity element in set) {

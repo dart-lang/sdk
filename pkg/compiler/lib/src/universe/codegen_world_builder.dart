@@ -37,14 +37,20 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are
   /// included.
+  ///
+  /// If [isElided] is `true`, the field is not read and should therefore not
+  /// be emitted.
   void forEachInstanceField(covariant ClassEntity cls,
-      void f(ClassEntity declarer, FieldEntity field));
+      void f(ClassEntity declarer, FieldEntity field, {bool isElided}));
 
   /// Calls [f] with every instance field declared directly in class [cls]
   /// (i.e. no inherited fields). Fields are presented in initialization
   /// (i.e. textual) order.
+  ///
+  /// If [isElided] is `true`, the field is not read and should therefore not
+  /// be emitted.
   void forEachDirectInstanceField(
-      covariant ClassEntity cls, void f(FieldEntity field));
+      covariant ClassEntity cls, void f(FieldEntity field, {bool isElided}));
 
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
@@ -703,16 +709,19 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  void forEachInstanceField(
-      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
+  void forEachInstanceField(ClassEntity cls,
+      void f(ClassEntity declarer, FieldEntity field, {bool isElided})) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
-      if (member.isField && member.isInstanceMember) f(declarer, member);
+      if (member.isField && member.isInstanceMember) {
+        f(declarer, member, isElided: _world.elidedFields.contains(member));
+      }
     });
   }
 
   @override
-  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field)) {
+  void forEachDirectInstanceField(
+      ClassEntity cls, void f(FieldEntity field, {bool isElided})) {
     // TODO(sra): Add ElementEnvironment.forEachDirectInstanceField or
     // parameterize [forEachInstanceField] to filter members to avoid a
     // potentially O(n^2) scan of the superclasses.
@@ -721,7 +730,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       if (declarer != cls) return;
       if (!member.isField) return;
       if (!member.isInstanceMember) return;
-      f(member);
+      f(member, isElided: _world.elidedFields.contains(member));
     });
   }
 

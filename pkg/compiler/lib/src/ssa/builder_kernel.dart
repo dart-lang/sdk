@@ -363,7 +363,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       graph.entry.addBefore(graph.entry.last, parameter);
       HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           parameter, _getDartTypeIfValid(node.type));
-      add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
+      if (!closedWorld.elidedFields.contains(field)) {
+        add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
+      }
     } else {
       if (node.initializer != null) {
         node.initializer.accept(this);
@@ -522,7 +524,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
     List<FieldEntity> fields = <FieldEntity>[];
     _worldBuilder.forEachInstanceField(cls,
-        (ClassEntity enclosingClass, FieldEntity member) {
+        (ClassEntity enclosingClass, FieldEntity member, {bool isElided}) {
       HInstruction value = constructorData.fieldValues[member];
       if (value == null) {
         assert(
@@ -531,11 +533,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
                 reporter.hasReportedError,
             'No initializer value for field ${member}');
       } else {
-        fields.add(member);
-        DartType type = _elementMap.elementEnvironment.getFieldType(member);
-        type = localsHandler.substInContext(type);
-        constructorArguments.add(
-            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
+        if (!isElided) {
+          fields.add(member);
+          DartType type = _elementMap.elementEnvironment.getFieldType(member);
+          type = localsHandler.substInContext(type);
+          constructorArguments.add(
+              typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
+        }
       }
     });
 
@@ -728,7 +732,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// [clazz].
   void _collectFieldValues(ir.Class clazz, ConstructorData constructorData) {
     ClassEntity cls = _elementMap.getClass(clazz);
-    _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field) {
+    _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field,
+        {bool isElided}) {
       _ensureTypeVariablesForInitializers(
           constructorData, field.enclosingClass);
 
@@ -3033,11 +3038,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
           sourceInformation: _sourceInformationBuilder.buildSet(node));
       pop();
     } else {
-      add(new HStaticStore(
-          abstractValueDomain,
-          _elementMap.getMember(staticTarget),
-          typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-              value, _getDartTypeIfValid(staticTarget.setterType))));
+      MemberEntity target = _elementMap.getMember(staticTarget);
+      if (!closedWorld.elidedFields.contains(target)) {
+        add(new HStaticStore(
+            abstractValueDomain,
+            target,
+            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+                value, _getDartTypeIfValid(staticTarget.setterType))));
+      }
     }
     stack.add(value);
   }
@@ -4453,7 +4461,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     _worldBuilder.forEachInstanceField(closureClassEntity,
-        (_, FieldEntity field) {
+        (_, FieldEntity field, {bool isElided}) {
+      if (isElided) return;
       capturedVariables
           .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });

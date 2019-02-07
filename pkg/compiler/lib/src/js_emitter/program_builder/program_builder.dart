@@ -1072,8 +1072,15 @@ class ProgramBuilder {
         initializerInAllocator = _allocatorAnalysis.initializerValue(field);
       }
 
-      fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
-          needsCheckedSetter, initializerInAllocator));
+      fields.add(new Field(
+          field,
+          name,
+          accessorName,
+          getterFlags,
+          setterFlags,
+          needsCheckedSetter,
+          initializerInAllocator,
+          _closedWorld.elidedFields.contains(field)));
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,

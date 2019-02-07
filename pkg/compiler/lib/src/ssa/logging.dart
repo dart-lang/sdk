@@ -33,10 +33,14 @@ class OptimizationTestLog {
     entries.add(new OptimizationLogEntry('FieldGet', features));
   }
 
-  void registerFieldSet(HInvokeDynamicSetter original, HFieldSet converted) {
+  void registerFieldSet(HInvokeDynamicSetter original, [HFieldSet converted]) {
     Features features = new Features();
-    features['name'] =
-        '${converted.element.enclosingClass.name}.${converted.element.name}';
+    if (converted != null) {
+      features['name'] =
+          '${converted.element.enclosingClass.name}.${converted.element.name}';
+    } else {
+      features['removed'] = original.selector.name;
+    }
     entries.add(new OptimizationLogEntry('FieldSet', features));
   }
 

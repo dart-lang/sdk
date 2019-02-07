@@ -60,15 +60,21 @@ Future<String> compile(String code,
     options.add(Flags.disableInlining);
   }
 
+  // Pretend this is a dart2js_native test to allow use of 'native' keyword
+  // and import of private libraries.
+  String commonTestPath = 'sdk/tests/compiler';
+  Uri entryPoint = Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
+
   Map<String, String> source;
   methodName ??= entry;
   if (entry != 'main') {
-    source = {'main.dart': "$code\n\nmain() => $entry;"};
+    source = {entryPoint.path: "$code\n\nmain() => $entry;"};
   } else {
-    source = {'main.dart': code};
+    source = {entryPoint.path: code};
   }
 
   CompilationResult result = await runCompiler(
+      entryPoint: entryPoint,
       memorySourceFiles: source,
       options: options,
       outputProvider: outputCollector);
@@ -101,8 +107,15 @@ Future<String> compileAll(String code,
   if (minify) {
     options.add(Flags.minify);
   }
+
+  // Pretend this is a dart2js_native test to allow use of 'native' keyword
+  // and import of private libraries.
+  String commonTestPath = 'sdk/tests/compiler';
+  Uri entryPoint = Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
+
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': code},
+      entryPoint: entryPoint,
+      memorySourceFiles: {entryPoint.path: code},
       options: options,
       outputProvider: outputCollector,
       diagnosticHandler: diagnosticCollector);

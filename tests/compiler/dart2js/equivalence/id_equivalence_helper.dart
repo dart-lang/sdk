@@ -713,8 +713,10 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
       Set<String> validatedFeatures = new Set<String>();
       expectedFeatures.forEach((String key, Object expectedValue) {
         validatedFeatures.add(key);
-        Object actualValue = actualFeatures[key] ?? '';
-        if (expectedValue == '') {
+        Object actualValue = actualFeatures[key];
+        if (!actualFeatures.containsKey(key)) {
+          errorsFound.add('No data found for $key');
+        } else if (expectedValue == '') {
           if (actualValue != '') {
             errorsFound.add('Non-empty data found for $key');
           }
@@ -768,7 +770,11 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
       });
       actualFeatures.forEach((String key, Object value) {
         if (!validatedFeatures.contains(key)) {
-          errorsFound.add("Extra data found $key=$value");
+          if (value == '') {
+            errorsFound.add("Extra data found '$key'");
+          } else {
+            errorsFound.add("Extra data found $key=$value");
+          }
         }
       });
       return errorsFound.isNotEmpty ? errorsFound.join('\n ') : null;

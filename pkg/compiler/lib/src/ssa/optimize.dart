@@ -1292,11 +1292,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    HFieldSet result =
-        new HFieldSet(_abstractValueDomain, field, receiver, value)
-          ..sourceInformation = node.sourceInformation;
-    _log?.registerFieldSet(node, result);
-    return result;
+    if (_closedWorld.elidedFields.contains(field)) {
+      _log?.registerFieldSet(node);
+      return value;
+    } else {
+      HFieldSet result =
+          new HFieldSet(_abstractValueDomain, field, receiver, value)
+            ..sourceInformation = node.sourceInformation;
+      _log?.registerFieldSet(node, result);
+      return result;
+    }
   }
 
   HInstruction visitInvokeClosure(HInvokeClosure node) {
@@ -2928,7 +2933,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
       compiler.codegenWorldBuilder.forEachInstanceField(instruction.element,
-          (_, FieldEntity member) {
+          (_, FieldEntity member, {bool isElided}) {
+        if (isElided) return;
         if (compiler.elementHasCompileTimeError(
             // ignore: UNNECESSARY_CAST
             member as Entity)) return;

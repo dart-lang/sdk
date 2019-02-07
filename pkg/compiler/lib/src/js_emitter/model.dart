@@ -384,9 +384,18 @@ class Field {
 
   final ConstantValue initializerInAllocator;
 
+  final bool isElided;
+
   // TODO(floitsch): support renamed fields.
-  Field(this.element, this.name, this.accessorName, this.getterFlags,
-      this.setterFlags, this.needsCheckedSetter, this.initializerInAllocator);
+  Field(
+      this.element,
+      this.name,
+      this.accessorName,
+      this.getterFlags,
+      this.setterFlags,
+      this.needsCheckedSetter,
+      this.initializerInAllocator,
+      this.isElided);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;

@@ -13,7 +13,7 @@ main() {
 }
 
 class Class1a {
-  /*element: Class1a.field1:*/
+  /*element: Class1a.field1:elided*/
   int field1;
 }
 
@@ -24,8 +24,8 @@ method1(dynamic c) {
 }
 
 class Class2a<T> {
-  /*strong.element: Class2a.field2:checked*/
-  /*omit.element: Class2a.field2:*/
+  /*strong.element: Class2a.field2:checked,elided*/
+  /*omit.element: Class2a.field2:elided*/
   T field2;
 }
 
@@ -37,14 +37,14 @@ method2(dynamic c) {
 }
 
 class Class3a {
-  /*strong.element: Class3a.field3:checked*/
-  /*omit.element: Class3a.field3:set=simple*/
+  /*strong.element: Class3a.field3:checked,elided*/
+  /*omit.element: Class3a.field3:elided,set=simple*/
   int field3;
 }
 
 class Class3b {
-  /*strong.element: Class3b.field3:checked*/
-  /*omit.element: Class3b.field3:set=simple*/
+  /*strong.element: Class3b.field3:checked,elided*/
+  /*omit.element: Class3b.field3:elided,set=simple*/
   int field3;
 }
 
@@ -55,14 +55,14 @@ method3(dynamic c) {
 }
 
 class Class4a {
-  /*strong.element: Class4a.field4:checked*/
-  /*omit.element: Class4a.field4:set=simple*/
+  /*strong.element: Class4a.field4:checked,elided*/
+  /*omit.element: Class4a.field4:elided,set=simple*/
   int field4;
 }
 
 class Class4b implements Class4a {
-  /*strong.element: Class4b.field4:checked*/
-  /*omit.element: Class4b.field4:set=simple*/
+  /*strong.element: Class4b.field4:checked,elided*/
+  /*omit.element: Class4b.field4:elided,set=simple*/
   int field4;
 }
 

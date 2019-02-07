@@ -26,6 +26,7 @@ import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
+import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 import 'closure.dart';
@@ -199,6 +200,7 @@ class JsClosedWorldBuilder {
             closedWorld.annotationsData.tryInlineFunctions),
         map.toBackendFunctionSet(
             closedWorld.annotationsData.disableFinalFunctions),
+        map.toBackendFieldSet(closedWorld.annotationsData.noElisionFields),
         map.toBackendFunctionSet(
             closedWorld.annotationsData.cannotThrowFunctions),
         map.toBackendFunctionSet(
@@ -208,6 +210,19 @@ class JsClosedWorldBuilder {
 
     OutputUnitData outputUnitData =
         _convertOutputUnitData(map, kOutputUnitData, closureData);
+
+    Set<FieldEntity> elidedFields = new Set();
+    closedWorld.liveMemberUsage
+        .forEach((MemberEntity member, MemberUsage memberUsage) {
+      // TODO(johnniwinther): Should elided static fields be removed from the
+      // J model? Static setters might still assign to them.
+      if (member.isField &&
+          !memberUsage.hasRead &&
+          !closedWorld.annotationsData.noElisionFields.contains(member) &&
+          !closedWorld.nativeData.isNativeMember(member)) {
+        elidedFields.add(map.toBackendMember(member));
+      }
+    });
 
     return new JsClosedWorld(
         _elementMap,
@@ -233,7 +248,8 @@ class JsClosedWorldBuilder {
         annotationsData,
         _globalLocalsMap,
         closureData,
-        outputUnitData);
+        outputUnitData,
+        elidedFields);
   }
 
   BackendUsage _convertBackendUsage(
