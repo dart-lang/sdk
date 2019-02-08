@@ -17,9 +17,8 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#define Z (helper_->zone_)
+#define Z (zone_)
 #define H (translation_helper_)
-#define T (type_translator_)
 #define I Isolate::Current()
 
 namespace dart {
@@ -29,14 +28,9 @@ DEFINE_FLAG(bool, dump_kernel_bytecode, false, "Dump kernel bytecode");
 namespace kernel {
 
 BytecodeMetadataHelper::BytecodeMetadataHelper(KernelReaderHelper* helper,
-                                               TypeTranslator* type_translator,
                                                ActiveClass* active_class)
     : MetadataHelper(helper, tag(), /* precompiler_only = */ false),
-      type_translator_(*type_translator),
-      active_class_(active_class),
-      bytecode_component_(nullptr),
-      closures_(nullptr),
-      function_type_type_parameters_(nullptr) {}
+      active_class_(active_class) {}
 
 bool BytecodeMetadataHelper::HasBytecode(intptr_t node_offset) {
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
@@ -64,13 +58,44 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   Array& bytecode_component_array =
-      Array::Handle(Z, translation_helper_.GetBytecodeComponent());
+      Array::Handle(helper_->zone_, translation_helper_.GetBytecodeComponent());
   if (bytecode_component_array.IsNull()) {
     bytecode_component_array = ReadBytecodeComponent();
     ASSERT(!bytecode_component_array.IsNull());
   }
+
   BytecodeComponentData bytecode_component(bytecode_component_array);
-  bytecode_component_ = &bytecode_component;
+  BytecodeReaderHelper bytecode_reader(helper_, active_class_,
+                                       &bytecode_component);
+
+  bytecode_reader.ReadMemberBytecode(function, md_offset);
+}
+
+RawArray* BytecodeMetadataHelper::ReadBytecodeComponent() {
+  const intptr_t md_offset = GetComponentMetadataPayloadOffset();
+  if (md_offset < 0) {
+    return Array::null();
+  }
+
+  BytecodeReaderHelper component_reader(helper_, nullptr, nullptr);
+  return component_reader.ReadBytecodeComponent(md_offset);
+}
+
+BytecodeReaderHelper::BytecodeReaderHelper(
+    KernelReaderHelper* helper,
+    ActiveClass* active_class,
+    BytecodeComponentData* bytecode_component)
+    : helper_(helper),
+      translation_helper_(helper->translation_helper_),
+      active_class_(active_class),
+      zone_(helper_->zone_),
+      bytecode_component_(bytecode_component),
+      closures_(nullptr),
+      function_type_type_parameters_(nullptr) {}
+
+void BytecodeReaderHelper::ReadMemberBytecode(const Function& function,
+                                              intptr_t md_offset) {
+  ASSERT(Thread::Current()->IsMutatorThread());
 
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
@@ -97,8 +122,7 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
 
   // Create object pool and read pool entries.
   const intptr_t obj_count = helper_->reader_.ReadListLength();
-  const ObjectPool& pool =
-      ObjectPool::Handle(helper_->zone_, ObjectPool::New(obj_count));
+  const ObjectPool& pool = ObjectPool::Handle(Z, ObjectPool::New(obj_count));
 
   {
     // While reading pool entries, deopt_ids are allocated for
@@ -111,11 +135,9 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   }
 
   // Read bytecode and attach to function.
-  const Bytecode& bytecode =
-      Bytecode::Handle(helper_->zone_, ReadBytecode(pool));
+  const Bytecode& bytecode = Bytecode::Handle(Z, ReadBytecode(pool));
   function.AttachBytecode(bytecode);
-  ASSERT(bytecode.GetBinary(helper_->zone_) ==
-         helper_->reader_.typed_data()->raw());
+  ASSERT(bytecode.GetBinary(Z) == helper_->reader_.typed_data()->raw());
 
   ReadExceptionsTable(bytecode, has_exceptions_table);
 
@@ -131,7 +153,7 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     ASSERT(function.IsGenerativeConstructor());
     const intptr_t num_fields = helper_->ReadListLength();
     if (I->use_field_guards()) {
-      Field& field = Field::Handle(helper_->zone_);
+      Field& field = Field::Handle(Z);
       for (intptr_t i = 0; i < num_fields; i++) {
         field ^= ReadObject();
         field.RecordStore(Object::null_object());
@@ -145,8 +167,8 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
 
   // Read closures.
   if (has_closures) {
-    Function& closure = Function::Handle(helper_->zone_);
-    Bytecode& closure_bytecode = Bytecode::Handle(helper_->zone_);
+    Function& closure = Function::Handle(Z);
+    Bytecode& closure_bytecode = Bytecode::Handle(Z);
     for (intptr_t i = 0; i < num_closures; i++) {
       closure ^= closures_->At(i);
 
@@ -157,8 +179,7 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
       closure.AttachBytecode(closure_bytecode);
-      ASSERT(bytecode.GetBinary(helper_->zone_) ==
-             helper_->reader_.typed_data()->raw());
+      ASSERT(bytecode.GetBinary(Z) == helper_->reader_.typed_data()->raw());
 
       ReadExceptionsTable(closure_bytecode, has_exceptions_table);
 
@@ -169,12 +190,10 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
       }
     }
   }
-
-  bytecode_component_ = nullptr;
 }
 
-void BytecodeMetadataHelper::ReadClosureDeclaration(const Function& function,
-                                                    intptr_t closureIndex) {
+void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
+                                                  intptr_t closureIndex) {
   const int kHasOptionalPositionalParams = 1 << 0;
   const int kHasOptionalNamedParams = 1 << 1;
   const int kHasTypeParams = 1 << 2;
@@ -208,7 +227,7 @@ void BytecodeMetadataHelper::ReadClosureDeclaration(const Function& function,
   closure.SetSignatureType(signature_type);
 }
 
-RawType* BytecodeMetadataHelper::ReadFunctionSignature(
+RawType* BytecodeReaderHelper::ReadFunctionSignature(
     const Function& func,
     bool has_optional_positional_params,
     bool has_optional_named_params,
@@ -270,7 +289,7 @@ RawType* BytecodeMetadataHelper::ReadFunctionSignature(
   return Type::Cast(type).raw();
 }
 
-void BytecodeMetadataHelper::ReadTypeParametersDeclaration(
+void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     const Class& parameterized_class,
     const Function& parameterized_function,
     intptr_t num_type_params) {
@@ -308,10 +327,10 @@ void BytecodeMetadataHelper::ReadTypeParametersDeclaration(
   }
 }
 
-void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
-                                              const ObjectPool& pool) {
+void BytecodeReaderHelper::ReadConstantPool(const Function& function,
+                                            const ObjectPool& pool) {
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
-                    "BytecodeMetadataHelper::ReadConstantPool");
+                    "BytecodeReaderHelper::ReadConstantPool");
 
   // These enums and the code below reading the constant pool from kernel must
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
@@ -357,13 +376,13 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
   const int kInvocationKindMask = 0x3;
   const int kFlagDynamic = 1 << 2;
 
-  Object& obj = Object::Handle(helper_->zone_);
-  Object& elem = Object::Handle(helper_->zone_);
-  Array& array = Array::Handle(helper_->zone_);
-  Field& field = Field::Handle(helper_->zone_);
-  Class& cls = Class::Handle(helper_->zone_);
-  String& name = String::Handle(helper_->zone_);
-  TypeArguments& type_args = TypeArguments::Handle(helper_->zone_);
+  Object& obj = Object::Handle(Z);
+  Object& elem = Object::Handle(Z);
+  Array& array = Array::Handle(Z);
+  Field& field = Field::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  String& name = String::Handle(Z);
+  TypeArguments& type_args = TypeArguments::Handle(Z);
   Class* symbol_class = nullptr;
   Field* symbol_name_field = nullptr;
   const String* simpleInstanceOf = nullptr;
@@ -577,20 +596,18 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kPartialTearOffInstantiation: {
         intptr_t tearoff_index = helper_->ReadUInt();
         ASSERT(tearoff_index < i);
-        const Closure& old_closure = Closure::CheckedHandle(
-            helper_->zone_, pool.ObjectAt(tearoff_index));
+        const Closure& old_closure =
+            Closure::CheckedHandle(Z, pool.ObjectAt(tearoff_index));
 
         intptr_t type_args_index = helper_->ReadUInt();
         ASSERT(type_args_index < i);
         type_args ^= pool.ObjectAt(type_args_index);
 
         obj = Closure::New(
-            TypeArguments::Handle(helper_->zone_,
-                                  old_closure.instantiator_type_arguments()),
-            TypeArguments::Handle(helper_->zone_,
-                                  old_closure.function_type_arguments()),
-            type_args, Function::Handle(helper_->zone_, old_closure.function()),
-            Context::Handle(helper_->zone_, old_closure.context()), Heap::kOld);
+            TypeArguments::Handle(Z, old_closure.instantiator_type_arguments()),
+            TypeArguments::Handle(Z, old_closure.function_type_arguments()),
+            type_args, Function::Handle(Z, old_closure.function()),
+            Context::Handle(Z, old_closure.context()), Heap::kOld);
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
       case ConstantPoolTag::kEmptyTypeArguments:
@@ -603,11 +620,10 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
           elem = Library::InternalLibrary();
           ASSERT(!elem.IsNull());
           symbol_class = &Class::Handle(
-              helper_->zone_,
-              Library::Cast(elem).LookupClass(Symbols::Symbol()));
+              Z, Library::Cast(elem).LookupClass(Symbols::Symbol()));
           ASSERT(!symbol_class->IsNull());
           symbol_name_field = &Field::Handle(
-              helper_->zone_,
+              Z,
               symbol_class->LookupInstanceFieldAllowPrivate(Symbols::_name()));
           ASSERT(!symbol_name_field->IsNull());
         }
@@ -672,9 +688,9 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
   }
 }
 
-RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
+RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
-                    "BytecodeMetadataHelper::ReadBytecode");
+                    "BytecodeReaderHelper::ReadBytecode");
   intptr_t size = helper_->ReadUInt();
   intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), sizeof(KBCInstr));
   const uint8_t* data = helper_->reader_.BufferAt(offset);
@@ -685,22 +701,20 @@ RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
   return Bytecode::New(reinterpret_cast<uword>(data), size, offset, pool);
 }
 
-void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
-                                                 bool has_exceptions_table) {
+void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
+                                               bool has_exceptions_table) {
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
-                    "BytecodeMetadataHelper::ReadExceptionsTable");
+                    "BytecodeReaderHelper::ReadExceptionsTable");
 
   const intptr_t try_block_count =
       has_exceptions_table ? helper_->reader_.ReadListLength() : 0;
   if (try_block_count > 0) {
-    const ObjectPool& pool =
-        ObjectPool::Handle(helper_->zone_, bytecode.object_pool());
-    AbstractType& handler_type = AbstractType::Handle(helper_->zone_);
-    Array& handler_types = Array::ZoneHandle(helper_->zone_);
-    DescriptorList* pc_descriptors_list =
-        new (helper_->zone_) DescriptorList(64);
+    const ObjectPool& pool = ObjectPool::Handle(Z, bytecode.object_pool());
+    AbstractType& handler_type = AbstractType::Handle(Z);
+    Array& handler_types = Array::ZoneHandle(Z);
+    DescriptorList* pc_descriptors_list = new (Z) DescriptorList(64);
     ExceptionHandlerList* exception_handlers_list =
-        new (helper_->zone_) ExceptionHandlerList();
+        new (Z) ExceptionHandlerList();
 
     // Encoding of ExceptionsTable is described in
     // pkg/vm/lib/bytecode/exceptions.dart.
@@ -740,12 +754,11 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
           is_generated, handler_types, needs_stacktrace);
     }
     const PcDescriptors& descriptors = PcDescriptors::Handle(
-        helper_->zone_,
-        pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));
+        Z, pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));
     bytecode.set_pc_descriptors(descriptors);
     const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
-        helper_->zone_, exception_handlers_list->FinalizeExceptionHandlers(
-                            bytecode.PayloadStart()));
+        Z, exception_handlers_list->FinalizeExceptionHandlers(
+               bytecode.PayloadStart()));
     bytecode.set_exception_handlers(handlers);
   } else {
     bytecode.set_pc_descriptors(Object::empty_descriptors());
@@ -753,8 +766,8 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
   }
 }
 
-void BytecodeMetadataHelper::ReadSourcePositions(const Bytecode& bytecode,
-                                                 bool has_source_positions) {
+void BytecodeReaderHelper::ReadSourcePositions(const Bytecode& bytecode,
+                                               bool has_source_positions) {
   if (!has_source_positions) {
     return;
   }
@@ -764,9 +777,8 @@ void BytecodeMetadataHelper::ReadSourcePositions(const Bytecode& bytecode,
   helper_->SkipBytes(length);
 }
 
-RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
-                                                  const String& external_name) {
-  Zone* zone = helper_->zone_;
+RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
+                                                const String& external_name) {
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   // This list of recognized methods must be kept in sync with the list of
   // methods handled specially by the NativeCall bytecode in the interpreter.
@@ -801,8 +813,8 @@ RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
   intptr_t argc_tag = 0;
   if (kind == MethodRecognizer::kUnknown) {
     if (!FLAG_link_natives_lazily) {
-      const Class& cls = Class::Handle(zone, function.Owner());
-      const Library& library = Library::Handle(zone, cls.library());
+      const Class& cls = Class::Handle(Z, function.Owner());
+      const Library& library = Library::Handle(Z, cls.library());
       Dart_NativeEntryResolver resolver = library.native_entry_resolver();
       const bool is_bootstrap_native = Bootstrap::IsBootstrapResolver(resolver);
       const int num_params =
@@ -824,12 +836,7 @@ RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
   return NativeEntryData::New(kind, trampoline, native_function, argc_tag);
 }
 
-RawArray* BytecodeMetadataHelper::ReadBytecodeComponent() {
-  const intptr_t md_offset = GetComponentMetadataPayloadOffset();
-  if (md_offset < 0) {
-    return Array::null();
-  }
-
+RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
@@ -873,7 +880,7 @@ RawArray* BytecodeMetadataHelper::ReadBytecodeComponent() {
   BytecodeComponentData bytecode_component(bytecode_component_array);
 
   // Read object offsets.
-  Smi& offs = Smi::Handle(helper_->zone_);
+  Smi& offs = Smi::Handle(Z);
   for (intptr_t i = 0; i < num_objects; ++i) {
     offs = Smi::New(helper_->reader_.ReadUInt());
     bytecode_component.SetObject(i, offs);
@@ -884,9 +891,7 @@ RawArray* BytecodeMetadataHelper::ReadBytecodeComponent() {
   return bytecode_component_array.raw();
 }
 
-// TODO(alexmarkov): create a helper class with cached handles to avoid handle
-// allocations.
-RawObject* BytecodeMetadataHelper::ReadObject() {
+RawObject* BytecodeReaderHelper::ReadObject() {
   uint32_t header = helper_->reader_.ReadUInt();
   if ((header & kReferenceBit) != 0) {
     intptr_t index = header >> kIndexShift;
@@ -919,7 +924,7 @@ RawObject* BytecodeMetadataHelper::ReadObject() {
   return ReadObjectContents(header);
 }
 
-RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
+RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   ASSERT(((header & kReferenceBit) == 0));
 
   // Must be in sync with enum ObjectKind in
@@ -1085,7 +1090,7 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
           Z, Function::NewSignatureFunction(*active_class_->klass,
                                             active_class_->enclosing != NULL
                                                 ? *active_class_->enclosing
-                                                : Function::Handle(Z),
+                                                : Function::null_function(),
                                             TokenPosition::kNoSource));
 
       return ReadFunctionSignature(
@@ -1144,7 +1149,7 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
   return Object::null();
 }
 
-RawObject* BytecodeMetadataHelper::ReadConstObject(intptr_t tag) {
+RawObject* BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
   // Must be in sync with enum ConstTag in
   // pkg/vm/lib/bytecode/object_table.dart.
   enum ConstTag {
@@ -1254,7 +1259,7 @@ RawObject* BytecodeMetadataHelper::ReadConstObject(intptr_t tag) {
   return Object::null();
 }
 
-RawString* BytecodeMetadataHelper::ReadString(bool is_canonical) {
+RawString* BytecodeReaderHelper::ReadString(bool is_canonical) {
   const int kFlagTwoByteString = 1;
   const int kHeaderFields = 2;
   const int kUInt32Size = 4;
@@ -1304,7 +1309,7 @@ RawString* BytecodeMetadataHelper::ReadString(bool is_canonical) {
   }
 }
 
-RawTypeArguments* BytecodeMetadataHelper::ReadTypeArguments(
+RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments(
     const Class& instantiator) {
   const intptr_t length = helper_->reader_.ReadUInt();
   TypeArguments& type_arguments =
@@ -1408,11 +1413,9 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
         ExternalTypedData::Handle(zone, function.KernelData()),
         function.KernelDataProgramOffset());
     ActiveClass active_class;
-    TypeTranslator type_translator(&reader_helper, &active_class,
-                                   /* finalize= */ true);
 
-    BytecodeMetadataHelper bytecode_metadata_helper(
-        &reader_helper, &type_translator, &active_class);
+    BytecodeMetadataHelper bytecode_metadata_helper(&reader_helper,
+                                                    &active_class);
 
     // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
     // e.g. for type translation.

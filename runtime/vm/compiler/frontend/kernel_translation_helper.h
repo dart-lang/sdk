@@ -1075,6 +1075,7 @@ class KernelReaderHelper {
   intptr_t data_program_offset_;
 
   friend class BytecodeMetadataHelper;
+  friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
   friend class ConstantEvaluator;
