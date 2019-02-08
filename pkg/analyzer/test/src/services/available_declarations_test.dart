@@ -1020,6 +1020,44 @@ library my.lib;
     expect(uriToLibrary['package:test/c.dart'].isDeprecated, isTrue);
   }
 
+  test_library_partDirective_empty() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+part ' ';
+
+class A {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.CLASS,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+  }
+
+  test_library_partDirective_incomplete() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+part
+
+class A {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.CLASS,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+  }
+
   test_library_parts() async {
     newFile('/home/test/lib/a.dart', content: r'''
 part of 'test.dart';

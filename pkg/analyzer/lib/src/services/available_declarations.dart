@@ -1352,7 +1352,8 @@ class _File {
 
   static Uri _uriFromAst(StringLiteral astUri) {
     if (astUri is SimpleStringLiteral) {
-      var uriStr = astUri.value;
+      var uriStr = astUri.value.trim();
+      if (uriStr.isEmpty) return null;
       try {
         return Uri.parse(uriStr);
       } catch (_) {}
