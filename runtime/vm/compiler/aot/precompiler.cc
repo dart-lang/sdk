@@ -325,7 +325,6 @@ void Precompiler::DoCompileAll() {
 
       // Clear these before dropping classes as they may hold onto otherwise
       // dead instances of classes we will remove or otherwise unused symbols.
-      DropScriptData();
       I->object_store()->set_unique_dynamic_targets(Array::null_array());
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
@@ -367,7 +366,7 @@ void Precompiler::DoCompileAll() {
     Symbols::GetStats(I, &symbols_before, &capacity);
   }
 
-  Symbols::Compact(I);
+  Symbols::Compact();
 
   if (FLAG_trace_precompiler) {
     Symbols::GetStats(I, &symbols_after, &capacity);
@@ -1538,12 +1537,13 @@ void Precompiler::DropTypes() {
   {
     CanonicalTypeSet types_table(Z, object_store->canonical_types());
     types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < (types_array.Length() - 1); i++) {
+    for (intptr_t i = 0; i < types_array.Length(); i++) {
       type ^= types_array.At(i);
       bool retain = types_to_retain_.HasKey(&type);
       if (retain) {
         retained_types.Add(type);
       } else {
+        type.ClearCanonical();
         dropped_type_count_++;
       }
     }
@@ -1575,12 +1575,13 @@ void Precompiler::DropTypeArguments() {
     CanonicalTypeArgumentsSet typeargs_table(
         Z, object_store->canonical_type_arguments());
     typeargs_array = HashTables::ToArray(typeargs_table, false);
-    for (intptr_t i = 0; i < (typeargs_array.Length() - 1); i++) {
+    for (intptr_t i = 0; i < typeargs_array.Length(); i++) {
       typeargs ^= typeargs_array.At(i);
       bool retain = typeargs_to_retain_.HasKey(&typeargs);
       if (retain) {
         retained_typeargs.Add(typeargs);
       } else {
+        typeargs.ClearCanonical();
         dropped_typearg_count_++;
       }
     }
@@ -1600,21 +1601,6 @@ void Precompiler::DropTypeArguments() {
     ASSERT(!present);
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());
-}
-
-void Precompiler::DropScriptData() {
-  Library& lib = Library::Handle(Z);
-  Array& scripts = Array::Handle(Z);
-  Script& script = Script::Handle(Z);
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    scripts = lib.LoadedScripts();
-    for (intptr_t j = 0; j < scripts.Length(); j++) {
-      script ^= scripts.At(j);
-      script.set_compile_time_constants(Array::null_array());
-      script.set_source(String::null_string());
-    }
-  }
 }
 
 void Precompiler::TraceTypesFromRetainedClasses() {
@@ -1739,6 +1725,8 @@ void Precompiler::DropLibraryEntries() {
   Array& scripts = Array::Handle(Z);
   Script& script = Script::Handle(Z);
   KernelProgramInfo& program_info = KernelProgramInfo::Handle(Z);
+  const TypedData& null_typed_data = TypedData::Handle(Z);
+  const KernelProgramInfo& null_info = KernelProgramInfo::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1772,11 +1760,6 @@ void Precompiler::DropLibraryEntries() {
       }
       dict.SetAt(j, Object::null_object());
     }
-    lib.RehashDictionary(dict, used * 4 / 3 + 1);
-    if (!(retain_root_library_caches_ &&
-          (lib.raw() == I->object_store()->root_library()))) {
-      lib.DropDependenciesAndCaches();
-    }
 
     scripts = lib.LoadedScripts();
     if (!scripts.IsNull()) {
@@ -1785,8 +1768,25 @@ void Precompiler::DropLibraryEntries() {
         program_info = script.kernel_program_info();
         if (!program_info.IsNull()) {
           program_info.set_constants(Array::null_array());
+          program_info.set_scripts(Array::null_array());
+          program_info.set_libraries_cache(Array::null_array());
+          program_info.set_classes_cache(Array::null_array());
+          program_info.set_bytecode_component(Array::null_array());
         }
+        script.set_resolved_url(String::null_string());
+        script.set_compile_time_constants(Array::null_array());
+        script.set_line_starts(null_typed_data);
+        script.set_debug_positions(Array::null_array());
+        script.set_yield_positions(Array::null_array());
+        script.set_kernel_program_info(null_info);
+        script.set_source(String::null_string());
       }
+    }
+
+    lib.RehashDictionary(dict, used * 4 / 3 + 1);
+    if (!(retain_root_library_caches_ &&
+          (lib.raw() == I->object_store()->root_library()))) {
+      lib.DropDependenciesAndCaches();
     }
   }
 }
@@ -1794,8 +1794,8 @@ void Precompiler::DropLibraryEntries() {
 void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
+  const Script& null_script = Script::Handle(Z);
 
-#if defined(DEBUG)
   // We are about to remove classes from the class table. For this to be safe,
   // there must be no instances of these classes on the heap, not even
   // corpses because the class table entry may be used to find the size of
@@ -1803,7 +1803,6 @@ void Precompiler::DropClasses() {
   // we continue.
   I->heap()->CollectAllGarbage();
   I->heap()->WaitForSweeperTasks(T);
-#endif
 
   ClassTable* class_table = I->class_table();
   intptr_t num_cids = class_table->NumCids();
@@ -1831,7 +1830,7 @@ void Precompiler::DropClasses() {
     constants = cls.constants();
     ASSERT(constants.Length() == 0);
 
-#if defined(DEBUG)
+#if !defined(PRODUCT)
     intptr_t instances =
         class_table->StatsWithUpdatedSize(cid)->post_gc.new_count +
         class_table->StatsWithUpdatedSize(cid)->post_gc.old_count;
@@ -1846,10 +1845,9 @@ void Precompiler::DropClasses() {
       THR_Print("Dropping class %" Pd " %s\n", cid, cls.ToCString());
     }
 
-#if defined(DEBUG)
     class_table->Unregister(cid);
-#endif
     cls.set_id(kIllegalCid);  // We check this when serializing.
+    cls.set_script(null_script);
   }
 }
 
@@ -1860,6 +1858,7 @@ void Precompiler::DropLibraries() {
       Library::Handle(Z, I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
   Class& toplevel_class = Class::Handle(Z);
+  const Script& null_script = Script::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1894,10 +1893,10 @@ void Precompiler::DropLibraries() {
       retained_libraries.Add(lib);
     } else {
       toplevel_class = lib.toplevel_class();
-#if defined(DEBUG)
+
       I->class_table()->Unregister(toplevel_class.id());
-#endif
       toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
+      toplevel_class.set_script(null_script);
 
       dropped_library_count_++;
       lib.set_index(-1);
@@ -1925,6 +1924,7 @@ void Precompiler::BindStaticCalls() {
       if (!function.HasCode()) {
         return;
       }
+
       code_ = function.CurrentCode();
       table_ = code_.static_calls_target_table();
       StaticCallsTable static_calls(table_);
@@ -2146,11 +2146,6 @@ void Precompiler::Obfuscate() {
       str = Symbols::New(T, str);
       str = obfuscator.Rename(str, /*atomic=*/true);
       script.set_url(str);
-
-      str = script.resolved_url();
-      str = Symbols::New(T, str);
-      str = obfuscator.Rename(str, /*atomic=*/true);
-      script.set_resolved_url(str);
     }
 
     Library& lib = Library::Handle();

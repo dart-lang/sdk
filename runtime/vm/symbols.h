@@ -610,7 +610,7 @@ class Symbols : public AllStatic {
   static RawArray* UnifiedSymbolTable();
 
   // Treat the symbol table as weak and collect garbage.
-  static void Compact(Isolate* isolate);
+  static void Compact();
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.

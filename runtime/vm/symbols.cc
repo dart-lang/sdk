@@ -12,6 +12,7 @@
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
 #include "vm/snapshot_ids.h"
+#include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/visitor.h"
 
@@ -344,51 +345,104 @@ RawArray* Symbols::UnifiedSymbolTable() {
   return unified_table.Release().raw();
 }
 
-void Symbols::Compact(Isolate* isolate) {
-  ASSERT(isolate != Dart::vm_isolate());
-  Zone* zone = Thread::Current()->zone();
+void Symbols::Compact() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->isolate() != Dart::vm_isolate());
+  HANDLESCOPE(thread);
+  Zone* zone = thread->zone();
+  ObjectStore* object_store = thread->isolate()->object_store();
 
-  // 1. Drop the symbol table and do a full garbage collection.
-  isolate->object_store()->set_symbol_table(Object::empty_array());
-  isolate->heap()->CollectAllGarbage();
+  // 1. Drop the tables and do a full garbage collection.
+  object_store->set_symbol_table(Object::empty_array());
+  object_store->set_canonical_types(Object::empty_array());
+  object_store->set_canonical_type_arguments(Object::empty_array());
+  thread->heap()->CollectAllGarbage();
 
-  // 2. Walk the heap to find surviving symbols.
+  // 2. Walk the heap to find surviving canonical objects.
   GrowableArray<String*> symbols;
+  GrowableArray<class Type*> types;
+  GrowableArray<class TypeArguments*> type_args;
   class SymbolCollector : public ObjectVisitor {
    public:
-    SymbolCollector(Thread* thread, GrowableArray<String*>* symbols)
-        : symbols_(symbols), zone_(thread->zone()) {}
+    SymbolCollector(Thread* thread,
+                    GrowableArray<String*>* symbols,
+                    GrowableArray<class Type*>* types,
+                    GrowableArray<class TypeArguments*>* type_args)
+        : symbols_(symbols),
+          types_(types),
+          type_args_(type_args),
+          zone_(thread->zone()) {}
 
     void VisitObject(RawObject* obj) {
-      if (obj->IsCanonical() && obj->IsStringInstance()) {
-        symbols_->Add(&String::ZoneHandle(zone_, String::RawCast(obj)));
+      if (obj->IsCanonical()) {
+        if (obj->IsStringInstance()) {
+          symbols_->Add(&String::Handle(zone_, String::RawCast(obj)));
+        } else if (obj->IsType()) {
+          types_->Add(&Type::Handle(zone_, Type::RawCast(obj)));
+        } else if (obj->IsTypeArguments()) {
+          type_args_->Add(
+              &TypeArguments::Handle(zone_, TypeArguments::RawCast(obj)));
+        }
       }
     }
 
    private:
     GrowableArray<String*>* symbols_;
+    GrowableArray<class Type*>* types_;
+    GrowableArray<class TypeArguments*>* type_args_;
     Zone* zone_;
   };
 
   {
-    Thread* thread = Thread::Current();
     HeapIterationScope iteration(thread);
-    SymbolCollector visitor(thread, &symbols);
+    SymbolCollector visitor(thread, &symbols, &types, &type_args);
     iteration.IterateObjects(&visitor);
   }
 
-  // 3. Build a new table from the surviving symbols.
-  Array& array = Array::Handle(
-      zone, HashTables::New<SymbolTable>(symbols.length() * 4 / 3, Heap::kOld));
-  SymbolTable table(zone, array.raw());
-  for (intptr_t i = 0; i < symbols.length(); i++) {
-    String& symbol = *symbols[i];
-    ASSERT(symbol.IsString());
-    ASSERT(symbol.IsCanonical());
-    bool present = table.Insert(symbol);
-    ASSERT(!present);
+  // 3. Build new tables from the surviving canonical objects.
+  {
+    Array& array = Array::Handle(
+        zone,
+        HashTables::New<SymbolTable>(symbols.length() * 4 / 3, Heap::kOld));
+    SymbolTable table(zone, array.raw());
+    for (intptr_t i = 0; i < symbols.length(); i++) {
+      String& symbol = *symbols[i];
+      ASSERT(symbol.IsString());
+      ASSERT(symbol.IsCanonical());
+      bool present = table.Insert(symbol);
+      ASSERT(!present);
+    }
+    object_store->set_symbol_table(table.Release());
   }
-  isolate->object_store()->set_symbol_table(table.Release());
+
+  {
+    Array& array = Array::Handle(zone, HashTables::New<CanonicalTypeSet>(
+                                           types.length() * 4 / 3, Heap::kOld));
+    CanonicalTypeSet table(zone, array.raw());
+    for (intptr_t i = 0; i < types.length(); i++) {
+      class Type& type = *types[i];
+      ASSERT(type.IsType());
+      ASSERT(type.IsCanonical());
+      bool present = table.Insert(type);
+      ASSERT(!present);
+    }
+    object_store->set_canonical_types(table.Release());
+  }
+
+  {
+    Array& array =
+        Array::Handle(zone, HashTables::New<CanonicalTypeArgumentsSet>(
+                                type_args.length() * 4 / 3, Heap::kOld));
+    CanonicalTypeArgumentsSet table(zone, array.raw());
+    for (intptr_t i = 0; i < type_args.length(); i++) {
+      class TypeArguments& type_arg = *type_args[i];
+      ASSERT(type_arg.IsTypeArguments());
+      ASSERT(type_arg.IsCanonical());
+      bool present = table.Insert(type_arg);
+      ASSERT(!present);
+    }
+    object_store->set_canonical_type_arguments(table.Release());
+  }
 }
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {

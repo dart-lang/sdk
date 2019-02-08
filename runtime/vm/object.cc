@@ -11823,6 +11823,10 @@ RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
   return Script::RawCast(script);
 }
 
+void KernelProgramInfo::set_scripts(const Array& scripts) const {
+  StorePointer(&raw_ptr()->scripts_, scripts.raw());
+}
+
 void KernelProgramInfo::set_constants(const Array& constants) const {
   StorePointer(&raw_ptr()->constants_, constants.raw());
 }

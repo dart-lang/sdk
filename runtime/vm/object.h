@@ -4033,6 +4033,7 @@ class KernelProgramInfo : public Object {
   void set_constants_table(const ExternalTypedData& value) const;
 
   RawArray* scripts() const { return raw_ptr()->scripts_; }
+  void set_scripts(const Array& scripts) const;
 
   RawArray* constants() const { return raw_ptr()->constants_; }
   void set_constants(const Array& constants) const;

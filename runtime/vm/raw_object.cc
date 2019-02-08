@@ -42,7 +42,7 @@ void RawObject::Validate(Isolate* isolate) const {
       FATAL1("New object has kOldAndNotMarkedBit: %x\n", tags);
     }
     if (OldAndNotRememberedBit::decode(tags)) {
-      FATAL1("Mew object has kOldAndNotRememberedBit: %x\n", tags);
+      FATAL1("New object has kOldAndNotRememberedBit: %x\n", tags);
     }
   } else {
     if (NewBit::decode(tags)) {
@@ -61,9 +61,13 @@ void RawObject::Validate(Isolate* isolate) const {
     // Null class not yet initialized; skip.
     return;
   }
-  intptr_t size = SizeTag::decode(tags);
-  if (size != 0 && size != SizeFromClass()) {
-    FATAL1("Inconsistent class size encountered %" Pd "\n", size);
+  intptr_t size_from_tags = SizeTag::decode(tags);
+  intptr_t size_from_class = SizeFromClass();
+  if ((size_from_tags != 0) && (size_from_tags != size_from_class)) {
+    FATAL3(
+        "Inconsistent size encountered "
+        "cid: %" Pd ", size_from_tags: %" Pd ", size_from_class: %" Pd "\n",
+        class_id, size_from_tags, size_from_class);
   }
 }
 
