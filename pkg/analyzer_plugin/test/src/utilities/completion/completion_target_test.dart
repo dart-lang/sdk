@@ -398,6 +398,7 @@ class CompletionTargetTest extends AbstractContextTest {
     await assertTarget('}', '{}');
   }
 
+  @failingTest
   test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     await addTestSource('foo = {T^');

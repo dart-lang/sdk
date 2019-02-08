@@ -1459,7 +1459,6 @@ SetOrMapLiteralTooManyTypeArguments:
 
 SetLiteralsNotSupported:
   template: "Set literals are not supported yet."
-  script: "var s = { 24 };"
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."

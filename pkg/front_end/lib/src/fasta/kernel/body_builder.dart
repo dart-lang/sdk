@@ -2405,8 +2405,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         rightBrace);
     library.checkBoundsInSetLiteral(node, typeEnvironment);
     if (!library.loader.target.enableSetLiterals) {
-      node = wrapInProblem(node, fasta.messageSetLiteralsNotSupported,
-          lengthOfSpan(leftBrace, leftBrace.endGroup));
+      internalProblem(
+          fasta.messageSetLiteralsNotSupported, node.fileOffset, uri);
+      return;
     }
     push(node);
   }

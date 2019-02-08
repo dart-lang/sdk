@@ -307,6 +307,7 @@ class ProcessedOptions {
 
   bool isExperimentEnabled(ExperimentalFlag flag) {
     // TODO(askesc): Determine default flag value from specification file.
+    if (flag == ExperimentalFlag.setLiterals) return true;
     return _raw.experimentalFlags[flag] ?? false;
   }
 

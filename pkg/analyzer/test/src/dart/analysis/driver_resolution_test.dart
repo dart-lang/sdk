@@ -5209,6 +5209,7 @@ void main() {
     }
   }
 
+  @failingTest
   test_mapLiteral_1() async {
     addTestFile(r'''
 main() {

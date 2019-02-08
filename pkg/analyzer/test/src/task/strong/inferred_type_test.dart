@@ -1552,6 +1552,7 @@ void main() {
 ''');
   }
 
+  @failingTest
   test_downwardsInferenceYieldYieldStar() async {
     await checkFileElement('''
 import 'dart:async';

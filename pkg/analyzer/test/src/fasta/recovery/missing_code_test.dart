@@ -55,6 +55,7 @@ f() => {a: b, _s_: _s_, c: d};
 ''');
   }
 
+  @failingTest
   void test_missingColonAndValue_last() {
     testRecovery('''
 f() => {a };
