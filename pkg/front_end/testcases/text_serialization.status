@@ -96,7 +96,6 @@ for_in_without_declaration: TextSerializationFailure
 function_in_field: TextSerializationFailure # Was: Pass
 functions: TextSerializationFailure # Was: Pass
 function_type_assignments: TextSerializationFailure # Was: Pass
-function_type_default_value: TextSerializationFailure # Was: Pass
 function_type_is_check: TextSerializationFailure # Was: Pass
 function_type_recovery: TextSerializationFailure # Was: Pass
 future_or_test: TextSerializationFailure # Was: Pass
@@ -787,7 +786,6 @@ rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000043: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000044: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000046: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000047: TextSerializationFailure # Was: Pass
 rasta/issue_000048: TextSerializationFailure # Was: Pass
 rasta/issue_000052: TextSerializationFailure # Was: Pass
 rasta/issue_000053: TextSerializationFailure # Was: Pass
@@ -839,7 +837,6 @@ regress/issue_29940: TextSerializationFailure # Was: Pass
 regress/issue_29941: TextSerializationFailure # Was: Pass
 regress/issue_29942: TextSerializationFailure # Was: Pass
 regress/issue_29944: TextSerializationFailure # Was: Pass
-regress/issue_29975: TextSerializationFailure # Was: Pass
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29978: TextSerializationFailure # Was: Pass
 regress/issue_29979: TextSerializationFailure # Was: Pass
