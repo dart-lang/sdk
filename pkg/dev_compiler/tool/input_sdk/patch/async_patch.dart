@@ -5,8 +5,7 @@
 // Patch file for the dart:async library.
 
 import 'dart:_js_helper' show notNull, patch, ReifyFunctionTypes;
-import 'dart:_isolate_helper'
-    show TimerImpl, global, leaveJsAsync, enterJsAsync;
+import 'dart:_isolate_helper' show TimerImpl;
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;
 
@@ -147,32 +146,30 @@ class _AsyncRun {
   static _TakeCallback _initializeScheduleImmediate() {
     // TODO(rnystrom): Not needed by dev_compiler.
     // requiresPreamble();
-    if (JS('', '#.scheduleImmediate', global) != null) {
+    if (JS('', '#.scheduleImmediate', dart.global_) != null) {
       return _scheduleImmediateJsOverride;
     }
-    if (JS('', '#.MutationObserver', global) != null &&
-        JS('', '#.document', global) != null) {
+    if (JS('', '#.MutationObserver', dart.global_) != null &&
+        JS('', '#.document', dart.global_) != null) {
       // Use mutationObservers.
-      var div = JS('', '#.document.createElement("div")', global);
-      var span = JS('', '#.document.createElement("span")', global);
+      var div = JS('', '#.document.createElement("div")', dart.global_);
+      var span = JS('', '#.document.createElement("span")', dart.global_);
       _Callback storedCallback;
 
       internalCallback(_) {
-        leaveJsAsync();
         var f = storedCallback;
         storedCallback = null;
+        dart.removeAsyncCallback();
         f();
       }
 
-      ;
-
       var observer =
-          JS('', 'new #.MutationObserver(#)', global, internalCallback);
+          JS('', 'new #.MutationObserver(#)', dart.global_, internalCallback);
       JS('', '#.observe(#, { childList: true })', observer, div);
 
       return (void callback()) {
         assert(storedCallback == null);
-        enterJsAsync();
+        dart.addAsyncCallback();
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
@@ -180,7 +177,7 @@ class _AsyncRun {
         JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div,
             span, div, span);
       };
-    } else if (JS('', '#.setImmediate', global) != null) {
+    } else if (JS('', '#.setImmediate', dart.global_) != null) {
       return _scheduleImmediateWithSetImmediate;
     }
     // TODO(20055): We should use DOM promises when available.
@@ -189,24 +186,22 @@ class _AsyncRun {
 
   static void _scheduleImmediateJsOverride(void callback()) {
     internalCallback() {
-      leaveJsAsync();
+      dart.removeAsyncCallback();
       callback();
     }
 
-    ;
-    enterJsAsync();
-    JS('void', '#.scheduleImmediate(#)', global, internalCallback);
+    dart.addAsyncCallback();
+    JS('void', '#.scheduleImmediate(#)', dart.global_, internalCallback);
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
     internalCallback() {
-      leaveJsAsync();
+      dart.removeAsyncCallback();
       callback();
     }
 
-    ;
-    enterJsAsync();
-    JS('void', '#.setImmediate(#)', global, internalCallback);
+    dart.addAsyncCallback();
+    JS('void', '#.setImmediate(#)', dart.global_, internalCallback);
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {

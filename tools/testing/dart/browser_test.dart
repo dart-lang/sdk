@@ -198,6 +198,28 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     // lines too.
     return lines.join("\\n");
   };
+
+  let pendingCallbacks = 0;
+  let waitForDone = false;
+
+  sdk.dart.addAsyncCallback = function() {
+    pendingCallbacks++;
+    if (!waitForDone) {
+      // When the first callback is added, signal that test_controller.js
+      // should wait until done.
+      waitForDone = true;
+      dartPrint('unittest-suite-wait-for-done');
+    }
+  };
+
+  sdk.dart.removeAsyncCallback = function() {
+    if (--pendingCallbacks <= 0) {
+      // We might be done with async callbacks. Schedule a microtask to check.
+      Promise.resolve().then(function() {
+        if (pendingCallbacks <= 0) dartPrint('unittest-suite-done');
+      });
+    }
+  };
   
   dartMainRunner($testId.$testId.main);
 });
