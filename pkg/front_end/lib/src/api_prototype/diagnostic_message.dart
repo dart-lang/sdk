@@ -45,6 +45,16 @@ Uri getMessageUri(DiagnosticMessage message) {
 }
 
 /// This method is subject to change.
+int getMessageCharOffset(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.charOffset : null;
+}
+
+/// This method is subject to change.
+int getMessageLength(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.length : null;
+}
+
+/// This method is subject to change.
 Code getMessageCodeObject(DiagnosticMessage message) {
   return message is FormattedMessage ? message.code : null;
 }
@@ -62,4 +72,10 @@ int getMessageCode(DiagnosticMessage message) {
 /// This method is subject to change.
 Map<String, dynamic> getMessageArguments(DiagnosticMessage message) {
   return message is FormattedMessage ? message.arguments : null;
+}
+
+/// This method is subject to change.
+Iterable<DiagnosticMessage> getMessageRelatedInformation(
+    DiagnosticMessage message) {
+  return message is FormattedMessage ? message.relatedInformation : null;
 }
