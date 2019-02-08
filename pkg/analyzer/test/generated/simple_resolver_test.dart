@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/element_type_matchers.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -595,7 +596,7 @@ class A {
     ConstructorDeclaration constructor = classA.members[2];
     ParameterElement paramElement =
         constructor.parameters.parameters[0].declaredElement;
-    expect(paramElement, new TypeMatcher<FieldFormalParameterElement>());
+    expect(paramElement, isFieldFormalParameterElement);
     expect((paramElement as FieldFormalParameterElement).field,
         field.fields.variables[0].declaredElement);
     ConstructorFieldInitializer initializer = constructor.initializers[0];

@@ -31,6 +31,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/element_type_matchers.dart';
 import '../../../utils.dart';
 import 'base.dart';
 
@@ -1867,7 +1868,7 @@ class C {}
     ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
     Annotation a = c.metadata[0];
     expect(a.name.name, 'fff');
-    expect(a.name.staticElement, new TypeMatcher<FunctionElement>());
+    expect(a.name.staticElement, isFunctionElement);
   }
 
   test_getResult_invalidUri() async {
