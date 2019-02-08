@@ -55,48 +55,55 @@ abstract class TestRunner {
     String tag = getTag(mode);
     // Prepare extra flags.
     List<String> extraFlags = [];
-    if (mode.startsWith('jit-stress')) {
-      final r = rand.nextInt(6);
-      if (r == 0) {
-        prefix += '-NOFIELDGUARDS';
-        extraFlags = ['--use_field_guards=false'];
-      } else if (r == 1) {
-        prefix += '-NOINTRINSIFY';
-        extraFlags = ['--intrinsify=false'];
-      } else if (r == 2) {
-        prefix += '-COMPACTEVERY';
-        extraFlags = ['--gc_every=1000', '--use_compactor=true'];
-      } else if (r == 3) {
-        prefix += '-MARKSWEEPEVERY';
-        extraFlags = ['--gc_every=1000', '--use_compactor=false'];
-      } else if (r == 4) {
-        prefix += '-DEPOPTEVERY';
-        extraFlags = ['--deoptimize_every=100'];
-      } else if (r == 5) {
-        prefix += '-STACKTRACEEVERY';
-        extraFlags = ['--stacktrace_every=100'];
-      } else if (r == 6) {
-        // Crashes (https://github.com/dart-lang/sdk/issues/35196):
-        prefix += '-OPTCOUNTER';
-        extraFlags = ['--optimization_counter_threshold=1'];
-      }
-    } else if (mode.contains('arm32')) {
-      if (rand.nextBool()) {
-        prefix += '-VFP';
-        extraFlags = ['--no-use-vfp'];
-      }
-    } else if (mode.startsWith('kbc-int')) {
+    if (mode.startsWith('kbc-int')) {
       prefix += '-INT';
-      extraFlags = [
+      extraFlags += [
         '--enable-interpreter',
         '--compilation-counter-threshold=-1'
       ];
     } else if (mode.startsWith('kbc-mix')) {
       prefix += '-MIX';
-      extraFlags = ['--enable-interpreter'];
+      extraFlags += ['--enable-interpreter'];
     } else if (mode.startsWith('kbc-cmp')) {
       prefix += '-CMP';
-      extraFlags = ['--use-bytecode-compiler'];
+      extraFlags += ['--use-bytecode-compiler'];
+    }
+    // Every once in a while, stress test JIT.
+    if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
+      final r = rand.nextInt(6);
+      if (r == 0) {
+        prefix += '-NOFIELDGUARDS';
+        extraFlags += ['--use_field_guards=false'];
+      } else if (r == 1) {
+        prefix += '-NOINTRINSIFY';
+        extraFlags += ['--intrinsify=false'];
+      } else if (r == 2) {
+        prefix += '-COMPACTEVERY';
+        extraFlags += ['--gc_every=1000', '--use_compactor=true'];
+      } else if (r == 3) {
+        prefix += '-MARKSWEEPEVERY';
+        extraFlags += ['--gc_every=1000', '--use_compactor=false'];
+      } else if (r == 4) {
+        prefix += '-DEPOPTEVERY';
+        extraFlags += ['--deoptimize_every=100'];
+      } else if (r == 5) {
+        prefix += '-STACKTRACEEVERY';
+        extraFlags += ['--stacktrace_every=100'];
+      } else if (r == 6) {
+        // Crashes (https://github.com/dart-lang/sdk/issues/35196):
+        prefix += '-OPTCOUNTER';
+        extraFlags += ['--optimization_counter_threshold=1'];
+      }
+    }
+    // Every once in a while, disable VFP on arm32.
+    if (mode.contains('arm32') && rand.nextInt(4) == 0) {
+      prefix += '-noVFP';
+      extraFlags += ['--no-use-vfp'];
+    }
+    // Every once in a while, use -O3 compiler.
+    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
+      prefix += '-O3';
+      extraFlags += ['--optimization_level=3'];
     }
     // Construct runner.
     if (mode.startsWith('jit')) {
@@ -537,18 +544,6 @@ class DartFuzzTestSession {
     'jit-arm64',
     'jit-dbc',
     'jit-dbc64',
-    'jit-stress-debug-ia32',
-    'jit-stress-debug-x64',
-    'jit-stress-debug-arm32',
-    'jit-stress-debug-arm64',
-    'jit-stress-debug-dbc',
-    'jit-stress-debug-dbc64',
-    'jit-stress-ia32',
-    'jit-stress-x64',
-    'jit-stress-arm32',
-    'jit-stress-arm64',
-    'jit-stress-dbc',
-    'jit-stress-dbc64',
     'aot-debug-x64',
     'aot-x64',
     'kbc-int-debug-x64',
