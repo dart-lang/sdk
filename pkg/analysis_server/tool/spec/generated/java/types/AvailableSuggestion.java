@@ -71,18 +71,25 @@ public class AvailableSuggestion {
    */
   private final List<String> parameterTypes;
 
+  /**
+   * This field is set if the relevance of this suggestion might be changed depending on where
+   * completion is requested.
+   */
+  private final List<AvailableSuggestionRelevanceTag> relevanceTags;
+
   private final Integer requiredParameterCount;
 
   /**
    * Constructor for {@link AvailableSuggestion}.
    */
-  public AvailableSuggestion(String label, Element element, String docComplete, String docSummary, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount) {
+  public AvailableSuggestion(String label, Element element, String docComplete, String docSummary, List<String> parameterNames, List<String> parameterTypes, List<AvailableSuggestionRelevanceTag> relevanceTags, Integer requiredParameterCount) {
     this.label = label;
     this.element = element;
     this.docComplete = docComplete;
     this.docSummary = docSummary;
     this.parameterNames = parameterNames;
     this.parameterTypes = parameterTypes;
+    this.relevanceTags = relevanceTags;
     this.requiredParameterCount = requiredParameterCount;
   }
 
@@ -97,6 +104,7 @@ public class AvailableSuggestion {
         ObjectUtilities.equals(other.docSummary, docSummary) &&
         ObjectUtilities.equals(other.parameterNames, parameterNames) &&
         ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
+        ObjectUtilities.equals(other.relevanceTags, relevanceTags) &&
         ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount);
     }
     return false;
@@ -109,8 +117,9 @@ public class AvailableSuggestion {
     String docSummary = jsonObject.get("docSummary") == null ? null : jsonObject.get("docSummary").getAsString();
     List<String> parameterNames = jsonObject.get("parameterNames") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterNames").getAsJsonArray());
     List<String> parameterTypes = jsonObject.get("parameterTypes") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterTypes").getAsJsonArray());
+    List<AvailableSuggestionRelevanceTag> relevanceTags = jsonObject.get("relevanceTags") == null ? null : AvailableSuggestionRelevanceTag.fromJsonArray(jsonObject.get("relevanceTags").getAsJsonArray());
     Integer requiredParameterCount = jsonObject.get("requiredParameterCount") == null ? null : jsonObject.get("requiredParameterCount").getAsInt();
-    return new AvailableSuggestion(label, element, docComplete, docSummary, parameterNames, parameterTypes, requiredParameterCount);
+    return new AvailableSuggestion(label, element, docComplete, docSummary, parameterNames, parameterTypes, relevanceTags, requiredParameterCount);
   }
 
   public static List<AvailableSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -172,6 +181,14 @@ public class AvailableSuggestion {
     return parameterTypes;
   }
 
+  /**
+   * This field is set if the relevance of this suggestion might be changed depending on where
+   * completion is requested.
+   */
+  public List<AvailableSuggestionRelevanceTag> getRelevanceTags() {
+    return relevanceTags;
+  }
+
   public Integer getRequiredParameterCount() {
     return requiredParameterCount;
   }
@@ -185,6 +202,7 @@ public class AvailableSuggestion {
     builder.append(docSummary);
     builder.append(parameterNames);
     builder.append(parameterTypes);
+    builder.append(relevanceTags);
     builder.append(requiredParameterCount);
     return builder.toHashCode();
   }
@@ -213,6 +231,13 @@ public class AvailableSuggestion {
       }
       jsonObject.add("parameterTypes", jsonArrayParameterTypes);
     }
+    if (relevanceTags != null) {
+      JsonArray jsonArrayRelevanceTags = new JsonArray();
+      for (AvailableSuggestionRelevanceTag elt : relevanceTags) {
+        jsonArrayRelevanceTags.add(elt.toJson());
+      }
+      jsonObject.add("relevanceTags", jsonArrayRelevanceTags);
+    }
     if (requiredParameterCount != null) {
       jsonObject.addProperty("requiredParameterCount", requiredParameterCount);
     }
@@ -235,6 +260,8 @@ public class AvailableSuggestion {
     builder.append(StringUtils.join(parameterNames, ", ") + ", ");
     builder.append("parameterTypes=");
     builder.append(StringUtils.join(parameterTypes, ", ") + ", ");
+    builder.append("relevanceTags=");
+    builder.append(StringUtils.join(relevanceTags, ", ") + ", ");
     builder.append("requiredParameterCount=");
     builder.append(requiredParameterCount);
     builder.append("]");

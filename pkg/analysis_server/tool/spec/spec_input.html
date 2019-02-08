@@ -1567,9 +1567,12 @@
           <ref>IncludedSuggestionSet</ref>
         </list>
         <p>
-          This field is experimental. References to <tt>AvailableSuggestionSet</tt>
-          objects previously sent to the client. The client can include applicable
-          names from the referenced library in code completion suggestions.
+          This field is experimental.
+        </p>
+        <p>
+          References to <tt>AvailableSuggestionSet</tt> objects previously sent
+          to the client. The client can include applicable names from the
+          referenced library in code completion suggestions.
         </p>
       </field>
       <field name="includedSuggestionKinds" optional="true">
@@ -1577,9 +1580,33 @@
           <ref>ElementKind</ref>
         </list>
         <p>
-          This field is experimental. The client is expected to check this list against the
+          This field is experimental.
+        </p>
+        <p>
+          The client is expected to check this list against the
           <tt>ElementKind</tt> sent in <tt>IncludedSuggestionSet</tt> to decide
           whether or not these symbols should should be presented to the user.
+        </p>
+      </field>
+      <field name="includedSuggestionRelevanceTags" optional="true">
+        <list>
+          <ref>IncludedSuggestionRelevanceTag</ref>
+        </list>
+        <p>
+          This field is experimental.
+        </p>
+        <p>
+          The client is expected to check this list against the values of the
+          field <tt>relevanceTags</tt> of <tt>AvailableSuggestion</tt> to
+          decide if the suggestion should be given a different relevance than
+          the <tt>IncludedSuggestionSet</tt> that contains it. This might be
+          used for example to give higher relevance to suggestions of matching
+          types.
+        </p>
+        <p>
+          If an <tt>AvailableSuggestion</tt> has relevance tags that match more
+          than one <tt>IncludedSuggestionRelevanceTag</tt>, the maximum
+          relevance is used.
         </p>
       </field>
     </params>
@@ -3552,10 +3579,25 @@
           Omitted if the element is not an executable.
         </p>
       </field>
+      <field name="relevanceTags" optional="true">
+        <list>
+          <ref>AvailableSuggestionRelevanceTag</ref>
+        </list>
+        <p>
+          This field is set if the relevance of this suggestion might be
+          changed depending on where completion is requested.
+        </p>
+      </field>
       <field name="requiredParameterCount" optional="true">
         <ref>int</ref>
       </field>
     </object>
+  </type>
+  <type name="AvailableSuggestionRelevanceTag">
+    <ref>String</ref>
+    <p>
+      The opaque tag value.
+    </p>
   </type>
   <type name="AvailableSuggestionSet" experimental="true">
     <object>
@@ -3597,6 +3639,29 @@
         <p>
           The relevance of completion suggestions from this
           library where a higher number indicates a higher relevance.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="IncludedSuggestionRelevanceTag" experimental="true">
+    <p>
+      Each <tt>AvailableSuggestion</tt> can specify zero or more tags in the
+      field <tt>relevanceTags</tt>, so that when the included tag is equal to
+      one of the <tt>relevanceTags</tt>, the suggestion is given higher
+      relevance than the whole <tt>IncludedSuggestionSet</tt>.
+    </p>
+    <object>
+      <field name="tag">
+        <ref>AvailableSuggestionRelevanceTag</ref>
+        <p>
+          The opaque value of the tag.
+        </p>
+      </field>
+      <field name="relevance">
+        <ref>int</ref>
+        <p>
+          The relevance of the completion suggestions that match this tag,
+          where a higher number indicates a higher relevance.
         </p>
       </field>
     </object>

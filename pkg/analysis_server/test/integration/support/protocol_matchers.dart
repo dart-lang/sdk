@@ -173,6 +173,7 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  *   "docSummary": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
+ *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
  *   "requiredParameterCount": optional int
  * }
  */
@@ -185,8 +186,16 @@ final Matcher isAvailableSuggestion =
           "docSummary": isString,
           "parameterNames": isListOf(isString),
           "parameterTypes": isListOf(isString),
+          "relevanceTags": isListOf(isAvailableSuggestionRelevanceTag),
           "requiredParameterCount": isInt
         }));
+
+/**
+ * AvailableSuggestionRelevanceTag
+ *
+ * String
+ */
+final Matcher isAvailableSuggestionRelevanceTag = isString;
 
 /**
  * AvailableSuggestionSet
@@ -935,6 +944,18 @@ final Matcher isImplementedMember = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isImportedElements = new LazyMatcher(() => new MatchesJsonObject(
     "ImportedElements",
     {"path": isFilePath, "prefix": isString, "elements": isListOf(isString)}));
+
+/**
+ * IncludedSuggestionRelevanceTag
+ *
+ * {
+ *   "tag": AvailableSuggestionRelevanceTag
+ *   "relevance": int
+ * }
+ */
+final Matcher isIncludedSuggestionRelevanceTag = new LazyMatcher(() =>
+    new MatchesJsonObject("IncludedSuggestionRelevanceTag",
+        {"tag": isAvailableSuggestionRelevanceTag, "relevance": isInt}));
 
 /**
  * IncludedSuggestionSet
@@ -2213,6 +2234,7 @@ final Matcher isCompletionRegisterLibraryPathsResult = isNull;
  *   "isLast": bool
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
  *   "includedSuggestionKinds": optional List<ElementKind>
+ *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
  * }
  */
 final Matcher isCompletionResultsParams =
@@ -2224,7 +2246,9 @@ final Matcher isCompletionResultsParams =
           "isLast": isBool
         }, optionalFields: {
           "includedSuggestionSets": isListOf(isIncludedSuggestionSet),
-          "includedSuggestionKinds": isListOf(isElementKind)
+          "includedSuggestionKinds": isListOf(isElementKind),
+          "includedSuggestionRelevanceTags":
+              isListOf(isIncludedSuggestionRelevanceTag)
         }));
 
 /**

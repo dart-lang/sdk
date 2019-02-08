@@ -5080,6 +5080,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
  *   "docSummary": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
+ *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
  *   "requiredParameterCount": optional int
  * }
  *
@@ -5097,6 +5098,8 @@ class AvailableSuggestion implements HasToJson {
   List<String> _parameterNames;
 
   List<String> _parameterTypes;
+
+  List<String> _relevanceTags;
 
   int _requiredParameterCount;
 
@@ -5190,6 +5193,20 @@ class AvailableSuggestion implements HasToJson {
     this._parameterTypes = value;
   }
 
+  /**
+   * This field is set if the relevance of this suggestion might be changed
+   * depending on where completion is requested.
+   */
+  List<String> get relevanceTags => _relevanceTags;
+
+  /**
+   * This field is set if the relevance of this suggestion might be changed
+   * depending on where completion is requested.
+   */
+  void set relevanceTags(List<String> value) {
+    this._relevanceTags = value;
+  }
+
   int get requiredParameterCount => _requiredParameterCount;
 
   void set requiredParameterCount(int value) {
@@ -5201,6 +5218,7 @@ class AvailableSuggestion implements HasToJson {
       String docSummary,
       List<String> parameterNames,
       List<String> parameterTypes,
+      List<String> relevanceTags,
       int requiredParameterCount}) {
     this.label = label;
     this.element = element;
@@ -5208,6 +5226,7 @@ class AvailableSuggestion implements HasToJson {
     this.docSummary = docSummary;
     this.parameterNames = parameterNames;
     this.parameterTypes = parameterTypes;
+    this.relevanceTags = relevanceTags;
     this.requiredParameterCount = requiredParameterCount;
   }
 
@@ -5250,6 +5269,11 @@ class AvailableSuggestion implements HasToJson {
         parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes",
             json["parameterTypes"], jsonDecoder.decodeString);
       }
+      List<String> relevanceTags;
+      if (json.containsKey("relevanceTags")) {
+        relevanceTags = jsonDecoder.decodeList(jsonPath + ".relevanceTags",
+            json["relevanceTags"], jsonDecoder.decodeString);
+      }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
         requiredParameterCount = jsonDecoder.decodeInt(
@@ -5261,6 +5285,7 @@ class AvailableSuggestion implements HasToJson {
           docSummary: docSummary,
           parameterNames: parameterNames,
           parameterTypes: parameterTypes,
+          relevanceTags: relevanceTags,
           requiredParameterCount: requiredParameterCount);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AvailableSuggestion", json);
@@ -5284,6 +5309,9 @@ class AvailableSuggestion implements HasToJson {
     if (parameterTypes != null) {
       result["parameterTypes"] = parameterTypes;
     }
+    if (relevanceTags != null) {
+      result["relevanceTags"] = relevanceTags;
+    }
     if (requiredParameterCount != null) {
       result["requiredParameterCount"] = requiredParameterCount;
     }
@@ -5304,6 +5332,8 @@ class AvailableSuggestion implements HasToJson {
               (String a, String b) => a == b) &&
           listEqual(parameterTypes, other.parameterTypes,
               (String a, String b) => a == b) &&
+          listEqual(relevanceTags, other.relevanceTags,
+              (String a, String b) => a == b) &&
           requiredParameterCount == other.requiredParameterCount;
     }
     return false;
@@ -5318,6 +5348,7 @@ class AvailableSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, relevanceTags.hashCode);
     hash = JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6314,6 +6345,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
  *   "isLast": bool
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
  *   "includedSuggestionKinds": optional List<ElementKind>
+ *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -6332,6 +6364,8 @@ class CompletionResultsParams implements HasToJson {
   List<IncludedSuggestionSet> _includedSuggestionSets;
 
   List<ElementKind> _includedSuggestionKinds;
+
+  List<IncludedSuggestionRelevanceTag> _includedSuggestionRelevanceTags;
 
   /**
    * The id associated with the completion.
@@ -6419,42 +6453,83 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
-   * This field is experimental. References to AvailableSuggestionSet objects
-   * previously sent to the client. The client can include applicable names
-   * from the referenced library in code completion suggestions.
+   * This field is experimental.
+   *
+   * References to AvailableSuggestionSet objects previously sent to the
+   * client. The client can include applicable names from the referenced
+   * library in code completion suggestions.
    */
   List<IncludedSuggestionSet> get includedSuggestionSets =>
       _includedSuggestionSets;
 
   /**
-   * This field is experimental. References to AvailableSuggestionSet objects
-   * previously sent to the client. The client can include applicable names
-   * from the referenced library in code completion suggestions.
+   * This field is experimental.
+   *
+   * References to AvailableSuggestionSet objects previously sent to the
+   * client. The client can include applicable names from the referenced
+   * library in code completion suggestions.
    */
   void set includedSuggestionSets(List<IncludedSuggestionSet> value) {
     this._includedSuggestionSets = value;
   }
 
   /**
-   * This field is experimental. The client is expected to check this list
-   * against the ElementKind sent in IncludedSuggestionSet to decide whether or
-   * not these symbols should should be presented to the user.
+   * This field is experimental.
+   *
+   * The client is expected to check this list against the ElementKind sent in
+   * IncludedSuggestionSet to decide whether or not these symbols should should
+   * be presented to the user.
    */
   List<ElementKind> get includedSuggestionKinds => _includedSuggestionKinds;
 
   /**
-   * This field is experimental. The client is expected to check this list
-   * against the ElementKind sent in IncludedSuggestionSet to decide whether or
-   * not these symbols should should be presented to the user.
+   * This field is experimental.
+   *
+   * The client is expected to check this list against the ElementKind sent in
+   * IncludedSuggestionSet to decide whether or not these symbols should should
+   * be presented to the user.
    */
   void set includedSuggestionKinds(List<ElementKind> value) {
     this._includedSuggestionKinds = value;
   }
 
+  /**
+   * This field is experimental.
+   *
+   * The client is expected to check this list against the values of the field
+   * relevanceTags of AvailableSuggestion to decide if the suggestion should be
+   * given a different relevance than the IncludedSuggestionSet that contains
+   * it. This might be used for example to give higher relevance to suggestions
+   * of matching types.
+   *
+   * If an AvailableSuggestion has relevance tags that match more than one
+   * IncludedSuggestionRelevanceTag, the maximum relevance is used.
+   */
+  List<IncludedSuggestionRelevanceTag> get includedSuggestionRelevanceTags =>
+      _includedSuggestionRelevanceTags;
+
+  /**
+   * This field is experimental.
+   *
+   * The client is expected to check this list against the values of the field
+   * relevanceTags of AvailableSuggestion to decide if the suggestion should be
+   * given a different relevance than the IncludedSuggestionSet that contains
+   * it. This might be used for example to give higher relevance to suggestions
+   * of matching types.
+   *
+   * If an AvailableSuggestion has relevance tags that match more than one
+   * IncludedSuggestionRelevanceTag, the maximum relevance is used.
+   */
+  void set includedSuggestionRelevanceTags(
+      List<IncludedSuggestionRelevanceTag> value) {
+    this._includedSuggestionRelevanceTags = value;
+  }
+
   CompletionResultsParams(String id, int replacementOffset,
       int replacementLength, List<CompletionSuggestion> results, bool isLast,
       {List<IncludedSuggestionSet> includedSuggestionSets,
-      List<ElementKind> includedSuggestionKinds}) {
+      List<ElementKind> includedSuggestionKinds,
+      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags}) {
     this.id = id;
     this.replacementOffset = replacementOffset;
     this.replacementLength = replacementLength;
@@ -6462,6 +6537,7 @@ class CompletionResultsParams implements HasToJson {
     this.isLast = isLast;
     this.includedSuggestionSets = includedSuggestionSets;
     this.includedSuggestionKinds = includedSuggestionKinds;
+    this.includedSuggestionRelevanceTags = includedSuggestionRelevanceTags;
   }
 
   factory CompletionResultsParams.fromJson(
@@ -6523,10 +6599,20 @@ class CompletionResultsParams implements HasToJson {
             (String jsonPath, Object json) =>
                 new ElementKind.fromJson(jsonDecoder, jsonPath, json));
       }
+      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+      if (json.containsKey("includedSuggestionRelevanceTags")) {
+        includedSuggestionRelevanceTags = jsonDecoder.decodeList(
+            jsonPath + ".includedSuggestionRelevanceTags",
+            json["includedSuggestionRelevanceTags"],
+            (String jsonPath, Object json) =>
+                new IncludedSuggestionRelevanceTag.fromJson(
+                    jsonDecoder, jsonPath, json));
+      }
       return new CompletionResultsParams(
           id, replacementOffset, replacementLength, results, isLast,
           includedSuggestionSets: includedSuggestionSets,
-          includedSuggestionKinds: includedSuggestionKinds);
+          includedSuggestionKinds: includedSuggestionKinds,
+          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "completion.results params", json);
     }
@@ -6556,6 +6642,12 @@ class CompletionResultsParams implements HasToJson {
           .map((ElementKind value) => value.toJson())
           .toList();
     }
+    if (includedSuggestionRelevanceTags != null) {
+      result["includedSuggestionRelevanceTags"] =
+          includedSuggestionRelevanceTags
+              .map((IncludedSuggestionRelevanceTag value) => value.toJson())
+              .toList();
+    }
     return result;
   }
 
@@ -6578,7 +6670,13 @@ class CompletionResultsParams implements HasToJson {
           listEqual(includedSuggestionSets, other.includedSuggestionSets,
               (IncludedSuggestionSet a, IncludedSuggestionSet b) => a == b) &&
           listEqual(includedSuggestionKinds, other.includedSuggestionKinds,
-              (ElementKind a, ElementKind b) => a == b);
+              (ElementKind a, ElementKind b) => a == b) &&
+          listEqual(
+              includedSuggestionRelevanceTags,
+              other.includedSuggestionRelevanceTags,
+              (IncludedSuggestionRelevanceTag a,
+                      IncludedSuggestionRelevanceTag b) =>
+                  a == b);
     }
     return false;
   }
@@ -6593,6 +6691,8 @@ class CompletionResultsParams implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedSuggestionSets.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedSuggestionKinds.hashCode);
+    hash =
+        JenkinsSmiHash.combine(hash, includedSuggestionRelevanceTags.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -15862,6 +15962,108 @@ class ImportedElements implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, path.hashCode);
     hash = JenkinsSmiHash.combine(hash, prefix.hashCode);
     hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * IncludedSuggestionRelevanceTag
+ *
+ * {
+ *   "tag": AvailableSuggestionRelevanceTag
+ *   "relevance": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class IncludedSuggestionRelevanceTag implements HasToJson {
+  String _tag;
+
+  int _relevance;
+
+  /**
+   * The opaque value of the tag.
+   */
+  String get tag => _tag;
+
+  /**
+   * The opaque value of the tag.
+   */
+  void set tag(String value) {
+    assert(value != null);
+    this._tag = value;
+  }
+
+  /**
+   * The relevance of the completion suggestions that match this tag, where a
+   * higher number indicates a higher relevance.
+   */
+  int get relevance => _relevance;
+
+  /**
+   * The relevance of the completion suggestions that match this tag, where a
+   * higher number indicates a higher relevance.
+   */
+  void set relevance(int value) {
+    assert(value != null);
+    this._relevance = value;
+  }
+
+  IncludedSuggestionRelevanceTag(String tag, int relevance) {
+    this.tag = tag;
+    this.relevance = relevance;
+  }
+
+  factory IncludedSuggestionRelevanceTag.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String tag;
+      if (json.containsKey("tag")) {
+        tag = jsonDecoder.decodeString(jsonPath + ".tag", json["tag"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "tag");
+      }
+      int relevance;
+      if (json.containsKey("relevance")) {
+        relevance =
+            jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "relevance");
+      }
+      return new IncludedSuggestionRelevanceTag(tag, relevance);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "IncludedSuggestionRelevanceTag", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["tag"] = tag;
+    result["relevance"] = relevance;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is IncludedSuggestionRelevanceTag) {
+      return tag == other.tag && relevance == other.relevance;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, tag.hashCode);
+    hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
