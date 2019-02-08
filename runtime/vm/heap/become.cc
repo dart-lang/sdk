@@ -60,7 +60,7 @@ static RawObject* GetForwardedObject(RawObject* object) {
 }
 
 static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
-  const intptr_t size_before = before_obj->Size();
+  const intptr_t size_before = before_obj->HeapSize();
 
   uword corpse_addr = reinterpret_cast<uword>(before_obj) - kHeapObjectTag;
   ForwardingCorpse* forwarder =
@@ -70,7 +70,7 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
     FATAL("become: ForwardObjectTo failure.");
   }
   // Still need to be able to iterate over the forwarding corpse.
-  const intptr_t size_after = before_obj->Size();
+  const intptr_t size_after = before_obj->HeapSize();
   if (size_before != size_after) {
     FATAL("become: Before and after sizes do not match.");
   }

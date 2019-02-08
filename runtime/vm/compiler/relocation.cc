@@ -106,7 +106,7 @@ void CodeRelocator::FindInstructionAndCallLimits() {
 
   for (intptr_t i = 0; i < code_objects_->length(); ++i) {
     current_caller = (*code_objects_)[i];
-    const intptr_t size = current_caller.instructions()->Size();
+    const intptr_t size = current_caller.instructions()->HeapSize();
     if (size > max_instructions_size_) {
       max_instructions_size_ = size;
     }
@@ -181,7 +181,7 @@ bool CodeRelocator::AddInstructionsToText(RawCode* code) {
   }
   text_offsets_.Insert({instructions, next_text_offset_});
   commands_->Add(ImageWriterCommand(next_text_offset_, code));
-  next_text_offset_ += instructions->Size();
+  next_text_offset_ += instructions->HeapSize();
 
   return true;
 }

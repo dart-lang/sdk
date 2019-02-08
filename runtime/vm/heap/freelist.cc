@@ -97,7 +97,7 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         // the call to SplitElementAfterAndEnqueue.
         // If the remainder size is zero, only the element itself needs to
         // be made writable.
-        intptr_t remainder_size = element->Size() - size;
+        intptr_t remainder_size = element->HeapSize() - size;
         intptr_t region_size =
             size + FreeListElement::HeaderSizeFor(remainder_size);
         VirtualMemory::Protect(reinterpret_cast<void*>(element), region_size,
@@ -121,10 +121,10 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
   // reset the search budget.
   intptr_t tries_left = freelist_search_budget_ + (size >> kWordSizeLog2);
   while (current != NULL) {
-    if (current->Size() >= size) {
+    if (current->HeapSize() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
       // split and enqueue the remainder.
-      intptr_t remainder_size = current->Size() - size;
+      intptr_t remainder_size = current->HeapSize() - size;
       intptr_t region_size =
           size + FreeListElement::HeaderSizeFor(remainder_size);
       if (is_protected) {
@@ -306,10 +306,10 @@ void FreeList::PrintLarge() const {
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
   FreeListElement* node;
   for (node = free_lists_[kNumLists]; node != NULL; node = node->next()) {
-    IntptrPair* pair = map.Lookup(node->Size());
+    IntptrPair* pair = map.Lookup(node->HeapSize());
     if (pair == NULL) {
       large_sizes += 1;
-      map.Insert(IntptrPair(node->Size(), 1));
+      map.Insert(IntptrPair(node->HeapSize(), 1));
     } else {
       pair->set_second(pair->second() + 1);
     }
@@ -345,7 +345,7 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
   // Precondition required by AsElement and EnqueueElement: either
   // element->Size() == size, or else the (page containing the) header of
   // the remainder element starting at element + size is writable.
-  intptr_t remainder_size = element->Size() - size;
+  intptr_t remainder_size = element->HeapSize() - size;
   if (remainder_size == 0) return;
 
   uword remainder_address = reinterpret_cast<uword>(element) + size;
@@ -379,7 +379,7 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
       freelist_search_budget_ + (minimum_size >> kWordSizeLog2);
   while (current != NULL) {
     FreeListElement* next = current->next();
-    if (current->Size() >= minimum_size) {
+    if (current->HeapSize() >= minimum_size) {
       if (previous == NULL) {
         free_lists_[kNumLists] = next;
       } else {

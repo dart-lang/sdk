@@ -62,7 +62,7 @@ void RawObject::Validate(Isolate* isolate) const {
     return;
   }
   intptr_t size_from_tags = SizeTag::decode(tags);
-  intptr_t size_from_class = SizeFromClass();
+  intptr_t size_from_class = HeapSizeFromClass();
   if ((size_from_tags != 0) && (size_from_tags != size_from_class)) {
     FATAL3(
         "Inconsistent size encountered "
@@ -74,7 +74,7 @@ void RawObject::Validate(Isolate* isolate) const {
 // Can't look at the class object because it can be called during
 // compaction when the class objects are moving. Can use the class
 // id in the header and the sizes in the Class Table.
-intptr_t RawObject::SizeFromClass() const {
+intptr_t RawObject::HeapSizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
@@ -191,13 +191,13 @@ intptr_t RawObject::SizeFromClass() const {
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      instance_size = element->Size();
+      instance_size = element->HeapSize();
       break;
     }
     case kForwardingCorpse: {
       uword addr = RawObject::ToAddr(this);
       ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
-      instance_size = element->Size();
+      instance_size = element->HeapSize();
       break;
     }
     default: {
@@ -285,17 +285,17 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      size = element->Size();
+      size = element->HeapSize();
       break;
     }
     case kForwardingCorpse: {
       uword addr = RawObject::ToAddr(this);
       ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
-      size = forwarder->Size();
+      size = forwarder->HeapSize();
       break;
     }
     case kNullCid:
-      size = Size();
+      size = HeapSize();
       break;
     default:
       OS::PrintErr("Class Id: %" Pd "\n", class_id);
@@ -305,13 +305,13 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 
 #if defined(DEBUG)
   ASSERT(size != 0);
-  const intptr_t expected_size = Size();
+  const intptr_t expected_size = HeapSize();
 
-  // In general we expect that visitors return exactly the same size that Size
-  // would compute. However in case of Arrays we might have a discrepancy when
-  // concurrently visiting an array that is being shrunk with
+  // In general we expect that visitors return exactly the same size that
+  // HeapSize would compute. However in case of Arrays we might have a
+  // discrepancy when concurrently visiting an array that is being shrunk with
   // Array::MakeFixedLength: the visitor might have visited the full array while
-  // here we are observing a smaller Size().
+  // here we are observing a smaller HeapSize().
   ASSERT(size == expected_size ||
          (class_id == kArrayCid && size > expected_size));
   return size;  // Prefer larger size.

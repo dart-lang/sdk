@@ -71,7 +71,7 @@ void Heap::MakeTLABIterable(Thread* thread) {
   if (size >= kObjectAlignment) {
     // ForwardingCorpse(forwarding to default null) will work as filler.
     ForwardingCorpse::AsForwarder(start, size);
-    ASSERT(RawObject::FromAddr(start)->Size() == size);
+    ASSERT(RawObject::FromAddr(start)->HeapSize() == size);
   }
 }
 

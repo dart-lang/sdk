@@ -363,17 +363,18 @@ class RawObject {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
 
-  intptr_t Size() const {
+  intptr_t HeapSize() const {
+    ASSERT(IsHeapObject());
     uint32_t tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
       // TODO(22501) Array::MakeFixedLength has a race with this code: we might
       // have loaded tags field and then MakeFixedLength could have updated it
-      // leading to inconsistency between SizeFromClass() and
+      // leading to inconsistency between HeapSizeFromClass() and
       // SizeTag::decode(tags). We are working around it by reloading tags_ and
       // recomputing size from tags.
-      const intptr_t size_from_class = SizeFromClass();
+      const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
           (ptr()->tags_ != tags)) {
         result = SizeTag::decode(ptr()->tags_);
@@ -382,13 +383,13 @@ class RawObject {
 #endif
       return result;
     }
-    result = SizeFromClass();
+    result = HeapSizeFromClass();
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
 
   bool Contains(uword addr) const {
-    intptr_t this_size = Size();
+    intptr_t this_size = HeapSize();
     uword this_addr = RawObject::ToAddr(this);
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
@@ -407,7 +408,7 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    intptr_t instance_size = Size();
+    intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
@@ -428,7 +429,7 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    intptr_t instance_size = Size();
+    intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
@@ -493,7 +494,7 @@ class RawObject {
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t SizeFromClass() const;
+  intptr_t HeapSizeFromClass() const;
 
   intptr_t GetClassId() const {
     uint32_t tags = ptr()->tags_;

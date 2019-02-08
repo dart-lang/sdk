@@ -27,7 +27,7 @@ class FreeListElement {
 
   void set_next(FreeListElement* next) { next_ = next; }
 
-  intptr_t Size() {
+  intptr_t HeapSize() {
     intptr_t size = RawObject::SizeTag::decode(tags_);
     if (size != 0) return size;
     return *SizeAddress();

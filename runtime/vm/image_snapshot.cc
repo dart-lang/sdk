@@ -43,7 +43,7 @@ intptr_t ObjectOffsetTrait::Hashcode(Key key) {
   ASSERT(!obj->IsSmi());
 
   uword body = RawObject::ToAddr(obj) + sizeof(RawObject);
-  uword end = RawObject::ToAddr(obj) + obj->Size();
+  uword end = RawObject::ToAddr(obj) + obj->HeapSize();
 
   uint32_t hash = obj->GetClassId();
   // Don't include the header. Objects in the image are pre-marked, but objects
@@ -65,8 +65,8 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
     return false;
   }
 
-  intptr_t heap_size = a->Size();
-  if (b->Size() != heap_size) {
+  intptr_t heap_size = a->HeapSize();
+  if (b->HeapSize() != heap_size) {
     return false;
   }
 
@@ -106,7 +106,7 @@ void ImageWriter::PrepareForSerialization(
           RawInstructions* instructions = Code::InstructionsOf(code);
           const intptr_t offset = next_text_offset_;
           instructions_.Add(InstructionsData(instructions, code, offset));
-          next_text_offset_ += instructions->Size();
+          next_text_offset_ += instructions->HeapSize();
           ASSERT(heap_->GetObjectId(instructions) == 0);
           heap_->SetObjectId(instructions, offset);
           break;
@@ -141,7 +141,7 @@ void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
     pair.object = raw_obj;
     pair.offset = offset;
     map->Insert(pair);
-    obj_addr += raw_obj->Size();
+    obj_addr += raw_obj->HeapSize();
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -172,7 +172,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
 
   offset = next_text_offset_;
   heap_->SetObjectId(instructions, offset);
-  next_text_offset_ += instructions->Size();
+  next_text_offset_ += instructions->HeapSize();
   instructions_.Add(InstructionsData(instructions, code, offset));
 
   return offset;
@@ -189,7 +189,7 @@ bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
 }
 
 uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
-  intptr_t heap_size = raw_object->Size();
+  intptr_t heap_size = raw_object->HeapSize();
   intptr_t offset = next_data_offset_;
   next_data_offset_ += heap_size;
   objects_.Add(ObjectData(raw_object));
@@ -223,11 +223,6 @@ void ImageWriter::DumpInstructionsSizes() {
   js.OpenArray();
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
-    if (data.code_->IsNull()) {
-      // TODO(34650): Type testing stubs are added to the serializer without
-      // their Code.
-      continue;
-    }
     owner = data.code_->owner();
     js.OpenObject();
     if (owner.IsFunction()) {
@@ -239,7 +234,7 @@ void ImageWriter::DumpInstructionsSizes() {
       js.PrintPropertyStr("c", name);
     }
     js.PrintProperty("n", data.code_->QualifiedName());
-    js.PrintProperty("s", data.insns_->raw()->Size());
+    js.PrintProperty("s", data.insns_->raw()->HeapSize());
     js.CloseObject();
   }
   js.CloseArray();
@@ -334,7 +329,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
     NoSafepointScope no_safepoint;
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
-    uword end = start + obj.raw()->Size();
+    uword end = start + obj.raw()->HeapSize();
 
     // Write object header with the mark and VM heap bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
@@ -475,10 +470,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                                             "Instructions",
                                             /*name=*/nullptr);
       profile_writer_->AttributeBytesTo({offset_space_, offset},
-                                        insns.raw()->Size());
+                                        insns.raw()->HeapSize());
     }
 
-    ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
+    ASSERT(insns.raw()->HeapSize() % sizeof(uint64_t) == 0);
 
     // 1. Write from the header to the entry point.
     {
@@ -554,7 +549,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
       uword entry = beginning + Instructions::HeaderSize();
-      uword payload_size = insns.raw()->Size() - insns.HeaderSize();
+      uword payload_size = insns.raw()->HeapSize() - insns.HeaderSize();
       uword end = entry + payload_size;
 
       ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
@@ -564,7 +559,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       text_offset += WriteByteSequence(entry, end);
     }
 
-    ASSERT((text_offset - instr_start) == insns.raw()->Size());
+    ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
   }
 
   FrameUnwindEpilogue();
@@ -755,7 +750,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     beginning += sizeof(uword);
     text_offset += WriteByteSequence(beginning, end);
 
-    ASSERT((text_offset - instr_start) == insns.raw()->Size());
+    ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
   }
 }
 

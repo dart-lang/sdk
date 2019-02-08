@@ -43,7 +43,7 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
   }
   if (!ref) {
     if (raw()->IsHeapObject()) {
-      jsobj->AddProperty("size", raw()->Size());
+      jsobj->AddProperty("size", raw()->HeapSize());
     } else {
       jsobj->AddProperty("size", (intptr_t)0);
     }

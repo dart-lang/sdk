@@ -1119,9 +1119,9 @@ void Object::FinalizeReadOnlyObject(RawObject* object) {
       String::SetCachedHash(str, hash);
     }
     intptr_t size = OneByteString::UnroundedSize(str);
-    ASSERT(size <= str->Size());
+    ASSERT(size <= str->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(str) + size), 0,
-           str->Size() - size);
+           str->HeapSize() - size);
   } else if (cid == kTwoByteStringCid) {
     RawTwoByteString* str = static_cast<RawTwoByteString*>(object);
     if (String::GetCachedHash(str) == 0) {
@@ -1130,9 +1130,9 @@ void Object::FinalizeReadOnlyObject(RawObject* object) {
     }
     ASSERT(String::GetCachedHash(str) != 0);
     intptr_t size = TwoByteString::UnroundedSize(str);
-    ASSERT(size <= str->Size());
+    ASSERT(size <= str->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(str) + size), 0,
-           str->Size() - size);
+           str->HeapSize() - size);
   } else if (cid == kExternalOneByteStringCid) {
     RawExternalOneByteString* str =
         static_cast<RawExternalOneByteString*>(object);
@@ -1150,21 +1150,21 @@ void Object::FinalizeReadOnlyObject(RawObject* object) {
   } else if (cid == kCodeSourceMapCid) {
     RawCodeSourceMap* map = CodeSourceMap::RawCast(object);
     intptr_t size = CodeSourceMap::UnroundedSize(map);
-    ASSERT(size <= map->Size());
+    ASSERT(size <= map->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
-           map->Size() - size);
+           map->HeapSize() - size);
   } else if (cid == kStackMapCid) {
     RawStackMap* map = StackMap::RawCast(object);
     intptr_t size = StackMap::UnroundedSize(map);
-    ASSERT(size <= map->Size());
+    ASSERT(size <= map->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
-           map->Size() - size);
+           map->HeapSize() - size);
   } else if (cid == kPcDescriptorsCid) {
     RawPcDescriptors* desc = PcDescriptors::RawCast(object);
     intptr_t size = PcDescriptors::UnroundedSize(desc);
-    ASSERT(size <= desc->Size());
+    ASSERT(size <= desc->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(desc) + size), 0,
-           desc->Size() - size);
+           desc->HeapSize() - size);
   }
 }
 
@@ -2120,7 +2120,7 @@ bool Object::IsNotTemporaryScopedHandle() const {
 
 RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   const Class& cls = Class::Handle(orig.clazz());
-  intptr_t size = orig.raw()->Size();
+  intptr_t size = orig.raw()->HeapSize();
   RawObject* raw_clone = Object::Allocate(cls.id(), size, space);
   NoSafepointScope no_safepoint;
   // Copy the body of the original into the clone.
@@ -14464,7 +14464,8 @@ RawCode* Code::FinalizeCode(const char* name,
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
       VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.raw()->Size(), VirtualMemory::kReadExecute);
+                             instrs.raw()->HeapSize(),
+                             VirtualMemory::kReadExecute);
     }
   }
   CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
@@ -20065,7 +20066,7 @@ uint32_t Array::CanonicalizeHash() const {
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
   RawArray* result = New(kClassId, len, space);
-  if (result->Size() > Heap::kNewAllocatableSize) {
+  if (result->HeapSize() > Heap::kNewAllocatableSize) {
     ASSERT(result->IsOldObject());
     result->SetCardRememberedBitUnsynchronized();
   }

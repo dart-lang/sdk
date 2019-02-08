@@ -134,7 +134,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
     } else {
-      intptr_t size = raw_obj->Size();
+      intptr_t size = raw_obj->HeapSize();
       NOT_IN_PRODUCT(intptr_t cid = raw_obj->GetClassId());
       NOT_IN_PRODUCT(ClassTable* class_table = isolate()->class_table());
       // Check whether object should be promoted.
@@ -768,7 +768,7 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
     if (!IsForwarding(header)) {
       // Key is white.  Enqueue the weak property.
       EnqueueWeakProperty(raw_weak);
-      return raw_weak->Size();
+      return raw_weak->HeapSize();
     }
   }
   // Key is gray or black.  Make the weak property black.
@@ -892,7 +892,7 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
     visitor->VisitObject(raw_obj);
-    cur += raw_obj->Size();
+    cur += raw_obj->HeapSize();
   }
 }
 
@@ -907,7 +907,7 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
       RawObject* raw_obj = RawObject::FromAddr(cur);
-      uword next = cur + raw_obj->Size();
+      uword next = cur + raw_obj->HeapSize();
       if (visitor->VisitRange(cur, next) && raw_obj->FindObject(visitor)) {
         return raw_obj;  // Found object, return it.
       }

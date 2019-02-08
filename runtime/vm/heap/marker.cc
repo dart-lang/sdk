@@ -310,7 +310,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         !raw_key->IsMarked()) {
       // Key was white. Enqueue the weak property.
       EnqueueWeakProperty(raw_weak);
-      return raw_weak->Size();
+      return raw_weak->HeapSize();
     }
     // Key is gray or black. Make the weak property black.
     return raw_weak->VisitPointersNonvirtual(this);
@@ -322,7 +322,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       ASSERT(raw_obj->IsInstructions());
       RawInstructions* instr = static_cast<RawInstructions*>(raw_obj);
       if (TryAcquireMarkBit(instr)) {
-        intptr_t size = instr->Size();
+        intptr_t size = instr->HeapSize();
         marked_bytes_ += size;
         NOT_IN_PRODUCT(UpdateLiveOld(kInstructionsCid, size));
       }

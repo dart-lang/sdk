@@ -4108,7 +4108,7 @@ class ContainsAddressVisitor : public FindObjectVisitor {
       return false;
     }
     uword obj_begin = RawObject::ToAddr(obj);
-    uword obj_end = obj_begin + obj->Size();
+    uword obj_end = obj_begin + obj->HeapSize();
     return obj_begin <= addr_ && addr_ < obj_end;
   }
 

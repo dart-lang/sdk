@@ -25,7 +25,7 @@ class ForwardingCorpse {
   RawObject* target() const { return target_; }
   void set_target(RawObject* target) { target_ = target; }
 
-  intptr_t Size() {
+  intptr_t HeapSize() {
     intptr_t size = RawObject::SizeTag::decode(tags_);
     if (size != 0) return size;
     return *SizeAddress();

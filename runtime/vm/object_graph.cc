@@ -135,7 +135,7 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
   ASSERT(child.obj == *child.ptr);
   uword child_ptr_addr = reinterpret_cast<uword>(child.ptr);
   intptr_t offset = child_ptr_addr - parent_start;
-  if (offset > 0 && offset < parent.obj->Size()) {
+  if (offset > 0 && offset < parent.obj->HeapSize()) {
     ASSERT(Utils::IsAligned(offset, kWordSize));
     return offset >> kWordSizeLog2;
   } else {
@@ -272,7 +272,7 @@ class SizeVisitor : public ObjectGraph::Visitor {
     if (ShouldSkip(obj)) {
       return kBacktrack;
     }
-    size_ += obj->Size();
+    size_ += obj->HeapSize();
     return kProceed;
   }
 
@@ -475,7 +475,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
           uword source_start = RawObject::ToAddr(source_);
           uword current_ptr_addr = reinterpret_cast<uword>(current_ptr);
           intptr_t offset = current_ptr_addr - source_start;
-          if (offset > 0 && offset < source_->Size()) {
+          if (offset > 0 && offset < source_->HeapSize()) {
             ASSERT(Utils::IsAligned(offset, kWordSize));
             *scratch_ = Smi::New(offset >> kWordSizeLog2);
           } else {
@@ -583,7 +583,7 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
     if ((roots_ == ObjectGraph::kVM) || obj.IsField() || obj.IsInstance() ||
         obj.IsContext()) {
       // Each object is a header + a zero-terminated list of its neighbors.
-      WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);
+      WriteHeader(raw_obj, raw_obj->HeapSize(), obj.GetClassId(), stream_);
       raw_obj->VisitPointers(&ptr_writer_);
       stream_->WriteUnsigned(0);
       ++count_;
