@@ -903,6 +903,15 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return super.visitListLiteral(node);
   }
 
+  void handleSetLiteral(ir.SetLiteral node) {}
+
+  @override
+  ir.DartType visitSetLiteral(ir.SetLiteral node) {
+    visitNodes(node.expressions);
+    handleSetLiteral(node);
+    return super.visitSetLiteral(node);
+  }
+
   void handleMapLiteral(ir.MapLiteral node) {}
 
   @override
