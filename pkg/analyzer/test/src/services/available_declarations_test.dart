@@ -16,6 +16,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvailableDeclarationsTest);
+    defineReflectiveTests(ChangeFileTest);
+    defineReflectiveTests(DeclarationTest);
+    defineReflectiveTests(ExportTest);
+    defineReflectiveTests(GetLibrariesTest);
   });
 }
 
@@ -86,21 +90,130 @@ test:${toUri('/home/test/lib')}
 }
 
 @reflectiveTest
-class AvailableDeclarationsTest extends AbstractContextTest {
-  DeclarationsTracker tracker;
+class AvailableDeclarationsTest extends _Base {
+  test_changesStream_noDuplicates() async {
+    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
 
-  final List<LibraryChange> changes = [];
+    newFile('/home/bbb/pubspec.yaml', content: r'''
+dependencies:
+  aaa: any
+''');
+    addDotPackagesDependency('/home/bbb/.packages', 'aaa', '/home/aaa');
+    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
 
-  final Map<int, Library> idToLibrary = {};
-  final Map<String, Library> uriToLibrary = {};
+    newFile('/home/ccc/pubspec.yaml', content: r'''
+dependencies:
+  aaa: any
+''');
+    addDotPackagesDependency('/home/ccc/.packages', 'aaa', '/home/aaa');
+    newFile('/home/ccc/lib/c.dart', content: 'class C {}');
 
-  @override
-  setUp() {
-    super.setUp();
-    _createTracker();
+    createAnalysisContexts();
+
+    var bPath = convertPath('/home/bbb');
+    var cPath = convertPath('/home/ccc');
+
+    var bAnalysisContext = analysisContextCollection.contextFor(bPath);
+    var cAnalysisContext = analysisContextCollection.contextFor(cPath);
+
+    tracker.addContext(bAnalysisContext);
+    tracker.addContext(cAnalysisContext);
+    await _doAllTrackerWork();
+
+    var uniquePathSet = Set<String>();
+    for (var change in changes) {
+      for (var library in change.changed) {
+        if (!uniquePathSet.add(library.path)) {
+          fail('Not unique path: ${library.path}');
+        }
+      }
+    }
   }
 
-  test_changeFile_added_exported() async {
+  test_discardContexts() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class A {}
+''');
+
+    // No libraries initially.
+    expect(uriToLibrary, isEmpty);
+
+    // Add the context, and discard everything immediately.
+    tracker.addContext(testAnalysisContext);
+    tracker.discardContexts();
+
+    // There is no context.
+    expect(tracker.getContext(testAnalysisContext), isNull);
+
+    // There is no work to do.
+    expect(tracker.hasWork, isFalse);
+    await _doAllTrackerWork();
+
+    // So, there are no new libraries.
+    expect(uriToLibrary, isEmpty);
+  }
+
+  test_getContext() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {}
+class B {}
+''');
+    var addContext = tracker.addContext(testAnalysisContext);
+    expect(tracker.getContext(testAnalysisContext), same(addContext));
+  }
+
+  test_getLibrary() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var id = uriToLibrary['package:test/test.dart'].id;
+    var library = tracker.getLibrary(id);
+    expect(library.id, id);
+    expect(library.uriStr, 'package:test/test.dart');
+  }
+
+  test_readByteStore() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {}
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class B {}
+''');
+    newFile('/home/test/lib/test.dart', content: r'''
+export 'a.dart' show A;
+part 'b.dart';
+class C {}
+''');
+
+    // The byte store is empty, fill it.
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    // Re-create tracker, will read from byte store.
+    _createTracker();
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
+    ]);
+  }
+
+  static Future pumpEventQueue([int times = 5000]) {
+    if (times == 0) return new Future.value();
+    return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+  }
+}
+
+@reflectiveTest
+class ChangeFileTest extends _Base {
+  test_added_exported() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
@@ -155,7 +268,7 @@ class C {}
     ]);
   }
 
-  test_changeFile_added_library() async {
+  test_added_library() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
@@ -184,7 +297,7 @@ class B {}
     ]);
   }
 
-  test_changeFile_added_part() async {
+  test_added_part() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
@@ -224,7 +337,7 @@ class B {}
     ]);
   }
 
-  test_changeFile_chooseContext_inAnalysisRoot() async {
+  test_chooseContext_inAnalysisRoot() async {
     var homePath = convertPath('/home');
     var testPath = convertPath('/home/test');
     var filePath = convertPath('/home/test/lib/test.dart');
@@ -261,7 +374,7 @@ class B {}
     );
   }
 
-  test_changeFile_chooseContext_inPackage() async {
+  test_chooseContext_inPackage() async {
     var homePath = convertPath('/home');
     var testPath = convertPath('/home/test');
     var filePath = convertPath('/packages/aaa/lib/a.dart');
@@ -305,7 +418,7 @@ dependencies:
     );
   }
 
-  test_changeFile_chooseContext_inSdk() async {
+  test_chooseContext_inSdk() async {
     var filePath = convertPath('/sdk/lib/math/math.dart');
 
     tracker.addContext(testAnalysisContext);
@@ -336,7 +449,7 @@ dependencies:
     );
   }
 
-  test_changeFile_deleted_exported() async {
+  test_deleted_exported() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
@@ -392,7 +505,7 @@ class D {}
     ]);
   }
 
-  test_changeFile_deleted_library() async {
+  test_deleted_library() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
@@ -412,7 +525,7 @@ class D {}
     _assertHasLibrary('package:test/b.dart');
   }
 
-  test_changeFile_deleted_part() async {
+  test_deleted_part() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
@@ -451,7 +564,7 @@ class C {}
     ]);
   }
 
-  test_changeFile_updated_exported() async {
+  test_updated_exported() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
@@ -513,7 +626,7 @@ class C2 {}
     ]);
   }
 
-  test_changeFile_updated_library() async {
+  test_updated_library() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 
@@ -547,7 +660,7 @@ class A2 {}
     ]);
   }
 
-  test_changeFile_updated_part() async {
+  test_updated_part() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
     var c = convertPath('/home/test/lib/c.dart');
@@ -589,47 +702,11 @@ class B2 {}
       _ExpectedDeclaration('C', DeclarationKind.CLASS),
     ]);
   }
+}
 
-  test_changesStream_noDuplicates() async {
-    newFile('/home/aaa/lib/a.dart', content: 'class A {}');
-
-    newFile('/home/bbb/pubspec.yaml', content: r'''
-dependencies:
-  aaa: any
-''');
-    addDotPackagesDependency('/home/bbb/.packages', 'aaa', '/home/aaa');
-    newFile('/home/bbb/lib/b.dart', content: 'class B {}');
-
-    newFile('/home/ccc/pubspec.yaml', content: r'''
-dependencies:
-  aaa: any
-''');
-    addDotPackagesDependency('/home/ccc/.packages', 'aaa', '/home/aaa');
-    newFile('/home/ccc/lib/c.dart', content: 'class C {}');
-
-    createAnalysisContexts();
-
-    var bPath = convertPath('/home/bbb');
-    var cPath = convertPath('/home/ccc');
-
-    var bAnalysisContext = analysisContextCollection.contextFor(bPath);
-    var cAnalysisContext = analysisContextCollection.contextFor(cPath);
-
-    tracker.addContext(bAnalysisContext);
-    tracker.addContext(cAnalysisContext);
-    await _doAllTrackerWork();
-
-    var uniquePathSet = Set<String>();
-    for (var change in changes) {
-      for (var library in change.changed) {
-        if (!uniquePathSet.add(library.path)) {
-          fail('Not unique path: ${library.path}');
-        }
-      }
-    }
-  }
-
-  test_declaration_CLASS() async {
+@reflectiveTest
+class DeclarationTest extends _Base {
+  test_CLASS() async {
     newFile('/home/test/lib/test.dart', content: r'''
 class A {}
 
@@ -679,7 +756,7 @@ class D {}
     );
   }
 
-  test_declaration_CLASS_TYPE_ALIAS() async {
+  test_CLASS_TYPE_ALIAS() async {
     newFile('/home/test/lib/test.dart', content: r'''
 mixin M {}
 
@@ -721,7 +798,7 @@ class C = Object with M;
     );
   }
 
-  test_declaration_ENUM() async {
+  test_ENUM() async {
     newFile('/home/test/lib/test.dart', content: r'''
 enum A {v}
 
@@ -761,7 +838,7 @@ enum C {v}
     );
   }
 
-  test_declaration_FUNCTION() async {
+  test_FUNCTION() async {
     newFile('/home/test/lib/test.dart', content: r'''
 void a() {}
 
@@ -818,7 +895,7 @@ void e<T extends num, U>() {}
         typeParameters: '<T extends num, U>');
   }
 
-  test_declaration_FUNCTION_TYPE_ALIAS() async {
+  test_FUNCTION_TYPE_ALIAS() async {
     newFile('/home/test/lib/test.dart', content: r'''
 typedef A = void Function();
 
@@ -889,7 +966,7 @@ typedef F = void Function<T extends num, U>();
         typeParameters: '<T extends num, U>');
   }
 
-  test_declaration_GETTER() async {
+  test_GETTER() async {
     newFile('/home/test/lib/test.dart', content: r'''
 int get a => 0;
 
@@ -924,7 +1001,70 @@ int get c => 0;
     );
   }
 
-  test_declaration_location() async {
+  test_library_isDeprecated() async {
+    newFile('/home/test/lib/a.dart', content: '');
+    newFile('/home/test/lib/b.dart', content: r'''
+@deprecated
+library my.lib;
+''');
+    newFile('/home/test/lib/c.dart', content: r'''
+@Deprecated('description')
+library my.lib;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    expect(uriToLibrary['package:test/a.dart'].isDeprecated, isFalse);
+    expect(uriToLibrary['package:test/b.dart'].isDeprecated, isTrue);
+    expect(uriToLibrary['package:test/c.dart'].isDeprecated, isTrue);
+  }
+
+  test_library_parts() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+part of 'test.dart';
+class A {}
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+part of 'test.dart';
+class B {}
+''');
+    newFile('/home/test/lib/test.dart', content: r'''
+part 'a.dart';
+part 'b.dart';
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
+    ]);
+  }
+
+  test_library_publicOnly() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+part of 'test.dart';
+class A {}
+class _A {}
+''');
+    newFile('/home/test/lib/test.dart', content: r'''
+part 'a.dart';
+class B {}
+class _B {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+    ]);
+  }
+
+  test_location() async {
     var code = r'''
 class A {}
 
@@ -958,7 +1098,7 @@ class B {}
     );
   }
 
-  test_declaration_MIXIN() async {
+  test_MIXIN() async {
     newFile('/home/test/lib/test.dart', content: r'''
 mixin A {}
 
@@ -999,7 +1139,7 @@ mixin C {}
     );
   }
 
-  test_declaration_SETTER() async {
+  test_SETTER() async {
     newFile('/home/test/lib/test.dart', content: r'''
 set a(int value) {}
 
@@ -1048,7 +1188,7 @@ set c(int value) {}
     );
   }
 
-  test_declaration_VARIABLE() async {
+  test_VARIABLE() async {
     newFile('/home/test/lib/test.dart', content: r'''
 int a;
 
@@ -1082,50 +1222,11 @@ final double e = 2.7;
         relevanceTags: ['dart:core::double'],
         returnType: 'double');
   }
+}
 
-  test_discardContexts() async {
-    newFile('/home/test/lib/test.dart', content: r'''
-class A {}
-''');
-
-    // No libraries initially.
-    expect(uriToLibrary, isEmpty);
-
-    // Add the context, and discard everything immediately.
-    tracker.addContext(testAnalysisContext);
-    tracker.discardContexts();
-
-    // There is no context.
-    expect(tracker.getContext(testAnalysisContext), isNull);
-
-    // There is no work to do.
-    expect(tracker.hasWork, isFalse);
-    await _doAllTrackerWork();
-
-    // So, there are no new libraries.
-    expect(uriToLibrary, isEmpty);
-  }
-
-  test_export() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-class A {}
-class B {}
-''');
-    newFile('/home/test/lib/test.dart', content: r'''
-export 'a.dart';
-class C {}
-''');
-    tracker.addContext(testAnalysisContext);
-
-    await _doAllTrackerWork();
-    _assertHasLibrary('package:test/test.dart', declarations: [
-      _ExpectedDeclaration.class_('A'),
-      _ExpectedDeclaration.class_('B'),
-      _ExpectedDeclaration.class_('C'),
-    ]);
-  }
-
-  test_export_combinators_hide() async {
+@reflectiveTest
+class ExportTest extends _Base {
+  test_combinators_hide() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
 class B {}
@@ -1145,7 +1246,7 @@ class D {}
     ]);
   }
 
-  test_export_combinators_show() async {
+  test_combinators_show() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
 class B {}
@@ -1164,7 +1265,7 @@ class D {}
     ]);
   }
 
-  test_export_cycle() async {
+  test_cycle() async {
     newFile('/home/test/lib/a.dart', content: r'''
 export 'b.dart';
 class A {}
@@ -1198,7 +1299,7 @@ class C {}
     ]);
   }
 
-  test_export_missing() async {
+  test_missing() async {
     newFile('/home/test/lib/test.dart', content: r'''
 export 'a.dart';
 class C {}
@@ -1211,7 +1312,7 @@ class C {}
     ]);
   }
 
-  test_export_sequence() async {
+  test_sequence() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
 ''');
@@ -1243,7 +1344,7 @@ class C {}
     ]);
   }
 
-  test_export_shadowedByLocal() async {
+  test_shadowedByLocal() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
 class B {}
@@ -1262,16 +1363,29 @@ mixin B {}
     ]);
   }
 
-  test_getContext() async {
+  test_simple() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
 class B {}
 ''');
-    var addContext = tracker.addContext(testAnalysisContext);
-    expect(tracker.getContext(testAnalysisContext), same(addContext));
-  }
+    newFile('/home/test/lib/test.dart', content: r'''
+export 'a.dart';
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
 
-  test_getLibraries_bazel() async {
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
+    ]);
+  }
+}
+
+@reflectiveTest
+class GetLibrariesTest extends _Base {
+  test_bazel() async {
     newFile('/home/aaa/lib/a.dart', content: 'class A {}');
     newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
 
@@ -1415,7 +1529,7 @@ class B {}
     }
   }
 
-  test_getLibraries_pub() async {
+  test_pub() async {
     newFile('/home/aaa/lib/a.dart', content: 'class A {}');
     newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
 
@@ -1583,7 +1697,7 @@ dependencies:
     }
   }
 
-  test_getLibraries_sdk_excludesPrivate() async {
+  test_sdk_excludesPrivate() async {
     newFile('/home/test/lib/test.dart', content: '');
 
     var context = tracker.addContext(testAnalysisContext);
@@ -1597,7 +1711,7 @@ dependencies:
     );
   }
 
-  test_getLibraries_setDependencies() async {
+  test_setDependencies() async {
     newFile('/home/aaa/lib/a.dart', content: r'''
 export 'src/a2.dart' show A2;
 class A1 {}
@@ -1695,7 +1809,7 @@ class B {}
     }
   }
 
-  test_getLibraries_setDependencies_twice() async {
+  test_setDependencies_twice() async {
     newFile('/home/aaa/lib/a.dart', content: r'''
 class A {}
 ''');
@@ -1760,135 +1874,29 @@ class C {}
     }
   }
 
-  test_getLibrary() async {
-    newFile('/home/test/lib/test.dart', content: r'''
-class C {}
-''');
-    tracker.addContext(testAnalysisContext);
-
-    await _doAllTrackerWork();
-
-    var id = uriToLibrary['package:test/test.dart'].id;
-    var library = tracker.getLibrary(id);
-    expect(library.id, id);
-    expect(library.uriStr, 'package:test/test.dart');
+  static void _assertHasLibraries(List<Library> libraries,
+      {@required List<String> uriList, bool only = false}) {
+    var actualUriList = libraries.map((lib) => lib.uriStr).toList();
+    if (only) {
+      expect(actualUriList, unorderedEquals(uriList));
+    } else {
+      expect(actualUriList, containsAll(uriList));
+    }
   }
+}
 
-  test_kindsOfDeclarations() async {
-    newFile('/home/test/lib/test.dart', content: r'''
-class MyClass {}
-class MyClassTypeAlias = Object with MyMixin;
-enum MyEnum {a, b, c}
-void myFunction() {}
-typedef MyFunctionTypeAlias = void Function();
-mixin MyMixin {}
-var myVariable1, myVariable2;
-''');
-    tracker.addContext(testAnalysisContext);
+class _Base extends AbstractContextTest {
+  DeclarationsTracker tracker;
 
-    await _doAllTrackerWork();
-    _assertHasLibrary('package:test/test.dart', declarations: [
-      _ExpectedDeclaration.class_('MyClass'),
-      _ExpectedDeclaration.classTypeAlias('MyClassTypeAlias'),
-      _ExpectedDeclaration.enum_('MyEnum'),
-      _ExpectedDeclaration.function('myFunction'),
-      _ExpectedDeclaration.functionTypeAlias('MyFunctionTypeAlias'),
-      _ExpectedDeclaration.mixin('MyMixin'),
-      _ExpectedDeclaration.variable('myVariable1'),
-      _ExpectedDeclaration.variable('myVariable2'),
-    ]);
-  }
+  final List<LibraryChange> changes = [];
 
-  test_library_isDeprecated() async {
-    newFile('/home/test/lib/a.dart', content: '');
-    newFile('/home/test/lib/b.dart', content: r'''
-@deprecated
-library my.lib;
-''');
-    newFile('/home/test/lib/c.dart', content: r'''
-@Deprecated('description')
-library my.lib;
-''');
-    tracker.addContext(testAnalysisContext);
+  final Map<int, Library> idToLibrary = {};
+  final Map<String, Library> uriToLibrary = {};
 
-    await _doAllTrackerWork();
-
-    expect(uriToLibrary['package:test/a.dart'].isDeprecated, isFalse);
-    expect(uriToLibrary['package:test/b.dart'].isDeprecated, isTrue);
-    expect(uriToLibrary['package:test/c.dart'].isDeprecated, isTrue);
-  }
-
-  test_parts() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-part of 'test.dart';
-class A {}
-''');
-    newFile('/home/test/lib/b.dart', content: r'''
-part of 'test.dart';
-class B {}
-''');
-    newFile('/home/test/lib/test.dart', content: r'''
-part 'a.dart';
-part 'b.dart';
-class C {}
-''');
-    tracker.addContext(testAnalysisContext);
-
-    await _doAllTrackerWork();
-    _assertHasLibrary('package:test/test.dart', declarations: [
-      _ExpectedDeclaration.class_('A'),
-      _ExpectedDeclaration.class_('B'),
-      _ExpectedDeclaration.class_('C'),
-    ]);
-  }
-
-  test_publicOnly() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-part of 'test.dart';
-class A {}
-class _A {}
-''');
-    newFile('/home/test/lib/test.dart', content: r'''
-part 'a.dart';
-class B {}
-class _B {}
-''');
-    tracker.addContext(testAnalysisContext);
-
-    await _doAllTrackerWork();
-    _assertHasLibrary('package:test/test.dart', declarations: [
-      _ExpectedDeclaration.class_('A'),
-      _ExpectedDeclaration.class_('B'),
-    ]);
-  }
-
-  test_readByteStore() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-class A {}
-''');
-    newFile('/home/test/lib/b.dart', content: r'''
-class B {}
-''');
-    newFile('/home/test/lib/test.dart', content: r'''
-export 'a.dart' show A;
-part 'b.dart';
-class C {}
-''');
-
-    // The byte store is empty, fill it.
-    tracker.addContext(testAnalysisContext);
-    await _doAllTrackerWork();
-
-    // Re-create tracker, will read from byte store.
+  @override
+  setUp() {
+    super.setUp();
     _createTracker();
-    tracker.addContext(testAnalysisContext);
-    await _doAllTrackerWork();
-
-    _assertHasLibrary('package:test/test.dart', declarations: [
-      _ExpectedDeclaration.class_('A'),
-      _ExpectedDeclaration.class_('B'),
-      _ExpectedDeclaration.class_('C'),
-    ]);
   }
 
   void _assertDeclaration(
@@ -2004,21 +2012,6 @@ class C {}
     var library = uriToLibrary[uriStr];
     expect(library, isNotNull);
     return library;
-  }
-
-  static Future pumpEventQueue([int times = 5000]) {
-    if (times == 0) return new Future.value();
-    return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
-  }
-
-  static void _assertHasLibraries(List<Library> libraries,
-      {@required List<String> uriList, bool only = false}) {
-    var actualUriList = libraries.map((lib) => lib.uriStr).toList();
-    if (only) {
-      expect(actualUriList, unorderedEquals(uriList));
-    } else {
-      expect(actualUriList, containsAll(uriList));
-    }
   }
 }
 
