@@ -1104,7 +1104,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: _annotationsDataBuilder);
+        annotationsData: _annotationsDataBuilder.close());
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

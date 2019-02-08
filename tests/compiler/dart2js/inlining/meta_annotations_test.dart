@@ -49,11 +49,11 @@ main() {
       Expect.isNotNull(method);
       Expect.equals(
           expectNoInline,
-          closedWorld.annotationsData.nonInlinableFunctions.contains(method),
+          closedWorld.annotationsData.hasNoInline(method),
           "Unexpected annotation of @noInline on '$method'.");
       Expect.equals(
           expectTryInline,
-          closedWorld.annotationsData.tryInlineFunctions.contains(method),
+          closedWorld.annotationsData.hasTryInline(method),
           "Unexpected annotation of @tryInline on '$method'.");
     }
 

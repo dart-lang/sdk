@@ -1242,7 +1242,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   bool assumeDynamic(MemberEntity member) {
-    return closedWorld.annotationsData.assumeDynamicMembers.contains(member);
+    return closedWorld.annotationsData.hasAssumeDynamic(member);
   }
 }
 

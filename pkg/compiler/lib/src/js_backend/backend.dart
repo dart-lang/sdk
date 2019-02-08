@@ -95,10 +95,10 @@ class FunctionInlineCache {
   final Set<FunctionEntity> _tryInlineFunctions = new Set<FunctionEntity>();
 
   FunctionInlineCache(AnnotationsData annotationsData) {
-    annotationsData.nonInlinableFunctions.forEach((FunctionEntity function) {
+    annotationsData.forEachNoInline((FunctionEntity function) {
       markAsNonInlinable(function);
     });
-    annotationsData.tryInlineFunctions.forEach((FunctionEntity function) {
+    annotationsData.forEachTryInline((FunctionEntity function) {
       markAsTryInline(function);
     });
   }

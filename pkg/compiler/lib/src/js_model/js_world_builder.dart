@@ -193,20 +193,9 @@ class JsClosedWorldBuilder {
     JAllocatorAnalysis allocatorAnalysis =
         JAllocatorAnalysis.from(closedWorld.allocatorAnalysis, map, _options);
 
+    AnnotationsDataImpl oldAnnotationsData = closedWorld.annotationsData;
     AnnotationsData annotationsData = new AnnotationsDataImpl(
-        map.toBackendFunctionSet(
-            closedWorld.annotationsData.nonInlinableFunctions),
-        map.toBackendFunctionSet(
-            closedWorld.annotationsData.tryInlineFunctions),
-        map.toBackendFunctionSet(
-            closedWorld.annotationsData.disableFinalFunctions),
-        map.toBackendFieldSet(closedWorld.annotationsData.noElisionFields),
-        map.toBackendFunctionSet(
-            closedWorld.annotationsData.cannotThrowFunctions),
-        map.toBackendFunctionSet(
-            closedWorld.annotationsData.sideEffectFreeFunctions),
-        map.toBackendMemberSet(
-            closedWorld.annotationsData.assumeDynamicMembers));
+        map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity));
 
     OutputUnitData outputUnitData =
         _convertOutputUnitData(map, kOutputUnitData, closureData);
@@ -218,7 +207,7 @@ class JsClosedWorldBuilder {
       // J model? Static setters might still assign to them.
       if (member.isField &&
           !memberUsage.hasRead &&
-          !closedWorld.annotationsData.noElisionFields.contains(member) &&
+          !closedWorld.annotationsData.hasNoElision(member) &&
           !closedWorld.nativeData.isNativeMember(member)) {
         elidedFields.add(map.toBackendMember(member));
       }
