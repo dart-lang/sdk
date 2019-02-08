@@ -874,9 +874,8 @@ table AvailableDeclaration {
 
   fieldMask:uint (id: 2);
 
-  /// The identifier of the declaration, a simple name like `MyClass`, or
-  /// a qualified name of a static member like `MyEnum.value`.
-  identifier:string (id: 3);
+  /// The kind of the declaration.
+  kind:AvailableDeclarationKind (id: 3);
 
   isAbstract:bool (id: 4);
 
@@ -886,26 +885,37 @@ table AvailableDeclaration {
 
   isFinal:bool (id: 7);
 
-  /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 8);
+  /// The first part of the declaration name, usually the only one, for example
+  /// the name of a class like `MyClass`, or a function like `myFunction`.
+  name:string (id: 8);
 
-  locationOffset:uint (id: 9);
+  /// The second, optional, part of the declaration name.  For example enum
+  /// constants all have the same [name], but their own [name2].
+  name2:string (id: 9);
 
-  locationStartColumn:uint (id: 10);
+  locationOffset:uint (id: 10);
 
-  locationStartLine:uint (id: 11);
+  locationStartColumn:uint (id: 11);
 
-  parameterNames:[string] (id: 12);
+  locationStartLine:uint (id: 12);
 
-  parameters:string (id: 13);
+  parameterNames:[string] (id: 13);
 
-  parameterTypes:[string] (id: 14);
+  parameters:string (id: 14);
 
-  requiredParameterCount:uint (id: 15);
+  parameterTypes:[string] (id: 15);
 
-  returnType:string (id: 16);
+  requiredParameterCount:uint (id: 16);
 
-  typeParameters:string (id: 17);
+  /// The partial list of relevance tags.  Not every declaration has one (for
+  /// example, function do not currently), and not every declaration has to
+  /// store one (for classes it can be computed when we know the library that
+  /// includes this file).
+  relevanceTags:[string] (id: 17);
+
+  returnType:string (id: 18);
+
+  typeParameters:string (id: 19);
 }
 
 /// Information about an available, even if not yet imported file.

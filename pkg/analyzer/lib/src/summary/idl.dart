@@ -294,10 +294,9 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(2)
   int get fieldMask;
 
-  /// The identifier of the declaration, a simple name like `MyClass`, or
-  /// a qualified name of a static member like `MyEnum.value`.
+  /// The kind of the declaration.
   @Id(3)
-  String get identifier;
+  AvailableDeclarationKind get kind;
 
   @Id(4)
   bool get isAbstract;
@@ -311,35 +310,48 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(7)
   bool get isFinal;
 
-  /// The kind of the declaration.
+  /// The first part of the declaration name, usually the only one, for example
+  /// the name of a class like `MyClass`, or a function like `myFunction`.
   @Id(8)
-  AvailableDeclarationKind get kind;
+  String get name;
 
+  /// The second, optional, part of the declaration name.  For example enum
+  /// constants all have the same [name], but their own [name2].
   @Id(9)
-  int get locationOffset;
+  String get name2;
 
   @Id(10)
-  int get locationStartColumn;
+  int get locationOffset;
 
   @Id(11)
-  int get locationStartLine;
+  int get locationStartColumn;
 
   @Id(12)
-  List<String> get parameterNames;
+  int get locationStartLine;
 
   @Id(13)
-  String get parameters;
+  List<String> get parameterNames;
 
   @Id(14)
-  List<String> get parameterTypes;
+  String get parameters;
 
   @Id(15)
-  int get requiredParameterCount;
+  List<String> get parameterTypes;
 
   @Id(16)
+  int get requiredParameterCount;
+
+  /// The partial list of relevance tags.  Not every declaration has one (for
+  /// example, function do not currently), and not every declaration has to
+  /// store one (for classes it can be computed when we know the library that
+  /// includes this file).
+  @Id(17)
+  List<String> get relevanceTags;
+
+  @Id(18)
   String get returnType;
 
-  @Id(17)
+  @Id(19)
   String get typeParameters;
 }
 

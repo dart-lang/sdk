@@ -83,7 +83,7 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
   return protocol.AvailableSuggestion(
-    declaration.identifier,
+    declaration.name,
     _protocolElement(declaration),
     docComplete: declaration.docComplete,
     docSummary: declaration.docSummary,
@@ -96,7 +96,7 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
 protocol.Element _protocolElement(Declaration declaration) {
   return protocol.Element(
     _protocolElementKind(declaration.kind),
-    declaration.identifier,
+    declaration.name,
     _protocolElementFlags(declaration),
     location: protocol.Location(
       declaration.locationPath,

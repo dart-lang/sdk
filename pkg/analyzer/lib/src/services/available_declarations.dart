@@ -30,7 +30,6 @@ import 'package:yaml/yaml.dart';
 class Declaration {
   final String docComplete;
   final String docSummary;
-  final String identifier;
   final bool isAbstract;
   final bool isConst;
   final bool isDeprecated;
@@ -40,6 +39,8 @@ class Declaration {
   final String locationPath;
   final int locationStartColumn;
   final int locationStartLine;
+  final String name;
+  final String name2;
   final String parameters;
   final List<String> parameterNames;
   final List<String> parameterTypes;
@@ -47,10 +48,11 @@ class Declaration {
   final String returnType;
   final String typeParameters;
 
+  List<String> _relevanceTags;
+
   Declaration({
     @required this.docComplete,
     @required this.docSummary,
-    @required this.identifier,
     @required this.isAbstract,
     @required this.isConst,
     @required this.isDeprecated,
@@ -60,17 +62,26 @@ class Declaration {
     @required this.locationPath,
     @required this.locationStartColumn,
     @required this.locationStartLine,
+    @required this.name,
+    @required this.name2,
     @required this.parameters,
     @required this.parameterNames,
     @required this.parameterTypes,
+    @required List<String> relevanceTags,
     @required this.requiredParameterCount,
     @required this.returnType,
     @required this.typeParameters,
-  });
+  }) : _relevanceTags = relevanceTags;
+
+  List<String> get relevanceTags => _relevanceTags;
 
   @override
   String toString() {
-    return '($identifier, $kind)';
+    if (name2 == null) {
+      return '($name, $kind)';
+    } else {
+      return '($name, $name2, $kind)';
+    }
   }
 }
 
@@ -667,24 +678,66 @@ class LibraryChange {
   LibraryChange._(this.changed, this.removed);
 }
 
+class RelevanceTags {
+  static List<String> _forDeclaration(String uriStr, Declaration declaration) {
+    switch (declaration.kind) {
+      case DeclarationKind.CLASS:
+      case DeclarationKind.CLASS_TYPE_ALIAS:
+      case DeclarationKind.ENUM:
+      case DeclarationKind.MIXIN:
+      case DeclarationKind.FUNCTION_TYPE_ALIAS:
+        var name = declaration.name;
+        return <String>['$uriStr::$name'];
+      default:
+        return null;
+    }
+  }
+
+  static List<String> _forExpression(Expression expression) {
+    if (expression is BooleanLiteral) return const ['dart:core::bool'];
+    if (expression is DoubleLiteral) return const ['dart:core::double'];
+    if (expression is IntegerLiteral) return const ['dart:core::int'];
+    if (expression is StringLiteral) return const ['dart:core::String'];
+
+    if (expression is ListLiteral || expression is ListLiteral2) {
+      return const ['dart:core::List'];
+    }
+    if (expression is MapLiteral || expression is MapLiteral2) {
+      return const ['dart:core::Map'];
+    }
+    if (expression is SetLiteral || expression is SetLiteral2) {
+      return const ['dart:core::Set'];
+    }
+
+    return null;
+  }
+}
+
 class _DeclarationStorage {
   static const fieldDocMask = 1 << 0;
-  static const fieldParametersMask = 1 << 1;
-  static const fieldReturnTypeMask = 1 << 2;
-  static const fieldTypeParametersMask = 1 << 3;
+  static const fieldName2Mask = 1 << 1;
+  static const fieldParametersMask = 1 << 2;
+  static const fieldReturnTypeMask = 1 << 3;
+  static const fieldTypeParametersMask = 1 << 4;
 
   static Declaration fromIdl(String path, idl.AvailableDeclaration d) {
     var fieldMask = d.fieldMask;
     var hasDoc = fieldMask & fieldDocMask != 0;
+    var hasName2 = fieldMask & fieldName2Mask != 0;
     var hasParameters = fieldMask & fieldParametersMask != 0;
     var hasReturnType = fieldMask & fieldReturnTypeMask != 0;
     var hasTypeParameters = fieldMask & fieldTypeParametersMask != 0;
 
     var kind = kindFromIdl(d.kind);
+
+    var relevanceTags = d.relevanceTags.toList();
+    if (relevanceTags.isEmpty) {
+      relevanceTags = null;
+    }
+
     return Declaration(
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
-      identifier: d.identifier,
       isAbstract: d.isAbstract,
       isConst: d.isConst,
       isDeprecated: d.isDeprecated,
@@ -694,9 +747,12 @@ class _DeclarationStorage {
       locationPath: path,
       locationStartColumn: d.locationStartColumn,
       locationStartLine: d.locationStartLine,
+      name: d.name,
+      name2: hasName2 ? d.name2 : null,
       parameters: hasParameters ? d.parameters : null,
       parameterNames: hasParameters ? d.parameterNames : null,
-      parameterTypes: hasParameters ? d.parameterTypes : null,
+      parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
+      relevanceTags: relevanceTags,
       requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
       returnType: hasReturnType ? d.returnType : null,
       typeParameters: hasTypeParameters ? d.typeParameters : null,
@@ -773,7 +829,6 @@ class _DeclarationStorage {
       docComplete: d.docComplete,
       docSummary: d.docSummary,
       fieldMask: fieldMask,
-      identifier: d.identifier,
       isAbstract: d.isAbstract,
       isConst: d.isConst,
       isDeprecated: d.isDeprecated,
@@ -782,9 +837,12 @@ class _DeclarationStorage {
       locationOffset: d.locationOffset,
       locationStartColumn: d.locationStartColumn,
       locationStartLine: d.locationStartLine,
+      name: d.name,
+      name2: d.name2,
       parameters: d.parameters,
       parameterNames: d.parameterNames,
       parameterTypes: d.parameterTypes,
+      relevanceTags: d.relevanceTags,
       requiredParameterCount: d.requiredParameterCount,
       returnType: d.returnType,
       typeParameters: d.typeParameters,
@@ -804,10 +862,10 @@ class _Export {
     return declarations.where((d) {
       for (var combinator in combinators) {
         if (combinator.shows.isNotEmpty) {
-          if (!combinator.shows.contains(d.identifier)) return false;
+          if (!combinator.shows.contains(d.name)) return false;
         }
         if (combinator.hides.isNotEmpty) {
-          if (combinator.hides.contains(d.identifier)) return false;
+          if (combinator.hides.contains(d.name)) return false;
         }
       }
       return true;
@@ -855,6 +913,8 @@ class _File {
   bool isSent = false;
 
   _File(this.tracker, this.path, this.uri);
+
+  String get uriStr => uri.toString();
 
   void refresh(DeclarationsContext context) {
     var resource = tracker._resourceProvider.getFile(path);
@@ -936,6 +996,7 @@ class _File {
       for (var part in parts) {
         libraryDeclarations.addAll(part.file.fileDeclarations);
       }
+      _computeRelevanceTagsForLibraryDeclarations();
     }
   }
 
@@ -990,9 +1051,11 @@ class _File {
       bool isFinal = false,
       @required DeclarationKind kind,
       @required Identifier name,
+      String name2,
       String parameters,
       List<String> parameterNames,
       List<String> parameterTypes,
+      List<String> relevanceTags,
       int requiredParameterCount,
       String returnType,
       String typeParameters,
@@ -1003,7 +1066,6 @@ class _File {
         fileDeclarations.add(Declaration(
           docComplete: docComplete,
           docSummary: docSummary,
-          identifier: name.name,
           isAbstract: isAbstract,
           isConst: isConst,
           isDeprecated: isDeprecated,
@@ -1011,11 +1073,14 @@ class _File {
           kind: kind,
           locationOffset: locationOffset,
           locationPath: path,
+          name: name.name,
+          name2: name2,
           locationStartColumn: lineLocation.columnNumber,
           locationStartLine: lineLocation.lineNumber,
           parameters: parameters,
           parameterNames: parameterNames,
           parameterTypes: parameterTypes,
+          relevanceTags: relevanceTags,
           requiredParameterCount: requiredParameterCount,
           returnType: returnType,
           typeParameters: typeParameters,
@@ -1136,10 +1201,18 @@ class _File {
             isFinal: isFinal,
             kind: DeclarationKind.VARIABLE,
             name: variable.name,
+            relevanceTags: RelevanceTags._forExpression(variable.initializer),
             returnType: _getTypeAnnotationString(node.variables.type),
           );
         }
       }
+    }
+  }
+
+  void _computeRelevanceTagsForLibraryDeclarations() {
+    for (var declaration in libraryDeclarations) {
+      declaration._relevanceTags ??=
+          RelevanceTags._forDeclaration(uriStr, declaration);
     }
   }
 
@@ -1361,8 +1434,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
   static Set<Declaration> _newDeclarationSet() {
     return HashSet<Declaration>(
-      hashCode: (e) => e.identifier.hashCode,
-      equals: (a, b) => a.identifier == b.identifier,
+      hashCode: (e) => e.name.hashCode,
+      equals: (a, b) => a.name == b.name,
     );
   }
 }

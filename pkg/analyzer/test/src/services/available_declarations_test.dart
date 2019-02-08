@@ -245,6 +245,7 @@ class B {}
       _getLibrary('package:test/test.dart'),
       'A',
       DeclarationKind.CLASS,
+      relevanceTags: ['package:test/test.dart::A'],
     );
 
     newFile(filePath, content: 'class B {}');
@@ -256,6 +257,7 @@ class B {}
       _getLibrary('package:test/test.dart'),
       'B',
       DeclarationKind.CLASS,
+      relevanceTags: ['package:test/test.dart::B'],
     );
   }
 
@@ -287,6 +289,7 @@ dependencies:
       _getLibrary('package:aaa/a.dart'),
       'A',
       DeclarationKind.CLASS,
+      relevanceTags: ['package:aaa/a.dart::A'],
     );
 
     newFile(filePath, content: 'class B {}');
@@ -298,6 +301,7 @@ dependencies:
       _getLibrary('package:aaa/a.dart'),
       'B',
       DeclarationKind.CLASS,
+      relevanceTags: ['package:aaa/a.dart::B'],
     );
   }
 
@@ -316,6 +320,7 @@ dependencies:
       _getLibrary('dart:math'),
       'A',
       DeclarationKind.CLASS,
+      relevanceTags: ['dart:math::A'],
     );
 
     newFile(filePath, content: 'class B {}');
@@ -327,6 +332,7 @@ dependencies:
       _getLibrary('dart:math'),
       'B',
       DeclarationKind.CLASS,
+      relevanceTags: ['dart:math::B'],
     );
   }
 
@@ -643,11 +649,34 @@ class D {}
     await _doAllTrackerWork();
 
     var library = _getLibrary('package:test/test.dart');
-    _assertDeclaration(library, 'A', DeclarationKind.CLASS);
-    _assertDeclaration(library, 'B', DeclarationKind.CLASS, isAbstract: true);
-    _assertDeclaration(library, 'C', DeclarationKind.CLASS, isDeprecated: true);
-    _assertDeclaration(library, 'D', DeclarationKind.CLASS,
-        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb\nccc ccc');
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.CLASS,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+    _assertDeclaration(
+      library,
+      'B',
+      DeclarationKind.CLASS,
+      isAbstract: true,
+      relevanceTags: ['package:test/test.dart::B'],
+    );
+    _assertDeclaration(
+      library,
+      'C',
+      DeclarationKind.CLASS,
+      isDeprecated: true,
+      relevanceTags: ['package:test/test.dart::C'],
+    );
+    _assertDeclaration(
+      library,
+      'D',
+      DeclarationKind.CLASS,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb\nccc ccc',
+      relevanceTags: ['package:test/test.dart::D'],
+    );
   }
 
   test_declaration_CLASS_TYPE_ALIAS() async {
@@ -669,11 +698,27 @@ class C = Object with M;
     await _doAllTrackerWork();
 
     var library = _getLibrary('package:test/test.dart');
-    _assertDeclaration(library, 'A', DeclarationKind.CLASS_TYPE_ALIAS);
-    _assertDeclaration(library, 'B', DeclarationKind.CLASS_TYPE_ALIAS,
-        isDeprecated: true);
-    _assertDeclaration(library, 'C', DeclarationKind.CLASS_TYPE_ALIAS,
-        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb');
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.CLASS_TYPE_ALIAS,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+    _assertDeclaration(
+      library,
+      'B',
+      DeclarationKind.CLASS_TYPE_ALIAS,
+      isDeprecated: true,
+      relevanceTags: ['package:test/test.dart::B'],
+    );
+    _assertDeclaration(
+      library,
+      'C',
+      DeclarationKind.CLASS_TYPE_ALIAS,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      relevanceTags: ['package:test/test.dart::C'],
+    );
   }
 
   test_declaration_ENUM() async {
@@ -693,10 +738,27 @@ enum C {v}
     await _doAllTrackerWork();
 
     var library = _getLibrary('package:test/test.dart');
-    _assertDeclaration(library, 'A', DeclarationKind.ENUM);
-    _assertDeclaration(library, 'B', DeclarationKind.ENUM, isDeprecated: true);
-    _assertDeclaration(library, 'C', DeclarationKind.ENUM,
-        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb');
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.ENUM,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+    _assertDeclaration(
+      library,
+      'B',
+      DeclarationKind.ENUM,
+      isDeprecated: true,
+      relevanceTags: ['package:test/test.dart::B'],
+    );
+    _assertDeclaration(
+      library,
+      'C',
+      DeclarationKind.ENUM,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      relevanceTags: ['package:test/test.dart::C'],
+    );
   }
 
   test_declaration_FUNCTION() async {
@@ -783,6 +845,7 @@ typedef F = void Function<T extends num, U>();
         parameters: '()',
         parameterNames: [],
         parameterTypes: [],
+        relevanceTags: ['package:test/test.dart::A'],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'B', DeclarationKind.FUNCTION_TYPE_ALIAS,
@@ -790,6 +853,7 @@ typedef F = void Function<T extends num, U>();
         parameters: '()',
         parameterNames: [],
         parameterTypes: [],
+        relevanceTags: ['package:test/test.dart::B'],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'C', DeclarationKind.FUNCTION_TYPE_ALIAS,
@@ -798,18 +862,21 @@ typedef F = void Function<T extends num, U>();
         parameters: '()',
         parameterNames: [],
         parameterTypes: [],
+        relevanceTags: ['package:test/test.dart::C'],
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'D', DeclarationKind.FUNCTION_TYPE_ALIAS,
         parameters: '(int p1, [double p2, String p3])',
         parameterNames: ['p1', 'p2', 'p3'],
         parameterTypes: ['int', 'double', 'String'],
+        relevanceTags: ['package:test/test.dart::D'],
         requiredParameterCount: 1,
         returnType: 'int');
     _assertDeclaration(library, 'E', DeclarationKind.FUNCTION_TYPE_ALIAS,
         parameters: '(int, double, {String })', // TODO(scheglov) fix
         parameterNames: ['', '', ''],
         parameterTypes: ['int', 'double', 'String'],
+        relevanceTags: ['package:test/test.dart::E'],
         requiredParameterCount: 2,
         returnType: 'void');
     _assertDeclaration(library, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS,
@@ -817,6 +884,7 @@ typedef F = void Function<T extends num, U>();
         parameterNames: [],
         parameterTypes: [],
         requiredParameterCount: 0,
+        relevanceTags: ['package:test/test.dart::F'],
         returnType: 'void',
         typeParameters: '<T extends num, U>');
   }
@@ -857,36 +925,37 @@ int get c => 0;
   }
 
   test_declaration_location() async {
-    var testPath = newFile('/home/test/lib/test.dart', content: r'''
+    var code = r'''
 class A {}
 
 class B {}
-''').path;
+''';
+    var testPath = newFile('/home/test/lib/test.dart', content: code).path;
 
     tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();
 
     var library = _getLibrary('package:test/test.dart');
-    _assertDeclaration(library, 'A', DeclarationKind.CLASS,
-        locationOffset: r'''
-class A {}
-
-class B {}
-'''
-            .indexOf('A {}'),
-        locationPath: testPath,
-        locationStartColumn: 7,
-        locationStartLine: 1);
-    _assertDeclaration(library, 'B', DeclarationKind.CLASS,
-        locationOffset: r'''
-class A {}
-
-class B {}
-'''
-            .indexOf('B {}'),
-        locationPath: testPath,
-        locationStartColumn: 7,
-        locationStartLine: 3);
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.CLASS,
+      locationOffset: code.indexOf('A {}'),
+      locationPath: testPath,
+      locationStartColumn: 7,
+      locationStartLine: 1,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+    _assertDeclaration(
+      library,
+      'B',
+      DeclarationKind.CLASS,
+      locationOffset: code.indexOf('B {}'),
+      locationPath: testPath,
+      locationStartColumn: 7,
+      locationStartLine: 3,
+      relevanceTags: ['package:test/test.dart::B'],
+    );
   }
 
   test_declaration_MIXIN() async {
@@ -907,10 +976,27 @@ mixin C {}
     await _doAllTrackerWork();
 
     var library = _getLibrary('package:test/test.dart');
-    _assertDeclaration(library, 'A', DeclarationKind.MIXIN);
-    _assertDeclaration(library, 'B', DeclarationKind.MIXIN, isDeprecated: true);
-    _assertDeclaration(library, 'C', DeclarationKind.MIXIN,
-        docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb\nccc ccc');
+    _assertDeclaration(
+      library,
+      'A',
+      DeclarationKind.MIXIN,
+      relevanceTags: ['package:test/test.dart::A'],
+    );
+    _assertDeclaration(
+      library,
+      'B',
+      DeclarationKind.MIXIN,
+      isDeprecated: true,
+      relevanceTags: ['package:test/test.dart::B'],
+    );
+    _assertDeclaration(
+      library,
+      'C',
+      DeclarationKind.MIXIN,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb\nccc ccc',
+      relevanceTags: ['package:test/test.dart::C'],
+    );
   }
 
   test_declaration_SETTER() async {
@@ -990,9 +1076,11 @@ final double e = 2.7;
     _assertDeclaration(library, 'c', DeclarationKind.VARIABLE,
         docSummary: 'aaa', docComplete: 'aaa\n\nbbb bbb', returnType: 'int');
     _assertDeclaration(library, 'd', DeclarationKind.VARIABLE,
-        isConst: true, returnType: '');
+        isConst: true, relevanceTags: ['dart:core::int'], returnType: '');
     _assertDeclaration(library, 'e', DeclarationKind.VARIABLE,
-        isFinal: true, returnType: 'double');
+        isFinal: true,
+        relevanceTags: ['dart:core::double'],
+        returnType: 'double');
   }
 
   test_discardContexts() async {
@@ -1805,7 +1893,7 @@ class C {}
 
   void _assertDeclaration(
     Library library,
-    String identifier,
+    String name,
     DeclarationKind kind, {
     String docComplete,
     String docSummary,
@@ -1817,25 +1905,29 @@ class C {}
     String locationPath,
     int locationStartColumn,
     int locationStartLine,
+    String name2,
     String parameters,
     List<String> parameterNames,
     List<String> parameterTypes,
+    List<String> relevanceTags,
     int requiredParameterCount,
     String returnType,
     String typeParameters,
   }) {
-    var declaration = _getDeclaration(library, identifier);
+    var declaration = _getDeclaration(library, name);
     expect(declaration.docComplete, docComplete);
     expect(declaration.docSummary, docSummary);
-    expect(declaration.identifier, identifier);
+    expect(declaration.name, name);
+    expect(declaration.name2, name2);
+    expect(declaration.kind, kind);
     expect(declaration.isAbstract, isAbstract);
     expect(declaration.isConst, isConst);
     expect(declaration.isDeprecated, isDeprecated);
     expect(declaration.isFinal, isFinal);
-    expect(declaration.kind, kind);
     expect(declaration.parameters, parameters);
     expect(declaration.parameterNames, parameterNames);
     expect(declaration.parameterTypes, parameterTypes);
+    expect(declaration.relevanceTags, relevanceTags);
     expect(declaration.requiredParameterCount, requiredParameterCount);
     expect(declaration.returnType, returnType);
     expect(declaration.typeParameters, typeParameters);
@@ -1851,7 +1943,7 @@ class C {}
     expect(
       library.declarations,
       contains(predicate((Declaration d) {
-        return d.identifier == expected.identifier && d.kind == expected.kind;
+        return d.name == expected.name && d.kind == expected.kind;
       })),
       reason: '$expected',
     );
@@ -1903,9 +1995,9 @@ class C {}
     await pumpEventQueue();
   }
 
-  Declaration _getDeclaration(Library library, String identifier) {
+  Declaration _getDeclaration(Library library, String name) {
     return library.declarations
-        .singleWhere((declaration) => declaration.identifier == identifier);
+        .singleWhere((declaration) => declaration.name == name);
   }
 
   Library _getLibrary(String uriStr) {
@@ -1931,10 +2023,10 @@ class C {}
 }
 
 class _ExpectedDeclaration {
-  final String identifier;
+  final String name;
   final DeclarationKind kind;
 
-  _ExpectedDeclaration(this.identifier, this.kind);
+  _ExpectedDeclaration(this.name, this.kind);
 
   _ExpectedDeclaration.class_(String name) : this(name, DeclarationKind.CLASS);
 
@@ -1956,6 +2048,6 @@ class _ExpectedDeclaration {
 
   @override
   String toString() {
-    return '($identifier, $kind)';
+    return '($name, $kind)';
   }
 }
