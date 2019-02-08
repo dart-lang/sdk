@@ -12,6 +12,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ProvisionalApiTest);
+    defineReflectiveTests(ProvisionalApiTestPermissive);
     defineReflectiveTests(ProvisionalApiTestWithReset);
   });
 }
@@ -19,10 +20,15 @@ main() {
 /// Tests of the provisional API.
 @reflectiveTest
 class ProvisionalApiTest extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {}
+    with ProvisionalApiTestCases {
+  @override
+  bool get usePermissiveMode => false;
+}
 
 /// Base class for provisional API tests.
 abstract class ProvisionalApiTestBase extends AbstractContextTest {
+  bool get usePermissiveMode;
+
   /// Hook invoked after calling `prepareInput` on each input.
   void _afterPrepare() {}
 
@@ -34,7 +40,8 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
       newFile(path, content: input[path]);
     }
     var listener = new TestMigrationListener();
-    var migration = NullabilityMigration(listener);
+    var migration =
+        NullabilityMigration(listener, permissive: usePermissiveMode);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -62,15 +69,6 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
   Future<void> _checkSingleFileChanges(String content, String expected) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     _checkMultipleFileChanges({sourcePath: content}, {sourcePath: expected});
-  }
-}
-
-class TestMigrationListener implements NullabilityMigrationListener {
-  final fixes = <SingleNullabilityFix>[];
-
-  @override
-  void addFix(SingleNullabilityFix fix) {
-    fixes.add(fix);
   }
 }
 
@@ -298,6 +296,13 @@ int? g() => f();
   }
 }
 
+@reflectiveTest
+class ProvisionalApiTestPermissive extends ProvisionalApiTestBase
+    with ProvisionalApiTestCases {
+  @override
+  bool get usePermissiveMode => true;
+}
+
 /// Tests of the provisional API, where the driver is reset between calls to
 /// `prepareInput` and `processInput`, ensuring that the migration algorithm
 /// sees different AST and element objects during different phases.
@@ -305,7 +310,19 @@ int? g() => f();
 class ProvisionalApiTestWithReset extends ProvisionalApiTestBase
     with ProvisionalApiTestCases {
   @override
+  bool get usePermissiveMode => false;
+
+  @override
   void _afterPrepare() {
     driver.resetUriResolution();
+  }
+}
+
+class TestMigrationListener implements NullabilityMigrationListener {
+  final fixes = <SingleNullabilityFix>[];
+
+  @override
+  void addFix(SingleNullabilityFix fix) {
+    fixes.add(fix);
   }
 }

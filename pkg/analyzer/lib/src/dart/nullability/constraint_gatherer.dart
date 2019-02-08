@@ -29,6 +29,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// previous pass over the source code).
   final VariableRepository _variables;
 
+  final bool _permissive;
+
   /// Constraints gathered by the visitor are stored here.
   final Constraints _constraints;
 
@@ -64,7 +66,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   final _guards = <ConstraintVariable>[];
 
   ConstraintGatherer(TypeProvider typeProvider, this._variables,
-      this._constraints, this._source)
+      this._constraints, this._source, this._permissive)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
         _nonNullableBoolType = DecoratedType(typeProvider.boolType, null),
         _nonNullableTypeType = DecoratedType(typeProvider.typeType, null);
@@ -273,6 +275,19 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       _handleAssignment(calleeType.positionalParameters[i], expression);
     }
     return calleeType.returnType;
+  }
+
+  @override
+  DecoratedType visitNode(AstNode node) {
+    if (_permissive) {
+      try {
+        return super.visitNode(node);
+      } catch (_) {
+        return null;
+      }
+    } else {
+      return super.visitNode(node);
+    }
   }
 
   @override

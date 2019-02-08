@@ -35,7 +35,9 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// parameters?
   DecoratedType _currentFunctionType;
 
-  ConstraintVariableGatherer(this._variables, this._source);
+  final bool _permissive;
+
+  ConstraintVariableGatherer(this._variables, this._source, this._permissive);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
@@ -78,6 +80,19 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     _handleExecutableDeclaration(
         node.declaredElement, node.returnType, node.parameters);
     return null;
+  }
+
+  @override
+  DecoratedType visitNode(AstNode node) {
+    if (_permissive) {
+      try {
+        return super.visitNode(node);
+      } catch (_) {
+        return null;
+      }
+    } else {
+      return super.visitNode(node);
+    }
   }
 
   @override

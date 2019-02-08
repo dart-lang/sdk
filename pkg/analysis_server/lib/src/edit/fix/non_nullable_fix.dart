@@ -12,6 +12,10 @@ import 'package:analyzer/dart/analysis/results.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix extends FixCodeTask2 {
+  /// TODO(paulberry): stop using permissive mode once the migration logic is
+  /// mature enough.
+  static const bool _usePermissiveMode = true;
+
   static void task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerCodeTask(new NonNullableFix(listener));
   }
@@ -21,8 +25,9 @@ class NonNullableFix extends FixCodeTask2 {
   final NullabilityMigration migration;
 
   NonNullableFix(this.listener)
-      : migration =
-            new NullabilityMigration(new NullabilityMigrationAdapter(listener));
+      : migration = new NullabilityMigration(
+            new NullabilityMigrationAdapter(listener),
+            permissive: _usePermissiveMode);
 
   @override
   Future<void> finish() async {

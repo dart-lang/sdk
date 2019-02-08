@@ -49,10 +49,18 @@ class NullabilityFixKind {
 /// TODO(paulberry): figure out whether this API is what we want, and figure out
 /// what file/folder it belongs in.
 class NullabilityMigration {
-  final _analyzerMigration = analyzer.NullabilityMigration();
+  final analyzer.NullabilityMigration _analyzerMigration;
   final NullabilityMigrationListener listener;
 
-  NullabilityMigration(this.listener);
+  /// Prepares to perform nullability migration.
+  ///
+  /// If [permissive] is `true`, exception handling logic will try to proceed
+  /// as far as possible even though the migration algorithm is not yet
+  /// complete.  TODO(paulberry): remove this mode once the migration algorithm
+  /// is fully implemented.
+  NullabilityMigration(this.listener, {bool permissive: false})
+      : _analyzerMigration =
+            analyzer.NullabilityMigration(permissive: permissive);
 
   void finish() {
     _analyzerMigration.finish().forEach((pm) {

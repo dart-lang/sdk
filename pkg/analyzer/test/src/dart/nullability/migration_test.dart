@@ -456,7 +456,7 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
     unit.accept(ConstraintGatherer(typeProvider, _variables, constraints,
-        result.unit.declaredElement.source));
+        result.unit.declaredElement.source, false));
     return unit;
   }
 }
@@ -551,7 +551,7 @@ class MigrationVisitorTestBase extends DriverResolutionTest {
     await resolveTestFile();
     var unit = result.unit;
     unit.accept(ConstraintVariableGatherer(
-        _variables, result.unit.declaredElement.source));
+        _variables, result.unit.declaredElement.source, false));
     return unit;
   }
 

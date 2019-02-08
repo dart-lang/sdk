@@ -143,9 +143,19 @@ class Modification {
 /// TODO(paulberry): this implementation keeps a lot of CompilationUnit objects
 /// around.  Can we do better?
 class NullabilityMigration {
+  final bool _permissive;
+
   final _variables = Variables();
 
   final _constraints = Solver();
+
+  /// Prepares to perform nullability migration.
+  ///
+  /// If [permissive] is `true`, exception handling logic will try to proceed
+  /// as far as possible even though the migration algorithm is not yet
+  /// complete.  TODO(paulberry): remove this mode once the migration algorithm
+  /// is fully implemented.
+  NullabilityMigration({bool permissive: false}) : _permissive = permissive;
 
   List<PotentialModification> finish() {
     _constraints.applyHeuristics();
@@ -153,13 +163,13 @@ class NullabilityMigration {
   }
 
   void prepareInput(CompilationUnit unit) {
-    unit.accept(
-        ConstraintVariableGatherer(_variables, unit.declaredElement.source));
+    unit.accept(ConstraintVariableGatherer(
+        _variables, unit.declaredElement.source, _permissive));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintGatherer(
-        typeProvider, _variables, _constraints, unit.declaredElement.source));
+    unit.accept(ConstraintGatherer(typeProvider, _variables, _constraints,
+        unit.declaredElement.source, _permissive));
   }
 
   static String applyModifications(
