@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.methodName.name != 'toSet') {
       return;
     }
-    if (node.target is ListLiteral) {
+    if (node.target is ListLiteral || node.target is ListLiteral2) {
       rule.reportLint(node);
     }
   }
@@ -81,7 +81,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (DartTypeUtilities.isClass(node.staticType, 'Set', 'dart.core') ||
         DartTypeUtilities.isClass(
             node.staticType, 'LinkedHashSet', 'dart.collection')) {
-      if (constructorName != 'identity' && constructorName != 'unmodifiable') {
+      if (constructorName == null ||
+          constructorName == 'from' ||
+          constructorName == 'of') {
         rule.reportLint(node);
       }
     }
