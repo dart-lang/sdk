@@ -121,9 +121,12 @@ abstract class Iterable<E> {
   E get first;
   E get last;
   int get length;
+  Set<E> toSet() => new Set<E>.from(this);
 }
 
 abstract class List<E> implements Iterable<E> {
+  /* external */ factory List([int length]);
+  /* external */ factory List.filled(int length, E fill, {bool growable: false});
   void add(E value);
   E operator [](int index);
   void operator []=(int index, E value);
@@ -135,6 +138,10 @@ abstract class List<E> implements Iterable<E> {
 }
 
 abstract class Map<K, V> extends Object {
+  /* external */ factory Map();
+  factory Map.from(Map other) = LinkedHashMap<K, V>.from;
+  factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
+  factory Map.identity() = LinkedHashMap<K, V>.identity;
   Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
@@ -144,6 +151,10 @@ abstract class Map<K, V> extends Object {
 
 abstract class Set<E> implements Iterable<E> {
   Set<R> cast<R>();
+  factory Set() = LinkedHashSet<E>;
+  factory Set.identity() = LinkedHashSet<E>.identity;
+  factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
+  factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 }
 
 external bool identical(Object a, Object b);
@@ -189,7 +200,27 @@ part of dart.async;
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
-abstract class LinkedHashMap<K, V> implements HashMap<K, V> {}
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  /* external */ factory LinkedHashMap(
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)});
+  /* external */ factory LinkedHashMap.identity();
+  factory LinkedHashMap.from(Map other);
+  factory LinkedHashMap.of(Map<K, V> other) =>
+    new LinkedHashMap<K, V>()..addAll(other);
+}
+class LinkedHashSet<E> implements Set<E> {
+  /* external factory */ LinkedHashSet(
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)});
+  /* external factory */ LinkedHashSet.identity();
+  factory LinkedHashSet.from(Iterable elements);
+  
+  factory LinkedHashSet.of(Iterable<E> elements) =>
+      new LinkedHashSet<E>()..addAll(elements);
+}
 ''');
 
   static const _MockSdkLibrary LIB_CONVERT =
