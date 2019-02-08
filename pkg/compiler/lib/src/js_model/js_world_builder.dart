@@ -5,10 +5,12 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
+import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -303,7 +305,12 @@ class JsClosedWorldBuilder {
   NativeData _convertNativeData(
       JsToFrontendMap map, NativeDataImpl nativeData) {
     convertNativeBehaviorType(type) {
-      if (type is DartType) return map.toBackendType(type);
+      if (type is DartType) {
+        // TODO(johnniwinther): Avoid free variables in types. If the type
+        // pulled from a generic function type it might contain a function
+        // type variable that should probably have been replaced by its bound.
+        return map.toBackendType(type, allowFreeVariables: true);
+      }
       assert(type is SpecialType);
       return type;
     }
@@ -452,18 +459,6 @@ class JsClosedWorldBuilder {
 
   OutputUnitData _convertOutputUnitData(JsToFrontendMapImpl map,
       OutputUnitData data, ClosureData closureDataLookup) {
-    Entity toBackendEntity(Entity entity) {
-      if (entity is ClassEntity) return map.toBackendClass(entity);
-      if (entity is MemberEntity) return map.toBackendMember(entity);
-      if (entity is TypedefEntity) return map.toBackendTypedef(entity);
-      if (entity is TypeVariableEntity) {
-        return map.toBackendTypeVariable(entity);
-      }
-      assert(
-          entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
-      return map.toBackendLibrary(entity);
-    }
-
     // Convert front-end maps containing K-class and K-local function keys to a
     // backend map using J-classes as keys.
     Map<ClassEntity, OutputUnit> convertClassMap(
@@ -471,7 +466,7 @@ class JsClosedWorldBuilder {
         Map<Local, OutputUnit> localFunctionMap) {
       var result = <ClassEntity, OutputUnit>{};
       classMap.forEach((ClassEntity entity, OutputUnit unit) {
-        ClassEntity backendEntity = toBackendEntity(entity);
+        ClassEntity backendEntity = map.toBackendClass(entity);
         if (backendEntity != null) {
           // If [entity] isn't used it doesn't have a corresponding backend
           // entity.
@@ -496,7 +491,7 @@ class JsClosedWorldBuilder {
         Map<Local, OutputUnit> localFunctionMap) {
       var result = <MemberEntity, OutputUnit>{};
       memberMap.forEach((MemberEntity entity, OutputUnit unit) {
-        MemberEntity backendEntity = toBackendEntity(entity);
+        MemberEntity backendEntity = map.toBackendMember(entity);
         if (backendEntity != null) {
           // If [entity] isn't used it doesn't have a corresponding backend
           // entity.
@@ -514,17 +509,13 @@ class JsClosedWorldBuilder {
       return result;
     }
 
-    ConstantValue toBackendConstant(ConstantValue constant) {
-      return constant.accept(new ConstantConverter(toBackendEntity), null);
-    }
-
     return new OutputUnitData.from(
         data,
         map.toBackendLibrary,
         convertClassMap,
         convertMemberMap,
         (m) => convertMap<ConstantValue, OutputUnit>(
-            m, toBackendConstant, (v) => v));
+            m, map.toBackendConstant, (v) => v));
   }
 }
 
@@ -597,12 +588,259 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
       rtiNeed.instantiationNeedsTypeArguments(functionType, typeArgumentCount);
 }
 
-class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
-  final Entity Function(Entity) toBackendEntity;
-  final TypeConverter typeConverter;
+/// Map from 'frontend' to 'backend' elements.
+///
+/// Frontend elements are what we read in, these typically represents concepts
+/// in Dart. Backend elements are what we generate, these may include elements
+/// that do not correspond to a Dart concept, such as closure classes.
+///
+/// Querying for the frontend element for a backend-only element throws an
+/// exception.
+abstract class JsToFrontendMap {
+  LibraryEntity toBackendLibrary(LibraryEntity library);
 
-  ConstantConverter(this.toBackendEntity)
-      : typeConverter = new TypeConverter(toBackendEntity);
+  ClassEntity toBackendClass(ClassEntity cls);
+
+  /// Returns the backend member corresponding to [member]. If a member isn't
+  /// live, it doesn't have a corresponding backend member and `null` is
+  /// returned instead.
+  MemberEntity toBackendMember(MemberEntity member);
+
+  DartType toBackendType(DartType type, {bool allowFreeVariables: false});
+
+  ConstantValue toBackendConstant(ConstantValue value);
+
+  Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
+    return set.map(toBackendLibrary).toSet();
+  }
+
+  Set<ClassEntity> toBackendClassSet(Iterable<ClassEntity> set) {
+    // TODO(johnniwinther): Filter unused classes.
+    return set.map(toBackendClass).toSet();
+  }
+
+  Set<MemberEntity> toBackendMemberSet(Iterable<MemberEntity> set) {
+    return set.map(toBackendMember).where((MemberEntity member) {
+      // Members that are not live don't have a corresponding backend member.
+      return member != null;
+    }).toSet();
+  }
+
+  Set<FieldEntity> toBackendFieldSet(Iterable<FieldEntity> set) {
+    Set<FieldEntity> newSet = new Set<FieldEntity>();
+    for (FieldEntity element in set) {
+      FieldEntity backendField = toBackendMember(element);
+      if (backendField != null) {
+        // Members that are not live don't have a corresponding backend member.
+        newSet.add(backendField);
+      }
+    }
+    return newSet;
+  }
+
+  Set<FunctionEntity> toBackendFunctionSet(Iterable<FunctionEntity> set) {
+    Set<FunctionEntity> newSet = new Set<FunctionEntity>();
+    for (FunctionEntity element in set) {
+      FunctionEntity backendFunction = toBackendMember(element);
+      if (backendFunction != null) {
+        // Members that are not live don't have a corresponding backend member.
+        newSet.add(backendFunction);
+      }
+    }
+    return newSet;
+  }
+
+  Map<LibraryEntity, V> toBackendLibraryMap<V>(
+      Map<LibraryEntity, V> map, V convert(V value)) {
+    return convertMap(map, toBackendLibrary, convert);
+  }
+
+  Map<ClassEntity, V> toBackendClassMap<V>(
+      Map<ClassEntity, V> map, V convert(V value)) {
+    return convertMap(map, toBackendClass, convert);
+  }
+
+  Map<MemberEntity, V> toBackendMemberMap<V>(
+      Map<MemberEntity, V> map, V convert(V value)) {
+    return convertMap(map, toBackendMember, convert);
+  }
+}
+
+E identity<E>(E element) => element;
+
+Map<K, V> convertMap<K, V>(
+    Map<K, V> map, K convertKey(K key), V convertValue(V value)) {
+  Map<K, V> newMap = <K, V>{};
+  map.forEach((K key, V value) {
+    K newKey = convertKey(key);
+    V newValue = convertValue(value);
+    if (newKey != null && newValue != null) {
+      // Entities that are not used don't have a corresponding backend entity.
+      newMap[newKey] = newValue;
+    }
+  });
+  return newMap;
+}
+
+class JsToFrontendMapImpl extends JsToFrontendMap {
+  final JsKernelToElementMap _backend;
+
+  JsToFrontendMapImpl(this._backend);
+
+  DartType toBackendType(DartType type, {bool allowFreeVariables: false}) =>
+      type == null
+          ? null
+          : new _TypeConverter(allowFreeVariables: allowFreeVariables)
+              .visit(type, toBackendEntity);
+
+  Entity toBackendEntity(Entity entity) {
+    if (entity is ClassEntity) return toBackendClass(entity);
+    if (entity is MemberEntity) return toBackendMember(entity);
+    if (entity is TypedefEntity) return toBackendTypedef(entity);
+    if (entity is TypeVariableEntity) {
+      return toBackendTypeVariable(entity);
+    }
+    assert(entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
+    return toBackendLibrary(entity);
+  }
+
+  LibraryEntity toBackendLibrary(covariant IndexedLibrary library) {
+    return _backend.libraries.getEntity(library.libraryIndex);
+  }
+
+  ClassEntity toBackendClass(covariant IndexedClass cls) {
+    return _backend.classes.getEntity(cls.classIndex);
+  }
+
+  MemberEntity toBackendMember(covariant IndexedMember member) {
+    return _backend.members.getEntity(member.memberIndex);
+  }
+
+  TypedefEntity toBackendTypedef(covariant IndexedTypedef typedef) {
+    return _backend.typedefs.getEntity(typedef.typedefIndex);
+  }
+
+  TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
+    if (typeVariable is KLocalTypeVariable) {
+      failedAt(
+          typeVariable, "Local function type variables are not supported.");
+    }
+    IndexedTypeVariable indexedTypeVariable = typeVariable;
+    return _backend.typeVariables
+        .getEntity(indexedTypeVariable.typeVariableIndex);
+  }
+
+  ConstantValue toBackendConstant(ConstantValue constant) {
+    return constant.accept(new _ConstantConverter(toBackendEntity), null);
+  }
+}
+
+typedef Entity _EntityConverter(Entity cls);
+
+class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
+  final bool allowFreeVariables;
+
+  Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
+      <FunctionTypeVariable, FunctionTypeVariable>{};
+
+  _TypeConverter({this.allowFreeVariables: false});
+
+  List<DartType> convertTypes(
+          List<DartType> types, _EntityConverter converter) =>
+      visitList(types, converter);
+
+  @override
+  DartType visit(DartType type, _EntityConverter converter) {
+    return type.accept(this, converter);
+  }
+
+  List<DartType> visitList(List<DartType> types, _EntityConverter converter) {
+    List<DartType> list = <DartType>[];
+    for (DartType type in types) {
+      list.add(visit(type, converter));
+    }
+    return list;
+  }
+
+  @override
+  DartType visitDynamicType(DynamicType type, _EntityConverter converter) {
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
+    return new InterfaceType(
+        converter(type.element), visitList(type.typeArguments, converter));
+  }
+
+  @override
+  DartType visitTypedefType(TypedefType type, _EntityConverter converter) {
+    return new TypedefType(
+        converter(type.element),
+        visitList(type.typeArguments, converter),
+        visit(type.unaliased, converter));
+  }
+
+  @override
+  DartType visitTypeVariableType(
+      TypeVariableType type, _EntityConverter converter) {
+    return new TypeVariableType(converter(type.element));
+  }
+
+  @override
+  DartType visitFunctionType(FunctionType type, _EntityConverter converter) {
+    List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      typeVariables.add(_functionTypeVariables[typeVariable] =
+          new FunctionTypeVariable(typeVariable.index));
+    }
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      _functionTypeVariables[typeVariable].bound = typeVariable.bound != null
+          ? visit(typeVariable.bound, converter)
+          : null;
+    }
+    DartType returnType = visit(type.returnType, converter);
+    List<DartType> parameterTypes = visitList(type.parameterTypes, converter);
+    List<DartType> optionalParameterTypes =
+        visitList(type.optionalParameterTypes, converter);
+    List<DartType> namedParameterTypes =
+        visitList(type.namedParameterTypes, converter);
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      _functionTypeVariables.remove(typeVariable);
+    }
+    return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
+        type.namedParameters, namedParameterTypes, typeVariables);
+  }
+
+  @override
+  DartType visitFunctionTypeVariable(
+      FunctionTypeVariable type, _EntityConverter converter) {
+    DartType result = _functionTypeVariables[type];
+    if (result == null && allowFreeVariables) {
+      return type;
+    }
+    assert(result != null,
+        "Function type variable $type not found in $_functionTypeVariables");
+    return result;
+  }
+
+  @override
+  DartType visitVoidType(VoidType type, _EntityConverter converter) {
+    return const VoidType();
+  }
+
+  @override
+  DartType visitFutureOrType(FutureOrType type, _EntityConverter converter) {
+    return new FutureOrType(visit(type.typeArgument, converter));
+  }
+}
+
+class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
+  final Entity Function(Entity) toBackendEntity;
+  final _TypeConverter typeConverter;
+
+  _ConstantConverter(this.toBackendEntity)
+      : typeConverter = new _TypeConverter();
 
   ConstantValue visitNull(NullConstantValue constant, _) => constant;
   ConstantValue visitInt(IntConstantValue constant, _) => constant;
@@ -613,12 +851,12 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
 
   ConstantValue visitFunction(FunctionConstantValue constant, _) {
-    return new FunctionConstantValue(
-        toBackendEntity(constant.element), typeConverter.visit(constant.type));
+    return new FunctionConstantValue(toBackendEntity(constant.element),
+        typeConverter.visit(constant.type, toBackendEntity));
   }
 
   ConstantValue visitList(ListConstantValue constant, _) {
-    DartType type = typeConverter.visit(constant.type);
+    DartType type = typeConverter.visit(constant.type, toBackendEntity);
     List<ConstantValue> entries = _handleValues(constant.entries);
     if (identical(entries, constant.entries) && type == constant.type) {
       return constant;
@@ -627,7 +865,7 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitMap(MapConstantValue constant, _) {
-    var type = typeConverter.visit(constant.type);
+    var type = typeConverter.visit(constant.type, toBackendEntity);
     List<ConstantValue> keys = _handleValues(constant.keys);
     List<ConstantValue> values = _handleValues(constant.values);
     if (identical(keys, constant.keys) &&
@@ -639,7 +877,7 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitConstructed(ConstructedConstantValue constant, _) {
-    DartType type = typeConverter.visit(constant.type);
+    DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
     constant.fields.forEach((f, v) {
       FieldEntity backendField = toBackendEntity(f);
@@ -650,8 +888,9 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitType(TypeConstantValue constant, _) {
-    DartType type = typeConverter.visit(constant.type);
-    DartType representedType = typeConverter.visit(constant.representedType);
+    DartType type = typeConverter.visit(constant.type, toBackendEntity);
+    DartType representedType =
+        typeConverter.visit(constant.representedType, toBackendEntity);
     if (type == constant.type && representedType == constant.representedType) {
       return constant;
     }
@@ -673,7 +912,7 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   ConstantValue visitInstantiation(InstantiationConstantValue constant, _) {
     ConstantValue function = constant.function.accept(this, null);
     List<DartType> typeArguments =
-        typeConverter.convertTypes(constant.typeArguments);
+        typeConverter.convertTypes(constant.typeArguments, toBackendEntity);
     return new InstantiationConstantValue(typeArguments, function);
   }
 
@@ -689,74 +928,4 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     }
     return result ?? values;
   }
-}
-
-class TypeConverter implements DartTypeVisitor<DartType, Null> {
-  final Entity Function(Entity) toBackendEntity;
-
-  TypeConverter(this.toBackendEntity);
-
-  Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
-      <FunctionTypeVariable, FunctionTypeVariable>{};
-
-  DartType visit(DartType type, [_]) => type.accept(this, null);
-
-  List<DartType> convertTypes(List<DartType> types) => _visitList(types);
-
-  DartType visitVoidType(VoidType type, _) => type;
-  DartType visitDynamicType(DynamicType type, _) => type;
-
-  DartType visitTypeVariableType(TypeVariableType type, _) {
-    return new TypeVariableType(toBackendEntity(type.element));
-  }
-
-  DartType visitFunctionTypeVariable(FunctionTypeVariable type, _) {
-    DartType result = _functionTypeVariables[type];
-    assert(result != null,
-        "Function type variable $type not found in $_functionTypeVariables");
-    return result;
-  }
-
-  DartType visitFunctionType(FunctionType type, _) {
-    List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
-    for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      typeVariables.add(_functionTypeVariables[typeVariable] =
-          new FunctionTypeVariable(typeVariable.index));
-    }
-    for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      _functionTypeVariables[typeVariable].bound =
-          typeVariable.bound?.accept(this, null);
-    }
-    DartType returnType = type.returnType.accept(this, null);
-    List<DartType> parameterTypes = _visitList(type.parameterTypes);
-    List<DartType> optionalParameterTypes =
-        _visitList(type.optionalParameterTypes);
-    List<DartType> namedParameterTypes = _visitList(type.namedParameterTypes);
-    for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      _functionTypeVariables.remove(typeVariable);
-    }
-    return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        type.namedParameters, namedParameterTypes, typeVariables);
-  }
-
-  DartType visitInterfaceType(InterfaceType type, _) {
-    ClassEntity element = toBackendEntity(type.element);
-    List<DartType> args = _visitList(type.typeArguments);
-    return new InterfaceType(element, args);
-  }
-
-  DartType visitTypedefType(TypedefType type, _) {
-    TypedefEntity element = toBackendEntity(type.element);
-    List<DartType> args = _visitList(type.typeArguments);
-    DartType unaliased = visit(type.unaliased);
-    return new TypedefType(element, args, unaliased);
-  }
-
-  @override
-  DartType visitFutureOrType(FutureOrType type, _) {
-    return new FutureOrType(visit(type.typeArgument));
-  }
-
-  List<DartType> _visitList(List<DartType> list) =>
-      list.map<DartType>((t) => t.accept(this, null)).toList();
 }

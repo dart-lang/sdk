@@ -2555,39 +2555,6 @@ class JsEvaluationEnvironment extends EvaluationEnvironmentBase {
   bool get enableAssertions => _elementMap.options.enableUserAssertions;
 }
 
-class JsToFrontendMapImpl extends JsToFrontendMapBase
-    implements JsToFrontendMap {
-  final JsKernelToElementMap _backend;
-
-  JsToFrontendMapImpl(this._backend);
-
-  LibraryEntity toBackendLibrary(covariant IndexedLibrary library) {
-    return _backend.libraries.getEntity(library.libraryIndex);
-  }
-
-  ClassEntity toBackendClass(covariant IndexedClass cls) {
-    return _backend.classes.getEntity(cls.classIndex);
-  }
-
-  MemberEntity toBackendMember(covariant IndexedMember member) {
-    return _backend.members.getEntity(member.memberIndex);
-  }
-
-  TypedefEntity toBackendTypedef(covariant IndexedTypedef typedef) {
-    return _backend.typedefs.getEntity(typedef.typedefIndex);
-  }
-
-  TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
-    if (typeVariable is KLocalTypeVariable) {
-      failedAt(
-          typeVariable, "Local function type variables are not supported.");
-    }
-    IndexedTypeVariable indexedTypeVariable = typeVariable;
-    return _backend.typeVariables
-        .getEntity(indexedTypeVariable.typeVariableIndex);
-  }
-}
-
 /// [EntityLookup] implementation used to deserialize [JsKernelToElementMap].
 ///
 /// Since data objects and environments are registered together with their
