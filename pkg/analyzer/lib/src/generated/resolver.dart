@@ -301,6 +301,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     TypeSystem typeSystem,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
+    AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
@@ -313,8 +314,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     Workspace workspace =
         ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
     _workspacePackage = workspace.findPackageFor(libraryPath);
-    _linterContext = LinterContextImpl(null /* allUnits */,
-        null /* currentUnit */, declaredVariables, typeProvider, _typeSystem);
+    _linterContext = LinterContextImpl(
+        null /* allUnits */,
+        null /* currentUnit */,
+        declaredVariables,
+        typeProvider,
+        _typeSystem,
+        analysisOptions);
   }
 
   @override

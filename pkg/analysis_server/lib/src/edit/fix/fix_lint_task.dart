@@ -130,8 +130,13 @@ mixin FixLintProcessor {
 
     final visitors = <AstVisitor>[];
     final registry = new NodeLintRegistry(false);
-    var context = LinterContextImpl(allUnits, currentUnit,
-        session.declaredVariables, result.typeProvider, result.typeSystem);
+    var context = LinterContextImpl(
+        allUnits,
+        currentUnit,
+        session.declaredVariables,
+        result.typeProvider,
+        result.typeSystem,
+        result.session.analysisContext.analysisOptions);
     for (Linter linter in linters) {
       if (linter != null) {
         final visitor = linter.getVisitor();

@@ -16,7 +16,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
@@ -199,6 +199,8 @@ class Hyperlink {
 abstract class LinterContext {
   List<LinterContextUnit> get allUnits;
 
+  AnalysisOptions get analysisOptions;
+
   LinterContextUnit get currentUnit;
 
   DeclaredVariables get declaredVariables;
@@ -224,6 +226,9 @@ class LinterContextImpl implements LinterContext {
   final List<LinterContextUnit> allUnits;
 
   @override
+  final AnalysisOptions analysisOptions;
+
+  @override
   final LinterContextUnit currentUnit;
 
   @override
@@ -236,7 +241,7 @@ class LinterContextImpl implements LinterContext {
   final TypeSystem typeSystem;
 
   LinterContextImpl(this.allUnits, this.currentUnit, this.declaredVariables,
-      this.typeProvider, this.typeSystem);
+      this.typeProvider, this.typeSystem, this.analysisOptions);
 
   @override
   bool canBeConst(InstanceCreationExpression expression) {

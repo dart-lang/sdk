@@ -50,7 +50,8 @@ class LinterContextImplTest extends ResolverTestCase {
         contextUnit,
         analysisResult.session.declaredVariables,
         analysisResult.typeProvider,
-        analysisResult.typeSystem);
+        analysisResult.typeSystem,
+        analysisOptions);
   }
 
   void test_canBeConst_false_argument_invocation() async {
