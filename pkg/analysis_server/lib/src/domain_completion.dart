@@ -284,7 +284,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       includedSuggestionKinds,
     ).then((CompletionResult result) {
       List<IncludedSuggestionSet> includedSuggestionSets;
-      if (includedSuggestionKinds != null) {
+      if (includedSuggestionKinds != null && resolvedUnit != null) {
         includedSuggestionSets = computeIncludedSetList(
           server.declarationsTracker,
           resolvedUnit,

@@ -13,14 +13,17 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../analysis_abstract.dart';
+import '../../../constants.dart';
 
 @reflectiveTest
 class AvailableSuggestionsBase extends AbstractAnalysisTest {
   final Map<int, AvailableSuggestionSet> idToSetMap = {};
   final Map<String, AvailableSuggestionSet> uriToSetMap = {};
+  final Map<String, CompletionResultsParams> idToSuggestions = {};
 
   @override
   void processNotification(Notification notification) {
+    super.processNotification(notification);
     if (notification.event == COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS) {
       var params = CompletionAvailableSuggestionsParams.fromNotification(
         notification,
@@ -33,6 +36,9 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
         var set = idToSetMap.remove(id);
         uriToSetMap.remove(set?.uri);
       }
+    } else if (notification.event == COMPLETION_RESULTS) {
+      var params = CompletionResultsParams.fromNotification(notification);
+      idToSuggestions[params.id] = params;
     }
   }
 
@@ -57,8 +63,18 @@ test:${toUri('/home/test/lib')}
 ''');
 
     createProject();
-    handler = new CompletionDomainHandler(server);
+    handler = server.handlers.whereType<CompletionDomainHandler>().single;
     _setCompletionSubscriptions([CompletionService.AVAILABLE_SUGGESTION_SETS]);
+  }
+
+  Future<CompletionResultsParams> waitForGetSuggestions(String id) async {
+    while (true) {
+      var result = idToSuggestions[id];
+      if (result != null) {
+        return result;
+      }
+      await Future.delayed(const Duration(milliseconds: 1));
+    }
   }
 
   Future<AvailableSuggestionSet> waitForSetWithUri(String uri) async {
