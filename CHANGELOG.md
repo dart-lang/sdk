@@ -1,3 +1,9 @@
+# 0.1.80
+
+* updated `prefer_collection_literals` to support Set literals
+* deprecated `super_goes_last`
+* (internal) migrations to analyzer's preferred `InheritanceManager2` API
+
 # 0.1.79
 
 * `unnecessary_parenthesis` updated to play nicer with cascades
