@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
+import 'package:analyzer/src/dart/nullability/transitional_api.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -37,7 +38,10 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   final bool _permissive;
 
-  ConstraintVariableGatherer(this._variables, this._source, this._permissive);
+  final NullabilityMigrationAssumptions assumptions;
+
+  ConstraintVariableGatherer(
+      this._variables, this._source, this._permissive, this.assumptions);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
@@ -98,9 +102,13 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = decorateType(node.type);
-    _variables.recordDecoratedElementType(node.declaredElement, type);
-    assert(!node.declaredElement.isNamed); // TODO(paulberry)
-    _currentFunctionType.positionalParameters.add(type);
+    var declaredElement = node.declaredElement;
+    _variables.recordDecoratedElementType(declaredElement, type);
+    if (declaredElement.isNamed) {
+      _currentFunctionType.namedParameters[declaredElement.name] = type;
+    } else {
+      _currentFunctionType.positionalParameters.add(type);
+    }
     return null;
   }
 
@@ -144,7 +152,9 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
     var functionType = DecoratedType(declaredElement.type, null,
-        returnType: decoratedReturnType, positionalParameters: []);
+        returnType: decoratedReturnType,
+        positionalParameters: [],
+        namedParameters: {});
     _currentFunctionType = functionType;
     parameters.accept(this);
     _currentFunctionType = previousFunctionType;

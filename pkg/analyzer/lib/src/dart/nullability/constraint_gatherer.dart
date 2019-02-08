@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
 import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
 import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/nullability/expression_checks.dart';
+import 'package:analyzer/src/dart/nullability/transitional_api.dart';
 import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -30,6 +31,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   final VariableRepository _variables;
 
   final bool _permissive;
+
+  final NullabilityMigrationAssumptions assumptions;
 
   /// Constraints gathered by the visitor are stored here.
   final Constraints _constraints;
@@ -66,7 +69,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   final _guards = <ConstraintVariable>[];
 
   ConstraintGatherer(TypeProvider typeProvider, this._variables,
-      this._constraints, this._source, this._permissive)
+      this._constraints, this._source, this._permissive, this.assumptions)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
         _nonNullableBoolType = DecoratedType(typeProvider.boolType, null),
         _nonNullableTypeType = DecoratedType(typeProvider.typeType, null);
@@ -184,8 +187,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
-    assert(node.defaultValue == null); // TODO(paulberry)
-    _recordFact(getOrComputeElementType(node.declaredElement).nullable);
+    var defaultValue = node.defaultValue;
+    if (defaultValue == null) {
+      _recordFact(getOrComputeElementType(node.declaredElement).nullable);
+    } else {
+      _handleAssignment(
+          getOrComputeElementType(node.declaredElement), defaultValue);
+    }
     return null;
   }
 
@@ -268,11 +276,17 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
     var arguments = node.argumentList.arguments;
-    for (int i = 0; i < arguments.length; i++) {
-      var expression = arguments[i];
-      assert(expression is! NamedExpression); // TODO(paulberry)
-      assert(calleeType.positionalParameters.length > i); // TODO(paulberry)
-      _handleAssignment(calleeType.positionalParameters[i], expression);
+    int i = 0;
+    for (var expression in arguments) {
+      if (expression is NamedExpression) {
+        var parameterType =
+            calleeType.namedParameters[expression.name.label.name];
+        assert(parameterType != null); // TODO(paulberry)
+        _handleAssignment(parameterType, expression.expression);
+      } else {
+        assert(calleeType.positionalParameters.length > i); // TODO(paulberry)
+        _handleAssignment(calleeType.positionalParameters[i++], expression);
+      }
     }
     return calleeType.returnType;
   }
@@ -319,6 +333,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       // TODO(paulberry)
       throw new UnimplementedError('${staticElement.runtimeType}');
     }
+  }
+
+  @override
+  DecoratedType visitStringLiteral(StringLiteral node) {
+    return DecoratedType(node.staticType, null);
   }
 
   @override

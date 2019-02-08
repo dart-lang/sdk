@@ -9,6 +9,9 @@ import 'package:analyzer/src/dart/nullability/transitional_api.dart'
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
+export 'package:analyzer/src/dart/nullability/transitional_api.dart'
+    show NullabilityMigrationAssumptions;
+
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
   /// An expression's value needs to be null-checked.
@@ -58,9 +61,12 @@ class NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
-  NullabilityMigration(this.listener, {bool permissive: false})
-      : _analyzerMigration =
-            analyzer.NullabilityMigration(permissive: permissive);
+  NullabilityMigration(this.listener,
+      {bool permissive: false,
+      analyzer.NullabilityMigrationAssumptions assumptions:
+          const analyzer.NullabilityMigrationAssumptions()})
+      : _analyzerMigration = analyzer.NullabilityMigration(
+            permissive: permissive, assumptions: assumptions);
 
   void finish() {
     _analyzerMigration.finish().forEach((pm) {

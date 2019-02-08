@@ -35,13 +35,15 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
   /// Verifies that migration of the files in [input] produces the output in
   /// [expectedOutput].
   Future<void> _checkMultipleFileChanges(
-      Map<String, String> input, Map<String, String> expectedOutput) async {
+      Map<String, String> input, Map<String, String> expectedOutput,
+      {NullabilityMigrationAssumptions assumptions:
+          const NullabilityMigrationAssumptions()}) async {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
     var listener = new TestMigrationListener();
-    var migration =
-        NullabilityMigration(listener, permissive: usePermissiveMode);
+    var migration = NullabilityMigration(listener,
+        permissive: usePermissiveMode, assumptions: assumptions);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -57,7 +59,7 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
       (sourceEdits[path] ??= []).addAll(fix.sourceEdits);
     }
     for (var path in expectedOutput.keys) {
-      var sourceEditsForPath = sourceEdits[path];
+      var sourceEditsForPath = sourceEdits[path] ?? [];
       sourceEditsForPath.sort((a, b) => b.offset.compareTo(a.offset));
       expect(SourceEdit.applySequence(input[path], sourceEditsForPath),
           expectedOutput[path]);
@@ -225,6 +227,102 @@ int f(int i) {
   } else {
     */ return i + 1; /*
   } */
+}
+''';
+    _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_no_default_unused_option2() async {
+    var content = '''
+void f({String s}) {}
+main() {
+  f();
+}
+''';
+    var expected = '''
+void f({String? s}) {}
+main() {
+  f();
+}
+''';
+    _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_no_default_used_null_option2() async {
+    var content = '''
+void f({String s}) {}
+main() {
+  f(s: null);
+}
+''';
+    var expected = '''
+void f({String? s}) {}
+main() {
+  f(s: null);
+}
+''';
+    _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_no_default_used_non_null_option2_assume_nullable() async {
+    var content = '''
+void f({String s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    var expected = '''
+void f({String? s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_with_default_unused_option2() async {
+    var content = '''
+void f({String s: 'foo'}) {}
+main() {
+  f();
+}
+''';
+    var expected = '''
+void f({String s: 'foo'}) {}
+main() {
+  f();
+}
+''';
+    _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_with_default_used_non_null_option2() async {
+    var content = '''
+void f({String s: 'foo'}) {}
+main() {
+  f(s: 'bar');
+}
+''';
+    var expected = '''
+void f({String s: 'foo'}) {}
+main() {
+  f(s: 'bar');
+}
+''';
+    _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_with_default_used_null_option2() async {
+    var content = '''
+void f({String s: 'foo'}) {}
+main() {
+  f(s: null);
+}
+''';
+    var expected = '''
+void f({String? s: 'foo'}) {}
+main() {
+  f(s: null);
 }
 ''';
     _checkSingleFileChanges(content, expected);

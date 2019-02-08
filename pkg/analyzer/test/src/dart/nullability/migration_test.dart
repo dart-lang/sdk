@@ -223,6 +223,23 @@ int/*1*/ f(int/*2*/ i) => i;
         decoratedTypeAnnotation('int/*1*/').nullable);
   }
 
+  test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
+    await analyze('''
+void f([int i: 1]) {}
+''');
+
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_functionDeclaration_parameter_positionalOptional_default_null() async {
+    await analyze('''
+void f([int i: null]) {}
+''');
+
+    assertConstraint(
+        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+  }
+
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
     await analyze('''
 void f([int i]) {}
@@ -241,6 +258,18 @@ void test(int/*2*/ i) {
 
     assertConstraint([decoratedTypeAnnotation('int/*2*/').nullable],
         decoratedTypeAnnotation('int/*1*/').nullable);
+  }
+
+  test_functionInvocation_parameter_named() async {
+    await analyze('''
+void f({int i: 0}) {}
+void g(int j) {
+  f(i: j);
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').nullable;
+    var nullable_j = decoratedTypeAnnotation('int j').nullable;
+    assertConstraint([nullable_j], nullable_i);
   }
 
   test_functionInvocation_parameter_null() async {
@@ -375,6 +404,20 @@ void g(C<int/*3*/>/*4*/ c) {
         decoratedTypeAnnotation('C<int/*1*/>/*2*/').nullable);
   }
 
+  test_methodInvocation_parameter_named() async {
+    await analyze('''
+class C {
+  void f({int i: 0}) {}
+}
+void g(C c, int j) {
+  c.f(i: j);
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').nullable;
+    var nullable_j = decoratedTypeAnnotation('int j').nullable;
+    assertConstraint([nullable_j], nullable_i);
+  }
+
   test_methodInvocation_target_check() async {
     await analyze('''
 class C {
@@ -409,6 +452,16 @@ int f() {
 
     assertConstraint(
         [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_stringLiteral() async {
+    // TODO(paulberry): also test string interpolations
+    await analyze('''
+String f() {
+  return 'x';
+}
+''');
+    assertNoConstraints(decoratedTypeAnnotation('String').nullable);
   }
 
   test_thisExpression() async {
@@ -453,10 +506,12 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
-  Future<CompilationUnit> analyze(String code) async {
+  Future<CompilationUnit> analyze(String code,
+      {NullabilityMigrationAssumptions assumptions:
+          const NullabilityMigrationAssumptions()}) async {
     var unit = await super.analyze(code);
     unit.accept(ConstraintGatherer(typeProvider, _variables, constraints,
-        result.unit.declaredElement.source, false));
+        result.unit.declaredElement.source, false, assumptions));
     return unit;
   }
 }
@@ -504,6 +559,16 @@ void f(x) {}
     expect(decoratedType.nullable, same(ConstraintVariable.always));
   }
 
+  test_topLevelFunction_parameterType_named() async {
+    await analyze('''
+void f({String s: 'x') {}
+''');
+    var decoratedType = decoratedTypeAnnotation('String');
+    expect(
+        decoratedFunctionType('f').namedParameters['s'], same(decoratedType));
+    expect(decoratedType.nullable, isNotNull);
+  }
+
   test_topLevelFunction_parameterType_positionalOptional() async {
     await analyze('''
 void f([int i]) {}
@@ -546,12 +611,14 @@ int f() => 0;
 class MigrationVisitorTestBase extends DriverResolutionTest {
   final _variables = _Variables();
 
-  Future<CompilationUnit> analyze(String code) async {
+  Future<CompilationUnit> analyze(String code,
+      {NullabilityMigrationAssumptions assumptions:
+          const NullabilityMigrationAssumptions()}) async {
     addTestFile(code);
     await resolveTestFile();
     var unit = result.unit;
     unit.accept(ConstraintVariableGatherer(
-        _variables, result.unit.declaredElement.source, false));
+        _variables, result.unit.declaredElement.source, false, assumptions));
     return unit;
   }
 
