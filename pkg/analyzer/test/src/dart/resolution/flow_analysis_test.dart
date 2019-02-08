@@ -17,6 +17,7 @@ import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NullableFlowTest);
     defineReflectiveTests(DefiniteAssignmentFlowTest);
     defineReflectiveTests(ReachableFlowTest);
     defineReflectiveTests(TypePromotionFlowTest);
@@ -1318,6 +1319,323 @@ void f() {
       readBeforeWritten,
       [],
       [],
+      [],
+      [],
+    ));
+  }
+}
+
+@reflectiveTest
+class NullableFlowTest extends DriverResolutionTest {
+  final List<AstNode> nullableNodes = [];
+  final List<AstNode> nonNullableNodes = [];
+
+  void assertNonNullable([
+    String search1,
+    String search2,
+    String search3,
+    String search4,
+    String search5,
+  ]) {
+    var expected = [search1, search2, search3, search4, search5]
+        .where((i) => i != null)
+        .map((search) => findNode.simple(search))
+        .toList();
+    expect(nonNullableNodes, unorderedEquals(expected));
+  }
+
+  void assertNullable([
+    String search1,
+    String search2,
+    String search3,
+    String search4,
+    String search5,
+  ]) {
+    var expected = [search1, search2, search3, search4, search5]
+        .where((i) => i != null)
+        .map((search) => findNode.simple(search))
+        .toList();
+    expect(nullableNodes, unorderedEquals(expected));
+  }
+
+  test_assign_toNonNull() async {
+    await trackCode(r'''
+void f(int x) {
+  if (x != null) return;
+  x; // 1
+  x = 0;
+  x; // 2
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable('x; // 2');
+  }
+
+  test_assign_toNull() async {
+    await trackCode(r'''
+void f(int x) {
+  if (x == null) return;
+  x; // 1
+  x = null;
+  x; // 2
+}
+''');
+    assertNullable('x; // 2');
+    assertNonNullable('x; // 1');
+  }
+
+  test_assign_toUnknown_fromNotNull() async {
+    await trackCode(r'''
+void f(int a, int b) {
+  if (a == null) return;
+  a; // 1
+  a = b;
+  a; // 2
+}
+''');
+    assertNullable();
+    assertNonNullable('a; // 1');
+  }
+
+  test_assign_toUnknown_fromNull() async {
+    await trackCode(r'''
+void f(int a, int b) {
+  if (a != null) return;
+  a; // 1
+  a = b;
+  a; // 2
+}
+''');
+    assertNullable('a; // 1');
+    assertNonNullable();
+  }
+
+  test_binaryExpression_logicalAnd() async {
+    await trackCode(r'''
+void f(int x) {
+  x == null && x.isEven;
+}
+''');
+    assertNullable('x.isEven');
+    assertNonNullable();
+  }
+
+  test_binaryExpression_logicalOr() async {
+    await trackCode(r'''
+void f(int x) {
+  x == null || x.isEven;
+}
+''');
+    assertNullable();
+    assertNonNullable('x.isEven');
+  }
+
+  test_if_joinThenElse_ifNull() async {
+    await trackCode(r'''
+void f(int a, int b) {
+  if (a == null) {
+    a; // 1
+    if (b == null) return;
+    b; // 2
+  } else {
+    a; // 3
+    if (b == null) return;
+    b; // 4
+  }
+  a; // 5
+  b; // 6
+}
+''');
+    assertNullable('a; // 1');
+    assertNonNullable('b; // 2', 'a; // 3', 'b; // 4', 'b; // 6');
+  }
+
+  test_if_notNull_thenExit() async {
+    await trackCode(r'''
+void f(int x) {
+  if (x != null) return;
+  x; // 1
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable();
+  }
+
+  test_if_null_thenExit() async {
+    await trackCode(r'''
+void f(int x) {
+  if (x == null) return;
+  x; // 1
+}
+''');
+    assertNullable();
+    assertNonNullable('x; // 1');
+  }
+
+  test_if_then_else() async {
+    await trackCode(r'''
+void f(int x) {
+  if (x == null) {
+    x; // 1
+  } else {
+    x; // 2
+  }
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable('x; // 2');
+  }
+
+  test_potentiallyMutatedInClosure() async {
+    await trackCode(r'''
+f(int a, int b) {
+  localFunction() {
+    a = b;
+  }
+
+  if (a == null) {
+    a; // 1
+    localFunction();
+    a; // 2
+  }
+}
+''');
+    assertNullable();
+    assertNonNullable();
+  }
+
+  test_tryFinally_eqNullExit_body() async {
+    await trackCode(r'''
+void f(int x) {
+  try {
+    if (x == null) return;
+    x; // 1
+  } finally {
+    x; // 2
+  }
+  x; // 3
+}
+''');
+    assertNullable();
+    assertNonNullable('x; // 1', 'x; // 3');
+  }
+
+  test_tryFinally_eqNullExit_finally() async {
+    await trackCode(r'''
+void f(int x) {
+  try {
+    x; // 1
+  } finally {
+    if (x == null) return;
+    x; // 2
+  }
+  x; // 3
+}
+''');
+    assertNullable();
+    assertNonNullable('x; // 2', 'x; // 3');
+  }
+
+  test_tryFinally_outerEqNotNullExit_assignUnknown_body() async {
+    await trackCode(r'''
+void f(int a, int b) {
+  if (a != null) return;
+  try {
+    a; // 1
+    a = b;
+    a; // 2
+  } finally {
+    a; // 3
+  }
+  a; // 4
+}
+''');
+    assertNullable('a; // 1');
+    assertNonNullable();
+  }
+
+  test_tryFinally_outerEqNullExit_assignUnknown_body() async {
+    await trackCode(r'''
+void f(int a, int b) {
+  if (a == null) return;
+  try {
+    a; // 1
+    a = b;
+    a; // 2
+  } finally {
+    a; // 3
+  }
+  a; // 4
+}
+''');
+    assertNullable();
+    assertNonNullable('a; // 1');
+  }
+
+  test_tryFinally_outerEqNullExit_assignUnknown_finally() async {
+    await trackCode(r'''
+void f(int a, int b) {
+  if (a == null) return;
+  try {
+    a; // 1
+  } finally {
+    a; // 2
+    a = b;
+    a; // 3
+  }
+  a; // 4
+}
+''');
+    assertNullable();
+    assertNonNullable('a; // 1', 'a; // 2');
+  }
+
+  test_while_eqNull() async {
+    await trackCode(r'''
+void f(int x) {
+  while (x == null) {
+    x; // 1
+  }
+  x; // 2
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable('x; // 2');
+  }
+
+  test_while_notEqNull() async {
+    await trackCode(r'''
+void f(int x) {
+  while (x != null) {
+    x; // 1
+  }
+  x; // 2
+}
+''');
+    assertNullable('x; // 2');
+    assertNonNullable('x; // 1');
+  }
+
+  /// Resolve the given [code] and track nullability in the unit.
+  Future<void> trackCode(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+
+    var unit = result.unit;
+
+    var loopAssignedVariables = AssignedVariables();
+    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
+
+    var typeSystem = unit.declaredElement.context.typeSystem;
+    unit.accept(_AstVisitor(
+      typeSystem,
+      loopAssignedVariables,
+      {},
+      [],
+      nullableNodes,
+      nonNullableNodes,
+      [],
+      [],
     ));
   }
 }
@@ -1760,6 +2078,8 @@ void f() { // f
       typeSystem,
       loopAssignedVariables,
       {},
+      [],
+      [],
       [],
       unreachableNodes,
       functionBodiesThatDontComplete,
@@ -2594,6 +2914,8 @@ void f(bool b, Object x) {
       [],
       [],
       [],
+      [],
+      [],
     ));
   }
 }
@@ -2693,6 +3015,8 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   final AssignedVariables assignedVariables;
   final Map<AstNode, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
+  final List<AstNode> nullableNodes;
+  final List<AstNode> nonNullableNodes;
   final List<AstNode> unreachableNodes;
   final List<FunctionBody> functionBodiesThatDontComplete;
 
@@ -2703,6 +3027,8 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
       this.assignedVariables,
       this.promotedTypes,
       this.readBeforeWritten,
+      this.nullableNodes,
+      this.nonNullableNodes,
       this.unreachableNodes,
       this.functionBodiesThatDontComplete)
       : typeOperations = _TypeSystemTypeOperations(typeSystem);
@@ -2726,7 +3052,11 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
         flow.read(localElement);
       }
       right.accept(this);
-      flow.write(localElement);
+      flow.write(
+        localElement,
+        isNull: _isNull(right),
+        isNonNull: _isNonNull(right),
+      );
     } else {
       left.accept(this);
       right.accept(this);
@@ -2756,6 +3086,28 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
       right.accept(this);
 
       flow.logicalOr_end(node);
+    } else if (operator == TokenType.BANG_EQ) {
+      left.accept(this);
+      right.accept(this);
+      if (right is NullLiteral) {
+        if (left is SimpleIdentifier) {
+          var element = left.staticElement;
+          if (element is VariableElement) {
+            flow.conditionNotEqNull(node, element);
+          }
+        }
+      }
+    } else if (operator == TokenType.EQ_EQ) {
+      left.accept(this);
+      right.accept(this);
+      if (right is NullLiteral) {
+        if (left is SimpleIdentifier) {
+          var element = left.staticElement;
+          if (element is VariableElement) {
+            flow.conditionEqNull(node, element);
+          }
+        }
+      }
     } else if (operator == TokenType.QUESTION_QUESTION) {
       left.accept(this);
 
@@ -2772,7 +3124,20 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     var isFlowOwner = flow == null;
-    flow ??= FlowAnalysis<DartType>(typeOperations, node);
+
+    if (isFlowOwner) {
+      flow = FlowAnalysis<DartType>(typeOperations, node);
+
+      var function = node.parent;
+      if (function is FunctionExpression) {
+        var parameters = function.parameters;
+        if (parameters != null) {
+          for (var parameter in parameters?.parameters) {
+            flow.add(parameter.declaredElement, assigned: true);
+          }
+        }
+      }
+    }
 
     super.visitBlockFunctionBody(node);
 
@@ -3006,9 +3371,17 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     var element = node.staticElement;
     var isLocalVariable = element is LocalVariableElement;
     if (isLocalVariable || element is ParameterElement) {
-      if (node.inGetterContext()) {
+      if (node.inGetterContext() && !node.inDeclarationContext()) {
         if (isLocalVariable) {
           flow.read(element);
+        }
+
+        if (flow.isNullable(element)) {
+          nullableNodes?.add(node);
+        }
+
+        if (flow.isNonNullable(element)) {
+          nonNullableNodes?.add(node);
         }
 
         var promotedType = flow?.promotedType(element);
@@ -3174,6 +3547,16 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
 
   static bool _isFalseLiteral(AstNode node) {
     return node is BooleanLiteral && !node.value;
+  }
+
+  static bool _isNonNull(Expression node) {
+    if (node is NullLiteral) return false;
+
+    return node is Literal;
+  }
+
+  static bool _isNull(Expression node) {
+    return node is NullLiteral;
   }
 
   static bool _isTrueLiteral(AstNode node) {

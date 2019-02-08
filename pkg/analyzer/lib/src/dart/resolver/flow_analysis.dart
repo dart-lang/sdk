@@ -38,7 +38,13 @@ class AssignedVariables {
 }
 
 class FlowAnalysis<T> {
-  final _identity = _State<T>(false, _ElementSet.empty, const {});
+  final _identity = _State<T>(
+    false,
+    _ElementSet.empty,
+    _ElementSet.empty,
+    _ElementSet.empty,
+    const {},
+  );
 
   /// The output list of variables that were read before they were written.
   /// TODO(scheglov) use _ElementSet?
@@ -59,6 +65,9 @@ class FlowAnalysis<T> {
   /// states.
   final Map<Statement, int> _statementToStackIndex = {};
 
+  /// The list of all variables.
+  final List<VariableElement> _variables = [];
+
   _State<T> _current;
 
   /// The last boolean condition, for [_conditionTrue] and [_conditionFalse].
@@ -71,17 +80,22 @@ class FlowAnalysis<T> {
   _State<T> _conditionFalse;
 
   FlowAnalysis(this.typeOperations, this.functionBody) {
-    _current = _State<T>(true, _ElementSet.empty, const {});
+    _current = _State<T>(
+      true,
+      _ElementSet.empty,
+      _ElementSet.empty,
+      _ElementSet.empty,
+      const {},
+    );
   }
 
   /// Return `true` if the current state is reachable.
   bool get isReachable => _current.reachable;
 
   /// Add a new [variable], which might be already [assigned].
-  void add(LocalVariableElement variable, {bool assigned: false}) {
-    if (!assigned) {
-      _current = _current.add(variable);
-    }
+  void add(VariableElement variable, {bool assigned: false}) {
+    _variables.add(variable);
+    _current = _current.add(variable, assigned: assigned);
   }
 
   void conditional_elseBegin(ConditionalExpression node, bool isBool) {
@@ -128,6 +142,28 @@ class FlowAnalysis<T> {
 
     var trueCondition = _stack.removeLast();
     _current = trueCondition;
+  }
+
+  /// The [node] checks that the [variable] is equal to `null`.
+  void conditionEqNull(BinaryExpression node, VariableElement variable) {
+    if (functionBody.isPotentiallyMutatedInClosure(variable)) {
+      return;
+    }
+
+    _condition = node;
+    _conditionTrue = _current.markNullable(variable);
+    _conditionFalse = _current.markNonNullable(variable);
+  }
+
+  /// The [node] checks that the [variable] is not equal to `null`.
+  void conditionNotEqNull(BinaryExpression node, VariableElement variable) {
+    if (functionBody.isPotentiallyMutatedInClosure(variable)) {
+      return;
+    }
+
+    _condition = node;
+    _conditionTrue = _current.markNonNullable(variable);
+    _conditionFalse = _current.markNullable(variable);
   }
 
   void doStatement_bodyBegin(
@@ -300,6 +336,16 @@ class FlowAnalysis<T> {
       _conditionTrue = _current;
       _conditionFalse = _current.promote(typeOperations, variable, type);
     }
+  }
+
+  /// Return `true` if the [variable] is known to be be nullable.
+  bool isNonNullable(VariableElement variable) {
+    return !_current.notNonNullable.contains(variable);
+  }
+
+  /// Return `true` if the [variable] is known to be be non-nullable.
+  bool isNullable(VariableElement variable) {
+    return !_current.notNullable.contains(variable);
   }
 
   void logicalAnd_end(BinaryExpression andExpression) {
@@ -499,8 +545,12 @@ class FlowAnalysis<T> {
   }
 
   /// Register write of the given [variable] in the current state.
-  void write(VariableElement variable) {
-    _current = _current.write(variable);
+  void write(
+    VariableElement variable, {
+    bool isNull = false,
+    bool isNonNull = false,
+  }) {
+    _current = _current.write(variable, isNull: isNull, isNonNull: isNonNull);
   }
 
   void _conditionalEnd(Expression condition) {
@@ -525,6 +575,8 @@ class FlowAnalysis<T> {
 
     var newReachable = first.reachable || second.reachable;
     var newNotAssigned = first.notAssigned.union(second.notAssigned);
+    var newNotNullable = first.notNullable.union(second.notNullable);
+    var newNotNonNullable = first.notNonNullable.union(second.notNonNullable);
     var newPromoted = _joinPromoted(first.promoted, second.promoted);
 
     return _State._identicalOrNew(
@@ -532,6 +584,8 @@ class FlowAnalysis<T> {
       second,
       newReachable,
       newNotAssigned,
+      newNotNullable,
+      newNotNonNullable,
       newPromoted,
     );
   }
@@ -585,20 +639,20 @@ abstract class TypeOperations<T> {
 /// List based immutable set of elements.
 class _ElementSet {
   static final empty = _ElementSet._(
-    List<LocalVariableElement>(0),
+    List<VariableElement>(0),
   );
 
-  final List<LocalVariableElement> elements;
+  final List<VariableElement> elements;
 
   _ElementSet._(this.elements);
 
-  _ElementSet add(LocalVariableElement addedElement) {
+  _ElementSet add(VariableElement addedElement) {
     if (contains(addedElement)) {
       return this;
     }
 
     var length = elements.length;
-    var newElements = List<LocalVariableElement>(length + 1);
+    var newElements = List<VariableElement>(length + 1);
     for (var i = 0; i < length; ++i) {
       newElements[i] = elements[i];
     }
@@ -606,7 +660,15 @@ class _ElementSet {
     return _ElementSet._(newElements);
   }
 
-  bool contains(LocalVariableElement element) {
+  _ElementSet addAll(Iterable<VariableElement> elements) {
+    var result = this;
+    for (var element in elements) {
+      result = result.add(element);
+    }
+    return result;
+  }
+
+  bool contains(VariableElement element) {
     var length = elements.length;
     for (var i = 0; i < length; ++i) {
       if (identical(elements[i], element)) {
@@ -627,7 +689,7 @@ class _ElementSet {
     return _ElementSet._(newElements);
   }
 
-  _ElementSet remove(LocalVariableElement removedElement) {
+  _ElementSet remove(VariableElement removedElement) {
     if (!contains(removedElement)) {
       return this;
     }
@@ -637,7 +699,7 @@ class _ElementSet {
       return empty;
     }
 
-    var newElements = List<LocalVariableElement>(length - 1);
+    var newElements = List<VariableElement>(length - 1);
     var newIndex = 0;
     for (var i = 0; i < length; ++i) {
       var element = elements[i];
@@ -667,19 +729,77 @@ class _ElementSet {
 class _State<T> {
   final bool reachable;
   final _ElementSet notAssigned;
+  final _ElementSet notNullable;
+  final _ElementSet notNonNullable;
   final Map<VariableElement, T> promoted;
 
-  _State(this.reachable, this.notAssigned, this.promoted);
+  _State(
+    this.reachable,
+    this.notAssigned,
+    this.notNullable,
+    this.notNonNullable,
+    this.promoted,
+  );
 
   /// Add a new [variable] to track definite assignment.
-  _State<T> add(LocalVariableElement variable) {
-    var newNotAssigned = notAssigned.add(variable);
-    if (identical(newNotAssigned, notAssigned)) return this;
-    return _State<T>(reachable, newNotAssigned, promoted);
+  _State<T> add(VariableElement variable, {bool assigned: false}) {
+    var newNotAssigned = assigned ? notAssigned : notAssigned.add(variable);
+    var newNotNullable = notNullable.add(variable);
+    var newNotNonNullable = notNonNullable.add(variable);
+
+    if (identical(newNotAssigned, notAssigned) &&
+        identical(newNotNullable, notNullable) &&
+        identical(newNotNonNullable, notNonNullable)) {
+      return this;
+    }
+
+    return _State<T>(
+      reachable,
+      newNotAssigned,
+      newNotNullable,
+      newNotNonNullable,
+      promoted,
+    );
   }
 
   _State<T> exit() {
-    return _State<T>(false, notAssigned, promoted);
+    return _State<T>(false, notAssigned, notNullable, notNonNullable, promoted);
+  }
+
+  _State<T> markNonNullable(VariableElement variable) {
+    var newNotNullable = notNullable.add(variable);
+    var newNotNonNullable = notNonNullable.remove(variable);
+
+    if (identical(newNotNullable, notNullable) &&
+        identical(newNotNonNullable, notNonNullable)) {
+      return this;
+    }
+
+    return _State<T>(
+      reachable,
+      notAssigned,
+      newNotNullable,
+      newNotNonNullable,
+      promoted,
+    );
+  }
+
+  _State<T> markNullable(VariableElement variable) {
+    var newNotNullable = notNullable.remove(variable);
+    var newNotNonNullable = notNonNullable.add(variable);
+
+    if (identical(newNotNullable, notNullable) &&
+        identical(newNotNonNullable, notNonNullable)) {
+      return this;
+    }
+
+    return _State<T>(
+      reachable,
+      notAssigned,
+      newNotNullable,
+      newNotNonNullable,
+      promoted,
+    );
   }
 
   _State<T> promote(
@@ -694,18 +814,34 @@ class _State<T> {
         type != previousType) {
       var newPromoted = <VariableElement, T>{}..addAll(promoted);
       newPromoted[variable] = type;
-      return _State<T>(reachable, notAssigned, newPromoted);
+      return _State<T>(
+        reachable,
+        notAssigned,
+        notNullable,
+        notNonNullable,
+        newPromoted,
+      );
     }
 
     return this;
   }
 
   _State<T> removePromotedAll(Set<VariableElement> variables) {
+    var newNotNullable = notNullable.addAll(variables);
+    var newNotNonNullable = notNonNullable.addAll(variables);
     var newPromoted = _removePromotedAll(promoted, variables);
 
-    if (identical(newPromoted, promoted)) return this;
+    if (identical(newNotNullable, notNullable) &&
+        identical(newNotNonNullable, notNonNullable) &&
+        identical(newPromoted, promoted)) return this;
 
-    return _State<T>(reachable, notAssigned, newPromoted);
+    return _State<T>(
+      reachable,
+      notAssigned,
+      newNotNullable,
+      newNotNonNullable,
+      newPromoted,
+    );
   }
 
   _State<T> restrict(
@@ -715,6 +851,21 @@ class _State<T> {
   ) {
     var newReachable = reachable && other.reachable;
     var newNotAssigned = notAssigned.intersect(other.notAssigned);
+
+    var newNotNullable = _ElementSet.empty;
+    for (var variable in notNullable.elements) {
+      if (unsafe.contains(variable) || other.notNullable.contains(variable)) {
+        newNotNullable = newNotNullable.add(variable);
+      }
+    }
+
+    var newNotNonNullable = _ElementSet.empty;
+    for (var variable in notNonNullable.elements) {
+      if (unsafe.contains(variable) ||
+          other.notNonNullable.contains(variable)) {
+        newNotNonNullable = newNotNonNullable.add(variable);
+      }
+    }
 
     var newPromoted = <VariableElement, T>{};
     for (var variable in promoted.keys) {
@@ -735,6 +886,8 @@ class _State<T> {
       other,
       newReachable,
       newNotAssigned,
+      newNotNullable,
+      newNotNonNullable,
       newPromoted,
     );
   }
@@ -742,25 +895,53 @@ class _State<T> {
   _State<T> setReachable(bool reachable) {
     if (this.reachable == reachable) return this;
 
-    return _State<T>(reachable, notAssigned, promoted);
+    return _State<T>(
+      reachable,
+      notAssigned,
+      notNullable,
+      notNonNullable,
+      promoted,
+    );
   }
 
-  _State<T> write(VariableElement variable) {
+  _State<T> write(
+    VariableElement variable, {
+    bool isNull = false,
+    bool isNonNull = false,
+  }) {
     var newNotAssigned = variable is LocalVariableElement
         ? notAssigned.remove(variable)
         : notAssigned;
+
+    var newNotNullable =
+        isNull ? notNullable.remove(variable) : notNullable.add(variable);
+
+    var newNotNonNullable = isNonNull
+        ? notNonNullable.remove(variable)
+        : notNonNullable.add(variable);
+
     var newPromoted = _removePromoted(promoted, variable);
 
     if (identical(newNotAssigned, notAssigned) &&
+        identical(newNotNullable, notNullable) &&
+        identical(newNotNonNullable, notNonNullable) &&
         identical(newPromoted, promoted)) {
       return this;
     }
 
-    return _State<T>(reachable, newNotAssigned, newPromoted);
+    return _State<T>(
+      reachable,
+      newNotAssigned,
+      newNotNullable,
+      newNotNonNullable,
+      newPromoted,
+    );
   }
 
   Map<VariableElement, T> _removePromoted(
-      Map<VariableElement, T> map, VariableElement variable) {
+    Map<VariableElement, T> map,
+    VariableElement variable,
+  ) {
     if (map.isEmpty) return const {};
 
     var result = <VariableElement, T>{};
@@ -775,7 +956,9 @@ class _State<T> {
   }
 
   Map<VariableElement, T> _removePromotedAll(
-      Map<VariableElement, T> map, Set<VariableElement> variables) {
+    Map<VariableElement, T> map,
+    Set<VariableElement> variables,
+  ) {
     if (map.isEmpty) return const {};
     if (variables.isEmpty) return map;
 
@@ -799,20 +982,31 @@ class _State<T> {
     _State<T> second,
     bool newReachable,
     _ElementSet newNotAssigned,
+    _ElementSet newNotNullable,
+    _ElementSet newNotNonNullable,
     Map<VariableElement, T> newPromoted,
   ) {
     if (first.reachable == newReachable &&
         identical(first.notAssigned, newNotAssigned) &&
+        identical(first.notNullable, newNotNullable) &&
+        identical(first.notNonNullable, newNotNonNullable) &&
         identical(first.promoted, newPromoted)) {
       return first;
     }
-
     if (second.reachable == newReachable &&
         identical(second.notAssigned, newNotAssigned) &&
+        identical(second.notNullable, newNotNullable) &&
+        identical(second.notNonNullable, newNotNonNullable) &&
         identical(second.promoted, newPromoted)) {
       return second;
     }
 
-    return _State<T>(newReachable, newNotAssigned, newPromoted);
+    return _State<T>(
+      newReachable,
+      newNotAssigned,
+      newNotNullable,
+      newNotNonNullable,
+      newPromoted,
+    );
   }
 }
