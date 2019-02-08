@@ -77,6 +77,9 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
       _fixedInitializers[_elementMap.getField(fieldNode)] = value;
     });
   }
+
+  ConstantValue getFixedInitializerForTesting(KField field) =>
+      _fixedInitializers[field];
 }
 
 class JAllocatorAnalysis implements AllocatorAnalysis {

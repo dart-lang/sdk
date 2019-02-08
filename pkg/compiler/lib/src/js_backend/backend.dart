@@ -408,6 +408,9 @@ class JavaScriptBackend {
 
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
 
+  KAllocatorAnalysis get allocatorResolutionAnalysisForTesting =>
+      _allocatorResolutionAnalysis;
+
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
   CustomElementsResolutionAnalysis get customElementsResolutionAnalysis {
