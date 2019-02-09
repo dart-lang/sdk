@@ -928,9 +928,12 @@ class FixProcessor {
           if (arguments.isNotEmpty) {
             builder.write(', ');
           }
-          String defaultValue =
-              getDefaultStringParameterValue(missingParameter);
-          builder.write('$missingParameterName: $defaultValue');
+
+          builder.write('$missingParameterName: ');
+
+          var defaultValue = getDefaultStringParameterValue(missingParameter);
+          builder.addSimpleLinkedEdit('VALUE', defaultValue);
+
           // Insert a trailing comma after Flutter instance creation params.
           if (!hasTrailingComma && flutter.isWidgetExpression(creation)) {
             builder.write(',');
