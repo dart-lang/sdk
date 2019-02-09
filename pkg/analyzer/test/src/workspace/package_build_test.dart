@@ -489,7 +489,6 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
   PackageBuildWorkspace _createPackageBuildWorkspace() {
     final contextBuilder = new MockContextBuilder();
     final packagesForWorkspace = new MockPackages();
-    final packageMapForWorkspace = <String, List<Folder>>{'project': []};
     contextBuilder.packagesMapMap[convertPath('/workspace')] =
         packagesForWorkspace;
     contextBuilder.packagesToMapMap[packagesForWorkspace] = {
