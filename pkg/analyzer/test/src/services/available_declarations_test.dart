@@ -909,7 +909,7 @@ typedef C = void Function();
 
 typedef D = int Function(int p1, [double p2, String p3]);
 
-typedef E = void Function(int, double, {String});
+typedef E = void Function(int, double, {String p3});
 
 typedef F = void Function<T extends num, U>();
 ''');
@@ -950,8 +950,8 @@ typedef F = void Function<T extends num, U>();
         requiredParameterCount: 1,
         returnType: 'int');
     _assertDeclaration(library, 'E', DeclarationKind.FUNCTION_TYPE_ALIAS,
-        parameters: '(int, double, {String })', // TODO(scheglov) fix
-        parameterNames: ['', '', ''],
+        parameters: '(int, double, {String p3})',
+        parameterNames: ['', '', 'p3'],
         parameterTypes: ['int', 'double', 'String'],
         relevanceTags: ['package:test/test.dart::E'],
         requiredParameterCount: 2,
