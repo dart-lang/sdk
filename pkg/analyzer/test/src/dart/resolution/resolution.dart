@@ -15,12 +15,12 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 import 'find_element.dart';
-import 'find_node.dart';
 
 final isBottomType = new TypeMatcher<BottomTypeImpl>();
 

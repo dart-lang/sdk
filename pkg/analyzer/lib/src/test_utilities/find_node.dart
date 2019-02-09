@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:test/test.dart';
 
 class FindNode {
   final String content;
@@ -207,15 +206,23 @@ class FindNode {
   AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
     if (content.indexOf(search, index + 1) != -1) {
-      fail('The pattern |$search| is not unique in:\n$content');
+      throw new StateError('The pattern |$search| is not unique in:\n$content');
     }
-    expect(index, greaterThanOrEqualTo(0));
+    if (index < 0) {
+      throw new StateError('The pattern |$search| is not found in:\n$content');
+    }
 
     var node = new NodeLocator2(index).searchWithin(unit);
-    expect(node, isNotNull);
+    if (node == null) {
+      throw new StateError(
+          'The pattern |$search| had no corresponding node in:\n$content');
+    }
 
     var result = node.thisOrAncestorMatching(predicate);
-    expect(result, isNotNull);
+    if (result == null) {
+      throw new StateError(
+          'The node for |$search| had no matching ancestor in:\n$content');
+    }
     return result;
   }
 }

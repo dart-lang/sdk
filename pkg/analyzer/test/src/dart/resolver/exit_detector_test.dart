@@ -6,12 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../ast/parse_base.dart';
 import '../resolution/driver_resolution.dart';
-import '../resolution/find_node.dart';
 
 main() {
   defineReflectiveSuite(() {
