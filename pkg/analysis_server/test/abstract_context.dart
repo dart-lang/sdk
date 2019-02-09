@@ -11,10 +11,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -45,7 +45,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
-  FileContentOverlay fileContentOverlay = new FileContentOverlay();
+  OverlayResourceProvider overlayResourceProvider;
 
   AnalysisContextCollection _analysisContextCollection;
   AnalysisDriver _driver;
@@ -214,8 +214,7 @@ class _VisibleForTesting {
     _analysisContextCollection = AnalysisContextCollectionImpl(
       includedPaths: [convertPath('/home')],
       enableIndex: true,
-      fileContentOverlay: fileContentOverlay,
-      resourceProvider: resourceProvider,
+      resourceProvider: overlayResourceProvider,
       sdkPath: convertPath('/sdk'),
     );
 
@@ -262,6 +261,7 @@ class _VisibleForTesting {
 
   void setUp() {
     setupResourceProvider();
+    overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
     new MockSdk(resourceProvider: resourceProvider);
 
