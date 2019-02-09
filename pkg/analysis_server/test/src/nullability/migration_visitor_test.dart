@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/conditional_discard.dart';
+import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
+import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
+import 'package:analysis_server/src/nullability/decorated_type.dart';
+import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/transitional_api.dart';
+import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
-import 'package:analyzer/src/dart/nullability/constraint_gatherer.dart';
-import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
-import 'package:analyzer/src/dart/nullability/decorated_type.dart';
-import 'package:analyzer/src/dart/nullability/expression_checks.dart';
-import 'package:analyzer/src/dart/nullability/transitional_api.dart';
-import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -225,7 +227,7 @@ int/*1*/ f(int/*2*/ i) => i;
 
   test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
     await analyze('''
-void f([int i: 1]) {}
+void f([int i = 1]) {}
 ''');
 
     assertNoConstraints(decoratedTypeAnnotation('int').nullable);
@@ -233,7 +235,7 @@ void f([int i: 1]) {}
 
   test_functionDeclaration_parameter_positionalOptional_default_null() async {
     await analyze('''
-void f([int i: null]) {}
+void f([int i = null]) {}
 ''');
 
     assertConstraint(
@@ -510,8 +512,8 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
     var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(typeProvider, _variables, constraints,
-        result.unit.declaredElement.source, false, assumptions));
+    unit.accept(ConstraintGatherer(
+        typeProvider, _variables, constraints, testSource, false, assumptions));
     return unit;
   }
 }
@@ -561,7 +563,7 @@ void f(x) {}
 
   test_topLevelFunction_parameterType_named() async {
     await analyze('''
-void f({String s: 'x') {}
+void f({String s: 'x'}) {}
 ''');
     var decoratedType = decoratedTypeAnnotation('String');
     expect(
@@ -608,18 +610,21 @@ int f() => 0;
   }
 }
 
-class MigrationVisitorTestBase extends DriverResolutionTest {
+class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   final _variables = _Variables();
+
+  FindNode findNode;
+
+  TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
   Future<CompilationUnit> analyze(String code,
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
-    addTestFile(code);
-    await resolveTestFile();
-    var unit = result.unit;
-    unit.accept(ConstraintVariableGatherer(
-        _variables, result.unit.declaredElement.source, false, assumptions));
-    return unit;
+    await resolveTestUnit(code);
+    testUnit.accept(
+        ConstraintVariableGatherer(_variables, testSource, false, assumptions));
+    findNode = FindNode(code, testUnit);
+    return testUnit;
   }
 
   /// Gets the [DecoratedType] associated with the type annotation whose text

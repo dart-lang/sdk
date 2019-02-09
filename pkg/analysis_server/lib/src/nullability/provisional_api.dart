@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/transitional_api.dart'
+    as analyzer;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/nullability/transitional_api.dart'
-    as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
-export 'package:analyzer/src/dart/nullability/transitional_api.dart'
+export 'package:analysis_server/src/nullability/transitional_api.dart'
     show NullabilityMigrationAssumptions;
 
 /// Kinds of fixes that might be performed by nullability migration.

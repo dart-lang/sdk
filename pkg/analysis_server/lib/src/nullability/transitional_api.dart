@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/conditional_discard.dart';
+import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
+import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
+import 'package:analysis_server/src/nullability/decorated_type.dart';
+import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/nullability/conditional_discard.dart';
-import 'package:analyzer/src/dart/nullability/constraint_gatherer.dart';
-import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
-import 'package:analyzer/src/dart/nullability/decorated_type.dart';
-import 'package:analyzer/src/dart/nullability/expression_checks.dart';
-import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 

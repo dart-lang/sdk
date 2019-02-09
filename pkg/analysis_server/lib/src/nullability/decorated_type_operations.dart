@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
+import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/nullability/constraint_variable_gatherer.dart';
-import 'package:analyzer/src/dart/nullability/decorated_type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.

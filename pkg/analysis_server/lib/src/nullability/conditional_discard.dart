@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/nullability/unit_propagation.dart';
+import 'package:analysis_server/src/nullability/unit_propagation.dart';
 
 /// Container for information gathered during nullability migration about a
 /// conditional check that might need to be discarded.
