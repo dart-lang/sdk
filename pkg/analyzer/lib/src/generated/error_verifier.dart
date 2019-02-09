@@ -369,6 +369,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
       _checkForArgumentTypeNotAssignableForArgument(rhs);
+      _checkForNullableDereference(lhs);
     }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
@@ -394,13 +395,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForAssignability(node.rightOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForUseOfVoidResult(node.rightOperand);
+      _checkForNullableDereference(node.leftOperand);
       _checkForNullableDereference(node.rightOperand);
+    } else if (type != TokenType.EQ_EQ && type != TokenType.BANG_EQ) {
+      _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+      _checkForNullableDereference(node.leftOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
-    }
-
-    if (type != TokenType.EQ_EQ && type != TokenType.BANG_EQ) {
-      _checkForNullableDereference(node.leftOperand);
     }
 
     _checkForUseOfVoidResult(node.leftOperand);
@@ -453,6 +454,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
       }
     }
+  }
+
+  void visitCascadeExpression(CascadeExpression node) {
+    _checkForNullableDereference(node.target);
+    super.visitCascadeExpression(node);
   }
 
   @override
@@ -841,6 +847,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArguments(node);
     }
     _checkForImplicitDynamicInvoke(node);
+    _checkForNullableDereference(node.function);
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -926,6 +933,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
+    _checkForNullableDereference(node.target);
     super.visitIndexExpression(node);
   }
 
@@ -1094,9 +1102,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInstanceAccessToStaticMember(typeReference, methodName);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
+      _checkForNullableDereference(node.function);
     }
     _checkTypeArguments(node);
     _checkForImplicitDynamicInvoke(node);
+    if (node.operator?.type != TokenType.QUESTION_PERIOD &&
+        methodName.name != 'toString' &&
+        methodName.name != 'noSuchMethod') {
+      _checkForNullableDereference(target);
+    }
     super.visitMethodInvocation(node);
   }
 
@@ -1153,6 +1167,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     _checkForAssignmentToFinal(node.operand);
     _checkForIntNotAssignable(node.operand);
+    _checkForNullableDereference(node.operand);
     super.visitPostfixExpression(node);
   }
 
@@ -1164,6 +1179,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, name);
+    }
+    String property = node.identifier.name;
+    if (node.staticElement is ExecutableElement &&
+        property != 'hashCode' &&
+        property != 'runtimeType') {
+      _checkForNullableDereference(node.prefix);
     }
     super.visitPrefixedIdentifier(node);
   }
@@ -1190,6 +1211,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(typeReference, propertyName);
+    if (node.operator?.type != TokenType.QUESTION_PERIOD &&
+        propertyName.name != 'hashCode' &&
+        propertyName.name != 'runtimeType') {
+      _checkForNullableDereference(node.target);
+    }
     super.visitPropertyAccess(node);
   }
 
@@ -4879,6 +4905,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _checkForNullableDereference(Expression expression) {
     if (expression == null ||
         !_options.experimentStatus.non_nullable ||
+        expression.staticType == null ||
         (expression.staticType as TypeImpl).nullability !=
             Nullability.nullable) {
       return false;
