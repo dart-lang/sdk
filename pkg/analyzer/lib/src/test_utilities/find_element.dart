@@ -5,9 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:test/test.dart';
-
-import 'function_ast_visitor.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
 class FindElement {
@@ -23,7 +21,7 @@ class FindElement {
         return class_;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ClassElement classOrMixin(String name) {
@@ -37,7 +35,7 @@ class FindElement {
         return mixin;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ConstructorElement constructor(String name, {String of}) {
@@ -48,7 +46,7 @@ class FindElement {
         for (var constructor in class_.constructors) {
           if (constructor.name == name) {
             if (result != null) {
-              fail('Not unique: $name');
+              throw StateError('Not unique: $name');
             }
             result = constructor;
           }
@@ -58,7 +56,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ClassElement enum_(String name) {
@@ -67,7 +65,7 @@ class FindElement {
         return enum_;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ExportElement export(String targetUri) {
@@ -77,7 +75,7 @@ class FindElement {
       var exportedUri = export.exportedLibrary.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
-          fail('Not unique: $targetUri');
+          throw StateError('Not unique: $targetUri');
         }
         result = export;
       }
@@ -86,7 +84,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $targetUri');
+    throw StateError('Not found: $targetUri');
   }
 
   FieldElement field(String name, {String of}) {
@@ -96,7 +94,7 @@ class FindElement {
       for (var field in fields) {
         if (field.name == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = field;
         }
@@ -127,7 +125,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   FunctionElement function(String name) {
@@ -136,7 +134,7 @@ class FindElement {
         return function;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   GenericTypeAliasElement genericTypeAlias(String name) {
@@ -145,7 +143,7 @@ class FindElement {
         return element;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   PropertyAccessorElement getter(String name, {String of}) {
@@ -155,7 +153,7 @@ class FindElement {
       for (var accessor in accessors) {
         if (accessor.isGetter && accessor.displayName == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = accessor;
         }
@@ -186,7 +184,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ImportElement import(String targetUri) {
@@ -196,7 +194,7 @@ class FindElement {
       var importedUri = import.importedLibrary.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement != null) {
-          fail('Not unique: $targetUri');
+          throw StateError('Not unique: $targetUri');
         }
         importElement = import;
       }
@@ -205,7 +203,7 @@ class FindElement {
     if (importElement != null) {
       return importElement;
     }
-    fail('Not found: $targetUri');
+    throw StateError('Not found: $targetUri');
   }
 
   ImportFindElement importFind(String targetUri) {
@@ -225,7 +223,7 @@ class FindElement {
         var element = node.functionDeclaration.declaredElement;
         if (element is FunctionElement) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = element;
         }
@@ -233,7 +231,7 @@ class FindElement {
     ));
 
     if (result == null) {
-      fail('Not found: $name');
+      throw StateError('Not found: $name');
     }
     return result;
   }
@@ -246,7 +244,7 @@ class FindElement {
         var element = node.declaredElement;
         if (element is LocalVariableElement && element.name == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = element;
         }
@@ -254,7 +252,7 @@ class FindElement {
     ));
 
     if (result == null) {
-      fail('Not found: $name');
+      throw StateError('Not found: $name');
     }
     return result;
   }
@@ -266,7 +264,7 @@ class FindElement {
       for (var method in methods) {
         if (method.name == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = method;
         }
@@ -290,7 +288,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ClassElement mixin(String name) {
@@ -299,7 +297,7 @@ class FindElement {
         return mixin;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ParameterElement parameter(String name) {
@@ -309,7 +307,7 @@ class FindElement {
       for (var parameter in parameters) {
         if (parameter.name == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = parameter;
         }
@@ -340,7 +338,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   PrefixElement prefix(String name) {
@@ -350,7 +348,7 @@ class FindElement {
         return prefix;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   PropertyAccessorElement setter(String name, {String of}) {
@@ -360,7 +358,7 @@ class FindElement {
       for (var accessor in accessors) {
         if (accessor.isSetter && accessor.displayName == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = accessor;
         }
@@ -384,7 +382,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   FunctionElement topFunction(String name) {
@@ -393,7 +391,7 @@ class FindElement {
         return function;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   PropertyAccessorElement topGet(String name) {
@@ -410,7 +408,7 @@ class FindElement {
         return variable;
       }
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   TypeParameterElement typeParameter(String name) {
@@ -420,7 +418,7 @@ class FindElement {
       for (var typeParameter in typeParameters) {
         if (typeParameter.name == name) {
           if (result != null) {
-            fail('Not unique: $name');
+            throw StateError('Not unique: $name');
           }
           result = typeParameter;
         }
@@ -445,7 +443,7 @@ class FindElement {
     if (result != null) {
       return result;
     }
-    fail('Not found: $name');
+    throw StateError('Not found: $name');
   }
 
   ConstructorElement unnamedConstructor(String name) {
@@ -473,7 +471,7 @@ class ImportFindElement {
         return class_;
       }
     }
-    fail('Not found class: $name');
+    throw StateError('Not found: $name');
   }
 
   FunctionElement topFunction(String name) {
@@ -482,7 +480,7 @@ class ImportFindElement {
         return function;
       }
     }
-    fail('Not found top-level function: $name');
+    throw StateError('Not found: $name');
   }
 
   PropertyAccessorElement topGetter(String name) {
@@ -491,6 +489,6 @@ class ImportFindElement {
         return accessor;
       }
     }
-    fail('Not found top-level getter: $name');
+    throw StateError('Not found: $name');
   }
 }
