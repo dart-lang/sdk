@@ -56,7 +56,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AdjacentStrings extends StringLiteral {
+abstract class AdjacentStrings implements StringLiteral {
   /**
    * Return the strings that are implicitly concatenated.
    */
@@ -69,7 +69,7 @@ abstract class AdjacentStrings extends StringLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AnnotatedNode extends AstNode {
+abstract class AnnotatedNode implements AstNode {
   /**
    * Return the documentation comment associated with this node, or `null` if
    * this node does not have a documentation comment associated with it.
@@ -110,7 +110,7 @@ abstract class AnnotatedNode extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Annotation extends AstNode {
+abstract class Annotation implements AstNode {
   /**
    * Return the arguments to the constructor being invoked, or `null` if this
    * annotation is not the invocation of a constructor.
@@ -203,7 +203,7 @@ abstract class Annotation extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ArgumentList extends AstNode {
+abstract class ArgumentList implements AstNode {
   /**
    * Return the expressions producing the values of the arguments. Although the
    * language requires that positional arguments appear before named arguments,
@@ -260,7 +260,7 @@ abstract class ArgumentList extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AsExpression extends Expression {
+abstract class AsExpression implements Expression {
   /**
    * Return the 'as' operator.
    */
@@ -403,8 +403,8 @@ abstract class AssertStatement implements Assertion, Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AssignmentExpression extends Expression
-    implements MethodReferenceExpression {
+abstract class AssignmentExpression
+    implements Expression, MethodReferenceExpression {
   /**
    * Return the expression used to compute the left hand side.
    */
@@ -844,7 +844,7 @@ abstract class AstVisitor<R> {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AwaitExpression extends Expression {
+abstract class AwaitExpression implements Expression {
   /**
    * Return the 'await' keyword.
    */
@@ -874,8 +874,8 @@ abstract class AwaitExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class BinaryExpression extends Expression
-    implements MethodReferenceExpression {
+abstract class BinaryExpression
+    implements Expression, MethodReferenceExpression {
   /**
    * Return the expression used to compute the left operand.
    */
@@ -928,7 +928,7 @@ abstract class BinaryExpression extends Expression
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Block extends Statement {
+abstract class Block implements Statement {
   /**
    * Return the left curly bracket.
    */
@@ -963,7 +963,7 @@ abstract class Block extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class BlockFunctionBody extends FunctionBody {
+abstract class BlockFunctionBody implements FunctionBody {
   /**
    * Return the block representing the body of the function.
    */
@@ -993,7 +993,7 @@ abstract class BlockFunctionBody extends FunctionBody {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class BooleanLiteral extends Literal {
+abstract class BooleanLiteral implements Literal {
   /**
    * Return the token representing the literal.
    */
@@ -1018,7 +1018,7 @@ abstract class BooleanLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class BreakStatement extends Statement {
+abstract class BreakStatement implements Statement {
   /**
    * Return the token representing the 'break' keyword.
    */
@@ -1086,7 +1086,7 @@ abstract class BreakStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class CascadeExpression extends Expression {
+abstract class CascadeExpression implements Expression {
   /**
    * Return the cascade sections sharing the common target.
    */
@@ -1115,7 +1115,7 @@ abstract class CascadeExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class CatchClause extends AstNode {
+abstract class CatchClause implements AstNode {
   /**
    * Return the body of the catch block.
    */
@@ -1228,7 +1228,7 @@ abstract class CatchClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ClassDeclaration extends ClassOrMixinDeclaration {
+abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /**
    * Return the 'abstract' keyword, or `null` if the keyword was absent.
    */
@@ -1324,14 +1324,14 @@ abstract class ClassDeclaration extends ClassOrMixinDeclaration {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ClassMember extends Declaration {}
+abstract class ClassMember implements Declaration {}
 
 /**
  * The declaration of a class or mixin.
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ClassOrMixinDeclaration extends NamedCompilationUnitMember {
+abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
   @override
   ClassElement get declaredElement;
 
@@ -1386,7 +1386,7 @@ abstract class ClassOrMixinDeclaration extends NamedCompilationUnitMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ClassTypeAlias extends TypeAlias {
+abstract class ClassTypeAlias implements TypeAlias {
   /**
    * Return the token for the 'abstract' keyword, or `null` if this is not
    * defining an abstract class.
@@ -1503,7 +1503,7 @@ abstract class CollectionIfElement
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Combinator extends AstNode {
+abstract class Combinator implements AstNode {
   /**
    * Return the 'hide' or 'show' keyword specifying what kind of processing is
    * to be done on the names.
@@ -1537,7 +1537,7 @@ abstract class Combinator extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Comment extends AstNode {
+abstract class Comment implements AstNode {
   /**
    * Return `true` if this is a block comment.
    */
@@ -1572,7 +1572,7 @@ abstract class Comment extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class CommentReference extends AstNode {
+abstract class CommentReference implements AstNode {
   /**
    * Return the identifier being referenced.
    */
@@ -1620,7 +1620,7 @@ abstract class CommentReference extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class CompilationUnit extends AstNode {
+abstract class CompilationUnit implements AstNode {
   /**
    * Set the first token included in this node's source range to the given
    * [token].
@@ -1705,7 +1705,7 @@ abstract class CompilationUnit extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class CompilationUnitMember extends Declaration {}
+abstract class CompilationUnitMember implements Declaration {}
 
 /**
  * A conditional expression.
@@ -1715,7 +1715,7 @@ abstract class CompilationUnitMember extends Declaration {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConditionalExpression extends Expression {
+abstract class ConditionalExpression implements Expression {
   /**
    * Return the token used to separate the then expression from the else
    * expression.
@@ -1790,7 +1790,7 @@ abstract class ConditionalExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Configuration extends AstNode {
+abstract class Configuration implements AstNode {
   /**
    * Return the token for the equal operator, or `null` if the condition does
    * not include an equality test.
@@ -1916,7 +1916,7 @@ abstract class Configuration extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConstructorDeclaration extends ClassMember {
+abstract class ConstructorDeclaration implements ClassMember {
   /**
    * Return the body of the constructor, or `null` if the constructor does not
    * have a body.
@@ -2057,7 +2057,7 @@ abstract class ConstructorDeclaration extends ClassMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConstructorFieldInitializer extends ConstructorInitializer {
+abstract class ConstructorFieldInitializer implements ConstructorInitializer {
   /**
    * Return the token for the equal sign between the field name and the
    * expression.
@@ -2125,7 +2125,7 @@ abstract class ConstructorFieldInitializer extends ConstructorInitializer {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConstructorInitializer extends AstNode {}
+abstract class ConstructorInitializer implements AstNode {}
 
 /**
  * The name of a constructor.
@@ -2135,8 +2135,7 @@ abstract class ConstructorInitializer extends AstNode {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConstructorName extends AstNode
-    implements ConstructorReferenceNode {
+abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   /**
    * Return the name of the constructor, or `null` if the specified constructor
    * is the unnamed constructor.
@@ -2199,7 +2198,7 @@ abstract class ConstructorReferenceNode implements AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ContinueStatement extends Statement {
+abstract class ContinueStatement implements Statement {
   /**
    * Return the token representing the 'continue' keyword.
    */
@@ -2254,7 +2253,7 @@ abstract class ContinueStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Declaration extends AnnotatedNode {
+abstract class Declaration implements AnnotatedNode {
   /**
    * Return the element associated with this declaration, or `null` if either
    * this node corresponds to a list of declarations or if the AST structure has
@@ -2279,7 +2278,7 @@ abstract class Declaration extends AnnotatedNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DeclaredIdentifier extends Declaration {
+abstract class DeclaredIdentifier implements Declaration {
   @override
   LocalVariableElement get declaredElement;
 
@@ -2346,7 +2345,7 @@ abstract class DeclaredIdentifier extends Declaration {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DefaultFormalParameter extends FormalParameter {
+abstract class DefaultFormalParameter implements FormalParameter {
   /**
    * Return the expression computing the default value for the parameter, or
    * `null` if there is no default value.
@@ -2400,7 +2399,7 @@ abstract class DefaultFormalParameter extends FormalParameter {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Directive extends AnnotatedNode {
+abstract class Directive implements AnnotatedNode {
   /**
    * Return the element associated with this directive, or `null` if the AST
    * structure has not been resolved or if this directive could not be resolved.
@@ -2427,7 +2426,7 @@ abstract class Directive extends AnnotatedNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DoStatement extends Statement {
+abstract class DoStatement implements Statement {
   /**
    * Return the body of the loop.
    */
@@ -2508,7 +2507,7 @@ abstract class DoStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DottedName extends AstNode {
+abstract class DottedName implements AstNode {
   /**
    * Return the components of the identifier.
    */
@@ -2527,7 +2526,7 @@ abstract class DottedName extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DoubleLiteral extends Literal {
+abstract class DoubleLiteral implements Literal {
   /**
    * Return the token representing the literal.
    */
@@ -2558,7 +2557,7 @@ abstract class DoubleLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class EmptyFunctionBody extends FunctionBody {
+abstract class EmptyFunctionBody implements FunctionBody {
   /**
    * Return the token representing the semicolon that marks the end of the
    * function body.
@@ -2580,7 +2579,7 @@ abstract class EmptyFunctionBody extends FunctionBody {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class EmptyStatement extends Statement {
+abstract class EmptyStatement implements Statement {
   /**
    * Return the semicolon terminating the statement.
    */
@@ -2597,7 +2596,7 @@ abstract class EmptyStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class EnumConstantDeclaration extends Declaration {
+abstract class EnumConstantDeclaration implements Declaration {
   /**
    * Return the name of the constant.
    */
@@ -2617,7 +2616,7 @@ abstract class EnumConstantDeclaration extends Declaration {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class EnumDeclaration extends NamedCompilationUnitMember {
+abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /**
    * Return the enumeration constants being declared.
    */
@@ -2669,7 +2668,7 @@ abstract class EnumDeclaration extends NamedCompilationUnitMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ExportDirective extends NamespaceDirective {}
+abstract class ExportDirective implements NamespaceDirective {}
 
 /**
  * A node that represents an expression.
@@ -2796,7 +2795,7 @@ abstract class Expression implements CollectionElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ExpressionFunctionBody extends FunctionBody {
+abstract class ExpressionFunctionBody implements FunctionBody {
   /**
    * Return the expression representing the body of the function.
    */
@@ -2844,7 +2843,7 @@ abstract class ExpressionFunctionBody extends FunctionBody {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ExpressionStatement extends Statement {
+abstract class ExpressionStatement implements Statement {
   /**
    * Return the expression that comprises the statement.
    */
@@ -2875,7 +2874,7 @@ abstract class ExpressionStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ExtendsClause extends AstNode {
+abstract class ExtendsClause implements AstNode {
   /**
    * Return the token representing the 'extends' keyword.
    */
@@ -2905,7 +2904,7 @@ abstract class ExtendsClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FieldDeclaration extends ClassMember {
+abstract class FieldDeclaration implements ClassMember {
   /**
    * The 'covariant' keyword, or `null` if the keyword was not used.
    */
@@ -2962,7 +2961,7 @@ abstract class FieldDeclaration extends ClassMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FieldFormalParameter extends NormalFormalParameter {
+abstract class FieldFormalParameter implements NormalFormalParameter {
   /**
    * Return the token representing either the 'final', 'const' or 'var' keyword,
    * or `null` if no keyword was used.
@@ -3095,7 +3094,7 @@ abstract class ForEachPartsWithIdentifier implements ForEachParts {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ForEachStatement extends Statement {
+abstract class ForEachStatement implements Statement {
   /**
    * Return the token representing the 'await' keyword, or `null` if there is no
    * 'await' keyword.
@@ -3254,7 +3253,7 @@ abstract class ForLoopParts implements AstNode {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FormalParameter extends AstNode {
+abstract class FormalParameter implements AstNode {
   /**
    * The 'covariant' keyword, or `null` if the keyword was not used.
    */
@@ -3366,7 +3365,7 @@ abstract class FormalParameter extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FormalParameterList extends AstNode {
+abstract class FormalParameterList implements AstNode {
   /**
    * Return the left square bracket ('[') or left curly brace ('{') introducing
    * the optional parameters, or `null` if there are no optional parameters.
@@ -3509,7 +3508,7 @@ abstract class ForPartsWithExpression implements ForParts {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ForStatement extends Statement {
+abstract class ForStatement implements Statement {
   /**
    * Return the body of the loop.
    */
@@ -3631,7 +3630,7 @@ abstract class ForStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ForStatement2 extends Statement {
+abstract class ForStatement2 implements Statement {
   /**
    * Return the token representing the 'await' keyword, or `null` if there is no
    * 'await' keyword.
@@ -3674,7 +3673,7 @@ abstract class ForStatement2 extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionBody extends AstNode {
+abstract class FunctionBody implements AstNode {
   /**
    * Return `true` if this function body is asynchronous.
    */
@@ -3741,7 +3740,7 @@ abstract class FunctionBody extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionDeclaration extends NamedCompilationUnitMember {
+abstract class FunctionDeclaration implements NamedCompilationUnitMember {
   @override
   ExecutableElement get declaredElement;
 
@@ -3809,7 +3808,7 @@ abstract class FunctionDeclaration extends NamedCompilationUnitMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionDeclarationStatement extends Statement {
+abstract class FunctionDeclarationStatement implements Statement {
   /**
    * Return the function declaration being wrapped.
    */
@@ -3830,7 +3829,7 @@ abstract class FunctionDeclarationStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionExpression extends Expression {
+abstract class FunctionExpression implements Expression {
   /**
    * Return the body of the function, or `null` if this is an external function.
    */
@@ -3894,7 +3893,7 @@ abstract class FunctionExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionExpressionInvocation extends InvocationExpression {
+abstract class FunctionExpressionInvocation implements InvocationExpression {
   /**
    * Set the list of arguments to the method to the given [argumentList].
    */
@@ -3977,7 +3976,7 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionTypeAlias extends TypeAlias {
+abstract class FunctionTypeAlias implements TypeAlias {
   /**
    * Return the parameters associated with the function type.
    */
@@ -4021,7 +4020,7 @@ abstract class FunctionTypeAlias extends TypeAlias {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
+abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
   /**
    * Return the parameters of the function-typed parameter.
    */
@@ -4089,7 +4088,7 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class GenericFunctionType extends TypeAnnotation {
+abstract class GenericFunctionType implements TypeAnnotation {
   /**
    * Return the keyword 'Function'.
    */
@@ -4149,7 +4148,7 @@ abstract class GenericFunctionType extends TypeAnnotation {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class GenericTypeAlias extends TypeAlias {
+abstract class GenericTypeAlias implements TypeAlias {
   /**
      * Return the equal sign separating the name being defined from the function
      * type.
@@ -4195,7 +4194,7 @@ abstract class GenericTypeAlias extends TypeAlias {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class HideCombinator extends Combinator {
+abstract class HideCombinator implements Combinator {
   /**
    * Return the list of names from the library that are hidden by this
    * combinator.
@@ -4212,7 +4211,7 @@ abstract class HideCombinator extends Combinator {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Identifier extends Expression {
+abstract class Identifier implements Expression {
   /**
    * Return the best element available for this operator. If resolution was able
    * to find a better element based on type propagation, that element will be
@@ -4312,7 +4311,7 @@ abstract class IfElement<E> implements AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class IfStatement extends Statement {
+abstract class IfStatement implements Statement {
   /**
    * Return the condition used to determine which of the statements is executed
    * next.
@@ -4398,7 +4397,7 @@ abstract class IfStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ImplementsClause extends AstNode {
+abstract class ImplementsClause implements AstNode {
   /**
    * Return the token representing the 'implements' keyword.
    */
@@ -4424,7 +4423,7 @@ abstract class ImplementsClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ImportDirective extends NamespaceDirective {
+abstract class ImportDirective implements NamespaceDirective {
   static Comparator<ImportDirective> COMPARATOR =
       (ImportDirective import1, ImportDirective import2) {
     //
@@ -4572,8 +4571,8 @@ abstract class ImportDirective extends NamespaceDirective {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class IndexExpression extends Expression
-    implements MethodReferenceExpression {
+abstract class IndexExpression
+    implements Expression, MethodReferenceExpression {
   /**
    * Return the auxiliary elements associated with this identifier, or `null` if
    * this identifier is not in both a getter and setter context. The auxiliary
@@ -4690,8 +4689,8 @@ abstract class IndexExpression extends Expression
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class InstanceCreationExpression extends Expression
-    implements ConstructorReferenceNode {
+abstract class InstanceCreationExpression
+    implements Expression, ConstructorReferenceNode {
   /**
    * Return the list of arguments to the constructor.
    */
@@ -4749,7 +4748,7 @@ abstract class InstanceCreationExpression extends Expression
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class IntegerLiteral extends Literal {
+abstract class IntegerLiteral implements Literal {
   /**
    * Return the token representing the literal.
    */
@@ -4780,7 +4779,7 @@ abstract class IntegerLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class InterpolationElement extends AstNode {}
+abstract class InterpolationElement implements AstNode {}
 
 /**
  * An expression embedded in a string interpolation.
@@ -4791,7 +4790,7 @@ abstract class InterpolationElement extends AstNode {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class InterpolationExpression extends InterpolationElement {
+abstract class InterpolationExpression implements InterpolationElement {
   /**
    * Return the expression to be evaluated for the value to be converted into a
    * string.
@@ -4838,7 +4837,7 @@ abstract class InterpolationExpression extends InterpolationElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class InterpolationString extends InterpolationElement {
+abstract class InterpolationString implements InterpolationElement {
   /**
    * Return the characters that will be added to the string.
    */
@@ -4876,7 +4875,7 @@ abstract class InterpolationString extends InterpolationElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class InvocationExpression extends Expression {
+abstract class InvocationExpression implements Expression {
   /**
    * Return the list of arguments to the method.
    */
@@ -4951,7 +4950,7 @@ abstract class InvocationExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class IsExpression extends Expression {
+abstract class IsExpression implements Expression {
   /**
    * Return the expression used to compute the value whose type is being tested.
    */
@@ -5002,7 +5001,7 @@ abstract class IsExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Label extends AstNode {
+abstract class Label implements AstNode {
   /**
    * Return the colon that separates the label from the statement.
    */
@@ -5033,7 +5032,7 @@ abstract class Label extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class LabeledStatement extends Statement {
+abstract class LabeledStatement implements Statement {
   /**
    * Return the labels being associated with the statement.
    */
@@ -5059,7 +5058,7 @@ abstract class LabeledStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class LibraryDirective extends Directive {
+abstract class LibraryDirective implements Directive {
   /**
    * Return the token representing the 'library' keyword.
    */
@@ -5099,7 +5098,7 @@ abstract class LibraryDirective extends Directive {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class LibraryIdentifier extends Identifier {
+abstract class LibraryIdentifier implements Identifier {
   /**
    * Return the components of the identifier.
    */
@@ -5118,7 +5117,7 @@ abstract class LibraryIdentifier extends Identifier {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ListLiteral extends TypedLiteral {
+abstract class ListLiteral implements TypedLiteral {
   /**
    * Return the expressions used to compute the elements of the list.
    */
@@ -5158,7 +5157,7 @@ abstract class ListLiteral extends TypedLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ListLiteral2 extends TypedLiteral {
+abstract class ListLiteral2 implements TypedLiteral {
   /**
    * Return the expressions used to compute the elements of the list.
    */
@@ -5199,7 +5198,7 @@ abstract class ListLiteral2 extends TypedLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Literal extends Expression {}
+abstract class Literal implements Expression {}
 
 /**
  * An element in a literal map.
@@ -5247,7 +5246,7 @@ abstract class MapIfElement implements IfElement<MapElement>, MapElement {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MapLiteral extends TypedLiteral {
+abstract class MapLiteral implements TypedLiteral {
   /**
    * Return the entries in the map.
    */
@@ -5287,7 +5286,7 @@ abstract class MapLiteral extends TypedLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MapLiteral2 extends TypedLiteral {
+abstract class MapLiteral2 implements TypedLiteral {
   /**
    * Return the entries in the map.
    */
@@ -5374,7 +5373,7 @@ abstract class MapLiteralEntry implements MapElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MethodDeclaration extends ClassMember {
+abstract class MethodDeclaration implements ClassMember {
   /**
    * Return the body of the method.
    */
@@ -5519,7 +5518,7 @@ abstract class MethodDeclaration extends ClassMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MethodInvocation extends InvocationExpression {
+abstract class MethodInvocation implements InvocationExpression {
   /**
    * Set the list of arguments to the method to the given [argumentList].
    */
@@ -5654,7 +5653,7 @@ abstract class MethodReferenceExpression implements AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MixinDeclaration extends ClassOrMixinDeclaration {
+abstract class MixinDeclaration implements ClassOrMixinDeclaration {
   /**
    * Return the token representing the 'mixin' keyword.
    */
@@ -5672,7 +5671,7 @@ abstract class MixinDeclaration extends ClassOrMixinDeclaration {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NamedCompilationUnitMember extends CompilationUnitMember {
+abstract class NamedCompilationUnitMember implements CompilationUnitMember {
   /**
    * Return the name of the member being declared.
    */
@@ -5693,7 +5692,7 @@ abstract class NamedCompilationUnitMember extends CompilationUnitMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NamedExpression extends Expression {
+abstract class NamedExpression implements Expression {
   /**
    * Return the element representing the parameter being named by this
    * expression, or `null` if the AST structure has not been resolved or if
@@ -5731,7 +5730,7 @@ abstract class NamedExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NamedType extends TypeAnnotation {
+abstract class NamedType implements TypeAnnotation {
   /**
    * Return `true` if this type is a deferred type.
    *
@@ -5783,7 +5782,7 @@ abstract class NamedType extends TypeAnnotation {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NamespaceDirective extends UriBasedDirective {
+abstract class NamespaceDirective implements UriBasedDirective {
   /**
    * Return the combinators used to control how names are imported or exported.
    */
@@ -5836,7 +5835,7 @@ abstract class NamespaceDirective extends UriBasedDirective {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NativeClause extends AstNode {
+abstract class NativeClause implements AstNode {
   /**
    * Return the name of the native object that implements the class.
    */
@@ -5868,7 +5867,7 @@ abstract class NativeClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NativeFunctionBody extends FunctionBody {
+abstract class NativeFunctionBody implements FunctionBody {
   /**
    * Return the token representing 'native' that marks the start of the function
    * body.
@@ -5965,7 +5964,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NormalFormalParameter extends FormalParameter {
+abstract class NormalFormalParameter implements FormalParameter {
   /**
    * Set the token for the 'covariant' keyword to the given [token].
    */
@@ -6008,7 +6007,7 @@ abstract class NormalFormalParameter extends FormalParameter {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class NullLiteral extends Literal {
+abstract class NullLiteral implements Literal {
   /**
    * Return the token representing the literal.
    */
@@ -6028,7 +6027,7 @@ abstract class NullLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class OnClause extends AstNode {
+abstract class OnClause implements AstNode {
   /**
    * Return the token representing the 'on' keyword.
    */
@@ -6048,7 +6047,7 @@ abstract class OnClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ParenthesizedExpression extends Expression {
+abstract class ParenthesizedExpression implements Expression {
   /**
    * Return the expression within the parentheses.
    */
@@ -6088,7 +6087,7 @@ abstract class ParenthesizedExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PartDirective extends UriBasedDirective {
+abstract class PartDirective implements UriBasedDirective {
   /**
    * Return the token representing the 'part' keyword.
    */
@@ -6118,7 +6117,7 @@ abstract class PartDirective extends UriBasedDirective {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PartOfDirective extends Directive {
+abstract class PartOfDirective implements Directive {
   /**
    * Return the name of the library that the containing compilation unit is part
    * of.
@@ -6184,8 +6183,8 @@ abstract class PartOfDirective extends Directive {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PostfixExpression extends Expression
-    implements MethodReferenceExpression {
+abstract class PostfixExpression
+    implements Expression, MethodReferenceExpression {
   /**
    * Return the expression computing the operand for the operator.
    */
@@ -6217,7 +6216,7 @@ abstract class PostfixExpression extends Expression
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PrefixedIdentifier extends Identifier {
+abstract class PrefixedIdentifier implements Identifier {
   /**
    * Return the identifier being prefixed.
    */
@@ -6269,8 +6268,8 @@ abstract class PrefixedIdentifier extends Identifier {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PrefixExpression extends Expression
-    implements MethodReferenceExpression {
+abstract class PrefixExpression
+    implements Expression, MethodReferenceExpression {
   /**
    * Return the expression computing the operand for the operator.
    */
@@ -6305,7 +6304,7 @@ abstract class PrefixExpression extends Expression
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PropertyAccess extends Expression {
+abstract class PropertyAccess implements Expression {
   /**
    * Return `true` if this expression is cascaded. If it is, then the target of
    * this expression is not stored locally but is stored in the nearest ancestor
@@ -6366,8 +6365,8 @@ abstract class PropertyAccess extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class RedirectingConstructorInvocation extends ConstructorInitializer
-    implements ConstructorReferenceNode {
+abstract class RedirectingConstructorInvocation
+    implements ConstructorInitializer, ConstructorReferenceNode {
   /**
    * Return the list of arguments to the constructor.
    */
@@ -6421,7 +6420,7 @@ abstract class RedirectingConstructorInvocation extends ConstructorInitializer
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class RethrowExpression extends Expression {
+abstract class RethrowExpression implements Expression {
   /**
    * Return the token representing the 'rethrow' keyword.
    */
@@ -6441,7 +6440,7 @@ abstract class RethrowExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ReturnStatement extends Statement {
+abstract class ReturnStatement implements Statement {
   /**
    * Return the expression computing the value to be returned, or `null` if no
    * explicit value was provided.
@@ -6483,7 +6482,7 @@ abstract class ReturnStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ScriptTag extends AstNode {
+abstract class ScriptTag implements AstNode {
   /**
    * Return the token representing this script tag.
    */
@@ -6509,7 +6508,7 @@ abstract class ScriptTag extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SetLiteral extends TypedLiteral {
+abstract class SetLiteral implements TypedLiteral {
   /**
    * Return the expressions used to compute the elements of the set.
    */
@@ -6550,7 +6549,7 @@ abstract class SetLiteral extends TypedLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SetLiteral2 extends TypedLiteral {
+abstract class SetLiteral2 implements TypedLiteral {
   /**
    * Return the expressions used to compute the elements of the set.
    */
@@ -6585,7 +6584,7 @@ abstract class SetLiteral2 extends TypedLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ShowCombinator extends Combinator {
+abstract class ShowCombinator implements Combinator {
   /**
    * Return the list of names from the library that are made visible by this
    * combinator.
@@ -6601,7 +6600,7 @@ abstract class ShowCombinator extends Combinator {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SimpleFormalParameter extends NormalFormalParameter {
+abstract class SimpleFormalParameter implements NormalFormalParameter {
   /**
    * Return the token representing either the 'final', 'const' or 'var' keyword,
    * or `null` if no keyword was used.
@@ -6638,7 +6637,7 @@ abstract class SimpleFormalParameter extends NormalFormalParameter {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SimpleIdentifier extends Identifier {
+abstract class SimpleIdentifier implements Identifier {
   /**
    * Return the auxiliary elements associated with this identifier, or `null` if
    * this identifier is not in both a getter and setter context. The auxiliary
@@ -6739,7 +6738,7 @@ abstract class SimpleIdentifier extends Identifier {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SimpleStringLiteral extends SingleStringLiteral {
+abstract class SimpleStringLiteral implements SingleStringLiteral {
   /**
    * Return the token representing the literal.
    */
@@ -6770,7 +6769,7 @@ abstract class SimpleStringLiteral extends SingleStringLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SingleStringLiteral extends StringLiteral {
+abstract class SingleStringLiteral implements StringLiteral {
   /**
    * Return the offset of the after-last contents character.
    */
@@ -6840,7 +6839,7 @@ abstract class SpreadElement implements CollectionElement, MapElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Statement extends AstNode {
+abstract class Statement implements AstNode {
   /**
    * If this is a labeled statement, return the unlabeled portion of the
    * statement, otherwise return the statement itself.
@@ -6857,7 +6856,7 @@ abstract class Statement extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class StringInterpolation extends SingleStringLiteral {
+abstract class StringInterpolation implements SingleStringLiteral {
   /**
    * Return the elements that will be composed to produce the resulting string.
    */
@@ -6874,7 +6873,7 @@ abstract class StringInterpolation extends SingleStringLiteral {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class StringLiteral extends Literal {
+abstract class StringLiteral implements Literal {
   /**
    * Return the value of the string literal, or `null` if the string is not a
    * constant string without any string interpolation.
@@ -6891,8 +6890,8 @@ abstract class StringLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SuperConstructorInvocation extends ConstructorInitializer
-    implements ConstructorReferenceNode {
+abstract class SuperConstructorInvocation
+    implements ConstructorInitializer, ConstructorReferenceNode {
   /**
    * Return the list of arguments to the constructor.
    */
@@ -6946,7 +6945,7 @@ abstract class SuperConstructorInvocation extends ConstructorInitializer
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SuperExpression extends Expression {
+abstract class SuperExpression implements Expression {
   /**
    * Return the token representing the 'super' keyword.
    */
@@ -6966,7 +6965,7 @@ abstract class SuperExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SwitchCase extends SwitchMember {
+abstract class SwitchCase implements SwitchMember {
   /**
    * Return the expression controlling whether the statements will be executed.
    */
@@ -6987,7 +6986,7 @@ abstract class SwitchCase extends SwitchMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SwitchDefault extends SwitchMember {}
+abstract class SwitchDefault implements SwitchMember {}
 
 /**
  * An element within a switch statement.
@@ -6998,7 +6997,7 @@ abstract class SwitchDefault extends SwitchMember {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SwitchMember extends AstNode {
+abstract class SwitchMember implements AstNode {
   /**
    * Return the colon separating the keyword or the expression from the
    * statements.
@@ -7042,7 +7041,7 @@ abstract class SwitchMember extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SwitchStatement extends Statement {
+abstract class SwitchStatement implements Statement {
   /**
    * Return the expression used to determine which of the switch members will be
    * selected.
@@ -7119,7 +7118,7 @@ abstract class SwitchStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SymbolLiteral extends Literal {
+abstract class SymbolLiteral implements Literal {
   /**
    * Return the components of the literal.
    */
@@ -7144,7 +7143,7 @@ abstract class SymbolLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ThisExpression extends Expression {
+abstract class ThisExpression implements Expression {
   /**
    * Return the token representing the 'this' keyword.
    */
@@ -7164,7 +7163,7 @@ abstract class ThisExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ThrowExpression extends Expression {
+abstract class ThrowExpression implements Expression {
   /**
    * Return the expression computing the exception to be thrown.
    */
@@ -7196,7 +7195,7 @@ abstract class ThrowExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TopLevelVariableDeclaration extends CompilationUnitMember {
+abstract class TopLevelVariableDeclaration implements CompilationUnitMember {
   /**
    * Return the semicolon terminating the declaration.
    */
@@ -7230,7 +7229,7 @@ abstract class TopLevelVariableDeclaration extends CompilationUnitMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TryStatement extends Statement {
+abstract class TryStatement implements Statement {
   /**
    * Return the body of the statement.
    */
@@ -7291,7 +7290,7 @@ abstract class TryStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeAlias extends NamedCompilationUnitMember {
+abstract class TypeAlias implements NamedCompilationUnitMember {
   /**
    * Return the semicolon terminating the declaration.
    */
@@ -7322,7 +7321,7 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeAnnotation extends AstNode {
+abstract class TypeAnnotation implements AstNode {
   /**
    * The question mark indicating that the type is nullable, or `null` if there
    * is no question mark.
@@ -7344,7 +7343,7 @@ abstract class TypeAnnotation extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeArgumentList extends AstNode {
+abstract class TypeArgumentList implements AstNode {
   /**
    * Return the type arguments associated with the type.
    */
@@ -7380,7 +7379,7 @@ abstract class TypeArgumentList extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypedLiteral extends Literal {
+abstract class TypedLiteral implements Literal {
   /**
    * Return the token representing the 'const' keyword, or `null` if the literal
    * is not a constant.
@@ -7420,7 +7419,7 @@ abstract class TypedLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeName extends NamedType {}
+abstract class TypeName implements NamedType {}
 
 /**
  * A type parameter.
@@ -7430,7 +7429,7 @@ abstract class TypeName extends NamedType {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeParameter extends Declaration {
+abstract class TypeParameter implements Declaration {
   /**
    * Return the upper bound for legal arguments, or `null` if there is no
    * explicit upper bound.
@@ -7472,7 +7471,7 @@ abstract class TypeParameter extends Declaration {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeParameterList extends AstNode {
+abstract class TypeParameterList implements AstNode {
   /**
    * Return the left angle bracket.
    */
@@ -7499,7 +7498,7 @@ abstract class TypeParameterList extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class UriBasedDirective extends Directive {
+abstract class UriBasedDirective implements Directive {
   /**
    * Return the source to which the URI was resolved.
    */
@@ -7565,7 +7564,7 @@ abstract class UriBasedDirective extends Directive {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class VariableDeclaration extends Declaration {
+abstract class VariableDeclaration implements Declaration {
   @override
   VariableElement get declaredElement;
 
@@ -7634,7 +7633,7 @@ abstract class VariableDeclaration extends Declaration {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class VariableDeclarationList extends AnnotatedNode {
+abstract class VariableDeclarationList implements AnnotatedNode {
   /**
    * Return `true` if the variables in this list were declared with the 'const'
    * modifier.
@@ -7687,7 +7686,7 @@ abstract class VariableDeclarationList extends AnnotatedNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class VariableDeclarationStatement extends Statement {
+abstract class VariableDeclarationStatement implements Statement {
   /**
    * Return the semicolon terminating the statement.
    */
@@ -7717,7 +7716,7 @@ abstract class VariableDeclarationStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class WhileStatement extends Statement {
+abstract class WhileStatement implements Statement {
   /**
    * Return the body of the loop.
    */
@@ -7779,7 +7778,7 @@ abstract class WhileStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class WithClause extends AstNode {
+abstract class WithClause implements AstNode {
   /**
    * Return the names of the mixins that were specified.
    */
@@ -7804,7 +7803,7 @@ abstract class WithClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class YieldStatement extends Statement {
+abstract class YieldStatement implements Statement {
   /**
    * Return the expression whose value will be yielded.
    */
