@@ -575,6 +575,6 @@ class CompletionTarget {
         paramType = param.type;
       }
     }
-    return paramType is FunctionType || paramType is FunctionTypeAlias;
+    return paramType is FunctionType;
   }
 }
