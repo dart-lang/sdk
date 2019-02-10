@@ -22,8 +22,7 @@ class UndefinedGetterTest extends ResolverTestCase {
 
   test_ifStatement_notPromoted() async {
     await assertErrorsInCode('''
-f() {
-  int x;
+f(int x) {
   if (x is String) {
     x.length;
   }
@@ -33,8 +32,7 @@ f() {
 
   test_ifStatement_promoted() async {
     await assertNoErrorsInCode('''
-f() {
-  Object x;
+f(Object x) {
   if (x is String) {
     x.length;
   }
@@ -64,8 +62,7 @@ class UndefinedGetterWithControlFlowCollectionsTest extends ResolverTestCase {
 
   test_ifElement_inList_notPromoted() async {
     await assertErrorsInCode('''
-f() {
-  int x;
+f(int x) {
   return [if (x is String) x.length];
 }
 ''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
@@ -73,8 +70,7 @@ f() {
 
   test_ifElement_inList_promoted() async {
     await assertNoErrorsInCode('''
-f() {
-  Object x;
+f(Object x) {
   return [if (x is String) x.length];
 }
 ''');
@@ -82,8 +78,7 @@ f() {
 
   test_ifElement_inMap_notPromoted() async {
     await assertErrorsInCode('''
-f() {
-  int x;
+f(int x) {
   return {if (x is String) x : x.length};
 }
 ''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
@@ -91,8 +86,7 @@ f() {
 
   test_ifElement_inMap_promoted() async {
     await assertNoErrorsInCode('''
-f() {
-  Object x;
+f(Object x) {
   return {if (x is String) x : x.length};
 }
 ''');
@@ -100,8 +94,7 @@ f() {
 
   test_ifElement_inSet_notPromoted() async {
     await assertErrorsInCode('''
-f() {
-  int x;
+f(int x) {
   return {if (x is String) x.length};
 }
 ''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
@@ -109,8 +102,7 @@ f() {
 
   test_ifElement_inSet_promoted() async {
     await assertNoErrorsInCode('''
-f() {
-  Object x;
+f(Object x) {
   return {if (x is String) x.length};
 }
 ''');

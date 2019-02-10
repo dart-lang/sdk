@@ -144,6 +144,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
+  bool get enableUnusedLocalVariable => false;
+
+  bool get enableUnusedElement => false;
+
   /**
    * Assert that the number of error codes in reported [errors] matches the
    * number of [expected] error codes. The order of errors is ignored.
@@ -153,11 +157,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var errorListener = new GatheringErrorListener();
     for (AnalysisError error in result.errors) {
       ErrorCode errorCode = error.errorCode;
-      if (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
-          errorCode == HintCode.UNUSED_CATCH_STACK ||
-          errorCode == HintCode.UNUSED_ELEMENT ||
-          errorCode == HintCode.UNUSED_FIELD ||
-          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+      if (!enableUnusedElement &&
+          (errorCode == HintCode.UNUSED_ELEMENT ||
+              errorCode == HintCode.UNUSED_FIELD)) {
+        continue;
+      }
+      if (!enableUnusedLocalVariable &&
+          (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+              errorCode == HintCode.UNUSED_CATCH_STACK ||
+              errorCode == HintCode.UNUSED_LOCAL_VARIABLE)) {
         continue;
       }
       errorListener.onError(error);
