@@ -76,7 +76,6 @@
 
 The linter was bumped to `0.1.80` which introduces the following linter improvements to the SDK:
 
-* `prefer_collection_literals` updated to support Set literals
 * `unnecessary_parenthesis` updated to play nicer with cascades
 * new lint: `use_full_hex_values_for_flutter_colors`
 * new lint: `prefer_null_aware_operators`
