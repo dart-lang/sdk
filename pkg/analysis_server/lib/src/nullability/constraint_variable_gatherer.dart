@@ -131,11 +131,12 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
       }
     }
     var nullable = node.question == null
-        ? _variables.nullableForTypeAnnotation(_source, node)
+        ? TypeIsNullable(node.end)
         : ConstraintVariable.always;
     // TODO(paulberry): decide whether to assign a variable for nullAsserts
     var nullAsserts = null;
-    var decoratedType = DecoratedType(type, nullable,
+    var decoratedType = DecoratedTypeAnnotation(
+        type, nullable, _source, node.end,
         nullAsserts: nullAsserts, typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(node, decoratedType);
     return decoratedType;
@@ -169,16 +170,12 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 /// ([ConstraintVariableGatherer], which finds all the variables that need to be
 /// constrained).
 abstract class VariableRecorder {
-  /// Creates a constraint variable to represent whether the given [node] should
-  /// be made nullable (by adding a `?` after it).
-  ConstraintVariable nullableForTypeAnnotation(
-      Source source, TypeAnnotation node);
-
   /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
 
   /// Associates decorated type information with the given [type] node.
-  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type);
+  void recordDecoratedTypeAnnotation(
+      TypeAnnotation node, DecoratedTypeAnnotation type);
 }
 
 /// Repository of constraint variables and decorated types corresponding to the
@@ -189,21 +186,12 @@ abstract class VariableRecorder {
 /// results of the first ([ConstraintVariableGatherer], which finds all the
 /// variables that need to be constrained).
 abstract class VariableRepository {
-  /// Creates a constraint variable to represent whether the given [expression]
-  /// should be null-checked.
-  ConstraintVariable checkNotNullForExpression(
-      Source source, Expression expression);
-
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
   ///
   /// If [create] is `true`, and no decorated type is found for the given
   /// element, one is synthesized using [DecoratedType.forElement].
   DecoratedType decoratedElementType(Element element, {bool create: false});
-
-  /// Creates a constraint variable to represent whether the static type of
-  /// the given [expression] will be nullable after the migration.
-  ConstraintVariable nullableForExpression(Expression expression);
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
@@ -161,4 +163,43 @@ class DecoratedType {
     }
     throw '$type.substitute($substitution)'; // TODO(paulberry)
   }
+}
+
+/// A [DecoratedType] based on a type annotation appearing explicitly in the
+/// source code.
+///
+/// This class implements [PotentialModification] because it knows how to update
+/// the source code to reflect its nullability.
+class DecoratedTypeAnnotation extends DecoratedType
+    implements PotentialModification {
+  @override
+  final Source source;
+
+  final int _offset;
+
+  DecoratedTypeAnnotation(
+      DartType type, ConstraintVariable nullable, this.source, this._offset,
+      {ConstraintVariable nullAsserts,
+      List<DecoratedType> typeArguments = const []})
+      : super(type, nullable,
+            nullAsserts: nullAsserts, typeArguments: typeArguments);
+
+  @override
+  bool get isEmpty =>
+      identical(nullable, ConstraintVariable.always) || !nullable.value;
+
+  @override
+  Iterable<Modification> get modifications =>
+      isEmpty ? [] : [Modification(_offset, '?')];
+}
+
+/// Type of a [ConstraintVariable] representing the fact that a type is
+/// nullable.
+class TypeIsNullable extends ConstraintVariable {
+  final int _offset;
+
+  TypeIsNullable(this._offset);
+
+  @override
+  toString() => 'nullable($_offset)';
 }

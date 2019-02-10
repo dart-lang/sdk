@@ -368,11 +368,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         _recordConstraint(sourceType.nullable, destinationType.nullable);
       } else {
         assert(expression != null); // TODO(paulberry)
-        var checkNotNull =
-            _variables.checkNotNullForExpression(_source, expression);
+        var checkNotNull = CheckExpression(expression);
         _recordConstraint(sourceType.nullable, checkNotNull);
         _variables.recordExpressionChecks(
-            expression, ExpressionChecks(checkNotNull));
+            expression, ExpressionChecks(_source, checkNotNull));
       }
     }
     // TODO(paulberry): it's a cheat to pass in expression=null for the
@@ -442,7 +441,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         identical(b, ConstraintVariable.always)) {
       return ConstraintVariable.always;
     }
-    var result = _variables.nullableForExpression(node);
+    var result = TypeIsNullable(node.offset);
     _recordConstraint(a, result);
     _recordConstraint(b, result);
     _recordConstraint(result, ConstraintVariable.or(_constraints, a, b));

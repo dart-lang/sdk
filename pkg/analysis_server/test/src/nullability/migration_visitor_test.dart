@@ -76,7 +76,7 @@ int f(int i, int j) => i + j;
 ''');
 
     assertConstraint([decoratedTypeAnnotation('int i').nullable],
-        checkExpression('i +').notNull);
+        checkExpression('i +').nullCheck);
   }
 
   test_binaryExpression_add_left_check_custom() async {
@@ -88,7 +88,7 @@ Int f(Int i, Int j) => i + j;
 ''');
 
     assertConstraint([decoratedTypeAnnotation('Int i').nullable],
-        checkExpression('i +').notNull);
+        checkExpression('i +').nullCheck);
   }
 
   test_binaryExpression_add_result_custom() async {
@@ -117,7 +117,7 @@ int f(int i, int j) => i + j;
 ''');
 
     assertConstraint([decoratedTypeAnnotation('int j').nullable],
-        checkExpression('j;').notNull);
+        checkExpression('j;').nullCheck);
   }
 
   test_binaryExpression_add_right_check_custom() async {
@@ -148,7 +148,7 @@ int f(bool b, int i, int j) {
 ''');
 
     var nullable_b = decoratedTypeAnnotation('bool b').nullable;
-    var check_b = checkExpression('b ?').notNull;
+    var check_b = checkExpression('b ?').nullCheck;
     assertConstraint([nullable_b], check_b);
   }
 
@@ -306,7 +306,7 @@ void f(bool b) {
 ''');
 
     assertConstraint([(decoratedTypeAnnotation('bool b').nullable)],
-        checkExpression('b) {}').notNull);
+        checkExpression('b) {}').nullCheck);
   }
 
   test_if_guard_equals_null() async {
@@ -431,7 +431,7 @@ void test(C c) {
 ''');
 
     assertConstraint([decoratedTypeAnnotation('C c').nullable],
-        checkExpression('c.m').notNull);
+        checkExpression('c.m').nullCheck);
   }
 
   test_parenthesizedExpression() async {

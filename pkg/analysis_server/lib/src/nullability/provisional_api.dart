@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/decorated_type.dart'
+    as analyzer;
+import 'package:analysis_server/src/nullability/expression_checks.dart'
+    as analyzer;
 import 'package:analysis_server/src/nullability/transitional_api.dart'
     as analyzer;
 import 'package:analysis_server/src/protocol_server.dart';
@@ -127,9 +131,9 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     // directly and set their kind appropriately; we won't need to translate the
     // kinds using a bunch of `is` checks.
     NullabilityFixKind kind;
-    if (potentialModification is analyzer.CheckExpression) {
+    if (potentialModification is analyzer.ExpressionChecks) {
       kind = NullabilityFixKind.checkExpression;
-    } else if (potentialModification is analyzer.NullableTypeAnnotation) {
+    } else if (potentialModification is analyzer.DecoratedTypeAnnotation) {
       kind = NullabilityFixKind.makeTypeNullable;
     } else if (potentialModification is analyzer.ConditionalModification) {
       kind = potentialModification.discard.keepFalse.value

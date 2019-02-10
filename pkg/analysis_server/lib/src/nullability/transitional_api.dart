@@ -14,25 +14,13 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// Type of a [ConstraintVariable] representing the addition of a null check.
-class CheckExpression extends ConstraintVariable
-    implements PotentialModification {
-  final int _offset;
+class CheckExpression extends ConstraintVariable {
+  final int offset;
+
+  CheckExpression(Expression expression) : offset = expression.end;
 
   @override
-  final Source source;
-
-  CheckExpression(this.source, Expression expression)
-      : _offset = expression.end;
-
-  @override
-  bool get isEmpty => !value;
-
-  @override
-  Iterable<Modification> get modifications =>
-      value ? [Modification(_offset, '!')] : [];
-
-  @override
-  toString() => 'checkNotNull($_offset)';
+  toString() => 'checkNotNull($offset)';
 }
 
 /// Records information about how a conditional expression or statement might
@@ -225,27 +213,6 @@ class NullabilityMigrationAssumptions {
           DefaultParameterHandling.option2_addRequiredNamedParameters});
 }
 
-/// Type of a [ConstraintVariable] representing the addition of `?` to a type.
-class NullableTypeAnnotation extends ConstraintVariable
-    implements PotentialModification {
-  int _offset;
-
-  @override
-  final Source source;
-
-  NullableTypeAnnotation(this.source, TypeAnnotation node) : _offset = node.end;
-
-  @override
-  bool get isEmpty => !value;
-
-  @override
-  Iterable<Modification> get modifications =>
-      value ? [Modification(_offset, '?')] : [];
-
-  @override
-  toString() => 'nullable($_offset)';
-}
-
 /// Interface used by data structures representing potential modifications to
 /// the code being migrated.
 abstract class PotentialModification {
@@ -264,14 +231,6 @@ class Variables implements VariableRecorder, VariableRepository {
   final _potentialModifications = <PotentialModification>[];
 
   @override
-  ConstraintVariable checkNotNullForExpression(
-      Source source, Expression expression) {
-    var variable = CheckExpression(source, expression);
-    _potentialModifications.add(variable);
-    return variable;
-  }
-
-  @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
           ? DecoratedType.forElement(element)
@@ -279,18 +238,6 @@ class Variables implements VariableRecorder, VariableRepository {
 
   List<PotentialModification> getPotentialModifications() =>
       _potentialModifications.where((m) => !m.isEmpty).toList();
-
-  @override
-  ConstraintVariable nullableForExpression(Expression expression) =>
-      _NullableExpression(expression);
-
-  @override
-  ConstraintVariable nullableForTypeAnnotation(
-      Source source, TypeAnnotation node) {
-    var variable = NullableTypeAnnotation(source, node);
-    _potentialModifications.add(variable);
-    return variable;
-  }
 
   @override
   void recordConditionalDiscard(
@@ -305,10 +252,15 @@ class Variables implements VariableRecorder, VariableRepository {
 
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
-  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type) {}
+  void recordDecoratedTypeAnnotation(
+      TypeAnnotation node, DecoratedTypeAnnotation type) {
+    _potentialModifications.add(type);
+  }
 
   @override
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {}
+  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
+    _potentialModifications.add(checks);
+  }
 }
 
 /// Helper object used by [ConditionalModification] to keep track of AST nodes
@@ -331,15 +283,4 @@ class _KeepNode {
   }
 
   _KeepNode._(this.offset, this.end, this.isExpression);
-}
-
-/// Type of a [ConstraintVariable] representing the fact that a subexpression's
-/// type is nullable.
-class _NullableExpression extends ConstraintVariable {
-  final int _offset;
-
-  _NullableExpression(Expression expression) : _offset = expression.offset;
-
-  @override
-  toString() => 'nullable($_offset)';
 }
