@@ -70,7 +70,8 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
   /// produces the [expected] output.
   Future<void> _checkSingleFileChanges(String content, String expected) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
-    _checkMultipleFileChanges({sourcePath: content}, {sourcePath: expected});
+    await _checkMultipleFileChanges(
+        {sourcePath: content}, {sourcePath: expected});
   }
 }
 
@@ -111,7 +112,7 @@ void test(C<int> c) {
   g(c, null);
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_data_flow_generic_inward_hint() async {
@@ -142,7 +143,7 @@ void test(C<int> c) {
   g(c, null);
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_data_flow_inward() async {
@@ -161,7 +162,7 @@ void test() {
   g(null);
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_data_flow_inward_missing_type() async {
@@ -180,7 +181,7 @@ void test() {
   g(null);
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_data_flow_outward() async {
@@ -193,7 +194,7 @@ int g(int i) => f(i);
 int? f(int i) => null;
 int? g(int i) => f(i);
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_data_flow_outward_missing_type() async {
@@ -206,7 +207,7 @@ int g(int i) => f(i);
 f(int i) => null; // TODO(danrubel): suggest type
 int? g(int i) => f(i);
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_discard_simple_condition() async {
@@ -229,7 +230,7 @@ int f(int i) {
   } */
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_no_default_unused_option2() async {
@@ -245,7 +246,7 @@ main() {
   f();
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_no_default_used_null_option2() async {
@@ -261,7 +262,7 @@ main() {
   f(s: null);
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_no_default_used_non_null_option2_assume_nullable() async {
@@ -277,7 +278,7 @@ main() {
   f(s: 'x');
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_with_default_unused_option2() async {
@@ -293,7 +294,7 @@ main() {
   f();
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_with_default_used_non_null_option2() async {
@@ -309,7 +310,7 @@ main() {
   f(s: 'bar');
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_with_default_used_null_option2() async {
@@ -325,7 +326,7 @@ main() {
   f(s: null);
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_non_null_assertion() async {
@@ -342,7 +343,7 @@ int f(int i, [int? j]) {
   return i + j!;
 }
 ''';
-    _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_single_file_multiple_changes() async {
@@ -389,7 +390,7 @@ int g() => f();
 import 'file1.dart';
 int? g() => f();
 ''';
-    _checkMultipleFileChanges(
+    await _checkMultipleFileChanges(
         {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
   }
 }
