@@ -1,6 +1,9 @@
-# 0.1.80
+# 0.1.81
 
 * updated `prefer_collection_literals` to support Set literals
+
+# 0.1.80
+
 * deprecated `super_goes_last`
 * (internal) migrations to analyzer's preferred `InheritanceManager2` API
 
