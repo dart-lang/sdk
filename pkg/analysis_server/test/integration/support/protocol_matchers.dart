@@ -950,12 +950,12 @@ final Matcher isImportedElements = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "tag": AvailableSuggestionRelevanceTag
- *   "relevance": int
+ *   "relevanceBoost": int
  * }
  */
 final Matcher isIncludedSuggestionRelevanceTag = new LazyMatcher(() =>
     new MatchesJsonObject("IncludedSuggestionRelevanceTag",
-        {"tag": isAvailableSuggestionRelevanceTag, "relevance": isInt}));
+        {"tag": isAvailableSuggestionRelevanceTag, "relevanceBoost": isInt}));
 
 /**
  * IncludedSuggestionSet

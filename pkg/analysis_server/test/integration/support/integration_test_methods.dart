@@ -1220,7 +1220,7 @@ abstract class IntegrationTestMixin {
    *   relevance to suggestions of matching types.
    *
    *   If an AvailableSuggestion has relevance tags that match more than one
-   *   IncludedSuggestionRelevanceTag, the maximum relevance is used.
+   *   IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
    */
   Stream<CompletionResultsParams> onCompletionResults;
 

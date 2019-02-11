@@ -6503,7 +6503,7 @@ class CompletionResultsParams implements HasToJson {
    * of matching types.
    *
    * If an AvailableSuggestion has relevance tags that match more than one
-   * IncludedSuggestionRelevanceTag, the maximum relevance is used.
+   * IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
    */
   List<IncludedSuggestionRelevanceTag> get includedSuggestionRelevanceTags =>
       _includedSuggestionRelevanceTags;
@@ -6518,7 +6518,7 @@ class CompletionResultsParams implements HasToJson {
    * of matching types.
    *
    * If an AvailableSuggestion has relevance tags that match more than one
-   * IncludedSuggestionRelevanceTag, the maximum relevance is used.
+   * IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
    */
   void set includedSuggestionRelevanceTags(
       List<IncludedSuggestionRelevanceTag> value) {
@@ -15971,7 +15971,7 @@ class ImportedElements implements HasToJson {
  *
  * {
  *   "tag": AvailableSuggestionRelevanceTag
- *   "relevance": int
+ *   "relevanceBoost": int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -15979,7 +15979,7 @@ class ImportedElements implements HasToJson {
 class IncludedSuggestionRelevanceTag implements HasToJson {
   String _tag;
 
-  int _relevance;
+  int _relevanceBoost;
 
   /**
    * The opaque value of the tag.
@@ -15995,23 +15995,25 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   }
 
   /**
-   * The relevance of the completion suggestions that match this tag, where a
-   * higher number indicates a higher relevance.
+   * The boost to the relevance of the completion suggestions that match this
+   * tag, which is added to the relevance of the containing
+   * IncludedSuggestionSet.
    */
-  int get relevance => _relevance;
+  int get relevanceBoost => _relevanceBoost;
 
   /**
-   * The relevance of the completion suggestions that match this tag, where a
-   * higher number indicates a higher relevance.
+   * The boost to the relevance of the completion suggestions that match this
+   * tag, which is added to the relevance of the containing
+   * IncludedSuggestionSet.
    */
-  void set relevance(int value) {
+  void set relevanceBoost(int value) {
     assert(value != null);
-    this._relevance = value;
+    this._relevanceBoost = value;
   }
 
-  IncludedSuggestionRelevanceTag(String tag, int relevance) {
+  IncludedSuggestionRelevanceTag(String tag, int relevanceBoost) {
     this.tag = tag;
-    this.relevance = relevance;
+    this.relevanceBoost = relevanceBoost;
   }
 
   factory IncludedSuggestionRelevanceTag.fromJson(
@@ -16026,14 +16028,14 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "tag");
       }
-      int relevance;
-      if (json.containsKey("relevance")) {
-        relevance =
-            jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
+      int relevanceBoost;
+      if (json.containsKey("relevanceBoost")) {
+        relevanceBoost = jsonDecoder.decodeInt(
+            jsonPath + ".relevanceBoost", json["relevanceBoost"]);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "relevance");
+        throw jsonDecoder.mismatch(jsonPath, "relevanceBoost");
       }
-      return new IncludedSuggestionRelevanceTag(tag, relevance);
+      return new IncludedSuggestionRelevanceTag(tag, relevanceBoost);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "IncludedSuggestionRelevanceTag", json);
@@ -16044,7 +16046,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["tag"] = tag;
-    result["relevance"] = relevance;
+    result["relevanceBoost"] = relevanceBoost;
     return result;
   }
 
@@ -16054,7 +16056,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is IncludedSuggestionRelevanceTag) {
-      return tag == other.tag && relevance == other.relevance;
+      return tag == other.tag && relevanceBoost == other.relevanceBoost;
     }
     return false;
   }
@@ -16063,7 +16065,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, tag.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
+    hash = JenkinsSmiHash.combine(hash, relevanceBoost.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

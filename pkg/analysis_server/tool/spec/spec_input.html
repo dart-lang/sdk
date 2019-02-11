@@ -1606,7 +1606,7 @@
         <p>
           If an <tt>AvailableSuggestion</tt> has relevance tags that match more
           than one <tt>IncludedSuggestionRelevanceTag</tt>, the maximum
-          relevance is used.
+          relevance boost is used.
         </p>
       </field>
     </params>
@@ -3657,11 +3657,12 @@
           The opaque value of the tag.
         </p>
       </field>
-      <field name="relevance">
+      <field name="relevanceBoost">
         <ref>int</ref>
         <p>
-          The relevance of the completion suggestions that match this tag,
-          where a higher number indicates a higher relevance.
+          The boost to the relevance of the completion suggestions that match
+          this tag, which is added to the relevance of the containing
+          <tt>IncludedSuggestionSet</tt>.
         </p>
       </field>
     </object>

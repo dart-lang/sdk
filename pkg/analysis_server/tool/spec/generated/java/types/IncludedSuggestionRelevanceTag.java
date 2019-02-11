@@ -43,17 +43,17 @@ public class IncludedSuggestionRelevanceTag {
   private final AvailableSuggestionRelevanceTag tag;
 
   /**
-   * The relevance of the completion suggestions that match this tag, where a higher number indicates
-   * a higher relevance.
+   * The boost to the relevance of the completion suggestions that match this tag, which is added to
+   * the relevance of the containing IncludedSuggestionSet.
    */
-  private final int relevance;
+  private final int relevanceBoost;
 
   /**
    * Constructor for {@link IncludedSuggestionRelevanceTag}.
    */
-  public IncludedSuggestionRelevanceTag(AvailableSuggestionRelevanceTag tag, int relevance) {
+  public IncludedSuggestionRelevanceTag(AvailableSuggestionRelevanceTag tag, int relevanceBoost) {
     this.tag = tag;
-    this.relevance = relevance;
+    this.relevanceBoost = relevanceBoost;
   }
 
   @Override
@@ -62,15 +62,15 @@ public class IncludedSuggestionRelevanceTag {
       IncludedSuggestionRelevanceTag other = (IncludedSuggestionRelevanceTag) obj;
       return
         ObjectUtilities.equals(other.tag, tag) &&
-        other.relevance == relevance;
+        other.relevanceBoost == relevanceBoost;
     }
     return false;
   }
 
   public static IncludedSuggestionRelevanceTag fromJson(JsonObject jsonObject) {
     AvailableSuggestionRelevanceTag tag = AvailableSuggestionRelevanceTag.fromJson(jsonObject.get("tag").getAsJsonObject());
-    int relevance = jsonObject.get("relevance").getAsInt();
-    return new IncludedSuggestionRelevanceTag(tag, relevance);
+    int relevanceBoost = jsonObject.get("relevanceBoost").getAsInt();
+    return new IncludedSuggestionRelevanceTag(tag, relevanceBoost);
   }
 
   public static List<IncludedSuggestionRelevanceTag> fromJsonArray(JsonArray jsonArray) {
@@ -86,11 +86,11 @@ public class IncludedSuggestionRelevanceTag {
   }
 
   /**
-   * The relevance of the completion suggestions that match this tag, where a higher number indicates
-   * a higher relevance.
+   * The boost to the relevance of the completion suggestions that match this tag, which is added to
+   * the relevance of the containing IncludedSuggestionSet.
    */
-  public int getRelevance() {
-    return relevance;
+  public int getRelevanceBoost() {
+    return relevanceBoost;
   }
 
   /**
@@ -104,14 +104,14 @@ public class IncludedSuggestionRelevanceTag {
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(tag);
-    builder.append(relevance);
+    builder.append(relevanceBoost);
     return builder.toHashCode();
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.add("tag", tag.toJson());
-    jsonObject.addProperty("relevance", relevance);
+    jsonObject.addProperty("relevanceBoost", relevanceBoost);
     return jsonObject;
   }
 
@@ -121,8 +121,8 @@ public class IncludedSuggestionRelevanceTag {
     builder.append("[");
     builder.append("tag=");
     builder.append(tag + ", ");
-    builder.append("relevance=");
-    builder.append(relevance);
+    builder.append("relevanceBoost=");
+    builder.append(relevanceBoost);
     builder.append("]");
     return builder.toString();
   }
