@@ -87,6 +87,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
         }
       }
+      // Skip: <int, LinkedHashSet<String>>{}.putIfAbsent(3, () => LinkedHashSet<String>());
+      if (parent is ExpressionFunctionBody) {
+        var expressionType = parent.expression.staticType;
+        if (expressionType != null &&
+            !DartTypeUtilities.isClass(expressionType, 'Set', 'dart.core')) {
+          return;
+        }
+      }
 
       if (constructorName == null) {
         rule.reportLint(node);
