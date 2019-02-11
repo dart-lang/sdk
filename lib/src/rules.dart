@@ -55,6 +55,7 @@ import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/file_names.dart';
 import 'package:linter/src/rules/flutter_style_todos.dart';
+import 'package:linter/src/rules/provide_deprecation_message.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/invariant_booleans.dart';
@@ -246,6 +247,7 @@ void registerLintRules() {
     ..register(new PreferSingleQuotes())
     ..register(new PreferTypingUninitializedVariables())
     ..register(new PreferVoidToNull())
+    ..register(new ProvideDeprecationMessage())
     ..register(new PublicMemberApiDocs())
     ..register(new PubPackageNames())
     ..register(new RecursiveGetters())
