@@ -165,7 +165,6 @@ void main() {expect(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('hasLength');
@@ -193,7 +192,6 @@ void main() {expect(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('hasLength');
@@ -222,7 +220,6 @@ void main() {new A(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
@@ -254,7 +251,6 @@ void main() {new A(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
@@ -284,7 +280,6 @@ void main() {expect(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('hasLength');
@@ -312,7 +307,6 @@ String bar() => true;''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('hasLength');
@@ -341,7 +335,6 @@ void main() {boo(){} bar(^);}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
@@ -375,7 +368,6 @@ void main() {boo(){} bar(inc: ^);}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance:
@@ -410,7 +402,6 @@ void main() {new B().bar(^);}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
