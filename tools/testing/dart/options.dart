@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:smith/smith.dart';
 
@@ -290,7 +291,9 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
-    new _Option('test_list', 'File containing a list of tests to be executed'),
+    new _Option('test_list', 'File containing a list of tests to be executed',
+        hide: true),
+    new _Option('tests', 'A newline separated list of tests to be executed'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -501,9 +504,17 @@ compiler.''',
     }
 
     // Fetch list of tests to run, if option is present.
-    if (configuration['test_list'] is String) {
-      configuration['test_list_contents'] =
-          File(configuration['test_list'] as String).readAsLinesSync();
+    var testList = configuration['test_list'];
+    if (testList is String) {
+      configuration['test_list_contents'] = File(testList).readAsLinesSync();
+    }
+
+    var tests = configuration['tests'];
+    if (tests is String) {
+      if (configuration.containsKey('test_list_contents')) {
+        _fail('--tests and --test-list cannot be used together');
+      }
+      configuration['test_list_contents'] = LineSplitter.split(tests);
     }
 
     return _createConfigurations(configuration);
