@@ -32,52 +32,6 @@ int _argCount(DartCompletionRequest request) {
 }
 
 /**
- * If the containing [node] is an argument list
- * or named expression in an argument list
- * then return the simple identifier for the method, constructor, or annotation
- * to which the argument list is associated
- */
-SimpleIdentifier _getTargetId(AstNode node) {
-  if (node is NamedExpression) {
-    return _getTargetId(node.parent);
-  }
-  if (node is ArgumentList) {
-    AstNode parent = node.parent;
-    if (parent is MethodInvocation) {
-      return parent.methodName;
-    }
-    if (parent is InstanceCreationExpression) {
-      ConstructorName constructorName = parent.constructorName;
-      if (constructorName != null) {
-        if (constructorName.name != null) {
-          return constructorName.name;
-        }
-        Identifier typeName = constructorName.type.name;
-        if (typeName is SimpleIdentifier) {
-          return typeName;
-        }
-        if (typeName is PrefixedIdentifier) {
-          return typeName.identifier;
-        }
-      }
-    }
-    if (parent is Annotation) {
-      SimpleIdentifier name = parent.constructorName;
-      if (name == null) {
-        Identifier parentName = parent.name;
-        if (parentName is SimpleIdentifier) {
-          return parentName;
-        } else if (parentName is PrefixedIdentifier) {
-          return parentName.identifier;
-        }
-      }
-      return name;
-    }
-  }
-  return null;
-}
-
-/**
  * Determine if the completion target is at the end of the list of arguments.
  */
 bool _isAppendingToArgList(DartCompletionRequest request) {
@@ -193,35 +147,13 @@ class ArgListContributor extends DartCompletionContributor {
     this.request = request;
     this.suggestions = <CompletionSuggestion>[];
 
-    // Determine if the target is in an argument list
-    // for a method or a constructor or an annotation
-    SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
-    if (targetId == null) {
-      return const <CompletionSuggestion>[];
-    }
-    Element elem = targetId.staticElement;
-    if (elem == null) {
+    var executable = request.target.executableElement;
+    if (executable == null) {
       return const <CompletionSuggestion>[];
     }
 
-    // Generate argument list suggestion based upon the type of element
-    if (elem is ClassElement) {
-      _addSuggestions(elem.unnamedConstructor?.parameters);
-      return suggestions;
-    }
-    if (elem is ConstructorElement) {
-      _addSuggestions(elem.parameters);
-      return suggestions;
-    }
-    if (elem is FunctionElement) {
-      _addSuggestions(elem.parameters);
-      return suggestions;
-    }
-    if (elem is MethodElement) {
-      _addSuggestions(elem.parameters);
-      return suggestions;
-    }
-    return const <CompletionSuggestion>[];
+    _addSuggestions(executable.parameters);
+    return suggestions;
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
