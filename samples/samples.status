@@ -8,6 +8,9 @@ sample_extension/test/*: Skip # Issue 14705
 [ $builder_tag == optimization_counter_threshold ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
 
+[ $compiler == app_jit ]
+sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
+
 [ $compiler == precompiler ]
 sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
@@ -23,9 +26,9 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
-[ $compiler == app_jitk || $compiler == dartkb || $compiler == dartkp ]
-sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign
-sample_extension/test/sample_extension_test: SkipByDesign
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
+sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
+sample_extension/test/sample_extension_test: RuntimeError
 
 # Skip tests that use dart:io
 [ $runtime == d8 || $browser ]
