@@ -1661,7 +1661,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ LoadObject(kNullReg, NullObject());
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
-      target::Class::TraceAllocation(cls)) {
+      !target::Class::TraceAllocation(cls)) {
     Label slow_case;
     // Allocate the object & initialize header word.
     __ TryAllocate(cls, &slow_case, kInstanceReg, kTopReg,
