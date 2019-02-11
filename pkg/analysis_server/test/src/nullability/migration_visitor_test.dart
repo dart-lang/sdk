@@ -526,6 +526,7 @@ class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
       _variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35909')
   test_interfaceType_nullable() async {
     await analyze('''
 void f(int? x) {}
