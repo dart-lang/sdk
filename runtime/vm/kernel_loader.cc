@@ -614,6 +614,15 @@ void KernelLoader::LoadNativeExtensionLibraries(
       if (result.IsError()) {
         H.ReportError(Error::Cast(result), "library handler failed");
       }
+
+      // Create a dummy library and add it as an import to the current library.
+      // This allows later to discover and reload this native extension, e.g.
+      // when running from an app-jit snapshot.
+      // See Loader::ReloadNativeExtensions(...) which relies on
+      // Dart_GetImportsOfScheme('dart-ext').
+      const auto& native_library = Library::Handle(Library::New(uri_path));
+      library.AddImport(Namespace::Handle(Namespace::New(
+          native_library, Array::null_array(), Array::null_array())));
     }
   }
   potential_extension_libraries_ = GrowableObjectArray::null();
