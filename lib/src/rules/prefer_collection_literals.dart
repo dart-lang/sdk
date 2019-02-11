@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -81,10 +80,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (DartTypeUtilities.isClass(node.staticType, 'Set', 'dart.core') ||
         DartTypeUtilities.isClass(
             node.staticType, 'LinkedHashSet', 'dart.collection')) {
-      if (constructorName == null ||
-          constructorName == 'from' ||
-          constructorName == 'of') {
+      if (constructorName == null) {
         rule.reportLint(node);
+      } else if (constructorName == 'from' || constructorName == 'of') {
+        var args = node.argumentList.arguments;
+        if (args.length == 1) {
+          var arg = args.first;
+          if (arg is ListLiteral || arg is ListLiteral2) {
+            rule.reportLint(node);
+          }
+        }
       }
     }
   }
