@@ -147,8 +147,7 @@ simdbc, simdbc64''',
     new _Option(
         'named_configuration',
         '''The named test configuration that supplies the values for all
-test options, specifying how tests should be run. Unimplemented
-currently.''',
+test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
     new _Option.bool('checked', 'Run tests in checked mode.'),
