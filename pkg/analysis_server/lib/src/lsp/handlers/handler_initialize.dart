@@ -92,7 +92,7 @@ class InitializeMessageHandler
         true, // referencesProvider
         true, // documentHighlightProvider
         true, // documentSymbolProvider
-        null,
+        true, // workspaceSymbolProvider
         // "The `CodeActionOptions` return type is only valid if the client
         // signals code action literal support via the property
         // `textDocument.codeAction.codeActionLiteralSupport`."

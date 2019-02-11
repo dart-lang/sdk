@@ -403,6 +403,14 @@ mixin LspAnalysisServerTestMixin
     return expectSuccessfulResponseTo(request);
   }
 
+  Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
+    final request = makeRequest(
+      Method.workspace_symbol,
+      new WorkspaceSymbolParams(query),
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
   Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
     final request = makeRequest(
       Method.textDocument_foldingRange,

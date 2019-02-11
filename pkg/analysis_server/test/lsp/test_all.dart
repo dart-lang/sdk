@@ -15,6 +15,7 @@ import 'diagnostic_test.dart' as diagnostic_test;
 import 'document_highlights_test.dart' as document_highlights_test;
 import 'document_symbols_test.dart' as document_symbols_test;
 import 'file_modification_test.dart' as file_modification_test;
+import 'folding_test.dart' as folding_test;
 import 'format_test.dart' as format_test;
 import 'hover_test.dart' as hover_test;
 import 'initialization_test.dart' as initialization_test;
@@ -23,7 +24,7 @@ import 'references_test.dart' as references_test;
 import 'rename_test.dart' as rename_test;
 import 'server_test.dart' as server_test;
 import 'signature_help_test.dart' as signature_help_test;
-import 'folding_test.dart' as folding_test;
+import 'workspace_symbols_test.dart' as workspace_symbols_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -46,5 +47,6 @@ main() {
     packet_transformer_tests.main();
     rename_test.main();
     folding_test.main();
+    workspace_symbols_test.main();
   }, name: 'lsp');
 }

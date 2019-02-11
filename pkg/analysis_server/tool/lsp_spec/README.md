@@ -41,7 +41,7 @@ Below is a list of LSP methods and their implementation status.
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
 | workspace/configuration | | | | |
 | workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
-| workspace/symbol | | | | |
+| workspace/symbol | ✅ | ✅ | ✅ | ✅ |
 | workspace/executeCommand | ✅ | ✅ | ✅ | ✅ |
 | workspace/applyEdit | ✅ | ✅ | ✅ | ✅ |
 | textDocument/didOpen | ✅ | ✅ | ✅ | ✅ |
