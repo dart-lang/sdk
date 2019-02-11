@@ -4751,12 +4751,16 @@ const Template<
     Message Function(
         String string,
         String string2,
+        String string3,
         Uri
             uri_)> templateInitializeFromDillUnknownProblem = const Template<
-        Message Function(String string, String string2, Uri uri_)>(
+        Message Function(
+            String string, String string2, String string3, Uri uri_)>(
     messageTemplate:
         r"""Tried to initialize from a previous compilation (#string), but couldn't.
-Error message was '#string2'. This might be a bug.
+Error message was '#string2'.
+Stacktrace included '#string3'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
@@ -4764,61 +4768,77 @@ Either way, you should probably delete the file so it doesn't use unnecessary di
     withArguments: _withArgumentsInitializeFromDillUnknownProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2, Uri uri_)>
-    codeInitializeFromDillUnknownProblem =
-    const Code<Message Function(String string, String string2, Uri uri_)>(
+const Code<
+        Message Function(
+            String string, String string2, String string3, Uri uri_)>
+    codeInitializeFromDillUnknownProblem = const Code<
+            Message Function(
+                String string, String string2, String string3, Uri uri_)>(
         "InitializeFromDillUnknownProblem",
         templateInitializeFromDillUnknownProblem,
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblem(
-    String string, String string2, Uri uri_) {
+    String string, String string2, String string3, Uri uri_) {
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
+  if (string3.isEmpty) throw 'No string provided';
   String uri = relativizeUri(uri_);
   return new Message(codeInitializeFromDillUnknownProblem,
       message:
           """Tried to initialize from a previous compilation (${string}), but couldn't.
-Error message was '${string2}'. This might be a bug.
+Error message was '${string2}'.
+Stacktrace included '${string3}'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri} in your error report, but be aware that this file includes your source code.
 Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
-      arguments: {'string': string, 'string2': string2, 'uri': uri_});
+      arguments: {
+        'string': string,
+        'string2': string2,
+        'string3': string3,
+        'uri': uri_
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String string2)>
-    templateInitializeFromDillUnknownProblemNoDump =
-    const Template<Message Function(String string, String string2)>(
+const Template<Message Function(String string, String string2, String string3)>
+    templateInitializeFromDillUnknownProblemNoDump = const Template<
+            Message Function(String string, String string2, String string3)>(
         messageTemplate:
             r"""Tried to initialize from a previous compilation (#string), but couldn't.
-Error message was '#string2'. This might be a bug.
+Error message was '#string2'.
+Stacktrace included '#string3'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
         withArguments: _withArgumentsInitializeFromDillUnknownProblemNoDump);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2)>
+const Code<Message Function(String string, String string2, String string3)>
     codeInitializeFromDillUnknownProblemNoDump =
-    const Code<Message Function(String string, String string2)>(
+    const Code<Message Function(String string, String string2, String string3)>(
         "InitializeFromDillUnknownProblemNoDump",
         templateInitializeFromDillUnknownProblemNoDump,
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblemNoDump(
-    String string, String string2) {
+    String string, String string2, String string3) {
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
+  if (string3.isEmpty) throw 'No string provided';
   return new Message(codeInitializeFromDillUnknownProblemNoDump,
       message:
           """Tried to initialize from a previous compilation (${string}), but couldn't.
-Error message was '${string2}'. This might be a bug.
+Error message was '${string2}'.
+Stacktrace included '${string3}'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
-      arguments: {'string': string, 'string2': string2});
+      arguments: {'string': string, 'string2': string2, 'string3': string3});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

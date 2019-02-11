@@ -131,7 +131,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (initializeFromDillUri != null) {
           try {
             bytesLength += await initializeFromDill(uriTranslator, c, data);
-          } catch (e) {
+          } catch (e, st) {
             // We might have loaded x out of y libraries into the component.
             // To avoid any unforeseen problems start over.
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
@@ -159,9 +159,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     ? templateInitializeFromDillUnknownProblem.withArguments(
                         initializeFromDillUri.toString(),
                         "$e",
+                        "$st",
                         gzInitializedFrom)
                     : templateInitializeFromDillUnknownProblemNoDump
-                        .withArguments(initializeFromDillUri.toString(), "$e");
+                        .withArguments(
+                            initializeFromDillUri.toString(), "$e", "$st");
                 dillLoadedData.loader
                     .addProblem(message, TreeNode.noOffset, 1, null);
               }
