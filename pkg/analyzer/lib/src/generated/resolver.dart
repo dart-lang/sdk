@@ -351,7 +351,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_SEALED_ANNOTATION, node, [node.element.name]);
       }
+    } else if (element?.isVisibleForTemplate == true ||
+        element?.isVisibleForTesting == true) {
+      if (parent is Declaration) {
+        reportInvalidAnnotation(Element declaredElement) {
+          _errorReporter.reportErrorForNode(
+              HintCode.INVALID_VISIBILITY_ANNOTATION,
+              node,
+              [declaredElement.name, node.name.name]);
+        }
+
+        if (parent is TopLevelVariableDeclaration) {
+          for (VariableDeclaration variable in parent.variables.variables) {
+            if (Identifier.isPrivateName(variable.declaredElement.name)) {
+              reportInvalidAnnotation(variable.declaredElement);
+            }
+          }
+        } else if (parent is FieldDeclaration) {
+          for (VariableDeclaration variable in parent.fields.variables) {
+            if (Identifier.isPrivateName(variable.declaredElement.name)) {
+              reportInvalidAnnotation(variable.declaredElement);
+            }
+          }
+        } else if (parent.declaredElement != null &&
+            Identifier.isPrivateName(parent.declaredElement.name)) {
+          reportInvalidAnnotation(parent.declaredElement);
+        }
+      } else {
+        // Something other than a declaration was annotated. Whatever this is,
+        // it probably warrants a Hint, but this has not been specified on
+        // visibleForTemplate or visibleForTesting, so leave it alone for now.
+      }
     }
+
     super.visitAnnotation(node);
   }
 

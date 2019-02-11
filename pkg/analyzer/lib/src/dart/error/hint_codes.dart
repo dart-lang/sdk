@@ -280,6 +280,17 @@ class HintCode extends ErrorCode {
       const HintCode('INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
           "The member '{0}' can only be used within '{1}' or a test.");
 
+  /// This hint is generated anywhere where a private declaration is annotated
+  /// with `@visibleForTemplate` or `@visibleForTesting`.
+  ///
+  /// Parameters:
+  /// 0: the name of the member
+  /// 1: the name of the annotation
+  static const HintCode INVALID_VISIBILITY_ANNOTATION = const HintCode(
+      'INVALID_VISIBILITY_ANNOTATION',
+      "The member '{0}' is annotated with '{1}', but this annotation is only "
+      "meaningful on declarations of public members.");
+
   /**
    * Hint for the `x is double` type checks.
    */
