@@ -3978,11 +3978,6 @@ void Class::set_interfaces(const Array& value) const {
   StorePointer(&raw_ptr()->interfaces_, value.raw());
 }
 
-RawClass* Class::GetPatchClass() const {
-  const Library& lib = Library::Handle(library());
-  return lib.GetPatchClass(String::Handle(Name()));
-}
-
 void Class::AddDirectImplementor(const Class& implementor,
                                  bool is_mixin) const {
   ASSERT(is_implemented());
@@ -4572,16 +4567,6 @@ RawField* Class::LookupStaticFieldAllowPrivate(const String& name) const {
     return field.raw();
   }
   return Field::null();
-}
-
-RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
-  Zone* zone = Thread::Current()->zone();
-  const Library& lib = Library::Handle(zone, library());
-  const Object& obj = Object::Handle(zone, lib.LookupLocalObject(name));
-  if (!obj.IsNull() && obj.IsLibraryPrefix()) {
-    return LibraryPrefix::Cast(obj).raw();
-  }
-  return LibraryPrefix::null();
 }
 
 const char* Class::ToCString() const {
@@ -9629,50 +9614,6 @@ RawInstance* Library::TransitiveLoadError() const {
   return error.raw();
 }
 
-void Library::AddPatchClass(const Class& cls) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(cls.is_patch());
-  ASSERT(GetPatchClass(String::Handle(cls.Name())) == Class::null());
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(this->patch_classes());
-  patch_classes.Add(cls);
-}
-
-RawClass* Library::GetPatchClass(const String& name) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(this->patch_classes());
-  Object& obj = Object::Handle();
-  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
-    obj = patch_classes.At(i);
-    if (obj.IsClass() &&
-        (Class::Cast(obj).Name() == name.raw())) {  // Names are canonicalized.
-      return Class::RawCast(obj.raw());
-    }
-  }
-  return Class::null();
-}
-
-void Library::RemovePatchClass(const Class& cls) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(cls.is_patch());
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(this->patch_classes());
-  const intptr_t num_classes = patch_classes.Length();
-  intptr_t i = 0;
-  while (i < num_classes) {
-    if (cls.raw() == patch_classes.At(i)) break;
-    i++;
-  }
-  if (i == num_classes) return;
-  // Replace the entry with the script. We keep the script so that
-  // Library::LoadedScripts() can find it without having to iterate
-  // over the members of each class.
-  ASSERT(i < num_classes);  // We must have found a class.
-  const Script& patch_script = Script::Handle(cls.script());
-  patch_classes.SetAt(i, patch_script);
-}
-
 static RawString* MakeClassMetaName(Thread* thread,
                                     Zone* zone,
                                     const Class& cls) {
@@ -10545,31 +10486,6 @@ RawNamespace* Library::ImportAt(intptr_t index) const {
   return Namespace::RawCast(import_list.At(index));
 }
 
-bool Library::ImportsCorelib() const {
-  Zone* zone = Thread::Current()->zone();
-  Library& imported = Library::Handle(zone);
-  intptr_t count = num_imports();
-  for (int i = 0; i < count; i++) {
-    imported = ImportLibraryAt(i);
-    if (imported.IsCoreLibrary()) {
-      return true;
-    }
-  }
-  LibraryPrefix& prefix = LibraryPrefix::Handle(zone);
-  LibraryPrefixIterator it(*this);
-  while (it.HasNext()) {
-    prefix = it.GetNext();
-    count = prefix.num_imports();
-    for (int i = 0; i < count; i++) {
-      imported = prefix.GetLibrary(i);
-      if (imported.IsCoreLibrary()) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void Library::DropDependenciesAndCaches() const {
   StorePointer(&raw_ptr()->imports_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
@@ -10685,7 +10601,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
-  result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
   if (dart_private_scheme) {
     // Never debug dart:_ libraries.
     result.set_debuggable(false);

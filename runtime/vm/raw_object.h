@@ -1160,7 +1160,6 @@ class RawLibrary : public RawObject {
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
-  bool corelib_imported_;
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.

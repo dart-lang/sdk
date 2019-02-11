@@ -950,14 +950,9 @@ class Class : public Object {
   // classes.
   RawClass* SuperClass(bool original_classes = false) const;
 
-  RawClass* GetPatchClass() const;
-
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
-  static intptr_t interfaces_offset() {
-    return OFFSET_OF(RawClass, interfaces_);
-  }
 
   // Returns the list of classes directly implementing this class.
   RawGrowableObjectArray* direct_implementors() const {
@@ -1082,8 +1077,6 @@ class Class : public Object {
                                     bool instance_only = false) const;
   RawField* LookupInstanceFieldAllowPrivate(const String& name) const;
   RawField* LookupStaticFieldAllowPrivate(const String& name) const;
-
-  RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
   RawDouble* LookupCanonicalDouble(Zone* zone, double value) const;
   RawMint* LookupCanonicalMint(Zone* zone, int64_t value) const;
@@ -3519,10 +3512,6 @@ class Library : public Object {
   void SetLoadError(const Instance& error) const;
   RawInstance* TransitiveLoadError() const;
 
-  void AddPatchClass(const Class& cls) const;
-  RawClass* GetPatchClass(const String& name) const;
-  void RemovePatchClass(const Class& cls) const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));
   }
@@ -3638,7 +3627,6 @@ class Library : public Object {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
-  bool ImportsCorelib() const;
 
   void DropDependenciesAndCaches() const;
 
@@ -3683,8 +3671,6 @@ class Library : public Object {
   void set_is_dart_scheme(bool value) const {
     StoreNonPointer(&raw_ptr()->is_dart_scheme_, value);
   }
-
-  bool IsCoreLibrary() const { return raw() == CoreLibrary(); }
 
   // Includes 'dart:async', 'dart:typed_data', etc.
   bool IsAnyCoreLibrary() const;
