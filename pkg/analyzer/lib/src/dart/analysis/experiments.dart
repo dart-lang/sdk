@@ -120,7 +120,6 @@ class ExperimentStatus {
       bool spread_collections})
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
-          set_literals ?? IsEnabledByDefault.set_literals,
           non_nullable ?? IsEnabledByDefault.non_nullable,
           control_flow_collections ??
               IsEnabledByDefault.control_flow_collections,
