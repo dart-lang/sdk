@@ -275,7 +275,7 @@ class C {}
     newFile(a, content: r'''
 class A {}
 ''');
-    tracker.addContext(testAnalysisContext);
+    var declarationsContext = tracker.addContext(testAnalysisContext);
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
@@ -295,6 +295,14 @@ class B {}
     _assertHasLibrary('package:test/b.dart', declarations: [
       _ExpectedDeclaration('B', DeclarationKind.CLASS),
     ]);
+
+    var librariesObject = declarationsContext.getLibraries(
+      '/home/test/lib/test.dart',
+    );
+    expect(
+      librariesObject.context.map((library) => library.uriStr).toSet(),
+      containsAll(['package:test/a.dart', 'package:test/b.dart']),
+    );
   }
 
   test_added_part() async {

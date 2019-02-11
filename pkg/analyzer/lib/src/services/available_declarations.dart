@@ -218,6 +218,12 @@ class DeclarationsContext {
     }
   }
 
+  void _addContextFile(String path) {
+    if (!_contextPathList.contains(path)) {
+      _contextPathList.add(path);
+    }
+  }
+
   void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList) {
     for (var path in pathList) {
       var file = _tracker._pathToFile[path];
@@ -530,6 +536,7 @@ class DeclarationsTracker {
     // Prefer the context in which the path is analyzed.
     for (var context in _contexts.values) {
       if (context._analysisContext.contextRoot.isAnalyzed(path)) {
+        context._addContextFile(path);
         return context;
       }
     }
@@ -609,17 +616,20 @@ class DeclarationsTracker {
 
     var changedLibraries = <Library>[];
     var removedLibraries = <int>[];
-    for (var library in invalidatedLibraries) {
-      if (library.exists) {
-        changedLibraries.add(Library._(
-          library.id,
-          library.path,
-          library.uri,
-          library.isLibraryDeprecated,
-          library.exportedDeclarations,
-        ));
+    for (var libraryFile in invalidatedLibraries) {
+      if (libraryFile.exists) {
+        var library = Library._(
+          libraryFile.id,
+          libraryFile.path,
+          libraryFile.uri,
+          libraryFile.isLibraryDeprecated,
+          libraryFile.exportedDeclarations,
+        );
+        _idToLibrary[library.id] = library;
+        changedLibraries.add(library);
       } else {
-        removedLibraries.add(library.id);
+        _idToLibrary.remove(libraryFile.id);
+        removedLibraries.add(libraryFile.id);
       }
     }
     _changesController.add(
