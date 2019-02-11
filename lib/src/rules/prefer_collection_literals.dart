@@ -66,10 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final constructorName = node.constructorName.name?.name;
 
     // Lists, Maps.
-    if (DartTypeUtilities.isClass(node.staticType, 'List', 'dart.core') ||
-        DartTypeUtilities.isClass(node.staticType, 'Map', 'dart.core') ||
-        DartTypeUtilities.isClass(
-            node.staticType, 'LinkedHashMap', 'dart.collection')) {
+    if (isList(node) || isMap(node) || isHashMap(node)) {
       if (constructorName == null && node.argumentList.arguments.isEmpty) {
         rule.reportLint(node);
       }
@@ -77,20 +74,44 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Sets.
-    if (DartTypeUtilities.isClass(node.staticType, 'Set', 'dart.core') ||
-        DartTypeUtilities.isClass(
-            node.staticType, 'LinkedHashSet', 'dart.collection')) {
+    if (isSet(node) || isHashSet(node)) {
+      // Skip: LinkedHashSet<int> s =  ...;
+      var parent = node.parent;
+      if (parent is VariableDeclaration) {
+        var parent2 = parent.parent;
+        if (parent2 is VariableDeclarationList) {
+          var assignmentType = parent2.type?.type;
+          if (assignmentType != null &&
+              !DartTypeUtilities.isClass(assignmentType, 'Set', 'dart.core')) {
+            return;
+          }
+        }
+      }
+
       if (constructorName == null) {
         rule.reportLint(node);
       } else if (constructorName == 'from' || constructorName == 'of') {
         var args = node.argumentList.arguments;
-        if (args.length == 1) {
-          var arg = args.first;
-          if (arg is ListLiteral || arg is ListLiteral2) {
-            rule.reportLint(node);
-          }
+        if (args.length != 1) {
+          return;
+        }
+        var arg = args.first;
+        if (arg is ListLiteral || arg is ListLiteral2) {
+          rule.reportLint(node);
         }
       }
     }
   }
+
+  // todo (pq): migrate to using typeProvider
+  bool isSet(Expression expression) =>
+      DartTypeUtilities.isClass(expression.staticType, 'Set', 'dart.core');
+  bool isHashSet(Expression expression) => DartTypeUtilities.isClass(
+      expression.staticType, 'LinkedHashSet', 'dart.collection');
+  bool isList(Expression expression) =>
+      DartTypeUtilities.isClass(expression.staticType, 'List', 'dart.core');
+  bool isMap(Expression expression) =>
+      DartTypeUtilities.isClass(expression.staticType, 'Map', 'dart.core');
+  bool isHashMap(Expression expression) => DartTypeUtilities.isClass(
+      expression.staticType, 'LinkedHashMap', 'dart.collection');
 }
