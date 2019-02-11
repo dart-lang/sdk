@@ -649,11 +649,11 @@ class AssistProcessor {
           _coverageMarker();
           return;
         }
-        line = line.substring(expectedPrefix.length).trim();
+        line = line.substring(expectedPrefix.length);
         if (line.isEmpty) {
           newLines.add('$linePrefix///');
         } else {
-          newLines.add('$linePrefix/// $line');
+          newLines.add('$linePrefix///$line');
         }
         linePrefix = eol + prefix;
       }
