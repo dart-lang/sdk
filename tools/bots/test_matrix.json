@@ -1289,7 +1289,6 @@
         "analyzer-mac-release",
         "analyzer-win-release",
         "analyzer-linux-release-analyzer",
-        "analyzer-linux-release-analyzer-new",
         "analyzer-mac-release-analyzer",
         "analyzer-win-release-analyzer"
       ],
