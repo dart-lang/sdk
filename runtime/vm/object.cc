@@ -8715,8 +8715,9 @@ static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {
   const intptr_t type_arguments_offset = cls.type_arguments_field_offset();
   ASSERT(type_arguments_offset != Class::kNoTypeArguments);
   if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
-          type_arguments_offset)) {
-    return StaticTypeExactnessState::TriviallyExact(type_arguments_offset);
+          type_arguments_offset / kWordSize)) {
+    return StaticTypeExactnessState::TriviallyExact(type_arguments_offset /
+                                                    kWordSize);
   } else {
     return StaticTypeExactnessState::NotExact();
   }
@@ -8854,7 +8855,7 @@ const char* StaticTypeExactnessState::ToCString() const {
     return "not-exact";
   } else if (IsTriviallyExact()) {
     return Thread::Current()->zone()->PrintToString(
-        "trivially-exact(%" Pd ")", GetTypeArgumentsOffsetInWords());
+        "trivially-exact(%hhu)", GetTypeArgumentsOffsetInWords());
   } else if (IsHasExactSuperType()) {
     return "has-exact-super-type";
   } else if (IsHasExactSuperClass()) {
