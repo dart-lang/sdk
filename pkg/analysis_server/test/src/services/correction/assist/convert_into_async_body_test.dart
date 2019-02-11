@@ -120,11 +120,7 @@ abstract class C {
   int m();
 }
 ''');
-    await assertHasAssistAt('m()', '''
-abstract class C {
-  Future<int> m();
-}
-''');
+    await assertNoAssist();
   }
 
   test_method_noReturnType() async {

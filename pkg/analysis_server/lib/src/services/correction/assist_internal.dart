@@ -1195,10 +1195,11 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     FunctionBody body = getEnclosingFunctionBody();
-    if (body == null || body.isAsynchronous || body.isGenerator) {
+    if (body == null ||
+        body is EmptyFunctionBody ||
+        body.isAsynchronous ||
+        body.isGenerator) {
       _coverageMarker();
       return;
     }
