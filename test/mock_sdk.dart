@@ -113,6 +113,8 @@ class Iterator<E> {
 }
 
 abstract class Iterable<E> {
+  const Iterable();
+  const factory Iterable.empty() = Iterable;
   Iterator<E> get iterator;
   bool contains(Object element);
   E firstWhere(bool test(E element), { E orElse()});
@@ -135,13 +137,19 @@ abstract class List<E> implements Iterable<E> {
   int indexOf(Object element);
   bool get isEmpty;
   bool get isNotEmpty;
+  Set<E> toSet() => new Set<E>.from(this);
 }
 
 abstract class Map<K, V> extends Object {
   /* external */ factory Map();
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
+  factory Map.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) = LinkedHashMap<K, V>.fromIterable;
+  factory Map.fromIterables(Iterable<K> keys, Iterable<V> values) =
+      LinkedHashMap<K, V>.fromIterables;    
   factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
   factory Map.identity() = LinkedHashMap<K, V>.identity;
+  /* external */ factory Map.unmodifiable(Map other);
   Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
@@ -207,6 +215,9 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
       bool isValidKey(potentialKey)});
   /* external */ factory LinkedHashMap.identity();
   factory LinkedHashMap.from(Map other);
+  factory LinkedHashMap.fromIterable(Iterable iterable,
+      {K key(element), V value(element)});
+  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values);    
   factory LinkedHashMap.of(Map<K, V> other) =>
     new LinkedHashMap<K, V>()..addAll(other);
 }

@@ -47,4 +47,13 @@ void main() {
   var ss2 = new LinkedHashSet(); // LINT
   var ss3 = LinkedHashSet.from([]); // LINT
   var ss4 = LinkedHashSet.of([]); // LINT
+
+  Set<int> ss5 = LinkedHashSet<int>(); // LINT
+  LinkedHashSet<int> ss6 = LinkedHashSet<int>(); // OK
+
+  Set<int> ss7 = LinkedHashSet.from([1, 2, 3]); // LINT
+  LinkedHashSet<int> ss8 =  LinkedHashSet.from([1, 2, 3]); // OK
+
+  Iterable iter = Iterable.empty(); // OK
+  var sss = Set.from(iter); // OK
 }
