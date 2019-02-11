@@ -79,13 +79,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   _visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.isConst) return;
     if (!node.isFinal) return;
-    if (node.variables.every((declaration) =>
-        declaration.initializer != null &&
-        (declaration.initializer is! TypedLiteral ||
-            (declaration.initializer is TypedLiteral &&
-                declaration.initializer.beginToken?.keyword ==
-                    Keyword.CONST)) &&
-        !hasErrorWithConstantVisitor(context, declaration.initializer))) {
+    if (node.variables.every((declaration) {
+      var initializer = declaration.initializer;
+      return initializer != null &&
+          (initializer is! TypedLiteral ||
+              (initializer.beginToken?.keyword == Keyword.CONST)) &&
+          !hasErrorWithConstantVisitor(context, initializer);
+    })) {
       rule.reportLint(node);
     }
   }
