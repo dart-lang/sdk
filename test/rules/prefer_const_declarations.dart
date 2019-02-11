@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N prefer_const_declarations`
 
+//ignore_for_file: unused_local_variable
+
 const o1 = const []; // OK
 final o2 = []; // OK
 final o3 = const []; // LINT
@@ -61,4 +63,16 @@ m() {
 
   // https://github.com/dart-lang/sdk/issues/32745
   final b, c = 1; // OK
+
+  final s = {}; // OK
+  final Set<int> ids = {}; // OK
+  final Set<int> ids2 = <int>{}; // OK
+
+  final m = <int,int>{}; // OK
+  final Map<int,int> m2 = {}; // OK
+  final Map<int,int> m3 = <int,int>{}; // OK
+
+  final l = <int>[]; // OK
+  final List<int> l2 = []; // OK
+  final List<int> l3 = <int>[]; // OK
 }

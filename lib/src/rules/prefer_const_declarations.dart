@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
@@ -78,9 +79,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   _visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.isConst) return;
     if (!node.isFinal) return;
-    if (node.variables.every((declaration) =>
-        declaration.initializer != null &&
-        !hasErrorWithConstantVisitor(context, declaration.initializer))) {
+    if (node.variables.every((declaration) {
+      var initializer = declaration.initializer;
+      return initializer != null &&
+          (initializer is! TypedLiteral ||
+              (initializer.beginToken?.keyword == Keyword.CONST)) &&
+          !hasErrorWithConstantVisitor(context, initializer);
+    })) {
       rule.reportLint(node);
     }
   }
