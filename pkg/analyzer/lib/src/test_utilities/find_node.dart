@@ -159,6 +159,10 @@ class FindNode {
     return _node(search, (n) => n is RethrowExpression);
   }
 
+  SetLiteral setLiteral(String search) {
+    return _node(search, (n) => n is SetLiteral);
+  }
+
   SimpleIdentifier simple(String search) {
     return _node(search, (_) => true);
   }

@@ -1552,7 +1552,6 @@ void main() {
 ''');
   }
 
-  @failingTest
   test_downwardsInferenceYieldYieldStar() async {
     await checkFileElement('''
 import 'dart:async';
@@ -1571,7 +1570,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/{};
+  yield* {};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');

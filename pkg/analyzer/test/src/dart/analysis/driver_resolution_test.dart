@@ -5209,24 +5209,6 @@ void main() {
     }
   }
 
-  @failingTest
-  test_mapLiteral_1() async {
-    addTestFile(r'''
-main() {
-  var v = <int>{};
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var literal = findNode.mapLiteral('<int>{}');
-    assertType(literal, 'Map<dynamic, dynamic>');
-
-    var intRef = findNode.simple('int>{}');
-    assertElement(intRef, intElement);
-    assertType(intRef, 'int');
-  }
-
   test_mapLiteral_3() async {
     addTestFile(r'''
 main() {
@@ -6731,6 +6713,24 @@ class C<T> {
     var tReferenceType = tReference.staticType as TypeParameterType;
     expect(tReferenceType.element, same(tElement));
     assertElement(tReference, tElement);
+  }
+
+  test_setLiteral() async {
+    addTestFile(r'''
+main() {
+  var v = <int>{};
+  print(v);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+
+    var literal = findNode.setLiteral('<int>{}');
+    assertType(literal, 'Set<int>');
+
+    var intRef = findNode.simple('int>{}');
+    assertElement(intRef, intElement);
+    assertType(intRef, 'int');
   }
 
   test_stringInterpolation() async {

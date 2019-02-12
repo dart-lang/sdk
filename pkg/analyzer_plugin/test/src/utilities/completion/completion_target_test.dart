@@ -670,11 +670,10 @@ class CompletionTargetTest extends _Base {
     assertTarget('}', '{}');
   }
 
-  @failingTest
   test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    await createTarget('foo = {T^');
-    assertTarget('T : ', '{T : }');
+    await createTarget('foo = {1: 2, T^');
+    assertTarget('T : ', '{1 : 2, T : }');
   }
 
   test_MapLiteralEntry2() async {

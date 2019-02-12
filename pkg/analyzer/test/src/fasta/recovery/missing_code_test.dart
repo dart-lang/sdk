@@ -55,12 +55,11 @@ f() => {a: b, _s_: _s_, c: d};
 ''');
   }
 
-  @failingTest
   void test_missingColonAndValue_last() {
     testRecovery('''
-f() => {a };
+f() => {a: b, c };
 ''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
-f() => {a: _s_};
+f() => {a: b, c: _s_};
 ''');
   }
 
