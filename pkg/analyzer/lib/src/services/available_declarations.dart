@@ -78,9 +78,9 @@ class Declaration {
   @override
   String toString() {
     if (name2 == null) {
-      return '($name, $kind)';
+      return '($kind, $name)';
     } else {
-      return '($name, $name2, $kind)';
+      return '($kind, $name, $name2)';
     }
   }
 }
@@ -832,6 +832,9 @@ class _DeclarationStorage {
     if (d.docComplete != null) {
       fieldMask |= fieldDocMask;
     }
+    if (d.name2 != null) {
+      fieldMask |= fieldName2Mask;
+    }
     if (d.parameters != null) {
       fieldMask |= fieldParametersMask;
     }
@@ -878,12 +881,13 @@ class _Export {
 
   Iterable<Declaration> filter(List<Declaration> declarations) {
     return declarations.where((d) {
+      var name = d.name2 ?? d.name;
       for (var combinator in combinators) {
         if (combinator.shows.isNotEmpty) {
-          if (!combinator.shows.contains(d.name)) return false;
+          if (!combinator.shows.contains(name)) return false;
         }
         if (combinator.hides.isNotEmpty) {
-          if (combinator.hides.contains(d.name)) return false;
+          if (combinator.hides.contains(name)) return false;
         }
       }
       return true;
@@ -1451,7 +1455,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   static Set<Declaration> _newDeclarationSet() {
     return HashSet<Declaration>(
       hashCode: (e) => e.name.hashCode,
-      equals: (a, b) => a.name == b.name,
+      equals: (a, b) => a.name == b.name && a.name2 == b.name2,
     );
   }
 }

@@ -187,6 +187,7 @@ class B {}
 export 'a.dart' show A;
 part 'b.dart';
 class C {}
+enum E {v}
 ''');
 
     // The byte store is empty, fill it.
@@ -202,6 +203,8 @@ class C {}
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
+      _ExpectedDeclaration.enum_('E'),
+      _ExpectedDeclaration.enumConstant('v', 'E'),
     ]);
   }
 
@@ -234,15 +237,15 @@ class D {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasNoLibrary('package:test/c.dart');
     _assertHasLibrary('package:test/d.dart', declarations: [
-      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('D'),
     ]);
 
     newFile(c, content: r'''
@@ -252,19 +255,19 @@ class C {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/d.dart', declarations: [
-      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('D'),
     ]);
   }
 
@@ -279,7 +282,7 @@ class A {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
     ]);
     _assertHasNoLibrary('package:test/b.dart');
 
@@ -290,10 +293,10 @@ class B {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
     ]);
 
     var librariesObject = declarationsContext.getLibraries(
@@ -321,11 +324,11 @@ class C {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
     ]);
     _assertHasNoLibrary('package:test/b.dart');
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
 
     newFile(b, content: r'''
@@ -336,12 +339,12 @@ class B {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasNoLibrary('package:test/b.dart');
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
   }
 
@@ -481,19 +484,19 @@ class D {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/d.dart', declarations: [
-      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('D'),
     ]);
 
     deleteFile(c);
@@ -501,15 +504,15 @@ class D {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasNoLibrary('package:test/c.dart');
     _assertHasLibrary('package:test/d.dart', declarations: [
-      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('D'),
     ]);
   }
 
@@ -553,11 +556,11 @@ class C {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
 
     deleteFile(b);
@@ -565,10 +568,10 @@ class C {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
   }
 
@@ -596,19 +599,19 @@ class D {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
     _assertHasLibrary('package:test/d.dart', declarations: [
-      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('D'),
     ]);
 
     newFile(c, content: r'''
@@ -618,19 +621,19 @@ class C2 {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C2', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C2'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
-      _ExpectedDeclaration('C2', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
+      _ExpectedDeclaration.class_('C2'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C2', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C2'),
     ]);
     _assertHasLibrary('package:test/d.dart', declarations: [
-      _ExpectedDeclaration('D', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('D'),
     ]);
   }
 
@@ -648,10 +651,10 @@ class B {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
     ]);
 
     newFile(a, content: r'''
@@ -661,10 +664,10 @@ class A2 {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A2', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A2'),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('B'),
     ]);
   }
 
@@ -688,11 +691,11 @@ class C {}
 
     await _doAllTrackerWork();
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
 
     newFile(b, content: r'''
@@ -703,11 +706,11 @@ class B2 {}
     await _doAllTrackerWork();
 
     _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration('A', DeclarationKind.CLASS),
-      _ExpectedDeclaration('B2', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('A'),
+      _ExpectedDeclaration.class_('B2'),
     ]);
     _assertHasLibrary('package:test/c.dart', declarations: [
-      _ExpectedDeclaration('C', DeclarationKind.CLASS),
+      _ExpectedDeclaration.class_('C'),
     ]);
   }
 }
@@ -1356,6 +1359,23 @@ class D {}
     ]);
   }
 
+  test_combinators_show_enum() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+enum E1 {a}
+enum E2 {b}
+''');
+    newFile('/home/test/lib/test.dart', content: r'''
+export 'a.dart' show E1;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.enum_('E1'),
+      _ExpectedDeclaration.enumConstant('a', 'E1'),
+    ]);
+  }
+
   test_cycle() async {
     newFile('/home/test/lib/a.dart', content: r'''
 export 'b.dart';
@@ -1387,6 +1407,24 @@ class C {}
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
       _ExpectedDeclaration.class_('C'),
+    ]);
+  }
+
+  test_enum() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+enum E1 {a, b}
+enum E2 {a, b}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.enum_('E1'),
+      _ExpectedDeclaration.enumConstant('a', 'E1'),
+      _ExpectedDeclaration.enumConstant('b', 'E1'),
+      _ExpectedDeclaration.enum_('E2'),
+      _ExpectedDeclaration.enumConstant('a', 'E2'),
+      _ExpectedDeclaration.enumConstant('b', 'E2'),
     ]);
   }
 
@@ -2042,7 +2080,9 @@ class _Base extends AbstractContextTest {
     expect(
       library.declarations,
       contains(predicate((Declaration d) {
-        return d.name == expected.name && d.kind == expected.kind;
+        return d.name == expected.name &&
+            d.name2 == expected.name2 &&
+            d.kind == expected.kind;
       })),
       reason: '$expected',
     );
@@ -2107,31 +2147,42 @@ class _Base extends AbstractContextTest {
 }
 
 class _ExpectedDeclaration {
-  final String name;
   final DeclarationKind kind;
+  final String name;
+  final String name2;
 
-  _ExpectedDeclaration(this.name, this.kind);
+  _ExpectedDeclaration(this.kind, this.name, this.name2);
 
-  _ExpectedDeclaration.class_(String name) : this(name, DeclarationKind.CLASS);
+  _ExpectedDeclaration.class_(String name)
+      : this(DeclarationKind.CLASS, name, null);
 
   _ExpectedDeclaration.classTypeAlias(String name)
-      : this(name, DeclarationKind.CLASS_TYPE_ALIAS);
+      : this(DeclarationKind.CLASS_TYPE_ALIAS, name, null);
 
-  _ExpectedDeclaration.enum_(String name) : this(name, DeclarationKind.ENUM);
+  _ExpectedDeclaration.enum_(String name)
+      : this(DeclarationKind.ENUM, name, null);
+
+  _ExpectedDeclaration.enumConstant(String name, String name2)
+      : this(DeclarationKind.ENUM_CONSTANT, name, name2);
 
   _ExpectedDeclaration.function(String name)
-      : this(name, DeclarationKind.FUNCTION);
+      : this(DeclarationKind.FUNCTION, name, null);
 
   _ExpectedDeclaration.functionTypeAlias(String name)
-      : this(name, DeclarationKind.FUNCTION_TYPE_ALIAS);
+      : this(DeclarationKind.FUNCTION_TYPE_ALIAS, name, null);
 
-  _ExpectedDeclaration.mixin(String name) : this(name, DeclarationKind.MIXIN);
+  _ExpectedDeclaration.mixin(String name)
+      : this(DeclarationKind.MIXIN, name, null);
 
   _ExpectedDeclaration.variable(String name)
-      : this(name, DeclarationKind.VARIABLE);
+      : this(DeclarationKind.VARIABLE, name, null);
 
   @override
   String toString() {
-    return '($name, $kind)';
+    if (name2 != null) {
+      return '($kind, $name, $name2)';
+    } else {
+      return '($kind, $name)';
+    }
   }
 }
