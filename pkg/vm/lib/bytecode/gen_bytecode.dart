@@ -790,7 +790,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         constantsBackend,
         environmentDefines,
         typeEnvironment,
-        coreTypes,
         /* enableAsserts = */ true,
         errorReporter)
       ..env = new EvaluationEnvironment();

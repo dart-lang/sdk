@@ -754,7 +754,6 @@ class KernelTarget extends TargetImplementation {
           loader.libraries,
           new KernelConstantsBackend(),
           CompilerContext.current.options.environmentDefines,
-          loader.coreTypes,
           environment,
           new KernelConstantErrorReporter(loader, environment));
       ticker.logMs("Evaluated constants");

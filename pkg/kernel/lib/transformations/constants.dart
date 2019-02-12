@@ -42,7 +42,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
   transformLibraries(component.libraries, backend, environmentDefines,
-      coreTypes, typeEnvironment, errorReporter,
+      typeEnvironment, errorReporter,
       keepFields: keepFields,
       enableAsserts: enableAsserts,
       evaluateAnnotations: evaluateAnnotations);
@@ -53,7 +53,6 @@ void transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
     Map<String, String> environmentDefines,
-    CoreTypes coreTypes,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     {bool keepFields: false,
@@ -66,7 +65,6 @@ void transformLibraries(
       keepFields,
       keepVariables,
       evaluateAnnotations,
-      coreTypes,
       typeEnvironment,
       enableAsserts,
       errorReporter);
@@ -77,7 +75,6 @@ void transformLibraries(
 
 class ConstantsTransformer extends Transformer {
   final ConstantEvaluator constantEvaluator;
-  final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
 
   /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
@@ -91,12 +88,11 @@ class ConstantsTransformer extends Transformer {
       this.keepFields,
       this.keepVariables,
       this.evaluateAnnotations,
-      this.coreTypes,
       this.typeEnvironment,
       bool enableAsserts,
       ErrorReporter errorReporter)
       : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
-            typeEnvironment, coreTypes, enableAsserts, errorReporter);
+            typeEnvironment, enableAsserts, errorReporter);
 
   // Transform the library/class members:
 
@@ -400,8 +396,9 @@ class ConstantEvaluator extends RecursiveVisitor {
   EvaluationEnvironment env;
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
-      this.coreTypes, this.enableAsserts, this.errorReporter)
-      : canonicalizationCache = <Constant, Constant>{},
+      this.enableAsserts, this.errorReporter)
+      : coreTypes = typeEnvironment.coreTypes,
+        canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{},
         env = new EvaluationEnvironment();
 
