@@ -23,6 +23,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/driver_resolution.dart';
 import '../util/element_type_matchers.dart';
 import '../utils.dart';
 import 'analysis_context_factory.dart';
@@ -31,7 +32,7 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ElementResolverCodeTest);
+    defineReflectiveTests(AnnotationElementResolverTest);
     defineReflectiveTests(ElementResolverTest);
     defineReflectiveTests(PreviewDart2Test);
   });
@@ -46,12 +47,10 @@ void _fail(String message) {
   fail(message);
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
-class ElementResolverCodeTest extends ResolverTestCase {
-  test_annotation_class_namedConstructor() async {
-    addNamedSource('/a.dart', r'''
+class AnnotationElementResolverTest extends DriverResolutionTest {
+  test_class_namedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -80,8 +79,8 @@ class A {
     });
   }
 
-  test_annotation_class_prefixed_namedConstructor() async {
-    addNamedSource('/a.dart', r'''
+  test_class_prefixed_namedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -112,8 +111,8 @@ class A {
     });
   }
 
-  test_annotation_class_prefixed_staticConstField() async {
-    addNamedSource('/a.dart', r'''
+  test_class_prefixed_staticConstField() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -142,8 +141,8 @@ class A {
     });
   }
 
-  test_annotation_class_prefixed_unnamedConstructor() async {
-    addNamedSource('/a.dart', r'''
+  test_class_prefixed_unnamedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A();
 }
@@ -170,8 +169,8 @@ class A {
     });
   }
 
-  test_annotation_class_staticConstField() async {
-    addNamedSource('/a.dart', r'''
+  test_class_staticConstField() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -198,8 +197,8 @@ class A {
     });
   }
 
-  test_annotation_class_unnamedConstructor() async {
-    addNamedSource('/a.dart', r'''
+  test_class_unnamedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A();
 }
@@ -224,8 +223,8 @@ class A {
     });
   }
 
-  test_annotation_topLevelVariable() async {
-    addNamedSource('/a.dart', r'''
+  test_topLevelVariable() async {
+    newFile('/test/lib/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -248,8 +247,8 @@ const V = 0;
     });
   }
 
-  test_annotation_topLevelVariable_prefixed() async {
-    addNamedSource('/a.dart', r'''
+  test_topLevelVariable_prefixed() async {
+    newFile('/test/lib/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
@@ -279,12 +278,14 @@ const V = 0;
       String annotationText,
       validator(SimpleIdentifier name1, SimpleIdentifier name2,
           SimpleIdentifier name3, Element annotationElement)) async {
-    CompilationUnit unit = await resolveSource('''
+    addTestFile('''
 import 'a.dart' $annotationPrefix;
 $annotationText
 class C {}
 ''');
-    var clazz = unit.declarations.single as ClassDeclaration;
+    await resolveTestFile();
+
+    var clazz = findNode.classDeclaration('C');
     Annotation annotation = clazz.metadata.single;
     Identifier name = annotation.name;
     Element annotationElement = annotation.element;
