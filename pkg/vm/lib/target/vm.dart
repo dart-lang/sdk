@@ -11,8 +11,11 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
+import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
+import 'package:kernel/vm/constants_native_effects.dart'
+    show VmConstantsBackend;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/list_factory_specializer.dart'
@@ -349,4 +352,8 @@ class VmTarget extends Target {
     return _oneByteString ??=
         coreTypes.index.getClass('dart:core', '_OneByteString');
   }
+
+  @override
+  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+      new VmConstantsBackend(coreTypes);
 }

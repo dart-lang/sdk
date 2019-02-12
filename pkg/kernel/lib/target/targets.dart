@@ -6,6 +6,7 @@ library kernel.target.targets;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
+import '../transformations/constants.dart' show ConstantsBackend;
 import '../transformations/treeshaker.dart' show ProgramRoot;
 
 final List<String> targetNames = targets.keys.toList();
@@ -195,6 +196,8 @@ abstract class Target {
 
   Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
+
+  ConstantsBackend constantsBackend(CoreTypes coreTypes);
 }
 
 class NoneTarget extends Target {
@@ -234,4 +237,8 @@ class NoneTarget extends Target {
       bool isTopLevel: false}) {
     return new InvalidExpression(null);
   }
+
+  @override
+  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+      new ConstantsBackend();
 }

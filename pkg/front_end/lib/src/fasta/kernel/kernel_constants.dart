@@ -9,8 +9,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-import 'package:kernel/transformations/constants.dart'
-    show ConstantsBackend, ErrorReporter;
+import 'package:kernel/transformations/constants.dart' show ErrorReporter;
 
 import '../fasta_codes.dart'
     show
@@ -179,5 +178,3 @@ class KernelConstantErrorReporter extends ErrorReporter {
     return addProblem(node, messageConstEvalCircularity);
   }
 }
-
-class KernelConstantsBackend extends ConstantsBackend {}

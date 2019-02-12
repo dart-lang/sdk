@@ -19,8 +19,8 @@ class DevCompilerConstants {
   DevCompilerConstants(
       TypeEnvironment types, Map<String, String> declaredVariables)
       : _visitor = _ConstantVisitor(types.coreTypes),
-        _evaluator = ConstantEvaluator(_ConstantsBackend(), declaredVariables,
-            types, false, const _ErrorReporter());
+        _evaluator = ConstantEvaluator(DevCompilerConstantsBackend(),
+            declaredVariables, types, false, const _ErrorReporter());
 
   /// Determines if an expression is constant.
   bool isConstant(Expression e) => _visitor.isConstant(e);
@@ -169,8 +169,8 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
 }
 
 /// Implement the class for compiler specific behavior.
-class _ConstantsBackend extends ConstantsBackend {
-  _ConstantsBackend();
+class DevCompilerConstantsBackend extends ConstantsBackend {
+  DevCompilerConstantsBackend();
 
   @override
   Constant lowerConstant(Constant constant) {

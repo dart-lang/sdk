@@ -101,8 +101,7 @@ import 'kernel_builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder;
 
-import 'kernel_constants.dart'
-    show KernelConstantErrorReporter, KernelConstantsBackend;
+import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -752,7 +751,7 @@ class KernelTarget extends TargetImplementation {
           legacyMode: false);
       constants.transformLibraries(
           loader.libraries,
-          new KernelConstantsBackend(),
+          loader.target.backendTarget.constantsBackend(loader.coreTypes),
           CompilerContext.current.options.environmentDefines,
           environment,
           new KernelConstantErrorReporter(loader, environment));
