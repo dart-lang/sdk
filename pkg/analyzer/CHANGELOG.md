@@ -1,3 +1,18 @@
+## 0.35.1
+* The new "set literals" language feature is now enabled by default.
+* The dev_dependency analysis_tool was created so that clients do not have to
+  depend on code that is used internally in the analyzer at development time.
+* The `InheritanceManager` class is now deprecated.  The new
+  `InheritanceManager2` class now supports accessing inherited interface/class
+  maps.
+* Added quick assists to support set literals.
+* Added the ability for linter tests to drive the analyzer using custom analysis
+  options.
+* Updated support in the AST structure for the control_flow_collections and
+  spread_collections experiments.  The new AST structures are still in
+  development.
+* Bug fixes: #34437, #35127, #35141, #35306, #35621.
+
 ## 0.35.0
 * Added support in the AST structure for the control_flow_collections and
   spread_collections experiments. This includes adding new visitor methods to
