@@ -128,6 +128,10 @@ class FindElement {
     throw StateError('Not found: $name');
   }
 
+  FieldFormalParameterElement fieldFormalParameter(String name) {
+    return parameter(name) as FieldFormalParameterElement;
+  }
+
   FunctionElement function(String name) {
     for (var function in unitElement.functions) {
       if (function.name == name) {
@@ -332,6 +336,9 @@ class FindElement {
       }
       for (var method in class_.methods) {
         findIn(method.parameters);
+      }
+      for (var accessor in class_.accessors) {
+        findIn(accessor.parameters);
       }
     }
 

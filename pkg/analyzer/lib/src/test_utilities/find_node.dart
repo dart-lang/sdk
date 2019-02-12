@@ -35,6 +35,10 @@ class FindNode {
     return _node(search, (n) => n is Block);
   }
 
+  BreakStatement breakStatement(String search) {
+    return _node(search, (n) => n is BreakStatement);
+  }
+
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
   }
@@ -55,8 +59,20 @@ class FindNode {
     return _node(search, (n) => n is ConstructorDeclaration);
   }
 
+  ConstructorFieldInitializer constructorFieldInitializer(String search) {
+    return _node(search, (n) => n is ConstructorFieldInitializer);
+  }
+
+  ContinueStatement continueStatement(String search) {
+    return _node(search, (n) => n is ContinueStatement);
+  }
+
   DefaultFormalParameter defaultParameter(String search) {
     return _node(search, (n) => n is DefaultFormalParameter);
+  }
+
+  DoStatement doStatement(String search) {
+    return _node(search, (n) => n is DoStatement);
   }
 
   ExportDirective export(String search) {
@@ -75,6 +91,14 @@ class FindNode {
     return _node(search, (n) => n is FieldFormalParameter);
   }
 
+  ForEachStatement forEachStatement(String search) {
+    return _node(search, (n) => n is ForEachStatement);
+  }
+
+  ForStatement forStatement(String search) {
+    return _node(search, (n) => n is ForStatement);
+  }
+
   FunctionBody functionBody(String search) {
     return _node(search, (n) => n is FunctionBody);
   }
@@ -85,6 +109,10 @@ class FindNode {
 
   FunctionExpression functionExpression(String search) {
     return _node(search, (n) => n is FunctionExpression);
+  }
+
+  FunctionTypeAlias functionTypeAlias(String search) {
+    return _node(search, (n) => n is FunctionTypeAlias);
   }
 
   GenericFunctionType genericFunctionType(String search) {
@@ -183,6 +211,10 @@ class FindNode {
     return _node(search, (n) => n is SuperExpression);
   }
 
+  SwitchStatement switchStatement(String search) {
+    return _node(search, (n) => n is SwitchStatement);
+  }
+
   ThisExpression this_(String search) {
     return _node(search, (n) => n is ThisExpression);
   }
@@ -209,6 +241,10 @@ class FindNode {
 
   VariableDeclaration variableDeclaration(String search) {
     return _node(search, (n) => n is VariableDeclaration);
+  }
+
+  WhileStatement whileStatement(String search) {
+    return _node(search, (n) => n is WhileStatement);
   }
 
   AstNode _node(String search, bool Function(AstNode) predicate) {
