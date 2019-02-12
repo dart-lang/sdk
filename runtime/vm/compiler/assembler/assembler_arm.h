@@ -763,10 +763,6 @@ class Assembler : public AssemblerBase {
                        ObjectPoolBuilderEntry::Patchability patchable,
                        Condition cond = AL);
   void PushObject(const Object& object);
-  void PushImmediate(int32_t immediate) {
-    LoadImmediate(TMP, immediate);
-    Push(TMP);
-  }
   void CompareObject(Register rn, const Object& object);
 
   enum CanBeSmi {

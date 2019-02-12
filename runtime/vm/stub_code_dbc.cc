@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,115 +28,105 @@ DEFINE_FLAG(bool,
             false,
             "Set to true for debugging & verifying the slow paths.");
 
-namespace compiler {
-
-void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Compile();
 }
 
-void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
-    Assembler* assembler) {
+void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ NoSuchMethod();
 }
 
 // Not executed, but used as a stack marker when calling
 // DRT_OptimizeInvokedFunction.
-void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
+void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Trap();
 }
 
 // Not executed, but used as a sentinel in Simulator::JumpToFrame.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
+void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ DeoptRewind();
 }
 
 // TODO(vegorov) Don't generate this stub.
-void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
+void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Trap();
 }
 
 // TODO(vegorov) Don't generate these stubs.
-void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
-                                                      const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+                                              const Class& cls) {
   __ Trap();
 }
 
 // TODO(vegorov) Don't generate this stub.
-void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
+void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ Trap();
 }
 
 // These deoptimization stubs are only used to populate stack frames
 // with something meaningful to make sure GC can scan the stack during
 // the last phase of deoptimization which materializes objects.
-void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
-    Assembler* assembler) {
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
-    Assembler* assembler) {
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
-  __ Trap();
-}
-
-// TODO(kustermann): Don't generate this stub.
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
+void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Trap();
 }
 
 // TODO(kustermann): Don't generate this stub.
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
+void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
   __ Trap();
 }
 
 // TODO(kustermann): Don't generate this stub.
-void StubCodeCompiler::GenerateTypeRefTypeTestStub(Assembler* assembler) {
+void StubCode::GenerateTopTypeTypeTestStub(Assembler* assembler) {
   __ Trap();
 }
 
 // TODO(kustermann): Don't generate this stub.
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
+void StubCode::GenerateTypeRefTypeTestStub(Assembler* assembler) {
   __ Trap();
 }
 
 // TODO(kustermann): Don't generate this stub.
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
+void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
   __ Trap();
 }
 
 // TODO(kustermann): Don't generate this stub.
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
+void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
+void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ Trap();
 }
 
-void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
-    Assembler* assembler) {
+void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ Trap();
 }
 
-}  // namespace compiler
+void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
+  __ Trap();
+}
 
 }  // namespace dart
 

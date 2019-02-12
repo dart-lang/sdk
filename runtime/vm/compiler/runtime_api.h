@@ -24,25 +24,18 @@
 #include "vm/code_entry_kind.h"
 #include "vm/frame_layout.h"
 #include "vm/pointer_tagging.h"
-#include "vm/runtime_entry_list.h"
-#include "vm/token.h"
 
 namespace dart {
 
 // Forward declarations.
-class Bool;
 class Class;
-class Code;
 class Code;
 class Function;
 class LocalVariable;
 class Object;
 class RuntimeEntry;
 class String;
-class Type;
-class TypeArguments;
 class Zone;
-
 namespace compiler {
 class Assembler;
 }
@@ -84,24 +77,6 @@ Object& NewZoneHandle(Zone* zone);
 
 // Clone the given handle.
 Object& NewZoneHandle(Zone* zone, const Object&);
-
-//
-// Constant objects.
-//
-
-const Object& NullObject();
-const Bool& TrueObject();
-const Bool& FalseObject();
-const Object& EmptyTypeArguments();
-const Type& DynamicType();
-const Type& ObjectType();
-const Type& VoidType();
-const Type& IntType();
-
-template <typename To, typename From>
-const To& CastHandle(const From& from) {
-  return reinterpret_cast<const To&>(from);
-}
 
 // Returns true if [a] and [b] are the same object.
 bool IsSameObject(const Object& a, const Object& b);
@@ -153,12 +128,6 @@ typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
                                          compiler::Assembler*,
                                          intptr_t);
 
-#if !defined(TARGET_ARCH_DBC)
-const Code& StubCodeAllocateArray();
-const Code& StubCodeSubtype2TestCache();
-const Code& StubCodeSubtype6TestCache();
-#endif  // !defined(TARGET_ARCH_DBC)
-
 class RuntimeEntry : public ValueObject {
  public:
   virtual ~RuntimeEntry() {}
@@ -198,16 +167,6 @@ class RuntimeEntry : public ValueObject {
   RuntimeEntryCallInternal call_;
 };
 
-#define DECLARE_RUNTIME_ENTRY(name)                                            \
-  extern const RuntimeEntry& k##name##RuntimeEntry;
-RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
-#undef DECLARE_RUNTIME_ENTRY
-
-#define DECLARE_RUNTIME_ENTRY(type, name, ...)                                 \
-  extern const RuntimeEntry& k##name##RuntimeEntry;
-LEAF_RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
-#undef DECLARE_RUNTIME_ENTRY
-
 // Allocate a string object with the given content in the runtime heap.
 const String& AllocateString(const char* buffer);
 
@@ -234,11 +193,6 @@ static_assert((1 << kWordSizeLog2) == kWordSize,
               "kWordSizeLog2 should match kWordSize");
 
 using ObjectAlignment = dart::ObjectAlignment<kWordSize, kWordSizeLog2>;
-
-// Information about heap pages.
-extern const word kPageSize;
-extern const word kPageSizeInWords;
-extern const word kPageMask;
 
 // Information about frame_layout that compiler should be targeting.
 extern FrameLayout frame_layout;
@@ -297,19 +251,9 @@ word ToRawPointer(const dart::Object& a);
 
 class RawObject : public AllStatic {
  public:
-  static const word kCardRememberedBit;
-  static const word kOldAndNotRememberedBit;
-  static const word kOldAndNotMarkedBit;
   static const word kClassIdTagPos;
   static const word kClassIdTagSize;
-  static const word kSizeTagMaxSizeTag;
-  static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
-};
-
-class RawAbstractType : public AllStatic {
- public:
-  static const word kTypeStateFinalizedInstantiated;
 };
 
 class Object : public AllStatic {
@@ -326,122 +270,19 @@ class ObjectPool : public AllStatic {
 
 class Class : public AllStatic {
  public:
-  static word type_arguments_field_offset_in_words_offset();
-
-  // The value used if no type arguments vector is present.
-  static const word kNoTypeArguments;
-
   // Return class id of the given class on the target.
   static classid_t GetId(const dart::Class& handle);
 
   // Return instance size for the given class on the target.
   static uword GetInstanceSize(const dart::Class& handle);
-
-  // Returns the number of type arguments.
-  static intptr_t NumTypeArguments(const dart::Class& klass);
-
-  // Whether [klass] has a type arguments vector field.
-  static bool HasTypeArgumentsField(const dart::Class& klass);
-
-  // Returns the offset (in bytes) of the type arguments vector.
-  static intptr_t TypeArgumentsFieldOffset(const dart::Class& klass);
-
-  // Returns the instance size (in bytes).
-  static intptr_t InstanceSize(const dart::Class& klass);
-
-  // Whether to trace allocation for this klass.
-  static bool TraceAllocation(const dart::Class& klass);
 };
 
 class Instance : public AllStatic {
  public:
-  // Returns the offset to the first field of [RawInstance].
-  static word first_field_offset();
   static word DataOffsetFor(intptr_t cid);
 };
 
-class Function : public AllStatic {
- public:
-  static word code_offset();
-  static word entry_point_offset();
-  static word usage_counter_offset();
-  static word unchecked_entry_point_offset();
-};
-
-class ICData : public AllStatic {
- public:
-  static word owner_offset();
-  static word arguments_descriptor_offset();
-  static word ic_data_offset();
-  static word static_receiver_type_offset();
-  static word state_bits_offset();
-
-  static word CodeIndexFor(word num_args);
-  static word CountIndexFor(word num_args);
-  static word TargetIndexFor(word num_args);
-  static word ExactnessOffsetFor(word num_args);
-  static word TestEntryLengthFor(word num_args, bool exactness_check);
-  static word EntryPointIndexFor(word num_args);
-  static word NumArgsTestedShift();
-  static word NumArgsTestedMask();
-};
-
-class MegamorphicCache : public AllStatic {
- public:
-  static const word kSpreadFactor;
-  static word mask_offset();
-  static word buckets_offset();
-  static word arguments_descriptor_offset();
-};
-
-class SingleTargetCache : public AllStatic {
- public:
-  static word lower_limit_offset();
-  static word upper_limit_offset();
-  static word entry_point_offset();
-  static word target_offset();
-};
-
-class Array : public AllStatic {
- public:
-  static word header_size();
-  static word tags_offset();
-  static word data_offset();
-  static word type_arguments_offset();
-  static word length_offset();
-
-  static const word kMaxNewSpaceElements;
-};
-
-class ArgumentsDescriptor : public AllStatic {
- public:
-  static word count_offset();
-  static word type_args_len_offset();
-};
-
-class AbstractType : public AllStatic {
- public:
-  static word type_test_stub_entry_point_offset();
-};
-
-class Type : public AllStatic {
- public:
-  static word type_state_offset();
-  static word arguments_offset();
-  static word signature_offset();
-};
-
-class TypeRef : public AllStatic {
- public:
-  static word type_offset();
-};
-
 class Double : public AllStatic {
- public:
-  static word value_offset();
-};
-
-class Mint : public AllStatic {
  public:
   static word value_offset();
 };
@@ -458,20 +299,9 @@ class Float64x2 : public AllStatic {
 
 class Thread : public AllStatic {
  public:
-  static word active_exception_offset();
-  static word active_stacktrace_offset();
-  static word resume_pc_offset();
-  static word marking_stack_block_offset();
-  static word top_exit_frame_info_offset();
-  static word top_resource_offset();
-  static word global_object_pool_offset();
-  static word object_null_offset();
-  static word bool_true_offset();
-  static word bool_false_offset();
   static word top_offset();
   static word end_offset();
   static word isolate_offset();
-  static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word null_error_shared_with_fpu_regs_entry_point_offset();
   static word null_error_shared_without_fpu_regs_entry_point_offset();
@@ -481,32 +311,6 @@ class Thread : public AllStatic {
   static word array_write_barrier_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();
-
-#if !defined(TARGET_ARCH_DBC)
-  static word write_barrier_code_offset();
-  static word array_write_barrier_code_offset();
-  static word fix_callers_target_code_offset();
-  static word fix_allocation_stub_code_offset();
-
-  static word monomorphic_miss_stub_offset();
-  static word ic_lookup_through_code_stub_offset();
-  static word lazy_specialize_type_test_stub_offset();
-  static word slow_type_test_stub_offset();
-  static word call_to_runtime_stub_offset();
-  static word invoke_dart_code_stub_offset();
-  static word interpret_call_entry_point_offset();
-  static word invoke_dart_code_from_bytecode_stub_offset();
-  static word null_error_shared_without_fpu_regs_stub_offset();
-  static word null_error_shared_with_fpu_regs_stub_offset();
-  static word stack_overflow_shared_without_fpu_regs_stub_offset();
-  static word stack_overflow_shared_with_fpu_regs_stub_offset();
-  static word lazy_deopt_from_return_stub_offset();
-  static word lazy_deopt_from_throw_stub_offset();
-  static word deoptimize_stub_offset();
-#endif  // !defined(TARGET_ARCH_DBC)
-
-  static word no_scope_native_wrapper_entry_point_offset();
-  static word auto_scope_native_wrapper_entry_point_offset();
 
 #define THREAD_XMM_CONSTANT_LIST(V)                                            \
   V(float_not)                                                                 \
@@ -520,31 +324,11 @@ class Thread : public AllStatic {
   static word name##_address_offset();
   THREAD_XMM_CONSTANT_LIST(DECLARE_CONSTANT_OFFSET_GETTER)
 #undef DECLARE_CONSTANT_OFFSET_GETTER
-
-  static word OffsetFromThread(const dart::Object& object);
-};
-
-class StoreBufferBlock : public AllStatic {
- public:
-  static uword top_offset();
-  static uword pointers_offset();
-  static const word kSize;
-};
-
-class MarkingStackBlock : public AllStatic {
- public:
-  static uword top_offset();
-  static uword pointers_offset();
-  static const word kSize;
 };
 
 class Isolate : public AllStatic {
  public:
   static word class_table_offset();
-  static word ic_miss_code_offset();
-#if !defined(PRODUCT)
-  static word single_step_offset();
-#endif  // !defined(PRODUCT)
 };
 
 class ClassTable : public AllStatic {
@@ -589,60 +373,11 @@ class Code : public AllStatic {
   static intptr_t saved_instructions_offset();
 };
 
-class SubtypeTestCache : public AllStatic {
- public:
-  static word cache_offset();
-
-  static const word kTestEntryLength;
-  static const word kInstanceClassIdOrFunction;
-  static const word kInstanceTypeArguments;
-  static const word kInstantiatorTypeArguments;
-  static const word kFunctionTypeArguments;
-  static const word kInstanceParentFunctionTypeArguments;
-  static const word kInstanceDelayedFunctionTypeArguments;
-  static const word kTestResult;
-};
-
-class Context : public AllStatic {
- public:
-  static word header_size();
-  static word parent_offset();
-  static word num_variables_offset();
-  static word variable_offset(word i);
-  static word InstanceSize(word n);
-};
-
-class Closure : public AllStatic {
- public:
-  static word context_offset();
-  static word delayed_type_arguments_offset();
-  static word function_offset();
-  static word function_type_arguments_offset();
-  static word instantiator_type_arguments_offset();
-};
-
-class HeapPage : public AllStatic {
- public:
-  static const word kBytesPerCardLog2;
-
-  static word card_table_offset();
-};
-
 class Heap : public AllStatic {
  public:
   // Return true if an object with the given instance size is allocatable
   // in new space on the target.
   static bool IsAllocatableInNewSpace(intptr_t instance_size);
-};
-
-class NativeArguments {
- public:
-  static word thread_offset();
-  static word argc_tag_offset();
-  static word argv_offset();
-  static word retval_offset();
-
-  static word StructSize();
 };
 
 }  // namespace target

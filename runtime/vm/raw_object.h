@@ -1834,7 +1834,7 @@ class RawTypeArguments : public RawInstance {
 };
 
 class RawAbstractType : public RawInstance {
- public:
+ protected:
   enum TypeState {
     kAllocated,                // Initial state.
     kBeingFinalized,           // In the process of being finalized.
@@ -1842,7 +1842,6 @@ class RawAbstractType : public RawInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
- protected:
   uword type_test_stub_entry_point_;  // Accessed from generated code.
   RawCode* type_test_stub_;  // Must be the last field, since subclasses use it
                              // in their VISIT_FROM.

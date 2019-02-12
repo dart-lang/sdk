@@ -38,9 +38,6 @@ struct FrameLayout {
   // The offset (in words) from FP to the code object (if applicable).
   int code_from_fp;
 
-  // Entry and exit frame layout.
-  int exit_link_slot_from_entry_fp;
-
   // The number of fixed slots below the saved PC.
   int saved_below_pc() const { return -first_local_from_fp; }
 

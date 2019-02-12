@@ -1506,10 +1506,6 @@ class Assembler : public AssemblerBase {
     LoadObject(TMP, object);
     Push(TMP);
   }
-  void PushImmediate(int64_t immediate) {
-    LoadImmediate(TMP, immediate);
-    Push(TMP);
-  }
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
