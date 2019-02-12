@@ -1369,7 +1369,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
           return argument;
         }
       }
+    } else if (element == commonElements.assertHelper ||
+        element == commonElements.assertTest) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument is HConstant) {
+          ConstantValue constant = argument.constant;
+          if (constant.isBool) {
+            bool value = constant.isTrue;
+            if (element == commonElements.assertTest) {
+              // `assertTest(argument)` effectively negates the argument.
+              return _graph.addConstantBool(!value, _closedWorld);
+            }
+            // `assertHelper(true)` is a no-op, other values throw.
+            if (value) return argument;
+          }
+        }
+      }
     }
+
     return node;
   }
 
