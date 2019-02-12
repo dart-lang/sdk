@@ -368,12 +368,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   static bool TryAcquireMarkBit(RawObject* raw_obj) {
-    // While it might seem this is redundant with TryAcquireMarkBit, we must
-    // do this check first to avoid attempting an atomic::fetch_and on the
-    // read-only vm-isolate or image pages, which can fault even if there is no
-    // change in the value.
-    if (raw_obj->IsMarked()) return false;
-
     if (!sync) {
       raw_obj->SetMarkBitUnsynchronized();
       return true;
@@ -383,8 +377,19 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   void MarkObject(RawObject* raw_obj) {
-    // Fast exit if the raw object is a Smi.
+    // Fast exit if the raw object is immediate or in new space. No memory
+    // access.
     if (raw_obj->IsSmiOrNewObject()) {
+      return;
+    }
+
+    // While it might seem this is redundant with TryAcquireMarkBit, we must
+    // do this check first to avoid attempting an atomic::fetch_and on the
+    // read-only vm-isolate or image pages, which can fault even if there is no
+    // change in the value.
+    // Doing this before checking for an Instructions object avoids
+    // unnecessary queueing of pre-marked objects.
+    if (raw_obj->IsMarked()) {
       return;
     }
 
@@ -392,8 +397,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ASSERT(class_id != kFreeListElement);
 
     if (sync && UNLIKELY(class_id == kInstructionsCid)) {
-      // If this is the concurrent marker, instruction pages may be
-      // non-writable.
+      // If this is the concurrent marker, this object may be non-writable due
+      // to W^X (--write-protect-code).
       deferred_work_list_.Push(raw_obj);
       return;
     }
