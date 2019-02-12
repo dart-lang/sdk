@@ -77,6 +77,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
     Set<ElementKind> includedSuggestionKinds,
+    Set<String> includedSuggestionRelevanceTags,
   ) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -103,6 +104,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       var manager = new DartCompletionManager(
         includedSuggestionKinds: includedSuggestionKinds,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
       String contributorTag = 'computeSuggestions - ${manager.runtimeType}';
@@ -273,8 +275,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // If the client opted into using available suggestion sets,
     // create the kinds set, so signal the completion manager about opt-in.
     Set<ElementKind> includedSuggestionKinds;
+    Set<String> includedSuggestionRelevanceTags;
     if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
       includedSuggestionKinds = Set<ElementKind>();
+      includedSuggestionRelevanceTags = Set<String>();
     }
 
     // Compute suggestions in the background
@@ -282,6 +286,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       completionRequest,
       params,
       includedSuggestionKinds,
+      includedSuggestionRelevanceTags,
     ).then((CompletionResult result) {
       List<IncludedSuggestionSet> includedSuggestionSets;
       if (includedSuggestionKinds != null && resolvedUnit != null) {
@@ -302,6 +307,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         result.suggestions,
         includedSuggestionSets,
         includedSuggestionKinds?.toList(),
+        computeIncludedSuggestionRelevanceTags(
+          includedSuggestionRelevanceTags,
+        ),
       );
       performance.logElapseTime(SEND_NOTIFICATION_TAG);
 
@@ -339,6 +347,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Iterable<CompletionSuggestion> results,
     List<IncludedSuggestionSet> includedSuggestionSets,
     List<ElementKind> includedSuggestionKinds,
+    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) {
     server.sendNotification(
       new CompletionResultsParams(
@@ -349,6 +358,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         true,
         includedSuggestionSets: includedSuggestionSets,
         includedSuggestionKinds: includedSuggestionKinds,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       ).toNotification(),
     );
   }

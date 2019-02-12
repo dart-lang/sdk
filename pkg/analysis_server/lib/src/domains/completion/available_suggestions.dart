@@ -62,6 +62,17 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
   return includedSetList;
 }
 
+List<protocol.IncludedSuggestionRelevanceTag>
+    computeIncludedSuggestionRelevanceTags(
+  Set<String> includedSuggestionRelevanceTags,
+) {
+  if (includedSuggestionRelevanceTags == null) return null;
+
+  return includedSuggestionRelevanceTags.map((tag) {
+    return protocol.IncludedSuggestionRelevanceTag(tag, 10);
+  }).toList();
+}
+
 /// Convert the [LibraryChange] into the corresponding protocol notification.
 protocol.Notification createCompletionAvailableSuggestionsNotification(
   LibraryChange change,
@@ -90,6 +101,7 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     parameterNames: declaration.parameterNames,
     parameterTypes: declaration.parameterTypes,
     requiredParameterCount: declaration.requiredParameterCount,
+    relevanceTags: declaration.relevanceTags,
   );
 }
 

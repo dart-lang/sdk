@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -20,6 +21,17 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   final Map<int, AvailableSuggestionSet> idToSetMap = {};
   final Map<String, AvailableSuggestionSet> uriToSetMap = {};
   final Map<String, CompletionResultsParams> idToSuggestions = {};
+
+  void assertJsonText(Object object, String expected) {
+    expected = expected.trimRight();
+    var actual = JsonEncoder.withIndent('  ').convert(object);
+    if (actual != expected) {
+      print('-----');
+      print(actual);
+      print('-----');
+    }
+    expect(actual, expected);
+  }
 
   @override
   void processNotification(Notification notification) {

@@ -41,6 +41,99 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     expect(serverErrors, isEmpty);
   }
 
+  test_relevanceTags_argumentList_named() async {
+    addTestFile(r'''
+void foo({int a, String b}) {}
+
+main() {
+  foo(b: ); // ref
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf('); // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "dart:core::String",
+    "relevanceBoost": 10
+  }
+]
+''');
+  }
+
+  test_relevanceTags_argumentList_positional() async {
+    addTestFile(r'''
+void foo(double a) {}
+
+main() {
+  foo(); // ref
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf('); // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "dart:core::double",
+    "relevanceBoost": 10
+  }
+]
+''');
+  }
+
+  test_relevanceTags_assignment() async {
+    addTestFile(r'''
+main() {
+  int v;
+  v = // ref;
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf(' // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "dart:core::int",
+    "relevanceBoost": 10
+  }
+]
+''');
+  }
+
+  test_relevanceTags_listLiteral() async {
+    addTestFile(r'''
+main() {
+  var v = [0, ]; // ref
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf(']; // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "dart:core::int",
+    "relevanceBoost": 10
+  }
+]
+''');
+  }
+
   Future<CompletionResultsParams> _getSuggestions(
     String path,
     int offset,

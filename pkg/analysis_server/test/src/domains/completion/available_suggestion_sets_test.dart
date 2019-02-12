@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,5 +45,173 @@ class B {}
     // Delete the file, the set should be removed.
     deleteFile(path);
     waitForSetWithUriRemoved(uriStr);
+  }
+
+  test_suggestion_class() async {
+    var path = '/home/test/lib/a.dart';
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+class A {}
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertJsonText(_getSuggestion(set, 'A'), r'''
+{
+  "label": "A",
+  "element": {
+    "kind": "CLASS",
+    "name": "A",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 6,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 7
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "package:test/a.dart::A"
+  ]
+}
+''');
+  }
+
+  test_suggestion_enum() async {
+    var path = '/home/test/lib/a.dart';
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+enum MyEnum {
+  aaa,
+  bbb,
+}
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertJsonText(_getSuggestion(set, 'MyEnum'), r'''
+{
+  "label": "MyEnum",
+  "element": {
+    "kind": "ENUM",
+    "name": "MyEnum",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 5,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 6
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "package:test/a.dart::MyEnum"
+  ]
+}
+''');
+  }
+
+  test_suggestion_topLevelVariable() async {
+    var path = '/home/test/lib/a.dart';
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+var boolV = false;
+var intV = 0;
+var doubleV = 0.1;
+var stringV = 'hi';
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertJsonText(_getSuggestion(set, 'boolV'), r'''
+{
+  "label": "boolV",
+  "element": {
+    "kind": "TOP_LEVEL_VARIABLE",
+    "name": "boolV",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 4,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 5
+    },
+    "flags": 0,
+    "returnType": ""
+  },
+  "relevanceTags": [
+    "dart:core::bool"
+  ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'intV'), r'''
+{
+  "label": "intV",
+  "element": {
+    "kind": "TOP_LEVEL_VARIABLE",
+    "name": "intV",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 23,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 5
+    },
+    "flags": 0,
+    "returnType": ""
+  },
+  "relevanceTags": [
+    "dart:core::int"
+  ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'doubleV'), r'''
+{
+  "label": "doubleV",
+  "element": {
+    "kind": "TOP_LEVEL_VARIABLE",
+    "name": "doubleV",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 37,
+      "length": 0,
+      "startLine": 3,
+      "startColumn": 5
+    },
+    "flags": 0,
+    "returnType": ""
+  },
+  "relevanceTags": [
+    "dart:core::double"
+  ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'stringV'), r'''
+{
+  "label": "stringV",
+  "element": {
+    "kind": "TOP_LEVEL_VARIABLE",
+    "name": "stringV",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 56,
+      "length": 0,
+      "startLine": 4,
+      "startColumn": 5
+    },
+    "flags": 0,
+    "returnType": ""
+  },
+  "relevanceTags": [
+    "dart:core::String"
+  ]
+}
+''');
+  }
+
+  static AvailableSuggestion _getSuggestion(
+      AvailableSuggestionSet set, String label) {
+    return set.items.singleWhere((s) => s.label == label);
   }
 }

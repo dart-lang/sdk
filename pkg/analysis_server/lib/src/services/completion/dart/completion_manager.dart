@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AbortCompletion, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -32,6 +33,7 @@ import 'package:analysis_server/src/services/completion/dart/variable_name_contr
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -60,7 +62,15 @@ class DartCompletionManager implements CompletionContributor {
   /// sets.
   final Set<protocol.ElementKind> includedSuggestionKinds;
 
-  DartCompletionManager({this.includedSuggestionKinds});
+  /// If [includedSuggestionKinds] is not null, must be also not `null`, and
+  /// will be filled with tags for suggestions that should be given higher
+  /// relevance than other included suggestions.
+  final Set<String> includedSuggestionRelevanceTags;
+
+  DartCompletionManager({
+    this.includedSuggestionKinds,
+    this.includedSuggestionRelevanceTags,
+  });
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -113,6 +123,7 @@ class DartCompletionManager implements CompletionContributor {
 
     if (includedSuggestionKinds != null) {
       _addIncludedSuggestionKinds(dartRequest);
+      _addIncludedSuggestionRelevanceTags(dartRequest);
     } else {
       contributors.add(new ImportedReferenceContributor());
     }
@@ -164,6 +175,44 @@ class DartCompletionManager implements CompletionContributor {
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;
+  }
+
+  void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
+    var target = request.target;
+
+    void addTypeTag(DartType type) {
+      if (type is InterfaceType) {
+        var element = type.element;
+        includedSuggestionRelevanceTags.add(
+          '${element.librarySource.uri}::${element.name}',
+        );
+      }
+    }
+
+    var parameter = target.parameterElement;
+    if (parameter != null) {
+      addTypeTag(parameter.type);
+    }
+
+    var containingNode = target.containingNode;
+
+    if (containingNode is AssignmentExpression &&
+        containingNode.operator.type == TokenType.EQ &&
+        target.offset >= containingNode.operator.end) {
+      addTypeTag(containingNode.leftHandSide.staticType);
+    }
+
+    if (containingNode is ListLiteral &&
+        target.offset >= containingNode.leftBracket.end &&
+        target.offset <= containingNode.rightBracket.offset) {
+      var type = containingNode.staticType;
+      if (type is InterfaceType) {
+        var typeArguments = type.typeArguments;
+        if (typeArguments.isNotEmpty) {
+          addTypeTag(typeArguments[0]);
+        }
+      }
+    }
   }
 
   void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
