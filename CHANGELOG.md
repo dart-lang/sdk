@@ -1,3 +1,9 @@
+# 0.1.82
+
+* fixed `prefer_collection_literals` Set literal false positives
+* fixed `prefer_const_declarations` Set literal false-positives
+* new lint: `provide_deprecation_message`
+
 # 0.1.81
 
 * updated `prefer_collection_literals` to support Set literals
