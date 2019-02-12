@@ -33,6 +33,11 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     expect(actual, expected);
   }
 
+  String jsonOfPath(String path) {
+    path = convertPath(path);
+    return json.encode(path);
+  }
+
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);

@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class AvailableSuggestionSetsTest extends AvailableSuggestionsBase {
   test_notifications_whenFileChanges() async {
-    var path = '/home/test/lib/a.dart';
+    var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
     // No file initially, so no set.
@@ -48,7 +48,7 @@ class B {}
   }
 
   test_suggestion_class() async {
-    var path = '/home/test/lib/a.dart';
+    var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
     newFile(path, content: r'''
@@ -56,14 +56,14 @@ class A {}
 ''');
 
     var set = await waitForSetWithUri(uriStr);
-    assertJsonText(_getSuggestion(set, 'A'), r'''
+    assertJsonText(_getSuggestion(set, 'A'), '''
 {
   "label": "A",
   "element": {
     "kind": "CLASS",
     "name": "A",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 6,
       "length": 0,
       "startLine": 1,
@@ -79,7 +79,7 @@ class A {}
   }
 
   test_suggestion_enum() async {
-    var path = '/home/test/lib/a.dart';
+    var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
     newFile(path, content: r'''
@@ -90,14 +90,14 @@ enum MyEnum {
 ''');
 
     var set = await waitForSetWithUri(uriStr);
-    assertJsonText(_getSuggestion(set, 'MyEnum'), r'''
+    assertJsonText(_getSuggestion(set, 'MyEnum'), '''
 {
   "label": "MyEnum",
   "element": {
     "kind": "ENUM",
     "name": "MyEnum",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 5,
       "length": 0,
       "startLine": 1,
@@ -113,7 +113,7 @@ enum MyEnum {
   }
 
   test_suggestion_topLevelVariable() async {
-    var path = '/home/test/lib/a.dart';
+    var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
     newFile(path, content: r'''
@@ -124,14 +124,14 @@ var stringV = 'hi';
 ''');
 
     var set = await waitForSetWithUri(uriStr);
-    assertJsonText(_getSuggestion(set, 'boolV'), r'''
+    assertJsonText(_getSuggestion(set, 'boolV'), '''
 {
   "label": "boolV",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "boolV",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 4,
       "length": 0,
       "startLine": 1,
@@ -145,14 +145,14 @@ var stringV = 'hi';
   ]
 }
 ''');
-    assertJsonText(_getSuggestion(set, 'intV'), r'''
+    assertJsonText(_getSuggestion(set, 'intV'), '''
 {
   "label": "intV",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "intV",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 23,
       "length": 0,
       "startLine": 2,
@@ -166,14 +166,14 @@ var stringV = 'hi';
   ]
 }
 ''');
-    assertJsonText(_getSuggestion(set, 'doubleV'), r'''
+    assertJsonText(_getSuggestion(set, 'doubleV'), '''
 {
   "label": "doubleV",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "doubleV",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 37,
       "length": 0,
       "startLine": 3,
@@ -187,14 +187,14 @@ var stringV = 'hi';
   ]
 }
 ''');
-    assertJsonText(_getSuggestion(set, 'stringV'), r'''
+    assertJsonText(_getSuggestion(set, 'stringV'), '''
 {
   "label": "stringV",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "stringV",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 56,
       "length": 0,
       "startLine": 4,
