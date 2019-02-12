@@ -166,9 +166,9 @@ class CodeChecker extends RecursiveAstVisitor {
 
   void checkCollectionElement(
       CollectionElement element, DartType expectedType) {
-    if (element is CollectionForElement) {
+    if (element is ForElement) {
       checkCollectionElement(element.body, expectedType);
-    } else if (element is CollectionIfElement) {
+    } else if (element is IfElement) {
       checkCollectionElement(element.thenElement, expectedType);
       checkCollectionElement(element.elseElement, expectedType);
     } else if (element is Expression) {
@@ -188,11 +188,11 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void checkMapElement(MapElement element, DartType expectedKeyType,
+  void checkMapElement(CollectionElement element, DartType expectedKeyType,
       DartType expectedValueType) {
-    if (element is MapForElement) {
+    if (element is ForElement) {
       checkMapElement(element.body, expectedKeyType, expectedValueType);
-    } else if (element is MapIfElement) {
+    } else if (element is IfElement) {
       checkMapElement(element.thenElement, expectedKeyType, expectedValueType);
       checkMapElement(element.elseElement, expectedKeyType, expectedValueType);
     } else if (element is MapLiteralEntry) {
@@ -609,7 +609,7 @@ class CodeChecker extends RecursiveAstVisitor {
         }
       }
     }
-    NodeList<MapElement> entries = node.entries;
+    NodeList<CollectionElement> entries = node.entries;
     for (int i = 0; i < entries.length; i++) {
       checkMapElement(entries[i], keyType, valueType);
     }

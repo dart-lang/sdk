@@ -1544,34 +1544,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitCollectionIfElement(CollectionIfElement node) {
-    Expression conditionExpression = node.condition;
-    conditionExpression?.accept(this);
-    if (!_isDebugConstant(conditionExpression)) {
-      EvaluationResultImpl result =
-          _getConstantBooleanValue(conditionExpression);
-      if (result != null) {
-        if (result.value.toBoolValue() == true) {
-          // Report error on else block: if(true) {} else {!}
-          CollectionElement elseElement = node.elseElement;
-          if (elseElement != null) {
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
-            node.thenElement?.accept(this);
-            return;
-          }
-        } else {
-          // Report error on if block: if (false) {!} else {}
-          _errorReporter.reportErrorForNode(
-              HintCode.DEAD_CODE, node.thenElement);
-          node.elseElement?.accept(this);
-          return;
-        }
-      }
-    }
-    super.visitCollectionIfElement(node);
-  }
-
-  @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     conditionExpression?.accept(this);
@@ -1615,6 +1587,34 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    Expression conditionExpression = node.condition;
+    conditionExpression?.accept(this);
+    if (!_isDebugConstant(conditionExpression)) {
+      EvaluationResultImpl result =
+          _getConstantBooleanValue(conditionExpression);
+      if (result != null) {
+        if (result.value.toBoolValue() == true) {
+          // Report error on else block: if(true) {} else {!}
+          CollectionElement elseElement = node.elseElement;
+          if (elseElement != null) {
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
+            node.thenElement?.accept(this);
+            return;
+          }
+        } else {
+          // Report error on if block: if (false) {!} else {}
+          _errorReporter.reportErrorForNode(
+              HintCode.DEAD_CODE, node.thenElement);
+          node.elseElement?.accept(this);
+          return;
+        }
+      }
+    }
+    super.visitIfElement(node);
   }
 
   @override
@@ -1670,34 +1670,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _popLabels();
     }
-  }
-
-  @override
-  void visitMapIfElement(MapIfElement node) {
-    Expression conditionExpression = node.condition;
-    conditionExpression?.accept(this);
-    if (!_isDebugConstant(conditionExpression)) {
-      EvaluationResultImpl result =
-          _getConstantBooleanValue(conditionExpression);
-      if (result != null) {
-        if (result.value.toBoolValue() == true) {
-          // Report error on else block: if(true) {} else {!}
-          MapElement elseElement = node.elseElement;
-          if (elseElement != null) {
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
-            node.thenElement?.accept(this);
-            return;
-          }
-        } else {
-          // Report error on if block: if (false) {!} else {}
-          _errorReporter.reportErrorForNode(
-              HintCode.DEAD_CODE, node.thenElement);
-          node.elseElement?.accept(this);
-          return;
-        }
-      }
-    }
-    super.visitMapIfElement(node);
   }
 
   @override
@@ -4111,84 +4083,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitCollectionForElement(CollectionForElement node) {
-    ForLoopParts forLoopParts = node.forLoopParts;
-    if (forLoopParts is ForParts) {
-      if (forLoopParts is ForPartsWithDeclarations) {
-        forLoopParts.variables?.accept(this);
-      } else if (forLoopParts is ForPartsWithExpression) {
-        forLoopParts.initialization?.accept(this);
-      }
-      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
-      forLoopParts.condition?.accept(this);
-      node.body?.accept(this);
-      forLoopParts.updaters.accept(this);
-    } else if (forLoopParts is ForEachParts) {
-      Expression iterable = forLoopParts.iterable;
-      DeclaredIdentifier loopVariable;
-      DartType valueType;
-      if (forLoopParts is ForEachPartsWithDeclaration) {
-        loopVariable = forLoopParts.loopVariable;
-        valueType = loopVariable?.type?.type ?? UnknownInferredType.instance;
-      } else if (forLoopParts is ForEachPartsWithIdentifier) {
-        SimpleIdentifier identifier = forLoopParts.identifier;
-        identifier?.accept(this);
-        Element element = identifier?.staticElement;
-        if (element is VariableElement) {
-          valueType = element.type;
-        } else if (element is PropertyAccessorElement) {
-          if (element.parameters.isNotEmpty) {
-            valueType = element.parameters[0].type;
-          }
-        }
-      }
-
-      if (valueType != null) {
-        InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
-      }
-      //
-      // We visit the iterator before the loop variable because the loop
-      // variable cannot be in scope while visiting the iterator.
-      //
-      iterable?.accept(this);
-      loopVariable?.accept(this);
-      node.body?.accept(this);
-
-      node.accept(elementResolver);
-      node.accept(typeAnalyzer);
-    }
-  }
-
-  @override
-  void visitCollectionIfElement(CollectionIfElement node) {
-    Expression condition = node.condition;
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition?.accept(this);
-    CollectionElement thenElement = node.thenElement;
-    if (thenElement != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenElement);
-        // Visit "then".
-        thenElement.accept(this);
-      } finally {
-        _promoteManager.exitScope();
-      }
-    }
-    node.elseElement?.accept(this);
-
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
-  }
-
-  @override
   void visitComment(Comment node) {
     AstNode parent = node.parent;
     if (parent is FunctionDeclaration ||
@@ -4448,6 +4342,58 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    ForLoopParts forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      if (forLoopParts is ForPartsWithDeclarations) {
+        forLoopParts.variables?.accept(this);
+      } else if (forLoopParts is ForPartsWithExpression) {
+        forLoopParts.initialization?.accept(this);
+      }
+      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
+      forLoopParts.condition?.accept(this);
+      node.body?.accept(this);
+      forLoopParts.updaters.accept(this);
+    } else if (forLoopParts is ForEachParts) {
+      Expression iterable = forLoopParts.iterable;
+      DeclaredIdentifier loopVariable;
+      DartType valueType;
+      if (forLoopParts is ForEachPartsWithDeclaration) {
+        loopVariable = forLoopParts.loopVariable;
+        valueType = loopVariable?.type?.type ?? UnknownInferredType.instance;
+      } else if (forLoopParts is ForEachPartsWithIdentifier) {
+        SimpleIdentifier identifier = forLoopParts.identifier;
+        identifier?.accept(this);
+        Element element = identifier?.staticElement;
+        if (element is VariableElement) {
+          valueType = element.type;
+        } else if (element is PropertyAccessorElement) {
+          if (element.parameters.isNotEmpty) {
+            valueType = element.parameters[0].type;
+          }
+        }
+      }
+
+      if (valueType != null) {
+        InterfaceType targetType = (node.awaitKeyword == null)
+            ? typeProvider.iterableType
+            : typeProvider.streamType;
+        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+      }
+      //
+      // We visit the iterator before the loop variable because the loop
+      // variable cannot be in scope while visiting the iterator.
+      //
+      iterable?.accept(this);
+      loopVariable?.accept(this);
+      node.body?.accept(this);
+
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    }
+  }
+
+  @override
   void visitForStatement2InScope(ForStatement2 node) {
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
@@ -4607,6 +4553,32 @@ class ResolverVisitor extends ScopedVisitor {
   void visitHideCombinator(HideCombinator node) {}
 
   @override
+  void visitIfElement(IfElement node) {
+    Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
+    condition?.accept(this);
+    CollectionElement thenElement = node.thenElement;
+    if (thenElement != null) {
+      _promoteManager.enterScope();
+      try {
+        // Type promotion.
+        _promoteTypes(condition);
+        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
+        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
+            thenElement);
+        // Visit "then".
+        thenElement.accept(this);
+      } finally {
+        _promoteManager.exitScope();
+      }
+    }
+    node.elseElement?.accept(this);
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
@@ -4710,90 +4682,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitMapForElement(MapForElement node) {
-    ForLoopParts forLoopParts = node.forLoopParts;
-    if (forLoopParts is ForParts) {
-      if (forLoopParts is ForPartsWithDeclarations) {
-        forLoopParts.variables?.accept(this);
-      } else if (forLoopParts is ForPartsWithExpression) {
-        forLoopParts.initialization?.accept(this);
-      }
-      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
-      forLoopParts.condition?.accept(this);
-      node.body?.accept(this);
-      forLoopParts.updaters.accept(this);
-    } else if (forLoopParts is ForEachParts) {
-      Expression iterable = forLoopParts.iterable;
-      DeclaredIdentifier loopVariable;
-      SimpleIdentifier identifier;
-      if (forLoopParts is ForEachPartsWithDeclaration) {
-        loopVariable = forLoopParts.loopVariable;
-      } else if (forLoopParts is ForEachPartsWithIdentifier) {
-        identifier = forLoopParts.identifier;
-        identifier?.accept(this);
-      }
-
-      DartType valueType;
-      if (loopVariable != null) {
-        TypeAnnotation typeAnnotation = loopVariable.type;
-        valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
-      }
-      if (identifier != null) {
-        Element element = identifier.staticElement;
-        if (element is VariableElement) {
-          valueType = element.type;
-        } else if (element is PropertyAccessorElement) {
-          if (element.parameters.isNotEmpty) {
-            valueType = element.parameters[0].type;
-          }
-        }
-      }
-      if (valueType != null) {
-        InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
-      }
-      //
-      // We visit the iterator before the loop variable because the loop variable
-      // cannot be in scope while visiting the iterator.
-      //
-      iterable?.accept(this);
-      loopVariable?.accept(this);
-      node.body?.accept(this);
-
-      node.accept(elementResolver);
-      node.accept(typeAnalyzer);
-    }
-  }
-
-  @override
-  void visitMapIfElement(MapIfElement node) {
-    Expression condition = node.condition;
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition?.accept(this);
-    MapElement thenElement = node.thenElement;
-    if (thenElement != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenElement);
-        // Visit "then".
-        thenElement.accept(this);
-      } finally {
-        _promoteManager.exitScope();
-      }
-    }
-    node.elseElement?.accept(this);
-
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
-  }
-
-  @override
   void visitMapLiteral(MapLiteral node) {
     InterfaceType mapT;
     if (node.typeArguments != null) {
@@ -4851,10 +4739,10 @@ class ResolverVisitor extends ScopedVisitor {
       DartType kType = mapT.typeArguments[0];
       DartType vType = mapT.typeArguments[1];
 
-      void pushTypesDown(MapElement element) {
-        if (element is MapForElement) {
+      void pushTypesDown(CollectionElement element) {
+        if (element is ForElement) {
           pushTypesDown(element.body);
-        } else if (element is MapIfElement) {
+        } else if (element is IfElement) {
           pushTypesDown(element.thenElement);
           pushTypesDown(element.elseElement);
         } else if (element is MapLiteralEntry) {
@@ -4865,7 +4753,7 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
 
-      for (MapElement element in node.entries) {
+      for (CollectionElement element in node.entries) {
         pushTypesDown(element);
       }
       InferenceContext.setType(node, mapT);
@@ -5475,9 +5363,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   void _pushCollectionTypesDown(
       CollectionElement element, ParameterizedType collectionType) {
-    if (element is CollectionForElement) {
+    if (element is ForElement) {
       _pushCollectionTypesDown(element.body, collectionType);
-    } else if (element is CollectionIfElement) {
+    } else if (element is IfElement) {
       _pushCollectionTypesDown(element.thenElement, collectionType);
       _pushCollectionTypesDown(element.elseElement, collectionType);
     } else if (element is Expression) {

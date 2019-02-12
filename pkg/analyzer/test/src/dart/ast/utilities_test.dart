@@ -225,45 +225,6 @@ class ResolutionCopierTest extends EngineTestCase {
     expect(toNode.staticType, same(staticType));
   }
 
-  void test_visitCollectionForElement() {
-    CollectionForElement createNode() => astFactory.collectionForElement(
-        forLoopParts: astFactory.forEachPartsWithIdentifier(
-            identifier: AstTestFactory.identifier3('a'),
-            iterable: AstTestFactory.identifier3('b')),
-        body: AstTestFactory.identifier3('c'));
-
-    DartType typeC = ElementFactory.classElement2("C").type;
-
-    CollectionForElement fromNode = createNode();
-    (fromNode.body as SimpleIdentifier).staticType = typeC;
-
-    CollectionForElement toNode = createNode();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect((toNode.body as SimpleIdentifier).staticType, same(typeC));
-  }
-
-  void test_visitCollectionIfElement() {
-    CollectionIfElement createNode() => astFactory.collectionIfElement(
-        condition: AstTestFactory.identifier3('a'),
-        thenElement: AstTestFactory.identifier3('b'),
-        elseElement: AstTestFactory.identifier3('c'));
-
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
-
-    CollectionIfElement fromNode = createNode();
-    (fromNode.condition as SimpleIdentifier).staticType = typeA;
-    (fromNode.thenElement as SimpleIdentifier).staticType = typeB;
-    (fromNode.elseElement as SimpleIdentifier).staticType = typeC;
-
-    CollectionIfElement toNode = createNode();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.condition.staticType, same(typeA));
-    expect((toNode.thenElement as SimpleIdentifier).staticType, same(typeB));
-    expect((toNode.elseElement as SimpleIdentifier).staticType, same(typeC));
-  }
-
   void test_visitCompilationUnit() {
     CompilationUnit fromNode = AstTestFactory.compilationUnit();
     CompilationUnitElement element = new CompilationUnitElementImpl();
@@ -371,6 +332,23 @@ class ResolutionCopierTest extends EngineTestCase {
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.identifier.staticType, same(typeA));
     expect((toNode.iterable as SimpleIdentifier).staticType, same(typeB));
+  }
+
+  void test_visitForElement() {
+    ForElement createNode() => astFactory.forElement(
+        forLoopParts: astFactory.forEachPartsWithIdentifier(
+            identifier: AstTestFactory.identifier3('a'),
+            iterable: AstTestFactory.identifier3('b')),
+        body: AstTestFactory.identifier3('c'));
+
+    DartType typeC = ElementFactory.classElement2("C").type;
+
+    ForElement fromNode = createNode();
+    (fromNode.body as SimpleIdentifier).staticType = typeC;
+
+    ForElement toNode = createNode();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect((toNode.body as SimpleIdentifier).staticType, same(typeC));
   }
 
   void test_visitForPartsWithDeclarations() {
@@ -485,6 +463,28 @@ class ResolutionCopierTest extends EngineTestCase {
     expect(toNode.staticElement, same(staticElement));
   }
 
+  void test_visitIfElement() {
+    IfElement createNode() => astFactory.ifElement(
+        condition: AstTestFactory.identifier3('a'),
+        thenElement: AstTestFactory.identifier3('b'),
+        elseElement: AstTestFactory.identifier3('c'));
+
+    DartType typeA = ElementFactory.classElement2("A").type;
+    DartType typeB = ElementFactory.classElement2("B").type;
+    DartType typeC = ElementFactory.classElement2("C").type;
+
+    IfElement fromNode = createNode();
+    (fromNode.condition as SimpleIdentifier).staticType = typeA;
+    (fromNode.thenElement as SimpleIdentifier).staticType = typeB;
+    (fromNode.elseElement as SimpleIdentifier).staticType = typeC;
+
+    IfElement toNode = createNode();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.condition.staticType, same(typeA));
+    expect((toNode.thenElement as SimpleIdentifier).staticType, same(typeB));
+    expect((toNode.elseElement as SimpleIdentifier).staticType, same(typeC));
+  }
+
   void test_visitImportDirective() {
     ImportDirective fromNode =
         AstTestFactory.importDirective3("dart:uri", null);
@@ -588,55 +588,6 @@ class ResolutionCopierTest extends EngineTestCase {
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
     expect((toNode.elements[0] as SimpleIdentifier).staticType, same(typeB));
-  }
-
-  void test_visitMapForElement() {
-    MapForElement createNode() => astFactory.mapForElement(
-        forLoopParts: astFactory.forEachPartsWithIdentifier(
-            identifier: AstTestFactory.identifier3('a'),
-            iterable: AstTestFactory.identifier3('b')),
-        body: AstTestFactory.mapLiteralEntry3('c', 'd'));
-
-    DartType typeC = ElementFactory.classElement2("C").type;
-
-    MapForElement fromNode = createNode();
-    (fromNode.body as MapLiteralEntry).key.staticType = typeC;
-
-    MapForElement toNode = createNode();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect((toNode.body as MapLiteralEntry).key.staticType, same(typeC));
-  }
-
-  void test_visitMapIfElement() {
-    MapIfElement createNode() => astFactory.mapIfElement(
-        condition: AstTestFactory.identifier3('a'),
-        thenElement: AstTestFactory.mapLiteralEntry3('b', 'c'),
-        elseElement: AstTestFactory.mapLiteralEntry3('d', 'e'));
-
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
-    DartType typeD = ElementFactory.classElement2("D").type;
-    DartType typeE = ElementFactory.classElement2("E").type;
-
-    MapIfElement fromNode = createNode();
-    MapLiteralEntry fromThen = fromNode.thenElement as MapLiteralEntry;
-    MapLiteralEntry fromElse = fromNode.elseElement as MapLiteralEntry;
-    (fromNode.condition as SimpleIdentifier).staticType = typeA;
-    (fromThen.key as SimpleStringLiteral).staticType = typeB;
-    (fromThen.value as SimpleStringLiteral).staticType = typeC;
-    (fromElse.key as SimpleStringLiteral).staticType = typeD;
-    (fromElse.value as SimpleStringLiteral).staticType = typeE;
-
-    MapIfElement toNode = createNode();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    MapLiteralEntry toThen = toNode.thenElement as MapLiteralEntry;
-    MapLiteralEntry toElse = toNode.elseElement as MapLiteralEntry;
-    expect(toNode.condition.staticType, same(typeA));
-    expect((toThen.key as SimpleStringLiteral).staticType, same(typeB));
-    expect((toThen.value as SimpleStringLiteral).staticType, same(typeC));
-    expect((toElse.key as SimpleStringLiteral).staticType, same(typeD));
-    expect((toElse.value as SimpleStringLiteral).staticType, same(typeE));
   }
 
   void test_visitMapLiteral() {
@@ -1414,33 +1365,6 @@ class ToSourceVisitor2Test extends EngineTestCase {
     _assertSource("@deprecated class C = S with M1;", declaration);
   }
 
-  void test_visitCollectionForElement() {
-    _assertSource(
-        'for (e in l) 0',
-        astFactory.collectionForElement(
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                iterable: AstTestFactory.identifier3('l')),
-            body: AstTestFactory.integer(0)));
-  }
-
-  void test_visitCollectionIfElement_else() {
-    _assertSource(
-        'if (b) 1 else 0',
-        astFactory.collectionIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.integer(1),
-            elseElement: AstTestFactory.integer(0)));
-  }
-
-  void test_visitCollectionIfElement_then() {
-    _assertSource(
-        'if (b) 1',
-        astFactory.collectionIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.integer(1)));
-  }
-
   void test_visitComment() {
     _assertSource(
         "",
@@ -1922,6 +1846,16 @@ class ToSourceVisitor2Test extends EngineTestCase {
             AstTestFactory.identifier3("b"),
             TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
             AstTestFactory.block()));
+  }
+
+  void test_visitForElement() {
+    _assertSource(
+        'for (e in l) 0',
+        astFactory.forElement(
+            forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3('e'),
+                iterable: AstTestFactory.identifier3('l')),
+            body: AstTestFactory.integer(0)));
   }
 
   void test_visitFormalParameterList_empty() {
@@ -2460,6 +2394,23 @@ class ToSourceVisitor2Test extends EngineTestCase {
                 ]))));
   }
 
+  void test_visitIfElement_else() {
+    _assertSource(
+        'if (b) 1 else 0',
+        astFactory.ifElement(
+            condition: AstTestFactory.identifier3('b'),
+            thenElement: AstTestFactory.integer(1),
+            elseElement: AstTestFactory.integer(0)));
+  }
+
+  void test_visitIfElement_then() {
+    _assertSource(
+        'if (b) 1',
+        astFactory.ifElement(
+            condition: AstTestFactory.identifier3('b'),
+            thenElement: AstTestFactory.integer(1)));
+  }
+
   void test_visitIfStatement_withElse() {
     _assertSource(
         "if (c) {} else {}",
@@ -2684,12 +2635,12 @@ class ToSourceVisitor2Test extends EngineTestCase {
                 [AstTestFactory.typeName4('int')]),
             elements: [
               AstTestFactory.integer(0),
-              astFactory.collectionForElement(
+              astFactory.forElement(
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('e'),
                       iterable: AstTestFactory.identifier3('l')),
                   body: AstTestFactory.integer(0)),
-              astFactory.collectionIfElement(
+              astFactory.ifElement(
                   condition: AstTestFactory.identifier3('b'),
                   thenElement: AstTestFactory.integer(1)),
               astFactory.spreadElement(
@@ -2750,33 +2701,6 @@ class ToSourceVisitor2Test extends EngineTestCase {
         ]));
   }
 
-  void test_visitMapForElement() {
-    _assertSource(
-        "for (e in l) 'a' : 'b'",
-        astFactory.mapForElement(
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                iterable: AstTestFactory.identifier3('l')),
-            body: AstTestFactory.mapLiteralEntry3('a', 'b')));
-  }
-
-  void test_visitMapIfElement_else() {
-    _assertSource(
-        "if (b) 'a' : 'b' else 'c' : 'd'",
-        astFactory.mapIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.mapLiteralEntry3('a', 'b'),
-            elseElement: AstTestFactory.mapLiteralEntry3('c', 'd')));
-  }
-
-  void test_visitMapIfElement_then() {
-    _assertSource(
-        "if (b) 'a' : 'b'",
-        astFactory.mapIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.mapLiteralEntry3('a', 'b')));
-  }
-
   void test_visitMapLiteral2_complex() {
     _assertSource(
         "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
@@ -2787,12 +2711,12 @@ class ToSourceVisitor2Test extends EngineTestCase {
             ]),
             entries: [
               AstTestFactory.mapLiteralEntry3('a', 'b'),
-              astFactory.mapForElement(
+              astFactory.forElement(
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('c'),
                       iterable: AstTestFactory.identifier3('d')),
                   body: AstTestFactory.mapLiteralEntry3('e', 'f')),
-              astFactory.mapIfElement(
+              astFactory.ifElement(
                   condition: AstTestFactory.identifier3('g'),
                   thenElement: AstTestFactory.mapLiteralEntry3('h', 'i')),
               astFactory.spreadElement(
@@ -3227,12 +3151,12 @@ class ToSourceVisitor2Test extends EngineTestCase {
                 [AstTestFactory.typeName4('int')]),
             elements: [
               AstTestFactory.integer(0),
-              astFactory.collectionForElement(
+              astFactory.forElement(
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('e'),
                       iterable: AstTestFactory.identifier3('l')),
                   body: AstTestFactory.integer(0)),
-              astFactory.collectionIfElement(
+              astFactory.ifElement(
                   condition: AstTestFactory.identifier3('b'),
                   thenElement: AstTestFactory.integer(1)),
               astFactory.spreadElement(
@@ -4121,33 +4045,6 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("@deprecated class C = S with M1;", declaration);
   }
 
-  void test_visitCollectionForElement() {
-    _assertSource(
-        'for (e in l) 0',
-        astFactory.collectionForElement(
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                iterable: AstTestFactory.identifier3('l')),
-            body: AstTestFactory.integer(0)));
-  }
-
-  void test_visitCollectionIfElement_else() {
-    _assertSource(
-        'if (b) 1 else 0',
-        astFactory.collectionIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.integer(1),
-            elseElement: AstTestFactory.integer(0)));
-  }
-
-  void test_visitCollectionIfElement_then() {
-    _assertSource(
-        'if (b) 1',
-        astFactory.collectionIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.integer(1)));
-  }
-
   void test_visitComment() {
     _assertSource(
         "",
@@ -4629,6 +4526,16 @@ class ToSourceVisitorTest extends EngineTestCase {
             AstTestFactory.identifier3("b"),
             TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
             AstTestFactory.block()));
+  }
+
+  void test_visitForElement() {
+    _assertSource(
+        'for (e in l) 0',
+        astFactory.forElement(
+            forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3('e'),
+                iterable: AstTestFactory.identifier3('l')),
+            body: AstTestFactory.integer(0)));
   }
 
   void test_visitFormalParameterList_empty() {
@@ -5167,6 +5074,23 @@ class ToSourceVisitorTest extends EngineTestCase {
                 ]))));
   }
 
+  void test_visitIfElement_else() {
+    _assertSource(
+        'if (b) 1 else 0',
+        astFactory.ifElement(
+            condition: AstTestFactory.identifier3('b'),
+            thenElement: AstTestFactory.integer(1),
+            elseElement: AstTestFactory.integer(0)));
+  }
+
+  void test_visitIfElement_then() {
+    _assertSource(
+        'if (b) 1',
+        astFactory.ifElement(
+            condition: AstTestFactory.identifier3('b'),
+            thenElement: AstTestFactory.integer(1)));
+  }
+
   void test_visitIfStatement_withElse() {
     _assertSource(
         "if (c) {} else {}",
@@ -5391,12 +5315,12 @@ class ToSourceVisitorTest extends EngineTestCase {
                 [AstTestFactory.typeName4('int')]),
             elements: [
               AstTestFactory.integer(0),
-              astFactory.collectionForElement(
+              astFactory.forElement(
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('e'),
                       iterable: AstTestFactory.identifier3('l')),
                   body: AstTestFactory.integer(0)),
-              astFactory.collectionIfElement(
+              astFactory.ifElement(
                   condition: AstTestFactory.identifier3('b'),
                   thenElement: AstTestFactory.integer(1)),
               astFactory.spreadElement(
@@ -5457,33 +5381,6 @@ class ToSourceVisitorTest extends EngineTestCase {
         ]));
   }
 
-  void test_visitMapForElement() {
-    _assertSource(
-        "for (e in l) 'a' : 'b'",
-        astFactory.mapForElement(
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                iterable: AstTestFactory.identifier3('l')),
-            body: AstTestFactory.mapLiteralEntry3('a', 'b')));
-  }
-
-  void test_visitMapIfElement_else() {
-    _assertSource(
-        "if (b) 'a' : 'b' else 'c' : 'd'",
-        astFactory.mapIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.mapLiteralEntry3('a', 'b'),
-            elseElement: AstTestFactory.mapLiteralEntry3('c', 'd')));
-  }
-
-  void test_visitMapIfElement_then() {
-    _assertSource(
-        "if (b) 'a' : 'b'",
-        astFactory.mapIfElement(
-            condition: AstTestFactory.identifier3('b'),
-            thenElement: AstTestFactory.mapLiteralEntry3('a', 'b')));
-  }
-
   void test_visitMapLiteral2_complex() {
     _assertSource(
         "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
@@ -5494,12 +5391,12 @@ class ToSourceVisitorTest extends EngineTestCase {
             ]),
             entries: [
               AstTestFactory.mapLiteralEntry3('a', 'b'),
-              astFactory.mapForElement(
+              astFactory.forElement(
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('c'),
                       iterable: AstTestFactory.identifier3('d')),
                   body: AstTestFactory.mapLiteralEntry3('e', 'f')),
-              astFactory.mapIfElement(
+              astFactory.ifElement(
                   condition: AstTestFactory.identifier3('g'),
                   thenElement: AstTestFactory.mapLiteralEntry3('h', 'i')),
               astFactory.spreadElement(
@@ -5925,12 +5822,12 @@ class ToSourceVisitorTest extends EngineTestCase {
                 [AstTestFactory.typeName4('int')]),
             elements: [
               AstTestFactory.integer(0),
-              astFactory.collectionForElement(
+              astFactory.forElement(
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('e'),
                       iterable: AstTestFactory.identifier3('l')),
                   body: AstTestFactory.integer(0)),
-              astFactory.collectionIfElement(
+              astFactory.ifElement(
                   condition: AstTestFactory.identifier3('b'),
                   thenElement: AstTestFactory.integer(1)),
               astFactory.spreadElement(

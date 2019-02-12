@@ -249,26 +249,6 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  CollectionForElement visitCollectionForElement(CollectionForElement node) =>
-      astFactory.collectionForElement(
-          forKeyword: cloneToken(node.forKeyword),
-          leftParenthesis: cloneToken(node.leftParenthesis),
-          forLoopParts: cloneNode(node.forLoopParts),
-          rightParenthesis: cloneToken(node.rightParenthesis),
-          body: cloneNode(node.body));
-
-  @override
-  CollectionIfElement visitCollectionIfElement(CollectionIfElement node) =>
-      astFactory.collectionIfElement(
-          ifKeyword: cloneToken(node.ifKeyword),
-          leftParenthesis: cloneToken(node.leftParenthesis),
-          condition: cloneNode(node.condition),
-          rightParenthesis: cloneToken(node.rightParenthesis),
-          thenElement: cloneNode(node.thenElement),
-          elseKeyword: cloneToken(node.elseKeyword),
-          elseElement: cloneNode(node.elseElement));
-
-  @override
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
       return astFactory.documentationComment(
@@ -532,6 +512,14 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  ForElement visitForElement(ForElement node) => astFactory.forElement(
+      forKeyword: cloneToken(node.forKeyword),
+      leftParenthesis: cloneToken(node.leftParenthesis),
+      forLoopParts: cloneNode(node.forLoopParts),
+      rightParenthesis: cloneToken(node.rightParenthesis),
+      body: cloneNode(node.body));
+
+  @override
   FormalParameterList visitFormalParameterList(FormalParameterList node) =>
       astFactory.formalParameterList(
           cloneToken(node.leftParenthesis),
@@ -661,6 +649,16 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneToken(node.keyword), cloneNodeList(node.hiddenNames));
 
   @override
+  IfElement visitIfElement(IfElement node) => astFactory.ifElement(
+      ifKeyword: cloneToken(node.ifKeyword),
+      leftParenthesis: cloneToken(node.leftParenthesis),
+      condition: cloneNode(node.condition),
+      rightParenthesis: cloneToken(node.rightParenthesis),
+      thenElement: cloneNode(node.thenElement),
+      elseKeyword: cloneToken(node.elseKeyword),
+      elseElement: cloneNode(node.elseElement));
+
+  @override
   IfStatement visitIfStatement(IfStatement node) => astFactory.ifStatement(
       cloneToken(node.ifKeyword),
       cloneToken(node.leftParenthesis),
@@ -776,25 +774,6 @@ class AstCloner implements AstVisitor<AstNode> {
       leftBracket: cloneToken(node.leftBracket),
       elements: cloneNodeList(node.elements),
       rightBracket: cloneToken(node.rightBracket));
-
-  @override
-  MapForElement visitMapForElement(MapForElement node) =>
-      astFactory.mapForElement(
-          forKeyword: cloneToken(node.forKeyword),
-          leftParenthesis: cloneToken(node.leftParenthesis),
-          forLoopParts: cloneNode(node.forLoopParts),
-          rightParenthesis: cloneToken(node.rightParenthesis),
-          body: cloneNode(node.body));
-
-  @override
-  MapIfElement visitMapIfElement(MapIfElement node) => astFactory.mapIfElement(
-      ifKeyword: cloneToken(node.ifKeyword),
-      leftParenthesis: cloneToken(node.leftParenthesis),
-      condition: cloneNode(node.condition),
-      rightParenthesis: cloneToken(node.rightParenthesis),
-      thenElement: cloneNode(node.thenElement),
-      elseKeyword: cloneToken(node.elseKeyword),
-      elseElement: cloneNode(node.elseElement));
 
   @override
   MapLiteral visitMapLiteral(MapLiteral node) => astFactory.mapLiteral(
@@ -1450,28 +1429,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitCollectionForElement(CollectionForElement node) {
-    CollectionForElement other = _other as CollectionForElement;
-    return isEqualTokens(node.forKeyword, other.forKeyword) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.forLoopParts, other.forLoopParts) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.body, other.body);
-  }
-
-  @override
-  bool visitCollectionIfElement(CollectionIfElement node) {
-    CollectionIfElement other = _other as CollectionIfElement;
-    return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.condition, other.condition) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.thenElement, other.thenElement) &&
-        isEqualTokens(node.elseKeyword, other.elseKeyword) &&
-        isEqualNodes(node.elseElement, other.elseElement);
-  }
-
-  @override
   bool visitComment(Comment node) {
     Comment other = _other as Comment;
     return _isEqualNodeLists(node.references, other.references);
@@ -1728,6 +1685,16 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForElement(ForElement node) {
+    ForElement other = _other as ForElement;
+    return isEqualTokens(node.forKeyword, other.forKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.forLoopParts, other.forLoopParts) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.body, other.body);
+  }
+
+  @override
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList other = _other as FormalParameterList;
     return isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
@@ -1871,6 +1838,18 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitIfElement(IfElement node) {
+    IfElement other = _other as IfElement;
+    return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.thenElement, other.thenElement) &&
+        isEqualTokens(node.elseKeyword, other.elseKeyword) &&
+        isEqualNodes(node.elseElement, other.elseElement);
+  }
+
+  @override
   bool visitIfStatement(IfStatement node) {
     IfStatement other = _other as IfStatement;
     return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
@@ -2002,28 +1981,6 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.elements, other.elements) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
-  }
-
-  @override
-  bool visitMapForElement(MapForElement node) {
-    MapForElement other = _other as MapForElement;
-    return isEqualTokens(node.forKeyword, other.forKeyword) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.forLoopParts, other.forLoopParts) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.body, other.body);
-  }
-
-  @override
-  bool visitMapIfElement(MapIfElement node) {
-    MapIfElement other = _other as MapIfElement;
-    return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.condition, other.condition) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.thenElement, other.thenElement) &&
-        isEqualTokens(node.elseKeyword, other.elseKeyword) &&
-        isEqualNodes(node.elseElement, other.elseElement);
   }
 
   @override
@@ -2788,26 +2745,6 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _mapToken(node.semicolon));
 
   @override
-  CollectionForElement visitCollectionForElement(CollectionForElement node) =>
-      astFactory.collectionForElement(
-          forKeyword: _mapToken(node.forKeyword),
-          leftParenthesis: _mapToken(node.leftParenthesis),
-          forLoopParts: _cloneNode(node.forLoopParts),
-          rightParenthesis: _mapToken(node.rightParenthesis),
-          body: _cloneNode(node.body));
-
-  @override
-  CollectionIfElement visitCollectionIfElement(CollectionIfElement node) =>
-      astFactory.collectionIfElement(
-          ifKeyword: _mapToken(node.ifKeyword),
-          leftParenthesis: _mapToken(node.leftParenthesis),
-          condition: _cloneNode(node.condition),
-          rightParenthesis: _mapToken(node.rightParenthesis),
-          thenElement: _cloneNode(node.thenElement),
-          elseKeyword: _mapToken(node.elseKeyword),
-          elseElement: _cloneNode(node.elseElement));
-
-  @override
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
       return astFactory.documentationComment(
@@ -3063,6 +3000,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  ForElement visitForElement(ForElement node) => astFactory.forElement(
+      forKeyword: _mapToken(node.forKeyword),
+      leftParenthesis: _mapToken(node.leftParenthesis),
+      forLoopParts: _cloneNode(node.forLoopParts),
+      rightParenthesis: _mapToken(node.rightParenthesis),
+      body: _cloneNode(node.body));
+
+  @override
   FormalParameterList visitFormalParameterList(FormalParameterList node) =>
       astFactory.formalParameterList(
           _mapToken(node.leftParenthesis),
@@ -3202,6 +3147,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   HideCombinator visitHideCombinator(HideCombinator node) =>
       astFactory.hideCombinator(
           _mapToken(node.keyword), _cloneNodeList(node.hiddenNames));
+
+  @override
+  IfElement visitIfElement(IfElement node) => astFactory.ifElement(
+      ifKeyword: _mapToken(node.ifKeyword),
+      leftParenthesis: _mapToken(node.leftParenthesis),
+      condition: _cloneNode(node.condition),
+      rightParenthesis: _mapToken(node.rightParenthesis),
+      thenElement: _cloneNode(node.thenElement),
+      elseKeyword: _mapToken(node.elseKeyword),
+      elseElement: _cloneNode(node.elseElement));
 
   @override
   IfStatement visitIfStatement(IfStatement node) => astFactory.ifStatement(
@@ -3347,25 +3302,6 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       leftBracket: _mapToken(node.leftBracket),
       elements: _cloneNodeList(node.elements),
       rightBracket: _mapToken(node.rightBracket));
-
-  @override
-  MapForElement visitMapForElement(MapForElement node) =>
-      astFactory.mapForElement(
-          forKeyword: _mapToken(node.forKeyword),
-          leftParenthesis: _mapToken(node.leftParenthesis),
-          forLoopParts: _cloneNode(node.forLoopParts),
-          rightParenthesis: _mapToken(node.rightParenthesis),
-          body: _cloneNode(node.body));
-
-  @override
-  MapIfElement visitMapIfElement(MapIfElement node) => astFactory.mapIfElement(
-      ifKeyword: _mapToken(node.ifKeyword),
-      leftParenthesis: _mapToken(node.leftParenthesis),
-      condition: _cloneNode(node.condition),
-      rightParenthesis: _mapToken(node.rightParenthesis),
-      thenElement: _cloneNode(node.thenElement),
-      elseKeyword: _mapToken(node.elseKeyword),
-      elseElement: _cloneNode(node.elseElement));
 
   @override
   MapLiteral visitMapLiteral(MapLiteral node) {
@@ -4266,36 +4202,6 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool visitCollectionForElement(CollectionForElement node) {
-    if (identical(node.forLoopParts, _oldNode)) {
-      (node as CollectionForElementImpl).forLoopParts =
-          _newNode as ForLoopParts;
-      return true;
-    } else if (identical(node.body, _oldNode)) {
-      (node as CollectionForElementImpl).body = _newNode as CollectionElement;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitCollectionIfElement(CollectionIfElement node) {
-    if (identical(node.condition, _oldNode)) {
-      (node as CollectionIfElementImpl).condition = _newNode as Expression;
-      return true;
-    } else if (identical(node.thenElement, _oldNode)) {
-      (node as CollectionIfElementImpl).thenElement =
-          _newNode as CollectionElement;
-      return true;
-    } else if (identical(node.elseElement, _oldNode)) {
-      (node as CollectionIfElementImpl).elseElement =
-          _newNode as CollectionElement;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitComment(Comment node) {
     if (_replaceInList(node.references)) {
       return true;
@@ -4583,6 +4489,18 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForElement(ForElement node) {
+    if (identical(node.forLoopParts, _oldNode)) {
+      (node as ForElementImpl).forLoopParts = _newNode as ForLoopParts;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      (node as ForElementImpl).body = _newNode as CollectionElement;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitFormalParameterList(FormalParameterList node) {
     if (_replaceInList(node.parameters)) {
       return true;
@@ -4771,6 +4689,21 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitIfElement(IfElement node) {
+    if (identical(node.condition, _oldNode)) {
+      (node as IfElementImpl).condition = _newNode as Expression;
+      return true;
+    } else if (identical(node.thenElement, _oldNode)) {
+      (node as IfElementImpl).thenElement = _newNode as CollectionElement;
+      return true;
+    } else if (identical(node.elseElement, _oldNode)) {
+      (node as IfElementImpl).elseElement = _newNode as CollectionElement;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitIfStatement(IfStatement node) {
     if (identical(node.condition, _oldNode)) {
       node.condition = _newNode as Expression;
@@ -4904,33 +4837,6 @@ class NodeReplacer implements AstVisitor<bool> {
       (node as ListLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
       return true;
     } else if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitMapForElement(MapForElement node) {
-    if (identical(node.forLoopParts, _oldNode)) {
-      (node as MapForElementImpl).forLoopParts = _newNode as ForLoopParts;
-      return true;
-    } else if (identical(node.body, _oldNode)) {
-      (node as MapForElementImpl).body = _newNode as MapElement;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitMapIfElement(MapIfElement node) {
-    if (identical(node.condition, _oldNode)) {
-      (node as MapIfElementImpl).condition = _newNode as Expression;
-      return true;
-    } else if (identical(node.thenElement, _oldNode)) {
-      (node as MapIfElementImpl).thenElement = _newNode as MapElement;
-      return true;
-    } else if (identical(node.elseElement, _oldNode)) {
-      (node as MapIfElementImpl).elseElement = _newNode as MapElement;
       return true;
     }
     return visitNode(node);
@@ -5702,30 +5608,6 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
-  bool visitCollectionForElement(CollectionForElement node) {
-    CollectionForElement toNode = this._toNode as CollectionForElement;
-    return _and(
-        _isEqualTokens(node.forKeyword, toNode.forKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitCollectionIfElement(CollectionIfElement node) {
-    CollectionIfElement toNode = this._toNode as CollectionIfElement;
-    return _and(
-        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.thenElement, toNode.thenElement),
-        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
-        _isEqualNodes(node.elseElement, toNode.elseElement));
-  }
-
-  @override
   bool visitComment(Comment node) {
     Comment toNode = this._toNode as Comment;
     return _isEqualNodeLists(node.references, toNode.references);
@@ -6029,6 +5911,17 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForElement(ForElement node) {
+    ForElement toNode = this._toNode as ForElement;
+    return _and(
+        _isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList toNode = this._toNode as FormalParameterList;
     return _and(
@@ -6199,6 +6092,19 @@ class ResolutionCopier implements AstVisitor<bool> {
     HideCombinator toNode = this._toNode as HideCombinator;
     return _and(_isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
+  }
+
+  @override
+  bool visitIfElement(IfElement node) {
+    IfElement toNode = this._toNode as IfElement;
+    return _and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.thenElement, toNode.thenElement),
+        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
+        _isEqualNodes(node.elseElement, toNode.elseElement));
   }
 
   @override
@@ -6379,30 +6285,6 @@ class ResolutionCopier implements AstVisitor<bool> {
       return true;
     }
     return false;
-  }
-
-  @override
-  bool visitMapForElement(MapForElement node) {
-    MapForElement toNode = this._toNode as MapForElement;
-    return _and(
-        _isEqualTokens(node.forKeyword, toNode.forKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitMapIfElement(MapIfElement node) {
-    MapIfElement toNode = this._toNode as MapIfElement;
-    return _and(
-        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.thenElement, toNode.thenElement),
-        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
-        _isEqualNodes(node.elseElement, toNode.elseElement));
   }
 
   @override
@@ -7471,23 +7353,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitCollectionForElement(CollectionForElement node) {
-    _writer.print('for (');
-    _visitNode(node.forLoopParts);
-    _writer.print(') ');
-    _visitNode(node.body);
-  }
-
-  @override
-  void visitCollectionIfElement(CollectionIfElement node) {
-    _writer.print('if (');
-    _visitNode(node.condition);
-    _writer.print(') ');
-    _visitNode(node.thenElement);
-    _visitNodeWithPrefix(' else ', node.elseElement);
-  }
-
-  @override
   void visitComment(Comment node) {}
 
   @override
@@ -7710,6 +7575,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    _writer.print('for (');
+    _visitNode(node.forLoopParts);
+    _writer.print(') ');
+    _visitNode(node.body);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
@@ -7861,6 +7734,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitIfElement(IfElement node) {
+    _writer.print('if (');
+    _visitNode(node.condition);
+    _writer.print(') ');
+    _visitNode(node.thenElement);
+    _visitNodeWithPrefix(' else ', node.elseElement);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     _writer.print("if (");
     _visitNode(node.condition);
@@ -7984,23 +7866,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     _writer.print('[');
     _visitNodeListWithSeparator(node.elements, ', ');
     _writer.print(']');
-  }
-
-  @override
-  void visitMapForElement(MapForElement node) {
-    _writer.print('for (');
-    _visitNode(node.forLoopParts);
-    _writer.print(') ');
-    _visitNode(node.body);
-  }
-
-  @override
-  void visitMapIfElement(MapIfElement node) {
-    _writer.print('if (');
-    _visitNode(node.condition);
-    _writer.print(') ');
-    _visitNode(node.thenElement);
-    _visitNodeWithPrefix(' else ', node.elseElement);
   }
 
   @override
@@ -8815,23 +8680,6 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
-  void visitCollectionForElement(CollectionForElement node) {
-    sink.write('for (');
-    safelyVisitNode(node.forLoopParts);
-    sink.write(') ');
-    safelyVisitNode(node.body);
-  }
-
-  @override
-  void visitCollectionIfElement(CollectionIfElement node) {
-    sink.write('if (');
-    safelyVisitNode(node.condition);
-    sink.write(') ');
-    safelyVisitNode(node.thenElement);
-    safelyVisitNodeWithPrefix(' else ', node.elseElement);
-  }
-
-  @override
   void visitComment(Comment node) {}
 
   @override
@@ -9054,6 +8902,14 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    sink.write('for (');
+    safelyVisitNode(node.forLoopParts);
+    sink.write(') ');
+    safelyVisitNode(node.body);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     sink.write('(');
@@ -9205,6 +9061,15 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
+  void visitIfElement(IfElement node) {
+    sink.write('if (');
+    safelyVisitNode(node.condition);
+    sink.write(') ');
+    safelyVisitNode(node.thenElement);
+    safelyVisitNodeWithPrefix(' else ', node.elseElement);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     sink.write("if (");
     safelyVisitNode(node.condition);
@@ -9325,23 +9190,6 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     sink.write('[');
     safelyVisitNodeListWithSeparator(node.elements, ', ');
     sink.write(']');
-  }
-
-  @override
-  void visitMapForElement(MapForElement node) {
-    sink.write('for (');
-    safelyVisitNode(node.forLoopParts);
-    sink.write(') ');
-    safelyVisitNode(node.body);
-  }
-
-  @override
-  void visitMapIfElement(MapIfElement node) {
-    sink.write('if (');
-    safelyVisitNode(node.condition);
-    sink.write(') ');
-    safelyVisitNode(node.thenElement);
-    safelyVisitNodeWithPrefix(' else ', node.elseElement);
   }
 
   @override

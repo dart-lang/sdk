@@ -173,29 +173,6 @@ class AstFactoryImpl extends AstFactory {
           semicolon);
 
   @override
-  CollectionForElement collectionForElement(
-          {Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          ForLoopParts forLoopParts,
-          Token rightParenthesis,
-          CollectionElement body}) =>
-      new CollectionForElementImpl(awaitKeyword, forKeyword, leftParenthesis,
-          forLoopParts, rightParenthesis, body);
-
-  @override
-  CollectionIfElement collectionIfElement(
-          {Token ifKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token rightParenthesis,
-          CollectionElement thenElement,
-          Token elseKeyword,
-          CollectionElement elseElement}) =>
-      new CollectionIfElementImpl(ifKeyword, leftParenthesis, condition,
-          rightParenthesis, thenElement, elseKeyword, elseElement);
-
-  @override
   CommentReference commentReference(Token newKeyword, Identifier identifier) =>
       new CommentReferenceImpl(newKeyword, identifier);
 
@@ -482,6 +459,17 @@ class AstFactoryImpl extends AstFactory {
           body);
 
   @override
+  ForElement forElement(
+          {Token awaitKeyword,
+          Token forKeyword,
+          Token leftParenthesis,
+          ForLoopParts forLoopParts,
+          Token rightParenthesis,
+          CollectionElement body}) =>
+      new ForElementImpl(awaitKeyword, forKeyword, leftParenthesis,
+          forLoopParts, rightParenthesis, body);
+
+  @override
   FormalParameterList formalParameterList(
           Token leftParenthesis,
           List<FormalParameter> parameters,
@@ -640,6 +628,18 @@ class AstFactoryImpl extends AstFactory {
       new HideCombinatorImpl(keyword, hiddenNames);
 
   @override
+  IfElement ifElement(
+          {Token ifKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token rightParenthesis,
+          CollectionElement thenElement,
+          Token elseKeyword,
+          CollectionElement elseElement}) =>
+      new IfElementImpl(ifKeyword, leftParenthesis, condition, rightParenthesis,
+          thenElement, elseKeyword, elseElement);
+
+  @override
   IfStatement ifStatement(
           Token ifKeyword,
           Token leftParenthesis,
@@ -752,29 +752,6 @@ class AstFactoryImpl extends AstFactory {
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
-  MapForElement mapForElement(
-          {Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          ForLoopParts forLoopParts,
-          Token rightParenthesis,
-          MapElement body}) =>
-      new MapForElementImpl(awaitKeyword, forKeyword, leftParenthesis,
-          forLoopParts, rightParenthesis, body);
-
-  @override
-  MapIfElement mapIfElement(
-          {Token ifKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token rightParenthesis,
-          MapElement thenElement,
-          Token elseKeyword,
-          MapElement elseElement}) =>
-      new MapIfElementImpl(ifKeyword, leftParenthesis, condition,
-          rightParenthesis, thenElement, elseKeyword, elseElement);
-
-  @override
   MapLiteral mapLiteral(
           Token constKeyword,
           TypeArgumentList typeArguments,
@@ -789,7 +766,7 @@ class AstFactoryImpl extends AstFactory {
           {Token constKeyword,
           TypeArgumentList typeArguments,
           Token leftBracket,
-          List<MapElement> entries,
+          List<CollectionElement> entries,
           Token rightBracket}) =>
       new MapLiteral2Impl(
           constKeyword, typeArguments, leftBracket, entries, rightBracket);

@@ -3889,9 +3889,9 @@ class AssistProcessor {
   /// Return `true` if the [element] is sufficient to lexically make the
   /// enclosing literal a set literal rather than a map.
   bool _isUnambiguousElement(CollectionElement element) {
-    if (element is CollectionForElement) {
+    if (element is ForElement) {
       return _isUnambiguousElement(element.body);
-    } else if (element is CollectionIfElement) {
+    } else if (element is IfElement) {
       return _isUnambiguousElement(element.thenElement) ||
           _isUnambiguousElement(element.elseElement);
     } else if (element is Expression) {

@@ -1079,7 +1079,7 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralMap");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<MapElement> entries = popMapElements(count);
+      List<CollectionElement> entries = popMapElements(count);
       TypeArgumentList typeArguments = pop();
       push(ast.mapLiteral2(
         constKeyword: constKeyword,
@@ -3153,12 +3153,13 @@ class AstBuilder extends StackListener {
     return stack.popList(n, list, null);
   }
 
-  List<MapElement> popMapElements(int count) {
-    final entries = new List<MapElement>()..length = count;
+  List<CollectionElement> popMapElements(int count) {
+    final entries = new List<CollectionElement>()..length = count;
     for (int index = count - 1; index >= 0; --index) {
       var entry = pop();
-      entries[index] =
-          entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement;
+      entries[index] = entry is _EntryInfo
+          ? entry.asMapElement(ast)
+          : entry as CollectionElement;
     }
     return entries;
   }
@@ -3278,7 +3279,7 @@ class _ConstructorNameWithInvalidTypeArgs {
 
 abstract class _EntryInfo {
   CollectionElement asCollectionElement(AstFactory ast);
-  MapElement asMapElement(AstFactory ast);
+  CollectionElement asMapElement(AstFactory ast);
 }
 
 class _ForControlFlowInfo implements _EntryInfo {
@@ -3293,8 +3294,7 @@ class _ForControlFlowInfo implements _EntryInfo {
       this.forLoopParts, this.rightParenthesis, this.entry);
 
   @override
-  CollectionElement asCollectionElement(AstFactory ast) =>
-      ast.collectionForElement(
+  CollectionElement asCollectionElement(AstFactory ast) => ast.forElement(
         awaitKeyword: awaitToken,
         forKeyword: forKeyword,
         leftParenthesis: leftParenthesis,
@@ -3306,14 +3306,15 @@ class _ForControlFlowInfo implements _EntryInfo {
       );
 
   @override
-  MapElement asMapElement(AstFactory ast) => ast.mapForElement(
+  CollectionElement asMapElement(AstFactory ast) => ast.forElement(
         awaitKeyword: awaitToken,
         forKeyword: forKeyword,
         leftParenthesis: leftParenthesis,
         forLoopParts: forLoopParts,
         rightParenthesis: rightParenthesis,
-        body:
-            entry is _EntryInfo ? entry.asMapElement(ast) : entry as MapElement,
+        body: entry is _EntryInfo
+            ? entry.asMapElement(ast)
+            : entry as CollectionElement,
       );
 }
 
@@ -3336,8 +3337,7 @@ class _IfControlFlowInfo implements _EntryInfo {
       this.elseElement);
 
   @override
-  CollectionElement asCollectionElement(AstFactory ast) =>
-      ast.collectionIfElement(
+  CollectionElement asCollectionElement(AstFactory ast) => ast.ifElement(
         ifKeyword: ifToken,
         leftParenthesis: leftParenthesis,
         condition: conditionExpression,
@@ -3352,17 +3352,17 @@ class _IfControlFlowInfo implements _EntryInfo {
       );
 
   @override
-  MapElement asMapElement(AstFactory ast) => ast.mapIfElement(
+  CollectionElement asMapElement(AstFactory ast) => ast.ifElement(
         ifKeyword: ifToken,
         leftParenthesis: leftParenthesis,
         condition: conditionExpression,
         rightParenthesis: rightParenthesis,
         thenElement: thenElement is _EntryInfo
             ? thenElement.asMapElement(ast)
-            : thenElement as MapElement,
+            : thenElement as CollectionElement,
         elseKeyword: elseToken,
         elseElement: elseElement is _EntryInfo
             ? elseElement.asMapElement(ast)
-            : elseElement as MapElement,
+            : elseElement as CollectionElement,
       );
 }

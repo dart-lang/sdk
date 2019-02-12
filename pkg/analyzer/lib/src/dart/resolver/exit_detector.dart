@@ -115,83 +115,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.target) || _visitExpressions(node.cascadeSections);
 
   @override
-  bool visitCollectionForElement(CollectionForElement node) {
-    bool outerBreakValue = _enclosingBlockContainsBreak;
-    _enclosingBlockContainsBreak = false;
-    try {
-      ForLoopParts forLoopParts = node.forLoopParts;
-      if (forLoopParts is ForParts) {
-        if (forLoopParts is ForPartsWithDeclarations) {
-          if (forLoopParts.variables != null &&
-              _visitVariableDeclarations(forLoopParts.variables.variables)) {
-            return true;
-          }
-        } else if (forLoopParts is ForPartsWithExpression) {
-          if (forLoopParts.initialization != null &&
-              _nodeExits(forLoopParts.initialization)) {
-            return true;
-          }
-        }
-        Expression conditionExpression = forLoopParts.condition;
-        if (conditionExpression != null && _nodeExits(conditionExpression)) {
-          return true;
-        }
-        if (_visitExpressions(forLoopParts.updaters)) {
-          return true;
-        }
-        bool blockReturns = _nodeExits(node.body);
-        // TODO(jwren) Do we want to take all constant expressions into account?
-        // If for(; true; ) (or for(;;)), and the body doesn't return or the body
-        // doesn't have a break, then return true.
-        bool implicitOrExplictTrue = conditionExpression == null ||
-            (conditionExpression is BooleanLiteral &&
-                conditionExpression.value);
-        if (implicitOrExplictTrue) {
-          if (blockReturns || !_enclosingBlockContainsBreak) {
-            return true;
-          }
-        }
-        return false;
-      } else if (forLoopParts is ForEachParts) {
-        bool iterableExits = _nodeExits(forLoopParts.iterable);
-        // Discard whether the for-each body exits; since the for-each iterable
-        // may be empty, execution may never enter the body, so it doesn't matter
-        // if it exits or not.  We still must visit the body, to accurately
-        // manage `_enclosingBlockBreaksLabel`.
-        _nodeExits(node.body);
-        return iterableExits;
-      }
-    } finally {
-      _enclosingBlockContainsBreak = outerBreakValue;
-    }
-    return false;
-  }
-
-  @override
-  bool visitCollectionIfElement(CollectionIfElement node) {
-    Expression conditionExpression = node.condition;
-    CollectionElement thenElement = node.thenElement;
-    CollectionElement elseElement = node.elseElement;
-    if (_nodeExits(conditionExpression)) {
-      return true;
-    }
-
-    bool conditionValue = _knownConditionValue(conditionExpression);
-    if (conditionValue == true) {
-      return _nodeExits(thenElement);
-    } else if (conditionValue == false && elseElement != null) {
-      return _nodeExits(elseElement);
-    }
-
-    bool thenExits = _nodeExits(thenElement);
-    bool elseExits = _nodeExits(elseElement);
-    if (thenElement == null || elseElement == null) {
-      return false;
-    }
-    return thenExits && elseExits;
-  }
-
-  @override
   bool visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     Expression thenStatement = node.thenExpression;
@@ -269,6 +192,59 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
+  }
+
+  @override
+  bool visitForElement(ForElement node) {
+    bool outerBreakValue = _enclosingBlockContainsBreak;
+    _enclosingBlockContainsBreak = false;
+    try {
+      ForLoopParts forLoopParts = node.forLoopParts;
+      if (forLoopParts is ForParts) {
+        if (forLoopParts is ForPartsWithDeclarations) {
+          if (forLoopParts.variables != null &&
+              _visitVariableDeclarations(forLoopParts.variables.variables)) {
+            return true;
+          }
+        } else if (forLoopParts is ForPartsWithExpression) {
+          if (forLoopParts.initialization != null &&
+              _nodeExits(forLoopParts.initialization)) {
+            return true;
+          }
+        }
+        Expression conditionExpression = forLoopParts.condition;
+        if (conditionExpression != null && _nodeExits(conditionExpression)) {
+          return true;
+        }
+        if (_visitExpressions(forLoopParts.updaters)) {
+          return true;
+        }
+        bool blockReturns = _nodeExits(node.body);
+        // TODO(jwren) Do we want to take all constant expressions into account?
+        // If for(; true; ) (or for(;;)), and the body doesn't return or the body
+        // doesn't have a break, then return true.
+        bool implicitOrExplictTrue = conditionExpression == null ||
+            (conditionExpression is BooleanLiteral &&
+                conditionExpression.value);
+        if (implicitOrExplictTrue) {
+          if (blockReturns || !_enclosingBlockContainsBreak) {
+            return true;
+          }
+        }
+        return false;
+      } else if (forLoopParts is ForEachParts) {
+        bool iterableExits = _nodeExits(forLoopParts.iterable);
+        // Discard whether the for-each body exits; since the for-each iterable
+        // may be empty, execution may never enter the body, so it doesn't matter
+        // if it exits or not.  We still must visit the body, to accurately
+        // manage `_enclosingBlockBreaksLabel`.
+        _nodeExits(node.body);
+        return iterableExits;
+      }
+    } finally {
+      _enclosingBlockContainsBreak = outerBreakValue;
+    }
+    return false;
   }
 
   @override
@@ -387,6 +363,30 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitIdentifier(Identifier node) => false;
 
   @override
+  bool visitIfElement(IfElement node) {
+    Expression conditionExpression = node.condition;
+    CollectionElement thenElement = node.thenElement;
+    CollectionElement elseElement = node.elseElement;
+    if (_nodeExits(conditionExpression)) {
+      return true;
+    }
+
+    bool conditionValue = _knownConditionValue(conditionExpression);
+    if (conditionValue == true) {
+      return _nodeExits(thenElement);
+    } else if (conditionValue == false && elseElement != null) {
+      return _nodeExits(elseElement);
+    }
+
+    bool thenExits = _nodeExits(thenElement);
+    bool elseExits = _nodeExits(elseElement);
+    if (thenElement == null || elseElement == null) {
+      return false;
+    }
+    return thenExits && elseExits;
+  }
+
+  @override
   bool visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.condition;
     Statement thenStatement = node.thenStatement;
@@ -458,85 +458,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitLiteral(Literal node) => false;
 
   @override
-  bool visitMapForElement(MapForElement node) {
-    bool outerBreakValue = _enclosingBlockContainsBreak;
-    _enclosingBlockContainsBreak = false;
-    try {
-      ForLoopParts forLoopParts = node.forLoopParts;
-      if (forLoopParts is ForParts) {
-        if (forLoopParts is ForPartsWithDeclarations) {
-          if (forLoopParts.variables != null &&
-              _visitVariableDeclarations(forLoopParts.variables.variables)) {
-            return true;
-          }
-        } else if (forLoopParts is ForPartsWithExpression) {
-          if (forLoopParts.initialization != null &&
-              _nodeExits(forLoopParts.initialization)) {
-            return true;
-          }
-        }
-        Expression conditionExpression = forLoopParts.condition;
-        if (conditionExpression != null && _nodeExits(conditionExpression)) {
-          return true;
-        }
-        if (_visitExpressions(forLoopParts.updaters)) {
-          return true;
-        }
-        bool blockReturns = _nodeExits(node.body);
-        // TODO(jwren) Do we want to take all constant expressions into account?
-        // If for(; true; ) (or for(;;)), and the body doesn't return or the body
-        // doesn't have a break, then return true.
-        bool implicitOrExplictTrue = conditionExpression == null ||
-            (conditionExpression is BooleanLiteral &&
-                conditionExpression.value);
-        if (implicitOrExplictTrue) {
-          if (blockReturns || !_enclosingBlockContainsBreak) {
-            return true;
-          }
-        }
-        return false;
-      } else if (forLoopParts is ForEachParts) {
-        bool iterableExits = _nodeExits(forLoopParts.iterable);
-        // Discard whether the for-each body exits; since the for-each iterable
-        // may be empty, execution may never enter the body, so it doesn't matter
-        // if it exits or not.  We still must visit the body, to accurately
-        // manage `_enclosingBlockBreaksLabel`.
-        _nodeExits(node.body);
-        return iterableExits;
-      }
-    } finally {
-      _enclosingBlockContainsBreak = outerBreakValue;
-    }
-    return false;
-  }
-
-  @override
-  bool visitMapIfElement(MapIfElement node) {
-    Expression conditionExpression = node.condition;
-    MapElement thenElement = node.thenElement;
-    MapElement elseElement = node.elseElement;
-    if (_nodeExits(conditionExpression)) {
-      return true;
-    }
-
-    bool conditionValue = _knownConditionValue(conditionExpression);
-    if (conditionValue == true) {
-      return _nodeExits(thenElement);
-    } else if (conditionValue == false && elseElement != null) {
-      return _nodeExits(elseElement);
-    }
-
-    bool thenExits = _nodeExits(thenElement);
-    bool elseExits = _nodeExits(elseElement);
-    if (thenElement == null || elseElement == null) {
-      return false;
-    }
-    return thenExits && elseExits;
-  }
-
-  @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    for (MapElement entry in node.entries) {
+    for (CollectionElement entry in node.entries) {
       if (_nodeExits(entry)) {
         return true;
       }

@@ -2567,10 +2567,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForCollectionElementTypeNotAssignableWithElementType(
       CollectionElement element, DartType elementType, ErrorCode errorCode) {
-    if (element is CollectionForElement) {
+    if (element is ForElement) {
       _checkForCollectionElementTypeNotAssignableWithElementType(
           element.body, elementType, errorCode);
-    } else if (element is CollectionIfElement) {
+    } else if (element is IfElement) {
       _checkForCollectionElementTypeNotAssignableWithElementType(
           element.thenElement, elementType, errorCode);
       _checkForCollectionElementTypeNotAssignableWithElementType(
@@ -4100,15 +4100,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes].
    */
   void _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-      MapElement element,
+      CollectionElement element,
       DartType keyType,
       DartType valueType,
       ErrorCode keyErrorCode,
       ErrorCode valueErrorCode) {
-    if (element is MapForElement) {
+    if (element is ForElement) {
       _checkForMapElementTypeNotAssignableWithKeyOrValueType(
           element.body, keyType, valueType, keyErrorCode, valueErrorCode);
-    } else if (element is MapIfElement) {
+    } else if (element is IfElement) {
       _checkForMapElementTypeNotAssignableWithKeyOrValueType(
           element.thenElement,
           keyType,
@@ -4214,8 +4214,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType valueType = typeArguments[1];
 
     bool isConst = literal.isConst;
-    NodeList<MapElement> entries = literal.entries;
-    for (MapElement entry in entries) {
+    NodeList<CollectionElement> entries = literal.entries;
+    for (CollectionElement entry in entries) {
       if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.

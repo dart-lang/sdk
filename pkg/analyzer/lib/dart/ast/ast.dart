@@ -453,10 +453,6 @@ abstract class AstVisitor<R> {
 
   R visitClassTypeAlias(ClassTypeAlias node);
 
-  R visitCollectionForElement(CollectionForElement node);
-
-  R visitCollectionIfElement(CollectionIfElement node);
-
   R visitComment(Comment node);
 
   R visitCommentReference(CommentReference node);
@@ -511,6 +507,8 @@ abstract class AstVisitor<R> {
 
   R visitForEachStatement(ForEachStatement node);
 
+  R visitForElement(ForElement node);
+
   R visitFormalParameterList(FormalParameterList node);
 
   R visitForPartsWithDeclarations(ForPartsWithDeclarations node);
@@ -538,6 +536,8 @@ abstract class AstVisitor<R> {
   R visitGenericTypeAlias(GenericTypeAlias node);
 
   R visitHideCombinator(HideCombinator node);
+
+  R visitIfElement(IfElement node);
 
   R visitIfStatement(IfStatement node);
 
@@ -568,10 +568,6 @@ abstract class AstVisitor<R> {
   R visitListLiteral(ListLiteral node);
 
   R visitListLiteral2(ListLiteral2 node);
-
-  R visitMapForElement(MapForElement node);
-
-  R visitMapIfElement(MapIfElement node);
 
   R visitMapLiteral(MapLiteral node);
 
@@ -1098,35 +1094,17 @@ abstract class ClassTypeAlias implements TypeAlias {
   void set withClause(WithClause withClause);
 }
 
-/// An element in a literal list or literal set.
+/// An element in a list, map or set literal.
 ///
 ///    collectionElement ::=
 ///        [Expression]
-///      | [IfElement<CollectionElement>]
-///      | [ForElement<CollectionElement>]
+///      | [IfElement]
+///      | [ForElement]
+///      | [MapLiteralEntry]
 ///      | [SpreadElement]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CollectionElement implements AstNode {}
-
-/// A for element in a literal list or literal set.
-///
-///    forElement ::=
-///        'await'? 'for' '(' [ForLoopParts] ')' [CollectionElement | MapElement]
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class CollectionForElement
-    implements CollectionElement, ForElement<CollectionElement> {}
-
-/// An if element in a literal list or literal set.
-///
-///    ifElement ::=
-///        'if' '(' [Expression] ')' [CollectionElement]
-///        ( 'else' [CollectionElement] )?
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class CollectionIfElement
-    implements CollectionElement, IfElement<CollectionElement> {}
 
 /// A combinator associated with an import or export directive.
 ///
@@ -2321,13 +2299,13 @@ abstract class ForEachStatement implements Statement {
 /// The basic structure of a for element.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ForElement<E> implements AstNode {
+abstract class ForElement implements CollectionElement {
   /// Return the token representing the 'await' keyword, or `null` if there was
   /// no 'await' keyword.
   Token get awaitKeyword;
 
   /// Return the body of the loop.
-  E get body;
+  CollectionElement get body;
 
   /// Return the token representing the 'for' keyword.
   Token get forKeyword;
@@ -3093,14 +3071,14 @@ abstract class Identifier implements Expression {
 /// The basic structure of an if element.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class IfElement<E> implements AstNode {
+abstract class IfElement implements CollectionElement {
   /// Return the condition used to determine which of the statements is executed
   /// next.
   Expression get condition;
 
   /// Return the statement that is executed if the condition evaluates to
   /// `false`, or `null` if there is no else statement.
-  E get elseElement;
+  CollectionElement get elseElement;
 
   /// Return the token representing the 'else' keyword, or `null` if there is no
   /// else statement.
@@ -3117,7 +3095,7 @@ abstract class IfElement<E> implements AstNode {
 
   /// Return the statement that is executed if the condition evaluates to
   /// `true`.
-  E get thenElement;
+  CollectionElement get thenElement;
 }
 
 /// An if statement.
@@ -3788,33 +3766,6 @@ abstract class ListLiteral2 implements TypedLiteral {
 /// Clients may not extend, implement or mix-in this class.
 abstract class Literal implements Expression {}
 
-/// An element in a literal map.
-///
-///    mapElement ::=
-///        [Expression]
-///      | [IfElement<MapElement>]
-///      | [ForElement<MapElement>]
-///      | [SpreadElement]
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MapElement implements AstNode {}
-
-/// A for element in a literal map.
-///
-///    forElement ::=
-///        'await'? 'for' '(' [ForLoopParts] ')' [CollectionElement | MapElement]
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MapForElement implements ForElement<MapElement>, MapElement {}
-
-/// An if element in a map in a literal map.
-///
-///    ifElement ::=
-///        'if' '(' [Expression] ')' [MapElement] ( 'else' [MapElement] )?
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MapIfElement implements IfElement<MapElement>, MapElement {}
-
 /// A literal map.
 ///
 ///    mapLiteral ::=
@@ -3856,7 +3807,7 @@ abstract class MapLiteral implements TypedLiteral {
 /// Clients may not extend, implement or mix-in this class.
 abstract class MapLiteral2 implements TypedLiteral {
   /// Return the entries in the map.
-  NodeList<MapElement> get entries;
+  NodeList<CollectionElement> get entries;
 
   /// Return the left curly bracket.
   Token get leftBracket;
@@ -3877,7 +3828,7 @@ abstract class MapLiteral2 implements TypedLiteral {
 ///        [Expression] ':' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MapLiteralEntry implements MapElement {
+abstract class MapLiteralEntry implements CollectionElement {
   /// Return the expression computing the key with which the value will be
   /// associated.
   Expression get key;
@@ -4924,7 +4875,7 @@ abstract class SingleStringLiteral implements StringLiteral {
 ///        ( '...' | '...?' ) [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SpreadElement implements CollectionElement, MapElement {
+abstract class SpreadElement implements CollectionElement {
   /// The expression used to compute the collection being spread.
   Expression get expression;
 

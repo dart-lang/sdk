@@ -1429,7 +1429,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     Map<DartObjectImpl, DartObjectImpl> map = {};
     bool errorOccurred = false;
-    for (MapElement element in node.entries) {
+    for (CollectionElement element in node.entries) {
       errorOccurred = errorOccurred | _addElementsToMap(map, element);
     }
     if (errorOccurred) {
@@ -1660,7 +1660,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * elements failed.
    */
   bool _addElementsToList(List<DartObject> list, CollectionElement element) {
-    if (element is CollectionIfElement) {
+    if (element is IfElement) {
       DartObjectImpl conditionResult = element.condition.accept(this);
       bool conditionValue = conditionResult?.toBoolValue();
       if (conditionValue == null) {
@@ -1697,8 +1697,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * failed.
    */
   bool _addElementsToMap(
-      Map<DartObjectImpl, DartObjectImpl> map, MapElement element) {
-    if (element is MapIfElement) {
+      Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
+    if (element is IfElement) {
       DartObjectImpl conditionResult = element.condition.accept(this);
       bool conditionValue = conditionResult?.toBoolValue();
       if (conditionValue == null) {
@@ -1736,7 +1736,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * elements failed.
    */
   bool _addElementsToSet(Set<DartObject> set, CollectionElement element) {
-    if (element is CollectionIfElement) {
+    if (element is IfElement) {
       DartObjectImpl conditionResult = element.condition.accept(this);
       bool conditionValue = conditionResult?.toBoolValue();
       if (conditionValue == null) {
