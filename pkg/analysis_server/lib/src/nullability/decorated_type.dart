@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
@@ -200,8 +201,8 @@ class DecoratedTypeAnnotation extends DecoratedType
       identical(nullable, ConstraintVariable.always) || !nullable.value;
 
   @override
-  Iterable<Modification> get modifications =>
-      isEmpty ? [] : [Modification(_offset, '?')];
+  Iterable<SourceEdit> get modifications =>
+      isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
 }
 
 /// Type of a [ConstraintVariable] representing the fact that a type is

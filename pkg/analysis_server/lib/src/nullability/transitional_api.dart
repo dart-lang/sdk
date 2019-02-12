@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 
 /// Type of a [ConstraintVariable] representing the addition of a null check.
 class CheckExpression extends ConstraintVariable {
@@ -74,11 +75,11 @@ class ConditionalModification extends PotentialModification {
   bool get isEmpty => discard.keepTrue.value && discard.keepFalse.value;
 
   @override
-  Iterable<Modification> get modifications {
+  Iterable<SourceEdit> get modifications {
     if (isEmpty) return const [];
     // TODO(paulberry): move the following logic into DartEditBuilder (see
     // dartbug.com/35872).
-    var result = <Modification>[];
+    var result = <SourceEdit>[];
     var keepNodes = <_KeepNode>[];
     if (!discard.pureCondition) {
       keepNodes.add(condition); // TODO(paulberry): test
@@ -93,17 +94,17 @@ class ConditionalModification extends PotentialModification {
     for (int i = 0; i < keepNodes.length; i++) {
       var keepNode = keepNodes[i];
       if (i == 0 && keepNode.offset != offset) {
-        result.add(Modification(offset, '/* '));
+        result.add(SourceEdit(offset, 0, '/* '));
       }
       if (i != 0 || keepNode.offset != offset) {
-        result.add(Modification(keepNode.offset, '*/ '));
+        result.add(SourceEdit(keepNode.offset, 0, '*/ '));
       }
       if (i != keepNodes.length - 1 || keepNode.end != end) {
-        result.add(Modification(keepNode.end,
+        result.add(SourceEdit(keepNode.end, 0,
             keepNode.isExpression && isStatement ? '; /*' : ' /*'));
       }
       if (i == keepNodes.length - 1 && keepNode.end != end) {
-        result.add(Modification(end, ' */'));
+        result.add(SourceEdit(end, 0, ' */'));
       }
     }
     return result;
@@ -128,18 +129,6 @@ enum DefaultParameterHandling {
   /// - `[int x]` is an error
   /// - `[int x = 3]` is allowed
   option2_addRequiredNamedParameters,
-}
-
-/// Representation of a single location in the code that needs to be modified
-/// by the migration tool.
-///
-/// TODO(paulberry): unify with SourceEdit.
-class Modification {
-  final int location;
-
-  final String insert;
-
-  Modification(this.location, this.insert);
 }
 
 /// Enum representing the possible heuristics for handling named parameters with
@@ -196,17 +185,6 @@ class NullabilityMigration {
     unit.accept(ConstraintGatherer(typeProvider, _variables, _constraints,
         unit.declaredElement.source, _permissive, assumptions));
   }
-
-  static String applyModifications(
-      String code, List<Modification> modifications) {
-    var migrated = code;
-    for (var modification in modifications) {
-      migrated = migrated.substring(0, modification.location) +
-          modification.insert +
-          migrated.substring(modification.location);
-    }
-    return migrated;
-  }
 }
 
 /// Assumptions affecting the behavior of the nullability migration tool.
@@ -248,8 +226,8 @@ class PotentiallyAddRequired extends PotentialModification {
   bool get isEmpty => _optionalVariable.value;
 
   @override
-  Iterable<Modification> get modifications =>
-      isEmpty ? const [] : [Modification(_offset, '@required ')];
+  Iterable<SourceEdit> get modifications =>
+      isEmpty ? const [] : [SourceEdit(_offset, 0, '@required ')];
 }
 
 /// Interface used by data structures representing potential modifications to
@@ -259,7 +237,7 @@ abstract class PotentialModification {
 
   /// Gets the individual migrations that need to be done, considering the
   /// solution to the constraint equations.
-  Iterable<Modification> get modifications;
+  Iterable<SourceEdit> get modifications;
 
   Source get source;
 }

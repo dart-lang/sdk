@@ -148,12 +148,8 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
-    return _SingleNullabilityFix._(
-        potentialModification.modifications
-            .map((m) => SourceEdit(m.location, 0, m.insert))
-            .toList(),
-        potentialModification.source,
-        kind);
+    return _SingleNullabilityFix._(potentialModification.modifications.toList(),
+        potentialModification.source, kind);
   }
 
   _SingleNullabilityFix._(this.sourceEdits, this.source, this.kind);

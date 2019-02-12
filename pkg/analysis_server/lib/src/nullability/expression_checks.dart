@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// Container for information gathered during nullability migration about the
 /// set of runtime checks that might need to be performed on the value of an
@@ -26,6 +27,6 @@ class ExpressionChecks extends PotentialModification {
   bool get isEmpty => !nullCheck.value;
 
   @override
-  Iterable<Modification> get modifications =>
-      nullCheck.value ? [Modification(nullCheck.offset, '!')] : [];
+  Iterable<SourceEdit> get modifications =>
+      nullCheck.value ? [SourceEdit(nullCheck.offset, 0, '!')] : [];
 }
