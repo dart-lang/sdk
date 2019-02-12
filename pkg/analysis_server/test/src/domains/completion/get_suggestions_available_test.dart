@@ -29,6 +29,55 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
+  test_includedSuggestionKinds_type() async {
+    addTestFile(r'''
+class X extends {} // ref
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf('{} // ref'),
+    );
+
+    expect(
+      results.includedSuggestionKinds,
+      unorderedEquals([
+        ElementKind.CLASS,
+        ElementKind.CLASS_TYPE_ALIAS,
+        ElementKind.ENUM,
+        ElementKind.FUNCTION_TYPE_ALIAS,
+        ElementKind.MIXIN,
+      ]),
+    );
+  }
+
+  test_includedSuggestionKinds_value() async {
+    addTestFile(r'''
+main() {
+  print(); // ref
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf('); // ref'),
+    );
+
+    expect(
+      results.includedSuggestionKinds,
+      unorderedEquals([
+        ElementKind.CLASS,
+        ElementKind.CLASS_TYPE_ALIAS,
+        ElementKind.ENUM,
+        ElementKind.ENUM_CONSTANT,
+        ElementKind.FUNCTION,
+        ElementKind.FUNCTION_TYPE_ALIAS,
+        ElementKind.MIXIN,
+        ElementKind.TOP_LEVEL_VARIABLE,
+      ]),
+    );
+  }
+
   test_inHtml() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
 
@@ -41,7 +90,36 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     expect(serverErrors, isEmpty);
   }
 
-  test_relevanceTags_argumentList_named() async {
+  test_relevanceTags_enum() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+enum MyEnum {
+  aaa, bbb
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+void f(MyEnum e) {
+  e = // ref;
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf(' // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "package:test/a.dart::MyEnum",
+    "relevanceBoost": 1100
+  }
+]
+''');
+  }
+
+  test_relevanceTags_location_argumentList_named() async {
     addTestFile(r'''
 void foo({int a, String b}) {}
 
@@ -65,7 +143,7 @@ main() {
 ''');
   }
 
-  test_relevanceTags_argumentList_positional() async {
+  test_relevanceTags_location_argumentList_positional() async {
     addTestFile(r'''
 void foo(double a) {}
 
@@ -89,7 +167,7 @@ main() {
 ''');
   }
 
-  test_relevanceTags_assignment() async {
+  test_relevanceTags_location_assignment() async {
     addTestFile(r'''
 main() {
   int v;
@@ -112,7 +190,7 @@ main() {
 ''');
   }
 
-  test_relevanceTags_listLiteral() async {
+  test_relevanceTags_location_listLiteral() async {
     addTestFile(r'''
 main() {
   var v = [0, ]; // ref

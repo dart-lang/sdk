@@ -77,7 +77,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
     Set<ElementKind> includedSuggestionKinds,
-    Set<String> includedSuggestionRelevanceTags,
+    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -178,6 +178,15 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var resolvedLibrary = await session.getResolvedLibrary(file);
     var requestedLibraryElement = await session.getLibraryByUri(library.uriStr);
 
+    // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
+    var requestedName = params.label;
+    if (requestedName.contains('.')) {
+      requestedName = requestedName.substring(
+        0,
+        requestedName.indexOf('.'),
+      );
+    }
+
     var completion = params.label;
     var builder = DartChangeBuilder(session);
     await builder.addFileEdit(file, (builder) {
@@ -186,7 +195,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         targetPath: file,
         targetOffset: params.offset,
         requestedLibrary: requestedLibraryElement,
-        requestedName: params.label,
+        requestedName: requestedName,
       );
       if (result.prefix != null) {
         completion = '${result.prefix}.$completion';
@@ -275,10 +284,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // If the client opted into using available suggestion sets,
     // create the kinds set, so signal the completion manager about opt-in.
     Set<ElementKind> includedSuggestionKinds;
-    Set<String> includedSuggestionRelevanceTags;
+    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
       includedSuggestionKinds = Set<ElementKind>();
-      includedSuggestionRelevanceTags = Set<String>();
+      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
     // Compute suggestions in the background
@@ -307,9 +316,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         result.suggestions,
         includedSuggestionSets,
         includedSuggestionKinds?.toList(),
-        computeIncludedSuggestionRelevanceTags(
-          includedSuggestionRelevanceTags,
-        ),
+        includedSuggestionRelevanceTags,
       );
       performance.logElapseTime(SEND_NOTIFICATION_TAG);
 

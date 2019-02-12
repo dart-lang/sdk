@@ -65,7 +65,7 @@ class DartCompletionManager implements CompletionContributor {
   /// If [includedSuggestionKinds] is not null, must be also not `null`, and
   /// will be filled with tags for suggestions that should be given higher
   /// relevance than other included suggestions.
-  final Set<String> includedSuggestionRelevanceTags;
+  final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
 
   DartCompletionManager({
     this.includedSuggestionKinds,
@@ -177,15 +177,50 @@ class DartCompletionManager implements CompletionContributor {
     return suggestions;
   }
 
+  void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
+    var opType = request.opType;
+
+    if (!opType.includeIdentifiers) return;
+
+    var kinds = includedSuggestionKinds;
+    if (kinds != null) {
+      if (opType.includeTypeNameSuggestions) {
+        kinds.add(protocol.ElementKind.CLASS);
+        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.ENUM);
+        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.MIXIN);
+      }
+      if (opType.includeReturnValueSuggestions) {
+        kinds.add(protocol.ElementKind.ENUM_CONSTANT);
+        kinds.add(protocol.ElementKind.FUNCTION);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
+    }
+  }
+
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
     var target = request.target;
 
     void addTypeTag(DartType type) {
       if (type is InterfaceType) {
         var element = type.element;
-        includedSuggestionRelevanceTags.add(
-          '${element.librarySource.uri}::${element.name}',
-        );
+        var tag = '${element.librarySource.uri}::${element.name}';
+        if (element.isEnum) {
+          includedSuggestionRelevanceTags.add(
+            IncludedSuggestionRelevanceTag(
+              tag,
+              DART_RELEVANCE_BOOST_AVAILABLE_ENUM,
+            ),
+          );
+        } else {
+          includedSuggestionRelevanceTags.add(
+            IncludedSuggestionRelevanceTag(
+              tag,
+              DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION,
+            ),
+          );
+        }
       }
     }
 
@@ -211,27 +246,6 @@ class DartCompletionManager implements CompletionContributor {
         if (typeArguments.isNotEmpty) {
           addTypeTag(typeArguments[0]);
         }
-      }
-    }
-  }
-
-  void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
-    var opType = request.opType;
-
-    if (!opType.includeIdentifiers) return;
-
-    var kinds = includedSuggestionKinds;
-    if (kinds != null) {
-      if (opType.includeTypeNameSuggestions) {
-        kinds.add(protocol.ElementKind.CLASS);
-        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
-        kinds.add(protocol.ElementKind.ENUM);
-        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
-        kinds.add(protocol.ElementKind.MIXIN);
-      }
-      if (opType.includeReturnValueSuggestions) {
-        kinds.add(protocol.ElementKind.FUNCTION);
-        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
     }
   }

@@ -62,17 +62,6 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
   return includedSetList;
 }
 
-List<protocol.IncludedSuggestionRelevanceTag>
-    computeIncludedSuggestionRelevanceTags(
-  Set<String> includedSuggestionRelevanceTags,
-) {
-  if (includedSuggestionRelevanceTags == null) return null;
-
-  return includedSuggestionRelevanceTags.map((tag) {
-    return protocol.IncludedSuggestionRelevanceTag(tag, 10);
-  }).toList();
-}
-
 /// Convert the [LibraryChange] into the corresponding protocol notification.
 protocol.Notification createCompletionAvailableSuggestionsNotification(
   LibraryChange change,
@@ -93,8 +82,13 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
 
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
+  var label = declaration.name;
+  if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
+    label = '${declaration.name2}.${declaration.name}';
+  }
+
   return protocol.AvailableSuggestion(
-    declaration.name,
+    label,
     _protocolElement(declaration),
     docComplete: declaration.docComplete,
     docSummary: declaration.docSummary,

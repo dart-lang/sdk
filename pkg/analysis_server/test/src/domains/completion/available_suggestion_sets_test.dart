@@ -110,6 +110,46 @@ enum MyEnum {
   ]
 }
 ''');
+    assertJsonText(_getSuggestion(set, 'MyEnum.aaa'), '''
+{
+  "label": "MyEnum.aaa",
+  "element": {
+    "kind": "ENUM_CONSTANT",
+    "name": "aaa",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 16,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 3
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "package:test/a.dart::MyEnum"
+  ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'MyEnum.bbb'), '''
+{
+  "label": "MyEnum.bbb",
+  "element": {
+    "kind": "ENUM_CONSTANT",
+    "name": "bbb",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 23,
+      "length": 0,
+      "startLine": 3,
+      "startColumn": 3
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "package:test/a.dart::MyEnum"
+  ]
+}
+''');
   }
 
   test_suggestion_topLevelVariable() async {

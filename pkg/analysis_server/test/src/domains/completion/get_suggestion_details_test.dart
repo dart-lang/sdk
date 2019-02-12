@@ -20,7 +20,32 @@ main() {
 
 @reflectiveTest
 class GetSuggestionDetailsTest extends AvailableSuggestionsBase {
-  test_dart_existingImport() async {
+  test_enum() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+enum MyEnum {
+  aaa, bbb
+}
+''');
+    addTestFile(r'''
+main() {} // ref
+''');
+
+    var set = await waitForSetWithUri('package:test/a.dart');
+    var result = await _getSuggestionDetails(
+      id: set.id,
+      label: 'MyEnum.aaa',
+      offset: testCode.indexOf('} // ref'),
+    );
+
+    expect(result.completion, 'MyEnum.aaa');
+    _assertTestFileChange(result.change, r'''
+import 'package:test/a.dart';
+
+main() {} // ref
+''');
+  }
+
+  test_existingImport() async {
     addTestFile(r'''
 import 'dart:math';
 
@@ -38,7 +63,7 @@ main() {} // ref
     _assertEmptyChange(result.change);
   }
 
-  test_dart_existingImport_prefixed() async {
+  test_existingImport_prefixed() async {
     addTestFile(r'''
 import 'dart:math' as math;
 
@@ -56,7 +81,7 @@ main() {} // ref
     _assertEmptyChange(result.change);
   }
 
-  test_dart_newImport() async {
+  test_newImport() async {
     addTestFile(r'''
 main() {} // ref
 ''');
