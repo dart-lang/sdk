@@ -513,7 +513,7 @@ compiler.''',
       if (configuration.containsKey('test_list_contents')) {
         _fail('--tests and --test-list cannot be used together');
       }
-      configuration['test_list_contents'] = LineSplitter.split(tests);
+      configuration['test_list_contents'] = LineSplitter.split(tests).toList();
     }
 
     return _createConfigurations(configuration);
