@@ -551,7 +551,9 @@ class ConstantEvaluator extends RecursiveVisitor {
         constructor.function.body is! EmptyStatement) {
       throw 'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".';
     }
-    if (constructor.isInExternalLibrary && constructor.initializers.isEmpty) {
+    if (constructor.isInExternalLibrary &&
+        constructor.initializers.isEmpty &&
+        constructor.enclosingClass.supertype != null) {
       // The constructor is unavailable due to separate compilation.
       return new UnevaluatedConstant(new ConstructorInvocation(
           constructor, unevaluatedArguments(node.arguments),
