@@ -46,6 +46,7 @@ main() async {
   !(new List(3).length.isEven); // OK
   -(new List(3).length.abs().abs().abs()); // OK
   -(new List(3).length.sign.sign.sign); // OK
+  !(const [7]).contains(42); // OK
 }
 
 m({p}) => null;

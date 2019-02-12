@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    // a..b=(c..d) is OK
+    // `a..b=(c..d)` is OK.
     if (node.expression is CascadeExpression ||
         node.thisOrAncestorMatching(
                 (n) => n is Statement || n is CascadeExpression)
@@ -78,6 +78,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       // whitespace after its first token.
       if (parent is PrefixExpression &&
           _expressionStartsWithWhitespace(node.expression)) return;
+
+      // Another case of the above exception, something like
+      // `!(const [7]).contains(5);`, where the _parent's_ parent is the
+      // PrefixExpression.
+      if (parent is MethodInvocation) {
+        Expression target = parent.target;
+        if (parent.parent is PrefixExpression &&
+            target == node &&
+            _expressionStartsWithWhitespace(node.expression)) return;
+      }
+
       if (parent.precedence < node.expression.precedence) {
         rule.reportLint(node);
         return;
