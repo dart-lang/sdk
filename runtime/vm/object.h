@@ -1690,7 +1690,7 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, args_descriptor_);
   }
 
-  static intptr_t ic_data_offset() { return OFFSET_OF(RawICData, ic_data_); }
+  static intptr_t entries_offset() { return OFFSET_OF(RawICData, entries_); }
 
   static intptr_t owner_offset() { return OFFSET_OF(RawICData, owner_); }
 
@@ -1854,8 +1854,8 @@ class ICData : public Object {
  private:
   static RawICData* New();
 
-  RawArray* ic_data() const {
-    return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_);
+  RawArray* entries() const {
+    return AtomicOperations::LoadAcquire(&raw_ptr()->entries_);
   }
 
   // Grows the array and also sets the argument to the index that should be used
@@ -1867,7 +1867,7 @@ class ICData : public Object {
   void set_arguments_descriptor(const Array& value) const;
   void set_deopt_id(intptr_t value) const;
   void SetNumArgsTested(intptr_t value) const;
-  void set_ic_data_array(const Array& value) const;
+  void set_entries(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
 
   bool ValidateInterceptor(const Function& target) const;

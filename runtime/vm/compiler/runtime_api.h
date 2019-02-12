@@ -372,7 +372,7 @@ class ICData : public AllStatic {
  public:
   static word owner_offset();
   static word arguments_descriptor_offset();
-  static word ic_data_offset();
+  static word entries_offset();
   static word static_receiver_type_offset();
   static word state_bits_offset();
 

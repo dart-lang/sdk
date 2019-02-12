@@ -1050,7 +1050,7 @@ class ScriptSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawScript* script = objects_[i];
-      AutoTraceObject(script);
+      AutoTraceObjectName(script, script->ptr()->url_);
       WriteFromTo(script);
       s->Write<int32_t>(script->ptr()->line_offset_);
       s->Write<int32_t>(script->ptr()->col_offset_);
@@ -2161,7 +2161,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawUnlinkedCall* unlinked = objects_[i];
-      AutoTraceObject(unlinked);
+      AutoTraceObjectName(unlinked, unlinked->ptr()->target_name_);
       WriteFromTo(unlinked);
     }
   }
@@ -2228,7 +2228,7 @@ class ICDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawICData* ic = objects_[i];
-      AutoTraceObject(ic);
+      AutoTraceObjectName(ic, ic->ptr()->target_name_);
       WriteFromTo(ic);
       if (kind != Snapshot::kFullAOT) {
         NOT_IN_PRECOMPILED(s->Write<int32_t>(ic->ptr()->deopt_id_));
@@ -2298,7 +2298,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawMegamorphicCache* cache = objects_[i];
-      AutoTraceObject(cache);
+      AutoTraceObjectName(cache, cache->ptr()->target_name_);
       WriteFromTo(cache);
       s->Write<int32_t>(cache->ptr()->filled_entry_count_);
     }
@@ -3156,7 +3156,7 @@ class ClosureDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class MintSerializationCluster : public SerializationCluster {
  public:
-  MintSerializationCluster() : SerializationCluster("Mint") {}
+  MintSerializationCluster() : SerializationCluster("int") {}
   ~MintSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
@@ -3244,7 +3244,7 @@ class MintDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class DoubleSerializationCluster : public SerializationCluster {
  public:
-  DoubleSerializationCluster() : SerializationCluster("Double") {}
+  DoubleSerializationCluster() : SerializationCluster("double") {}
   ~DoubleSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
@@ -4673,9 +4673,10 @@ void Serializer::AddVMIsolateBaseObjects() {
   // These objects are always allocated by Object::InitOnce, so they are not
   // written into the snapshot.
 
-  AddBaseObject(Object::null(), "Null", "<null>");
-  AddBaseObject(Object::sentinel().raw(), "Sentinel");
-  AddBaseObject(Object::transition_sentinel().raw(), "Sentinel");
+  AddBaseObject(Object::null(), "Null", "null");
+  AddBaseObject(Object::sentinel().raw(), "Null", "sentinel");
+  AddBaseObject(Object::transition_sentinel().raw(), "Null",
+                "transition_sentinel");
   AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
   AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
   AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
@@ -4701,8 +4702,8 @@ void Serializer::AddVMIsolateBaseObjects() {
                   "ArgumentsDescriptor", "<cached arguments descriptor>");
   }
   for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i], "ICData",
-                  "<cached icdata>");
+    AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
+                  "<empty icdata entries>");
   }
 
   ClassTable* table = isolate()->class_table();

@@ -1674,8 +1674,8 @@ class RawUnlinkedCall : public RawObject {
 class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
-  VISIT_FROM(RawObject*, ic_data_);
-  RawArray* ic_data_;          // Contains class-ids, target and count.
+  VISIT_FROM(RawObject*, entries_);
+  RawArray* entries_;          // Contains class-ids, target and count.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   // Static type of the receiver. If it is set then we are performing

@@ -1404,7 +1404,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   }
 
   // ECX: IC data object.
-  __ movl(EBX, FieldAddress(ECX, target::ICData::ic_data_offset()));
+  __ movl(EBX, FieldAddress(ECX, target::ICData::entries_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, target::Array::data_offset()));
 #if defined(DEBUG)
@@ -1486,7 +1486,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // Loop that checks if there is an IC data match.
   Label loop, found, miss;
   // ECX: IC data object (preserved).
-  __ movl(EBX, FieldAddress(ECX, target::ICData::ic_data_offset()));
+  __ movl(EBX, FieldAddress(ECX, target::ICData::entries_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, target::Array::data_offset()));
   // EBX: points directly to the first ic data array element.
@@ -1728,7 +1728,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 #endif
 
   // ECX: IC data object (preserved).
-  __ movl(EBX, FieldAddress(ECX, target::ICData::ic_data_offset()));
+  __ movl(EBX, FieldAddress(ECX, target::ICData::entries_offset()));
   // EBX: ic_data_array with entries: target functions and count.
   __ leal(EBX, FieldAddress(EBX, target::Array::data_offset()));
   // EBX: points directly to the first ic data array element.

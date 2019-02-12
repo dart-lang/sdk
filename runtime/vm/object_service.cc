@@ -758,7 +758,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("_argumentsDescriptor",
                     Object::Handle(arguments_descriptor()));
-  jsobj.AddProperty("_entries", Object::Handle(ic_data()));
+  jsobj.AddProperty("_entries", Object::Handle(entries()));
 }
 
 void ICData::PrintToJSONArray(const JSONArray& jsarray,

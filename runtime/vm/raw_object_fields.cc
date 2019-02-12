@@ -114,7 +114,7 @@ namespace dart {
   F(SingleTargetCache, target_)                                                \
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
-  F(ICData, ic_data_)                                                          \
+  F(ICData, entries_)                                                          \
   F(ICData, target_name_)                                                      \
   F(ICData, args_descriptor_)                                                  \
   F(ICData, owner_)                                                            \
@@ -139,11 +139,14 @@ namespace dart {
   F(TypeArguments, length_)                                                    \
   F(TypeArguments, hash_)                                                      \
   F(AbstractType, type_test_stub_)                                             \
+  F(Type, type_test_stub_)                                                     \
   F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
   F(Type, signature_)                                                          \
+  F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
+  F(TypeParameter, type_test_stub_)                                            \
   F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \

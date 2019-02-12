@@ -1819,7 +1819,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   }
 
   // RBX: IC data object (preserved).
-  __ movq(R13, FieldAddress(RBX, target::ICData::ic_data_offset()));
+  __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
   // R13: ic_data_array with check entries: classes and target functions.
   __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));
 // R13: points directly to the first ic data array element.
@@ -1903,7 +1903,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // Loop that checks if there is an IC data match.
   Label loop, found, miss;
   // RBX: IC data object (preserved).
-  __ movq(R13, FieldAddress(RBX, target::ICData::ic_data_offset()));
+  __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
   // R13: ic_data_array with check entries: classes and target functions.
   __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));
   // R13: points directly to the first ic data array element.
@@ -2192,7 +2192,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 #endif
 
   // RBX: IC data object (preserved).
-  __ movq(R12, FieldAddress(RBX, target::ICData::ic_data_offset()));
+  __ movq(R12, FieldAddress(RBX, target::ICData::entries_offset()));
   // R12: ic_data_array with entries: target functions and count.
   __ leaq(R12, FieldAddress(R12, target::Array::data_offset()));
   // R12: points directly to the first ic data array element.
@@ -3047,7 +3047,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 //  R10: arguments descriptor
 void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ movq(R13, FieldAddress(RBX, target::ICData::ic_data_offset()));
+  __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
   __ movq(R10,
           FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
   __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));
@@ -3087,7 +3087,7 @@ void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ movq(R13, FieldAddress(RBX, target::ICData::ic_data_offset()));
+  __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
   __ movq(R10,
           FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
   __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));

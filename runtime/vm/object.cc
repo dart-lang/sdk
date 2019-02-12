@@ -12893,7 +12893,7 @@ void ICData::SetStaticReceiverType(const AbstractType& type) const {
 void ICData::ResetSwitchable(Zone* zone) const {
   ASSERT(NumArgsTested() == 1);
   ASSERT(!IsTrackingExactness());
-  set_ic_data_array(Array::Handle(zone, CachedEmptyICDataArray(1, false)));
+  set_entries(Array::Handle(zone, CachedEmptyICDataArray(1, false)));
 }
 
 const char* ICData::ToCString() const {
@@ -12962,9 +12962,9 @@ void ICData::set_deopt_id(intptr_t value) const {
 #endif
 }
 
-void ICData::set_ic_data_array(const Array& value) const {
+void ICData::set_entries(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->ic_data_,
+  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->entries_,
                                                  value.raw());
 }
 
@@ -13041,7 +13041,7 @@ intptr_t ICData::TestEntryLength() const {
 }
 
 intptr_t ICData::Length() const {
-  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength());
+  return (Smi::Value(entries()->ptr()->length_) / TestEntryLength());
 }
 
 intptr_t ICData::NumberOfChecks() const {
@@ -13121,7 +13121,7 @@ void ICData::WriteSentinelAt(intptr_t index) const {
   const intptr_t len = Length();
   ASSERT(index >= 0);
   ASSERT(index < len);
-  Array& data = Array::Handle(ic_data());
+  Array& data = Array::Handle(entries());
   const intptr_t start = index * TestEntryLength();
   const intptr_t end = start + TestEntryLength();
   for (intptr_t i = start; i < end; i++) {
@@ -13147,7 +13147,7 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
   ASSERT(IsSentinelAt(len - 1));
   if (NumArgsTested() == 0) {
     // No type feedback is being collected.
-    const Array& data = Array::Handle(ic_data());
+    const Array& data = Array::Handle(entries());
     // Static calls with no argument checks hold only one target and the
     // sentinel value.
     ASSERT(len == 2);
@@ -13161,7 +13161,7 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
     data.SetAt(1, value);
   } else {
     // Type feedback on arguments is being collected.
-    const Array& data = Array::Handle(ic_data());
+    const Array& data = Array::Handle(entries());
 
     // Fill all but the first entry with the sentinel.
     for (intptr_t i = len - 1; i > 0; i--) {
@@ -13238,7 +13238,7 @@ void ICData::AddTarget(const Function& target) const {
   // Can add only once.
   const intptr_t old_num = NumberOfChecks();
   ASSERT(old_num == 0);
-  Array& data = Array::Handle(ic_data());
+  Array& data = Array::Handle(entries());
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   WriteSentinel(data, TestEntryLength());
@@ -13251,7 +13251,7 @@ void ICData::AddTarget(const Function& target) const {
   data.SetAt(data_pos, value);
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
-  set_ic_data_array(data);
+  set_entries(data);
 }
 
 bool ICData::ValidateInterceptor(const Function& target) const {
@@ -13281,7 +13281,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == NumArgsTested());
   const intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
+  Array& data = Array::Handle(entries());
   // ICData of static calls with NumArgsTested() > 0 have initially a
   // dummy set of cids entered (see ICData::AddTarget). That entry is
   // overwritten by first real type feedback data.
@@ -13322,11 +13322,11 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   data.SetAt(data_pos++, value);
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
-  set_ic_data_array(data);
+  set_entries(data);
 }
 
 RawArray* ICData::Grow(intptr_t* index) const {
-  Array& data = Array::Handle(ic_data());
+  Array& data = Array::Handle(entries());
   // Last entry in array should be a sentinel and will be the new entry
   // that can be updated after growing.
   *index = Length() - 1;
@@ -13401,14 +13401,14 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   }
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
-  set_ic_data_array(data);
+  set_entries(data);
 }
 
 StaticTypeExactnessState ICData::GetExactnessAt(intptr_t index) const {
   if (!IsTrackingExactness()) {
     return StaticTypeExactnessState::NotTracking();
   }
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   intptr_t data_pos = index * TestEntryLength();
   return StaticTypeExactnessState::Decode(
       Smi::Value(Smi::RawCast(data.At(data_pos + NumArgsTested() + 2))));
@@ -13421,7 +13421,7 @@ void ICData::GetCheckAt(intptr_t index,
   ASSERT(class_ids != NULL);
   ASSERT(target != NULL);
   class_ids->Clear();
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   intptr_t data_pos = index * TestEntryLength();
   for (intptr_t i = 0; i < NumArgsTested(); i++) {
     class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
@@ -13431,7 +13431,7 @@ void ICData::GetCheckAt(intptr_t index,
 
 bool ICData::IsSentinelAt(intptr_t index) const {
   ASSERT(index < Length());
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t entry_length = TestEntryLength();
   intptr_t data_pos = index * TestEntryLength();
   for (intptr_t i = 0; i < entry_length; i++) {
@@ -13449,7 +13449,7 @@ void ICData::GetClassIdsAt(intptr_t index,
   ASSERT(class_ids != NULL);
   ASSERT(!IsSentinelAt(index));
   class_ids->Clear();
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   intptr_t data_pos = index * TestEntryLength();
   for (intptr_t i = 0; i < NumArgsTested(); i++) {
     class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
@@ -13462,7 +13462,7 @@ void ICData::GetOneClassCheckAt(intptr_t index,
   ASSERT(class_id != NULL);
   ASSERT(target != NULL);
   ASSERT(NumArgsTested() == 1);
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t data_pos = index * TestEntryLength();
   *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
   *target ^= data.At(data_pos + 1);
@@ -13470,7 +13470,7 @@ void ICData::GetOneClassCheckAt(intptr_t index,
 
 intptr_t ICData::GetCidAt(intptr_t index) const {
   ASSERT(NumArgsTested() == 1);
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t data_pos = index * TestEntryLength();
   return Smi::Value(Smi::RawCast(data.At(data_pos)));
 }
@@ -13486,17 +13486,17 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   ASSERT(!IsSentinelAt(index));
   const intptr_t data_pos = index * TestEntryLength();
   NoSafepointScope no_safepoint;
-  RawArray* raw_data = ic_data();
+  RawArray* raw_data = entries();
   return Smi::Value(Smi::RawCast(raw_data->ptr()->data()[data_pos]));
 }
 
 RawFunction* ICData::GetTargetAt(intptr_t index) const {
   ASSERT(Isolate::Current()->compilation_allowed());
   const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
-  ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
+  ASSERT(Object::Handle(Array::Handle(entries()).At(data_pos)).IsFunction());
 
   NoSafepointScope no_safepoint;
-  RawArray* raw_data = ic_data();
+  RawArray* raw_data = entries();
   return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
 }
 
@@ -13504,7 +13504,7 @@ RawObject* ICData::GetTargetOrCodeAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
 
   NoSafepointScope no_safepoint;
-  RawArray* raw_data = ic_data();
+  RawArray* raw_data = entries();
   return raw_data->ptr()->data()[data_pos];
 }
 
@@ -13518,7 +13518,7 @@ void ICData::SetCountAt(intptr_t index, intptr_t value) const {
   ASSERT(0 <= value);
   ASSERT(value <= Smi::kMaxValue);
 
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t data_pos =
       index * TestEntryLength() + CountIndexFor(NumArgsTested());
   data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
@@ -13526,7 +13526,7 @@ void ICData::SetCountAt(intptr_t index, intptr_t value) const {
 
 intptr_t ICData::GetCountAt(intptr_t index) const {
   ASSERT(Isolate::Current()->compilation_allowed());
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t data_pos =
       index * TestEntryLength() + CountIndexFor(NumArgsTested());
   intptr_t value = Smi::Value(Smi::RawCast(data.At(data_pos)));
@@ -13550,7 +13550,7 @@ intptr_t ICData::AggregateCount() const {
 
 void ICData::SetCodeAt(intptr_t index, const Code& value) const {
   ASSERT(!Isolate::Current()->compilation_allowed());
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t data_pos =
       index * TestEntryLength() + CodeIndexFor(NumArgsTested());
   data.SetAt(data_pos, value);
@@ -13558,7 +13558,7 @@ void ICData::SetCodeAt(intptr_t index, const Code& value) const {
 
 void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
   ASSERT(!Isolate::Current()->compilation_allowed());
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   const intptr_t data_pos =
       index * TestEntryLength() + EntryPointIndexFor(NumArgsTested());
   data.SetAt(data_pos, value);
@@ -13693,7 +13693,7 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
     pos += result.TestEntryLength();
   }
   WriteSentinel(data, result.TestEntryLength());
-  result.set_ic_data_array(data);
+  result.set_entries(data);
   ASSERT(result.NumberOfChecksIs(aggregate.length()));
   return result.raw();
 }
@@ -13851,7 +13851,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 }
 
 bool ICData::IsImmutable() const {
-  const Array& data = Array::Handle(ic_data());
+  const Array& data = Array::Handle(entries());
   return data.IsImmutable();
 }
 
@@ -13881,7 +13881,7 @@ RawICData* ICData::New(const Function& owner,
       zone,
       NewDescriptor(zone, owner, target_name, arguments_descriptor, deopt_id,
                     num_args_tested, rebind_rule, static_receiver_type));
-  result.set_ic_data_array(Array::Handle(
+  result.set_entries(Array::Handle(
       zone,
       CachedEmptyICDataArray(num_args_tested, result.IsTrackingExactness())));
   return result.raw();
@@ -13908,7 +13908,7 @@ RawICData* ICData::Clone(const ICData& from) {
       from.NumArgsTested(), from.rebind_rule(),
       AbstractType::Handle(from.StaticReceiverType())));
   // Clone entry array.
-  const Array& from_array = Array::Handle(zone, from.ic_data());
+  const Array& from_array = Array::Handle(zone, from.entries());
   const intptr_t len = from_array.Length();
   const Array& cloned_array = Array::Handle(zone, Array::New(len, Heap::kOld));
   Object& obj = Object::Handle(zone);
@@ -13916,7 +13916,7 @@ RawICData* ICData::Clone(const ICData& from) {
     obj = from_array.At(i);
     cloned_array.SetAt(i, obj);
   }
-  result.set_ic_data_array(cloned_array);
+  result.set_entries(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();

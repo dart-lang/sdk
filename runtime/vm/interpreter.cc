@@ -908,7 +908,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
 
   const intptr_t kCheckedArgs = 1;
   RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->ic_data_->ptr();
+  RawArray* cache = icdata->ptr()->entries_->ptr();
 
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
@@ -953,7 +953,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 
   const intptr_t kCheckedArgs = 2;
   RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->ic_data_->ptr();
+  RawArray* cache = icdata->ptr()->entries_->ptr();
 
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
@@ -1818,7 +1818,7 @@ SwitchDispatch:
       // Look up the function in the ICData.
       RawObject* ic_data_obj = SP[0];
       RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
-      RawObject** data = ic_data->ptr()->ic_data_->ptr()->data();
+      RawObject** data = ic_data->ptr()->entries_->ptr()->data();
       InterpreterHelpers::IncrementICUsageCount(data, 0, 0);
       SP[0] = data[ICData::TargetIndexFor(ic_data->ptr()->state_bits_ & 0x3)];
       RawObject** call_base = SP - argc;

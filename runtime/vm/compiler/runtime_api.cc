@@ -260,8 +260,8 @@ word ICData::arguments_descriptor_offset() {
   return dart::ICData::arguments_descriptor_offset();
 }
 
-word ICData::ic_data_offset() {
-  return dart::ICData::ic_data_offset();
+word ICData::entries_offset() {
+  return dart::ICData::entries_offset();
 }
 
 word ICData::static_receiver_type_offset() {

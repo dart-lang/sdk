@@ -1653,7 +1653,7 @@ static void EmitFastSmiOp(Assembler* assembler,
       UNIMPLEMENTED();
   }
   // R9: IC data object (preserved).
-  __ ldr(R8, FieldAddress(R9, target::ICData::ic_data_offset()));
+  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
   // R8: ic_data_array with check entries: classes and target functions.
   __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
 // R8: points directly to the first ic data array element.
@@ -1741,7 +1741,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // Loop that checks if there is an IC data match.
   Label loop, found, miss;
   // R9: IC data object (preserved).
-  __ ldr(R8, FieldAddress(R9, target::ICData::ic_data_offset()));
+  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
   // R8: ic_data_array with check entries: classes and target functions.
   const int kIcDataOffset = target::Array::data_offset() - kHeapObjectTag;
   // R8: points at the IC data array.
@@ -1966,7 +1966,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 #endif
 
   // R9: IC data object (preserved).
-  __ ldr(R8, FieldAddress(R9, target::ICData::ic_data_offset()));
+  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
   // R8: ic_data_array with entries: target functions and count.
   __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
   // R8: points directly to the first ic data array element.
@@ -2747,7 +2747,7 @@ void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(ARGS_DESC_REG,
          FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
-  __ ldr(R8, FieldAddress(R9, target::ICData::ic_data_offset()));
+  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
   __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
@@ -2781,7 +2781,7 @@ void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ ldr(R8, FieldAddress(R9, target::ICData::ic_data_offset()));
+  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
   __ ldr(R4, FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
   __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
