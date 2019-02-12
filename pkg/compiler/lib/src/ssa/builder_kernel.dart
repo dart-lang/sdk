@@ -1106,7 +1106,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       inputs.add(graph.explicitReceiverParameter);
     }
     for (Local local in parameters.keys) {
-      inputs.add(localsHandler.readLocal(local));
+      if (!elidedParameters.contains(local)) {
+        inputs.add(localsHandler.readLocal(local));
+      }
     }
     for (Local local in functionTypeParameterLocals) {
       inputs.add(localsHandler.readLocal(local));

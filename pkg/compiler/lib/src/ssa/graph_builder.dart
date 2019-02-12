@@ -156,6 +156,7 @@ abstract class GraphBuilder {
   HLocalValue lastAddedParameter;
 
   Map<Local, HInstruction> parameters = <Local, HInstruction>{};
+  Set<Local> elidedParameters;
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();

@@ -214,6 +214,7 @@ class LocalsHandler {
       builder.parameters[local] = parameter;
       directLocals[local] = parameter;
     });
+    builder.elidedParameters = elidedParameters;
 
     enterScope(scopeData, sourceInformation,
         forGenerativeConstructorBody: isGenerativeConstructorBody);
