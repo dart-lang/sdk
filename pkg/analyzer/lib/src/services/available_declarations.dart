@@ -90,6 +90,7 @@ enum DeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
   ENUM,
+  ENUM_CONSTANT,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,
@@ -698,6 +699,9 @@ class RelevanceTags {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
         var name = declaration.name;
         return <String>['$uriStr::$name'];
+      case DeclarationKind.ENUM_CONSTANT:
+        var name2 = declaration.name2;
+        return <String>['$uriStr::$name2'];
       default:
         return null;
     }
@@ -777,6 +781,8 @@ class _DeclarationStorage {
         return DeclarationKind.CLASS_TYPE_ALIAS;
       case idl.AvailableDeclarationKind.ENUM:
         return DeclarationKind.ENUM;
+      case idl.AvailableDeclarationKind.ENUM_CONSTANT:
+        return DeclarationKind.ENUM_CONSTANT;
       case idl.AvailableDeclarationKind.FUNCTION:
         return DeclarationKind.FUNCTION;
       case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
@@ -802,6 +808,8 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
       case DeclarationKind.ENUM:
         return idl.AvailableDeclarationKind.ENUM;
+      case DeclarationKind.ENUM_CONSTANT:
+        return idl.AvailableDeclarationKind.ENUM_CONSTANT;
       case DeclarationKind.FUNCTION:
         return idl.AvailableDeclarationKind.FUNCTION;
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
@@ -892,7 +900,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 4;
+  static const int DATA_VERSION = 5;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1052,16 +1060,28 @@ class _File {
 
     var lineInfo = unit.lineInfo;
 
+    String docComplete = null;
+    String docSummary = null;
+
+    void setDartDoc(AnnotatedNode node) {
+      if (node.documentationComment != null) {
+        var rawText = getCommentNodeRawText(node.documentationComment);
+        docComplete = getDartDocPlainText(rawText);
+        docSummary = getDartDocSummary(docComplete);
+      } else {
+        docComplete = null;
+        docSummary = null;
+      }
+    }
+
     void addDeclaration({
-      @required String docComplete,
-      @required String docSummary,
       bool isAbstract = false,
       bool isConst = false,
       bool isDeprecated = false,
       bool isFinal = false,
       @required DeclarationKind kind,
       @required Identifier name,
-      String name2,
+      Identifier name2,
       String parameters,
       List<String> parameterNames,
       List<String> parameterTypes,
@@ -1084,7 +1104,7 @@ class _File {
           locationOffset: locationOffset,
           locationPath: path,
           name: name.name,
-          name2: name2,
+          name2: name2?.name,
           locationStartColumn: lineLocation.columnNumber,
           locationStartLine: lineLocation.lineNumber,
           parameters: parameters,
@@ -1099,20 +1119,11 @@ class _File {
     }
 
     for (var node in unit.declarations) {
-      String docComplete = null;
-      String docSummary = null;
-      if (node.documentationComment != null) {
-        var rawText = getCommentNodeRawText(node.documentationComment);
-        docComplete = getDartDocPlainText(rawText);
-        docSummary = getDartDocSummary(docComplete);
-      }
-
+      setDartDoc(node);
       var isDeprecated = _hasDeprecatedAnnotation(node);
 
       if (node is ClassDeclaration) {
         addDeclaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
           isAbstract: node.isAbstract,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
@@ -1120,27 +1131,31 @@ class _File {
         );
       } else if (node is ClassTypeAlias) {
         addDeclaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS_TYPE_ALIAS,
           name: node.name,
         );
       } else if (node is EnumDeclaration) {
         addDeclaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
           name: node.name,
         );
+        for (var constant in node.constants) {
+          setDartDoc(constant);
+          var isDeprecated = _hasDeprecatedAnnotation(constant);
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.ENUM_CONSTANT,
+            name: constant.name,
+            name2: node.name,
+          );
+        }
       } else if (node is FunctionDeclaration) {
         var functionExpression = node.functionExpression;
         var parameters = functionExpression.parameters;
         if (node.isGetter) {
           addDeclaration(
-            docComplete: docComplete,
-            docSummary: docSummary,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.GETTER,
             name: node.name,
@@ -1148,8 +1163,6 @@ class _File {
           );
         } else if (node.isSetter) {
           addDeclaration(
-            docComplete: docComplete,
-            docSummary: docSummary,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.SETTER,
             name: node.name,
@@ -1161,8 +1174,6 @@ class _File {
           );
         } else {
           addDeclaration(
-            docComplete: docComplete,
-            docSummary: docSummary,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.FUNCTION,
             name: node.name,
@@ -1179,8 +1190,6 @@ class _File {
         var functionType = node.functionType;
         var parameters = functionType.parameters;
         addDeclaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
           name: node.name,
@@ -1193,8 +1202,6 @@ class _File {
         );
       } else if (node is MixinDeclaration) {
         addDeclaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.MIXIN,
           name: node.name,
@@ -1204,8 +1211,6 @@ class _File {
         var isFinal = node.variables.isFinal;
         for (var variable in node.variables.variables) {
           addDeclaration(
-            docComplete: docComplete,
-            docSummary: docSummary,
             isConst: isConst,
             isDeprecated: isDeprecated,
             isFinal: isFinal,

@@ -360,6 +360,7 @@ enum AvailableDeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
   ENUM,
+  ENUM_CONSTANT,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,

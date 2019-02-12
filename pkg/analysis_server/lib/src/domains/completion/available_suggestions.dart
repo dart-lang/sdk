@@ -128,6 +128,8 @@ protocol.ElementKind _protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.CLASS_TYPE_ALIAS;
     case DeclarationKind.ENUM:
       return protocol.ElementKind.ENUM;
+    case DeclarationKind.ENUM_CONSTANT:
+      return protocol.ElementKind.ENUM_CONSTANT;
     case DeclarationKind.FUNCTION:
       return protocol.ElementKind.FUNCTION;
     case DeclarationKind.FUNCTION_TYPE_ALIAS:

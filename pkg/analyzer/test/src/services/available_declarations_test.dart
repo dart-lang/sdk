@@ -846,6 +846,51 @@ enum C {v}
     );
   }
 
+  test_ENUM_CONSTANT() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+enum MyEnum {
+  a,
+
+  @deprecated
+  b,
+
+  /// aaa
+  ///
+  /// bbb bbb
+  c
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      library,
+      'a',
+      DeclarationKind.ENUM_CONSTANT,
+      name2: 'MyEnum',
+      relevanceTags: ['package:test/test.dart::MyEnum'],
+    );
+    _assertDeclaration(
+      library,
+      'b',
+      DeclarationKind.ENUM_CONSTANT,
+      isDeprecated: true,
+      name2: 'MyEnum',
+      relevanceTags: ['package:test/test.dart::MyEnum'],
+    );
+    _assertDeclaration(
+      library,
+      'c',
+      DeclarationKind.ENUM_CONSTANT,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      name2: 'MyEnum',
+      relevanceTags: ['package:test/test.dart::MyEnum'],
+    );
+  }
+
   test_FUNCTION() async {
     newFile('/home/test/lib/test.dart', content: r'''
 void a() {}
