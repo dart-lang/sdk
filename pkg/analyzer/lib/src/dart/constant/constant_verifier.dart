@@ -103,7 +103,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
       _validateConstructorInitializers(node);
-      _validateFieldInitializers(node.parent as ClassDeclaration, node);
+      _validateFieldInitializers(node.parent, node);
     }
     _validateDefaultValues(node.parameters);
     super.visitConstructorDeclaration(node);
@@ -548,8 +548,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///
   /// @param classDeclaration the class which should be validated
   /// @param errorSite the site at which errors should be reported.
-  void _validateFieldInitializers(
-      ClassDeclaration classDeclaration, ConstructorDeclaration errorSite) {
+  void _validateFieldInitializers(ClassOrMixinDeclaration classDeclaration,
+      ConstructorDeclaration errorSite) {
     NodeList<ClassMember> members = classDeclaration.members;
     for (ClassMember member in members) {
       if (member is FieldDeclaration && !member.isStatic) {
