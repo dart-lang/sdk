@@ -5,16 +5,7 @@
 library fasta.kernel_constants;
 
 import 'package:kernel/ast.dart'
-    show
-        Constant,
-        DartType,
-        IntConstant,
-        Library,
-        ListConstant,
-        MapConstant,
-        Member,
-        Procedure,
-        TreeNode;
+    show Constant, DartType, IntConstant, Library, Member, Procedure, TreeNode;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -189,10 +180,4 @@ class KernelConstantErrorReporter extends ErrorReporter {
   }
 }
 
-class KernelConstantsBackend implements ConstantsBackend {
-  @override
-  Constant lowerListConstant(ListConstant constant) => constant;
-
-  @override
-  Constant lowerMapConstant(MapConstant constant) => constant;
-}
+class KernelConstantsBackend extends ConstantsBackend {}

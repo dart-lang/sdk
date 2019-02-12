@@ -402,7 +402,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.coreTypes, this.enableAsserts, this.errorReporter)
       : canonicalizationCache = <Constant, Constant>{},
-        nodeCache = <Node, Constant>{};
+        nodeCache = <Node, Constant>{},
+        env = new EvaluationEnvironment();
 
   /// Evaluates [node] and possibly cache the evaluation result.
   Constant evaluate(Expression node) {
@@ -509,8 +510,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       entries[i] = node.expressions[i].accept(this);
     }
     final DartType typeArgument = evaluateDartType(node, node.typeArgument);
-    final ListConstant listConstant = new ListConstant(typeArgument, entries);
-    return canonicalize(backend.lowerListConstant(listConstant));
+    return canonicalize(new ListConstant(typeArgument, entries));
   }
 
   visitMapLiteral(MapLiteral node) {
@@ -535,9 +535,7 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     final DartType keyType = evaluateDartType(node, node.keyType);
     final DartType valueType = evaluateDartType(node, node.valueType);
-    final MapConstant mapConstant =
-        new MapConstant(keyType, valueType, entries);
-    return canonicalize(backend.lowerMapConstant(mapConstant));
+    return canonicalize(new MapConstant(keyType, valueType, entries));
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -555,6 +553,12 @@ class ConstantEvaluator extends RecursiveVisitor {
     if (constructor.function.body != null &&
         constructor.function.body is! EmptyStatement) {
       throw 'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".';
+    }
+    if (constructor.isInExternalLibrary && constructor.initializers.isEmpty) {
+      // The constructor is unavailable due to separate compilation.
+      return new UnevaluatedConstant(new ConstructorInvocation(
+          constructor, unevaluatedArguments(node.arguments),
+          isConst: true));
     }
     if (klass.isAbstract) {
       throw 'Constructor "$node" belongs to abstract class "${klass}".';
@@ -1111,6 +1115,10 @@ class ConstantEvaluator extends RecursiveVisitor {
       final Member target = node.target;
       if (target is Field) {
         if (target.isConst) {
+          if (target.isInExternalLibrary && target.initializer == null) {
+            // The variable is unavailable due to separate compilation.
+            return new UnevaluatedConstant(node);
+          }
           return runInsideContext(target, () {
             return _evaluateSubexpression(target.initializer);
           });
@@ -1201,17 +1209,9 @@ class ConstantEvaluator extends RecursiveVisitor {
           // TODO(askesc): Give more meaningful error message if name is null.
         } else {
           // Leave environment constant unevaluated.
-          for (int i = 0; i < arguments.positional.length; ++i) {
-            Constant constant = arguments.positional[i].accept(this);
-            arguments.positional[i] = constant.asExpression()
-              ..parent = arguments;
-          }
-          for (int i = 0; i < arguments.named.length; ++i) {
-            Constant constant = arguments.named[i].value.accept(this);
-            arguments.named[i].value = constant.asExpression()
-              ..parent = arguments;
-          }
-          return new UnevaluatedConstant(node);
+          return new UnevaluatedConstant(new StaticInvocation(
+              target, unevaluatedArguments(arguments),
+              isConst: true));
         }
       }
     } else if (target.name.name == 'identical') {
@@ -1327,7 +1327,23 @@ class ConstantEvaluator extends RecursiveVisitor {
     return named;
   }
 
-  canonicalize(Constant constant) {
+  Arguments unevaluatedArguments(Arguments arguments) {
+    final positional = new List<Expression>(arguments.positional.length);
+    final named = new List<NamedExpression>(arguments.named.length);
+    for (int i = 0; i < arguments.positional.length; ++i) {
+      Constant constant = arguments.positional[i].accept(this);
+      positional[i] = constant.asExpression();
+    }
+    for (int i = 0; i < arguments.named.length; ++i) {
+      NamedExpression arg = arguments.named[i];
+      Constant constant = arg.value.accept(this);
+      named[i] = new NamedExpression(arg.name, constant.asExpression());
+    }
+    return new Arguments(positional, named: named, types: arguments.types);
+  }
+
+  Constant canonicalize(Constant constant) {
+    constant = backend.lowerConstant(constant);
     return canonicalizationCache.putIfAbsent(constant, () => constant);
   }
 
@@ -1351,7 +1367,10 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
   }
 
-  evaluateBinaryNumericOperation(String op, num a, num b, TreeNode node) {
+  Constant evaluateBinaryNumericOperation(
+      String op, num a, num b, TreeNode node) {
+    a = backend.prepareNumericOperand(a);
+    b = backend.prepareNumericOperand(b);
     num result;
     switch (op) {
       case '+':
@@ -1473,9 +1492,16 @@ class EvaluationEnvironment {
   }
 }
 
-abstract class ConstantsBackend {
-  Constant lowerListConstant(ListConstant constant);
-  Constant lowerMapConstant(MapConstant constant);
+// Backend specific constant evaluation behavior
+class ConstantsBackend {
+  /// Transformation of constants prior to canonicalization, e.g. to change the
+  /// representation of certain kinds of constants, or to implement specific
+  /// number semantics.
+  Constant lowerConstant(Constant constant) => constant;
+
+  /// Transformation of numeric operands prior to a binary operation,
+  /// e.g. to implement specific number semantics.
+  num prepareNumericOperand(num operand) => operand;
 }
 
 // Used as control-flow to abort the current evaluation.
