@@ -3266,12 +3266,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
         // Visit named arguments in parameter-position order, selecting provided
         // or default value.
-        // TODO(sra): Ensure the stored order is canonical so we don't have to
-        // sort. The old builder uses CallStructure.makeArgumentList which
-        // depends on the old element model.
-        var namedParameters = target.namedParameters.toList()
-          ..sort((ir.VariableDeclaration a, ir.VariableDeclaration b) =>
-              a.name.compareTo(b.name));
+        var namedParameters = target.namedParameters.toList();
+        namedParameters.sort(nativeOrdering);
         for (ir.VariableDeclaration parameter in namedParameters) {
           HInstruction value = namedValues[parameter.name];
           values.add(value);
@@ -4363,12 +4359,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Factory constructor that is syntactic sugar for creating a JavaScript
       // object literal.
       ConstructorEntity constructor = element;
-      ParameterStructure params = constructor.parameterStructure;
       int i = 0;
       int positions = 0;
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
-      params.namedParameters.forEach((String parameterName) {
+
+      // Note: we don't use `constructor.parameterStructure` here because
+      // we don't elide parameters to js-interop external static targets
+      // (including factory constructors.)
+      // TODO(johnniwinther): can we elide those parameters? This should be
+      // consistent with what we do with instance methods.
+      ir.Procedure node = _elementMap.getMemberDefinition(constructor).node;
+      List<ir.VariableDeclaration> namedParameters =
+          node.function.namedParameters.toList();
+      namedParameters.sort(nativeOrdering);
+      for (ir.VariableDeclaration variable in namedParameters) {
+        String parameterName = variable.name;
         // TODO(jacobr): consider throwing if parameter names do not match
         // names of properties in the class.
         HInstruction argument = arguments[i];
@@ -4378,7 +4384,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
-      });
+      }
       var codeTemplate =
           new js.Template(null, js.objectLiteral(parameterNameMap));
 
