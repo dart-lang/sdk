@@ -1288,9 +1288,9 @@
         "analyzer-linux-release",
         "analyzer-mac-release",
         "analyzer-win-release",
-        "analyzer-linux-release-analyzer",
-        "analyzer-mac-release-analyzer",
-        "analyzer-win-release-analyzer"
+        "analyzer-linux-release-analyzer-stable",
+        "analyzer-mac-release-analyzer-stable",
+        "analyzer-win-release-analyzer-stable"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -1357,7 +1357,7 @@
     {
       "builders": [
         "analyzer-analysis-server-linux",
-        "analyzer-analysis-server-linux-analyzer"
+        "analyzer-analysis-server-linux-analyzer-stable"
       ],
       "meta": {
         "description": "Analyze analyzer related packages."
@@ -1630,7 +1630,7 @@
     {
       "builders": [
         "flutter-analyze",
-        "flutter-analyze-analyzer"
+        "flutter-analyze-analyzer-stable"
       ],
       "meta": {
         "description": "This configuration is used for analyzing flutter."
