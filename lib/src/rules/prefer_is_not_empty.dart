@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart'
     show
         AstNode,
+        ParenthesizedExpression,
         PrefixExpression,
         PrefixedIdentifier,
         PropertyAccess,
@@ -90,17 +91,20 @@ class _Visitor extends SimpleAstVisitor<void> {
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
     }
-    // Should be in PrefixExpression.
-    if (isEmptyAccess.parent is! PrefixExpression) {
-      return;
-    }
-    PrefixExpression prefixExpression =
-        isEmptyAccess.parent as PrefixExpression;
-    // Should be !
-    if (prefixExpression.operator.type != TokenType.BANG) {
-      return;
+
+    // Walk up any parentheses above the isEmpty / isNotEmpty.
+    AstNode isEmptyParent = isEmptyAccess.parent;
+    while (isEmptyParent is ParenthesizedExpression) {
+      isEmptyParent = isEmptyParent.parent;
     }
 
-    rule.reportLint(prefixExpression);
+    // Should be in PrefixExpression.
+    if (isEmptyParent is PrefixExpression) {
+      // Should be !
+      if (isEmptyParent.operator.type != TokenType.BANG) {
+        return;
+      }
+      rule.reportLint(isEmptyParent);
+    }
   }
 }
