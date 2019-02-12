@@ -17,6 +17,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/static_type_exactness_state.h"
 #include "vm/token_position.h"
 
 namespace dart {

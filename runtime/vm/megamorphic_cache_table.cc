@@ -53,9 +53,9 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // The miss handler for a class ID not found in the table is invoked as a
   // normal Dart function.
   ObjectPoolBuilder object_pool_builder;
-  const Code& code = Code::Handle(
-      StubCode::Generate("_stub_MegamorphicMiss", &object_pool_builder,
-                         StubCode::GenerateMegamorphicMissStub));
+  const Code& code = Code::Handle(StubCode::Generate(
+      "_stub_MegamorphicMiss", &object_pool_builder,
+      compiler::StubCodeCompiler::GenerateMegamorphicMissStub));
 
   const auto& object_pool =
       ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
@@ -92,7 +92,8 @@ void MegamorphicCacheTable::ReInitMissHandlerCode(Isolate* isolate,
   ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
 
   const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", wrapper, StubCode::GenerateMegamorphicMissStub));
+      "_stub_MegamorphicMiss", wrapper,
+      compiler::StubCodeCompiler::GenerateMegamorphicMissStub));
   code.set_exception_handlers(Object::empty_exception_handlers());
 
   auto object_store = isolate->object_store();
