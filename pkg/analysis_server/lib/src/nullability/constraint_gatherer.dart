@@ -189,7 +189,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var defaultValue = node.defaultValue;
     if (defaultValue == null) {
-      _recordFact(getOrComputeElementType(node.declaredElement).nullable);
+      if (node.declaredElement.isOptionalPositional ||
+          assumptions.namedNoDefaultParameterHeuristic ==
+              NamedNoDefaultParameterHeuristic.assumeNullable) {
+        _recordFact(getOrComputeElementType(node.declaredElement).nullable);
+      } else {
+        assert(assumptions.namedNoDefaultParameterHeuristic ==
+            NamedNoDefaultParameterHeuristic.assumeRequired);
+      }
     } else {
       _handleAssignment(
           getOrComputeElementType(node.declaredElement), defaultValue);
@@ -277,16 +284,24 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): substitute if necessary
     var arguments = node.argumentList.arguments;
     int i = 0;
+    var suppliedNamedParameters = Set<String>();
     for (var expression in arguments) {
       if (expression is NamedExpression) {
-        var parameterType =
-            calleeType.namedParameters[expression.name.label.name];
+        var name = expression.name.label.name;
+        var parameterType = calleeType.namedParameters[name];
         assert(parameterType != null); // TODO(paulberry)
         _handleAssignment(parameterType, expression.expression);
+        suppliedNamedParameters.add(name);
       } else {
         assert(calleeType.positionalParameters.length > i); // TODO(paulberry)
         _handleAssignment(calleeType.positionalParameters[i++], expression);
       }
+    }
+    // Any parameters not supplied must be optional.
+    for (var entry in calleeType.namedParameterOptionalVariables.entries) {
+      assert(entry.value != null);
+      if (suppliedNamedParameters.contains(entry.key)) continue;
+      _recordFact(entry.value);
     }
     return calleeType.returnType;
   }

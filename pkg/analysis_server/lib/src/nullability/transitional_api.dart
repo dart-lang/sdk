@@ -142,6 +142,18 @@ class Modification {
   Modification(this.location, this.insert);
 }
 
+/// Enum representing the possible heuristics for handling named parameters with
+/// no default value.
+enum NamedNoDefaultParameterHeuristic {
+  /// Assume that the parameter should be considered nullable, unless the user
+  /// has explicitly marked it as `@required`.
+  assumeNullable,
+
+  /// Assume that the parameter should be considered required, unless the user
+  /// has explicitly marked it as nullable.
+  assumeRequired,
+}
+
 /// Transitional migration API.
 ///
 /// Usage: pass each input source file to [prepareInput].  Then pass each input
@@ -199,18 +211,45 @@ class NullabilityMigration {
 
 /// Assumptions affecting the behavior of the nullability migration tool.
 ///
-/// These options generally reflect design decisions that have not yet been\
+/// These options generally reflect design decisions that have not yet been
 /// made.  They don't reflect behavioral differences we would want to expose to
 /// the user.
+///
+/// TODO(paulberry): hardcode these assumptions once decisions have been made.
 class NullabilityMigrationAssumptions {
   /// Handling of default parameters.
-  ///
-  /// TODO(paulberry): hardcode this once a language decision has been made.
   final DefaultParameterHandling defaultParameterHandling;
+
+  /// Heuristic for handling named parameters with no default value.
+  final NamedNoDefaultParameterHeuristic namedNoDefaultParameterHeuristic;
 
   const NullabilityMigrationAssumptions(
       {this.defaultParameterHandling:
-          DefaultParameterHandling.option2_addRequiredNamedParameters});
+          DefaultParameterHandling.option2_addRequiredNamedParameters,
+      this.namedNoDefaultParameterHeuristic:
+          NamedNoDefaultParameterHeuristic.assumeRequired});
+}
+
+/// Records information about the possible addition of a `@required` annotation
+/// to the source code.
+class PotentiallyAddRequired extends PotentialModification {
+  @override
+  final Source source;
+
+  final ConstraintVariable _optionalVariable;
+
+  final int _offset;
+
+  PotentiallyAddRequired(
+      this.source, DefaultFormalParameter parameter, this._optionalVariable)
+      : _offset = parameter.offset;
+
+  @override
+  bool get isEmpty => _optionalVariable.value;
+
+  @override
+  Iterable<Modification> get modifications =>
+      isEmpty ? const [] : [Modification(_offset, '@required ')];
 }
 
 /// Interface used by data structures representing potential modifications to
@@ -260,6 +299,13 @@ class Variables implements VariableRecorder, VariableRepository {
   @override
   void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
     _potentialModifications.add(checks);
+  }
+
+  @override
+  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
+      ConstraintVariable variable) {
+    _potentialModifications
+        .add(PotentiallyAddRequired(source, parameter, variable));
   }
 }
 

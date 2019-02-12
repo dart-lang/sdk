@@ -55,6 +55,10 @@ class FindNode {
     return _node(search, (n) => n is ConstructorDeclaration);
   }
 
+  DefaultFormalParameter defaultParameter(String search) {
+    return _node(search, (n) => n is DefaultFormalParameter);
+  }
+
   ExportDirective export(String search) {
     return _node(search, (n) => n is ExportDirective);
   }

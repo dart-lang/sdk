@@ -14,10 +14,14 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
 export 'package:analysis_server/src/nullability/transitional_api.dart'
-    show NullabilityMigrationAssumptions;
+    show NamedNoDefaultParameterHeuristic, NullabilityMigrationAssumptions;
 
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
+  /// A formal parameter needs to have a required annotation added.
+  static const addRequired =
+      const NullabilityFixKind._(appliedMessage: 'Add a required annotation');
+
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixKind._(
     appliedMessage: 'Added a null check to an expression',
@@ -139,6 +143,8 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
       kind = potentialModification.discard.keepFalse.value
           ? NullabilityFixKind.discardThen
           : NullabilityFixKind.discardElse;
+    } else if (potentialModification is analyzer.PotentiallyAddRequired) {
+      kind = NullabilityFixKind.addRequired;
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }

@@ -68,10 +68,13 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
 
   /// Verifies that migraiton of the single file with the given [content]
   /// produces the [expected] output.
-  Future<void> _checkSingleFileChanges(String content, String expected) async {
+  Future<void> _checkSingleFileChanges(String content, String expected,
+      {NullabilityMigrationAssumptions assumptions:
+          const NullabilityMigrationAssumptions()}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     await _checkMultipleFileChanges(
-        {sourcePath: content}, {sourcePath: expected});
+        {sourcePath: content}, {sourcePath: expected},
+        assumptions: assumptions);
   }
 }
 
@@ -233,7 +236,7 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_unused_option2() async {
+  test_named_parameter_no_default_unused_option2_assume_nullable() async {
     var content = '''
 void f({String s}) {}
 main() {
@@ -246,7 +249,67 @@ main() {
   f();
 }
 ''';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
+  test_named_parameter_no_default_unused_option2_assume_required() async {
+    var content = '''
+void f({String s}) {}
+main() {
+  f();
+}
+''';
+    var expected = '''
+void f({String? s}) {}
+main() {
+  f();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
+  test_named_parameter_no_default_used_non_null_option2_assume_nullable() async {
+    var content = '''
+void f({String s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    var expected = '''
+void f({String? s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
+  test_named_parameter_no_default_used_non_null_option2_assume_required() async {
+    var content = '''
+void f({String s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    var expected = '''
+void f({@required String s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
   }
 
   test_named_parameter_no_default_used_null_option2() async {
@@ -265,23 +328,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_used_non_null_option2_assume_nullable() async {
-    var content = '''
-void f({String s}) {}
-main() {
-  f(s: 'x');
-}
-''';
-    var expected = '''
-void f({String? s}) {}
-main() {
-  f(s: 'x');
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  test_named_parameter_with_default_unused_option2() async {
+  test_named_parameter_with_non_null_default_unused_option2() async {
     var content = '''
 void f({String s: 'foo'}) {}
 main() {
@@ -297,7 +344,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_with_default_used_non_null_option2() async {
+  test_named_parameter_with_non_null_default_used_non_null_option2() async {
     var content = '''
 void f({String s: 'foo'}) {}
 main() {
@@ -313,7 +360,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_with_default_used_null_option2() async {
+  test_named_parameter_with_non_null_default_used_null_option2() async {
     var content = '''
 void f({String s: 'foo'}) {}
 main() {
@@ -324,6 +371,22 @@ main() {
 void f({String? s: 'foo'}) {}
 main() {
   f(s: null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_with_null_default_unused_option2() async {
+    var content = '''
+void f({String s: null}) {}
+main() {
+  f();
+}
+''';
+    var expected = '''
+void f({String? s: null}) {}
+main() {
+  f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);

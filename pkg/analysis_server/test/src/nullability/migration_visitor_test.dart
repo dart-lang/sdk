@@ -225,6 +225,45 @@ int/*1*/ f(int/*2*/ i) => i;
         decoratedTypeAnnotation('int/*1*/').nullable);
   }
 
+  test_functionDeclaration_parameter_named_default_notNull() async {
+    await analyze('''
+void f({int i = 1}) {}
+''');
+
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_functionDeclaration_parameter_named_default_null() async {
+    await analyze('''
+void f({int i = null}) {}
+''');
+
+    assertConstraint(
+        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_functionDeclaration_parameter_named_no_default_assume_nullable() async {
+    await analyze('''
+void f({int i}) {}
+''',
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+
+    assertConstraint([], decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_functionDeclaration_parameter_named_no_default_assume_required() async {
+    await analyze('''
+void f({int i}) {}
+''',
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
   test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
     await analyze('''
 void f([int i = 1]) {}
@@ -246,6 +285,19 @@ void f([int i = null]) {}
     await analyze('''
 void f([int i]) {}
 ''');
+
+    assertConstraint([], decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
+    // Note: the `assumeRequired` behavior shouldn't affect the behavior here
+    // because it only affects named parameters.
+    await analyze('''
+void f([int i]) {}
+''',
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
 
     assertConstraint([], decoratedTypeAnnotation('int').nullable);
   }
@@ -272,6 +324,17 @@ void g(int j) {
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
     assertConstraint([nullable_j], nullable_i);
+  }
+
+  test_functionInvocation_parameter_named_optional() async {
+    await analyze('''
+void f({int i}) {}
+void g() {
+  f();
+}
+''');
+    var optional_i = possiblyOptionalParameter('int i');
+    assertConstraint([], optional_i);
   }
 
   test_functionInvocation_parameter_null() async {
@@ -562,14 +625,29 @@ void f(x) {}
     expect(decoratedType.nullable, same(ConstraintVariable.always));
   }
 
-  test_topLevelFunction_parameterType_named() async {
+  test_topLevelFunction_parameterType_named_no_default() async {
+    await analyze('''
+void f({String s}) {}
+''');
+    var decoratedType = decoratedTypeAnnotation('String');
+    var functionType = decoratedFunctionType('f');
+    expect(functionType.namedParameters['s'], same(decoratedType));
+    expect(decoratedType.nullable, isNotNull);
+    expect(decoratedType.nullable, isNot(same(ConstraintVariable.always)));
+    expect(functionType.namedParameterOptionalVariables['s'],
+        same(decoratedType.nullable));
+  }
+
+  test_topLevelFunction_parameterType_named_with_default() async {
     await analyze('''
 void f({String s: 'x'}) {}
 ''');
     var decoratedType = decoratedTypeAnnotation('String');
-    expect(
-        decoratedFunctionType('f').namedParameters['s'], same(decoratedType));
+    var functionType = decoratedFunctionType('f');
+    expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.nullable, isNotNull);
+    expect(functionType.namedParameterOptionalVariables['s'],
+        same(ConstraintVariable.always));
   }
 
   test_topLevelFunction_parameterType_positionalOptional() async {
@@ -634,6 +712,11 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     return _variables.decoratedTypeAnnotation(findNode.typeAnnotation(text));
   }
 
+  ConstraintVariable possiblyOptionalParameter(String text) {
+    return _variables
+        .possiblyOptionalParameter(findNode.defaultParameter(text));
+  }
+
   /// Gets the [ConditionalDiscard] information associated with the statement
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
@@ -696,13 +779,15 @@ class _MockConstraints implements Constraints {
 
 /// Mock representation of constraint variables.
 class _Variables extends Variables {
+  final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
+
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
   final _decoratedTypeAnnotations = <TypeAnnotation, DecoratedType>{};
 
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
-  final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
+  final _possiblyOptional = <DefaultFormalParameter, ConstraintVariable>{};
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>
@@ -719,6 +804,12 @@ class _Variables extends Variables {
   /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
       _decoratedTypeAnnotations[typeAnnotation];
+
+  /// Gets the [ConstraintVariable] associated with the possibility that
+  /// [parameter] may be optional.
+  ConstraintVariable possiblyOptionalParameter(
+          DefaultFormalParameter parameter) =>
+      _possiblyOptional[parameter];
 
   @override
   void recordConditionalDiscard(
@@ -741,6 +832,13 @@ class _Variables extends Variables {
   void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
     super.recordExpressionChecks(expression, checks);
     _expressionChecks[_normalizeExpression(expression)] = checks;
+  }
+
+  @override
+  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
+      ConstraintVariable variable) {
+    _possiblyOptional[parameter] = variable;
+    super.recordPossiblyOptional(source, parameter, variable);
   }
 
   /// Unwraps any parentheses surrounding [expression].
