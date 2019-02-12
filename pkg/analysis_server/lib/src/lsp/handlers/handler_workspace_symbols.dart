@@ -12,8 +12,6 @@ import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analyzer/source/line_info.dart';
-
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 class WorkspaceSymbolHandler
@@ -64,9 +62,6 @@ class WorkspaceSymbolHandler
     // Convert the file paths to something we can quickly index into since
     // we'll be looking things up by index a lot.
     final filePaths = filePathsHashSet.toList();
-    // We'll need line information to convert locations, so fetch
-    // them once and allow looking up using the file index.
-    final lineInfos = filePaths.map(server.getLineInfo).toList();
 
     // Map the results to SymbolInformations and flatten the list of lists.
     final symbols = declarations
@@ -74,7 +69,6 @@ class WorkspaceSymbolHandler
               declaration,
               clientSupportedSymbolKinds,
               filePaths,
-              lineInfos,
             ))
         .toList();
 
@@ -85,19 +79,28 @@ class WorkspaceSymbolHandler
     search.Declaration declaration,
     HashSet<SymbolKind> clientSupportedSymbolKinds,
     List<String> filePaths,
-    List<LineInfo> lineInfos,
   ) {
     final filePath = filePaths[declaration.fileIndex];
-    final lineInfo = lineInfos[declaration.fileIndex];
+
+    final kind = declarationKindToSymbolKind(
+      clientSupportedSymbolKinds,
+      declaration.kind,
+    );
+    final range = toRange(
+      declaration.lineInfo,
+      declaration.codeOffset,
+      declaration.codeLength,
+    );
+    final location = new Location(
+      Uri.file(filePath).toString(),
+      range,
+    );
+
     return new SymbolInformation(
         declaration.name,
-        declarationKindToSymbolKind(
-            clientSupportedSymbolKinds, declaration.kind),
+        kind,
         null, // We don't have easy access to isDeprecated here.
-        new Location(
-          Uri.file(filePath).toString(),
-          toRange(lineInfo, declaration.codeOffset, declaration.codeLength),
-        ),
+        location,
         declaration.className ?? declaration.mixinName);
   }
 }
