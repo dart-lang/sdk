@@ -56,4 +56,6 @@ void main() {
 
   Iterable iter = Iterable.empty(); // OK
   var sss = Set.from(iter); // OK
+
+  LinkedHashSet<String> sss1 = <int, LinkedHashSet<String>>{}.putIfAbsent(3, () => LinkedHashSet<String>()); // OK
 }
