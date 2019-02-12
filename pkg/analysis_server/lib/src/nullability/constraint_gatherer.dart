@@ -189,7 +189,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var defaultValue = node.defaultValue;
     if (defaultValue == null) {
-      if (node.declaredElement.isOptionalPositional ||
+      if (node.declaredElement.hasRequired) {
+        // Nothing to do; the implicit default value of `null` will never be
+        // reached.
+      } else if (node.declaredElement.isOptionalPositional ||
           assumptions.namedNoDefaultParameterHeuristic ==
               NamedNoDefaultParameterHeuristic.assumeNullable) {
         _recordFact(getOrComputeElementType(node.declaredElement).nullable);

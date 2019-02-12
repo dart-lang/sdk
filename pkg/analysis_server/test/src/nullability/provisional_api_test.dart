@@ -274,6 +274,55 @@ main() {
                 NamedNoDefaultParameterHeuristic.assumeRequired));
   }
 
+  test_named_parameter_no_default_unused_required_option2_assume_nullable() async {
+    // The `@required` annotation overrides the assumption of nullability.
+    // The call at `f()` is presumed to be in error.
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f();
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
+  test_named_parameter_no_default_unused_required_option2_assume_required() async {
+    // Since the `@required` annotation is already present, it is not added
+    // again.
+    // The call at `f()` is presumed to be in error.
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f();
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
   test_named_parameter_no_default_used_non_null_option2_assume_nullable() async {
     var content = '''
 void f({String s}) {}
@@ -312,6 +361,30 @@ main() {
                 NamedNoDefaultParameterHeuristic.assumeRequired));
   }
 
+  test_named_parameter_no_default_used_non_null_required_option2_assume_required() async {
+    // Even if we are using the "assumeRequired" heuristic, we should not add a
+    // duplicate `@required` annotation.
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
   test_named_parameter_no_default_used_null_option2() async {
     var content = '''
 void f({String s}) {}
@@ -326,6 +399,54 @@ main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_no_default_used_null_required_option2_assume_nullable() async {
+    // Explicitly passing `null` forces the parameter to be nullable even though
+    // it is required.
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f(s: null);
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({@required String? s}) {}
+main() {
+  f(s: null);
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
+  test_named_parameter_no_default_used_null_required_option2_assume_required() async {
+    // Explicitly passing `null` forces the parameter to be nullable even though
+    // it is required.
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+main() {
+  f(s: null);
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({@required String? s}) {}
+main() {
+  f(s: null);
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
   }
 
   test_named_parameter_with_non_null_default_unused_option2() async {

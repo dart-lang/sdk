@@ -58,14 +58,19 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
     ConstraintVariable optional;
-    if (node.defaultValue != null) {
+    if (node.declaredElement.hasRequired) {
+      optional = null;
+    } else if (node.defaultValue != null) {
       optional = ConstraintVariable.always;
     } else {
       optional = decoratedType.nullable;
       _variables.recordPossiblyOptional(_source, node, optional);
     }
-    _currentFunctionType
-        .namedParameterOptionalVariables[node.declaredElement.name] = optional;
+    if (optional != null) {
+      _currentFunctionType
+              .namedParameterOptionalVariables[node.declaredElement.name] =
+          optional;
+    }
     return null;
   }
 

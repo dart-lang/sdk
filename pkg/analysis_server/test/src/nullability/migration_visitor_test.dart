@@ -265,6 +265,32 @@ void f({int i}) {}
     assertNoConstraints(decoratedTypeAnnotation('int').nullable);
   }
 
+  test_functionDeclaration_parameter_named_no_default_required_assume_nullable() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void f({@required int i}) {}
+''',
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_functionDeclaration_parameter_named_no_default_required_assume_required() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void f({@required int i}) {}
+''',
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+
+    assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
   test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
     await analyze('''
 void f([int i = 1]) {}
@@ -327,7 +353,7 @@ void g(int j) {
     assertConstraint([nullable_j], nullable_i);
   }
 
-  test_functionInvocation_parameter_named_optional() async {
+  test_functionInvocation_parameter_named_missing() async {
     await analyze('''
 void f({int i}) {}
 void g() {
@@ -336,6 +362,23 @@ void g() {
 ''');
     var optional_i = possiblyOptionalParameter('int i');
     assertConstraint([], optional_i);
+  }
+
+  test_functionInvocation_parameter_named_missing_required() async {
+    addMetaPackage();
+    verifyNoTestUnitErrors = false;
+    await analyze('''
+import 'package:meta/meta.dart';
+void f({@required int i}) {}
+void g() {
+  f();
+}
+''');
+    // The call at `f()` is presumed to be in error; no constraint is recorded.
+    var optional_i = possiblyOptionalParameter('int i');
+    expect(optional_i, isNull);
+    var nullable_i = decoratedTypeAnnotation('int i').nullable;
+    assertNoConstraints(nullable_i);
   }
 
   test_functionInvocation_parameter_null() async {
@@ -636,6 +679,20 @@ void f({String s}) {}
     expect(decoratedType.nullable, isNot(same(ConstraintVariable.always)));
     expect(functionType.namedParameterOptionalVariables['s'],
         same(decoratedType.nullable));
+  }
+
+  test_topLevelFunction_parameterType_named_no_default_required() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+''');
+    var decoratedType = decoratedTypeAnnotation('String');
+    var functionType = decoratedFunctionType('f');
+    expect(functionType.namedParameters['s'], same(decoratedType));
+    expect(decoratedType.nullable, isNotNull);
+    expect(decoratedType.nullable, isNot(same(ConstraintVariable.always)));
+    expect(functionType.namedParameterOptionalVariables['s'], isNull);
   }
 
   test_topLevelFunction_parameterType_named_with_default() async {
