@@ -38,7 +38,7 @@ void main() {
   testPointerPointerNull();
   testPointerStoreNull();
   testSizeOf();
-  testPointerChain(1000);
+  testPointerChain(100);
   testTypeTest();
   testToString();
   testEquality();
