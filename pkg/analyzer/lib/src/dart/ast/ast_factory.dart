@@ -764,13 +764,13 @@ class AstFactoryImpl extends AstFactory {
   @deprecated
   @override
   MapLiteral2 mapLiteral2(
-          {Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> entries,
-          Token rightBracket}) =>
-      new MapLiteral2Impl(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket);
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> entries,
+      Token rightBracket}) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   MapLiteralEntry mapLiteralEntry(
@@ -932,13 +932,13 @@ class AstFactoryImpl extends AstFactory {
   @deprecated
   @override
   SetLiteral2 setLiteral2(
-          {Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> elements,
-          Token rightBracket}) =>
-      new SetLiteral2Impl(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket);
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket}) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   SetOrMapLiteral setOrMapLiteral(

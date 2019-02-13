@@ -785,12 +785,9 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @deprecated
   @override
-  MapLiteral2 visitMapLiteral2(MapLiteral2 node) => astFactory.mapLiteral2(
-      constKeyword: cloneToken(node.constKeyword),
-      typeArguments: cloneNode(node.typeArguments),
-      leftBracket: cloneToken(node.leftBracket),
-      entries: cloneNodeList(node.entries),
-      rightBracket: cloneToken(node.rightBracket));
+  MapLiteral2 visitMapLiteral2(MapLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -936,12 +933,9 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @deprecated
   @override
-  SetLiteral2 visitSetLiteral2(SetLiteral2 node) => astFactory.setLiteral2(
-      constKeyword: cloneToken(node.constKeyword),
-      typeArguments: cloneNode(node.typeArguments),
-      leftBracket: cloneToken(node.leftBracket),
-      elements: cloneNodeList(node.elements),
-      rightBracket: cloneToken(node.rightBracket));
+  SetLiteral2 visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) =>
@@ -2007,12 +2001,7 @@ class AstComparator implements AstVisitor<bool> {
   @deprecated
   @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    MapLiteral2 other = _other as MapLiteral2;
-    return isEqualTokens(node.constKeyword, other.constKeyword) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.entries, other.entries) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -2205,12 +2194,7 @@ class AstComparator implements AstVisitor<bool> {
   @deprecated
   @override
   bool visitSetLiteral2(SetLiteral2 node) {
-    SetLiteral2 other = _other as SetLiteral2;
-    return isEqualTokens(node.constKeyword, other.constKeyword) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements, other.elements) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -3340,12 +3324,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @deprecated
   @override
-  MapLiteral2 visitMapLiteral2(MapLiteral2 node) => astFactory.mapLiteral2(
-      constKeyword: _mapToken(node.constKeyword),
-      typeArguments: _cloneNode(node.typeArguments),
-      leftBracket: _mapToken(node.leftBracket),
-      entries: _cloneNodeList(node.entries),
-      rightBracket: _mapToken(node.rightBracket));
+  MapLiteral2 visitMapLiteral2(MapLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -3538,12 +3519,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @deprecated
   @override
-  SetLiteral2 visitSetLiteral2(SetLiteral2 node) => astFactory.setLiteral2(
-      constKeyword: _mapToken(node.constKeyword),
-      typeArguments: _cloneNode(node.typeArguments),
-      leftBracket: _mapToken(node.leftBracket),
-      elements: _cloneNodeList(node.elements),
-      rightBracket: _mapToken(node.rightBracket));
+  SetLiteral2 visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) {
@@ -4890,13 +4868,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @deprecated
   @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    if (identical(node.typeArguments, _oldNode)) {
-      (node as MapLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
-      return true;
-    } else if (_replaceInList(node.entries)) {
-      return true;
-    }
-    return visitNode(node);
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -5138,13 +5110,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @deprecated
   @override
   bool visitSetLiteral2(SetLiteral2 node) {
-    if (identical(node.typeArguments, _oldNode)) {
-      (node as SetLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
-      return true;
-    } else if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitNode(node);
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -6352,17 +6318,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   @deprecated
   @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    MapLiteral2 toNode = this._toNode as MapLiteral2;
-    if (_and(
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.entries, toNode.entries),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -6621,17 +6577,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   @deprecated
   @override
   bool visitSetLiteral2(SetLiteral2 node) {
-    SetLiteral2 toNode = this._toNode as SetLiteral2;
-    if (_and(
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements, toNode.elements),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -7948,11 +7894,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
-    _visitTokenWithSuffix(node.constKeyword, ' ');
-    _visitNode(node.typeArguments);
-    _writer.print('{');
-    _visitNodeListWithSeparator(node.entries, ', ');
-    _writer.print('}');
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -8134,11 +8076,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @deprecated
   @override
   void visitSetLiteral2(SetLiteral2 node) {
-    _visitTokenWithSuffix(node.constKeyword, ' ');
-    _visitNode(node.typeArguments);
-    _writer.print('{');
-    _visitNodeListWithSeparator(node.elements, ', ');
-    _writer.print('}');
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -8147,10 +8085,10 @@ class ToSourceVisitor implements AstVisitor<void> {
       _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
-    _visitNodeWithSuffix(node.typeArguments, " ");
-    _writer.print("{");
-    _visitNodeListWithSeparator(node.elements2, ", ");
-    _writer.print("}");
+    _visitNode(node.typeArguments);
+    _writer.print('{');
+    _visitNodeListWithSeparator(node.elements2, ', ');
+    _writer.print('}');
   }
 
   @override
@@ -9284,11 +9222,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNode(node.typeArguments);
-    sink.write('{');
-    safelyVisitNodeListWithSeparator(node.entries, ', ');
-    sink.write('}');
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -9467,20 +9401,16 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @deprecated
   @override
   void visitSetLiteral2(SetLiteral2 node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNode(node.typeArguments);
-    sink.write('{');
-    safelyVisitNodeListWithSeparator(node.elements, ', ');
-    sink.write('}');
+    throw new UnsupportedError('Not supported');
   }
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNode(node.typeArguments);
-    sink.write("{");
+    sink.write('{');
     safelyVisitNodeListWithSeparator(node.elements2, ', ');
-    sink.write("}");
+    sink.write('}');
   }
 
   @override

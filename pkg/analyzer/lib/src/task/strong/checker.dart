@@ -583,40 +583,6 @@ class CodeChecker extends RecursiveAstVisitor {
     super.visitMapLiteral(node);
   }
 
-  @deprecated
-  @override
-  void visitMapLiteral2(MapLiteral2 node) {
-    DartType keyType = DynamicTypeImpl.instance;
-    DartType valueType = DynamicTypeImpl.instance;
-    if (node.typeArguments != null) {
-      NodeList<TypeAnnotation> typeArguments = node.typeArguments.arguments;
-      if (typeArguments.length > 0) {
-        keyType = typeArguments[0].type;
-      }
-      if (typeArguments.length > 1) {
-        valueType = typeArguments[1].type;
-      }
-    } else {
-      DartType staticType = node.staticType;
-      if (staticType is InterfaceType) {
-        List<DartType> typeArguments = staticType.typeArguments;
-        if (typeArguments != null) {
-          if (typeArguments.length > 0) {
-            keyType = typeArguments[0];
-          }
-          if (typeArguments.length > 1) {
-            valueType = typeArguments[1];
-          }
-        }
-      }
-    }
-    NodeList<CollectionElement> entries = node.entries;
-    for (int i = 0; i < entries.length; i++) {
-      checkMapElement(entries[i], keyType, valueType);
-    }
-    super.visitMapLiteral2(node);
-  }
-
   @override
   visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
@@ -719,31 +685,6 @@ class CodeChecker extends RecursiveAstVisitor {
       checkArgument(elements[i], type);
     }
     super.visitSetLiteral(node);
-  }
-
-  @deprecated
-  @override
-  void visitSetLiteral2(SetLiteral2 node) {
-    DartType type = DynamicTypeImpl.instance;
-    if (node.typeArguments != null) {
-      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
-      if (targs.length > 0) {
-        type = targs[0].type;
-      }
-    } else {
-      DartType staticType = node.staticType;
-      if (staticType is InterfaceType) {
-        List<DartType> typeArguments = staticType.typeArguments;
-        if (typeArguments != null && typeArguments.length > 0) {
-          type = typeArguments[0];
-        }
-      }
-    }
-    NodeList<CollectionElement> elements = node.elements;
-    for (int i = 0; i < elements.length; i++) {
-      checkCollectionElement(elements[i], type);
-    }
-    super.visitSetLiteral2(node);
   }
 
   @override
@@ -1983,14 +1924,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
     }
   }
 
-  @deprecated
-  @override
-  visitMapLiteral2(MapLiteral2 node) {
-    if (node.typeArguments == null) {
-      super.visitMapLiteral2(node);
-    }
-  }
-
   @override
   visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
@@ -2031,14 +1964,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   visitSetLiteral(SetLiteral node) {
     if (node.typeArguments == null) {
       super.visitSetLiteral(node);
-    }
-  }
-
-  @deprecated
-  @override
-  visitSetLiteral2(SetLiteral2 node) {
-    if (node.typeArguments == null) {
-      super.visitSetLiteral2(node);
     }
   }
 

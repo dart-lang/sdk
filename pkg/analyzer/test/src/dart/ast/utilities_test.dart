@@ -5381,70 +5381,6 @@ class ToSourceVisitorTest extends EngineTestCase {
         ]));
   }
 
-  void test_visitMapLiteral2_complex() {
-    _assertSource(
-        "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
-        astFactory.mapLiteral2(
-            typeArguments: AstTestFactory.typeArgumentList([
-              AstTestFactory.typeName4('String'),
-              AstTestFactory.typeName4('String')
-            ]),
-            entries: [
-              AstTestFactory.mapLiteralEntry3('a', 'b'),
-              astFactory.forElement(
-                  forLoopParts: astFactory.forEachPartsWithIdentifier(
-                      identifier: AstTestFactory.identifier3('c'),
-                      iterable: AstTestFactory.identifier3('d')),
-                  body: AstTestFactory.mapLiteralEntry3('e', 'f')),
-              astFactory.ifElement(
-                  condition: AstTestFactory.identifier3('g'),
-                  thenElement: AstTestFactory.mapLiteralEntry3('h', 'i')),
-              astFactory.spreadElement(
-                  spreadOperator: TokenFactory.tokenFromType(
-                      TokenType.PERIOD_PERIOD_PERIOD),
-                  expression: astFactory.mapLiteral2(
-                      entries: [AstTestFactory.mapLiteralEntry3('j', 'k')]))
-            ]));
-  }
-
-  void test_visitMapLiteral2_withConst_withoutTypeArgs() {
-    _assertSource(
-        "const {'a' : 'b'}",
-        astFactory.mapLiteral2(
-            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-            entries: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
-  }
-
-  void test_visitMapLiteral2_withConst_withTypeArgs() {
-    _assertSource(
-        "const <String, String>{'a' : 'b'}",
-        astFactory.mapLiteral2(
-            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-            typeArguments: AstTestFactory.typeArgumentList([
-              AstTestFactory.typeName4('String'),
-              AstTestFactory.typeName4('String')
-            ]),
-            entries: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
-  }
-
-  void test_visitMapLiteral2_withoutConst_withoutTypeArgs() {
-    _assertSource(
-        "{'a' : 'b'}",
-        astFactory
-            .mapLiteral2(entries: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
-  }
-
-  void test_visitMapLiteral2_withoutConst_withTypeArgs() {
-    _assertSource(
-        "<String, String>{'a' : 'b'}",
-        astFactory.mapLiteral2(
-            typeArguments: AstTestFactory.typeArgumentList([
-              AstTestFactory.typeName4('String'),
-              AstTestFactory.typeName4('String')
-            ]),
-            entries: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
-  }
-
   void test_visitMapLiteral_const() {
     _assertSource("const {}", AstTestFactory.mapLiteral(Keyword.CONST, null));
   }
@@ -5814,10 +5750,74 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource(scriptTag, AstTestFactory.scriptTag(scriptTag));
   }
 
-  void test_visitSetLiteral2_complex() {
+  void test_visitSetOrMapLiteral_map_complex() {
+    _assertSource(
+        "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
+        astFactory.setOrMapLiteral(
+            typeArguments: AstTestFactory.typeArgumentList([
+              AstTestFactory.typeName4('String'),
+              AstTestFactory.typeName4('String')
+            ]),
+            elements: [
+              AstTestFactory.mapLiteralEntry3('a', 'b'),
+              astFactory.forElement(
+                  forLoopParts: astFactory.forEachPartsWithIdentifier(
+                      identifier: AstTestFactory.identifier3('c'),
+                      iterable: AstTestFactory.identifier3('d')),
+                  body: AstTestFactory.mapLiteralEntry3('e', 'f')),
+              astFactory.ifElement(
+                  condition: AstTestFactory.identifier3('g'),
+                  thenElement: AstTestFactory.mapLiteralEntry3('h', 'i')),
+              astFactory.spreadElement(
+                  spreadOperator: TokenFactory.tokenFromType(
+                      TokenType.PERIOD_PERIOD_PERIOD),
+                  expression: astFactory.setOrMapLiteral(
+                      elements: [AstTestFactory.mapLiteralEntry3('j', 'k')]))
+            ]));
+  }
+
+  void test_visitSetOrMapLiteral_map_withConst_withoutTypeArgs() {
+    _assertSource(
+        "const {'a' : 'b'}",
+        astFactory.setOrMapLiteral(
+            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+  }
+
+  void test_visitSetOrMapLiteral_map_withConst_withTypeArgs() {
+    _assertSource(
+        "const <String, String>{'a' : 'b'}",
+        astFactory.setOrMapLiteral(
+            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+            typeArguments: AstTestFactory.typeArgumentList([
+              AstTestFactory.typeName4('String'),
+              AstTestFactory.typeName4('String')
+            ]),
+            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+  }
+
+  void test_visitSetOrMapLiteral_map_withoutConst_withoutTypeArgs() {
+    _assertSource(
+        "{'a' : 'b'}",
+        astFactory.setOrMapLiteral(
+            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+  }
+
+  void test_visitSetOrMapLiteral_map_withoutConst_withTypeArgs() {
+    _assertSource(
+        "<String, String>{'a' : 'b'}",
+        astFactory.setOrMapLiteral(
+            typeArguments: AstTestFactory.typeArgumentList([
+              AstTestFactory.typeName4('String'),
+              AstTestFactory.typeName4('String')
+            ]),
+            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+  }
+
+  void test_visitSetOrMapLiteral_set_complex() {
     _assertSource(
         '<int>{0, for (e in l) 0, if (b) 1, ...[0]}',
-        astFactory.setLiteral2(
+        astFactory.setOrMapLiteral(
             typeArguments: AstTestFactory.typeArgumentList(
                 [AstTestFactory.typeName4('int')]),
             elements: [
@@ -5838,33 +5838,33 @@ class ToSourceVisitorTest extends EngineTestCase {
             ]));
   }
 
-  void test_visitSetLiteral2_withConst_withoutTypeArgs() {
+  void test_visitSetOrMapLiteral_set_withConst_withoutTypeArgs() {
     _assertSource(
         'const {0}',
-        astFactory.setLiteral2(
+        astFactory.setOrMapLiteral(
             constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
             elements: [AstTestFactory.integer(0)]));
   }
 
-  void test_visitSetLiteral2_withConst_withTypeArgs() {
+  void test_visitSetOrMapLiteral_set_withConst_withTypeArgs() {
     _assertSource(
         'const <int>{0}',
-        astFactory.setLiteral2(
+        astFactory.setOrMapLiteral(
             constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
             typeArguments: AstTestFactory.typeArgumentList(
                 [AstTestFactory.typeName4('int')]),
             elements: [AstTestFactory.integer(0)]));
   }
 
-  void test_visitSetLiteral2_withoutConst_withoutTypeArgs() {
-    _assertSource(
-        '{0}', astFactory.setLiteral2(elements: [AstTestFactory.integer(0)]));
+  void test_visitSetOrMapLiteral_set_withoutConst_withoutTypeArgs() {
+    _assertSource('{0}',
+        astFactory.setOrMapLiteral(elements: [AstTestFactory.integer(0)]));
   }
 
-  void test_visitSetLiteral2_withoutConst_withTypeArgs() {
+  void test_visitSetOrMapLiteral_set_withoutConst_withTypeArgs() {
     _assertSource(
         '<int>{0}',
-        astFactory.setLiteral2(
+        astFactory.setOrMapLiteral(
             typeArguments: AstTestFactory.typeArgumentList(
                 [AstTestFactory.typeName4('int')]),
             elements: [AstTestFactory.integer(0)]));

@@ -4717,55 +4717,6 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitMapLiteral(node);
   }
 
-  @deprecated
-  @override
-  void visitMapLiteral2(MapLiteral2 node) {
-    InterfaceType mapT;
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 2 && targs.any((t) => !t.isDynamic)) {
-        mapT = typeProvider.mapType.instantiate([targs[0], targs[1]]);
-      }
-    } else {
-      mapT = typeAnalyzer.inferMapType2(node, downwards: true);
-      if (mapT != null &&
-          node.typeArguments == null &&
-          node.entries.isEmpty &&
-          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
-          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
-        // The node is really an empty set literal with no type arguments, so
-        // don't try to visit the replaced map literal.
-        return;
-      }
-    }
-    if (mapT != null) {
-      DartType kType = mapT.typeArguments[0];
-      DartType vType = mapT.typeArguments[1];
-
-      void pushTypesDown(CollectionElement element) {
-        if (element is ForElement) {
-          pushTypesDown(element.body);
-        } else if (element is IfElement) {
-          pushTypesDown(element.thenElement);
-          pushTypesDown(element.elseElement);
-        } else if (element is MapLiteralEntry) {
-          InferenceContext.setType(element.key, kType);
-          InferenceContext.setType(element.value, vType);
-        } else if (element is SpreadElement) {
-          InferenceContext.setType(element.expression, mapT);
-        }
-      }
-
-      for (CollectionElement element in node.entries) {
-        pushTypesDown(element);
-      }
-      InferenceContext.setType(node, mapT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    super.visitMapLiteral2(node);
-  }
-
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
@@ -4924,33 +4875,6 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.clearType(node);
     }
     super.visitSetLiteral(node);
-  }
-
-  @deprecated
-  @override
-  void visitSetLiteral2(SetLiteral2 node) {
-    InterfaceType setT;
-
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (typeArguments.length == 1) {
-        DartType elementType = typeArguments.arguments[0].type;
-        if (!elementType.isDynamic) {
-          setT = typeProvider.setType.instantiate([elementType]);
-        }
-      }
-    } else {
-      setT = typeAnalyzer.inferSetType2(node, downwards: true);
-    }
-    if (setT != null) {
-      for (CollectionElement element in node.elements) {
-        _pushCollectionTypesDown(element, setT);
-      }
-      InferenceContext.setType(node, setT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    super.visitSetLiteral2(node);
   }
 
   @override

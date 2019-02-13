@@ -457,17 +457,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitLiteral(Literal node) => false;
 
-  @deprecated
-  @override
-  bool visitMapLiteral2(MapLiteral2 node) {
-    for (CollectionElement entry in node.entries) {
-      if (_nodeExits(entry)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @override
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     return _nodeExits(node.key) || _nodeExits(node.value);
@@ -525,17 +514,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitReturnStatement(ReturnStatement node) => true;
-
-  @deprecated
-  @override
-  bool visitSetLiteral2(SetLiteral2 node) {
-    for (CollectionElement element in node.elements) {
-      if (_nodeExits(element)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   @override
   bool visitSetOrMapLiteral(SetOrMapLiteral node) {

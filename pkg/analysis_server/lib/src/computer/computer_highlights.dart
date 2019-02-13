@@ -628,14 +628,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     super.visitMapLiteral(node);
   }
 
-  @deprecated
-  @override
-  void visitMapLiteral2(MapLiteral2 node) {
-    computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    super.visitMapLiteral2(node);
-  }
-
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegion_token(
@@ -705,14 +697,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 //    computer._addRegion_node(node, HighlightRegionType.LITERAL_SET);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     super.visitSetLiteral(node);
-  }
-
-  @deprecated
-  @override
-  void visitSetLiteral2(SetLiteral2 node) {
-//    computer._addRegion_node(node, HighlightRegionType.LITERAL_SET);
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    super.visitSetLiteral2(node);
   }
 
   @override

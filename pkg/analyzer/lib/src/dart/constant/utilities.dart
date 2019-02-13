@@ -114,17 +114,6 @@ class ConstantAstCloner extends AstCloner {
     return literal;
   }
 
-  @deprecated
-  @override
-  MapLiteral2 visitMapLiteral2(MapLiteral2 node) {
-    MapLiteral2 literal = super.visitMapLiteral2(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
   @override
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
@@ -137,17 +126,6 @@ class ConstantAstCloner extends AstCloner {
   @override
   SetLiteral visitSetLiteral(SetLiteral node) {
     SetLiteral literal = super.visitSetLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @deprecated
-  @override
-  SetLiteral2 visitSetLiteral2(SetLiteral2 node) {
-    SetLiteral2 literal = super.visitSetLiteral2(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
