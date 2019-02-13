@@ -93,6 +93,9 @@ ffi/subtype_test: Skip # https://github.com/dart-lang/sdk/issues/35933
 [ $compiler != dart2analyzer && $system == windows ]
 io/platform_resolved_executable_test/06: RuntimeError # Issue 23641
 
+[ $compiler == dartkb && $mode == debug ]
+ffi/subtype_test: Skip # https://github.com/dart-lang/sdk/issues/35935
+
 [ $mode == release && $runtime == vm && $system == linux && ($arch == simdbc64 || $arch == x64) ]
 io/http_bind_test: Pass, Timeout # Issue 35192
 
