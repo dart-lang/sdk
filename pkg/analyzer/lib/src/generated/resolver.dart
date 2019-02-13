@@ -764,6 +764,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (!element.displayName.isEmpty) {
           displayName = "$displayName.${element.displayName}";
         }
+      } else if (element is LibraryElement) {
+        displayName = element.definingCompilationUnit.source.uri.toString();
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
