@@ -1328,12 +1328,9 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption('Server type', server.runtimeType));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
-    bool uxExp1 =
-        diagnosticsSite.socketServer.analysisServerOptions.enableUXExperiment1;
     bool uxExp2 =
         diagnosticsSite.socketServer.analysisServerOptions.enableUXExperiment2;
-    if (uxExp1 || uxExp2) {
-      buf.writeln(writeOption('UX Experiment 1', uxExp1));
+    if (uxExp2) {
       buf.writeln(writeOption('ux Experiment 2', uxExp2));
     }
     buf.writeln(writeOption('Server process ID', pid));

@@ -27,7 +27,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:path/path.dart';
 
 // TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
 final bool disableManageImportsOnPaste = true;
@@ -360,10 +359,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the 'analysis.setAnalysisRoots' request.
    */
   Response setAnalysisRoots(Request request) {
-    if (server.options.enableUXExperiment1) {
-      return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
-    }
-
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
     List<String> excludedPathList = params.excluded;
@@ -416,45 +411,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       if (!server.isAbsoluteAndNormalized(file)) {
         return Response.invalidFilePathFormat(request, file);
       }
-    }
-
-    if (server.options.enableUXExperiment1) {
-      // If this experiment is enabled, set the analysis root to be the
-      // containing directory.
-
-      List<String> includedPathList = new List<String>();
-
-      // Reference the priority files, remove files that don't end in dart, yaml
-      // or html suffixes and sort from shortest to longest file paths.
-      List<String> priorityFiles = params.files;
-      priorityFiles.removeWhere((s) =>
-          !s.endsWith('.dart') && !s.endsWith('.yaml') && !s.endsWith('.html'));
-
-      Context pathContext = server.resourceProvider.pathContext;
-      List<String> containingDirectories = <String>[];
-      for (String filePath in priorityFiles) {
-        containingDirectories.add(pathContext.dirname(filePath));
-      }
-      containingDirectories.sort();
-
-      // For each file, add the contained directory to includedPathList iff
-      // some other parent containing directory has not already been added.
-      for (String containedDir in containingDirectories) {
-        // Check that no parent directories have already been added (we have
-        // guarantees here as the list was sorted above.)
-        bool parentDirectoryInListAlready = false;
-        for (int i = 0; i < includedPathList.length; i++) {
-          if (containedDir.startsWith(includedPathList[i])) {
-            parentDirectoryInListAlready = true;
-          }
-        }
-        if (!parentDirectoryInListAlready) {
-          includedPathList.add(containedDir);
-        }
-      }
-
-      server.setAnalysisRoots(
-          request.id, includedPathList, <String>[], <String, String>{});
     }
 
     server.setPriorityFiles(request.id, params.files);

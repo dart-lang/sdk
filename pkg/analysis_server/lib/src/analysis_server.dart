@@ -778,11 +778,6 @@ class AnalysisServerOptions {
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
 
-  /// User Experience, Experiment #1. This experiment changes the notion of
-  /// what analysis roots are and priority files: the analysis root is set to be
-  /// the priority files' containing directory.
-  bool enableUXExperiment1 = false;
-
   /// User Experience, Experiment #2. This experiment introduces the notion of
   /// an intermittent file system.
   bool enableUXExperiment2 = false;
