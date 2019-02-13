@@ -30,4 +30,4 @@ fi
 
 bin/flutter update-packages
 
-$dart dev/bots/analyze.dart --dart-sdk $sdk
+$dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
