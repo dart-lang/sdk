@@ -3359,8 +3359,8 @@ class CodeGenerator extends Object
   }
 
   /// Emits the raw type corresponding to the [element].
-  JS.Expression _emitTypeDefiningElement(TypeDefiningElement element) {
-    return _emitType(fillDynamicTypeArgsForElement(element));
+  JS.Expression _emitTypeDefiningElement(TypeDefiningElement e) {
+    return _emitType(instantiateElementTypeToBounds(rules, e));
   }
 
   JS.Expression _emitGenericClassType(

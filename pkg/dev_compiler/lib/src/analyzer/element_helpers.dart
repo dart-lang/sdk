@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 
 class Tuple2<T0, T1> {
   final T0 e0;
@@ -20,7 +21,12 @@ class Tuple2<T0, T1> {
   Tuple2(this.e0, this.e1);
 }
 
-// TODO(jmesserly): replace this with instantiateToBounds
+/// Instantiates [t] with dynamic bounds.
+///
+/// Note: this should only be used when the resulting type is later replaced,
+/// such as a "deferred supertype" (used to break circularity between the
+/// supertype's type arguments and the class definition). Otherwise
+/// [instantiateElementTypeToBounds] should be used instead.
 InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
   if (t.typeArguments.isNotEmpty) {
     var rawT = t.element.type;
@@ -30,16 +36,32 @@ InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
   return t;
 }
 
-// TODO(jmesserly): replace this with instantiateToBounds
-DartType fillDynamicTypeArgsForElement(TypeDefiningElement element) {
+/// Instantiates the [element] type to bounds.
+///
+/// Conceptually this is similar to [Dart2TypeSystem.instantiateToBounds] on
+/// `element.type`, but unfortunately typedef elements do not return a
+/// meaningful type, so we need to work around that.
+DartType instantiateElementTypeToBounds(
+    Dart2TypeSystem rules, TypeDefiningElement element) {
   Element e = element;
   if (e is TypeParameterizedElement) {
-    // TODO(jmesserly): GenericTypeAliasElement.type does not return the correct
-    // type (it is missing the type formals), so we workaround that here.
+    // TODO(jmesserly): we can't use `instantiateToBounds` because typedefs do
+    // not include their type parameters, for example:
+    //
+    //     typedef void void Func<T>(T x);               // Dart 1 syntax.
+    //     typedef void GenericFunc<T> = S Func<S>(T x); // Dart 2 syntax.
+    //
+    // There is no way to get a type that has `<T>` as a type formal from the
+    // element (without constructing it ourselves).
+    //
+    // Futhermore, the second line is represented by a GenericTypeAliasElement,
+    // and its type getter does not even include its own type formals `<S>`.
+    // That has to be worked around using `.function.type`.
     var type = e is GenericTypeAliasElement ? e.function.type : e.type;
+    var bounds = rules.instantiateTypeFormalsToBounds(e.typeParameters);
+    if (bounds == null) return type;
     return type.substitute2(
-        List.filled(e.typeParameters.length, DynamicTypeImpl.instance),
-        TypeParameterTypeImpl.getTypes(e.typeParameters));
+        bounds, TypeParameterTypeImpl.getTypes(e.typeParameters));
   }
   return element.type;
 }

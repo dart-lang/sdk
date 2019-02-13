@@ -148,6 +148,10 @@ class SharedCompilerOptions {
           help: '--bazel-mapping=gen/to/library.dart,to/library.dart\n'
               'adjusts the path in source maps.',
           splitCommas: false,
+          hide: hide)
+      ..addOption('library-root',
+          help: '(deprecated) used to name libraries inside the module, '
+              'ignored with -k.',
           hide: hide);
   }
 
