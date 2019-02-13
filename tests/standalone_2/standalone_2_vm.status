@@ -25,6 +25,12 @@ io/test_extension_test: Skip # Platform.executable
 io/test_runner_test: RuntimeError # Issue 33168
 regress_26031_test: Skip # Platform.resolvedExecutable
 
+[ $compiler == app_jitk ]
+ffi/dynamic_library_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_callbacks_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_structs_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+
 [ $runtime == dart_precompiled ]
 ffi: RuntimeError # https://github.com/dart-lang/sdk/issues/35765
 ffi/static_checks_test: Skip # https://github.com/dart-lang/sdk/issues/35765
