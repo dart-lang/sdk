@@ -766,18 +766,24 @@ class ClassHierarchyNodeBuilder {
   void inferMixinApplication() {
     if (!hierarchy.loader.target.backendTarget.legacyMode) return;
     Class kernelClass = cls.target;
-    Supertype mixedInType = kernelClass.mixedInType;
-    if (mixedInType == null) return;
-    List<DartType> typeArguments = mixedInType.typeArguments;
+    Supertype kernelMixedInType = kernelClass.mixedInType;
+    if (kernelMixedInType == null) return;
+    List<DartType> typeArguments = kernelMixedInType.typeArguments;
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
-    // TODO(ahe): We need to copy the inferred Kernel type arguments to the
-    // ClassBuilder.
     new BuilderMixinInferrer(
             cls,
             hierarchy.coreTypes,
             new TypeBuilderConstraintGatherer(
-                hierarchy, mixedInType.classNode.typeParameters))
+                hierarchy, kernelMixedInType.classNode.typeParameters))
         .infer(kernelClass);
+    List<KernelTypeBuilder> inferredArguments =
+        new List<KernelTypeBuilder>(typeArguments.length);
+    for (int i = 0; i < typeArguments.length; i++) {
+      inferredArguments[i] =
+          hierarchy.loader.computeTypeBuilder(typeArguments[i]);
+    }
+    KernelNamedTypeBuilder mixedInType = cls.mixedInType;
+    mixedInType.arguments = inferredArguments;
   }
 }
 

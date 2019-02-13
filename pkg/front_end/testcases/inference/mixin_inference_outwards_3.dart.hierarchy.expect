@@ -82,10 +82,10 @@ M1:
     Object.==
   classSetters:
 
-Object with M0:
+Object with M0<dynamic>:
   superclasses:
     Object
-  interfaces: M0, I<dynamic>
+  interfaces: M0<dynamic>, I<dynamic>
   classMembers:
     Object.toString
     Object.runtimeType
@@ -115,7 +115,7 @@ _A&Object&M0 with M1<int>:
   superclasses:
     Object
       -> _A&Object&M0
-  interfaces: M0, I<dynamic>, M1<int>
+  interfaces: M0<dynamic>, I<dynamic>, M1<int>
   classMembers:
     Object.toString
     Object.runtimeType
@@ -146,7 +146,7 @@ A:
     Object
       -> _A&Object&M0
         -> _A&Object&M0&M1
-  interfaces: M0, I<dynamic>, M1<int>
+  interfaces: M0<dynamic>, I<dynamic>, M1<int>
   classMembers:
     Object.toString
     Object.runtimeType
