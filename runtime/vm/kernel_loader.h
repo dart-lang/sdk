@@ -290,8 +290,10 @@ class KernelLoader : public ValueObject {
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
   const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
-  RawScript* ScriptAt(intptr_t source_uri_index,
-                      StringIndex import_uri = StringIndex());
+  RawScript* ScriptAt(intptr_t source_uri_index) {
+    return kernel_program_info_.ScriptAt(source_uri_index);
+  }
+  RawScript* ScriptAt(intptr_t source_uri_index, const Library& lib);
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,

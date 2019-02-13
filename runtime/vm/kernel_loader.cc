@@ -914,11 +914,9 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     loading_native_wrappers_library_ = false;
     library.SetLoadInProgress();
   }
-  StringIndex import_uri_index =
-      H.CanonicalNameString(library_helper.canonical_name_);
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
-  const Script& script = Script::Handle(
-      Z, ScriptAt(library_helper.source_uri_index_, import_uri_index));
+  const Script& script =
+      Script::Handle(Z, ScriptAt(library_helper.source_uri_index_, library));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
   intptr_t annotations_kernel_offset =
@@ -1299,10 +1297,10 @@ void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
       String& tmp = String::Handle(zone_);
       url = String::SubString(url, pos + 1);
       if (inside_runtime_lib) {
-        tmp = String::New("runtime/lib", Heap::kNew);
+        tmp = String::New(kRuntimeLib, Heap::kNew);
         url = String::Concat(tmp, url);
       } else if (inside_runtime_bin) {
-        tmp = String::New("runtime/bin", Heap::kNew);
+        tmp = String::New(kRuntimeBin, Heap::kNew);
         url = String::Concat(tmp, url);
       }
       tmp = library.url();
@@ -1925,14 +1923,12 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   return script.raw();
 }
 
-RawScript* KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
-  if (import_uri != -1) {
-    const Script& script =
-        Script::Handle(Z, kernel_program_info_.ScriptAt(index));
-    script.set_url(H.DartString(import_uri, Heap::kOld));
-    return script.raw();
-  }
-  return kernel_program_info_.ScriptAt(index);
+RawScript* KernelLoader::ScriptAt(intptr_t index, const Library& library) {
+  ASSERT(!library.IsNull());
+  const Script& script =
+      Script::Handle(Z, kernel_program_info_.ScriptAt(index));
+  FixCoreLibraryScriptUri(library, script);
+  return script.raw();
 }
 
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
