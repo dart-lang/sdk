@@ -57,11 +57,11 @@ const char* LibraryPath(const char* library_name) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, argName, arguments->NativeArgAt(0));
-
 #if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
   UNREACHABLE();
 #else
+  GET_NON_NULL_NATIVE_ARGUMENT(String, argName, arguments->NativeArgAt(0));
+
   dlerror();  // Clear any errors.
   void* handle = dlopen(LibraryPath(argName.ToCString()), RTLD_LAZY);
   if (handle == nullptr) {
@@ -76,15 +76,15 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
+#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
+  UNREACHABLE();
+#else
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
 
   GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, argSymbolName,
                                arguments->NativeArgAt(1));
 
-#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
-  UNREACHABLE();
-#else
   void* handle = dlib.GetHandle();
 
   dlerror();  // Clear any errors.
