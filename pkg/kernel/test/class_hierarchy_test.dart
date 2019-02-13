@@ -9,23 +9,127 @@ import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ClosedWorldClassHierarchyTest);
+  test("applyTreeChanges", () {
+    new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
+  });
+  test("applyMemberChanges", () {
+    new ClosedWorldClassHierarchyTest().test_applyMemberChanges();
+  });
+  test("getSingleTargetForInterfaceInvocation", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getSingleTargetForInterfaceInvocation();
+  });
+  test("getSubtypesOf", () {
+    new ClosedWorldClassHierarchyTest().test_getSubtypesOf();
+  });
+  test("forEachOverridePair_supertypeOverridesInterface", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_forEachOverridePair_supertypeOverridesInterface();
+  });
+  test("forEachOverridePair_supertypeOverridesThis", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_forEachOverridePair_supertypeOverridesThis();
+  });
+  test("forEachOverridePair_supertypeOverridesThisAbstract", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_forEachOverridePair_supertypeOverridesThisAbstract();
+  });
+  test("forEachOverridePair_thisOverridesSupertype", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_forEachOverridePair_thisOverridesSupertype();
+  });
+  test("forEachOverridePair_thisOverridesSupertype_setter", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_forEachOverridePair_thisOverridesSupertype_setter();
+  });
+  test("getClassAsInstanceOf_generic_extends", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getClassAsInstanceOf_generic_extends();
+  });
+  test("getClassAsInstanceOf_generic_implements", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getClassAsInstanceOf_generic_implements();
+  });
+  test("getClassAsInstanceOf_generic_with", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getClassAsInstanceOf_generic_with();
+  });
+  test("getClassAsInstanceOf_notGeneric_extends", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getClassAsInstanceOf_notGeneric_extends();
+  });
+  test("getClassAsInstanceOf_notGeneric_implements", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getClassAsInstanceOf_notGeneric_implements();
+  });
+  test("getClassAsInstanceOf_notGeneric_with", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getClassAsInstanceOf_notGeneric_with();
+  });
+  test("getLegacyLeastUpperBound_expansive", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getLegacyLeastUpperBound_expansive();
+  });
+  test("getLegacyLeastUpperBound_generic", () {
+    new ClosedWorldClassHierarchyTest().test_getLegacyLeastUpperBound_generic();
+  });
+  test("getLegacyLeastUpperBound_nonGeneric", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getLegacyLeastUpperBound_nonGeneric();
+  });
+  test("getDeclaredMembers", () {
+    new ClosedWorldClassHierarchyTest().test_getDeclaredMembers();
+  });
+  test("getDispatchTarget", () {
+    new ClosedWorldClassHierarchyTest().test_getDispatchTarget();
+  });
+  test("getDispatchTarget_abstract", () {
+    new ClosedWorldClassHierarchyTest().test_getDispatchTarget_abstract();
+  });
+  test("getInterfaceMember_extends", () {
+    new ClosedWorldClassHierarchyTest().test_getInterfaceMember_extends();
+  });
+  test("getInterfaceMember_implements", () {
+    new ClosedWorldClassHierarchyTest().test_getInterfaceMember_implements();
+  });
+  test("getInterfaceMembers_in_class", () {
+    new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_in_class();
+  });
+  test("getInterfaceMembers_inherited_or_mixed_in", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getInterfaceMembers_inherited_or_mixed_in();
+  });
+  test("getInterfaceMembers_multiple", () {
+    new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_multiple();
+  });
+  test("getInterfaceMembers_shadowed", () {
+    new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_shadowed();
+  });
+  test("getOrderedClasses", () {
+    new ClosedWorldClassHierarchyTest().test_getOrderedClasses();
+  });
+  test("getTypeAsInstanceOf_generic_extends", () {
+    new ClosedWorldClassHierarchyTest()
+        .test_getTypeAsInstanceOf_generic_extends();
   });
 }
 
-@reflectiveTest
 class ClosedWorldClassHierarchyTest {
-  Component component;
+  final Component component = createMockSdkComponent();
   CoreTypes coreTypes;
 
-  /// The test library.
-  Library library;
+  final Library library =
+      new Library(Uri.parse('org-dartlang:///test.dart'), name: 'test');
 
   ClassHierarchy _hierarchy;
+
+  ClosedWorldClassHierarchyTest() {
+    coreTypes = new CoreTypes(component);
+    library.parent = component;
+    component.libraries.add(library);
+  }
 
   ClassHierarchy createClassHierarchy(Component component) {
     return new ClassHierarchy(component);
@@ -290,17 +394,6 @@ class H extends self::G implements self::C, self::A {}
         new FunctionNode(body,
             returnType: const VoidType(),
             positionalParameters: [new VariableDeclaration('_', type: type)]));
-  }
-
-  void setUp() {
-    // Start with mock SDK libraries.
-    component = createMockSdkComponent();
-    coreTypes = new CoreTypes(component);
-
-    // Add the test library.
-    library = new Library(Uri.parse('org-dartlang:///test.dart'), name: 'test');
-    library.parent = component;
-    component.libraries.add(library);
   }
 
   /// 2. A non-abstract member is inherited from a superclass, and in the
