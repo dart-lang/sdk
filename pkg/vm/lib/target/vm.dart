@@ -9,12 +9,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/ffi.dart' as transformFfi
-    show ReplacedMembers;
-import 'package:kernel/transformations/ffi_definitions.dart'
-    as transformFfiDefinitions show transformLibraries;
-import 'package:kernel/transformations/ffi_use_sites.dart'
-    as transformFfiUseSites show transformLibraries;
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
@@ -26,6 +20,11 @@ import 'package:kernel/vm/constants_native_effects.dart'
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/list_factory_specializer.dart'
     as listFactorySpecializer;
+import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
+import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
+    show transformLibraries;
+import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
+    show transformLibraries;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {

@@ -5,14 +5,13 @@
 // This file contains logic which is shared between the ffi_definition and
 // ffi_use_site transformers.
 
-library kernel.transformations.ffi;
+library vm.transformations.ffi;
 
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
-import '../ast.dart';
-import '../core_types.dart';
-import '../target/targets.dart' show DiagnosticReporter;
 
 /// Represents the (instantiated) ffi.NativeType.
 enum NativeType {

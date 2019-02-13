@@ -15,9 +15,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import '../ast.dart';
-import '../core_types.dart';
-import '../target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'ffi.dart'
     show
