@@ -4,6 +4,12 @@
 
 ### Language
 
+*   Sets now have a literal syntax like lists and maps do:
+    ```dart
+          var set = {1, 2, 3};
+    ```
+    Set literals are released on all platforms; the former `set-literals` experiment flag has been disabled.
+
 ### Core library changes
 
 #### `dart:html`
