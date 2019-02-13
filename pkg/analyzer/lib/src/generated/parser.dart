@@ -245,10 +245,8 @@ class Parser {
 
   /// Enables or disables parsing of set literals.
   void set enableSetLiterals(bool value) {
-    if (value) {
-      throw new UnimplementedError(
-          'set-literal experiment not supported by analyzer parser');
-    }
+    // TODO(danrubel): Remove this method once the reference to this flag
+    // has been removed from dartfmt.
   }
 
   /// Enables or disables parsing of spread collections.

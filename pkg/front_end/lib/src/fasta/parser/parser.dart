@@ -265,10 +265,6 @@ class Parser {
 
   bool mayParseFunctionExpressions = true;
 
-  /// Experimental flag for enabling set literal support.
-  /// See https://github.com/dart-lang/sdk/issues/35121
-  bool enableSetLiterals = true;
-
   /// Represents parser state: what asynchronous syntax is allowed in the
   /// function being currently parsed. In rare situations, this can be set by
   /// external clients, for example, to parse an expression outside a function.
@@ -4242,11 +4238,6 @@ class Parser {
   /// This method parses the portion of a set or map literal that starts with
   /// the left curly brace when there are no leading type arguments.
   Token parseLiteralSetOrMapSuffix(Token token, Token constKeyword) {
-    if (!enableSetLiterals) {
-      // TODO(danrubel): remove this once set literals are permanent
-      return parseLiteralMapSuffix(token, constKeyword);
-    }
-
     Token leftBrace = token = token.next;
     assert(optional('{', leftBrace));
     Token next = token.next;
@@ -4406,11 +4397,6 @@ class Parser {
   /// if not. This is a suffix parser because it is assumed that type arguments
   /// have been parsed, or `listener.handleNoTypeArguments` has been executed.
   Token parseLiteralSetSuffix(Token token, Token constKeyword) {
-    if (!enableSetLiterals) {
-      // TODO(danrubel): remove this once set literals are permanent
-      return parseLiteralMapSuffix(token, constKeyword);
-    }
-
     Token beginToken = token = token.next;
     assert(optional('{', beginToken));
     if (optional('}', token.next)) {

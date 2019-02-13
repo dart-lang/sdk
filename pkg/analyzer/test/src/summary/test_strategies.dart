@@ -46,7 +46,6 @@ CompilationUnit _parseText(
   Token token = scanner.tokenize();
   Parser parser =
       new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-        ..enableSetLiterals = experimentStatus.set_literals
         ..enableNonNullable = experimentStatus.non_nullable;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);

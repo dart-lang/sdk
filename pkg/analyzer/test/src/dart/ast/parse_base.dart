@@ -35,7 +35,6 @@ class ParseBase with ResourceProviderMixin {
     var useFasta = analysisOptions.useFastaParser;
     var parser = Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.enableSetLiterals = experimentStatus.set_literals;
     parser.enableNonNullable = experimentStatus.non_nullable;
     parser.enableSpreadCollections = experimentStatus.spread_collections;
     parser.enableControlFlowCollections =
