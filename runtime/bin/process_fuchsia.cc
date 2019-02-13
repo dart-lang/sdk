@@ -167,8 +167,7 @@ class ExitCodeHandler {
     }
 
     // Start thread that handles process exits when wait returns.
-    intptr_t result =
-        Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
+    intptr_t result = Thread::Start(ExitCodeHandlerEntry, 0);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %ld", result);
     }
