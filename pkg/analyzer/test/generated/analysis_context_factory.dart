@@ -486,53 +486,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
   }
 }
 
-/**
- * Helper for creating and managing single [AnalysisContext].
- */
-class AnalysisContextHelper {
-  MemoryResourceProvider resourceProvider;
-  AnalysisContext context;
-
-  /**
-   * Creates new [AnalysisContext] using [AnalysisContextFactory].
-   */
-  AnalysisContextHelper(
-      [AnalysisOptionsImpl options, MemoryResourceProvider provider]) {
-    resourceProvider = provider ?? new MemoryResourceProvider();
-    context = AnalysisContextFactory.contextWithCoreAndOptions(
-        options ?? new AnalysisOptionsImpl(),
-        resourceProvider: resourceProvider);
-  }
-
-  Source addSource(String path, String code) {
-    Source source = resourceProvider
-        .getFile(resourceProvider.convertPath(path))
-        .createSource();
-    if (path.endsWith(".dart") || path.endsWith(".html")) {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(source);
-      context.applyChanges(changeSet);
-    }
-    context.setContents(source, code);
-    return source;
-  }
-
-  CompilationUnitElement getDefiningUnitElement(Source source) =>
-      context.getCompilationUnitElement(source, source);
-
-  CompilationUnit resolveDefiningUnit(Source source) {
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    return context.resolveCompilationUnit(source, libraryElement);
-  }
-
-  void runTasks() {
-    AnalysisResult result = context.performAnalysisTask();
-    while (result.changeNotices != null) {
-      result = context.performAnalysisTask();
-    }
-  }
-}
-
 class TestPackageUriResolver extends UriResolver {
   Map<String, Source> sourceMap = new HashMap<String, Source>();
 

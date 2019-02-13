@@ -9,8 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -18,10 +17,8 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/analysis_context_factory.dart'
-    show AnalysisContextHelper;
-import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
+import '../resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -29,7 +26,6 @@ main() {
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
     defineReflectiveTests(InterfaceTypeImplTest);
-    defineReflectiveTests(LocalVariableElementImplTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
     defineReflectiveTests(VoidTypeImplTest);
     defineReflectiveTests(ClassElementImplTest);
@@ -37,9 +33,6 @@ main() {
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(LibraryElementImplTest);
-    defineReflectiveTests(MethodElementImplTest);
-    defineReflectiveTests(MethodMemberTest);
-    defineReflectiveTests(ParameterElementImplTest);
     defineReflectiveTests(PropertyAccessorElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
   });
@@ -872,34 +865,30 @@ class CompilationUnitElementImplTest extends EngineTestCase {
   }
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
-class ElementAnnotationImplTest extends ResolverTestCase {
-  void test_computeConstantValue() {
-    addNamedSource('/a.dart', r'''
+class ElementAnnotationImplTest extends DriverResolutionTest {
+  test_computeConstantValue() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   final String f;
   const A(this.f);
 }
 void f(@A('x') int p) {}
 ''');
-    Source source = addSource(r'''
+    addTestFile(r'''
 import 'a.dart';
 main() {
   f(3);
 }
 ''');
-    LibraryElement library = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    FunctionDeclaration main = unit.declarations[0];
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    MethodInvocation invocation = statement.expression;
-    ParameterElement parameter =
-        invocation.argumentList.arguments[0].staticParameterElement;
+    await resolveTestFile();
+
+    var argument = findNode.integerLiteral('3');
+    ParameterElement parameter = argument.staticParameterElement;
+
     ElementAnnotation annotation = parameter.metadata[0];
     expect(annotation.constantValue, isNull);
+
     DartObject value = annotation.computeConstantValue();
     expect(value, isNotNull);
     expect(value.getField('f').toStringValue(), 'x');
@@ -1068,54 +1057,20 @@ class ElementLocationImplTest extends EngineTestCase {
   }
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
-class FieldElementImplTest extends EngineTestCase {
-  @deprecated
-  void test_computeNode() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-class A {
-  int a;
-}
-enum B {B1, B2, B3}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    {
-      FieldElement elementA = unitElement.getType("A").getField('a');
-      VariableDeclaration nodeA = elementA.computeNode();
-      expect(nodeA, isNotNull);
-      expect(nodeA.name.name, "a");
-      expect(nodeA.declaredElement, same(elementA));
-    }
-    // B
-    {
-      FieldElement elementB = unitElement.getEnum("B").getField('B2');
-      EnumConstantDeclaration nodeB = elementB.computeNode();
-      expect(nodeB, isNotNull);
-      expect(nodeB.name.name, "B2");
-      expect(nodeB.declaredElement, same(elementB));
-    }
-  }
-
-  void test_isEnumConstant() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
+class FieldElementImplTest extends DriverResolutionTest {
+  test_isEnumConstant() async {
+    addTestFile(r'''
 enum B {B1, B2, B3}
 ''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    await resolveTestFile();
 
-    FieldElement b2Element = unitElement.getEnum("B").getField('B2');
+    var B = findElement.enum_('B');
+
+    FieldElement b2Element = B.getField('B2');
     expect(b2Element.isEnumConstant, isTrue);
 
-    FieldElement indexElement = unitElement.getEnum("B").getField('index');
+    FieldElement indexElement = B.getField('index');
     expect(indexElement.isEnumConstant, isFalse);
   }
 }
@@ -3674,214 +3629,6 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LocalVariableElementImplTest extends EngineTestCase {}
-
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class MethodElementImplTest extends EngineTestCase {
-  @deprecated
-  void test_computeNode() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-abstract class A {
-  String m1() => null;
-  m2();
-}
-''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // m1
-    {
-      MethodElement m1Element = unitElement.getType("A").getMethod('m1');
-      MethodDeclaration m1Node = m1Element.computeNode();
-      expect(m1Node, isNotNull);
-      expect(m1Node.name.name, "m1");
-      expect(m1Node.declaredElement, same(m1Element));
-    }
-    // m2
-    {
-      MethodElement m2Element = unitElement.getType("A").getMethod('m2');
-      MethodDeclaration m2Node = m2Element.computeNode();
-      expect(m2Node, isNotNull);
-      expect(m2Node.name.name, "m2");
-      expect(m2Node.declaredElement, same(m2Element));
-    }
-  }
-
-  @deprecated
-  void test_computeNode_withoutFunctionBody() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.analyzeFunctionBodies = false;
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-abstract class A {
-  String m1() => null;
-  m2();
-}
-''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // m1
-    {
-      MethodElement m1Element = unitElement.getType("A").getMethod('m1');
-      MethodDeclaration m1Node = m1Element.computeNode();
-      expect(m1Node, isNotNull);
-      expect(m1Node.name.name, "m1");
-      expect(m1Node.declaredElement, same(m1Element));
-    }
-    // m2
-    {
-      MethodElement m2Element = unitElement.getType("A").getMethod('m2');
-      MethodDeclaration m2Node = m2Element.computeNode();
-      expect(m2Node, isNotNull);
-      expect(m2Node.name.name, "m2");
-      expect(m2Node.declaredElement, same(m2Element));
-    }
-  }
-}
-
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class MethodMemberTest extends EngineTestCase {
-  /**
-   * The type provider used to access the types.
-   */
-  TestTypeProvider _typeProvider;
-
-  @override
-  void setUp() {
-    super.setUp();
-    _typeProvider = new TestTypeProvider();
-  }
-
-  void test_getReifiedType_substituteFor() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.analyzeFunctionBodies = false;
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-class A<T> {
-  T f(T x) => x;
-}
-class B<S> extends A<S> {
-  S f(S x) => x;
-}
-''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    DartType objectType = _typeProvider.objectType;
-    // B.f
-    ClassElement elementB = unitElement.getType("B");
-    MethodElement BfElement = elementB.type
-        .lookUpInheritedMethod("f", library: libraryElement, thisType: true);
-    MethodElement AfElement = elementB.type
-        .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
-    expect(
-        // ignore: deprecated_member_use_from_same_package
-        BfElement.getReifiedType(objectType),
-        // ignore: deprecated_member_use_from_same_package
-        equals(AfElement.getReifiedType(objectType)));
-  }
-}
-
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class ParameterElementImplTest extends EngineTestCase {
-  @deprecated
-  void test_computeNode_DefaultFormalParameter() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-main([int p = 42]) {
-}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // p
-    {
-      ParameterElement element = unitElement.functions[0].parameters[0];
-      DefaultFormalParameter node = element.computeNode();
-      expect(node, isNotNull);
-      expect(node.identifier.name, 'p');
-      expect(node.declaredElement, same(element));
-    }
-  }
-
-  @deprecated
-  void test_computeNode_FieldFormalParameter() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-class A {
-  int p;
-  A(this.p) {
-  }
-}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // p
-    {
-      ClassElement classA = unitElement.types[0];
-      ConstructorElement constructorA = classA.constructors[0];
-      FieldFormalParameterElement element = constructorA.parameters[0];
-      FieldFormalParameter node = element.computeNode();
-      expect(node, isNotNull);
-      expect(node.identifier.name, 'p');
-      expect(node.declaredElement, same(element));
-    }
-  }
-
-  @deprecated
-  void test_computeNode_FunctionTypedFormalParameter() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-main(p(int a, int b)) {
-}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // p
-    {
-      ParameterElement element = unitElement.functions[0].parameters[0];
-      FunctionTypedFormalParameter node = element.computeNode();
-      expect(node, isNotNull);
-      expect(node.identifier.name, 'p');
-      expect(node.declaredElement, same(element));
-    }
-  }
-
-  @deprecated
-  void test_computeNode_SimpleFormalParameter() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-main(int p) {
-}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // p
-    {
-      ParameterElement element = unitElement.functions[0].parameters[0];
-      SimpleFormalParameter node = element.computeNode();
-      expect(node, isNotNull);
-      expect(node.identifier.name, 'p');
-      expect(node.declaredElement, same(element));
-    }
-  }
-}
-
-@reflectiveTest
 class PropertyAccessorElementImplTest extends EngineTestCase {
   void test_matchesHandle_getter() {
     CompilationUnitElementImpl compilationUnitElement =
@@ -3926,30 +3673,25 @@ class TestElementResynthesizer extends ElementResynthesizer {
   }
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
-class TopLevelVariableElementImplTest extends ResolverTestCase {
-  void test_computeConstantValue() {
-    addNamedSource('/a.dart', r'''
+class TopLevelVariableElementImplTest extends DriverResolutionTest {
+  test_computeConstantValue() async {
+    newFile('/test/lib/a.dart', content: r'''
 const int C = 42;
 ''');
-    Source source = addSource(r'''
+    addTestFile(r'''
 import 'a.dart';
 main() {
   print(C);
 }
 ''');
-    LibraryElement library = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    FunctionDeclaration main = unit.declarations[0];
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    MethodInvocation invocation = statement.expression;
-    SimpleIdentifier argument = invocation.argumentList.arguments[0];
+    await resolveTestFile();
+
+    SimpleIdentifier argument = findNode.simple('C);');
     PropertyAccessorElementImpl getter = argument.staticElement;
     TopLevelVariableElement constant = getter.variable;
     expect(constant.constantValue, isNull);
+
     DartObject value = constant.computeConstantValue();
     expect(value, isNotNull);
     expect(value.toIntValue(), 42);

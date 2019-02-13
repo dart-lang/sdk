@@ -131,6 +131,10 @@ class FindNode {
     return _node(search, (n) => n is InstanceCreationExpression);
   }
 
+  IntegerLiteral integerLiteral(String search) {
+    return _node(search, (n) => n is IntegerLiteral);
+  }
+
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
   }
