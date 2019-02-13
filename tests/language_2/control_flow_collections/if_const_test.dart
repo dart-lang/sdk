@@ -56,9 +56,9 @@ void testList() {
   Expect.identical(const [1], const <int>[if (objectTrue) 1]);
 
   // Does not flatten nested collection literal.
-  Expect.identical(const [1], const [if (true) [1]].first;
-  Expect.identical(const {1: 1}, const [if (true) {1: 1}].first;
-  Expect.identical(const {1}, const [if (true) {1}].first;
+  Expect.identical(const [1], const [if (true) [1]].first);
+  Expect.identical(const {1: 1}, const [if (true) {1: 1}].first);
+  Expect.identical(const {1}, const [if (true) {1}].first);
 
   // Nested spread.
   Expect.identical(list,
@@ -162,9 +162,9 @@ void testSet() {
   Expect.identical(const <int>{1}, const <int>{if (objectTrue) 1});
 
   // Does not flatten nested collection literal.
-  Expect.identical(const <int>[1], const <int>{if (true) [1]}.first;
-  Expect.identical(const <int, int>{1: 1}, const <int>{if (true) {1: 1}}.first;
-  Expect.identical(const <int>{1}, const <int>{if (true) {1}}.first;
+  Expect.identical(const <int>[1], const <int>{if (true) [1]}.first);
+  Expect.identical(const <int, int>{1: 1}, const <int>{if (true) {1: 1}}.first);
+  Expect.identical(const <int>{1}, const <int>{if (true) {1}}.first);
 
   // Nested spread.
   Expect.identical(set,

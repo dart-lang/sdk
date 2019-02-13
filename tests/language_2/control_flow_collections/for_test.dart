@@ -59,9 +59,9 @@ void testList() {
       <int>[for (var i in <int>[0, 2]) for (var j = 1; j <= 2; j++) i + j]);
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], [for (var i = 1; i < 2; i++) [i]].first;
-  Expect.mapEquals({1: 1}, [for (var i = 1; i < 2; i++) {i: i}].first;
-  Expect.setEquals({1}, [for (var i = 1; i < 2; i++) {i}].first;
+  Expect.listEquals([1], [for (var i = 1; i < 2; i++) [i]].first);
+  Expect.mapEquals({1: 1}, [for (var i = 1; i < 2; i++) {i: i}].first);
+  Expect.setEquals({1}, [for (var i = 1; i < 2; i++) {i}].first);
 
   // Downcast variable.
   Expect.listEquals(list, <int>[for (int n in <num>[1, 2, 3, 4]) n]);
@@ -176,9 +176,9 @@ void testSet() {
       <int>{for (var i in <int>[0, 2]) for (var j = 1; j <= 2; j++) i + j});
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], {for (var i = 1; i < 2; i++) [i]}.first;
-  Expect.mapEquals({1: 1}, {for (var i = 1; i < 2; i++) {i: i}}.first;
-  Expect.setEquals({1}, }for (var i = 1; i < 2; i++) {i}}.first;
+  Expect.listEquals([1], {for (var i = 1; i < 2; i++) [i]}.first);
+  Expect.mapEquals({1: 1}, {for (var i = 1; i < 2; i++) {i: i}}.first);
+  Expect.setEquals({1}, }for (var i = 1; i < 2; i++) {i}}.first);
 
   // Downcast variable.
   Expect.setEquals(set, <int>{for (int n in <num>[1, 2, 3, 4]) n});

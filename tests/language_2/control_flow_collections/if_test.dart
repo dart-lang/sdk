@@ -53,9 +53,9 @@ void testList() {
   Expect.listEquals(<int>[1], <int>[if (true as Object) 1]);
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], [if (true) [1]].first;
-  Expect.mapEquals({1: 1}, [if (true) {1: 1}].first;
-  Expect.setEquals({1}, [if (true) {1}].first;
+  Expect.listEquals([1], [if (true) [1]].first);
+  Expect.mapEquals({1: 1}, [if (true) {1: 1}].first);
+  Expect.setEquals({1}, [if (true) {1}].first);
 
   // Nested spread.
   Expect.listEquals(list,
@@ -156,9 +156,9 @@ void testSet() {
   Expect.setEquals({1}, <int>{if (true as Object) 1});
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], {if (true) [1]}.first;
-  Expect.mapEquals({1: 1}, {if (true) {1: 1}}.first;
-  Expect.setEquals({1}, {if (true) {1}}.first;
+  Expect.listEquals([1], {if (true) [1]}.first);
+  Expect.mapEquals({1: 1}, {if (true) {1: 1}}.first);
+  Expect.setEquals({1}, {if (true) {1}}.first);
 
   // Nested spread.
   Expect.setEquals(set,
