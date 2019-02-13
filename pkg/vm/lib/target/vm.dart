@@ -58,6 +58,7 @@ class VmTarget extends Target {
         'dart:collection',
         'dart:convert',
         'dart:developer',
+        'dart:ffi',
         'dart:_internal',
         'dart:isolate',
         'dart:math',
@@ -74,7 +75,6 @@ class VmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:cli',
-        'dart:ffi',
       ];
 
   @override

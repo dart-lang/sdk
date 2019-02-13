@@ -1,0 +1,37 @@
+diff --git a/lib/snapshot/libraries.json b/lib/snapshot/libraries.json
+index a59ae6c66..99ef4cd77 100644
+--- a/lib/snapshot/libraries.json
++++ b/lib/snapshot/libraries.json
+@@ -57,6 +57,14 @@
+         ],
+         "uri": "../../../third_party/dart/sdk/lib/collection/collection.dart"
+       },
++      "ffi": {
++        "patches": [
++          "../../../third_party/dart/runtime/lib/ffi_dynamic_library_patch.dart",
++          "../../../third_party/dart/runtime/lib/ffi_native_type_patch.dart",
++          "../../../third_party/dart/runtime/lib/ffi_patch.dart"
++        ],
++        "uri": "../../../third_party/dart/sdk/lib/ffi/ffi.dart"
++      },
+       "typed_data": {
+         "patches": "../../../third_party/dart/runtime/lib/typed_data_patch.dart",
+         "uri": "../../../third_party/dart/sdk/lib/typed_data/typed_data.dart"
+diff --git a/lib/snapshot/libraries.yaml b/lib/snapshot/libraries.yaml
+index 26c327705..c4244eaff 100644
+--- a/lib/snapshot/libraries.yaml
++++ b/lib/snapshot/libraries.yaml
+@@ -84,6 +84,13 @@ flutter:
+         - "../../../third_party/dart/runtime/lib/profiler.dart"
+         - "../../../third_party/dart/runtime/lib/timeline.dart"
+ 
++    ffi:
++      uri: "../../../third_party/dart/sdk/lib/ffi/ffi.dart"
++      patches:
++        - "../../../third_party/dart/runtime/lib/ffi_dynamic_library_patch.dart"
++        - "../../../third_party/dart/runtime/lib/ffi_native_type_patch.dart"
++        - "../../../third_party/dart/runtime/lib/ffi_patch.dart"
++
+     _http:
+       uri: "../../../third_party/dart/sdk/lib/_http/http.dart"
+ 
