@@ -119,7 +119,7 @@ class KernelTarget extends TargetImplementation {
   /// The [MetadataCollector] to write metadata to.
   final MetadataCollector metadataCollector;
 
-  SourceLoader<Library> loader;
+  SourceLoader loader;
 
   Component component;
 
@@ -147,8 +147,8 @@ class KernelTarget extends TargetImplementation {
 
   void set builderHierarchy(ClassHierarchyBuilder o) {}
 
-  SourceLoader<Library> createLoader() =>
-      new SourceLoader<Library>(fileSystem, includeComments, this);
+  SourceLoader createLoader() =>
+      new SourceLoader(fileSystem, includeComments, this);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {

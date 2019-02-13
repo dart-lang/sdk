@@ -307,4 +307,6 @@ fileUri: ${contextMessage.uri}
 
   ClassBuilder<TypeBuilder, Object> computeClassBuilderFromTargetClass(
       covariant Object cls);
+
+  TypeBuilder computeTypeBuilder(covariant Object type);
 }

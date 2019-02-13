@@ -82,6 +82,7 @@ import '../kernel/kernel_builder.dart'
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelProcedureBuilder,
+        KernelTypeBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder;
@@ -91,6 +92,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
+
+import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader, untranslatableUriScheme;
 
@@ -119,7 +122,7 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-class SourceLoader<L> extends Loader<L> {
+class SourceLoader extends Loader<Library> {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
@@ -754,7 +757,7 @@ class SourceLoader<L> extends Loader<L> {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
-        L target = sourceLibrary.build(coreLibrary);
+        Library target = sourceLibrary.build(coreLibrary);
         if (!library.isPatch) {
           libraries.add(target);
         }
@@ -1114,6 +1117,11 @@ class SourceLoader<L> extends Loader<L> {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
     return library[cls.name];
+  }
+
+  @override
+  KernelTypeBuilder computeTypeBuilder(DartType type) {
+    return type.accept(new TypeBuilderComputer(this));
   }
 }
 
