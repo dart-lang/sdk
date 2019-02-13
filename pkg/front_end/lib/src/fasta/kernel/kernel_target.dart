@@ -155,8 +155,10 @@ class KernelTarget extends TargetImplementation {
     uriToSource[uri] = new Source(lineStarts, sourceCode);
   }
 
-  void setEntryPoints(List<Uri> entryPoints) {
+  /// Return list of same size as input with possibly translated uris.
+  List<Uri> setEntryPoints(List<Uri> entryPoints) {
     Map<String, Uri> packagesMap;
+    List<Uri> result = new List<Uri>();
     for (Uri entryPoint in entryPoints) {
       String scheme = entryPoint.scheme;
       Uri fileUri;
@@ -187,8 +189,10 @@ class KernelTarget extends TargetImplementation {
             }
           }
       }
+      result.add(entryPoint);
       loader.read(entryPoint, -1, accessor: loader.first, fileUri: fileUri);
     }
+    return result;
   }
 
   @override

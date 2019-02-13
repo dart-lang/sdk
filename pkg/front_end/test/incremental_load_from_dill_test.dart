@@ -313,7 +313,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       }
     }
     List<Library> entryLib = component.libraries
-        .where((Library lib) => lib.importUri == entry)
+        .where((Library lib) => lib.importUri == entry || lib.fileUri == entry)
         .toList();
     if (entryLib.length != 1) {
       throw "Expected the entry to become a library. Got ${entryLib.length} "

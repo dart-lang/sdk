@@ -261,7 +261,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      userCode.setEntryPoints(<Uri>[entryPoint]);
+      entryPoint = userCode.setEntryPoints(<Uri>[entryPoint]).single;
       await userCode.buildOutlines();
 
       // This is not the full component. It is the component including all
