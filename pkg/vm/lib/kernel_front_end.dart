@@ -636,8 +636,10 @@ Future writeOutputSplitByPackages(
       final IOSink sink = new File(filename).openWrite();
 
       final main = component.mainMethod;
+      final problems = component.problemsAsJson;
       if (package != 'main') {
         component.mainMethod = null;
+        component.problemsAsJson = null;
       }
 
       ASTRemover astRemover;
@@ -663,6 +665,7 @@ Future writeOutputSplitByPackages(
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(component);
       component.mainMethod = main;
+      component.problemsAsJson = problems;
       if (genBytecode && dropAST) {
         astRemover.restoreAST();
       }
