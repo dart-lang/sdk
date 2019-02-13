@@ -580,13 +580,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         return;
       }
       if (element == null) {
-        if (identifier.inSetterContext()) {
-          _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_SETTER,
-              identifier,
-              [identifier.name, prefixElement.name]);
-          return;
-        }
         AstNode parent = node.parent;
         if (parent is Annotation) {
           _resolver.errorReporter.reportErrorForNode(
@@ -595,7 +588,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [identifier.name]);
         } else {
           _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_GETTER,
+              StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME,
               identifier,
               [identifier.name, prefixElement.name]);
         }

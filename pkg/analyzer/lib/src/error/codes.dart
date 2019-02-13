@@ -3247,6 +3247,14 @@ class StaticTypeWarningCode extends ErrorCode {
           "The operator '{0}' isn't defined for the class '{1}'.",
           correction: "Try defining the operator '{0}'.");
 
+  static const StaticTypeWarningCode UNDEFINED_PREFIXED_NAME =
+      const StaticTypeWarningCode(
+          'UNDEFINED_PREFIXED_NAME',
+          "The name '{0}' is being referenced through the prefix '{1}', but it "
+          "isn't defined in any of the libraries imported using that prefix.",
+          correction: "Try correcting the prefix or "
+              "importing the library that defines '{0}'.");
+
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
    * It is a static type warning if <i>T</i> does not have an accessible

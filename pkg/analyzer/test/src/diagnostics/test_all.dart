@@ -22,6 +22,7 @@ import 'type_check_is_null_test.dart' as type_check_is_null;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_operator_test.dart' as undefined_operator;
+import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
@@ -56,6 +57,7 @@ main() {
     undefined_getter.main();
     undefined_hidden_name.main();
     undefined_operator.main();
+    undefined_prefixed_name.main();
     undefined_setter.main();
     undefined_shown_name.main();
     unnecessary_cast.main();
