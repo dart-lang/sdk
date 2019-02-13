@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -11,19 +11,14 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/intrinsifier.h"
+#define SHOULD_NOT_INCLUDE_RUNTIME
 
+#include "vm/class_id.h"
+#include "vm/compiler/asm_intrinsifier.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/flow_graph_compiler.h"
-#include "vm/dart_entry.h"
-#include "vm/object.h"
-#include "vm/object_store.h"
-#include "vm/os.h"
-#include "vm/regexp_assembler.h"
-#include "vm/symbols.h"
-#include "vm/timeline.h"
 
 namespace dart {
+namespace compiler {
 
 // When entering intrinsics code:
 // ECX: IC Data
@@ -36,59 +31,60 @@ namespace dart {
 
 #define __ assembler->
 
-intptr_t Intrinsifier::ParameterSlotFromSp() {
+intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
   return 0;
 }
 
-void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
   COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
 
   assembler->Comment("IntrinsicCallPrologue");
   assembler->movl(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
 }
 
-void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+void AsmIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->Comment("IntrinsicCallEpilogue");
   assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
-// Allocate a GrowableObjectArray using the backing array specified.
+// Allocate a GrowableObjectArray:: using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
+                                             Label* normal_ir_body) {
   // This snippet of inlined code uses the following registers:
   // EAX, EBX
   // and the newly allocated object is returned in EAX.
-  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
+  const intptr_t kTypeArgumentsOffset = 2 * target::kWordSize;
 
-  const intptr_t kArrayOffset = 1 * kWordSize;
+  const intptr_t kArrayOffset = 1 * target::kWordSize;
 
   // Try allocating in new space.
-  const Class& cls = Class::Handle(
-      Isolate::Current()->object_store()->growable_object_array_class());
+  const Class& cls = GrowableObjectArrayClass();
   __ TryAllocate(cls, normal_ir_body, Assembler::kNearJump, EAX, EBX);
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
   // EAX is new, no barrier needed.
   __ StoreIntoObjectNoBarrier(
-      EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()), EBX);
+      EAX, FieldAddress(EAX, target::GrowableObjectArray::data_offset()), EBX);
 
   // EAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
   __ StoreIntoObjectNoBarrier(
-      EAX, FieldAddress(EAX, GrowableObjectArray::type_arguments_offset()),
+      EAX,
+      FieldAddress(EAX, target::GrowableObjectArray::type_arguments_offset()),
       EBX);
 
-  __ ZeroInitSmiField(FieldAddress(EAX, GrowableObjectArray::length_offset()));
+  __ ZeroInitSmiField(
+      FieldAddress(EAX, target::GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in EAX.
 
   __ Bind(normal_ir_body);
 }
 
-#define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
-  const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
+#define TYPED_ARRAY_ALLOCATION(cid, max_len, scale_factor)                     \
+  const intptr_t kArrayLengthStackOffset = 1 * target::kWordSize;              \
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EDI, normal_ir_body, false));    \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset)); /* Array length. */     \
   /* Check that length is a positive Smi. */                                   \
@@ -110,10 +106,11 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
     scale_factor = TIMES_8;                                                    \
   }                                                                            \
   const intptr_t fixed_size_plus_alignment_padding =                           \
-      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
+      target::TypedData::InstanceSize() +                                      \
+      target::ObjectAlignment::kObjectAlignment - 1;                           \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding)); \
-  __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  __ movl(EAX, Address(THR, Thread::top_offset()));                            \
+  __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));         \
+  __ movl(EAX, Address(THR, target::Thread::top_offset()));                    \
   __ movl(EBX, EAX);                                                           \
                                                                                \
   /* EDI: allocation size. */                                                  \
@@ -124,12 +121,12 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* EAX: potential new object start. */                                       \
   /* EBX: potential next object start. */                                      \
   /* EDI: allocation size. */                                                  \
-  __ cmpl(EBX, Address(THR, Thread::end_offset()));                            \
+  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));                    \
   __ j(ABOVE_EQUAL, normal_ir_body);                                           \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movl(Address(THR, Thread::top_offset()), EBX);                            \
+  __ movl(Address(THR, target::Thread::top_offset()), EBX);                    \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));             \
                                                                                \
@@ -139,9 +136,10 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* EDI: allocation size. */                                                  \
   {                                                                            \
     Label size_tag_overflow, done;                                             \
-    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));                  \
+    __ cmpl(EDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));            \
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
-    __ shll(EDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));    \
+    __ shll(EDI, Immediate(target::RawObject::kTagBitsSizeTagPos -             \
+                           target::ObjectAlignment::kObjectAlignmentLog2));    \
     __ jmp(&done, Assembler::kNearJump);                                       \
                                                                                \
     __ Bind(&size_tag_overflow);                                               \
@@ -149,18 +147,18 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
     __ Bind(&done);                                                            \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
-    uint32_t tags = 0;                                                         \
-    tags = RawObject::ClassIdTag::update(cid, tags);                           \
-    tags = RawObject::NewBit::update(true, tags);                              \
+    uint32_t tags =                                                            \
+        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);        \
     __ orl(EDI, Immediate(tags));                                              \
-    __ movl(FieldAddress(EAX, type_name::tags_offset()), EDI); /* Tags. */     \
+    __ movl(FieldAddress(EAX, target::Object::tags_offset()),                  \
+            EDI); /* Tags. */                                                  \
   }                                                                            \
   /* Set the length field. */                                                  \
   /* EAX: new object start as a tagged pointer. */                             \
   /* EBX: new object end address. */                                           \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset)); /* Array length. */     \
   __ StoreIntoObjectNoBarrier(                                                 \
-      EAX, FieldAddress(EAX, type_name::length_offset()), EDI);                \
+      EAX, FieldAddress(EAX, target::TypedData::length_offset()), EDI);        \
   /* Initialize all array elements to 0. */                                    \
   /* EAX: new object start as a tagged pointer. */                             \
   /* EBX: new object end address. */                                           \
@@ -168,13 +166,13 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* ECX: scratch register. */                                                 \
   /* data area to be initialized. */                                           \
   __ xorl(ECX, ECX); /* Zero. */                                               \
-  __ leal(EDI, FieldAddress(EAX, sizeof(Raw##type_name)));                     \
+  __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));          \
   Label done, init_loop;                                                       \
   __ Bind(&init_loop);                                                         \
   __ cmpl(EDI, EBX);                                                           \
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);                              \
   __ movl(Address(EDI, 0), ECX);                                               \
-  __ addl(EDI, Immediate(kWordSize));                                          \
+  __ addl(EDI, Immediate(target::kWordSize));                                  \
   __ jmp(&init_loop, Assembler::kNearJump);                                    \
   __ Bind(&done);                                                              \
                                                                                \
@@ -199,12 +197,12 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
 }
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-  void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler,         \
-                                                 Label* normal_ir_body) {      \
-    intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);     \
-    intptr_t max_len = TypedData::MaxNewSpaceElements(kTypedData##clazz##Cid); \
+  void AsmIntrinsifier::TypedData_##clazz##_factory(Assembler* assembler,      \
+                                                    Label* normal_ir_body) {   \
+    intptr_t size = TypedDataElementSizeInBytes(kTypedData##clazz##Cid);       \
+    intptr_t max_len = TypedDataMaxNewSpaceElements(kTypedData##clazz##Cid);   \
     ScaleFactor scale = GetScaleFactor(size);                                  \
-    TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale); \
+    TYPED_ARRAY_ALLOCATION(kTypedData##clazz##Cid, max_len, scale);            \
   }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 #undef TYPED_DATA_ALLOCATOR
@@ -212,41 +210,41 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ movl(EBX, Address(ESP, +2 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
   __ orl(EBX, EAX);
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, not_smi, Assembler::kNearJump);
 }
 
-void Intrinsifier::Integer_addFromInteger(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
+                                             Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ addl(EAX, Address(ESP, +2 * kWordSize));
+  __ addl(EAX, Address(ESP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
   // Result is in EAX.
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
   Integer_addFromInteger(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Integer_subFromInteger(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
+                                             Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ subl(EAX, Address(ESP, +2 * kWordSize));
+  __ subl(EAX, Address(ESP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
   // Result is in EAX.
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   __ movl(EBX, EAX);
-  __ movl(EAX, Address(ESP, +2 * kWordSize));
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));
   __ subl(EAX, EBX);
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
   // Result is in EAX.
@@ -254,19 +252,19 @@ void Intrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_mulFromInteger(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
+                                             Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
   __ SmiUntag(EAX);
-  __ imull(EAX, Address(ESP, +2 * kWordSize));
+  __ imull(EAX, Address(ESP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
   // Result is in EAX.
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
   Integer_mulFromInteger(assembler, normal_ir_body);
 }
 
@@ -318,11 +316,11 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
+                                                Label* normal_ir_body) {
   Label subtract;
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
   // EAX: Tagged left (dividend).
   // EBX: Tagged right (divisor).
   // Check if modulo by zero -> exception thrown in main function.
@@ -352,15 +350,16 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_truncDivide(Assembler* assembler,
-                                       Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
+                                          Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // EAX: right argument (divisor)
   __ cmpl(EAX, Immediate(0));
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
   __ movl(EBX, EAX);
   __ SmiUntag(EBX);
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Left argument (dividend).
+  __ movl(EAX,
+          Address(ESP, +2 * target::kWordSize));  // Left argument (dividend).
   __ SmiUntag(EAX);
   __ pushl(EDX);  // Preserve EDX in case of 'fall_through'.
   __ cdq();
@@ -375,8 +374,9 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_negate(Assembler* assembler, Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+void AsmIntrinsifier::Integer_negate(Assembler* assembler,
+                                     Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);  // Non-smi value.
   __ negl(EAX);
@@ -386,60 +386,63 @@ void Intrinsifier::Integer_negate(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
+                                                Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
   __ andl(EAX, EBX);
   // Result is in EAX.
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_bitAnd(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
+                                     Label* normal_ir_body) {
   Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
-                                            Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
+                                               Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
   __ orl(EAX, EBX);
   // Result is in EAX.
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_bitOr(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
+                                    Label* normal_ir_body) {
   Integer_bitOrFromInteger(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
+                                                Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
   __ xorl(EAX, EBX);
   // Result is in EAX.
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_bitXor(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
+                                     Label* normal_ir_body) {
   Integer_bitXorFromInteger(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   Label overflow;
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // Shift value is in EAX. Compare with tagged Smi.
-  __ cmpl(EAX, Immediate(Smi::RawValue(Smi::kBits)));
+  __ cmpl(EAX, Immediate(target::ToRawSmi(target::Smi::kBits)));
   __ j(ABOVE_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   __ SmiUntag(EAX);
-  __ movl(ECX, EAX);                           // Shift amount must be in ECX.
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Value.
+  __ movl(ECX, EAX);  // Shift amount must be in ECX.
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Value.
 
   // Overflow test - all the shifted-out bits must be same as the sign bit.
   __ movl(EBX, EAX);
@@ -464,14 +467,14 @@ void Intrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   __ xorl(EDI, EDI);
   __ shldl(EDI, EAX, ECX);
   // Result in EDI (high) and EBX (low).
-  const Class& mint_class =
-      Class::Handle(Isolate::Current()->object_store()->mint_class());
+  const Class& mint_class = MintClass();
   __ TryAllocate(mint_class, normal_ir_body, Assembler::kNearJump,
                  EAX,   // Result register.
                  ECX);  // temp
   // EBX and EDI are not objects but integer values.
-  __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
-  __ movl(FieldAddress(EAX, Mint::value_offset() + kWordSize), EDI);
+  __ movl(FieldAddress(EAX, target::Mint::value_offset()), EBX);
+  __ movl(FieldAddress(EAX, target::Mint::value_offset() + target::kWordSize),
+          EDI);
   __ ret();
   __ Bind(normal_ir_body);
 }
@@ -494,8 +497,8 @@ static void Push64SmiOrMint(Assembler* assembler,
   __ CompareClassId(reg, kMintCid, tmp);
   __ j(NOT_EQUAL, not_smi_or_mint);
   // Mint.
-  __ pushl(FieldAddress(reg, Mint::value_offset() + kWordSize));
-  __ pushl(FieldAddress(reg, Mint::value_offset()));
+  __ pushl(FieldAddress(reg, target::Mint::value_offset() + target::kWordSize));
+  __ pushl(FieldAddress(reg, target::Mint::value_offset()));
   __ Bind(&done);
 }
 
@@ -505,13 +508,13 @@ static void CompareIntegers(Assembler* assembler,
   Label try_mint_smi, is_true, is_false, drop_two_fall_through, fall_through;
   TestBothArgumentsSmis(assembler, &try_mint_smi);
   // EAX contains the right argument.
-  __ cmpl(Address(ESP, +2 * kWordSize), EAX);
+  __ cmpl(Address(ESP, +2 * target::kWordSize), EAX);
   __ j(true_condition, &is_true, Assembler::kNearJump);
   __ Bind(&is_false);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 
   // 64-bit comparison
@@ -537,7 +540,7 @@ static void CompareIntegers(Assembler* assembler,
   // Note that EDX and ECX must be preserved in case we fall through to main
   // method.
   // EAX contains the right argument.
-  __ movl(EBX, Address(ESP, +2 * kWordSize));  // Left argument.
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));  // Left argument.
   // Push left as 64 bit integer.
   Push64SmiOrMint(assembler, EBX, EDI, normal_ir_body);
   // Push right as 64 bit integer.
@@ -559,65 +562,66 @@ static void CompareIntegers(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
-                                              Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
+                                                 Label* normal_ir_body) {
   CompareIntegers(assembler, normal_ir_body, LESS);
 }
 
-void Intrinsifier::Integer_lessThan(Assembler* assembler,
-                                    Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_lessThan(Assembler* assembler,
+                                       Label* normal_ir_body) {
   Integer_greaterThanFromInt(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Integer_greaterThan(Assembler* assembler,
-                                       Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_greaterThan(Assembler* assembler,
+                                          Label* normal_ir_body) {
   CompareIntegers(assembler, normal_ir_body, GREATER);
 }
 
-void Intrinsifier::Integer_lessEqualThan(Assembler* assembler,
-                                         Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_lessEqualThan(Assembler* assembler,
+                                            Label* normal_ir_body) {
   CompareIntegers(assembler, normal_ir_body, LESS_EQUAL);
 }
 
-void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler,
-                                            Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_greaterEqualThan(Assembler* assembler,
+                                               Label* normal_ir_body) {
   CompareIntegers(assembler, normal_ir_body, GREATER_EQUAL);
 }
 
 // This is called for Smi and Mint receivers. The right argument
 // can be Smi, Mint or double.
-void Intrinsifier::Integer_equalToInteger(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_equalToInteger(Assembler* assembler,
+                                             Label* normal_ir_body) {
   Label true_label, check_for_mint;
   // For integer receiver '===' check first.
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ cmpl(EAX, Address(ESP, +2 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ cmpl(EAX, Address(ESP, +2 * target::kWordSize));
   __ j(EQUAL, &true_label, Assembler::kNearJump);
-  __ movl(EBX, Address(ESP, +2 * kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
   __ orl(EAX, EBX);
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
   // Both arguments are smi, '===' is good enough.
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 
   // At least one of the arguments was not Smi.
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Receiver.
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Receiver.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &receiver_not_smi);
 
   // Left (receiver) is Smi, return false if right is not Double.
   // Note that an instance of Mint never contains a value that can be
   // represented by Smi.
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Right argument.
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Right argument.
   __ CompareClassId(EAX, kDoubleCid, EDI);
   __ j(EQUAL, normal_ir_body);
-  __ LoadObject(EAX, Bool::False());  // Smi == Mint -> false.
+  __ LoadObject(EAX,
+                CastHandle<Object>(FalseObject()));  // Smi == Mint -> false.
   __ ret();
 
   __ Bind(&receiver_not_smi);
@@ -625,21 +629,22 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler,
   __ CompareClassId(EAX, kMintCid, EDI);
   __ j(NOT_EQUAL, normal_ir_body);
   // Receiver is Mint, return false if right is Smi.
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Right argument.
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Right argument.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
 
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Integer_equal(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_equal(Assembler* assembler,
+                                    Label* normal_ir_body) {
   Integer_equalToInteger(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
   Label shift_count_ok;
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // Can destroy ECX since we are not falling through.
@@ -655,9 +660,9 @@ void Intrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
   __ j(LESS_EQUAL, &shift_count_ok, Assembler::kNearJump);
   __ movl(EAX, count_limit);
   __ Bind(&shift_count_ok);
-  __ movl(ECX, EAX);                           // Shift amount must be in ECX.
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Value.
-  __ SmiUntag(EAX);                            // Value.
+  __ movl(ECX, EAX);  // Shift amount must be in ECX.
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Value.
+  __ SmiUntag(EAX);                                    // Value.
   __ sarl(EAX, ECX);
   __ SmiTag(EAX);
   __ ret();
@@ -665,16 +670,18 @@ void Intrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
 }
 
 // Argument is Smi (receiver).
-void Intrinsifier::Smi_bitNegate(Assembler* assembler, Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Receiver.
+void AsmIntrinsifier::Smi_bitNegate(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Receiver.
   __ notl(EAX);
   __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
 }
 
-void Intrinsifier::Smi_bitLength(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
+                                    Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Receiver.
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Receiver.
   // XOR with sign bit to complement bits if value is negative.
   __ movl(ECX, EAX);
   __ sarl(ECX, Immediate(31));  // All 0 or all 1.
@@ -687,12 +694,12 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler, Label* normal_ir_body) {
   __ ret();
 }
 
-void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
+                                        Label* normal_ir_body) {
   Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   // static void _lsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)
 
@@ -700,18 +707,20 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ pushl(THR);
   ASSERT(THR == ESI);
 
-  __ movl(EDI, Address(ESP, 5 * kWordSize));  // x_digits
-  __ movl(ECX, Address(ESP, 3 * kWordSize));  // n is Smi
+  __ movl(EDI, Address(ESP, 5 * target::kWordSize));  // x_digits
+  __ movl(ECX, Address(ESP, 3 * target::kWordSize));  // n is Smi
   __ SmiUntag(ECX);
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+  __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // r_digits
   __ movl(ESI, ECX);
   __ sarl(ESI, Immediate(5));  // ESI = n ~/ _DIGIT_BITS.
-  __ leal(EBX, FieldAddress(EBX, ESI, TIMES_4, TypedData::data_offset()));
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // x_used > 0, Smi.
+  __ leal(EBX,
+          FieldAddress(EBX, ESI, TIMES_4, target::TypedData::data_offset()));
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // x_used > 0, Smi.
   __ SmiUntag(ESI);
   __ decl(ESI);
   __ xorl(EAX, EAX);  // EAX = 0.
-  __ movl(EDX, FieldAddress(EDI, ESI, TIMES_4, TypedData::data_offset()));
+  __ movl(EDX,
+          FieldAddress(EDI, ESI, TIMES_4, target::TypedData::data_offset()));
   __ shldl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, kBytesPerBigIntDigit), EAX);
   Label last;
@@ -720,8 +729,9 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   Label loop;
   __ Bind(&loop);
   __ movl(EAX, EDX);
-  __ movl(EDX, FieldAddress(EDI, ESI, TIMES_4,
-                            TypedData::data_offset() - kBytesPerBigIntDigit));
+  __ movl(EDX, FieldAddress(
+                   EDI, ESI, TIMES_4,
+                   target::TypedData::data_offset() - kBytesPerBigIntDigit));
   __ shldl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
   __ decl(ESI);
@@ -732,11 +742,11 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  __ LoadObject(EAX, Object::null_object());
+  __ LoadObject(EAX, NullObject());
   __ ret();
 }
 
-void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   // static void _rsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)
 
@@ -744,20 +754,22 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ pushl(THR);
   ASSERT(THR == ESI);
 
-  __ movl(EDI, Address(ESP, 5 * kWordSize));  // x_digits
-  __ movl(ECX, Address(ESP, 3 * kWordSize));  // n is Smi
+  __ movl(EDI, Address(ESP, 5 * target::kWordSize));  // x_digits
+  __ movl(ECX, Address(ESP, 3 * target::kWordSize));  // n is Smi
   __ SmiUntag(ECX);
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+  __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // r_digits
   __ movl(EDX, ECX);
-  __ sarl(EDX, Immediate(5));                 // EDX = n ~/ _DIGIT_BITS.
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // x_used > 0, Smi.
+  __ sarl(EDX, Immediate(5));                         // EDX = n ~/ _DIGIT_BITS.
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // x_used > 0, Smi.
   __ SmiUntag(ESI);
   __ decl(ESI);
   // EDI = &x_digits[x_used - 1].
-  __ leal(EDI, FieldAddress(EDI, ESI, TIMES_4, TypedData::data_offset()));
+  __ leal(EDI,
+          FieldAddress(EDI, ESI, TIMES_4, target::TypedData::data_offset()));
   __ subl(ESI, EDX);
   // EBX = &r_digits[x_used - 1 - (n ~/ 32)].
-  __ leal(EBX, FieldAddress(EBX, ESI, TIMES_4, TypedData::data_offset()));
+  __ leal(EBX,
+          FieldAddress(EBX, ESI, TIMES_4, target::TypedData::data_offset()));
   __ negl(ESI);
   __ movl(EDX, Address(EDI, ESI, TIMES_4, 0));
   Label last;
@@ -777,11 +789,12 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  __ LoadObject(EAX, Object::null_object());
+  __ LoadObject(EAX, NullObject());
   __ ret();
 }
 
-void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
+                                    Label* normal_ir_body) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
@@ -790,13 +803,13 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
   __ pushl(THR);
   ASSERT(THR == ESI);
 
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
-  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
-  __ SmiUntag(EAX);                           // used > 0.
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
-  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
-  __ SmiUntag(ECX);                           // a_used > 0.
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+  __ movl(EDI, Address(ESP, 6 * target::kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 5 * target::kWordSize));  // used is Smi
+  __ SmiUntag(EAX);                                   // used > 0.
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 3 * target::kWordSize));  // a_used is Smi
+  __ SmiUntag(ECX);                                   // a_used > 0.
+  __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
@@ -807,9 +820,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
   Label add_loop;
   __ Bind(&add_loop);
   // Loop a_used times, ECX = a_used, ECX > 0.
-  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
-  __ adcl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ movl(EAX,
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
+  __ adcl(EAX,
+          FieldAddress(ESI, EDX, TIMES_4, target::TypedData::data_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
@@ -822,9 +838,11 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop used - a_used times, ECX = used - a_used, ECX > 0.
-  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ movl(EAX,
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
   __ adcl(EAX, Immediate(0));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
@@ -832,15 +850,17 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&last_carry);
   __ movl(EAX, Immediate(0));
   __ adcl(EAX, Immediate(0));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          EAX);
 
   // Restore THR and return.
   __ popl(THR);
-  __ LoadObject(EAX, Object::null_object());
+  __ LoadObject(EAX, NullObject());
   __ ret();
 }
 
-void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
+                                    Label* normal_ir_body) {
   // static void _absSub(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
@@ -849,13 +869,13 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ pushl(THR);
   ASSERT(THR == ESI);
 
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
-  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
-  __ SmiUntag(EAX);                           // used > 0.
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
-  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
-  __ SmiUntag(ECX);                           // a_used > 0.
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+  __ movl(EDI, Address(ESP, 6 * target::kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 5 * target::kWordSize));  // used is Smi
+  __ SmiUntag(EAX);                                   // used > 0.
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 3 * target::kWordSize));  // a_used is Smi
+  __ SmiUntag(ECX);                                   // a_used > 0.
+  __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
@@ -866,9 +886,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   Label sub_loop;
   __ Bind(&sub_loop);
   // Loop a_used times, ECX = a_used, ECX > 0.
-  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
-  __ sbbl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ movl(EAX,
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
+  __ sbbl(EAX,
+          FieldAddress(ESI, EDX, TIMES_4, target::TypedData::data_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
@@ -881,9 +904,11 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop used - a_used times, ECX = used - a_used, ECX > 0.
-  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ movl(EAX,
+          FieldAddress(EDI, EDX, TIMES_4, target::TypedData::data_offset()));
   __ sbbl(EAX, Immediate(0));
-  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, target::TypedData::data_offset()),
+          EAX);
   __ incl(EDX);  // Does not affect carry flag.
   __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
@@ -891,11 +916,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&done);
   // Restore THR and return.
   __ popl(THR);
-  __ LoadObject(EAX, Object::null_object());
+  __ LoadObject(EAX, NullObject());
   __ ret();
 }
 
-void Intrinsifier::Bigint_mulAdd(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
+                                    Label* normal_ir_body) {
   // Pseudo code:
   // static int _mulAdd(Uint32List x_digits, int xi,
   //                    Uint32List m_digits, int i,
@@ -925,14 +951,15 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler, Label* normal_ir_body) {
 
   Label no_op;
   // EBX = x, no_op if x == 0
-  __ movl(ECX, Address(ESP, 7 * kWordSize));  // x_digits
-  __ movl(EAX, Address(ESP, 6 * kWordSize));  // xi is Smi
-  __ movl(EBX, FieldAddress(ECX, EAX, TIMES_2, TypedData::data_offset()));
+  __ movl(ECX, Address(ESP, 7 * target::kWordSize));  // x_digits
+  __ movl(EAX, Address(ESP, 6 * target::kWordSize));  // xi is Smi
+  __ movl(EBX,
+          FieldAddress(ECX, EAX, TIMES_2, target::TypedData::data_offset()));
   __ testl(EBX, EBX);
   __ j(ZERO, &no_op, Assembler::kNearJump);
 
   // EDX = SmiUntag(n), no_op if n == 0
-  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ movl(EDX, Address(ESP, 1 * target::kWordSize));
   __ SmiUntag(EDX);
   __ j(ZERO, &no_op, Assembler::kNearJump);
 
@@ -941,18 +968,20 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(THR == ESI);
 
   // EDI = mip = &m_digits[i >> 1]
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // m_digits
-  __ movl(EAX, Address(ESP, 5 * kWordSize));  // i is Smi
-  __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
+  __ movl(EDI, Address(ESP, 6 * target::kWordSize));  // m_digits
+  __ movl(EAX, Address(ESP, 5 * target::kWordSize));  // i is Smi
+  __ leal(EDI,
+          FieldAddress(EDI, EAX, TIMES_2, target::TypedData::data_offset()));
 
   // ESI = ajp = &a_digits[j >> 1]
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
-  __ movl(EAX, Address(ESP, 3 * kWordSize));  // j is Smi
-  __ leal(ESI, FieldAddress(ESI, EAX, TIMES_2, TypedData::data_offset()));
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // a_digits
+  __ movl(EAX, Address(ESP, 3 * target::kWordSize));  // j is Smi
+  __ leal(ESI,
+          FieldAddress(ESI, EAX, TIMES_2, target::TypedData::data_offset()));
 
   // Save n
   __ pushl(EDX);
-  Address n_addr = Address(ESP, 0 * kWordSize);
+  Address n_addr = Address(ESP, 0 * target::kWordSize);
 
   // ECX = c = 0
   __ xorl(ECX, ECX);
@@ -1010,11 +1039,12 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler, Label* normal_ir_body) {
   __ popl(THR);
 
   __ Bind(&no_op);
-  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movl(EAX, Immediate(target::ToRawSmi(1)));  // One digit processed.
   __ ret();
 }
 
-void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
+                                    Label* normal_ir_body) {
   // Pseudo code:
   // static int _sqrAdd(Uint32List x_digits, int i,
   //                    Uint32List a_digits, int used) {
@@ -1042,9 +1072,10 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
   // }
 
   // EDI = xip = &x_digits[i >> 1]
-  __ movl(EDI, Address(ESP, 4 * kWordSize));  // x_digits
-  __ movl(EAX, Address(ESP, 3 * kWordSize));  // i is Smi
-  __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
+  __ movl(EDI, Address(ESP, 4 * target::kWordSize));  // x_digits
+  __ movl(EAX, Address(ESP, 3 * target::kWordSize));  // i is Smi
+  __ leal(EDI,
+          FieldAddress(EDI, EAX, TIMES_2, target::TypedData::data_offset()));
 
   // EBX = x = *xip++, return if x == 0
   Label x_zero;
@@ -1058,8 +1089,9 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(THR == ESI);
 
   // ESI = ajp = &a_digits[i]
-  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
-  __ leal(ESI, FieldAddress(ESI, EAX, TIMES_4, TypedData::data_offset()));
+  __ movl(ESI, Address(ESP, 3 * target::kWordSize));  // a_digits
+  __ leal(ESI,
+          FieldAddress(ESI, EAX, TIMES_4, target::TypedData::data_offset()));
 
   // EDX:EAX = t = x*x + *ajp
   __ movl(EAX, EBX);
@@ -1072,8 +1104,8 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
   __ addl(ESI, Immediate(kBytesPerBigIntDigit));
 
   // int n = used - i - 1
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // used is Smi
-  __ subl(EAX, Address(ESP, 4 * kWordSize));  // i is Smi
+  __ movl(EAX, Address(ESP, 2 * target::kWordSize));  // used is Smi
+  __ subl(EAX, Address(ESP, 4 * target::kWordSize));  // i is Smi
   __ SmiUntag(EAX);
   __ decl(EAX);
   __ pushl(EAX);  // Save n on stack.
@@ -1082,9 +1114,9 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
   __ pushl(Immediate(0));  // push high32(c) == 0
   __ pushl(EDX);           // push low32(c) == high32(t)
 
-  Address n_addr = Address(ESP, 2 * kWordSize);
-  Address ch_addr = Address(ESP, 1 * kWordSize);
-  Address cl_addr = Address(ESP, 0 * kWordSize);
+  Address n_addr = Address(ESP, 2 * target::kWordSize);
+  Address ch_addr = Address(ESP, 1 * target::kWordSize);
+  Address cl_addr = Address(ESP, 0 * target::kWordSize);
 
   Label loop, done;
   __ Bind(&loop);
@@ -1096,7 +1128,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
   // n:   ESP[2]
 
   // while (--n >= 0)
-  __ decl(Address(ESP, 2 * kWordSize));  // --n
+  __ decl(Address(ESP, 2 * target::kWordSize));  // --n
   __ j(NEGATIVE, &done, Assembler::kNearJump);
 
   // uint32_t xi = *xip++
@@ -1142,12 +1174,12 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler, Label* normal_ir_body) {
   __ Drop(3);
   __ popl(THR);
   __ Bind(&x_zero);
-  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movl(EAX, Immediate(target::ToRawSmi(1)));  // One digit processed.
   __ ret();
 }
 
-void Intrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
+                                                   Label* normal_ir_body) {
   // Pseudo code:
   // static int _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
   //   uint32_t yt = args[_YT];  // _YT == 1.
@@ -1165,16 +1197,17 @@ void Intrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   // }
 
   // EDI = args
-  __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
+  __ movl(EDI, Address(ESP, 3 * target::kWordSize));  // args
 
   // ECX = yt = args[1]
-  __ movl(ECX,
-          FieldAddress(EDI, TypedData::data_offset() + kBytesPerBigIntDigit));
+  __ movl(ECX, FieldAddress(EDI, target::TypedData::data_offset() +
+                                     kBytesPerBigIntDigit));
 
   // EBX = dp = &digits[i >> 1]
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
-  __ movl(EAX, Address(ESP, 1 * kWordSize));  // i is Smi
-  __ leal(EBX, FieldAddress(EBX, EAX, TIMES_2, TypedData::data_offset()));
+  __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 1 * target::kWordSize));  // i is Smi
+  __ leal(EBX,
+          FieldAddress(EBX, EAX, TIMES_2, target::TypedData::data_offset()));
 
   // EDX = dh = dp[0]
   __ movl(EDX, Address(EBX, 0));
@@ -1195,16 +1228,16 @@ void Intrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
 
   __ Bind(&return_qd);
   // args[2] = qd
-  __ movl(
-      FieldAddress(EDI, TypedData::data_offset() + 2 * kBytesPerBigIntDigit),
-      EAX);
+  __ movl(FieldAddress(
+              EDI, target::TypedData::data_offset() + 2 * kBytesPerBigIntDigit),
+          EAX);
 
-  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movl(EAX, Immediate(target::ToRawSmi(1)));  // One digit processed.
   __ ret();
 }
 
-void Intrinsifier::Montgomery_mulMod(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
+                                        Label* normal_ir_body) {
   // Pseudo code:
   // static int _mulMod(Uint32List args, Uint32List digits, int i) {
   //   uint32_t rho = args[_RHO];  // _RHO == 2.
@@ -1215,26 +1248,27 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler,
   // }
 
   // EDI = args
-  __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
+  __ movl(EDI, Address(ESP, 3 * target::kWordSize));  // args
 
   // ECX = rho = args[2]
-  __ movl(ECX, FieldAddress(
-                   EDI, TypedData::data_offset() + 2 * kBytesPerBigIntDigit));
+  __ movl(ECX, FieldAddress(EDI, target::TypedData::data_offset() +
+                                     2 * kBytesPerBigIntDigit));
 
   // EAX = digits[i >> 1]
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
-  __ movl(EAX, Address(ESP, 1 * kWordSize));  // i is Smi
-  __ movl(EAX, FieldAddress(EBX, EAX, TIMES_2, TypedData::data_offset()));
+  __ movl(EBX, Address(ESP, 2 * target::kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 1 * target::kWordSize));  // i is Smi
+  __ movl(EAX,
+          FieldAddress(EBX, EAX, TIMES_2, target::TypedData::data_offset()));
 
   // EDX:EAX = t = rho*d
   __ mull(ECX);
 
   // args[4] = t mod DIGIT_BASE = low32(t)
-  __ movl(
-      FieldAddress(EDI, TypedData::data_offset() + 4 * kBytesPerBigIntDigit),
-      EAX);
+  __ movl(FieldAddress(
+              EDI, target::TypedData::data_offset() + 4 * kBytesPerBigIntDigit),
+          EAX);
 
-  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movl(EAX, Immediate(target::ToRawSmi(1)));  // One digit processed.
   __ ret();
 }
 
@@ -1244,7 +1278,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler,
 static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* is_smi,
                                      Label* not_double_smi) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
   __ CompareClassId(EAX, kDoubleCid, EBX);
@@ -1262,19 +1296,19 @@ static void CompareDoubles(Assembler* assembler,
   Label is_false, is_true, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, normal_ir_body);
   // Both arguments are double, right operand is in EAX.
-  __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ movsd(XMM1, FieldAddress(EAX, target::Double::value_offset()));
   __ Bind(&double_op);
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Left argument.
-  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Left argument.
+  __ movsd(XMM0, FieldAddress(EAX, target::Double::value_offset()));
   __ comisd(XMM0, XMM1);
   __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
   __ j(true_condition, &is_true, Assembler::kNearJump);
   // Fall through false.
   __ Bind(&is_false);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(EAX);
@@ -1284,31 +1318,32 @@ static void CompareDoubles(Assembler* assembler,
 }
 
 // arg0 is Double, arg1 is unknown.
-void Intrinsifier::Double_greaterThan(Assembler* assembler,
-                                      Label* normal_ir_body) {
+void AsmIntrinsifier::Double_greaterThan(Assembler* assembler,
+                                         Label* normal_ir_body) {
   CompareDoubles(assembler, normal_ir_body, ABOVE);
 }
 
 // arg0 is Double, arg1 is unknown.
-void Intrinsifier::Double_greaterEqualThan(Assembler* assembler,
-                                           Label* normal_ir_body) {
+void AsmIntrinsifier::Double_greaterEqualThan(Assembler* assembler,
+                                              Label* normal_ir_body) {
   CompareDoubles(assembler, normal_ir_body, ABOVE_EQUAL);
 }
 
 // arg0 is Double, arg1 is unknown.
-void Intrinsifier::Double_lessThan(Assembler* assembler,
-                                   Label* normal_ir_body) {
+void AsmIntrinsifier::Double_lessThan(Assembler* assembler,
+                                      Label* normal_ir_body) {
   CompareDoubles(assembler, normal_ir_body, BELOW);
 }
 
 // arg0 is Double, arg1 is unknown.
-void Intrinsifier::Double_equal(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Double_equal(Assembler* assembler,
+                                   Label* normal_ir_body) {
   CompareDoubles(assembler, normal_ir_body, EQUAL);
 }
 
 // arg0 is Double, arg1 is unknown.
-void Intrinsifier::Double_lessEqualThan(Assembler* assembler,
-                                        Label* normal_ir_body) {
+void AsmIntrinsifier::Double_lessEqualThan(Assembler* assembler,
+                                           Label* normal_ir_body) {
   CompareDoubles(assembler, normal_ir_body, BELOW_EQUAL);
 }
 
@@ -1320,10 +1355,10 @@ static void DoubleArithmeticOperations(Assembler* assembler,
   Label is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, normal_ir_body);
   // Both arguments are double, right operand is in EAX.
-  __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ movsd(XMM1, FieldAddress(EAX, target::Double::value_offset()));
   __ Bind(&double_op);
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Left argument.
-  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Left argument.
+  __ movsd(XMM0, FieldAddress(EAX, target::Double::value_offset()));
   switch (kind) {
     case Token::kADD:
       __ addsd(XMM0, XMM1);
@@ -1340,12 +1375,11 @@ static void DoubleArithmeticOperations(Assembler* assembler,
     default:
       UNREACHABLE();
   }
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
+  const Class& double_class = DoubleClass();
   __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump,
                  EAX,  // Result register.
                  EBX);
-  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ movsd(FieldAddress(EAX, target::Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(EAX);
@@ -1354,116 +1388,115 @@ static void DoubleArithmeticOperations(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Double_add(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Double_add(Assembler* assembler, Label* normal_ir_body) {
   DoubleArithmeticOperations(assembler, normal_ir_body, Token::kADD);
 }
 
-void Intrinsifier::Double_mul(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Double_mul(Assembler* assembler, Label* normal_ir_body) {
   DoubleArithmeticOperations(assembler, normal_ir_body, Token::kMUL);
 }
 
-void Intrinsifier::Double_sub(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Double_sub(Assembler* assembler, Label* normal_ir_body) {
   DoubleArithmeticOperations(assembler, normal_ir_body, Token::kSUB);
 }
 
-void Intrinsifier::Double_div(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Double_div(Assembler* assembler, Label* normal_ir_body) {
   DoubleArithmeticOperations(assembler, normal_ir_body, Token::kDIV);
 }
 
 // Left is double, right is integer (Mint or Smi)
-void Intrinsifier::Double_mulFromInteger(Assembler* assembler,
-                                         Label* normal_ir_body) {
+void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
+                                            Label* normal_ir_body) {
   // Only smis allowed.
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);
   // Is Smi.
   __ SmiUntag(EAX);
   __ cvtsi2sd(XMM1, EAX);
-  __ movl(EAX, Address(ESP, +2 * kWordSize));
-  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, target::Double::value_offset()));
   __ mulsd(XMM0, XMM1);
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
+  const Class& double_class = DoubleClass();
   __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump,
                  EAX,  // Result register.
                  EBX);
-  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ movsd(FieldAddress(EAX, target::Double::value_offset()), XMM0);
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::DoubleFromInteger(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
+                                        Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);
   // Is Smi.
   __ SmiUntag(EAX);
   __ cvtsi2sd(XMM0, EAX);
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
+  const Class& double_class = DoubleClass();
   __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump,
                  EAX,  // Result register.
                  EBX);
-  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ movsd(FieldAddress(EAX, target::Double::value_offset()), XMM0);
   __ ret();
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Double_getIsNaN(Assembler* assembler,
-                                   Label* normal_ir_body) {
+void AsmIntrinsifier::Double_getIsNaN(Assembler* assembler,
+                                      Label* normal_ir_body) {
   Label is_true;
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, target::Double::value_offset()));
   __ comisd(XMM0, XMM0);
   __ j(PARITY_EVEN, &is_true, Assembler::kNearJump);  // NaN -> true;
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 }
 
-void Intrinsifier::Double_getIsInfinite(Assembler* assembler,
-                                        Label* normal_ir_body) {
+void AsmIntrinsifier::Double_getIsInfinite(Assembler* assembler,
+                                           Label* normal_ir_body) {
   Label not_inf;
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ movl(EBX, FieldAddress(EAX, Double::value_offset()));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, FieldAddress(EAX, target::Double::value_offset()));
 
   // If the low word isn't zero, then it isn't infinity.
   __ cmpl(EBX, Immediate(0));
   __ j(NOT_EQUAL, &not_inf, Assembler::kNearJump);
   // Check the high word.
-  __ movl(EBX, FieldAddress(EAX, Double::value_offset() + kWordSize));
+  __ movl(EBX, FieldAddress(
+                   EAX, target::Double::value_offset() + target::kWordSize));
   // Mask off sign bit.
   __ andl(EBX, Immediate(0x7FFFFFFF));
   // Compare with +infinity.
   __ cmpl(EBX, Immediate(0x7FF00000));
   __ j(NOT_EQUAL, &not_inf, Assembler::kNearJump);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 
   __ Bind(&not_inf);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
 }
 
-void Intrinsifier::Double_getIsNegative(Assembler* assembler,
-                                        Label* normal_ir_body) {
+void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
+                                           Label* normal_ir_body) {
   Label is_false, is_true, is_zero;
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, target::Double::value_offset()));
   __ xorpd(XMM1, XMM1);  // 0.0 -> XMM1.
   __ comisd(XMM0, XMM1);
   __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false.
   __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
   __ j(ABOVE_EQUAL, &is_false, Assembler::kNearJump);  // >= 0 -> false.
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
   __ Bind(&is_false);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&is_zero);
   // Check for negative zero (get the sign bit).
@@ -1473,10 +1506,10 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
-void Intrinsifier::DoubleToInteger(Assembler* assembler,
-                                   Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
+                                      Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, target::Double::value_offset()));
   __ cvttsd2si(EAX, XMM0);
   // Overflow is signalled with minint.
   // Check for overflow and that it fits into Smi.
@@ -1487,14 +1520,14 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::Double_hashCode(Assembler* assembler,
-                                   Label* normal_ir_body) {
+void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
+                                      Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
 
   // Convert double value to signed 32-bit int in EAX and
   // back to a double in XMM1.
-  __ movl(ECX, Address(ESP, +1 * kWordSize));
-  __ movsd(XMM0, FieldAddress(ECX, Double::value_offset()));
+  __ movl(ECX, Address(ESP, +1 * target::kWordSize));
+  __ movsd(XMM0, FieldAddress(ECX, target::Double::value_offset()));
   __ cvttsd2si(EAX, XMM0);
   __ cvtsi2sd(XMM1, EAX);
 
@@ -1514,8 +1547,8 @@ void Intrinsifier::Double_hashCode(Assembler* assembler,
 
   // Convert the double bits to a hash code that fits in a Smi.
   __ Bind(&double_hash);
-  __ movl(EAX, FieldAddress(ECX, Double::value_offset()));
-  __ movl(ECX, FieldAddress(ECX, Double::value_offset() + 4));
+  __ movl(EAX, FieldAddress(ECX, target::Double::value_offset()));
+  __ movl(ECX, FieldAddress(ECX, target::Double::value_offset() + 4));
   __ xorl(EAX, ECX);
   __ andl(EAX, Immediate(kSmiMax));
   __ SmiTag(EAX);
@@ -1526,19 +1559,18 @@ void Intrinsifier::Double_hashCode(Assembler* assembler,
 }
 
 // Argument type is not known
-void Intrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
   Label is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, normal_ir_body);
   // Argument is double and is in EAX.
-  __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ movsd(XMM1, FieldAddress(EAX, target::Double::value_offset()));
   __ Bind(&double_op);
   __ sqrtsd(XMM0, XMM1);
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
+  const Class& double_class = DoubleClass();
   __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump,
                  EAX,  // Result register.
                  EBX);
-  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ movsd(FieldAddress(EAX, target::Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(EAX);
@@ -1550,28 +1582,24 @@ void Intrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
 //    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;
-void Intrinsifier::Random_nextState(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  ASSERT(!math_lib.IsNull());
-  const Class& random_class =
-      Class::Handle(math_lib.LookupClassAllowPrivate(Symbols::_Random()));
-  ASSERT(!random_class.IsNull());
-  const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
-  ASSERT(!state_field.IsNull());
-  const int64_t a_int_value = Intrinsifier::kRandomAValue;
+void AsmIntrinsifier::Random_nextState(Assembler* assembler,
+                                       Label* normal_ir_body) {
+  const Field& state_field = LookupMathRandomStateFieldOffset();
+  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
+
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
   // Receiver.
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   // Field '_state'.
-  __ movl(EBX, FieldAddress(EAX, state_field.Offset()));
+  __ movl(EBX, FieldAddress(EAX, LookupFieldOffsetInBytes(state_field)));
   // Addresses of _state[0] and _state[1].
-  const intptr_t scale = Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
-  const intptr_t offset = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
+  const intptr_t scale =
+      target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
+  const intptr_t offset =
+      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
   Address addr_0 = FieldAddress(EBX, 0 * scale + offset);
   Address addr_1 = FieldAddress(EBX, 1 * scale + offset);
   __ movl(EAX, Immediate(a_int32_value));
@@ -1581,21 +1609,22 @@ void Intrinsifier::Random_nextState(Assembler* assembler,
   __ adcl(EDX, Immediate(0));
   __ movl(addr_1, EDX);
   __ movl(addr_0, EAX);
-  ASSERT(Smi::RawValue(0) == 0);
+  ASSERT(target::ToRawSmi(0) == 0);
   __ xorl(EAX, EAX);
   __ ret();
 }
 
 // Identity comparison.
-void Intrinsifier::ObjectEquals(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
+                                   Label* normal_ir_body) {
   Label is_true;
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
-  __ cmpl(EAX, Address(ESP, +2 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ cmpl(EAX, Address(ESP, +2 * target::kWordSize));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 }
 
@@ -1634,10 +1663,10 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
 }
 
 // Return type quickly for simple types (not parameterized and not signature).
-void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
+                                        Label* normal_ir_body) {
   Label use_declaration_type, not_double, not_integer;
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
 
   __ cmpl(EDI, Immediate(kClosureCid));
@@ -1651,8 +1680,8 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(NOT_EQUAL, &not_double);
 
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
-  __ movl(EAX, Address(EAX, ObjectStore::double_type_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::ObjectStore::double_type_offset()));
   __ ret();
 
   __ Bind(&not_double);
@@ -1661,8 +1690,8 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   JumpIfNotInteger(assembler, EAX, &not_integer);
 
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
-  __ movl(EAX, Address(EAX, ObjectStore::int_type_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::ObjectStore::int_type_offset()));
   __ ret();
 
   __ Bind(&not_integer);
@@ -1672,36 +1701,37 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   JumpIfNotString(assembler, EAX, &use_declaration_type);
 
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
-  __ movl(EAX, Address(EAX, ObjectStore::string_type_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
   // Object is neither double, nor integer, nor string.
   __ Bind(&use_declaration_type);
   __ LoadClassById(EBX, EDI);
-  __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
+  __ movzxw(EDI, FieldAddress(
+                     EBX, target::Class::num_type_arguments_offset_in_bytes()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EBX, Class::declaration_type_offset()));
-  __ CompareObject(EAX, Object::null_object());
+  __ movl(EAX, FieldAddress(EBX, target::Class::declaration_type_offset()));
+  __ CompareObject(EAX, NullObject());
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);  // Not yet set.
   __ ret();
 
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
+                                                Label* normal_ir_body) {
   Label different_cids, equal, not_equal, not_integer;
 
-  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
 
   // Check if left hand size is a closure. Closures are handled in the runtime.
   __ cmpl(EDI, Immediate(kClosureCid));
   __ j(EQUAL, normal_ir_body);
 
-  __ movl(EAX, Address(ESP, +2 * kWordSize));
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EBX, EAX);
 
   // Check whether class ids match. If class ids don't match objects can still
@@ -1714,12 +1744,13 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(EBX, EDI);
-  __ movzxw(EBX, FieldAddress(EBX, Class::num_type_arguments_offset()));
+  __ movzxw(EBX, FieldAddress(
+                     EBX, target::Class::num_type_arguments_offset_in_bytes()));
   __ cmpl(EBX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   __ Bind(&equal);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 
   // Class ids are different. Check if we are comparing runtime types of
@@ -1748,16 +1779,16 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Fall-through to the not equal case.
 
   __ Bind(&not_equal);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
 
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::String_getHashCode(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // String object.
-  __ movl(EAX, FieldAddress(EAX, String::hash_offset()));
+void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
+                                         Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // String object.
+  __ movl(EAX, FieldAddress(EAX, target::String::hash_offset()));
   __ cmpl(EAX, Immediate(0));
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
   __ ret();
@@ -1765,10 +1796,10 @@ void Intrinsifier::String_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void Intrinsifier::Type_getHashCode(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Type object.
-  __ movl(EAX, FieldAddress(EAX, Type::hash_offset()));
+void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
+                                       Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Type object.
+  __ movl(EAX, FieldAddress(EAX, target::Type::hash_offset()));
   __ testl(EAX, EAX);
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
   __ ret();
@@ -1777,85 +1808,89 @@ void Intrinsifier::Type_getHashCode(Assembler* assembler,
 }
 
 // bool _substringMatches(int start, String other)
-void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler,
-                                              Label* normal_ir_body) {
+void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
+                                                 Label* normal_ir_body) {
   // For precompilation, not implemented on IA32.
 }
 
-void Intrinsifier::Object_getHash(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Object_getHash(Assembler* assembler,
+                                     Label* normal_ir_body) {
   UNREACHABLE();
 }
 
-void Intrinsifier::Object_setHash(Assembler* assembler, Label* normal_ir_body) {
+void AsmIntrinsifier::Object_setHash(Assembler* assembler,
+                                     Label* normal_ir_body) {
   UNREACHABLE();
 }
 
-void Intrinsifier::StringBaseCharAt(Assembler* assembler,
-                                    Label* normal_ir_body) {
+void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
+                                       Label* normal_ir_body) {
   Label try_two_byte_string;
-  __ movl(EBX, Address(ESP, +1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // String.
+  __ movl(EBX, Address(ESP, +1 * target::kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // String.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);  // Non-smi index.
   // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
+  __ cmpl(EBX, FieldAddress(EAX, target::String::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, normal_ir_body, Assembler::kNearJump);
   __ CompareClassId(EAX, kOneByteStringCid, EDI);
   __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
   __ SmiUntag(EBX);
-  __ movzxb(EBX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
-  __ cmpl(EBX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ movzxb(EBX, FieldAddress(EAX, EBX, TIMES_1,
+                              target::OneByteString::data_offset()));
+  __ cmpl(EBX, Immediate(target::Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, normal_ir_body);
-  __ movl(EAX,
-          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movl(EAX, Immediate(SymbolsPredefinedAddress()));
   __ movl(EAX, Address(EAX, EBX, TIMES_4,
-                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
+                       target::Symbols::kNullCharCodeSymbolOffset *
+                           target::kWordSize));
   __ ret();
 
   __ Bind(&try_two_byte_string);
   __ CompareClassId(EAX, kTwoByteStringCid, EDI);
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
   ASSERT(kSmiTagShift == 1);
-  __ movzxw(EBX, FieldAddress(EAX, EBX, TIMES_1, TwoByteString::data_offset()));
-  __ cmpl(EBX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ movzxw(EBX, FieldAddress(EAX, EBX, TIMES_1,
+                              target::TwoByteString::data_offset()));
+  __ cmpl(EBX, Immediate(target::Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, normal_ir_body);
-  __ movl(EAX,
-          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movl(EAX, Immediate(SymbolsPredefinedAddress()));
   __ movl(EAX, Address(EAX, EBX, TIMES_4,
-                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
+                       target::Symbols::kNullCharCodeSymbolOffset *
+                           target::kWordSize));
   __ ret();
 
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::StringBaseIsEmpty(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::StringBaseIsEmpty(Assembler* assembler,
+                                        Label* normal_ir_body) {
   Label is_true;
   // Get length.
-  __ movl(EAX, Address(ESP, +1 * kWordSize));  // String object.
-  __ movl(EAX, FieldAddress(EAX, String::length_offset()));
-  __ cmpl(EAX, Immediate(Smi::RawValue(0)));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // String object.
+  __ movl(EAX, FieldAddress(EAX, target::String::length_offset()));
+  __ cmpl(EAX, Immediate(target::ToRawSmi(0)));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 }
 
-void Intrinsifier::OneByteString_getHashCode(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
+                                                Label* normal_ir_body) {
   Label compute_hash;
-  __ movl(EBX, Address(ESP, +1 * kWordSize));  // OneByteString object.
-  __ movl(EAX, FieldAddress(EBX, String::hash_offset()));
+  __ movl(EBX, Address(ESP, +1 * target::kWordSize));  // OneByteString object.
+  __ movl(EAX, FieldAddress(EBX, target::String::hash_offset()));
   __ cmpl(EAX, Immediate(0));
   __ j(EQUAL, &compute_hash, Assembler::kNearJump);
   __ ret();
 
   __ Bind(&compute_hash);
   // Hash not yet computed, use algorithm of class StringHasher.
-  __ movl(ECX, FieldAddress(EBX, String::length_offset()));
+  __ movl(ECX, FieldAddress(EBX, target::String::length_offset()));
   __ SmiUntag(ECX);
   __ xorl(EAX, EAX);
   __ xorl(EDI, EDI);
@@ -1872,7 +1907,8 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // hash_ += hash_ << 10;
   // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
-  __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1, OneByteString::data_offset()));
+  __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1,
+                              target::OneByteString::data_offset()));
   // EDX: ch and temporary.
   __ addl(EAX, EDX);
   __ movl(EDX, EAX);
@@ -1900,8 +1936,9 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ shll(EDX, Immediate(15));
   __ addl(EAX, EDX);
   // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ andl(EAX,
-          Immediate(((static_cast<intptr_t>(1) << String::kHashBits) - 1)));
+  __ andl(
+      EAX,
+      Immediate(((static_cast<intptr_t>(1) << target::String::kHashBits) - 1)));
 
   // return hash_ == 0 ? 1 : hash_;
   __ cmpl(EAX, Immediate(0));
@@ -1909,7 +1946,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ incl(EAX);
   __ Bind(&set_hash_code);
   __ SmiTag(EAX);
-  __ StoreIntoSmiField(FieldAddress(EBX, String::hash_offset()), EAX);
+  __ StoreIntoSmiField(FieldAddress(EBX, target::String::hash_offset()), EAX);
   __ ret();
 }
 
@@ -1929,13 +1966,14 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ pushl(EDI);  // Preserve length.
   __ SmiUntag(EDI);
   const intptr_t fixed_size_plus_alignment_padding =
-      sizeof(RawString) + kObjectAlignment - 1;
+      target::String::InstanceSize() +
+      target::ObjectAlignment::kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_1,
                        fixed_size_plus_alignment_padding));  // EDI is untagged.
-  __ andl(EDI, Immediate(-kObjectAlignment));
+  __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  __ movl(EAX, Address(THR, Thread::top_offset()));
+  __ movl(EAX, Address(THR, target::Thread::top_offset()));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -1946,12 +1984,12 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // EAX: potential new object start.
   // EBX: potential next object start.
   // EDI: allocation size.
-  __ cmpl(EBX, Address(THR, Thread::end_offset()));
+  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address(THR, Thread::top_offset()), EBX);
+  __ movl(Address(THR, target::Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));
@@ -1962,9 +2000,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // EDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ cmpl(EDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
+    __ shll(EDI, Immediate(target::RawObject::kTagBitsSizeTagPos -
+                           target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&size_tag_overflow);
@@ -1972,19 +2011,18 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    uint32_t tags = 0;
-    tags = RawObject::ClassIdTag::update(cid, tags);
-    tags = RawObject::NewBit::update(true, tags);
+    const uint32_t tags =
+        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
-    __ movl(FieldAddress(EAX, String::tags_offset()), EDI);  // Tags.
+    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
   }
 
   // Set the length field.
   __ popl(EDI);
-  __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, String::length_offset()),
-                              EDI);
+  __ StoreIntoObjectNoBarrier(
+      EAX, FieldAddress(EAX, target::String::length_offset()), EDI);
   // Clear hash.
-  __ ZeroInitSmiField(FieldAddress(EAX, String::hash_offset()));
+  __ ZeroInitSmiField(FieldAddress(EAX, target::String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);
@@ -1996,11 +2034,11 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 // Arg1: Start index as Smi.
 // Arg2: End index as Smi.
 // The indexes must be valid.
-void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
-                                                    Label* normal_ir_body) {
-  const intptr_t kStringOffset = 3 * kWordSize;
-  const intptr_t kStartIndexOffset = 2 * kWordSize;
-  const intptr_t kEndIndexOffset = 1 * kWordSize;
+void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
+                                                       Label* normal_ir_body) {
+  const intptr_t kStringOffset = 3 * target::kWordSize;
+  const intptr_t kStartIndexOffset = 2 * target::kWordSize;
+  const intptr_t kEndIndexOffset = 1 * target::kWordSize;
   Label ok;
   __ movl(EAX, Address(ESP, +kStartIndexOffset));
   __ movl(EDI, Address(ESP, +kEndIndexOffset));
@@ -2016,7 +2054,8 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ movl(EDI, Address(ESP, +kStringOffset));
   __ movl(EBX, Address(ESP, +kStartIndexOffset));
   __ SmiUntag(EBX);
-  __ leal(EDI, FieldAddress(EDI, EBX, TIMES_1, OneByteString::data_offset()));
+  __ leal(EDI, FieldAddress(EDI, EBX, TIMES_1,
+                            target::OneByteString::data_offset()));
   // EDI: Start address to copy from (untagged).
   // EBX: Untagged start index.
   __ movl(ECX, Address(ESP, +kEndIndexOffset));
@@ -2032,7 +2071,8 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ jmp(&check, Assembler::kNearJump);
   __ Bind(&loop);
   __ movzxb(EBX, Address(EDI, EDX, TIMES_1, 0));
-  __ movb(FieldAddress(EAX, EDX, TIMES_1, OneByteString::data_offset()), BL);
+  __ movb(FieldAddress(EAX, EDX, TIMES_1, target::OneByteString::data_offset()),
+          BL);
   __ incl(EDX);
   __ Bind(&check);
   __ cmpl(EDX, ECX);
@@ -2041,20 +2081,21 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::OneByteStringSetAt(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  __ movl(ECX, Address(ESP, +1 * kWordSize));  // Value.
-  __ movl(EBX, Address(ESP, +2 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, +3 * kWordSize));  // OneByteString.
+void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
+                                         Label* normal_ir_body) {
+  __ movl(ECX, Address(ESP, +1 * target::kWordSize));  // Value.
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, +3 * target::kWordSize));  // OneByteString.
   __ SmiUntag(EBX);
   __ SmiUntag(ECX);
-  __ movb(FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()), CL);
+  __ movb(FieldAddress(EAX, EBX, TIMES_1, target::OneByteString::data_offset()),
+          CL);
   __ ret();
 }
 
-void Intrinsifier::OneByteString_allocate(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  __ movl(EDI, Address(ESP, +1 * kWordSize));  // Length.
+void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
+                                             Label* normal_ir_body) {
+  __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
   TryAllocateOnebyteString(assembler, &ok, normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
@@ -2070,8 +2111,8 @@ static void StringEquality(Assembler* assembler,
                            Label* normal_ir_body,
                            intptr_t string_cid) {
   Label is_true, is_false, loop;
-  __ movl(EAX, Address(ESP, +2 * kWordSize));  // This.
-  __ movl(EBX, Address(ESP, +1 * kWordSize));  // Other.
+  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // This.
+  __ movl(EBX, Address(ESP, +1 * target::kWordSize));  // Other.
 
   // Are identical?
   __ cmpl(EAX, EBX);
@@ -2084,8 +2125,8 @@ static void StringEquality(Assembler* assembler,
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   // Have same length?
-  __ movl(EDI, FieldAddress(EAX, String::length_offset()));
-  __ cmpl(EDI, FieldAddress(EBX, String::length_offset()));
+  __ movl(EDI, FieldAddress(EAX, target::String::length_offset()));
+  __ cmpl(EDI, FieldAddress(EBX, target::String::length_offset()));
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
 
   // Check contents, no fall-through possible.
@@ -2096,15 +2137,15 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EDI, Immediate(0));
   __ j(LESS, &is_true, Assembler::kNearJump);
   if (string_cid == kOneByteStringCid) {
-    __ movzxb(ECX,
-              FieldAddress(EAX, EDI, TIMES_1, OneByteString::data_offset()));
-    __ movzxb(EDX,
-              FieldAddress(EBX, EDI, TIMES_1, OneByteString::data_offset()));
+    __ movzxb(ECX, FieldAddress(EAX, EDI, TIMES_1,
+                                target::OneByteString::data_offset()));
+    __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1,
+                                target::OneByteString::data_offset()));
   } else if (string_cid == kTwoByteStringCid) {
-    __ movzxw(ECX,
-              FieldAddress(EAX, EDI, TIMES_2, TwoByteString::data_offset()));
-    __ movzxw(EDX,
-              FieldAddress(EBX, EDI, TIMES_2, TwoByteString::data_offset()));
+    __ movzxw(ECX, FieldAddress(EAX, EDI, TIMES_2,
+                                target::TwoByteString::data_offset()));
+    __ movzxw(EDX, FieldAddress(EBX, EDI, TIMES_2,
+                                target::TwoByteString::data_offset()));
   } else {
     UNIMPLEMENTED();
   }
@@ -2113,33 +2154,33 @@ static void StringEquality(Assembler* assembler,
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 
   __ Bind(&is_false);
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
 
   __ Bind(normal_ir_body);
 }
 
-void Intrinsifier::OneByteString_equality(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
+                                             Label* normal_ir_body) {
   StringEquality(assembler, normal_ir_body, kOneByteStringCid);
 }
 
-void Intrinsifier::TwoByteString_equality(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
+                                             Label* normal_ir_body) {
   StringEquality(assembler, normal_ir_body, kTwoByteStringCid);
 }
 
-void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
-                                                Label* normal_ir_body,
-                                                bool sticky) {
+void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
+                                                   Label* normal_ir_body,
+                                                   bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  static const intptr_t kRegExpParamOffset = 3 * kWordSize;
-  static const intptr_t kStringParamOffset = 2 * kWordSize;
+  static const intptr_t kRegExpParamOffset = 3 * target::kWordSize;
+  static const intptr_t kStringParamOffset = 2 * target::kWordSize;
   // start_index smi is located at offset 1.
 
   // Incoming registers:
@@ -2153,90 +2194,91 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ movl(EDI, Address(ESP, kStringParamOffset));
   __ LoadClassId(EDI, EDI);
   __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(EAX,
-          FieldAddress(EBX, EDI, TIMES_4,
-                       RegExp::function_offset(kOneByteStringCid, sticky)));
+  __ movl(EAX, FieldAddress(
+                   EBX, EDI, TIMES_4,
+                   target::RegExp::function_offset(kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ movl(EDI, FieldAddress(EAX, Function::entry_point_offset()));
+  __ movl(EDI, FieldAddress(EAX, target::Function::entry_point_offset()));
   __ jmp(EDI);
 }
 
 // On stack: user tag (+1), return-address (+0).
-void Intrinsifier::UserTag_makeCurrent(Assembler* assembler,
-                                       Label* normal_ir_body) {
+void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
+                                          Label* normal_ir_body) {
   // RDI: Isolate.
   __ LoadIsolate(EDI);
   // EAX: Current user tag.
-  __ movl(EAX, Address(EDI, Isolate::current_tag_offset()));
+  __ movl(EAX, Address(EDI, target::Isolate::current_tag_offset()));
   // EAX: UserTag.
-  __ movl(EBX, Address(ESP, +1 * kWordSize));
-  // Set Isolate::current_tag_.
-  __ movl(Address(EDI, Isolate::current_tag_offset()), EBX);
+  __ movl(EBX, Address(ESP, +1 * target::kWordSize));
+  // Set target::Isolate::current_tag_.
+  __ movl(Address(EDI, target::Isolate::current_tag_offset()), EBX);
   // EAX: UserTag's tag.
-  __ movl(EBX, FieldAddress(EBX, UserTag::tag_offset()));
-  // Set Isolate::user_tag_.
-  __ movl(Address(EDI, Isolate::user_tag_offset()), EBX);
+  __ movl(EBX, FieldAddress(EBX, target::UserTag::tag_offset()));
+  // Set target::Isolate::user_tag_.
+  __ movl(Address(EDI, target::Isolate::user_tag_offset()), EBX);
   __ ret();
 }
 
-void Intrinsifier::UserTag_defaultTag(Assembler* assembler,
-                                      Label* normal_ir_body) {
+void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
+                                         Label* normal_ir_body) {
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, Isolate::default_tag_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::default_tag_offset()));
   __ ret();
 }
 
-void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler,
-                                          Label* normal_ir_body) {
+void AsmIntrinsifier::Profiler_getCurrentTag(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, Isolate::current_tag_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::current_tag_offset()));
   __ ret();
 }
 
-void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
+                                                   Label* normal_ir_body) {
 #if !defined(SUPPORT_TIMELINE)
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
 #else
   Label true_label;
   // Load TimelineStream*.
-  __ movl(EAX, Address(THR, Thread::dart_stream_offset()));
+  __ movl(EAX, Address(THR, target::Thread::dart_stream_offset()));
   // Load uintptr_t from TimelineStream*.
-  __ movl(EAX, Address(EAX, TimelineStream::enabled_offset()));
+  __ movl(EAX, Address(EAX, target::TimelineStream::enabled_offset()));
   __ cmpl(EAX, Immediate(0));
   __ j(NOT_ZERO, &true_label, Assembler::kNearJump);
   // Not enabled.
-  __ LoadObject(EAX, Bool::False());
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
   __ ret();
   // Enabled.
   __ Bind(&true_label);
-  __ LoadObject(EAX, Bool::True());
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 #endif
 }
 
-void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                              Label* normal_ir_body) {
-  __ LoadObject(EAX, Object::null_object());
-  __ movl(Address(THR, Thread::async_stack_trace_offset()), EAX);
+void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
+                                                 Label* normal_ir_body) {
+  __ LoadObject(EAX, NullObject());
+  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
   __ ret();
 }
 
-void Intrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                            Label* normal_ir_body) {
-  __ movl(Address(THR, Thread::async_stack_trace_offset()), EAX);
-  __ LoadObject(EAX, Object::null_object());
+void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
+  __ LoadObject(EAX, NullObject());
   __ ret();
 }
 
 #undef __
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)

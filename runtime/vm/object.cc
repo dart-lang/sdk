@@ -1879,7 +1879,7 @@ RawError* Object::Init(Isolate* isolate,
     ClassFinalizer::VerifyBootstrapClasses();
 
     // Set up the intrinsic state of all functions (core, math and typed data).
-    Intrinsifier::InitializeState();
+    compiler::Intrinsifier::InitializeState();
 
     // Set up recognized state of all functions (core, math and typed data).
     MethodRecognizer::InitializeState();

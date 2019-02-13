@@ -11,7 +11,10 @@
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/runtime_entry.h"
+#include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 namespace compiler {
@@ -23,6 +26,11 @@ bool IsSameObject(const Object& a, const Object& b) {
 bool IsNotTemporaryScopedHandle(const Object& obj) {
   return obj.IsNotTemporaryScopedHandle();
 }
+
+#define DO(clazz)                                                              \
+  bool Is##clazz##Handle(const Object& obj) { return obj.Is##clazz(); }
+CLASS_LIST_FOR_HANDLES(DO)
+#undef DO
 
 bool IsInOldSpace(const Object& obj) {
   return obj.IsOld();
@@ -93,6 +101,21 @@ const Type& IntType() {
   return Type::Handle(dart::Type::IntType());
 }
 
+const Class& GrowableObjectArrayClass() {
+  auto object_store = Isolate::Current()->object_store();
+  return Class::Handle(object_store->growable_object_array_class());
+}
+
+const Class& MintClass() {
+  auto object_store = Isolate::Current()->object_store();
+  return Class::Handle(object_store->mint_class());
+}
+
+const Class& DoubleClass() {
+  auto object_store = Isolate::Current()->object_store();
+  return Class::Handle(object_store->double_class());
+}
+
 bool IsOriginalObject(const Object& object) {
   if (object.IsICData()) {
     return ICData::Cast(object).IsOriginal();
@@ -117,6 +140,35 @@ bool HasIntegerValue(const dart::Object& object, int64_t* value) {
 int32_t CreateJitCookie() {
   return static_cast<int32_t>(Isolate::Current()->random()->NextUInt32());
 }
+
+word TypedDataElementSizeInBytes(classid_t cid) {
+  return dart::TypedData::ElementSizeInBytes(cid);
+}
+
+word TypedDataMaxNewSpaceElements(classid_t cid) {
+  return dart::TypedData::MaxNewSpaceElements(cid);
+}
+
+const Field& LookupMathRandomStateFieldOffset() {
+  const auto& math_lib = dart::Library::Handle(dart::Library::MathLibrary());
+  ASSERT(!math_lib.IsNull());
+  const auto& random_class = dart::Class::Handle(
+      math_lib.LookupClassAllowPrivate(dart::Symbols::_Random()));
+  ASSERT(!random_class.IsNull());
+  const auto& state_field = dart::Field::ZoneHandle(
+      random_class.LookupInstanceFieldAllowPrivate(dart::Symbols::_state()));
+  return state_field;
+}
+
+word LookupFieldOffsetInBytes(const Field& field) {
+  return field.Offset();
+}
+
+#if defined(TARGET_ARCH_IA32)
+uword SymbolsPredefinedAddress() {
+  return reinterpret_cast<uword>(dart::Symbols::PredefinedAddress());
+}
+#endif
 
 #if !defined(TARGET_ARCH_DBC)
 const Code& StubCodeAllocateArray() {
@@ -194,6 +246,14 @@ word Class::type_arguments_field_offset_in_words_offset() {
   return dart::Class::type_arguments_field_offset_in_words_offset();
 }
 
+word Class::declaration_type_offset() {
+  return dart::Class::declaration_type_offset();
+}
+
+word Class::num_type_arguments_offset_in_bytes() {
+  return dart::Class::num_type_arguments_offset();
+}
+
 const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
 
 classid_t Class::GetId(const dart::Class& handle) {
@@ -230,6 +290,10 @@ word Instance::first_field_offset() {
 
 word Instance::DataOffsetFor(intptr_t cid) {
   return dart::Instance::DataOffsetFor(cid);
+}
+
+word Instance::ElementSizeFor(intptr_t cid) {
+  return dart::Instance::ElementSizeFor(cid);
 }
 
 word Function::code_offset() {
@@ -326,120 +390,118 @@ word SingleTargetCache::target_offset() {
   return dart::SingleTargetCache::target_offset();
 }
 
+const word Array::kMaxNewSpaceElements = dart::Array::kMaxNewSpaceElements;
+
+word Context::InstanceSize(word n) {
+  return dart::Context::InstanceSize(n);
+}
+
+word Context::variable_offset(word n) {
+  return dart::Context::variable_offset(n);
+}
+
+word TypedData::InstanceSize() {
+  return sizeof(RawTypedData);
+}
+
 word Array::header_size() {
   return sizeof(dart::RawArray);
 }
 
-word Array::tags_offset() {
-  return dart::Array::tags_offset();
-}
+#define CLASS_NAME_LIST(V)                                                     \
+  V(AbstractType, type_test_stub_entry_point_offset)                           \
+  V(ArgumentsDescriptor, count_offset)                                         \
+  V(ArgumentsDescriptor, type_args_len_offset)                                 \
+  V(Array, data_offset)                                                        \
+  V(Array, length_offset)                                                      \
+  V(Array, tags_offset)                                                        \
+  V(Array, type_arguments_offset)                                              \
+  V(ClassTable, table_offset)                                                  \
+  V(Closure, context_offset)                                                   \
+  V(Closure, delayed_type_arguments_offset)                                    \
+  V(Closure, function_offset)                                                  \
+  V(Closure, function_type_arguments_offset)                                   \
+  V(Closure, instantiator_type_arguments_offset)                               \
+  V(Code, object_pool_offset)                                                  \
+  V(Code, saved_instructions_offset)                                           \
+  V(Context, num_variables_offset)                                             \
+  V(Context, parent_offset)                                                    \
+  V(Double, value_offset)                                                      \
+  V(Float32x4, value_offset)                                                   \
+  V(Float64x2, value_offset)                                                   \
+  V(GrowableObjectArray, data_offset)                                          \
+  V(GrowableObjectArray, length_offset)                                        \
+  V(GrowableObjectArray, type_arguments_offset)                                \
+  V(HeapPage, card_table_offset)                                               \
+  V(Isolate, class_table_offset)                                               \
+  V(Isolate, current_tag_offset)                                               \
+  V(Isolate, default_tag_offset)                                               \
+  V(Isolate, ic_miss_code_offset)                                              \
+  V(Isolate, object_store_offset)                                              \
+  V(Isolate, user_tag_offset)                                                  \
+  V(MarkingStackBlock, pointers_offset)                                        \
+  V(MarkingStackBlock, top_offset)                                             \
+  V(Mint, value_offset)                                                        \
+  V(NativeArguments, argc_tag_offset)                                          \
+  V(NativeArguments, argv_offset)                                              \
+  V(NativeArguments, retval_offset)                                            \
+  V(NativeArguments, thread_offset)                                            \
+  V(ObjectStore, double_type_offset)                                           \
+  V(ObjectStore, int_type_offset)                                              \
+  V(ObjectStore, string_type_offset)                                           \
+  V(OneByteString, data_offset)                                                \
+  V(StoreBufferBlock, pointers_offset)                                         \
+  V(StoreBufferBlock, top_offset)                                              \
+  V(String, hash_offset)                                                       \
+  V(String, length_offset)                                                     \
+  V(SubtypeTestCache, cache_offset)                                            \
+  V(Thread, active_exception_offset)                                           \
+  V(Thread, active_stacktrace_offset)                                          \
+  V(Thread, async_stack_trace_offset)                                          \
+  V(Thread, auto_scope_native_wrapper_entry_point_offset)                      \
+  V(Thread, bool_false_offset)                                                 \
+  V(Thread, bool_true_offset)                                                  \
+  V(Thread, dart_stream_offset)                                                \
+  V(Thread, end_offset)                                                        \
+  V(Thread, global_object_pool_offset)                                         \
+  V(Thread, isolate_offset)                                                    \
+  V(Thread, marking_stack_block_offset)                                        \
+  V(Thread, no_scope_native_wrapper_entry_point_offset)                        \
+  V(Thread, object_null_offset)                                                \
+  V(Thread, predefined_symbols_address_offset)                                 \
+  V(Thread, resume_pc_offset)                                                  \
+  V(Thread, store_buffer_block_offset)                                         \
+  V(Thread, top_exit_frame_info_offset)                                        \
+  V(Thread, top_offset)                                                        \
+  V(Thread, top_resource_offset)                                               \
+  V(Thread, vm_tag_offset)                                                     \
+  V(TimelineStream, enabled_offset)                                            \
+  V(TwoByteString, data_offset)                                                \
+  V(Type, arguments_offset)                                                    \
+  V(TypedData, data_offset)                                                    \
+  V(TypedData, length_offset)                                                  \
+  V(Type, hash_offset)                                                         \
+  V(TypeRef, type_offset)                                                      \
+  V(Type, signature_offset)                                                    \
+  V(Type, type_state_offset)                                                   \
+  V(UserTag, tag_offset)
 
-word Array::data_offset() {
-  return dart::Array::data_offset();
-}
+#define DEFINE_FORWARDER(clazz, name)                                          \
+  word clazz::name() { return dart::clazz::name(); }
 
-word Array::type_arguments_offset() {
-  return dart::Array::type_arguments_offset();
-}
-
-word Array::length_offset() {
-  return dart::Array::length_offset();
-}
-
-const word Array::kMaxNewSpaceElements = dart::Array::kMaxNewSpaceElements;
-
-word ArgumentsDescriptor::count_offset() {
-  return dart::ArgumentsDescriptor::count_offset();
-}
-
-word ArgumentsDescriptor::type_args_len_offset() {
-  return dart::ArgumentsDescriptor::type_args_len_offset();
-}
-
-word AbstractType::type_test_stub_entry_point_offset() {
-  return dart::AbstractType::type_test_stub_entry_point_offset();
-}
-
-word Type::type_state_offset() {
-  return dart::Type::type_state_offset();
-}
-
-word Type::arguments_offset() {
-  return dart::Type::arguments_offset();
-}
-
-word Type::signature_offset() {
-  return dart::Type::signature_offset();
-}
-
-word TypeRef::type_offset() {
-  return dart::TypeRef::type_offset();
-}
+CLASS_NAME_LIST(DEFINE_FORWARDER)
+#undef DEFINE_FORWARDER
 
 const word HeapPage::kBytesPerCardLog2 = dart::HeapPage::kBytesPerCardLog2;
 
-word HeapPage::card_table_offset() {
-  return dart::HeapPage::card_table_offset();
+const word String::kHashBits = dart::String::kHashBits;
+
+word String::InstanceSize() {
+  return sizeof(dart::RawString);
 }
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::Heap::IsAllocatableInNewSpace(instance_size);
-}
-
-word Thread::active_exception_offset() {
-  return dart::Thread::active_exception_offset();
-}
-
-word Thread::active_stacktrace_offset() {
-  return dart::Thread::active_stacktrace_offset();
-}
-
-word Thread::resume_pc_offset() {
-  return dart::Thread::resume_pc_offset();
-}
-
-word Thread::marking_stack_block_offset() {
-  return dart::Thread::marking_stack_block_offset();
-}
-
-word Thread::top_exit_frame_info_offset() {
-  return dart::Thread::top_exit_frame_info_offset();
-}
-
-word Thread::top_resource_offset() {
-  return dart::Thread::top_resource_offset();
-}
-
-word Thread::global_object_pool_offset() {
-  return dart::Thread::global_object_pool_offset();
-}
-
-word Thread::object_null_offset() {
-  return dart::Thread::object_null_offset();
-}
-
-word Thread::bool_true_offset() {
-  return dart::Thread::bool_true_offset();
-}
-
-word Thread::bool_false_offset() {
-  return dart::Thread::bool_false_offset();
-}
-
-word Thread::top_offset() {
-  return dart::Thread::top_offset();
-}
-
-word Thread::end_offset() {
-  return dart::Thread::end_offset();
-}
-
-word Thread::isolate_offset() {
-  return dart::Thread::isolate_offset();
-}
-
-word Thread::store_buffer_block_offset() {
-  return dart::Thread::store_buffer_block_offset();
 }
 
 #if !defined(TARGET_ARCH_DBC)
@@ -495,10 +557,6 @@ word Thread::write_barrier_wrappers_thread_offset(intptr_t regno) {
       static_cast<Register>(regno));
 }
 #endif
-
-word Thread::vm_tag_offset() {
-  return dart::Thread::vm_tag_offset();
-}
 
 #if !defined(TARGET_ARCH_DBC)
 
@@ -564,14 +622,6 @@ word Thread::deoptimize_stub_offset() {
 
 #endif  // !defined(TARGET_ARCH_DBC)
 
-word Thread::no_scope_native_wrapper_entry_point_offset() {
-  return dart::Thread::no_scope_native_wrapper_entry_point_offset();
-}
-
-word Thread::auto_scope_native_wrapper_entry_point_offset() {
-  return dart::Thread::auto_scope_native_wrapper_entry_point_offset();
-}
-
 #define DECLARE_CONSTANT_OFFSET_GETTER(name)                                   \
   word Thread::name##_address_offset() {                                       \
     return dart::Thread::name##_address_offset();                              \
@@ -583,39 +633,15 @@ word Thread::OffsetFromThread(const dart::Object& object) {
   return dart::Thread::OffsetFromThread(object);
 }
 
-uword StoreBufferBlock::top_offset() {
-  return dart::StoreBufferBlock::top_offset();
-}
-uword StoreBufferBlock::pointers_offset() {
-  return dart::StoreBufferBlock::pointers_offset();
-}
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
-uword MarkingStackBlock::top_offset() {
-  return dart::MarkingStackBlock::top_offset();
-}
-uword MarkingStackBlock::pointers_offset() {
-  return dart::MarkingStackBlock::pointers_offset();
-}
 const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
-
-word Isolate::class_table_offset() {
-  return dart::Isolate::class_table_offset();
-}
-
-word Isolate::ic_miss_code_offset() {
-  return dart::Isolate::ic_miss_code_offset();
-}
 
 #if !defined(PRODUCT)
 word Isolate::single_step_offset() {
   return dart::Isolate::single_step_offset();
 }
 #endif  // !defined(PRODUCT)
-
-word ClassTable::table_offset() {
-  return dart::ClassTable::table_offset();
-}
 
 #if !defined(PRODUCT)
 word ClassTable::ClassOffsetFor(intptr_t cid) {
@@ -651,20 +677,8 @@ intptr_t Instructions::HeaderSize() {
   return dart::Instructions::HeaderSize();
 }
 
-intptr_t Code::object_pool_offset() {
-  return dart::Code::object_pool_offset();
-}
-
-intptr_t Code::saved_instructions_offset() {
-  return dart::Code::saved_instructions_offset();
-}
-
 intptr_t Code::entry_point_offset(CodeEntryKind kind) {
   return dart::Code::entry_point_offset(kind);
-}
-
-word SubtypeTestCache::cache_offset() {
-  return dart::SubtypeTestCache::cache_offset();
 }
 
 const word SubtypeTestCache::kTestEntryLength =
@@ -687,42 +701,6 @@ word Context::header_size() {
   return sizeof(dart::RawContext);
 }
 
-word Context::parent_offset() {
-  return dart::Context::parent_offset();
-}
-
-word Context::num_variables_offset() {
-  return dart::Context::num_variables_offset();
-}
-
-word Context::variable_offset(word i) {
-  return dart::Context::variable_offset(i);
-}
-
-word Context::InstanceSize(word n) {
-  return dart::Context::InstanceSize(n);
-}
-
-word Closure::context_offset() {
-  return dart::Closure::context_offset();
-}
-
-word Closure::delayed_type_arguments_offset() {
-  return dart::Closure::delayed_type_arguments_offset();
-}
-
-word Closure::function_offset() {
-  return dart::Closure::function_offset();
-}
-
-word Closure::function_type_arguments_offset() {
-  return dart::Closure::function_type_arguments_offset();
-}
-
-word Closure::instantiator_type_arguments_offset() {
-  return dart::Closure::instantiator_type_arguments_offset();
-}
-
 #if !defined(PRODUCT)
 word ClassHeapStats::TraceAllocationMask() {
   return dart::ClassHeapStats::TraceAllocationMask();
@@ -741,22 +719,7 @@ word ClassHeapStats::allocated_size_since_gc_new_space_offset() {
 }
 #endif  // !defined(PRODUCT)
 
-word Double::value_offset() {
-  return dart::Double::value_offset();
-}
-
-word Mint::value_offset() {
-  return dart::Mint::value_offset();
-}
-
-word Float32x4::value_offset() {
-  return dart::Float32x4::value_offset();
-}
-
-word Float64x2::value_offset() {
-  return dart::Float64x2::value_offset();
-}
-
+const word Smi::kBits = dart::Smi::kBits;
 bool IsSmi(const dart::Object& a) {
   return a.IsSmi();
 }
@@ -804,25 +767,18 @@ word ToRawPointer(const dart::Object& a) {
 const word NativeEntry::kNumCallWrapperArguments =
     dart::NativeEntry::kNumCallWrapperArguments;
 
-word NativeArguments::thread_offset() {
-  return dart::NativeArguments::thread_offset();
-}
-
-word NativeArguments::argc_tag_offset() {
-  return dart::NativeArguments::argc_tag_offset();
-}
-
-word NativeArguments::argv_offset() {
-  return dart::NativeArguments::argv_offset();
-}
-
-word NativeArguments::retval_offset() {
-  return dart::NativeArguments::retval_offset();
-}
-
 word NativeArguments::StructSize() {
   return sizeof(dart::NativeArguments);
 }
+
+word RegExp::function_offset(classid_t cid, bool sticky) {
+  return dart::RegExp::function_offset(cid, sticky);
+}
+
+const word Symbols::kNumberOfOneCharCodeSymbols =
+    dart::Symbols::kNumberOfOneCharCodeSymbols;
+const word Symbols::kNullCharCodeSymbolOffset =
+    dart::Symbols::kNullCharCodeSymbolOffset;
 
 }  // namespace target
 }  // namespace compiler

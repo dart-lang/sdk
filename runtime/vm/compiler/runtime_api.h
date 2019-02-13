@@ -21,6 +21,7 @@
 #include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
 #include "vm/frame_layout.h"
 #include "vm/pointer_tagging.h"
@@ -30,18 +31,14 @@
 namespace dart {
 
 // Forward declarations.
-class Bool;
-class Class;
-class Code;
-class Code;
-class Function;
 class LocalVariable;
 class Object;
 class RuntimeEntry;
-class String;
-class Type;
-class TypeArguments;
 class Zone;
+
+#define DO(clazz) class clazz;
+CLASS_LIST_FOR_HANDLES(DO)
+#undef DO
 
 namespace compiler {
 class Assembler;
@@ -97,6 +94,9 @@ const Type& DynamicType();
 const Type& ObjectType();
 const Type& VoidType();
 const Type& IntType();
+const Class& GrowableObjectArrayClass();
+const Class& MintClass();
+const Class& DoubleClass();
 
 template <typename To, typename From>
 const To& CastHandle(const From& from) {
@@ -148,6 +148,22 @@ bool HasIntegerValue(const dart::Object& obj, int64_t* value);
 // Creates a random cookie to be used for masking constants embedded in the
 // generated code.
 int32_t CreateJitCookie();
+
+// Returns the size in bytes for the given class id.
+word TypedDataElementSizeInBytes(classid_t cid);
+
+// Returns the size in bytes for the given class id.
+word TypedDataMaxNewSpaceElements(classid_t cid);
+
+// Looks up the dart:math's _Random._A field.
+const Field& LookupMathRandomStateFieldOffset();
+
+// Returns the offset in bytes of [field].
+word LookupFieldOffsetInBytes(const Field& field);
+
+#if defined(TARGET_ARCH_IA32)
+uword SymbolsPredefinedAddress();
+#endif
 
 typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
                                          compiler::Assembler*,
@@ -328,6 +344,11 @@ class Class : public AllStatic {
  public:
   static word type_arguments_field_offset_in_words_offset();
 
+  static word declaration_type_offset();
+
+  // The offset of the RawObject::num_type_arguments_ field in bytes.
+  static word num_type_arguments_offset_in_bytes();
+
   // The value used if no type arguments vector is present.
   static const word kNoTypeArguments;
 
@@ -358,6 +379,7 @@ class Instance : public AllStatic {
   // Returns the offset to the first field of [RawInstance].
   static word first_field_offset();
   static word DataOffsetFor(intptr_t cid);
+  static word ElementSizeFor(intptr_t cid);
 };
 
 class Function : public AllStatic {
@@ -413,6 +435,20 @@ class Array : public AllStatic {
   static const word kMaxNewSpaceElements;
 };
 
+class GrowableObjectArray : public AllStatic {
+ public:
+  static word data_offset();
+  static word type_arguments_offset();
+  static word length_offset();
+};
+
+class TypedData : public AllStatic {
+ public:
+  static word data_offset();
+  static word length_offset();
+  static word InstanceSize();
+};
+
 class ArgumentsDescriptor : public AllStatic {
  public:
   static word count_offset();
@@ -426,6 +462,7 @@ class AbstractType : public AllStatic {
 
 class Type : public AllStatic {
  public:
+  static word hash_offset();
   static word type_state_offset();
   static word arguments_offset();
   static word signature_offset();
@@ -441,9 +478,32 @@ class Double : public AllStatic {
   static word value_offset();
 };
 
+class Smi : public AllStatic {
+ public:
+  static const word kBits;
+};
+
 class Mint : public AllStatic {
  public:
   static word value_offset();
+};
+
+class String : public AllStatic {
+ public:
+  static const word kHashBits;
+  static word hash_offset();
+  static word length_offset();
+  static word InstanceSize();
+};
+
+class OneByteString : public AllStatic {
+ public:
+  static word data_offset();
+};
+
+class TwoByteString : public AllStatic {
+ public:
+  static word data_offset();
 };
 
 class Float32x4 : public AllStatic {
@@ -456,8 +516,17 @@ class Float64x2 : public AllStatic {
   static word value_offset();
 };
 
+class TimelineStream : public AllStatic {
+ public:
+  static word enabled_offset();
+};
+
 class Thread : public AllStatic {
  public:
+  static word dart_stream_offset();
+  static word async_stack_trace_offset();
+  static word predefined_symbols_address_offset();
+
   static word active_exception_offset();
   static word active_stacktrace_offset();
   static word resume_pc_offset();
@@ -526,20 +595,31 @@ class Thread : public AllStatic {
 
 class StoreBufferBlock : public AllStatic {
  public:
-  static uword top_offset();
-  static uword pointers_offset();
+  static word top_offset();
+  static word pointers_offset();
   static const word kSize;
 };
 
 class MarkingStackBlock : public AllStatic {
  public:
-  static uword top_offset();
-  static uword pointers_offset();
+  static word top_offset();
+  static word pointers_offset();
   static const word kSize;
+};
+
+class ObjectStore : public AllStatic {
+ public:
+  static word double_type_offset();
+  static word int_type_offset();
+  static word string_type_offset();
 };
 
 class Isolate : public AllStatic {
  public:
+  static word object_store_offset();
+  static word default_tag_offset();
+  static word current_tag_offset();
+  static word user_tag_offset();
   static word class_table_offset();
   static word ic_miss_code_offset();
 #if !defined(PRODUCT)
@@ -648,6 +728,22 @@ class NativeArguments {
 class NativeEntry {
  public:
   static const word kNumCallWrapperArguments;
+};
+
+class RegExp : public AllStatic {
+ public:
+  static word function_offset(classid_t cid, bool sticky);
+};
+
+class UserTag : public AllStatic {
+ public:
+  static word tag_offset();
+};
+
+class Symbols : public AllStatic {
+ public:
+  static const word kNumberOfOneCharCodeSymbols;
+  static const word kNullCharCodeSymbolOffset;
 };
 
 }  // namespace target

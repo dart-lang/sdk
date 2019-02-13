@@ -843,6 +843,9 @@ class Class : public Object {
     StoreNonPointer(&raw_ptr()->id_, value);
   }
   static intptr_t id_offset() { return OFFSET_OF(RawClass, id_); }
+  static intptr_t num_type_arguments_offset() {
+    return OFFSET_OF(RawClass, num_type_arguments_);
+  }
 
   RawString* Name() const;
   RawString* ScrubbedName() const;
@@ -1397,9 +1400,6 @@ class Class : public Object {
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
   void set_num_type_arguments(intptr_t value) const;
-  static intptr_t num_type_arguments_offset() {
-    return OFFSET_OF(RawClass, num_type_arguments_);
-  }
 
  public:
   bool has_pragma() const {

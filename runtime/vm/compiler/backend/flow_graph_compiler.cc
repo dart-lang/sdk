@@ -1220,7 +1220,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   EnterIntrinsicMode();
 
   SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-  bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
+  bool complete = compiler::Intrinsifier::Intrinsify(parsed_function(), this);
   SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
 
   ExitIntrinsicMode();

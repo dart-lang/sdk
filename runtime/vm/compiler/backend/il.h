@@ -45,6 +45,10 @@ class RangeBoundary;
 class UnboxIntegerInstr;
 class TypeUsageInfo;
 
+namespace compiler {
+class BlockBuilder;
+}
+
 class Value : public ZoneAllocated {
  public:
   // A forward iterator that allows removing the current value from the
@@ -7834,7 +7838,7 @@ class Environment : public ZoneAllocated {
 
  private:
   friend class ShallowIterator;
-  friend class BlockBuilder;  // For Environment constructor.
+  friend class compiler::BlockBuilder;  // For Environment constructor.
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

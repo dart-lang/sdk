@@ -17,6 +17,10 @@ namespace dart {
 class LoopHierarchy;
 class VariableLivenessAnalysis;
 
+namespace compiler {
+class GraphIntrinsifier;
+}
+
 class BlockIterator : public ValueObject {
  public:
   explicit BlockIterator(const GrowableArray<BlockEntryInstr*>& block_order)
@@ -415,7 +419,7 @@ class FlowGraph : public ZoneAllocated {
   friend class BranchSimplifier;
   friend class ConstantPropagator;
   friend class DeadCodeElimination;
-  friend class Intrinsifier;
+  friend class compiler::GraphIntrinsifier;
 
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
