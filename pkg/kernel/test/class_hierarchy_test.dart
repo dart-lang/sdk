@@ -18,7 +18,15 @@ main() {
 }
 
 @reflectiveTest
-class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
+class ClosedWorldClassHierarchyTest {
+  Component component;
+  CoreTypes coreTypes;
+
+  /// The test library.
+  Library library;
+
+  ClassHierarchy _hierarchy;
+
   ClassHierarchy createClassHierarchy(Component component) {
     return new ClassHierarchy(component);
   }
@@ -208,16 +216,6 @@ class H extends self::G implements self::C, self::A {}
     expect(cwchst.getSubtypesOf(g), unorderedEquals([g, h]));
     expect(cwchst.getSubtypesOf(h), unorderedEquals([h]));
   }
-}
-
-abstract class _ClassHierarchyTest {
-  Component component;
-  CoreTypes coreTypes;
-
-  /// The test library.
-  Library library;
-
-  ClassHierarchy _hierarchy;
 
   /// Return the new or existing instance of [ClassHierarchy].
   ClassHierarchy get hierarchy {
@@ -267,8 +265,6 @@ abstract class _ClassHierarchyTest {
         supertype: objectSuper,
         implementedTypes: implements_.map((c) => c.asThisSupertype).toList()));
   }
-
-  ClassHierarchy createClassHierarchy(Component component);
 
   Procedure newEmptyGetter(String name,
       {DartType returnType: const DynamicType(), bool isAbstract: false}) {
