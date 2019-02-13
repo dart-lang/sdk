@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.methodName.name != 'toSet') {
       return;
     }
-    if (node.target is ListLiteral || node.target is ListLiteral2) {
+    if (node.target is ListLiteral) {
       rule.reportLint(node);
     }
   }
@@ -103,8 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (args.length != 1) {
           return;
         }
-        var arg = args.first;
-        if (arg is ListLiteral || arg is ListLiteral2) {
+        if (args.first is ListLiteral) {
           rule.reportLint(node);
         }
       }
