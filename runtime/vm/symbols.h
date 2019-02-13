@@ -179,6 +179,7 @@ class ObjectPointerVisitor;
   V(ClosureData, "ClosureData")                                                \
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
+  V(FfiTrampolineData, "FfiTrampolineData")                                    \
   V(Field, "Field")                                                            \
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
@@ -373,6 +374,8 @@ class ObjectPointerVisitor;
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
   V(DartDeveloper, "dart:developer")                                           \
+  V(DartFfi, "dart:ffi")                                                       \
+  V(DartFfiLibName, "ffi")                                                     \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartMirrors, "dart:mirrors")                                               \
@@ -441,6 +444,7 @@ class ObjectPointerVisitor;
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
+  V(DartLibraryFfi, "dart.library.ffi")                                        \
   V(_name, "_name")                                                            \
   V(name, "name")                                                              \
   V(options, "options")                                                        \
@@ -460,7 +464,23 @@ class ObjectPointerVisitor;
   V(Get, "get")                                                                \
   V(Set, "set")                                                                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation")
+  V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
+  V(FfiPointer, "Pointer")                                                     \
+  V(FfiNativeFunction, "NativeFunction")                                       \
+  V(FfiInt8, "Int8")                                                           \
+  V(FfiInt16, "Int16")                                                         \
+  V(FfiInt32, "Int32")                                                         \
+  V(FfiInt64, "Int64")                                                         \
+  V(FfiUint8, "Uint8")                                                         \
+  V(FfiUint16, "Uint16")                                                       \
+  V(FfiUint32, "Uint32")                                                       \
+  V(FfiUint64, "Uint64")                                                       \
+  V(FfiIntPtr, "IntPtr")                                                       \
+  V(FfiFloat, "Float")                                                         \
+  V(FfiDouble, "Double")                                                       \
+  V(FfiVoid, "Void")                                                           \
+  V(FfiNativeType, "NativeType")                                               \
+  V(FfiDynamicLibrary, "DynamicLibrary")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

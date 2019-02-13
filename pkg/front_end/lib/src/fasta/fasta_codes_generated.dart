@@ -3348,28 +3348,101 @@ const MessageCode messageFastaUsageShort =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-    Message Function(
-        String
-            name)> templateFfiAnnotationMissing = const Template<
+    Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
-    withArguments: _withArgumentsFfiAnnotationMissing);
+        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+    withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiAnnotationMissing =
+const Code<Message Function(String name)> codeFfiFieldAnnotation =
     const Code<Message Function(String name)>(
-  "FfiAnnotationMissing",
-  templateFfiAnnotationMissing,
+  "FfiFieldAnnotation",
+  templateFfiFieldAnnotation,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiAnnotationMissing(String name) {
+Message _withArgumentsFfiFieldAnnotation(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeFfiAnnotationMissing,
+  return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiFieldInitializer = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+    withArguments: _withArgumentsFfiFieldInitializer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiFieldInitializer =
+    const Code<Message Function(String name)>(
+  "FfiFieldInitializer",
+  templateFfiFieldInitializer,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldInitializer(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiFieldInitializer,
+      message:
+          """Field '${name}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiNotStatic = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
+    withArguments: _withArgumentsFfiNotStatic);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiNotStatic =
+    const Code<Message Function(String name)>(
+  "FfiNotStatic",
+  templateFfiNotStatic,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNotStatic(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiNotStatic,
+      message:
+          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiStructAnnotation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
+    withArguments: _withArgumentsFfiStructAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiStructAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiStructAnnotation",
+  templateFfiStructAnnotation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiStructAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiStructAnnotation,
+      message:
+          """Class '${name}' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
       arguments: {'name': name});
 }
 
@@ -3378,7 +3451,7 @@ const Template<
     Message Function(DartType _type)> templateFfiTypeInvalid = const Template<
         Message Function(DartType _type)>(
     messageTemplate:
-        r"""Expected type '#type' to be a valid and instantiated subtype of '_NativeType'.""",
+        r"""Expected type '#type' to be a valid and instantiated subtype of 'NativeType'.""",
     withArguments: _withArgumentsFfiTypeInvalid);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3395,7 +3468,7 @@ Message _withArgumentsFfiTypeInvalid(DartType _type) {
   String type = typeParts.join();
   return new Message(codeFfiTypeInvalid,
       message:
-          """Expected type '${type}' to be a valid and instantiated subtype of '_NativeType'.""" +
+          """Expected type '${type}' to be a valid and instantiated subtype of 'NativeType'.""" +
               labeler.originMessages,
       arguments: {'type': _type});
 }
@@ -3442,29 +3515,29 @@ const Template<
     Message Function(
         String name,
         DartType
-            _type)> templateFfiTypeOpaque = const Template<
+            _type)> templateFfiTypeUnsized = const Template<
         Message Function(String name, DartType _type)>(
     messageTemplate:
-        r"""Method '#name' cannot be called on something of type '#type' as this type is opaque.""",
-    withArguments: _withArgumentsFfiTypeOpaque);
+        r"""Method '#name' cannot be called on something of type '#type' as this type is unsized.""",
+    withArguments: _withArgumentsFfiTypeUnsized);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type)> codeFfiTypeOpaque =
+const Code<Message Function(String name, DartType _type)> codeFfiTypeUnsized =
     const Code<Message Function(String name, DartType _type)>(
-  "FfiTypeOpaque",
-  templateFfiTypeOpaque,
+  "FfiTypeUnsized",
+  templateFfiTypeUnsized,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeOpaque(String name, DartType _type) {
+Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
-  return new Message(codeFfiTypeOpaque,
+  return new Message(codeFfiTypeUnsized,
       message:
-          """Method '${name}' cannot be called on something of type '${type}' as this type is opaque.""" +
+          """Method '${name}' cannot be called on something of type '${type}' as this type is unsized.""" +
               labeler.originMessages,
       arguments: {'name': name, 'type': _type});
 }

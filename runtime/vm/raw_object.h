@@ -344,6 +344,11 @@ class RawObject {
   CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
+#define DEFINE_IS_CID(clazz)                                                   \
+  bool IsFfi##clazz() const { return ((GetClassId() == kFfi##clazz##Cid)); }
+  CLASS_LIST_FFI(DEFINE_IS_CID)
+#undef DEFINE_IS_CID
+
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
   bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
@@ -471,6 +476,15 @@ class RawObject {
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
+  static bool IsFfiNativeTypeTypeClassId(intptr_t index);
+  static bool IsFfiPointerClassId(intptr_t index);
+  static bool IsFfiTypeClassId(intptr_t index);
+  static bool IsFfiTypeIntClassId(intptr_t index);
+  static bool IsFfiTypeDoubleClassId(intptr_t index);
+  static bool IsFfiTypeVoidClassId(intptr_t index);
+  static bool IsFfiTypeNativeFunctionClassId(intptr_t index);
+  static bool IsFfiDynamicLibraryClassId(intptr_t index);
+  static bool IsFfiClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
   static bool IsVariableSizeClassId(intptr_t index);
   static bool IsImplicitFieldClassId(intptr_t index);
@@ -664,7 +678,9 @@ class RawObject {
   friend class CidRewriteVisitor;
   friend class Closure;
   friend class Code;
+  friend class Pointer;
   friend class Double;
+  friend class DynamicLibrary;
   friend class ForwardPointersVisitor;  // StorePointer
   friend class FreeListElement;
   friend class Function;
@@ -855,6 +871,7 @@ class RawFunction : public RawObject {
     kDynamicInvocationForwarder,  // represents forwarder which performs type
                                   // checks for arguments of a dynamic
                                   // invocation.
+    kFfiTrampoline,
   };
 
   enum AsyncModifier {
@@ -1000,6 +1017,15 @@ class RawRedirectionData : public RawObject {
   RawFunction* target_;
   VISIT_TO(RawObject*, target_);
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
+class RawFfiTrampolineData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
+
+  VISIT_FROM(RawObject*, signature_type_);
+  RawType* signature_type_;
+  VISIT_TO(RawObject*, signature_type_);
 };
 
 class RawField : public RawObject {
@@ -2213,6 +2239,24 @@ class RawExternalTypedData : public RawInstance {
   friend class RawBytecode;
 };
 
+class RawPointer : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
+  VISIT_FROM(RawCompressed, type_arguments_)
+  RawTypeArguments* type_arguments_;
+  VISIT_TO(RawCompressed, type_arguments_)
+  uint8_t* c_memory_address_;
+
+  friend class Pointer;
+};
+
+class RawDynamicLibrary : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
+  VISIT_NOTHING();
+  void* handle_;
+
+  friend class DynamicLibrary;
+};
+
 // VM implementations of the basic types in the isolate.
 class RawCapability : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
@@ -2481,6 +2525,56 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
       (kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat64x2ArrayCid);
+}
+
+inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {
+  return index == kFfiNativeTypeCid;
+}
+
+inline bool RawObject::IsFfiTypeClassId(intptr_t index) {
+  // Make sure this is updated when new Ffi types are added.
+  COMPILE_ASSERT(kFfiNativeFunctionCid == kFfiPointerCid + 1 &&
+                 kFfiInt8Cid == kFfiPointerCid + 2 &&
+                 kFfiInt16Cid == kFfiPointerCid + 3 &&
+                 kFfiInt32Cid == kFfiPointerCid + 4 &&
+                 kFfiInt64Cid == kFfiPointerCid + 5 &&
+                 kFfiUint8Cid == kFfiPointerCid + 6 &&
+                 kFfiUint16Cid == kFfiPointerCid + 7 &&
+                 kFfiUint32Cid == kFfiPointerCid + 8 &&
+                 kFfiUint64Cid == kFfiPointerCid + 9 &&
+                 kFfiIntPtrCid == kFfiPointerCid + 10 &&
+                 kFfiFloatCid == kFfiPointerCid + 11 &&
+                 kFfiDoubleCid == kFfiPointerCid + 12 &&
+                 kFfiVoidCid == kFfiPointerCid + 13);
+  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+}
+
+inline bool RawObject::IsFfiTypeIntClassId(intptr_t index) {
+  return (index >= kFfiInt8Cid && index <= kFfiIntPtrCid);
+}
+
+inline bool RawObject::IsFfiTypeDoubleClassId(intptr_t index) {
+  return (index >= kFfiFloatCid && index <= kFfiDoubleCid);
+}
+
+inline bool RawObject::IsFfiPointerClassId(intptr_t index) {
+  return index == kFfiPointerCid;
+}
+
+inline bool RawObject::IsFfiTypeVoidClassId(intptr_t index) {
+  return index == kFfiVoidCid;
+}
+
+inline bool RawObject::IsFfiTypeNativeFunctionClassId(intptr_t index) {
+  return index == kFfiNativeFunctionCid;
+}
+
+inline bool RawObject::IsFfiClassId(intptr_t index) {
+  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+}
+
+inline bool RawObject::IsFfiDynamicLibraryClassId(intptr_t index) {
+  return index == kFfiDynamicLibraryCid;
 }
 
 inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {

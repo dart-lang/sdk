@@ -183,6 +183,7 @@ _full_sdk_libraries = [
   "convert",
   "core",
   "developer",
+  "ffi",
   "html",
   "_http",
   "indexed_db",

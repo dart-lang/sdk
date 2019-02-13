@@ -3434,15 +3434,30 @@ FfiTypeMismatch:
 
 FfiTypeInvalid:
   # Used by dart:ffi
-  template: "Expected type '#type' to be a valid and instantiated subtype of '_NativeType'."
+  template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
   external: test/ffi_test.dart
 
-FfiTypeOpaque:
+FfiTypeUnsized:
   # Used by dart:ffi
-  template: "Method '#name' cannot be called on something of type '#type' as this type is opaque."
+  template: "Method '#name' cannot be called on something of type '#type' as this type is unsized."
   external: test/ffi_test.dart
 
-FfiAnnotationMissing:
+FfiFieldAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields."
+  template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields."
+  external: test/ffi_test.dart
+
+FfiNotStatic:
+  # Used by dart:ffi
+  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c."
+  external: test/ffi_test.dart
+
+FfiFieldInitializer:
+  # Used by dart:ffi
+  template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+  external: test/ffi_test.dart
+
+FfiStructAnnotation:
+  # Used by dart:ffi
+  template: "Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields."
   external: test/ffi_test.dart

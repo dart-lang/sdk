@@ -186,7 +186,11 @@ namespace dart {
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
-  F(UserTag, label_)
+  F(UserTag, label_)                                                           \
+  F(Pointer, type_arguments_)                                                  \
+  F(Pointer, c_memory_address_)                                                \
+  F(DynamicLibrary, handle_)                                                   \
+  F(FfiTrampolineData, signature_type_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {

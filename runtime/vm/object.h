@@ -431,6 +431,9 @@ class Object {
   static RawClass* closure_data_class() { return closure_data_class_; }
   static RawClass* signature_data_class() { return signature_data_class_; }
   static RawClass* redirection_data_class() { return redirection_data_class_; }
+  static RawClass* ffi_trampoline_data_class() {
+    return ffi_trampoline_data_class_;
+  }
   static RawClass* field_class() { return field_class_; }
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
@@ -678,6 +681,8 @@ class Object {
   static RawClass* closure_data_class_;    // Class of ClosureData vm obj.
   static RawClass* signature_data_class_;  // Class of SignatureData vm obj.
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
+  static RawClass* ffi_trampoline_data_class_;  // Class of FfiTrampolineData
+                                                // vm obj.
   static RawClass* field_class_;             // Class of the Field vm object.
   static RawClass* script_class_;        // Class of the Script vm object.
   static RawClass* library_class_;       // Class of the Library vm object.
@@ -1256,6 +1261,9 @@ class Class : public Object {
 
   // Allocate the raw ExternalTypedData classes.
   static RawClass* NewExternalTypedDataClass(intptr_t class_id);
+
+  // Allocate the raw Pointer classes.
+  static RawClass* NewPointerClass(intptr_t class_id);
 
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
@@ -2125,6 +2133,10 @@ class Function : public Object {
 
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
 
+  static intptr_t result_type_offset() {
+    return OFFSET_OF(RawFunction, result_type_);
+  }
+
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
   }
@@ -2551,6 +2563,14 @@ class Function : public Object {
            RawFunction::kSignatureFunction;
   }
 
+  // Returns true if this function represents an ffi trampoline.
+  bool IsFfiTrampoline() const { return kind() == RawFunction::kFfiTrampoline; }
+  static bool IsFfiTrampoline(RawFunction* function) {
+    NoSafepointScope no_safepoint;
+    return KindBits::decode(function->ptr()->kind_tag_) ==
+           RawFunction::kFfiTrampoline;
+  }
+
   bool IsAsyncFunction() const { return modifier() == RawFunction::kAsync; }
 
   bool IsAsyncClosure() const {
@@ -2951,6 +2971,25 @@ class RedirectionData : public Object {
 };
 
 enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+
+class FfiTrampolineData : public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFfiTrampolineData));
+  }
+
+ private:
+  // Signature type of this closure function.
+  RawType* signature_type() const { return raw_ptr()->signature_type_; }
+  void set_signature_type(const Type& value) const;
+
+  static RawFfiTrampolineData* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
+};
 
 class Field : public Object {
  public:
@@ -3702,6 +3741,7 @@ class Library : public Object {
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* DeveloperLibrary();
+  static RawLibrary* FfiLibrary();
   static RawLibrary* InternalLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();
@@ -5735,6 +5775,12 @@ class Instance : public Object {
   static intptr_t DataOffsetFor(intptr_t cid);
   static intptr_t ElementSizeFor(intptr_t cid);
 
+  // Pointers may be subtyped, but their subtypes may not get extra fields.
+  // The subtype runtime representation has exactly the same object layout,
+  // only the class_id is different. So, it is safe to use subtype instances in
+  // Pointer handles.
+  virtual bool IsPointer() const;
+
   static intptr_t NextFieldOffset() { return sizeof(RawInstance); }
 
  protected:
@@ -5775,6 +5821,7 @@ class Instance : public Object {
   friend class ByteBuffer;
   friend class Class;
   friend class Closure;
+  friend class Pointer;
   friend class DeferredObject;
   friend class RegExp;
   friend class SnapshotWriter;
@@ -5853,6 +5900,7 @@ class TypeArguments : public Instance {
 
   intptr_t Length() const;
   RawAbstractType* TypeAt(intptr_t index) const;
+  RawAbstractType* TypeAtNullSafe(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types) +
            index * kWordSize;
@@ -8405,6 +8453,81 @@ class ByteBuffer : public AllStatic {
   enum {
     kDataOffset = 1,
   };
+};
+
+class Pointer : public Instance {
+ public:
+  static RawPointer* New(const AbstractType& type_arg,
+                         uint8_t* c_memory_address,
+                         intptr_t class_id = kFfiPointerCid,
+                         Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawPointer));
+  }
+
+  static bool IsPointer(const Instance& obj);
+
+  uint8_t* GetCMemoryAddress() const {
+    ASSERT(!IsNull());
+    return raw_ptr()->c_memory_address_;
+  }
+
+  void SetCMemoryAddress(uint8_t* value) const {
+    StoreNonPointer(&raw_ptr()->c_memory_address_, value);
+  }
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(RawPointer, type_arguments_);
+  }
+
+  static intptr_t address_offset() {
+    return OFFSET_OF(RawPointer, c_memory_address_);
+  }
+
+  static intptr_t NextFieldOffset() { return sizeof(RawPointer); }
+
+  static const intptr_t kNativeTypeArgPos = 0;
+
+  // Fetches the NativeType type argument.
+  RawAbstractType* type_argument() const {
+    TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+    return type_args.TypeAtNullSafe(Pointer::kNativeTypeArgPos);
+  }
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
+
+  friend class Class;
+};
+
+class DynamicLibrary : public Instance {
+ public:
+  static RawDynamicLibrary* New(void* handle, Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawDynamicLibrary));
+  }
+
+  static bool IsDynamicLibrary(const Instance& obj) {
+    ASSERT(!obj.IsNull());
+    intptr_t cid = obj.raw()->GetClassId();
+    return RawObject::IsFfiDynamicLibraryClassId(cid);
+  }
+
+  void* GetHandle() const {
+    ASSERT(!IsNull());
+    return raw_ptr()->handle_;
+  }
+
+  void SetHandle(void* value) const {
+    StoreNonPointer(&raw_ptr()->handle_, value);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary, Instance);
+
+  friend class Class;
 };
 
 // Corresponds to

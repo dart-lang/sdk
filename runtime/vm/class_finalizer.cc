@@ -1385,6 +1385,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   String& name = String::Handle(zone);
   String& expected_name = String::Handle(zone);
   Error& error = Error::Handle(zone);
+  TypeParameter& type_param = TypeParameter::Handle(zone);
 
   // First verify field offsets of all the TypedDataView classes.
   for (intptr_t cid = kTypedDataInt8ArrayViewCid;
@@ -1443,6 +1444,15 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   name ^= field.name();
   expected_name ^= String::New("_data");
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
+
+  // Now verify field offsets of 'Pointer' class.
+  cls = class_table.At(kFfiPointerCid);
+  error = cls.EnsureIsFinalized(thread);
+  ASSERT(error.IsNull());
+  ASSERT(cls.NumOwnTypeArguments() == 1);
+  type_param ^= TypeParameter::RawCast(
+      TypeArguments::Handle(cls.type_parameters()).TypeAt(0));
+  ASSERT(Pointer::kNativeTypeArgPos == type_param.index());
 #endif
 }
 

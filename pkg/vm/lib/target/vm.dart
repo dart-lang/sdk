@@ -9,6 +9,12 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/ffi.dart' as transformFfi
+    show ReplacedMembers;
+import 'package:kernel/transformations/ffi_definitions.dart'
+    as transformFfiDefinitions show transformLibraries;
+import 'package:kernel/transformations/ffi_use_sites.dart'
+    as transformFfiUseSites show transformLibraries;
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
@@ -68,6 +74,7 @@ class VmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:cli',
+        'dart:ffi',
       ];
 
   @override
@@ -81,6 +88,13 @@ class VmTarget extends Target {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
         doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
+
+    transformFfi.ReplacedMembers replacedFields =
+        transformFfiDefinitions.transformLibraries(
+            coreTypes, hierarchy, libraries, diagnosticReporter);
+    transformFfiUseSites.transformLibraries(
+        coreTypes, hierarchy, libraries, diagnosticReporter, replacedFields);
+    logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(coreTypes, libraries);

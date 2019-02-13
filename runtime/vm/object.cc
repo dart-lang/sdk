@@ -128,6 +128,8 @@ RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::redirection_data_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::ffi_trampoline_data_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -582,6 +584,9 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<RedirectionData>();
   redirection_data_class_ = cls.raw();
 
+  cls = Class::New<FfiTrampolineData>();
+  ffi_trampoline_data_class_ = cls.raw();
+
   cls = Class::New<Field>();
   field_class_ = cls.raw();
 
@@ -957,6 +962,7 @@ void Object::Cleanup() {
   closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   redirection_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  ffi_trampoline_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1056,6 +1062,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(closure_data, ClosureData);
   SET_CLASS_NAME(signature_data, SignatureData);
   SET_CLASS_NAME(redirection_data, RedirectionData);
+  SET_CLASS_NAME(ffi_trampoline_data, FfiTrampolineData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(script, Script);
   SET_CLASS_NAME(library, LibraryClass);
@@ -1814,6 +1821,51 @@ RawError* Object::Init(Isolate* isolate,
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_string(type_args);
 
+    lib = Library::LookupLibrary(thread, Symbols::DartFfi());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartFfi(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kFfi, lib);
+
+    cls = Class::New<Instance>(kFfiNativeTypeCid);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    object_store->set_ffi_native_type_class(cls);
+    RegisterClass(cls, Symbols::FfiNativeType(), lib);
+
+#define REGISTER_FFI_TYPE_MARKER(clazz)                                        \
+  cls = Class::New<Instance>(kFfi##clazz##Cid);                                \
+  cls.set_num_type_arguments(0);                                               \
+  cls.set_num_own_type_arguments(0);                                           \
+  cls.set_is_prefinalized();                                                   \
+  pending_classes.Add(cls);                                                    \
+  RegisterClass(cls, Symbols::Ffi##clazz(), lib);
+    CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_TYPE_MARKER);
+#undef REGISTER_FFI_TYPE_MARKER
+
+    cls = Class::New<Instance>(kFfiNativeFunctionCid);
+    cls.set_type_arguments_field_offset(Pointer::type_arguments_offset());
+    cls.set_num_type_arguments(1);
+    cls.set_num_own_type_arguments(1);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    RegisterClass(cls, Symbols::FfiNativeFunction(), lib);
+
+    cls = Class::NewPointerClass(kFfiPointerCid);
+    object_store->set_ffi_pointer_class(cls);
+    pending_classes.Add(cls);
+    RegisterClass(cls, Symbols::FfiPointer(), lib);
+
+    cls = Class::New<DynamicLibrary>(kFfiDynamicLibraryCid);
+    cls.set_instance_size(DynamicLibrary::InstanceSize());
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -1897,6 +1949,20 @@ RawError* Object::Init(Isolate* isolate,
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
     CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
+
+    cls = Class::New<Instance>(kFfiNativeTypeCid);
+    object_store->set_ffi_native_type_class(cls);
+
+#define REGISTER_FFI_CLASS(clazz) cls = Class::New<Instance>(kFfi##clazz##Cid);
+    CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
+#undef REGISTER_FFI_CLASS
+
+    cls = Class::New<Instance>(kFfiNativeFunctionCid);
+
+    cls = Class::NewPointerClass(kFfiPointerCid);
+    object_store->set_ffi_pointer_class(cls);
+
+    cls = Class::New<DynamicLibrary>(kFfiDynamicLibraryCid);
 
     cls = Class::New<Instance>(kByteBufferCid);
 
@@ -3660,6 +3726,17 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
   return result.raw();
 }
 
+RawClass* Class::NewPointerClass(intptr_t class_id) {
+  ASSERT(RawObject::IsFfiPointerClassId(class_id));
+  intptr_t instance_size = Pointer::InstanceSize();
+  Class& result = Class::Handle(New<Pointer>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_type_arguments_field_offset(Pointer::type_arguments_offset());
+  result.set_next_field_offset(Pointer::NextFieldOffset());
+  result.set_is_prefinalized();
+  return result.raw();
+}
+
 void Class::set_name(const String& value) const {
   ASSERT(raw_ptr()->name_ == String::null());
   ASSERT(value.IsSymbol());
@@ -3733,6 +3810,11 @@ RawString* Class::GenerateUserVisibleName() const {
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
 
+    case kFfiPointerCid:
+      return Symbols::FfiPointer().raw();
+    case kFfiDynamicLibraryCid:
+      return Symbols::FfiDynamicLibrary().raw();
+
 #if !defined(PRODUCT)
     case kNullCid:
       return Symbols::Null().raw();
@@ -3754,6 +3836,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::SignatureData().raw();
     case kRedirectionDataCid:
       return Symbols::RedirectionData().raw();
+    case kFfiTrampolineDataCid:
+      return Symbols::FfiTrampolineData().raw();
     case kFieldCid:
       return Symbols::Field().raw();
     case kScriptCid:
@@ -5014,7 +5098,17 @@ intptr_t TypeArguments::Length() const {
 }
 
 RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
+  ASSERT(!IsNull());
   return *TypeAddr(index);
+}
+
+RawAbstractType* TypeArguments::TypeAtNullSafe(intptr_t index) const {
+  if (IsNull()) {
+    // null vector represents infinite list of dynamics
+    return Type::dynamic_type().raw();
+  }
+  ASSERT((index >= 0) && (index < Length()));
+  return TypeAt(index);
 }
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
@@ -5884,9 +5978,11 @@ RawType* Function::ExistingSignatureType() const {
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     return SignatureData::Cast(obj).signature_type();
-  } else {
-    ASSERT(IsClosureFunction());
+  } else if (IsClosureFunction()) {
     return ClosureData::Cast(obj).signature_type();
+  } else {
+    ASSERT(IsFfiTrampoline());
+    return FfiTrampolineData::Cast(obj).signature_type();
   }
 }
 
@@ -5937,9 +6033,11 @@ void Function::SetSignatureType(const Type& value) const {
   if (IsSignatureFunction()) {
     SignatureData::Cast(obj).set_signature_type(value);
     ASSERT(!value.IsCanonical() || (value.signature() == this->raw()));
-  } else {
-    ASSERT(IsClosureFunction());
+  } else if (IsClosureFunction()) {
     ClosureData::Cast(obj).set_signature_type(value);
+  } else {
+    ASSERT(IsFfiTrampoline());
+    FfiTrampolineData::Cast(obj).set_signature_type(value);
   }
 }
 
@@ -6074,6 +6172,7 @@ void Function::SetRedirectionTarget(const Function& target) const {
 //   native function:         Array[0] = String native name
 //                            Array[1] = Function implicit closure function
 //   regular function:        Function for implicit closure function
+//   ffi trampoline function: FfiTrampolineData  (Dart->C)
 void Function::set_data(const Object& value) const {
   StorePointer(&raw_ptr()->data_, value.raw());
 }
@@ -6387,7 +6486,8 @@ intptr_t Function::NumImplicitParameters() const {
   }
   if ((k == RawFunction::kClosureFunction) ||
       (k == RawFunction::kImplicitClosureFunction) ||
-      (k == RawFunction::kSignatureFunction)) {
+      (k == RawFunction::kSignatureFunction) ||
+      (k == RawFunction::kFfiTrampoline)) {
     return 1;  // Closure object.
   }
   if (!is_static()) {
@@ -7075,6 +7175,10 @@ RawFunction* Function::New(const String& name,
   } else if (kind == RawFunction::kSignatureFunction) {
     const SignatureData& data =
         SignatureData::Handle(SignatureData::New(space));
+    result.set_data(data);
+  } else if (kind == RawFunction::kFfiTrampoline) {
+    const FfiTrampolineData& data =
+        FfiTrampolineData::Handle(FfiTrampolineData::New());
     result.set_data(data);
   } else {
     // Functions other than signature functions have no reason to be allocated
@@ -8013,6 +8117,27 @@ const char* RedirectionData::ToCString() const {
                      redir_type.IsNull() ? "null" : redir_type.ToCString(),
                      ident.IsNull() ? "null" : ident.ToCString(),
                      target_fun.IsNull() ? "null" : target_fun.ToCString());
+}
+
+void FfiTrampolineData::set_signature_type(const Type& value) const {
+  StorePointer(&raw_ptr()->signature_type_, value.raw());
+}
+
+RawFfiTrampolineData* FfiTrampolineData::New() {
+  ASSERT(Object::ffi_trampoline_data_class() != Class::null());
+  RawObject* raw =
+      Object::Allocate(FfiTrampolineData::kClassId,
+                       FfiTrampolineData::InstanceSize(), Heap::kOld);
+  return reinterpret_cast<RawFfiTrampolineData*>(raw);
+}
+
+const char* FfiTrampolineData::ToCString() const {
+  Type& signature_type = Type::Handle(this->signature_type());
+  String& signature_type_name =
+      String::Handle(signature_type.UserVisibleName());
+  return OS::SCreate(
+      Thread::Current()->zone(), "TrampolineData: signature=%s",
+      signature_type_name.IsNull() ? "null" : signature_type_name.ToCString());
 }
 
 RawField* Field::CloneFromOriginal() const {
@@ -11179,6 +11304,10 @@ RawLibrary* Library::CollectionLibrary() {
 
 RawLibrary* Library::DeveloperLibrary() {
   return Isolate::Current()->object_store()->developer_library();
+}
+
+RawLibrary* Library::FfiLibrary() {
+  return Isolate::Current()->object_store()->ffi_library();
 }
 
 RawLibrary* Library::InternalLibrary() {
@@ -20686,6 +20815,75 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
 
 const char* ExternalTypedData::ToCString() const {
   return "ExternalTypedData";
+}
+
+RawPointer* Pointer::New(const AbstractType& type_arg,
+                         uint8_t* c_memory_address,
+                         intptr_t cid,
+                         Heap::Space space) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  type_args = TypeArguments::New(1);
+  type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
+  type_args ^= type_args.Canonicalize();
+
+  const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(cid));
+  cls.EnsureIsFinalized(Thread::Current());
+
+  Pointer& result = Pointer::Handle(zone);
+  result ^= Object::Allocate(cid, Pointer::InstanceSize(), space);
+  NoSafepointScope no_safepoint;
+  result.SetTypeArguments(type_args);
+  result.SetCMemoryAddress(c_memory_address);
+
+  return result.raw();
+}
+
+const char* Pointer::ToCString() const {
+  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+  String& type_args_name = String::Handle(type_args.UserVisibleName());
+  return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=%p",
+                     type_args_name.ToCString(), GetCMemoryAddress());
+}
+
+RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
+  DynamicLibrary& result = DynamicLibrary::Handle();
+  result ^= Object::Allocate(kFfiDynamicLibraryCid,
+                             DynamicLibrary::InstanceSize(), space);
+  NoSafepointScope no_safepoint;
+  result.SetHandle(handle);
+  return result.raw();
+}
+
+bool Pointer::IsPointer(const Instance& obj) {
+  ASSERT(!obj.IsNull());
+
+  // fast path for predefined classes
+  intptr_t cid = obj.raw()->GetClassId();
+  if (RawObject::IsFfiPointerClassId(cid)) {
+    return true;
+  }
+
+  // slow check for subtyping
+  const Class& pointer_class = Class::ZoneHandle(
+      Isolate::Current()->object_store()->ffi_pointer_class());
+  AbstractType& pointer_type =
+      AbstractType::Handle(pointer_class.DeclarationType());
+  pointer_type ^= pointer_type.InstantiateFrom(Object::null_type_arguments(),
+                                               Object::null_type_arguments(),
+                                               kNoneFree, NULL, Heap::kNew);
+  AbstractType& type = AbstractType::Handle(obj.GetType(Heap::kNew));
+  return type.IsSubtypeOf(pointer_type, Heap::kNew);
+}
+
+bool Instance::IsPointer() const {
+  return Pointer::IsPointer(*this);
+}
+
+const char* DynamicLibrary::ToCString() const {
+  return OS::SCreate(Thread::Current()->zone(), "DynamicLibrary: handle=%p",
+                     GetHandle());
 }
 
 RawCapability* Capability::New(uint64_t id, Heap::Space space) {

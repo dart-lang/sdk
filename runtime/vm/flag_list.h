@@ -92,6 +92,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
+  P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
   C(force_clone_compiler_objects, false, false, bool, false,                   \

@@ -147,6 +147,9 @@ intptr_t RawObject::HeapSizeFromClass() const {
         break;
       }
 #undef SIZE_FROM_CLASS
+    case kFfiPointerCid:
+      instance_size = Pointer::InstanceSize();
+      break;
     case kTypeArgumentsCid: {
       const RawTypeArguments* raw_array =
           reinterpret_cast<const RawTypeArguments*>(this);
@@ -282,6 +285,16 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
     }
 #undef RAW_VISITPOINTERS
+    case kFfiPointerCid: {
+      RawPointer* raw_obj = reinterpret_cast<RawPointer*>(this);
+      size = RawPointer::VisitPointerPointers(raw_obj, visitor);
+      break;
+    }
+    case kFfiDynamicLibraryCid: {
+      RawDynamicLibrary* raw_obj = reinterpret_cast<RawDynamicLibrary*>(this);
+      size = RawDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
+      break;
+    }
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
@@ -395,6 +408,7 @@ COMPRESSED_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
 REGULAR_VISITOR(RedirectionData)
+REGULAR_VISITOR(FfiTrampolineData)
 REGULAR_VISITOR(Field)
 REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
@@ -439,6 +453,8 @@ NULL_VISITOR(Float64x2)
 NULL_VISITOR(Bool)
 NULL_VISITOR(Capability)
 NULL_VISITOR(SendPort)
+REGULAR_VISITOR(Pointer)
+NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
 VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->ptr()->length_)

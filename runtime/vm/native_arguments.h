@@ -155,7 +155,7 @@ class NativeArguments {
       // null vector represents infinite list of dynamics
       return Type::dynamic_type().raw();
     }
-    return TypeArguments::Handle(NativeTypeArgs()).TypeAt(index);
+    return type_args.TypeAt(index);
   }
 
   void SetReturn(const Object& value) const { *retval_ = value.raw(); }

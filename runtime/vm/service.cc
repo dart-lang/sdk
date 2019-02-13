@@ -4752,6 +4752,13 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY
+#define DEFINE_ADD_MAP_KEY(clazz)                                              \
+  {                                                                            \
+    JSONArray internals(&map, #clazz);                                         \
+    DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                         \
+  }
+  CLASS_LIST_FFI(DEFINE_ADD_MAP_KEY)
+#undef DEFINE_ADD_MAP_KEY
 #undef DEFINE_ADD_VALUE_F_CID
 #undef DEFINE_ADD_VALUE_F
 

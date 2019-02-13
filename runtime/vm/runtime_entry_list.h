@@ -41,6 +41,7 @@ namespace dart {
   V(RangeError)                                                                \
   V(NullError)                                                                 \
   V(NullErrorWithSelector)                                                     \
+  V(ArgumentNullError)                                                         \
   V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
   V(IntegerDivisionByZeroException)                                            \

@@ -4774,6 +4774,10 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
       return Symbols::False().raw();
     }
 
+    if (!Api::ffiEnabled() && name.Equals(Symbols::DartLibraryFfi())) {
+      return Symbols::False().raw();
+    }
+
     if (name.Equals(Symbols::DartVMProduct())) {
 #ifdef PRODUCT
       return Symbols::True().raw();

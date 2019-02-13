@@ -48,6 +48,7 @@ class RawContext;
 class RawContextScope;
 class RawDouble;
 class RawExceptionHandlers;
+class RawFfiTrampolineData;
 class RawField;
 class RawFloat32x4;
 class RawFloat64x2;

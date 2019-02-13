@@ -155,6 +155,8 @@ abstract class TreeNode extends Node {
 
   Component get enclosingComponent => parent?.enclosingComponent;
 
+  Library get enclosingLibrary => parent?.enclosingLibrary;
+
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
   ///
@@ -466,6 +468,8 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
+
+  Library get enclosingLibraray => this;
 }
 
 /// An import or export declaration in a library.

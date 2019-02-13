@@ -383,6 +383,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       break;
     case RawFunction::kSignatureFunction:
     case RawFunction::kIrregexpFunction:
+    case RawFunction::kFfiTrampoline:
       UNREACHABLE();
   }
   if (needs_expr_temp_) {

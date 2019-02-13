@@ -483,6 +483,10 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
       break;
     }
 #undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz) case kFfi##clazz##Cid:
+
+    CLASS_LIST_FFI(SNAPSHOT_READ) { UNREACHABLE(); }
+#undef SNAPSHOT_READ
     default:
       UNREACHABLE();
       break;
@@ -1174,6 +1178,10 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
       raw_obj->WriteTo(this, object_id, kind_, as_reference);
       return;
     }
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz) case kFfi##clazz##Cid:
+
+    CLASS_LIST_FFI(SNAPSHOT_WRITE) { UNREACHABLE(); }
 #undef SNAPSHOT_WRITE
     default:
       break;

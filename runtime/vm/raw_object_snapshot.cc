@@ -467,6 +467,22 @@ void RawRedirectionData::WriteTo(SnapshotWriter* writer,
   UNREACHABLE();
 }
 
+RawFfiTrampolineData* FfiTrampolineData::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind,
+                                                  bool as_reference) {
+  UNREACHABLE();
+  return FfiTrampolineData::null();
+}
+
+void RawFfiTrampolineData::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind,
+                                   bool as_reference) {
+  UNREACHABLE();
+}
+
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
@@ -1965,6 +1981,38 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
       passed_data,  // data
       passed_data,  // peer,
       IsolateMessageTypedDataFinalizer);
+}
+
+RawPointer* Pointer::ReadFrom(SnapshotReader* reader,
+                              intptr_t object_id,
+                              intptr_t tags,
+                              Snapshot::Kind kind,
+                              bool as_reference) {
+  FATAL("Snapshotting Pointers is not supported");
+  UNREACHABLE();
+}
+
+void RawPointer::WriteTo(SnapshotWriter* writer,
+                         intptr_t object_id,
+                         Snapshot::Kind kind,
+                         bool as_reference) {
+  FATAL("Snapshotting Pointers is not supported");
+}
+
+RawDynamicLibrary* DynamicLibrary::ReadFrom(SnapshotReader* reader,
+                                            intptr_t object_id,
+                                            intptr_t tags,
+                                            Snapshot::Kind kind,
+                                            bool as_reference) {
+  FATAL("Snapshotting DynamicLibraries is not supported");
+  UNREACHABLE();
+}
+
+void RawDynamicLibrary::WriteTo(SnapshotWriter* writer,
+                                intptr_t object_id,
+                                Snapshot::Kind kind,
+                                bool as_reference) {
+  FATAL("Snapshotting DynamicLibraries is not supported");
 }
 
 RawCapability* Capability::ReadFrom(SnapshotReader* reader,

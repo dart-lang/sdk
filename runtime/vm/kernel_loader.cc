@@ -1165,6 +1165,10 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         target_library.url() == Symbols::DartMirrors().raw()) {
       H.ReportError("import of dart:mirrors with --enable-mirrors=false");
     }
+    if (!Api::ffiEnabled() &&
+        target_library.url() == Symbols::DartFfi().raw()) {
+      H.ReportError("import of dart:ffi with --enable-ffi=false");
+    }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
     if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
