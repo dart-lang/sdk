@@ -286,18 +286,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Set<Library> allLibraries;
       if (data.includeUserLoadedLibraries || fullComponent) {
         outputLibraries = computeTransitiveClosure(compiledLibraries,
-            mainMethod, entryPoint, reusedLibraries, hierarchy, uriTranslator);
+            entryPoint, reusedLibraries, hierarchy, uriTranslator);
         allLibraries = outputLibraries.toSet();
       } else {
         outputLibraries = new List<Library>();
-        allLibraries = computeTransitiveClosure(
-                compiledLibraries,
-                mainMethod,
-                entryPoint,
-                reusedLibraries,
-                hierarchy,
-                uriTranslator,
-                outputLibraries)
+        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoint,
+                reusedLibraries, hierarchy, uriTranslator, outputLibraries)
             .toSet();
       }
 
@@ -385,7 +379,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// any saved component problems for such builders.
   List<Library> computeTransitiveClosure(
       List<Library> inputLibraries,
-      Procedure mainMethod,
       Uri entry,
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
@@ -407,9 +400,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     List<Uri> worklist = new List<Uri>();
-    Uri mainMethodUri = mainMethod?.enclosingLibrary?.importUri;
-    if (mainMethodUri != null) worklist.add(mainMethodUri);
-    if (entry != null) worklist.add(entry);
+    worklist.add(entry);
     for (LibraryBuilder library in reusedLibraries) {
       if (library.uri.scheme == "dart" && !library.isSynthetic) {
         continue;
