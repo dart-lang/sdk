@@ -45,102 +45,8 @@ main() {
   });
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
-class ClassElementImplTest extends EngineTestCase {
-  @deprecated
-  void test_computeNode_ClassDeclaration() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-class A {}
-@deprecated class B {}
-enum C {C1, C2, C3}
-@deprecated enum D {D1, D2, D3}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    {
-      ClassElement elementA = unitElement.getType("A");
-      expect(elementA.hasDeprecated, isFalse);
-      expect(elementA.isEnum, isFalse);
-      ClassDeclaration nodeA = elementA.computeNode();
-      expect(nodeA, isNotNull);
-      expect(nodeA.name.name, "A");
-      expect(nodeA.declaredElement, same(elementA));
-    }
-    // B
-    {
-      ClassElement elementB = unitElement.getType("B");
-      expect(elementB.hasDeprecated, isTrue);
-      expect(elementB.isEnum, isFalse);
-      ClassDeclaration nodeB = elementB.computeNode();
-      expect(nodeB, isNotNull);
-      expect(nodeB.name.name, "B");
-      expect(nodeB.declaredElement, same(elementB));
-    }
-    // C
-    {
-      ClassElement elementC = unitElement.getEnum("C");
-      expect(elementC.hasDeprecated, isFalse);
-      expect(elementC.isEnum, isTrue);
-      EnumDeclaration nodeC = elementC.computeNode();
-      expect(nodeC, isNotNull);
-      expect(nodeC.name.name, "C");
-      expect(nodeC.declaredElement, same(elementC));
-    }
-    // D
-    {
-      ClassElement elementD = unitElement.getEnum("D");
-      expect(elementD.hasDeprecated, isTrue);
-      expect(elementD.isEnum, isTrue);
-      EnumDeclaration nodeC = elementD.computeNode();
-      expect(nodeC, isNotNull);
-      expect(nodeC.name.name, "D");
-      expect(nodeC.declaredElement, same(elementD));
-    }
-  }
-
-  @deprecated
-  void test_computeNode_ClassTypeAlias() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-abstract class A<K, V> = Object with MapMixin<K, V>;
-''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    {
-      ClassElement elementA = unitElement.getType("A");
-      ClassTypeAlias nodeA = elementA.computeNode();
-      expect(nodeA, isNotNull);
-      expect(nodeA.name.name, "A");
-      expect(nodeA.declaredElement, same(elementA));
-    }
-  }
-
-  void test_constructors_mixinApplicationWithHandle() {
-    AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory([]);
-
-    ElementLocation location = new ElementLocationImpl.con2('');
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.mixinApplication = true;
-    TestElementResynthesizer resynthesizer =
-        new TestElementResynthesizer(context, {location: classA});
-    ClassElementHandle classAHandle =
-        new ClassElementHandle(resynthesizer, location);
-    ClassElementImpl classB = new ClassElementImpl('B', 0)
-      ..supertype = new InterfaceTypeImpl(classAHandle);
-    classB.mixinApplication = true;
-
-    expect(classB.constructors, hasLength(1));
-  }
-
+class ClassElementImplTest {
   void test_getAllSupertypes_interface() {
     ClassElement classA = ElementFactory.classElement2("A");
     ClassElement classB = ElementFactory.classElement("B", classA.type);
@@ -321,8 +227,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -336,8 +241,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   m();
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
@@ -355,8 +259,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m();
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -379,8 +282,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -401,8 +303,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.abstract = true;
     String methodName = "m";
@@ -424,8 +325,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -441,8 +341,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpConcreteMethod_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -453,8 +352,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   get g {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getter =
@@ -471,8 +369,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getter =
@@ -487,8 +384,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpGetter_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -500,8 +396,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     classA.supertype = classB.type;
@@ -514,8 +409,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   get g {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getter =
@@ -532,8 +426,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement inheritedGetter =
@@ -549,8 +442,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpInheritedConcreteGetter_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -562,8 +454,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     classA.supertype = classB.type;
@@ -576,8 +467,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -594,8 +484,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m();
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -618,8 +507,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -641,8 +529,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.abstract = true;
     String methodName = "m";
@@ -669,8 +556,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class C extends B {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -696,8 +582,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -713,8 +598,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpInheritedConcreteMethod_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -725,8 +609,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   set g(x) {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setter =
@@ -743,8 +626,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setter =
@@ -760,8 +642,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpInheritedConcreteSetter_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -773,8 +654,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     classA.supertype = classB.type;
@@ -787,8 +667,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -805,8 +684,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class B extends A {
     //   m() {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -827,8 +705,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement inheritedMethod =
@@ -844,8 +721,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpInheritedMethod_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -853,8 +729,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   }
 
   void test_lookUpMethod_declared() {
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -865,8 +740,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   }
 
   void test_lookUpMethod_inherited() {
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -878,8 +752,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   }
 
   void test_lookUpMethod_undeclared() {
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -887,8 +760,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   }
 
   void test_lookUpMethod_undeclared_recursive() {
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     classA.supertype = classB.type;
@@ -901,8 +773,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // class A {
     //   set g(x) {}
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setter =
@@ -919,8 +790,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setter =
@@ -935,8 +805,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_lookUpSetter_undeclared() {
     // class A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -948,8 +817,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     // }
     // class B extends A {
     // }
-    LibraryElementImpl library =
-        ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     classA.supertype = classB.type;
@@ -957,6 +825,8 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
         <ClassElement>[classA, classB];
     expect(classA.lookUpSetter("s", library), isNull);
   }
+
+  LibraryElementImpl _newLibrary() => ElementFactory.library(null, 'lib');
 }
 
 @reflectiveTest
