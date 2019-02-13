@@ -2,118 +2,118 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/testing/mock_sdk_component.dart';
-import 'package:kernel/text/ast_to_text.dart';
-import 'package:kernel/type_algebra.dart';
-import 'package:test/test.dart';
+import "package:expect/expect.dart" show Expect;
+
+import "package:kernel/ast.dart";
+import "package:kernel/class_hierarchy.dart";
+import "package:kernel/core_types.dart";
+import "package:kernel/testing/mock_sdk_component.dart";
+import "package:kernel/text/ast_to_text.dart";
+import "package:kernel/type_algebra.dart";
+
+typedef Matcher = void Function(Object actual);
+
+void expect(Object actual, Object expected) {
+  if (expected is Matcher) {
+    expected(actual);
+  } else {
+    same(expected)(actual);
+  }
+}
+
+Matcher unorderedEquals(List<Object> expected) {
+  return (Object actual) => Expect.setEquals(expected, actual);
+}
+
+fail(String message) {
+  Expect.fail(message);
+}
+
+Matcher same(Object expected) {
+  if (expected is Iterable<Object>) {
+    return (dynamic actual) =>
+        Expect.listEquals(expected.toList(), actual.toList());
+  } else {
+    return (Object actual) => Expect.equals(expected, actual);
+  }
+}
+
+final Matcher isEmpty = (dynamic actual) => Expect.isTrue(actual.isEmpty);
+
+final Matcher isNull = (Object actual) => Expect.isNull(actual);
 
 main() {
-  test("applyTreeChanges", () {
-    new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
-  });
-  test("applyMemberChanges", () {
-    new ClosedWorldClassHierarchyTest().test_applyMemberChanges();
-  });
-  test("getSingleTargetForInterfaceInvocation", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getSingleTargetForInterfaceInvocation();
-  });
-  test("getSubtypesOf", () {
-    new ClosedWorldClassHierarchyTest().test_getSubtypesOf();
-  });
-  test("forEachOverridePair_supertypeOverridesInterface", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_forEachOverridePair_supertypeOverridesInterface();
-  });
-  test("forEachOverridePair_supertypeOverridesThis", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_forEachOverridePair_supertypeOverridesThis();
-  });
-  test("forEachOverridePair_supertypeOverridesThisAbstract", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_forEachOverridePair_supertypeOverridesThisAbstract();
-  });
-  test("forEachOverridePair_thisOverridesSupertype", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_forEachOverridePair_thisOverridesSupertype();
-  });
-  test("forEachOverridePair_thisOverridesSupertype_setter", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_forEachOverridePair_thisOverridesSupertype_setter();
-  });
-  test("getClassAsInstanceOf_generic_extends", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getClassAsInstanceOf_generic_extends();
-  });
-  test("getClassAsInstanceOf_generic_implements", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getClassAsInstanceOf_generic_implements();
-  });
-  test("getClassAsInstanceOf_generic_with", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getClassAsInstanceOf_generic_with();
-  });
-  test("getClassAsInstanceOf_notGeneric_extends", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getClassAsInstanceOf_notGeneric_extends();
-  });
-  test("getClassAsInstanceOf_notGeneric_implements", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getClassAsInstanceOf_notGeneric_implements();
-  });
-  test("getClassAsInstanceOf_notGeneric_with", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getClassAsInstanceOf_notGeneric_with();
-  });
-  test("getLegacyLeastUpperBound_expansive", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getLegacyLeastUpperBound_expansive();
-  });
-  test("getLegacyLeastUpperBound_generic", () {
-    new ClosedWorldClassHierarchyTest().test_getLegacyLeastUpperBound_generic();
-  });
-  test("getLegacyLeastUpperBound_nonGeneric", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getLegacyLeastUpperBound_nonGeneric();
-  });
-  test("getDeclaredMembers", () {
-    new ClosedWorldClassHierarchyTest().test_getDeclaredMembers();
-  });
-  test("getDispatchTarget", () {
-    new ClosedWorldClassHierarchyTest().test_getDispatchTarget();
-  });
-  test("getDispatchTarget_abstract", () {
-    new ClosedWorldClassHierarchyTest().test_getDispatchTarget_abstract();
-  });
-  test("getInterfaceMember_extends", () {
-    new ClosedWorldClassHierarchyTest().test_getInterfaceMember_extends();
-  });
-  test("getInterfaceMember_implements", () {
-    new ClosedWorldClassHierarchyTest().test_getInterfaceMember_implements();
-  });
-  test("getInterfaceMembers_in_class", () {
-    new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_in_class();
-  });
-  test("getInterfaceMembers_inherited_or_mixed_in", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getInterfaceMembers_inherited_or_mixed_in();
-  });
-  test("getInterfaceMembers_multiple", () {
-    new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_multiple();
-  });
-  test("getInterfaceMembers_shadowed", () {
-    new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_shadowed();
-  });
-  test("getOrderedClasses", () {
-    new ClosedWorldClassHierarchyTest().test_getOrderedClasses();
-  });
-  test("getTypeAsInstanceOf_generic_extends", () {
-    new ClosedWorldClassHierarchyTest()
-        .test_getTypeAsInstanceOf_generic_extends();
-  });
+  new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
+
+  new ClosedWorldClassHierarchyTest().test_applyMemberChanges();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getSingleTargetForInterfaceInvocation();
+
+  new ClosedWorldClassHierarchyTest().test_getSubtypesOf();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_forEachOverridePair_supertypeOverridesInterface();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_forEachOverridePair_supertypeOverridesThis();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_forEachOverridePair_supertypeOverridesThisAbstract();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_forEachOverridePair_thisOverridesSupertype();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_forEachOverridePair_thisOverridesSupertype_setter();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getClassAsInstanceOf_generic_extends();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getClassAsInstanceOf_generic_implements();
+
+  new ClosedWorldClassHierarchyTest().test_getClassAsInstanceOf_generic_with();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getClassAsInstanceOf_notGeneric_extends();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getClassAsInstanceOf_notGeneric_implements();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getClassAsInstanceOf_notGeneric_with();
+
+  new ClosedWorldClassHierarchyTest().test_getLegacyLeastUpperBound_expansive();
+
+  new ClosedWorldClassHierarchyTest().test_getLegacyLeastUpperBound_generic();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getLegacyLeastUpperBound_nonGeneric();
+
+  new ClosedWorldClassHierarchyTest().test_getDeclaredMembers();
+
+  new ClosedWorldClassHierarchyTest().test_getDispatchTarget();
+
+  new ClosedWorldClassHierarchyTest().test_getDispatchTarget_abstract();
+
+  new ClosedWorldClassHierarchyTest().test_getInterfaceMember_extends();
+
+  new ClosedWorldClassHierarchyTest().test_getInterfaceMember_implements();
+
+  new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_in_class();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getInterfaceMembers_inherited_or_mixed_in();
+
+  new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_multiple();
+
+  new ClosedWorldClassHierarchyTest().test_getInterfaceMembers_shadowed();
+
+  new ClosedWorldClassHierarchyTest().test_getOrderedClasses();
+
+  new ClosedWorldClassHierarchyTest()
+      .test_getTypeAsInstanceOf_generic_extends();
 }
 
 class ClosedWorldClassHierarchyTest {
