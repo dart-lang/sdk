@@ -290,11 +290,7 @@ abstract class SubtypeTest<T, E> {
 
     isSubtype("() -> dynamic", "() -> dynamic");
     isSubtype("() -> dynamic", "() -> void");
-    isSubtype(
-      "() -> void",
-      "() -> dynamic",
-      // expectMoreSpecific: false,
-    );
+    isSubtype("() -> void", "() -> dynamic");
 
     isSubtype("() -> int", "() -> void");
     isNotSubtype("() -> void", "() -> int");
@@ -306,11 +302,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype("() -> void", "(int) -> int");
     isNotSubtype("() -> void", "(int) -> void");
     isSubtype("(int) -> int", "(int) -> int");
-    isSubtype(
-      "(Object) -> int",
-      "(int) -> Object",
-      // expectMoreSpecific: false,
-    );
+    isSubtype("(Object) -> int", "(int) -> Object");
     isNotSubtype("(int) -> int", "(double) -> int");
     isNotSubtype("() -> int", "(int) -> int");
     isNotSubtype("(int) -> int", "(int, int) -> int");
@@ -323,11 +315,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype("([int]) -> void", "(int) -> void");
     isNotSubtype("(int) -> void", "([int]) -> void");
     isSubtype("([int]) -> void", "([int]) -> void");
-    isSubtype(
-      "([Object]) -> void",
-      "([int]) -> void",
-      // expectMoreSpecific: false,
-    );
+    isSubtype("([Object]) -> void", "([int]) -> void");
     isNotSubtype("([int]) -> void", "([Object]) -> void");
     isSubtype("(int, [int]) -> void", "(int) -> void");
     isSubtype("(int, [int]) -> void", "(int, [int]) -> void");
@@ -339,11 +327,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype("([int]) -> void", "(double) -> void");
     isNotSubtype("([int]) -> void", "([int, int]) -> void");
     isSubtype("([int, int]) -> void", "([int]) -> void");
-    isSubtype(
-      "([Object, int]) -> void",
-      "([int]) -> void",
-      // expectMoreSpecific: false,
-    );
+    isSubtype("([Object, int]) -> void", "([int]) -> void");
 
     // Optional named parameters.
     isSubtype("({int a}) -> void", "() -> void");
@@ -351,11 +335,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype("(int) -> void", "({int a}) -> void");
     isSubtype("({int a}) -> void", "({int a}) -> void");
     isNotSubtype("({int a}) -> void", "({int b}) -> void");
-    isSubtype(
-      "({Object a}) -> void",
-      "({int a}) -> void",
-      // expectMoreSpecific: false,
-    );
+    isSubtype("({Object a}) -> void", "({int a}) -> void");
     isNotSubtype("({int a}) -> void", "({Object a}) -> void");
     isSubtype("(int, {int a}) -> void", "(int, {int a}) -> void");
     isNotSubtype("({int a}) -> void", "({double a}) -> void");
