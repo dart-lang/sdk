@@ -552,6 +552,18 @@ int f() {
         [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
   }
 
+  test_return_implicit_null() async {
+    verifyNoTestUnitErrors = false;
+    await analyze('''
+int f() {
+  return;
+}
+''');
+
+    assertConstraint(
+        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+  }
+
   test_return_null() async {
     await analyze('''
 int f() {

@@ -49,6 +49,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// For convenience, a [DecoratedType] representing non-nullable `Type`.
   final DecoratedType _nonNullableTypeType;
 
+  /// For convenience, a [DecoratedType] representing `Null`.
+  final DecoratedType _nullType;
+
   /// The [DecoratedType] of the innermost function or method being visited, or
   /// `null` if the visitor is not inside any function or method.
   ///
@@ -72,7 +75,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       this._constraints, this._source, this._permissive, this.assumptions)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
         _nonNullableBoolType = DecoratedType(typeProvider.boolType, null),
-        _nonNullableTypeType = DecoratedType(typeProvider.typeType, null);
+        _nonNullableTypeType = DecoratedType(typeProvider.typeType, null),
+        _nullType =
+            DecoratedType(typeProvider.nullType, ConstraintVariable.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -324,7 +329,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
-    return DecoratedType(node.staticType, ConstraintVariable.always);
+    return _nullType;
   }
 
   @override
@@ -334,9 +339,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
-    // TODO(paulberry): handle implicit return
-    assert(node.expression != null); // TODO(paulberry)
-    _handleAssignment(_currentFunctionType.returnType, node.expression);
+    if (node.expression == null) {
+      _checkAssignment(_currentFunctionType.returnType, _nullType, null);
+    } else {
+      _handleAssignment(_currentFunctionType.returnType, node.expression);
+    }
     return null;
   }
 
@@ -444,6 +451,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// call sites.
   bool _isSimple(DecoratedType type) {
     if (type.type.isBottom) return true;
+    if (type.type.isVoid) return true;
     if (type.type is! InterfaceType) return false;
     if ((type.type as InterfaceType).typeParameters.isNotEmpty) return false;
     return true;
