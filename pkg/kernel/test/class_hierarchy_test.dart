@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart" show Expect;
+import "package:expect/matchers_lite.dart";
 
 import "package:kernel/ast.dart";
 import "package:kernel/class_hierarchy.dart";
@@ -10,37 +10,6 @@ import "package:kernel/core_types.dart";
 import "package:kernel/testing/mock_sdk_component.dart";
 import "package:kernel/text/ast_to_text.dart";
 import "package:kernel/type_algebra.dart";
-
-typedef Matcher = void Function(Object actual);
-
-void expect(Object actual, Object expected) {
-  if (expected is Matcher) {
-    expected(actual);
-  } else {
-    same(expected)(actual);
-  }
-}
-
-Matcher unorderedEquals(List<Object> expected) {
-  return (Object actual) => Expect.setEquals(expected, actual);
-}
-
-fail(String message) {
-  Expect.fail(message);
-}
-
-Matcher same(Object expected) {
-  if (expected is Iterable<Object>) {
-    return (dynamic actual) =>
-        Expect.listEquals(expected.toList(), actual.toList());
-  } else {
-    return (Object actual) => Expect.equals(expected, actual);
-  }
-}
-
-final Matcher isEmpty = (dynamic actual) => Expect.isTrue(actual.isEmpty);
-
-final Matcher isNull = (Object actual) => Expect.isNull(actual);
 
 main() {
   new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
