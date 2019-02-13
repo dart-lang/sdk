@@ -175,7 +175,11 @@ class DeclarationsContext {
     }
 
     var contextLibraries = <Library>[];
-    _addLibrariesWithPaths(contextLibraries, contextPathList);
+    _addLibrariesWithPaths(
+      contextLibraries,
+      contextPathList,
+      excludingLibraryOfPath: path,
+    );
 
     return Libraries(sdkLibraries, dependencyLibraries, contextLibraries);
   }
@@ -225,8 +229,14 @@ class DeclarationsContext {
     }
   }
 
-  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList) {
+  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList,
+      {String excludingLibraryOfPath}) {
+    var excludedFile = _tracker._pathToFile[excludingLibraryOfPath];
+    var excludedLibraryPath = (excludedFile?.library ?? excludedFile)?.path;
+
     for (var path in pathList) {
+      if (path == excludedLibraryPath) continue;
+
       var file = _tracker._pathToFile[path];
       if (file != null && file.isLibrary) {
         var library = _tracker._idToLibrary[file.id];

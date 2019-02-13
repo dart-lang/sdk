@@ -1658,6 +1658,63 @@ class GetLibrariesTest extends _Base {
     }
   }
 
+  test_excludeSelf() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+
+    newFile(a);
+    newFile(b);
+    newFile(c);
+
+    var context = tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var aList = _uriListOfContextLibraries(context, a);
+    expect(
+      aList,
+      unorderedEquals([
+        'package:test/b.dart',
+        'package:test/c.dart',
+      ]),
+    );
+
+    var bList = _uriListOfContextLibraries(context, b);
+    expect(
+      bList,
+      unorderedEquals([
+        'package:test/a.dart',
+        'package:test/c.dart',
+      ]),
+    );
+  }
+
+  test_excludeSelf_part() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+''');
+    newFile(b, content: r'''
+part of 'a.dart';
+''');
+    newFile(c);
+
+    var context = tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var aList = _uriListOfContextLibraries(context, a);
+    expect(aList, unorderedEquals(['package:test/c.dart']));
+
+    var bList = _uriListOfContextLibraries(context, b);
+    expect(bList, unorderedEquals(['package:test/c.dart']));
+
+    var cList = _uriListOfContextLibraries(context, c);
+    expect(cList, unorderedEquals(['package:test/a.dart']));
+  }
+
   test_pub() async {
     newFile('/home/aaa/lib/a.dart', content: 'class A {}');
     newFile('/home/aaa/lib/src/a2.dart', content: 'class A2 {}');
@@ -2011,6 +2068,13 @@ class C {}
     } else {
       expect(actualUriList, containsAll(uriList));
     }
+  }
+
+  static List<String> _uriListOfContextLibraries(
+    DeclarationsContext context,
+    String path,
+  ) {
+    return context.getLibraries(path).context.map((l) => l.uriStr).toList();
   }
 }
 
