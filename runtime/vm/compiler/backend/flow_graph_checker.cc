@@ -137,9 +137,9 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   ASSERT(prev == last);
   // Make sure loop information, when up-to-date, agrees.
   if (flow_graph_->loop_hierarchy_ != nullptr) {
-    LoopInfo* loop = block->loop_info();
-    if (loop != nullptr) {
-      loop->Contains(block);
+    for (LoopInfo* loop = block->loop_info(); loop != nullptr;
+         loop = loop->outer()) {
+      ASSERT(loop->Contains(block));
     }
   }
 }
