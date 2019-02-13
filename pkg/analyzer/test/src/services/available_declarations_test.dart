@@ -1158,6 +1158,28 @@ class _B {}
     ]);
   }
 
+  test_library_publicOnly_enum() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+part of 'test.dart';
+enum A {a, _a}
+enum _A {a, _a}
+''');
+    newFile('/home/test/lib/test.dart', content: r'''
+part 'a.dart';
+enum B {b, _b}
+enum _B {b, _b}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.enum_('A'),
+      _ExpectedDeclaration.enumConstant('a', 'A'),
+      _ExpectedDeclaration.enum_('B'),
+      _ExpectedDeclaration.enumConstant('b', 'B'),
+    ]);
+  }
+
   test_location() async {
     var code = r'''
 class A {}

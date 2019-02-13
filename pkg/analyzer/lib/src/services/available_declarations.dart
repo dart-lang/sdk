@@ -39,8 +39,15 @@ class Declaration {
   final String locationPath;
   final int locationStartColumn;
   final int locationStartLine;
+
+  /// The name of the declaration.
+  /// For enum constants, the name of the constant.
   final String name;
+
+  /// Usually `null`.
+  /// For enum constants, the name of the enum.
   final String name2;
+
   final String parameters;
   final List<String> parameterNames;
   final List<String> parameterTypes;
@@ -914,7 +921,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 5;
+  static const int DATA_VERSION = 6;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1104,32 +1111,35 @@ class _File {
       String returnType,
       String typeParameters,
     }) {
-      if (!Identifier.isPrivateName(name.name)) {
-        var locationOffset = name.offset;
-        var lineLocation = lineInfo.getLocation(locationOffset);
-        fileDeclarations.add(Declaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
-          isAbstract: isAbstract,
-          isConst: isConst,
-          isDeprecated: isDeprecated,
-          isFinal: isFinal,
-          kind: kind,
-          locationOffset: locationOffset,
-          locationPath: path,
-          name: name.name,
-          name2: name2?.name,
-          locationStartColumn: lineLocation.columnNumber,
-          locationStartLine: lineLocation.lineNumber,
-          parameters: parameters,
-          parameterNames: parameterNames,
-          parameterTypes: parameterTypes,
-          relevanceTags: relevanceTags,
-          requiredParameterCount: requiredParameterCount,
-          returnType: returnType,
-          typeParameters: typeParameters,
-        ));
+      if (Identifier.isPrivateName(name.name) ||
+          name2 != null && Identifier.isPrivateName(name2.name)) {
+        return;
       }
+
+      var locationOffset = name.offset;
+      var lineLocation = lineInfo.getLocation(locationOffset);
+      fileDeclarations.add(Declaration(
+        docComplete: docComplete,
+        docSummary: docSummary,
+        isAbstract: isAbstract,
+        isConst: isConst,
+        isDeprecated: isDeprecated,
+        isFinal: isFinal,
+        kind: kind,
+        locationOffset: locationOffset,
+        locationPath: path,
+        name: name.name,
+        name2: name2?.name,
+        locationStartColumn: lineLocation.columnNumber,
+        locationStartLine: lineLocation.lineNumber,
+        parameters: parameters,
+        parameterNames: parameterNames,
+        parameterTypes: parameterTypes,
+        relevanceTags: relevanceTags,
+        requiredParameterCount: requiredParameterCount,
+        returnType: returnType,
+        typeParameters: typeParameters,
+      ));
     }
 
     for (var node in unit.declarations) {
