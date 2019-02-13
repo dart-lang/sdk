@@ -87,6 +87,9 @@ io/web_socket_test: Pass, RuntimeError # Issue 26814.
 [ $arch == x64 && $compiler == dartkb && $runtime == vm && $system == linux ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
+[ $arch == x64 && $mode == debug && $system == linux && $hot_reload ]
+ffi/subtype_test: Skip # https://github.com/dart-lang/sdk/issues/35933
+
 [ $compiler != dart2analyzer && $system == windows ]
 io/platform_resolved_executable_test/06: RuntimeError # Issue 23641
 
