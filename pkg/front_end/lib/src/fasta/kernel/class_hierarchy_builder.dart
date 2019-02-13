@@ -172,6 +172,29 @@ class ClassHierarchyBuilder {
     return null;
   }
 
+  InterfaceType getKernelTypeAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    Class kernelClass = type.classNode;
+    if (kernelClass == superclass) return type;
+    if (kernelClass == nullKernelClass) {
+      if (superclass.typeParameters.isEmpty) {
+        return superclass.rawType;
+      } else {
+        // This is a safe fall-back for dealing with `Null`. It will likely be
+        // faster to check for `Null` before calling this method.
+        return new InterfaceType(
+            superclass,
+            new List<DartType>.filled(
+                superclass.typeParameters.length, nullKernelClass.rawType));
+      }
+    }
+    KernelNamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
+    if (supertype == null) return null;
+    if (supertype.arguments == null) return superclass.rawType;
+    return Substitution.fromInterfaceType(type)
+        .substituteType(supertype.build(null));
+  }
+
   static ClassHierarchyBuilder build(
       KernelClassBuilder objectClass,
       List<KernelClassBuilder> classes,
@@ -1001,13 +1024,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
 
   @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    if (type.classNode == superclass) return type;
-    KernelNamedTypeBuilder supertype =
-        hierarchy.asSupertypeOf(type.classNode, superclass);
-    if (supertype == null) return null;
-    if (supertype.arguments == null) return superclass.rawType;
-    return Substitution.fromInterfaceType(type)
-        .substituteType(supertype.build(null));
+    return hierarchy.getKernelTypeAsInstanceOf(type, superclass);
   }
 
   @override

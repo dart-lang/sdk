@@ -21,7 +21,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'kernel_builder.dart' show ClassHierarchyBuilder, KernelNamedTypeBuilder;
+import 'kernel_builder.dart' show ClassHierarchyBuilder;
 
 class Types {
   final ClassHierarchyBuilder hierarchy;
@@ -220,19 +220,19 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
 
   @override
   bool isInterfaceRelated(InterfaceType s, InterfaceType t, Types types) {
-    Class cls = s.classNode;
-    if (cls == t.classNode) {
-      return types.areSubtypesOfKernel(s.typeArguments, t.typeArguments);
+    if (s.classNode == types.hierarchy.nullKernelClass) {
+      // This is an optimization, to avoid instantating unnecessary type
+      // arguments in getKernelTypeAsInstanceOf.
+      return true;
     }
-    if (cls == types.hierarchy.nullKernelClass) return true;
-    KernelNamedTypeBuilder supertype =
-        types.hierarchy.asSupertypeOf(s.classNode, t.classNode);
-    if (supertype == null) return false;
-    if (supertype.arguments == null) return true;
     InterfaceType asSupertype =
-        Substitution.fromInterfaceType(s).substituteType(supertype.build(null));
-    return types.areSubtypesOfKernel(
-        asSupertype.typeArguments, t.typeArguments);
+        types.hierarchy.getKernelTypeAsInstanceOf(s, t.classNode);
+    if (asSupertype == null) {
+      return false;
+    } else {
+      return types.areSubtypesOfKernel(
+          asSupertype.typeArguments, t.typeArguments);
+    }
   }
 
   @override
