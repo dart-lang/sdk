@@ -7,7 +7,7 @@
 set -e
 
 checkout=$(pwd)
-dart=$checkout/tools/sdks/dart-sdk/bin/dart
+dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart
 sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
 cleanup() {
