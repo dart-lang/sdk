@@ -432,8 +432,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitLiteral(Literal node) => visitExpression(node);
 
   @override
-  R visitMapLiteral(MapLiteral node) => visitTypedLiteral(node);
+  R visitMapLiteral(MapLiteral node) => visitSetOrMapLiteral(node);
 
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => visitTypedLiteral(node);
 
@@ -517,10 +518,14 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
-  R visitSetLiteral(SetLiteral node) => visitTypedLiteral(node);
+  R visitSetLiteral(SetLiteral node) => visitSetOrMapLiteral(node);
 
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => visitTypedLiteral(node);
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitTypedLiteral(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
@@ -1095,6 +1100,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) {
     node.visitChildren(this);
@@ -1228,8 +1234,15 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren(this);
     return null;
   }
@@ -1631,6 +1644,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitMapLiteral(MapLiteral node) => null;
 
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => null;
 
@@ -1699,8 +1713,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => null;
 
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => null;
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => null;
 
   @override
   R visitShowCombinator(ShowCombinator node) => null;
@@ -2028,6 +2046,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitMapLiteral(MapLiteral node) => _throw(node);
 
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => _throw(node);
 
@@ -2096,8 +2115,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => _throw(node);
 
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => _throw(node);
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => _throw(node);
@@ -2815,6 +2838,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @deprecated
   @override
   T visitMapLiteral2(MapLiteral2 node) {
     stopwatch.start();
@@ -2992,10 +3016,19 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @deprecated
   @override
   T visitSetLiteral2(SetLiteral2 node) {
     stopwatch.start();
     T result = _baseVisitor.visitSetLiteral2(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSetOrMapLiteral(SetOrMapLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSetOrMapLiteral(node);
     stopwatch.stop();
     return result;
   }
@@ -3460,6 +3493,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitMapLiteral(MapLiteral node) => visitNode(node);
 
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => visitNode(node);
 
@@ -3534,8 +3568,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitSetLiteral(SetLiteral node) => visitNode(node);
 
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => visitNode(node);
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => visitNode(node);

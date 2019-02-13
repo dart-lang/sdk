@@ -1044,6 +1044,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     super.visitMapLiteral(node);
   }
 
+  @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
     TypeArgumentList typeArguments = node.typeArguments;
@@ -1267,6 +1268,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     super.visitSetLiteral(node);
   }
 
+  @deprecated
   @override
   void visitSetLiteral2(SetLiteral2 node) {
     TypeArgumentList typeArguments = node.typeArguments;
@@ -1285,6 +1287,42 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForSetElementTypeNotAssignable2(node);
 
     super.visitSetLiteral2(node);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (node.isMap) {
+      if (typeArguments != null) {
+        NodeList<TypeAnnotation> arguments = typeArguments.arguments;
+        if (node.isConst) {
+          if (arguments.isNotEmpty) {
+            _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
+                CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
+          }
+        }
+        _checkTypeArgumentCount(typeArguments, 2,
+            StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+      }
+      _checkForImplicitDynamicTypedLiteral(node);
+      _checkForMapTypeNotAssignable3(node);
+      _checkForNonConstMapAsExpressionStatement3(node);
+    } else if (node.isSet) {
+      if (typeArguments != null) {
+        if (node.isConst) {
+          NodeList<TypeAnnotation> arguments = typeArguments.arguments;
+          if (arguments.isNotEmpty) {
+            _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
+                CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET);
+          }
+        }
+        _checkTypeArgumentCount(typeArguments, 1,
+            StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
+      }
+      _checkForImplicitDynamicTypedLiteral(node);
+      _checkForSetElementTypeNotAssignable3(node);
+    }
+    super.visitSetOrMapLiteral(node);
   }
 
   @override
@@ -4196,6 +4234,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
+  @deprecated
   void _checkForMapTypeNotAssignable2(MapLiteral2 literal) {
     // Determine the map's key and value types. We base this on the static type
     // and not the literal's type arguments because in strong mode, the type
@@ -4215,6 +4254,55 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     bool isConst = literal.isConst;
     NodeList<CollectionElement> entries = literal.entries;
+    for (CollectionElement entry in entries) {
+      if (isConst) {
+        // TODO(paulberry): this error should be based on the actual type of the
+        // list element, not the static type.  See dartbug.com/21119.
+        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+            entry,
+            keyType,
+            valueType,
+            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+      } else {
+        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+            entry,
+            keyType,
+            valueType,
+            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+      }
+    }
+  }
+
+  /**
+   * Verify that the key/value of entries of the given map [literal] are
+   * subtypes of the map's static type.
+   *
+   * See [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
+   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
+   */
+  void _checkForMapTypeNotAssignable3(SetOrMapLiteral literal) {
+    // Determine the map's key and value types. We base this on the static type
+    // and not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType mapType = literal.staticType;
+    if (mapType == null) {
+      // This is known to happen when the literal is the default value in an
+      // optional parameter in a generic function type alias.
+      return;
+    }
+    assert(mapType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 2);
+    DartType keyType = typeArguments[0];
+    DartType valueType = typeArguments[1];
+
+    bool isConst = literal.isConst;
+    NodeList<CollectionElement> entries = literal.elements2;
     for (CollectionElement entry in entries) {
       if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
@@ -4833,7 +4921,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
    */
+  @deprecated
   void _checkForNonConstMapAsExpressionStatement2(MapLiteral2 literal) {
+    // "const"
+    if (literal.constKeyword != null) {
+      return;
+    }
+    // has type arguments
+    if (literal.typeArguments != null) {
+      return;
+    }
+    // prepare statement
+    Statement statement = literal.thisOrAncestorOfType<ExpressionStatement>();
+    if (statement == null) {
+      return;
+    }
+    // OK, statement does not start with map
+    if (!identical(statement.beginToken, literal.beginToken)) {
+      return;
+    }
+
+    _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
+  }
+
+  /**
+   * Verify the given map [literal] either:
+   * * has `const modifier`
+   * * has explicit type arguments
+   * * is not start of the statement
+   *
+   * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
+   */
+  void _checkForNonConstMapAsExpressionStatement3(SetOrMapLiteral literal) {
     // "const"
     if (literal.constKeyword != null) {
       return;
@@ -5409,6 +5529,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
+  @deprecated
   void _checkForSetElementTypeNotAssignable2(SetLiteral2 literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -5424,6 +5545,42 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Check every list element.
     bool isConst = literal.isConst;
     for (CollectionElement element in literal.elements) {
+      if (isConst) {
+        // TODO(paulberry): this error should be based on the actual type of the
+        // element, not the static type.  See dartbug.com/21119.
+        _checkForCollectionElementTypeNotAssignableWithElementType(
+            element,
+            setElementType,
+            CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      } else {
+        _checkForCollectionElementTypeNotAssignableWithElementType(element,
+            setElementType, StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      }
+    }
+  }
+
+  /**
+   * Verify that the elements in the given set [literal] are subtypes of the
+   * set's static type.
+   *
+   * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
+   */
+  void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
+    // Determine the list's element type. We base this on the static type and
+    // not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType setType = literal.staticType;
+    assert(setType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 1);
+
+    DartType setElementType = typeArguments[0];
+
+    // Check every list element.
+    bool isConst = literal.isConst;
+    for (CollectionElement element in literal.elements2) {
       if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
         // element, not the static type.  See dartbug.com/21119.

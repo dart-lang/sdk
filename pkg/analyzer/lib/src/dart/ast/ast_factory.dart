@@ -761,6 +761,7 @@ class AstFactoryImpl extends AstFactory {
       new MapLiteralImpl(
           constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
+  @deprecated
   @override
   MapLiteral2 mapLiteral2(
           {Token constKeyword,
@@ -928,6 +929,7 @@ class AstFactoryImpl extends AstFactory {
       new SetLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
+  @deprecated
   @override
   SetLiteral2 setLiteral2(
           {Token constKeyword,
@@ -936,6 +938,16 @@ class AstFactoryImpl extends AstFactory {
           List<CollectionElement> elements,
           Token rightBracket}) =>
       new SetLiteral2Impl(
+          constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
+  SetOrMapLiteral setOrMapLiteral(
+          {Token constKeyword,
+          TypeArgumentList typeArguments,
+          Token leftBracket,
+          List<CollectionElement> elements,
+          Token rightBracket}) =>
+      new SetOrMapLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override

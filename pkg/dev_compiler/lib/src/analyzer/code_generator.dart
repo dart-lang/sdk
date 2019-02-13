@@ -6441,11 +6441,16 @@ class CodeGenerator extends Object
   @override
   visitListLiteral2(ListLiteral2 node) => _unreachable(node);
 
+  @deprecated
   @override
   visitMapLiteral2(MapLiteral2 node) => _unreachable(node);
 
+  @deprecated
   @override
   visitSetLiteral2(SetLiteral2 node) => _unreachable(node);
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) => _unreachable(node);
 
   @override
   visitSpreadElement(SpreadElement node) => _unreachable(node);

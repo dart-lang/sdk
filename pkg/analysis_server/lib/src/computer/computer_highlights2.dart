@@ -725,6 +725,7 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
     super.visitMapLiteral(node);
   }
 
+  @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
@@ -803,11 +804,26 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
     super.visitSetLiteral(node);
   }
 
+  @deprecated
   @override
   void visitSetLiteral2(SetLiteral2 node) {
 //    computer._addRegion_node(node, HighlightRegionType.LITERAL_SET);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     super.visitSetLiteral2(node);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isMap) {
+      computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
+      // TODO(brianwilkerson) Add a highlight region for set literals. This
+      //  would be a breaking change, but would be consistent with list and map
+      //  literals.
+//    } else if (node.isSet) {
+//    computer._addRegion_node(node, HighlightRegionType.LITERAL_SET);
+    }
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    super.visitSetOrMapLiteral(node);
   }
 
   @override

@@ -1067,7 +1067,7 @@ class AstBuilder extends StackListener {
       List<CollectionElement> elements = popCollectionElements(count);
 
       TypeArgumentList typeArguments = pop();
-      push(ast.setLiteral2(
+      push(ast.setOrMapLiteral(
         constKeyword: constKeyword,
         typeArguments: typeArguments,
         leftBracket: leftBracket,
@@ -1090,13 +1090,13 @@ class AstBuilder extends StackListener {
     debugEvent("LiteralMap");
 
     if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> entries = popCollectionElements(count);
+      List<CollectionElement> elements = popCollectionElements(count);
       TypeArgumentList typeArguments = pop();
-      push(ast.mapLiteral2(
+      push(ast.setOrMapLiteral(
         constKeyword: constKeyword,
         typeArguments: typeArguments,
         leftBracket: leftBracket,
-        entries: entries,
+        elements: elements,
         rightBracket: rightBracket,
       ));
     } else {

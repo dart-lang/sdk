@@ -266,10 +266,20 @@ main() {
 }''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
   }
 
-  test_expectedTwoMapTypeArguments_three() async {
+  @failingTest
+  test_expectedTwoMapTypeArguments_three_ambiguous() async {
+    // TODO(brianwilkerson) We probably need a new error code for "expected
+    //  either one or two type arguments" to handle the ambiguous case.
     await assertErrorsInCode(r'''
 main() {
   <int, int, int>{};
+}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+  }
+
+  test_expectedTwoMapTypeArguments_three_map() async {
+    await assertErrorsInCode(r'''
+main() {
+  <int, int, int>{1:2};
 }''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 

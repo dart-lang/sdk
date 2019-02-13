@@ -571,6 +571,7 @@ abstract class AstVisitor<R> {
 
   R visitMapLiteral(MapLiteral node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitMapLiteral2(MapLiteral2 node);
 
   R visitMapLiteralEntry(MapLiteralEntry node);
@@ -616,7 +617,10 @@ abstract class AstVisitor<R> {
 
   R visitSetLiteral(SetLiteral node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitSetLiteral2(SetLiteral2 node);
+
+  R visitSetOrMapLiteral(SetOrMapLiteral node);
 
   R visitShowCombinator(ShowCombinator node);
 
@@ -3727,12 +3731,15 @@ abstract class ListLiteral implements TypedLiteral {
 /// A list literal.
 ///
 ///    listLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')?
-///        '[' ([CollectionElement] ','?)? ']'
+///        'const'? [TypeAnnotationList]? '[' elements? ']'
+///
+///    elements ::=
+///        [CollectionElement] (',' [CollectionElement])* ','?
 ///
 /// This is the class that is used to represent a list literal when either the
 /// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [ListLiteral] will be used.
+/// If neither of those experiments are enabled, then [ListLiteral] will be
+/// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ListLiteral2 implements TypedLiteral {
@@ -3759,8 +3766,8 @@ abstract class ListLiteral2 implements TypedLiteral {
 ///      | [DoubleLiteral]
 ///      | [IntegerLiteral]
 ///      | [ListLiteral]
-///      | [MapLiteral]
 ///      | [NullLiteral]
+///      | [SetOrMapLiteral]
 ///      | [StringLiteral]
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3774,10 +3781,11 @@ abstract class Literal implements Expression {}
 ///
 /// This is the class that is used to represent a map literal when neither the
 /// 'control-flow-collections' nor 'spread-collections' experiments are enabled.
-/// If either of those experiments are enabled, then [MapLiteral2] will be used.
+/// If either of those experiments are enabled, then [SetOrMapLiteral] will be
+/// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MapLiteral implements TypedLiteral {
+abstract class MapLiteral implements SetOrMapLiteral {
   /// Return the entries in the map.
   NodeList<MapLiteralEntry> get entries;
 
@@ -3805,6 +3813,7 @@ abstract class MapLiteral implements TypedLiteral {
 /// If neither of those experiments are enabled, then [MapLiteral] will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by SetOrMapLiteral')
 abstract class MapLiteral2 implements TypedLiteral {
   /// Return the entries in the map.
   NodeList<CollectionElement> get entries;
@@ -4656,10 +4665,11 @@ abstract class ScriptTag implements AstNode {
 ///
 /// This is the class that is used to represent a set literal when neither the
 /// 'control-flow-collections' nor 'spread-collections' experiments are enabled.
-/// If either of those experiments are enabled, then [SetLiteral2] will be used.
+/// If either of those experiments are enabled, then [SetOrMapLiteral] will be
+/// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SetLiteral implements TypedLiteral {
+abstract class SetLiteral implements SetOrMapLiteral {
   /// Return the expressions used to compute the elements of the set.
   NodeList<Expression> get elements;
 
@@ -4688,6 +4698,7 @@ abstract class SetLiteral implements TypedLiteral {
 /// If neither of those experiments are enabled, then [SetLiteral] will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by SetOrMapLiteral')
 abstract class SetLiteral2 implements TypedLiteral {
   /// Return the expressions used to compute the elements of the set.
   NodeList<CollectionElement> get elements;
@@ -4703,6 +4714,51 @@ abstract class SetLiteral2 implements TypedLiteral {
 
   /// Set the right curly bracket to the given [token].
   void set rightBracket(Token token);
+}
+
+/// A set or map literal.
+///
+///    setOrMapLiteral ::=
+///        'const'? [TypeArgumentList]? '{' elements? '}'
+///
+///    elements ::=
+///        [CollectionElement] ( ',' [CollectionElement] )* ','?
+///
+/// This is the class that is used to represent either a map or set literal when
+/// either the 'control-flow-collections' or 'spread-collections' experiments
+/// are enabled. If neither of those experiments are enabled, then [MapLiteral]
+/// will be used to represent a map literal and [SetLiteral] will be used for
+/// set literals.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class SetOrMapLiteral implements TypedLiteral {
+  /// Return the syntactic elements used to compute the elements of the set or
+  /// map.
+  NodeList<CollectionElement> get elements2;
+
+  /// Return `true` if this literal represents a map literal.
+  ///
+  /// This getter will always return `false` if [isSet] returns `true`.
+  ///
+  /// However, this getter is _not_ the inverse of [isSet]. It is possible for
+  /// both getters to return `false` if the literal was either invalid or
+  /// ambiguous.
+  bool get isMap;
+
+  /// Return `true` if this literal represents a set literal.
+  ///
+  /// This getter will always return `false` if [isMap] returns `true`.
+  ///
+  /// However, this getter is _not_ the inverse of [isMap]. It is possible for
+  /// both getters to return `false` if the literal was either invalid or
+  /// ambiguous.
+  bool get isSet;
+
+  /// Return the left curly bracket.
+  Token get leftBracket;
+
+  /// Return the right curly bracket.
+  Token get rightBracket;
 }
 
 /// A combinator that restricts the names being imported to those in a given list.
@@ -5271,7 +5327,7 @@ abstract class TypeArgumentList implements AstNode {
 ///
 ///    typedLiteral ::=
 ///        [ListLiteral]
-///      | [MapLiteral]
+///      | [SetOrMapLiteral]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypedLiteral implements Literal {

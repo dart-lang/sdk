@@ -323,14 +323,15 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_for() {
-    MapLiteral2 map = parseCollectionLiteral('{1:7, await for (y in list) 2:3}',
+    SetOrMapLiteral map = parseCollectionLiteral(
+        '{1:7, await for (y in list) 2:3}',
         inAsync: true);
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    ForElement second = map.entries[1];
+    ForElement second = map.elements2[1];
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -344,15 +345,15 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_forIf() {
-    MapLiteral2 map = parseCollectionLiteral(
+    SetOrMapLiteral map = parseCollectionLiteral(
         '{1:7, await for (y in list) if (c) 2:3}',
         inAsync: true);
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    ForElement second = map.entries[1];
+    ForElement second = map.elements2[1];
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -373,14 +374,14 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_forSpread() {
-    MapLiteral2 map =
+    SetOrMapLiteral map =
         parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    ForElement second = map.entries[1];
+    ForElement second = map.elements2[1];
     expect(second.awaitKeyword, isNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -398,13 +399,13 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_if() {
-    MapLiteral2 map = parseCollectionLiteral('{1:1, if (true) 2:4}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) 2:4}');
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.entries[1];
+    IfElement second = map.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     MapLiteralEntry thenElement = second.thenElement;
@@ -414,13 +415,14 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifElse() {
-    MapLiteral2 map = parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    SetOrMapLiteral map =
+        parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}');
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.entries[1];
+    IfElement second = map.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     MapLiteralEntry thenElement = second.thenElement;
@@ -432,14 +434,14 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifElseFor() {
-    MapLiteral2 map =
+    SetOrMapLiteral map =
         parseCollectionLiteral('{1:1, if (true) 2:4 else for (c in d) 5:6}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.entries[1];
+    IfElement second = map.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     MapLiteralEntry thenElement = second.thenElement;
@@ -456,36 +458,36 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifElseSpread() {
-    MapLiteral2 map =
+    SetOrMapLiteral map =
         parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    IfElement second = map.entries[1];
+    IfElement second = map.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
     expect(thenElement.spreadOperator.lexeme, '...');
     SpreadElement elseElement = second.elseElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
-    MapLiteral2 elseElementExpression = elseElement.expression;
-    expect(elseElementExpression.entries, hasLength(1));
-    MapLiteralEntry entry = elseElementExpression.entries[0];
+    SetOrMapLiteral elseElementExpression = elseElement.expression;
+    expect(elseElementExpression.elements2, hasLength(1));
+    MapLiteralEntry entry = elseElementExpression.elements2[0];
     IntegerLiteral entryValue = entry.value;
     expect(entryValue.value, 6);
   }
 
   void test_mapLiteral_ifFor() {
-    MapLiteral2 map =
+    SetOrMapLiteral map =
         parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.entries[1];
+    IfElement second = map.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
 
@@ -500,13 +502,13 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifSpread() {
-    MapLiteral2 map = parseCollectionLiteral('{1:1, if (true) ...{2:4}}');
-    expect(map.entries, hasLength(2));
-    MapLiteralEntry first = map.entries[0];
+    SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) ...{2:4}}');
+    expect(map.elements2, hasLength(2));
+    MapLiteralEntry first = map.elements2[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.entries[1];
+    IfElement second = map.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -515,84 +517,85 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_spread() {
-    MapLiteral2 map = parseCollectionLiteral('{1: 2, ...{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('{1: 2, ...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(2));
+    expect(map.elements2, hasLength(2));
 
-    SpreadElement element = map.entries[1];
+    SpreadElement element = map.elements2[1];
     expect(element.spreadOperator.lexeme, '...');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spread2_typed() {
-    MapLiteral2 map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(2));
+    expect(map.elements2, hasLength(2));
 
-    SpreadElement element = map.entries[1];
+    SpreadElement element = map.elements2[1];
     expect(element.spreadOperator.lexeme, '...');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spread_typed() {
-    MapLiteral2 map = parseCollectionLiteral('<int, int>{...{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('<int, int>{...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
 
-    SpreadElement element = map.entries[0];
+    SpreadElement element = map.elements2[0];
     expect(element.spreadOperator.lexeme, '...');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ() {
-    MapLiteral2 map = parseCollectionLiteral('{1: 2, ...?{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('{1: 2, ...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(2));
+    expect(map.elements2, hasLength(2));
 
-    SpreadElement element = map.entries[1];
+    SpreadElement element = map.elements2[1];
     expect(element.spreadOperator.lexeme, '...?');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ2_typed() {
-    MapLiteral2 map = parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}');
+    SetOrMapLiteral map =
+        parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(2));
+    expect(map.elements2, hasLength(2));
 
-    SpreadElement element = map.entries[1];
+    SpreadElement element = map.elements2[1];
     expect(element.spreadOperator.lexeme, '...?');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ_typed() {
-    MapLiteral2 map = parseCollectionLiteral('<int, int>{...?{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('<int, int>{...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
 
-    SpreadElement element = map.entries[0];
+    SpreadElement element = map.elements2[0];
     expect(element.spreadOperator.lexeme, '...?');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_setLiteral_if() {
-    SetLiteral2 setLiteral = parseCollectionLiteral('{1, if (true) 2}');
-    expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    SetOrMapLiteral setLiteral = parseCollectionLiteral('{1, if (true) 2}');
+    expect(setLiteral.elements2, hasLength(2));
+    IntegerLiteral first = setLiteral.elements2[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
+    IfElement second = setLiteral.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -601,12 +604,13 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_setLiteral_ifElse() {
-    SetLiteral2 setLiteral = parseCollectionLiteral('{1, if (true) 2 else 5}');
-    expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    SetOrMapLiteral setLiteral =
+        parseCollectionLiteral('{1, if (true) 2 else 5}');
+    expect(setLiteral.elements2, hasLength(2));
+    IntegerLiteral first = setLiteral.elements2[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
+    IfElement second = setLiteral.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -616,19 +620,19 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_setLiteral_ifElseSpread() {
-    SetLiteral2 setLiteral =
+    SetOrMapLiteral setLiteral =
         parseCollectionLiteral('{1, if (true) ...{2} else ...?[5]}');
-    expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    expect(setLiteral.elements2, hasLength(2));
+    IntegerLiteral first = setLiteral.elements2[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
+    IfElement second = setLiteral.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
     expect(thenElement.spreadOperator.lexeme, '...');
-    SetLiteral2 theExpression = thenElement.expression;
-    expect(theExpression.elements, hasLength(1));
+    SetOrMapLiteral theExpression = thenElement.expression;
+    expect(theExpression.elements2, hasLength(1));
     SpreadElement elseElement = second.elseElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
     ListLiteral2 elseExpression = elseElement.expression;
@@ -636,12 +640,13 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_setLiteral_ifSpread() {
-    SetLiteral2 setLiteral = parseCollectionLiteral('{1, if (true) ...[2]}');
-    expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    SetOrMapLiteral setLiteral =
+        parseCollectionLiteral('{1, if (true) ...[2]}');
+    expect(setLiteral.elements2, hasLength(2));
+    IntegerLiteral first = setLiteral.elements2[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
+    IfElement second = setLiteral.elements2[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -650,79 +655,79 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_setLiteral_spread2() {
-    SetLiteral2 set = parseCollectionLiteral('{3, ...[4]}');
+    SetOrMapLiteral set = parseCollectionLiteral('{3, ...[4]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements, hasLength(2));
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2, hasLength(2));
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
 
-    SpreadElement element = set.elements[1];
+    SpreadElement element = set.elements2[1];
     expect(element.spreadOperator.lexeme, '...');
     ListLiteral2 spreadExpression = element.expression;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spread2Q() {
-    SetLiteral2 set = parseCollectionLiteral('{3, ...?[4]}');
+    SetOrMapLiteral set = parseCollectionLiteral('{3, ...?[4]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements, hasLength(2));
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2, hasLength(2));
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
 
-    SpreadElement element = set.elements[1];
+    SpreadElement element = set.elements2[1];
     expect(element.spreadOperator.lexeme, '...?');
     ListLiteral2 spreadExpression = element.expression;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spread_typed() {
-    SetLiteral2 set = parseCollectionLiteral('<int>{...[3]}');
+    SetOrMapLiteral set = parseCollectionLiteral('<int>{...[3]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements, hasLength(1));
+    expect(set.elements2, hasLength(1));
 
-    SpreadElement element = set.elements[0];
+    SpreadElement element = set.elements2[0];
     expect(element.spreadOperator.lexeme, '...');
     ListLiteral2 spreadExpression = element.expression;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spreadQ_typed() {
-    SetLiteral2 set = parseCollectionLiteral('<int>{...?[3]}');
+    SetOrMapLiteral set = parseCollectionLiteral('<int>{...?[3]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements, hasLength(1));
+    expect(set.elements2, hasLength(1));
 
-    SpreadElement element = set.elements[0];
+    SpreadElement element = set.elements2[0];
     expect(element.spreadOperator.lexeme, '...?');
     ListLiteral2 spreadExpression = element.expression;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setOrMapLiteral_spread() {
-    MapLiteral2 map = parseCollectionLiteral('{...{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('{...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
 
-    SpreadElement element = map.entries[0];
+    SpreadElement element = map.elements2[0];
     expect(element.spreadOperator.lexeme, '...');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 
   void test_setOrMapLiteral_spreadQ() {
-    MapLiteral2 map = parseCollectionLiteral('{...?{3: 4}}');
+    SetOrMapLiteral map = parseCollectionLiteral('{...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
 
-    SpreadElement element = map.entries[0];
+    SpreadElement element = map.elements2[0];
     expect(element.spreadOperator.lexeme, '...?');
-    MapLiteral2 spreadExpression = element.expression;
-    expect(spreadExpression.entries, hasLength(1));
+    SetOrMapLiteral spreadExpression = element.expression;
+    expect(spreadExpression.elements2, hasLength(1));
   }
 }
 

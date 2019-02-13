@@ -583,6 +583,7 @@ class CodeChecker extends RecursiveAstVisitor {
     super.visitMapLiteral(node);
   }
 
+  @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
     DartType keyType = DynamicTypeImpl.instance;
@@ -720,6 +721,7 @@ class CodeChecker extends RecursiveAstVisitor {
     super.visitSetLiteral(node);
   }
 
+  @deprecated
   @override
   void visitSetLiteral2(SetLiteral2 node) {
     DartType type = DynamicTypeImpl.instance;
@@ -742,6 +744,61 @@ class CodeChecker extends RecursiveAstVisitor {
       checkCollectionElement(elements[i], type);
     }
     super.visitSetLiteral2(node);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isMap) {
+      DartType keyType = DynamicTypeImpl.instance;
+      DartType valueType = DynamicTypeImpl.instance;
+      if (node.typeArguments != null) {
+        NodeList<TypeAnnotation> typeArguments = node.typeArguments.arguments;
+        if (typeArguments.length > 0) {
+          keyType = typeArguments[0].type;
+        }
+        if (typeArguments.length > 1) {
+          valueType = typeArguments[1].type;
+        }
+      } else {
+        DartType staticType = node.staticType;
+        if (staticType is InterfaceType) {
+          List<DartType> typeArguments = staticType.typeArguments;
+          if (typeArguments != null) {
+            if (typeArguments.length > 0) {
+              keyType = typeArguments[0];
+            }
+            if (typeArguments.length > 1) {
+              valueType = typeArguments[1];
+            }
+          }
+        }
+      }
+      NodeList<CollectionElement> elements = node.elements2;
+      for (int i = 0; i < elements.length; i++) {
+        checkMapElement(elements[i], keyType, valueType);
+      }
+    } else if (node.isSet) {
+      DartType type = DynamicTypeImpl.instance;
+      if (node.typeArguments != null) {
+        NodeList<TypeAnnotation> typeArguments = node.typeArguments.arguments;
+        if (typeArguments.length > 0) {
+          type = typeArguments[0].type;
+        }
+      } else {
+        DartType staticType = node.staticType;
+        if (staticType is InterfaceType) {
+          List<DartType> typeArguments = staticType.typeArguments;
+          if (typeArguments != null && typeArguments.length > 0) {
+            type = typeArguments[0];
+          }
+        }
+      }
+      NodeList<CollectionElement> elements = node.elements2;
+      for (int i = 0; i < elements.length; i++) {
+        checkCollectionElement(elements[i], type);
+      }
+    }
+    super.visitSetOrMapLiteral(node);
   }
 
   @override
@@ -1926,6 +1983,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
     }
   }
 
+  @deprecated
   @override
   visitMapLiteral2(MapLiteral2 node) {
     if (node.typeArguments == null) {
@@ -1976,10 +2034,18 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
     }
   }
 
+  @deprecated
   @override
   visitSetLiteral2(SetLiteral2 node) {
     if (node.typeArguments == null) {
       super.visitSetLiteral2(node);
+    }
+  }
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitSetOrMapLiteral(node);
     }
   }
 

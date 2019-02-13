@@ -7996,62 +7996,22 @@ class LocalVariableInfo {
  * 'control-flow-collections' or 'spread-collections' experiments are enabled.
  * If neither of those experiments are enabled, then [MapLiteral] will be used.
  */
-class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
-  @override
-  Token leftBracket;
-
-  /**
-   * The entries in the map.
-   */
-  NodeList<CollectionElement> _entries;
-
-  @override
-  Token rightBracket;
-
+@Deprecated('Replaced by SetOrMapLiteralImpl')
+class MapLiteral2Impl extends SetOrMapLiteralImpl implements MapLiteral2 {
   /**
    * Initialize a newly created map literal. The [constKeyword] can be `null` if
    * the literal is not a constant. The [typeArguments] can be `null` if no type
    * arguments were declared. The [entries] can be `null` if the map is empty.
    */
   MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<CollectionElement> entries, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _entries = new NodeListImpl<CollectionElement>(this, entries);
-  }
+      Token leftBracket, List<CollectionElement> entries, Token rightBracket)
+      : super(constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(entries)
-    ..add(rightBracket);
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  NodeList<CollectionElement> get entries => _entries;
+  NodeList<CollectionElement> get entries => _elements;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _entries.accept(visitor);
-  }
 }
 
 /**
@@ -8123,75 +8083,22 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   }
 }
 
-/**
- * A literal map.
- *
- *    mapLiteral ::=
- *        'const'? ('<' [TypeName] (',' [TypeName])* '>')?
- *        '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
- */
-class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
-  /**
-   * The left curly bracket.
-   */
-  @override
-  Token leftBracket;
-
-  /**
-   * The entries in the map.
-   */
-  NodeList<MapLiteralEntry> _entries;
-
-  /**
-   * The right curly bracket.
-   */
-  @override
-  Token rightBracket;
-
+class MapLiteralImpl extends SetOrMapLiteralImpl implements MapLiteral {
   /**
    * Initialize a newly created map literal. The [constKeyword] can be `null` if
    * the literal is not a constant. The [typeArguments] can be `null` if no type
    * arguments were declared. The [entries] can be `null` if the map is empty.
    */
   MapLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<MapLiteralEntry> entries, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _entries = new NodeListImpl<MapLiteralEntry>(this, entries);
-  }
+      Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket)
+      : super._map(
+            constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(entries)
-    ..add(rightBracket);
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  NodeList<MapLiteralEntry> get entries => _entries;
+  NodeList<MapLiteralEntry> get entries => _elements;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _entries.accept(visitor);
-  }
 }
 
 /**
@@ -10188,12 +10095,48 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
  * 'control-flow-collections' or 'spread-collections' experiments are enabled.
  * If neither of those experiments are enabled, then [SetLiteral] will be used.
  */
-class SetLiteral2Impl extends TypedLiteralImpl implements SetLiteral2 {
+@Deprecated('Replaced by SetOrMapLiteralImpl')
+class SetLiteral2Impl extends SetOrMapLiteralImpl implements SetLiteral2 {
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket)
+      : super(constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
+}
+
+class SetLiteralImpl extends SetOrMapLiteralImpl implements SetLiteral {
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      Token leftBracket, List<Expression> elements, Token rightBracket)
+      : super._set(
+            constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
+  NodeList<Expression> get elements => _elements;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+}
+
+class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   @override
   Token leftBracket;
 
   /**
-   * The elements in the set.
+   * The syntactic elements in the set.
    */
   NodeList<CollectionElement> _elements;
 
@@ -10201,90 +10144,50 @@ class SetLiteral2Impl extends TypedLiteralImpl implements SetLiteral2 {
   Token rightBracket;
 
   /**
-   * Initialize a newly created set literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [elements] can be `null` if the set is empty.
+   * A representation of whether this literal represents a map or a set, or
+   * whether the kind has not or cannot be determined.
    */
-  SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+  _SetOrMapKind _resolvedKind;
+
+  /**
+   * Initialize a newly created set or map literal. The [constKeyword] can be
+   * `null` if the literal is not a constant. The [typeArguments] can be `null`
+   * if no type arguments were declared. The [elements] can be `null` if the set
+   * is empty.
+   */
+  SetOrMapLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
       this.leftBracket, List<CollectionElement> elements, this.rightBracket)
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<CollectionElement>(this, elements);
+    _resolvedKind = _computeResolvedKind(typeArguments, _elements);
   }
 
-  @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
+  /**
+   * Temporary constructor to support MapLiteral2Impl.
+   */
+  SetOrMapLiteralImpl._map(
+      Token constKeyword,
+      TypeArgumentListImpl typeArguments,
+      this.leftBracket,
+      List<MapLiteralEntry> elements,
+      this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<MapLiteralEntry>(this, elements);
+    _resolvedKind = _SetOrMapKind.map;
   }
 
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(elements)
-    ..add(rightBracket);
-
-  @override
-  NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _elements.accept(visitor);
-  }
-}
-
-/**
- * A literal set.
- *
- *    setLiteral ::=
- *        'const'? ('<' [TypeAnnotation] '>')?
- *        '{' [Expression] (',' [Expression])* ','? '}'
- *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
- *
- * This is the class that is used to represent a set literal when neither the
- * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
- * If either of those experiments are enabled, then [SetLiteral2] will be used.
- */
-class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
   /**
-   * The left curly bracket.
+   * Temporary constructor to support SetLiteral2Impl.
    */
-  @override
-  Token leftBracket;
-
-  /**
-   * The elements in the set.
-   */
-  NodeList<Expression> _elements;
-
-  /**
-   * The right curly bracket.
-   */
-  @override
-  Token rightBracket;
-
-  /**
-   * Initialize a newly created set literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [elements] can be `null` if the set is empty.
-   */
-  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<Expression> elements, this.rightBracket)
+  SetOrMapLiteralImpl._set(
+      Token constKeyword,
+      TypeArgumentListImpl typeArguments,
+      this.leftBracket,
+      List<Expression> elements,
+      this.rightBracket)
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<Expression>(this, elements);
+    _resolvedKind = _SetOrMapKind.set;
   }
 
   @override
@@ -10303,22 +10206,71 @@ class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(leftBracket)
-    ..addAll(elements)
+    ..addAll(elements2)
     ..add(rightBracket);
 
   @override
-  NodeList<Expression> get elements => _elements;
+  NodeList<CollectionElement> get elements2 => _elements;
 
   @override
   Token get endToken => rightBracket;
 
   @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+  bool get isMap => _resolvedKind == _SetOrMapKind.map;
+
+  @override
+  bool get isSet => _resolvedKind == _SetOrMapKind.set;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _elements.accept(visitor);
+  }
+
+  _SetOrMapKind _computeResolvedKind(TypeArgumentListImpl typeArguments,
+      NodeList<CollectionElement> elements) {
+    int argCount = typeArguments?.arguments?.length ?? 0;
+    if (argCount == 1) {
+      return _SetOrMapKind.set;
+    } else if (argCount == 2) {
+      return _SetOrMapKind.map;
+    }
+    _SetOrMapKind kind = _SetOrMapKind.unresolved;
+    for (var element in elements) {
+      _SetOrMapKind elementKind = _kindOf(element);
+      if (kind == _SetOrMapKind.unresolved) {
+        kind = elementKind;
+      } else if (elementKind != _SetOrMapKind.unresolved &&
+          elementKind != kind) {
+        return _SetOrMapKind.unresolved;
+      }
+    }
+    return kind;
+  }
+
+  _SetOrMapKind _kindOf(CollectionElement element) {
+    if (element is ForElement) {
+      return _kindOf(element.body);
+    } else if (element is IfElement) {
+      if (element.elseElement == null) {
+        return _kindOf(element.thenElement);
+      }
+      _SetOrMapKind thenKind = _kindOf(element.thenElement);
+      _SetOrMapKind elseKind = _kindOf(element.elseElement);
+      if (thenKind == _SetOrMapKind.unresolved || thenKind == elseKind) {
+        return elseKind;
+      } else if (elseKind == _SetOrMapKind.unresolved) {
+        return thenKind;
+      }
+    } else if (element is Expression) {
+      return _SetOrMapKind.set;
+    } else if (element is MapLiteralEntry) {
+      return _SetOrMapKind.map;
+    }
+    return _SetOrMapKind.unresolved;
   }
 }
 
@@ -12667,4 +12619,28 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   void visitChildren(AstVisitor visitor) {
     _expression?.accept(visitor);
   }
+}
+
+/**
+ * An indication of the resolved kind of a [SetOrMapLiteral].
+ */
+enum _SetOrMapKind {
+  /**
+   * Indicates that the literal represents a map.
+   */
+  map,
+
+  /**
+   * Indicates that the literal represents a set.
+   */
+  set,
+
+  /**
+   * Indicates that either
+   * - the literal is syntactically ambiguous and resolution has not yet been
+   *   performed, or
+   * - the literal is invalid because resolution was not able to resolve the
+   *   ambiguity.
+   */
+  unresolved
 }

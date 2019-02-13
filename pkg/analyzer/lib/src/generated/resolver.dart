@@ -4715,6 +4715,7 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitMapLiteral(node);
   }
 
+  @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
     InterfaceType mapT;
@@ -4923,6 +4924,7 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitSetLiteral(node);
   }
 
+  @deprecated
   @override
   void visitSetLiteral2(SetLiteral2 node) {
     InterfaceType setT;
@@ -4947,6 +4949,81 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.clearType(node);
     }
     super.visitSetLiteral2(node);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    // TODO(brianwilkerson) Replace this with the real implementation of type
+    //  inference. This keeps the tests working, but isn't correct.
+    InterfaceType literalType;
+
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (typeArguments.length == 1) {
+        DartType elementType = typeArguments.arguments[0].type;
+        if (!elementType.isDynamic) {
+          literalType = typeProvider.setType.instantiate([elementType]);
+        }
+      } else if (typeArguments.length == 2) {
+        DartType keyType = typeArguments.arguments[0].type;
+        DartType valueType = typeArguments.arguments[1].type;
+        if (!keyType.isDynamic || !valueType.isDynamic) {
+          literalType = typeProvider.mapType.instantiate([keyType, valueType]);
+        }
+      }
+    } else {
+      if (node.isMap) {
+        literalType = typeAnalyzer.inferMapType3(node, downwards: true);
+        if (literalType != null &&
+            typeArguments == null &&
+            node.elements2.isEmpty &&
+            typeSystem.isAssignableTo(
+                typeProvider.iterableObjectType, literalType) &&
+            !typeSystem.isAssignableTo(
+                typeProvider.mapObjectObjectType, literalType)) {
+          // The node is really an empty set literal with no type arguments, so
+          // don't try to visit the replaced map literal.
+          return;
+        }
+      } else if (node.isSet) {
+        literalType = typeAnalyzer.inferSetType3(node, downwards: true);
+      } else {
+        throw new UnimplementedError();
+      }
+    }
+    if (literalType != null) {
+      List<DartType> typeArguments = literalType.typeArguments;
+      if (typeArguments.length == 1) {
+        for (CollectionElement element in node.elements2) {
+          _pushCollectionTypesDown(element, literalType);
+        }
+      } else if (typeArguments.length == 2) {
+        DartType kType = typeArguments[0];
+        DartType vType = typeArguments[1];
+
+        void pushTypesDown(CollectionElement element) {
+          if (element is ForElement) {
+            pushTypesDown(element.body);
+          } else if (element is IfElement) {
+            pushTypesDown(element.thenElement);
+            pushTypesDown(element.elseElement);
+          } else if (element is MapLiteralEntry) {
+            InferenceContext.setType(element.key, kType);
+            InferenceContext.setType(element.value, vType);
+          } else if (element is SpreadElement) {
+            InferenceContext.setType(element.expression, literalType);
+          }
+        }
+
+        for (CollectionElement element in node.elements2) {
+          pushTypesDown(element);
+        }
+      }
+      InferenceContext.setType(node, literalType);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitSetOrMapLiteral(node);
   }
 
   @override

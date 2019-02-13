@@ -725,19 +725,26 @@ class RelevanceTags {
   }
 
   static List<String> _forExpression(Expression expression) {
-    if (expression is BooleanLiteral) return const ['dart:core::bool'];
-    if (expression is DoubleLiteral) return const ['dart:core::double'];
-    if (expression is IntegerLiteral) return const ['dart:core::int'];
-    if (expression is StringLiteral) return const ['dart:core::String'];
-
-    if (expression is ListLiteral || expression is ListLiteral2) {
+    if (expression is BooleanLiteral) {
+      return const ['dart:core::bool'];
+    } else if (expression is DoubleLiteral) {
+      return const ['dart:core::double'];
+    } else if (expression is IntegerLiteral) {
+      return const ['dart:core::int'];
+    } else if (expression is StringLiteral) {
+      return const ['dart:core::String'];
+    } else if (expression is ListLiteral || expression is ListLiteral2) {
       return const ['dart:core::List'];
-    }
-    if (expression is MapLiteral || expression is MapLiteral2) {
+    } else if (expression is MapLiteral) {
       return const ['dart:core::Map'];
-    }
-    if (expression is SetLiteral || expression is SetLiteral2) {
+    } else if (expression is SetLiteral) {
       return const ['dart:core::Set'];
+    } else if (expression is SetOrMapLiteral) {
+      if (expression.isMap) {
+        return const ['dart:core::Map'];
+      } else if (expression.isSet) {
+        return const ['dart:core::Set'];
+      }
     }
 
     return null;

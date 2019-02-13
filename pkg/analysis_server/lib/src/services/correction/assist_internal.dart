@@ -549,8 +549,7 @@ class AssistProcessor {
       nodeToReplace = parent;
       parent = parent.parent;
     }
-    // TODO(brianwilkerson) Consider adding support for map literals.
-    if (parent is ListLiteral2 || parent is SetLiteral2) {
+    if (parent is ListLiteral2 || (parent is SetOrMapLiteral && parent.isSet)) {
       ConditionalExpression conditional = node;
       Expression condition = conditional.condition.unParenthesized;
       Expression thenExpression = conditional.thenExpression.unParenthesized;

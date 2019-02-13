@@ -854,6 +854,7 @@ abstract class AstFactory {
   /**
    * Returns a newly created map literal.
    */
+  @deprecated
   MapLiteral2 mapLiteral2(
       {Token constKeyword,
       TypeArgumentList typeArguments,
@@ -1041,7 +1042,21 @@ abstract class AstFactory {
   /**
    * Returns a newly created set literal.
    */
+  @deprecated
   SetLiteral2 setLiteral2(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket});
+
+  /**
+   * Returns a newly created set or map literal. The [constKeyword] can be
+   * `null` if the literal is not a constant. The [typeArguments] can be `null`
+   * if no type arguments were declared. The list of [elements] can be `null` if
+   * the set or map is empty.
+   */
+  SetOrMapLiteral setOrMapLiteral(
       {Token constKeyword,
       TypeArgumentList typeArguments,
       Token leftBracket,
