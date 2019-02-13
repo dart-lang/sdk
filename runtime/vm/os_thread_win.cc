@@ -51,6 +51,9 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
+  // Set the thread name.
+  SetThreadDescription(GetCurrentThread(), reinterpret_cast<PCWSTR>(name));
+
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
