@@ -71,6 +71,12 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// code that can be proven unreachable by the migration tool.
   final _guards = <ConstraintVariable>[];
 
+  /// Indicates whether the statement or expression being visited is within
+  /// conditional control flow.  If `true`, this means that the enclosing
+  /// function might complete normally without executing the current statement
+  /// or expression.
+  bool _inConditionalControlFlow = false;
+
   ConstraintGatherer(TypeProvider typeProvider, this._variables,
       this._constraints, this._source, this._permissive, this.assumptions)
       : _notNullType = DecoratedType(typeProvider.objectType, null),
@@ -124,9 +130,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitAssertStatement(AssertStatement node) {
     _handleAssignment(_notNullType, node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
-      // TODO(paulberry): should only do this if in unconditional control flow.
-      if (_conditionInfo.trueChecksNonNull != null) {
-        _recordFact(_conditionInfo.trueChecksNonNull);
+      if (!_inConditionalControlFlow &&
+          _conditionInfo.trueDemonstratesNonNullIntent != null) {
+        _recordFact(_conditionInfo.trueDemonstratesNonNullIntent);
       }
     }
     node.message?.accept(this);
@@ -137,6 +143,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitBinaryExpression(BinaryExpression node) {
     switch (node.operator.type) {
       case TokenType.EQ_EQ:
+      case TokenType.BANG_EQ:
         assert(node.leftOperand is! NullLiteral); // TODO(paulberry)
         var leftType = node.leftOperand.accept(this);
         node.rightOperand.accept(this);
@@ -145,10 +152,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
           // TODO(paulberry): only set falseChecksNonNull in unconditional
           // control flow
           bool isPure = node.leftOperand is SimpleIdentifier;
-          _conditionInfo = _ConditionInfo(node,
+          var conditionInfo = _ConditionInfo(node,
               isPure: isPure,
               trueGuard: leftType.nullable,
-              falseChecksNonNull: leftType.nullAsserts);
+              falseDemonstratesNonNullIntent: leftType.nonNullIntent);
+          _conditionInfo = node.operator.type == TokenType.EQ_EQ
+              ? conditionInfo
+              : conditionInfo.not(node);
         }
         return _nonNullableBoolType;
       case TokenType.PLUS:
@@ -234,6 +244,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): should the use of a boolean in an if-statement be
     // treated like an implicit `assert(b != null)`?  Probably.
     _handleAssignment(_notNullType, node.condition);
+    _inConditionalControlFlow = true;
     ConstraintVariable trueGuard;
     ConstraintVariable falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -514,16 +525,24 @@ class _ConditionInfo {
 
   /// If not `null`, the [ConstraintVariable] whose value should be set to
   /// `true` if [condition] is asserted to be `true`.
-  final ConstraintVariable trueChecksNonNull;
+  final ConstraintVariable trueDemonstratesNonNullIntent;
 
   /// If not `null`, the [ConstraintVariable] whose value should be set to
   /// `true` if [condition] is asserted to be `false`.
-  final ConstraintVariable falseChecksNonNull;
+  final ConstraintVariable falseDemonstratesNonNullIntent;
 
   _ConditionInfo(this.condition,
       {@required this.isPure,
       this.trueGuard,
       this.falseGuard,
-      this.trueChecksNonNull,
-      this.falseChecksNonNull});
+      this.trueDemonstratesNonNullIntent,
+      this.falseDemonstratesNonNullIntent});
+
+  /// Returns a new [_ConditionInfo] describing the boolean "not" of `this`.
+  _ConditionInfo not(Expression condition) => _ConditionInfo(condition,
+      isPure: isPure,
+      trueGuard: falseGuard,
+      falseGuard: trueGuard,
+      trueDemonstratesNonNullIntent: falseDemonstratesNonNullIntent,
+      falseDemonstratesNonNullIntent: trueDemonstratesNonNullIntent);
 }

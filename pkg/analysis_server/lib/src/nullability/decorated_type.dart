@@ -23,10 +23,11 @@ class DecoratedType {
   /// migrated) forces this type to be non-nullable.
   final ConstraintVariable nullable;
 
-  /// [ConstraintVariable] whose value will be set to `true` if migration
-  /// determines that a `null` value stored in an expression having this type
-  /// will unconditionally lead to an assertion failure.
-  final ConstraintVariable nullAsserts;
+  /// [ConstraintVariable] whose value will be set to `true` if the usage of
+  /// this type suggests that it is intended to be non-null (because of the
+  /// presence of a statement or expression that would unconditionally lead to
+  /// an exception being thrown in the case of a `null` value at runtime).
+  ConstraintVariable nonNullIntent;
 
   /// If `this` is a function type, the [DecoratedType] of its return type.
   final DecoratedType returnType;
@@ -57,8 +58,7 @@ class DecoratedType {
   final List<DecoratedType> typeArguments;
 
   DecoratedType(this.type, this.nullable,
-      {this.nullAsserts,
-      this.returnType,
+      {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
       this.namedParameterOptionalVariables = const {},
@@ -156,20 +156,14 @@ class DecoratedType {
         newPositionalParameters.add(positionalParameters[i]
             ._substitute(constraints, substitution, undecoratedParameterType));
       }
-      // TODO(paulberry): what do we do for nullAsserts here?
-      var nullAsserts = null;
       return DecoratedType(undecoratedResult, nullable,
-          nullAsserts: nullAsserts,
           returnType: returnType._substitute(
               constraints, substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
-      // TODO(paulberry): what do we do for nullAsserts here?
-      var nullAsserts = null;
       return DecoratedType(undecoratedResult,
-          ConstraintVariable.or(constraints, inner?.nullable, nullable),
-          nullAsserts: nullAsserts);
+          ConstraintVariable.or(constraints, inner?.nullable, nullable));
     } else if (type is VoidType) {
       return this;
     }
@@ -191,10 +185,8 @@ class DecoratedTypeAnnotation extends DecoratedType
 
   DecoratedTypeAnnotation(
       DartType type, ConstraintVariable nullable, this.source, this._offset,
-      {ConstraintVariable nullAsserts,
-      List<DecoratedType> typeArguments = const []})
-      : super(type, nullable,
-            nullAsserts: nullAsserts, typeArguments: typeArguments);
+      {List<DecoratedType> typeArguments = const []})
+      : super(type, nullable, typeArguments: typeArguments);
 
   @override
   bool get isEmpty =>
@@ -203,6 +195,17 @@ class DecoratedTypeAnnotation extends DecoratedType
   @override
   Iterable<SourceEdit> get modifications =>
       isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
+}
+
+/// Type of a [ConstraintVariable] representing the fact that a type is intended
+/// to be non-null.
+class NonNullIntent extends ConstraintVariable {
+  final int _offset;
+
+  NonNullIntent(this._offset);
+
+  @override
+  toString() => 'nonNullIntent($_offset)';
 }
 
 /// Type of a [ConstraintVariable] representing the fact that a type is

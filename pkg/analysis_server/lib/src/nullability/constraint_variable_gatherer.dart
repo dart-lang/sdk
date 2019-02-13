@@ -117,6 +117,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = decorateType(node.type);
     var declaredElement = node.declaredElement;
+    assert(type.nonNullIntent == null);
+    type.nonNullIntent = NonNullIntent(node.offset);
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
       _currentFunctionType.namedParameters[declaredElement.name] = type;
@@ -147,11 +149,9 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     var nullable = node.question == null
         ? TypeIsNullable(node.end)
         : ConstraintVariable.always;
-    // TODO(paulberry): decide whether to assign a variable for nullAsserts
-    var nullAsserts = null;
     var decoratedType = DecoratedTypeAnnotation(
         type, nullable, _source, node.end,
-        nullAsserts: nullAsserts, typeArguments: typeArguments);
+        typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(node, decoratedType);
     return decoratedType;
   }
