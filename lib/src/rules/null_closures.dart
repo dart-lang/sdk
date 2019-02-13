@@ -93,83 +93,83 @@ List<NonNullableFunction> _constructorsWithNonNullableArguments =
 
 final Map<String, Set<NonNullableFunction>>
     _instanceMethodsWithNonNullableArguments = {
-  'any': Set.of([
+  'any': {
     NonNullableFunction('dart.core', 'Iterable', 'any', positional: [0]),
-  ]),
-  'complete': Set.of([
+  },
+  'complete': {
     NonNullableFunction('dart.async', 'Future', 'complete', positional: [0]),
-  ]),
-  'every': Set.of([
+  },
+  'every': {
     NonNullableFunction('dart.core', 'Iterable', 'every', positional: [0]),
-  ]),
-  'expand': Set.of([
+  },
+  'expand': {
     NonNullableFunction('dart.core', 'Iterable', 'expand', positional: [0]),
-  ]),
-  'firstWhere': Set.of([
+  },
+  'firstWhere': {
     NonNullableFunction('dart.core', 'Iterable', 'firstWhere',
         positional: [0], named: ['orElse']),
-  ]),
-  'forEach': Set.of([
+  },
+  'forEach': {
     NonNullableFunction('dart.core', 'Iterable', 'forEach', positional: [0]),
     NonNullableFunction('dart.core', 'Map', 'forEach', positional: [0]),
-  ]),
-  'fold': Set.of([
+  },
+  'fold': {
     NonNullableFunction('dart.core', 'Iterable', 'fold', positional: [1]),
-  ]),
-  'lastWhere': Set.of([
+  },
+  'lastWhere': {
     NonNullableFunction('dart.core', 'Iterable', 'lastWhere',
         positional: [0], named: ['orElse']),
-  ]),
-  'map': Set.of([
+  },
+  'map': {
     NonNullableFunction('dart.core', 'Iterable', 'map', positional: [0]),
-  ]),
-  'putIfAbsent': Set.of([
+  },
+  'putIfAbsent': {
     NonNullableFunction('dart.core', 'Map', 'putIfAbsent', positional: [1]),
-  ]),
-  'reduce': Set.of([
+  },
+  'reduce': {
     NonNullableFunction('dart.core', 'Iterable', 'reduce', positional: [0]),
-  ]),
-  'removeWhere': Set.of([
+  },
+  'removeWhere': {
     NonNullableFunction('dart.collection', 'Queue', 'removeWhere',
         positional: [0]),
     NonNullableFunction('dart.core', 'List', 'removeWhere', positional: [0]),
     NonNullableFunction('dart.core', 'Set', 'removeWhere', positional: [0]),
-  ]),
-  'replaceAllMapped': Set.of([
+  },
+  'replaceAllMapped': {
     NonNullableFunction('dart.core', 'String', 'replaceAllMapped',
         positional: [1]),
-  ]),
-  'replaceFirstMapped': Set.of([
+  },
+  'replaceFirstMapped': {
     NonNullableFunction('dart.core', 'String', 'replaceFirstMapped',
         positional: [1]),
-  ]),
-  'retainWhere': Set.of([
+  },
+  'retainWhere': {
     NonNullableFunction('dart.collection', 'Queue', 'retainWhere',
         positional: [0]),
     NonNullableFunction('dart.core', 'List', 'retainWhere', positional: [0]),
     NonNullableFunction('dart.core', 'Set', 'retainWhere', positional: [0]),
-  ]),
-  'singleWhere': Set.of([
+  },
+  'singleWhere': {
     NonNullableFunction('dart.core', 'Iterable', 'singleWhere',
         positional: [0]),
-  ]),
-  'skipWhile': Set.of([
+  },
+  'skipWhile': {
     NonNullableFunction('dart.core', 'Iterable', 'skipWhile', positional: [0]),
-  ]),
-  'splitMapJoin': Set.of([
+  },
+  'splitMapJoin': {
     NonNullableFunction('dart.core', 'String', 'splitMapJoin',
         named: ['onMatch', 'onNonMatch']),
-  ]),
-  'takeWhile': Set.of([
+  },
+  'takeWhile': {
     NonNullableFunction('dart.core', 'Iterable', 'takeWhile', positional: [0]),
-  ]),
-  'then': Set.of([
+  },
+  'then': {
     NonNullableFunction('dart.async', 'Future', 'then',
         positional: [0], named: ['onError']),
-  ]),
-  'where': Set.of([
+  },
+  'where': {
     NonNullableFunction('dart.core', 'Iterable', 'where', positional: [0]),
-  ]),
+  },
 };
 
 List<NonNullableFunction> _staticFunctionsWithNonNullableArguments =

@@ -49,7 +49,7 @@ class PreferInterpolationToComposeStrings extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final skippedNodes = new Set<AstNode>();
+  final skippedNodes = <AstNode>{};
 
   _Visitor(this.rule);
 

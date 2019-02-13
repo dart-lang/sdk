@@ -156,7 +156,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    Set<MethodDeclaration> missingDocs = Set<MethodDeclaration>();
+    Set<MethodDeclaration> missingDocs = <MethodDeclaration>{};
     for (MethodDeclaration getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
@@ -235,7 +235,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    Set<FunctionDeclaration> missingDocs = Set<FunctionDeclaration>();
+    Set<FunctionDeclaration> missingDocs = <FunctionDeclaration>{};
     for (FunctionDeclaration getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
