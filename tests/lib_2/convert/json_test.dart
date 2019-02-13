@@ -15,22 +15,24 @@ void testJson(jsonText, expected) {
       Expect.isTrue(actual is List);
       Expect.equals(expected.length, actual.length, "$path: List length");
       for (int i = 0; i < expected.length; i++) {
-        compare(expected[i], actual[i], "$path[$i]");
+        compare(expected[i], actual[i], "$path[$i] in $jsonText");
       }
     } else if (expected is Map) {
       Expect.isTrue(actual is Map);
-      Expect.equals(expected.length, actual.length, "$path: Map size");
+      Expect.equals(expected.length, actual.length,
+          "$path: Map size in $jsonText");
       expected.forEach((key, value) {
         Expect.isTrue(actual.containsKey(key));
-        compare(value, actual[key], "$path[$key]");
+        compare(value, actual[key], "$path[$key] in $jsonText");
       });
     } else if (expected is num) {
-      Expect.equals(expected is int, actual is int, "$path: same number type");
+      Expect.equals(expected is int, actual is int,
+          "$path: not same number type in $jsonText");
       Expect.isTrue(expected.compareTo(actual) == 0,
-          "$path: Expected: $expected, was: $actual");
+          "$path: Expected: $expected, was: $actual in $jsonText");
     } else {
       // String, bool, null.
-      Expect.equals(expected, actual, path);
+      Expect.equals(expected, actual, "$path in $jsonText");
     }
   }
 
@@ -141,6 +143,45 @@ testNumbers() {
       }
     }
   }
+
+  // Regression test.
+  // Detect and handle overflow on integer literals by making them doubles
+  // (work like `num.parse`).
+  testJson("9223372036854774784", 9223372036854774784);
+  testJson("-9223372036854775808", -9223372036854775808);
+  testJson("9223372036854775808", 9223372036854775808.0);
+  testJson("-9223372036854775809", -9223372036854775809.0);
+  testJson("9223372036854775808.0", 9223372036854775808.0);
+  testJson("9223372036854775810", 9223372036854775810.0);
+  testJson("18446744073709551616.0", 18446744073709551616.0);
+  testJson("1e309", double.infinity);
+  testJson("-1e309", double.negativeInfinity);
+  testJson("1e-325", 0.0);
+  testJson("-1e-325", -0.0);
+  // No overflow on exponent.
+  testJson("1e18446744073709551616", double.infinity);
+  testJson("-1e18446744073709551616", double.negativeInfinity);
+  testJson("1e-18446744073709551616", 0.0);
+  testJson("-1e-18446744073709551616", -0.0);
+
+  // (Wrapping numbers in list because the chunked parsing handles top-level
+  // numbers by buffering and then parsing using platform parser).
+  testJson("[9223372036854774784]", [9223372036854774784]);
+  testJson("[-9223372036854775808]", [-9223372036854775808]);
+  testJson("[9223372036854775808]", [9223372036854775808.0]);
+  testJson("[-9223372036854775809]", [-9223372036854775809.0]);
+  testJson("[9223372036854775808.0]", [9223372036854775808.0]);
+  testJson("[9223372036854775810]", [9223372036854775810.0]);
+  testJson("[18446744073709551616.0]", [18446744073709551616.0]);
+  testJson("[1e309]", [double.infinity]);
+  testJson("[-1e309]", [double.negativeInfinity]);
+  testJson("[1e-325]", [0.0]);
+  testJson("[-1e-325]", [-0.0]);
+  // No overflow on exponent.
+  testJson("[1e18446744073709551616]", [double.infinity]);
+  testJson("[-1e18446744073709551616]", [double.negativeInfinity]);
+  testJson("[1e-18446744073709551616]", [0.0]);
+  testJson("[-1e-18446744073709551616]", [-0.0]);
 
   // Negative tests (syntax error).
   // testError thoroughly tests the given parts with a lot of valid
