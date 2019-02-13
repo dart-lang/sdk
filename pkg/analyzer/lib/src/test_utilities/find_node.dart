@@ -227,6 +227,19 @@ class FindNode {
     return _node(search, (n) => n is TopLevelVariableDeclaration);
   }
 
+  VariableDeclaration topVariableDeclarationByName(String name) {
+    for (var declaration in unit.declarations) {
+      if (declaration is TopLevelVariableDeclaration) {
+        for (var variable in declaration.variables.variables) {
+          if (variable.name.name == name) {
+            return variable;
+          }
+        }
+      }
+    }
+    throw StateError('$name');
+  }
+
   TypeAnnotation typeAnnotation(String search) {
     return _node(search, (n) => n is TypeAnnotation);
   }
