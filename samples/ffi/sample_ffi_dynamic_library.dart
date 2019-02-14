@@ -4,12 +4,14 @@
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 typedef NativeDoubleUnOp = ffi.Double Function(ffi.Double);
 
 typedef DoubleUnOp = double Function(double);
 
 main(List<String> arguments) {
-  ffi.DynamicLibrary l = ffi.DynamicLibrary.open("ffi_test_dynamic_library");
+  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   print(l);
   print(l.runtimeType);
 

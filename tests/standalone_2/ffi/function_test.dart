@@ -8,6 +8,8 @@ library FfiTest;
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 import "package:expect/expect.dart";
 
 void main() {
@@ -29,7 +31,7 @@ void main() {
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
-    ffi.DynamicLibrary.open("ffi_test_functions");
+    dlopenPlatformSpecific("ffi_test_functions");
 
 typedef NativeBinaryOp = ffi.Int32 Function(ffi.Int32, ffi.Int32);
 typedef UnaryOp = int Function(int);
