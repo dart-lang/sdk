@@ -4,10 +4,25 @@
 
 import "legacy_upper_bound_helper.dart" show LegacyUpperBoundTest;
 
+import "package:kernel/ast.dart" show DartType;
+
+import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
+
+class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
+  ClassHierarchy hierarchy;
+
+  @override
+  void parseComponent(String source) {
+    super.parseComponent(source);
+    hierarchy = new ClassHierarchy(component);
+  }
+
+  @override
+  DartType getLegacyLeastUpperBound(DartType a, DartType b) {
+    return hierarchy.getLegacyLeastUpperBound(a, b);
+  }
+}
+
 main() {
-  new LegacyUpperBoundTest().test_getLegacyLeastUpperBound_expansive();
-
-  new LegacyUpperBoundTest().test_getLegacyLeastUpperBound_generic();
-
-  new LegacyUpperBoundTest().test_getLegacyLeastUpperBound_nonGeneric();
+  new KernelLegacyUpperBoundTest().test();
 }

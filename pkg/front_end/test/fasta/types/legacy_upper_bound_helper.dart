@@ -2,46 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/matchers_lite.dart";
+import "package:expect/expect.dart" show Expect;
 
-import "package:kernel/ast.dart";
+import "package:kernel/ast.dart"
+    show Class, Component, DartType, InterfaceType, Library;
 
-import "package:kernel/class_hierarchy.dart";
+import "package:kernel/library_index.dart" show LibraryIndex;
 
-import "package:kernel/core_types.dart";
-
-import "package:kernel/library_index.dart";
-
-import "kernel_type_parser.dart";
+import "kernel_type_parser.dart" show KernelEnvironment, parseLibrary;
 
 import "mock_sdk.dart" show mockSdk;
 
 final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");
 
-main() {
-  new LegacyUpperBoundTest().test_getLegacyLeastUpperBound_expansive();
-
-  new LegacyUpperBoundTest().test_getLegacyLeastUpperBound_generic();
-
-  new LegacyUpperBoundTest().test_getLegacyLeastUpperBound_nonGeneric();
-}
-
-class LegacyUpperBoundTest {
+abstract class LegacyUpperBoundTest {
   Component component;
-
-  CoreTypes coreTypes;
 
   LibraryIndex index;
 
-  ClassHierarchy _hierarchy;
+  DartType get objectType => getCoreClass("Object").rawType;
 
-  Class get objectClass => coreTypes.objectClass;
+  DartType get intType => getCoreClass("int").rawType;
 
-  Supertype get objectSuper => coreTypes.objectClass.asThisSupertype;
+  DartType get stringType => getCoreClass("String").rawType;
 
-  ClassHierarchy get hierarchy {
-    return _hierarchy ??= createClassHierarchy(component);
-  }
+  DartType get doubleType => getCoreClass("double").rawType;
+
+  DartType get boolType => getCoreClass("bool").rawType;
 
   void parseComponent(String source) {
     Uri coreUri = Uri.parse("dart:core");
@@ -56,15 +43,28 @@ class LegacyUpperBoundTest {
 
     component = new Component(libraries: <Library>[coreLibrary, library]);
     index = new LibraryIndex.all(component);
-    coreTypes = new CoreTypes(component);
   }
 
   Class getClass(String name) {
     return index.getClass("$libraryUri", name);
   }
 
-  ClassHierarchy createClassHierarchy(Component component) {
-    return new ClassHierarchy(component);
+  Class getCoreClass(String name) {
+    return index.getClass("dart:core", name);
+  }
+
+  DartType getLegacyLeastUpperBound(DartType a, DartType b);
+
+  void checkGetLegacyLeastUpperBound(
+      DartType a, DartType b, DartType expected) {
+    DartType actual = getLegacyLeastUpperBound(a, b);
+    Expect.equals(expected, actual);
+  }
+
+  void test() {
+    test_getLegacyLeastUpperBound_expansive();
+    test_getLegacyLeastUpperBound_generic();
+    test_getLegacyLeastUpperBound_nonGeneric();
   }
 
   /// Copy of the tests/language/least_upper_bound_expansive_test.dart test.
@@ -74,8 +74,6 @@ class N<T>;
 class C1<T> extends N<N<C1<T>>>;
 class C2<T> extends N<N<C2<N<C2<T>>>>>;
 """);
-    DartType int = coreTypes.intClass.rawType;
-    DartType string = coreTypes.stringClass.rawType;
 
     Class N = getClass("N");
     Class C1 = getClass("C1");
@@ -86,26 +84,24 @@ class C2<T> extends N<N<C2<N<C2<T>>>>>;
     //     {C1<int>, N<N<C1<int>>>, Object} for C1<int> and
     //     {N<C1<String>>, Object} for N<C1<String>> and
     // Object is the most specific type in the intersection of the supertypes.
-    expect(
-        hierarchy.getLegacyLeastUpperBound(
-            new InterfaceType(C1, [int]),
-            new InterfaceType(N, [
-              new InterfaceType(C1, [string])
-            ])),
-        objectClass.thisType);
+    checkGetLegacyLeastUpperBound(
+        new InterfaceType(C1, [intType]),
+        new InterfaceType(N, [
+          new InterfaceType(C1, [stringType])
+        ]),
+        objectType);
 
     // The least upper bound of C2<int> and N<C2<String>> is Object since the
     // supertypes are
     //     {C2<int>, N<N<C2<N<C2<int>>>>>, Object} for C2<int> and
     //     {N<C2<String>>, Object} for N<C2<String>> and
     // Object is the most specific type in the intersection of the supertypes.
-    expect(
-        hierarchy.getLegacyLeastUpperBound(
-            new InterfaceType(C2, [int]),
-            new InterfaceType(N, [
-              new InterfaceType(C2, [string])
-            ])),
-        objectClass.thisType);
+    checkGetLegacyLeastUpperBound(
+        new InterfaceType(C2, [intType]),
+        new InterfaceType(N, [
+          new InterfaceType(C2, [stringType])
+        ]),
+        objectType);
   }
 
   void test_getLegacyLeastUpperBound_generic() {
@@ -118,10 +114,6 @@ class E implements D<int, double>;
 class F implements D<int, bool>;
 """);
 
-    DartType int = coreTypes.intClass.rawType;
-    DartType double = coreTypes.doubleClass.rawType;
-    DartType bool = coreTypes.boolClass.rawType;
-
     Class a = getClass("A");
     Class b = getClass("B");
     Class c = getClass("C");
@@ -129,24 +121,22 @@ class F implements D<int, bool>;
     Class e = getClass("E");
     Class f = getClass("F");
 
-    expect(
-        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
-            new InterfaceType(d, [int, double])),
-        new InterfaceType(d, [int, double]));
-    expect(
-        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
-            new InterfaceType(d, [int, bool])),
-        new InterfaceType(b, [int]));
-    expect(
-        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
-            new InterfaceType(d, [bool, double])),
-        new InterfaceType(c, [double]));
-    expect(
-        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
-            new InterfaceType(d, [bool, int])),
-        a.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(e.rawType, f.rawType),
-        new InterfaceType(b, [int]));
+    checkGetLegacyLeastUpperBound(
+        new InterfaceType(d, [intType, doubleType]),
+        new InterfaceType(d, [intType, doubleType]),
+        new InterfaceType(d, [intType, doubleType]));
+    checkGetLegacyLeastUpperBound(
+        new InterfaceType(d, [intType, doubleType]),
+        new InterfaceType(d, [intType, boolType]),
+        new InterfaceType(b, [intType]));
+    checkGetLegacyLeastUpperBound(
+        new InterfaceType(d, [intType, doubleType]),
+        new InterfaceType(d, [boolType, doubleType]),
+        new InterfaceType(c, [doubleType]));
+    checkGetLegacyLeastUpperBound(new InterfaceType(d, [intType, doubleType]),
+        new InterfaceType(d, [boolType, intType]), a.rawType);
+    checkGetLegacyLeastUpperBound(
+        e.rawType, f.rawType, new InterfaceType(b, [intType]));
   }
 
   void test_getLegacyLeastUpperBound_nonGeneric() {
@@ -171,16 +161,13 @@ class I implements C, D, E;
     Class h = getClass("H");
     Class i = getClass("I");
 
-    expect(hierarchy.getLegacyLeastUpperBound(a.rawType, b.rawType),
-        objectClass.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(a.rawType, objectClass.rawType),
-        objectClass.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(objectClass.rawType, b.rawType),
-        objectClass.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(c.rawType, d.rawType), a.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(c.rawType, a.rawType), a.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(a.rawType, d.rawType), a.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(f.rawType, g.rawType), a.rawType);
-    expect(hierarchy.getLegacyLeastUpperBound(h.rawType, i.rawType), a.rawType);
+    checkGetLegacyLeastUpperBound(a.rawType, b.rawType, objectType);
+    checkGetLegacyLeastUpperBound(a.rawType, objectType, objectType);
+    checkGetLegacyLeastUpperBound(objectType, b.rawType, objectType);
+    checkGetLegacyLeastUpperBound(c.rawType, d.rawType, a.rawType);
+    checkGetLegacyLeastUpperBound(c.rawType, a.rawType, a.rawType);
+    checkGetLegacyLeastUpperBound(a.rawType, d.rawType, a.rawType);
+    checkGetLegacyLeastUpperBound(f.rawType, g.rawType, a.rawType);
+    checkGetLegacyLeastUpperBound(h.rawType, i.rawType, a.rawType);
   }
 }
