@@ -72,7 +72,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   void visitProgram(ProgramInfo info) {
     visitFunction(info.entrypoint);
     sink.writeInt(info.size);
-    sink.writeString(info.dart2jsVersion);
+    sink.writeStringOrNull(info.dart2jsVersion);
     writeDate(info.compilationMoment);
     writeDuration(info.compilationDuration);
     // Note: we don't record the 'toJsonDuration' field. Consider deleting it?
@@ -302,7 +302,7 @@ class BinaryReader {
     var info = new ProgramInfo();
     info.entrypoint = readFunction();
     info.size = source.readInt();
-    info.dart2jsVersion = source.readString();
+    info.dart2jsVersion = source.readStringOrNull();
     info.compilationMoment = readDate();
     info.compilationDuration = readDuration();
     info.toJsonDuration = new Duration(microseconds: 0);
