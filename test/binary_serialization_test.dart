@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart2js_info/json_info_codec.dart';
-import 'package:dart2js_info/binary_codec.dart' as binary;
+import 'package:dart2js_info/binary_serialization.dart' as binary;
 import 'package:test/test.dart';
 
 class ByteSink implements Sink<List<int>> {

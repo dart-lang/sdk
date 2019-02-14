@@ -16,7 +16,7 @@
 
 * Split the json codec from info.dart.
 
-* Introduced `lib/binary_codec.dart` a lighterweight
+* Introduced `lib/binary_serialization.dart` a lighterweight
   serialization/deserialization implementation. This will eventually be used by
   default by dart2js.
 

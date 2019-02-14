@@ -49,12 +49,12 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         (elements['constant'] as Map).values.map((c) => parseConstant(c)));
 
     json['holding'].forEach((k, deps) {
-      var src = registry[k];
+      CodeInfo src = registry[k];
       assert(src != null);
       for (var dep in deps) {
         var target = registry[dep['id']];
         assert(target != null);
-        (src as CodeInfo).uses.add(new DependencyInfo(target, dep['mask']));
+        src.uses.add(new DependencyInfo(target, dep['mask']));
       }
     });
 
