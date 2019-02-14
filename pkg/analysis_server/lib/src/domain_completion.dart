@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -60,6 +61,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * The current request being processed or `null` if none.
    */
   CompletionRequestImpl _currentRequest;
+
+  /**
+   * The identifiers of the latest `getSuggestionDetails` request.
+   * We use it to abort previous requests.
+   */
+  int _latestGetSuggestionDetailsId = 0;
 
   /**
    * Initialize a new request handler for the given [server].
@@ -173,11 +180,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    var analysisDriver = server.getAnalysisDriver(file);
-    var session = analysisDriver.currentSession;
-    var resolvedLibrary = await session.getResolvedLibrary(file);
-    var requestedLibraryElement = await session.getLibraryByUri(library.uriStr);
-
     // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
     var requestedName = params.label;
     if (requestedName.contains('.')) {
@@ -187,26 +189,48 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       );
     }
 
-    var completion = params.label;
-    var builder = DartChangeBuilder(session);
-    await builder.addFileEdit(file, (builder) {
-      var result = builder.importLibraryElement(
-        targetLibrary: resolvedLibrary,
-        targetPath: file,
-        targetOffset: params.offset,
-        requestedLibrary: requestedLibraryElement,
-        requestedName: requestedName,
-      );
-      if (result.prefix != null) {
-        completion = '${result.prefix}.$completion';
-      }
-    });
+    const timeout = Duration(milliseconds: 1000);
+    var timer = Stopwatch()..start();
+    var id = ++_latestGetSuggestionDetailsId;
+    while (id == _latestGetSuggestionDetailsId && timer.elapsed < timeout) {
+      try {
+        var analysisDriver = server.getAnalysisDriver(file);
+        var session = analysisDriver.currentSession;
+        var resolvedLibrary = await session.getResolvedLibrary(file);
+        var requestedLibraryElement = await session.getLibraryByUri(
+          library.uriStr,
+        );
 
+        var completion = params.label;
+        var builder = DartChangeBuilder(session);
+        await builder.addFileEdit(file, (builder) {
+          var result = builder.importLibraryElement(
+            targetLibrary: resolvedLibrary,
+            targetPath: file,
+            targetOffset: params.offset,
+            requestedLibrary: requestedLibraryElement,
+            requestedName: requestedName,
+          );
+          if (result.prefix != null) {
+            completion = '${result.prefix}.$completion';
+          }
+        });
+
+        server.sendResponse(
+          CompletionGetSuggestionDetailsResult(
+            completion,
+            change: builder.sourceChange,
+          ).toResponse(request.id),
+        );
+        return;
+      } on InconsistentAnalysisException {
+        // Loop around to try again.
+      }
+    }
+
+    // Timeout or abort, send the empty response.
     server.sendResponse(
-      CompletionGetSuggestionDetailsResult(
-        completion,
-        change: builder.sourceChange,
-      ).toResponse(request.id),
+      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
     );
   }
 
