@@ -80,6 +80,34 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin ProvisionalApiTestCases on ProvisionalApiTestBase {
+  test_conditional_assert_statement_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i) {
+  if (b) return;
+  assert(i != null);
+}
+void g(bool b, int i) {
+  if (b) f(b, i);
+}
+main() {
+  g(true, null);
+}
+''';
+    var expected = '''
+void f(bool b, int? i) {
+  if (b) return;
+  assert(i != null);
+}
+void g(bool b, int? i) {
+  if (b) f(b, i);
+}
+main() {
+  g(true, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_inward() async {
     var content = '''
 class C<T> {
@@ -576,6 +604,32 @@ int? g() => f();
 ''';
     await _checkMultipleFileChanges(
         {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
+  }
+
+  test_unconditional_assert_statement_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
   }
 }
 
